@@ -61,8 +61,8 @@ export default function ProgramDetail() {
       <div className="space-y-4">
         {program.workstreams.map((ws) => (
           <div key={ws.id} className="card">
-            <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3 pb-3 border-b border-slate-100">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
                 <h3 className="font-semibold text-slate-900 text-lg">{ws.name}</h3>
                 <StatusPill status={ws.status} />
                 <span className="text-sm text-slate-500">{ws.initiatives.length} initiative{ws.initiatives.length !== 1 && 's'}</span>
@@ -74,6 +74,7 @@ export default function ProgramDetail() {
             {ws.initiatives.length === 0 ? (
               <div className="text-sm text-slate-500 italic py-3">No initiatives yet</div>
             ) : (
+              <div className="table-scroll">
               <table className="w-full text-sm">
                 <thead className="text-xs text-slate-500">
                   <tr>
@@ -112,6 +113,7 @@ export default function ProgramDetail() {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         ))}
@@ -210,8 +212,8 @@ function CreateInitiativeModal({ workstream, onClose, onCreated }) {
 
 function Modal({ children, title, onClose }) {
   return (
-    <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 overflow-y-auto" onClick={onClose}>
+      <div className="bg-white rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-lg my-auto max-h-[calc(100vh-2rem)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-lg font-semibold text-slate-900 mb-4">{title}</h2>
         {children}
       </div>

@@ -77,8 +77,8 @@ export default function InitiativeDetail() {
 
       {/* Stage progress + status row */}
       <div className="card mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="text-xs uppercase font-semibold text-slate-500">Stage</span>
             <span className="font-semibold text-slate-900">{STAGE_LABELS[init.stage]}</span>
             {init.workflowAction === 'SUBMIT' && (
@@ -99,9 +99,9 @@ export default function InitiativeDetail() {
           </div>
         </div>
         <StageBadge stage={init.stage} />
-        <div className="grid grid-cols-5 mt-2 text-xs text-slate-500">
+        <div className="grid grid-cols-5 mt-2 text-[10px] sm:text-xs text-slate-500">
           {STAGE_ORDER.map((s) => (
-            <div key={s} className="text-center">{STAGE_LABELS[s]}</div>
+            <div key={s} className="text-center truncate px-0.5">{STAGE_LABELS[s]}</div>
           ))}
         </div>
       </div>
@@ -132,14 +132,14 @@ export default function InitiativeDetail() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-slate-200 mb-5">
-        <nav className="flex gap-1">
+      <div className="border-b border-slate-200 mb-5 -mx-4 sm:mx-0 overflow-x-auto">
+        <nav className="flex gap-1 px-4 sm:px-0 whitespace-nowrap">
           {TABS.map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={
-                'px-4 py-2 text-sm font-medium border-b-2 transition-colors ' +
+                'px-3 sm:px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-shrink-0 ' +
                 (tab === t
                   ? 'text-brand-700 border-brand-600'
                   : 'text-slate-500 border-transparent hover:text-slate-800')
@@ -284,6 +284,7 @@ function LineSection({ title, type, lines, onCreate, onChange }) {
       {lines.length === 0 ? (
         <div className="text-sm text-slate-500 italic py-2">No lines yet</div>
       ) : (
+        <div className="table-scroll">
         <table className="w-full text-sm">
           <thead className="text-xs text-slate-500">
             <tr>
@@ -325,6 +326,7 @@ function LineSection({ title, type, lines, onCreate, onChange }) {
             })}
           </tbody>
         </table>
+        </div>
       )}
 
       {editingLine && (
@@ -567,6 +569,7 @@ function RaidTab({ init, reload }) {
       {init.raidItems.length === 0 ? (
         <div className="text-sm text-slate-500 italic">No RAID items</div>
       ) : (
+        <div className="table-scroll">
         <table className="w-full text-sm">
           <thead className="text-xs text-slate-500">
             <tr>
@@ -607,6 +610,7 @@ function RaidTab({ init, reload }) {
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       {showCreate && (
@@ -700,7 +704,8 @@ function AlignmentTab({ init, reload }) {
       {init.objectiveLinks.length === 0 ? (
         <div className="text-sm text-slate-500 italic mb-4">No strategic objectives linked.</div>
       ) : (
-        <table className="w-full text-sm mb-4">
+        <div className="table-scroll mb-4">
+        <table className="w-full text-sm">
           <thead className="text-xs text-slate-500">
             <tr>
               <th className="text-left pb-2 font-semibold">Strategic Objective</th>
@@ -728,24 +733,27 @@ function AlignmentTab({ init, reload }) {
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       {available.length > 0 && (
         <div className="border-t border-slate-100 pt-4">
           <h4 className="text-xs uppercase font-semibold text-slate-500 mb-2">Link an objective</h4>
-          <div className="flex items-center gap-2">
-            <select className="input flex-1" value={selectedObj} onChange={(e) => setSelectedObj(e.target.value)}>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <select className="input sm:flex-1" value={selectedObj} onChange={(e) => setSelectedObj(e.target.value)}>
               <option value="">Select objective…</option>
               {available.map((o) => (
                 <option key={o.id} value={o.id}>{o.name}</option>
               ))}
             </select>
-            <select className="input w-28" value={impact} onChange={(e) => setImpact(e.target.value)}>
-              <option value="LOW">Low</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="HIGH">High</option>
-            </select>
-            <button className="btn-primary" onClick={add} disabled={!selectedObj}>Link</button>
+            <div className="flex gap-2">
+              <select className="input flex-1 sm:flex-none sm:w-28" value={impact} onChange={(e) => setImpact(e.target.value)}>
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
+              </select>
+              <button className="btn-primary" onClick={add} disabled={!selectedObj}>Link</button>
+            </div>
           </div>
         </div>
       )}
@@ -796,8 +804,8 @@ function AuditTab({ initId }) {
 
 function Modal({ title, children, onClose, wide }) {
   return (
-    <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className={`bg-white rounded-xl shadow-xl p-6 w-full ${wide ? 'max-w-2xl' : 'max-w-lg'}`}
+    <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 overflow-y-auto" onClick={onClose}>
+      <div className={`bg-white rounded-xl shadow-xl p-5 sm:p-6 w-full my-auto max-h-[calc(100vh-2rem)] overflow-y-auto ${wide ? 'max-w-2xl' : 'max-w-lg'}`}
            onClick={(e) => e.stopPropagation()}>
         <h2 className="text-lg font-semibold text-slate-900 mb-4">{title}</h2>
         {children}

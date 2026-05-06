@@ -34,6 +34,7 @@ export default function Rules() {
         {rules.length === 0 ? (
           <div className="text-sm text-slate-500 italic py-2">No rules configured</div>
         ) : (
+          <div className="table-scroll">
           <table className="w-full text-sm">
             <thead className="text-xs text-slate-500 border-b border-slate-200">
               <tr>
@@ -72,6 +73,7 @@ export default function Rules() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
@@ -122,8 +124,8 @@ function RuleEditor({ rule, onClose, onSaved }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 overflow-y-auto" onClick={onClose}>
+      <div className="bg-white rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-2xl my-auto max-h-[calc(100vh-2rem)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-lg font-semibold text-slate-900 mb-4">
           {rule ? 'Edit Rule' : 'New Rule'}
         </h2>
@@ -131,7 +133,7 @@ function RuleEditor({ rule, onClose, onSaved }) {
           <div><label className="label">Name</label>
             <input className="input" value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div><label className="label">Entity</label>
               <select className="input" value={form.entityType}
                 onChange={(e) => setForm({ ...form, entityType: e.target.value })}>

@@ -39,7 +39,8 @@ export default function Audit() {
         {entries.length === 0 ? (
           <div className="text-sm text-slate-500 italic">No audit entries</div>
         ) : (
-          <table className="w-full text-sm">
+          <div className="table-scroll">
+          <table className="w-full text-sm min-w-[800px]">
             <thead className="text-xs text-slate-500 border-b border-slate-200">
               <tr>
                 <th className="text-left py-2 font-semibold w-44">When</th>
@@ -71,6 +72,7 @@ export default function Audit() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

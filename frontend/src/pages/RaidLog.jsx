@@ -72,7 +72,7 @@ export default function RaidLog() {
 
         <div className="card lg:col-span-2">
           <h3 className="font-semibold text-slate-900 mb-3">Filters</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="label">Type</label>
               <div className="flex flex-wrap gap-1">
@@ -94,7 +94,7 @@ export default function RaidLog() {
               </div>
             </div>
           </div>
-          <div className="mt-4 grid grid-cols-4 gap-4 pt-3 border-t border-slate-100">
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-slate-100">
             {['RISK', 'ASSUMPTION', 'ISSUE', 'DECISION'].map((t) => (
               <div key={t}>
                 <div className="text-xs text-slate-500">{t}</div>
@@ -112,6 +112,7 @@ export default function RaidLog() {
         {items.length === 0 ? (
           <div className="text-sm text-slate-500 italic">No items match the filters</div>
         ) : (
+          <div className="table-scroll">
           <table className="w-full text-sm">
             <thead className="text-xs text-slate-500 border-b border-slate-200">
               <tr>
@@ -149,6 +150,7 @@ export default function RaidLog() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

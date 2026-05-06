@@ -105,32 +105,34 @@ export default function Portfolio() {
         {data.topRisks.length === 0 ? (
           <div className="text-sm text-slate-500">No open risks 🎉</div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="text-xs text-slate-500 border-b border-slate-200">
-              <tr>
-                <th className="text-left py-2 font-semibold">Title</th>
-                <th className="text-left py-2 font-semibold">Initiative</th>
-                <th className="text-center py-2 font-semibold">Severity</th>
-                <th className="text-left py-2 font-semibold">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.topRisks.map((r) => (
-                <tr key={r.id} className="border-b border-slate-100">
-                  <td className="py-2.5 font-medium text-slate-800">{r.title}</td>
-                  <td className="py-2.5">
-                    <Link className="text-brand-600 hover:underline" to={`/initiatives/${r.initiative.id}`}>
-                      {r.initiative.name}
-                    </Link>
-                  </td>
-                  <td className="py-2.5 text-center">
-                    <SeverityCell value={r.severity} />
-                  </td>
-                  <td className="py-2.5 text-slate-600">{r.status}</td>
+          <div className="table-scroll">
+            <table className="w-full text-sm">
+              <thead className="text-xs text-slate-500 border-b border-slate-200">
+                <tr>
+                  <th className="text-left py-2 font-semibold">Title</th>
+                  <th className="text-left py-2 font-semibold">Initiative</th>
+                  <th className="text-center py-2 font-semibold">Severity</th>
+                  <th className="text-left py-2 font-semibold">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.topRisks.map((r) => (
+                  <tr key={r.id} className="border-b border-slate-100">
+                    <td className="py-2.5 font-medium text-slate-800">{r.title}</td>
+                    <td className="py-2.5">
+                      <Link className="text-brand-600 hover:underline" to={`/initiatives/${r.initiative.id}`}>
+                        {r.initiative.name}
+                      </Link>
+                    </td>
+                    <td className="py-2.5 text-center">
+                      <SeverityCell value={r.severity} />
+                    </td>
+                    <td className="py-2.5 text-slate-600">{r.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
