@@ -21,19 +21,19 @@ if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
 
-app.get('/api/health', (_, res) => res.json({ ok: true, version: '0.1.0' }));
+app.get('/health', (_, res) => res.json({ ok: true, version: '0.1.0' }));
 
-app.use('/api/auth', authRoutes);
-app.use('/api/programs', programRoutes);
-app.use('/api/workstreams', workstreamRoutes);
-app.use('/api/initiatives', initiativeRoutes);
-app.use('/api/benefits-costs', benefitCostRoutes);
-app.use('/api/raid', raidRoutes);
-app.use('/api/okr', okrRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/audit', auditRoutes);
-app.use('/api/rules', rulesRoutes);
+app.use('/auth', authRoutes);
+app.use('/programs', programRoutes);
+app.use('/workstreams', workstreamRoutes);
+app.use('/initiatives', initiativeRoutes);
+app.use('/benefits-costs', benefitCostRoutes);
+app.use('/raid', raidRoutes);
+app.use('/okr', okrRoutes);
+app.use('/dashboard', dashboardRoutes);
+app.use('/notifications', notificationRoutes);
+app.use('/audit', auditRoutes);
+app.use('/rules', rulesRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);
