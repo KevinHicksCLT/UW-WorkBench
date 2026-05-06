@@ -1,3 +1,5 @@
+// App.jsx
+
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './lib/auth.jsx';
 import Layout from './components/Layout.jsx';
