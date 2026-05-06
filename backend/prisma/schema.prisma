@@ -1,0 +1,313 @@
+// Cascade Platform — Data Model
+// Multi-tenant SPM/Transformation platform
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Tenancy & Identity ────────────────────────────────────────────────
+
+model Tenant {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  createdAt     DateTime @default(now())
+  users         User[]
+  programs      Program[]
+  objectives    StrategicObjective[]
+  kpis          Kpi[]
+  resources     Resource[]
+  notifications Notification[]
+  auditEntries  AuditEntry[]
+  businessRules BusinessRule[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  email     String   @unique
+  name      String
+  password  String   // bcrypt hash
+  role      String   @default("MEMBER") // ADMIN | MANAGER | MEMBER | VIEWER
+  createdAt DateTime @default(now())
+  ownedInitiatives  Initiative[] @relation("InitiativeOwner")
+  sponsoredInits    Initiative[] @relation("InitiativeSponsor")
+  raidItems         RaidItem[]
+  notifications     Notification[]
+}
+
+// ─── Program / Workstream / Initiative hierarchy ───────────────────────
+
+model Program {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+  name         String
+  description  String?
+  startDate    DateTime
+  endDate      DateTime
+  status       String   @default("ON_TRACK") // ON_TRACK | AT_RISK | OFF_TRACK
+  statusNote   String?
+  createdAt    DateTime @default(now())
+  workstreams  Workstream[]
+}
+
+model Workstream {
+  id          String   @id @default(cuid())
+  programId   String
+  program     Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  status      String   @default("ON_TRACK")
+  statusNote  String?
+  createdAt   DateTime @default(now())
+  initiatives Initiative[]
+}
+
+model Initiative {
+  id              String   @id @default(cuid())
+  workstreamId    String
+  workstream      Workstream @relation(fields: [workstreamId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  // Stage-gate workflow
+  stage           String   @default("IDEA") // IDEA | PLAN | EXECUTE | REALIZE | COMPLETE
+  workflowAction  String?  // SUBMIT | APPROVE | MOVE_BACK
+  state           String   @default("PLANNING") // PLANNING | ACTIVE | DONE
+  // Status
+  status          String   @default("ON_TRACK") // ON_TRACK | AT_RISK | OFF_TRACK
+  statusNote      String?
+  // Dates
+  startDate       DateTime
+  dueDate         DateTime
+  // People
+  ownerId         String?
+  owner           User?    @relation("InitiativeOwner", fields: [ownerId], references: [id])
+  sponsorId       String?
+  sponsor         User?    @relation("InitiativeSponsor", fields: [sponsorId], references: [id])
+  // Computed (denormalized for read performance — refreshed by rollup service)
+  cumulativeBenefit  Float @default(0)
+  cumulativeCost     Float @default(0)
+  cumulativeNetBenefit Float @default(0)
+  valueScore         Float @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  benefits        BenefitLine[]
+  costs           CostLine[]
+  milestones      Milestone[]
+  raidItems       RaidItem[]
+  objectiveLinks  InitiativeObjective[]
+  initiativeKpis  InitiativeKpi[]
+}
+
+// ─── Time-phased Metrics (Benefits / Costs) ────────────────────────────
+
+// Each line item carries multiple monthly data points keyed by dataset.
+// Datasets: ACTUAL, TARGET, FORECAST, VARIANCE (computed)
+
+model BenefitLine {
+  id           String   @id @default(cuid())
+  initiativeId String
+  initiative   Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  name         String
+  category     String?  // e.g. Cost Savings, Revenue Uplift, Cost Avoidance
+  startDate    DateTime
+  endDate      DateTime
+  createdAt    DateTime @default(now())
+  values       MetricValue[]
+}
+
+model CostLine {
+  id           String   @id @default(cuid())
+  initiativeId String
+  initiative   Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  name         String
+  category     String?  // OPEX, CAPEX, Resource, Vendor
+  startDate    DateTime
+  endDate      DateTime
+  createdAt    DateTime @default(now())
+  values       MetricValue[]
+}
+
+// Generic time-phased value record.
+// Either benefitLineId OR costLineId is set (sparse FK pattern).
+model MetricValue {
+  id            String   @id @default(cuid())
+  benefitLineId String?
+  costLineId    String?
+  benefitLine   BenefitLine? @relation(fields: [benefitLineId], references: [id], onDelete: Cascade)
+  costLine      CostLine?    @relation(fields: [costLineId], references: [id], onDelete: Cascade)
+  dataset       String   // ACTUAL | TARGET | FORECAST
+  periodStart   DateTime // first day of the month
+  amount        Float
+
+  @@index([benefitLineId, dataset, periodStart])
+  @@index([costLineId, dataset, periodStart])
+}
+
+// ─── Milestones ────────────────────────────────────────────────────────
+
+model Milestone {
+  id           String   @id @default(cuid())
+  initiativeId String
+  initiative   Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  name         String
+  dueDate      DateTime
+  completedAt  DateTime?
+  isGate       Boolean  @default(false) // Stage-gate milestone?
+  status       String   @default("PENDING") // PENDING | DONE | MISSED
+  createdAt    DateTime @default(now())
+}
+
+// ─── RAID Log ──────────────────────────────────────────────────────────
+
+model RaidItem {
+  id           String   @id @default(cuid())
+  initiativeId String
+  initiative   Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  type         String   // RISK | ASSUMPTION | ISSUE | DECISION
+  title        String
+  description  String?
+  probability  Int      @default(3) // 1 (low) – 5 (high) — for risks
+  impact       Int      @default(3) // 1 – 5
+  severity     Int      @default(9) // computed = probability * impact
+  mitigation   String?
+  status       String   @default("OPEN") // OPEN | MITIGATED | CLOSED
+  ownerId      String?
+  owner        User?    @relation(fields: [ownerId], references: [id])
+  dueDate      DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// ─── OKR module ────────────────────────────────────────────────────────
+
+model StrategicObjective {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  parentId    String?
+  parent      StrategicObjective?  @relation("ObjectiveTree", fields: [parentId], references: [id])
+  children    StrategicObjective[] @relation("ObjectiveTree")
+  name        String
+  description String?
+  ownerName   String?
+  startDate   DateTime
+  endDate     DateTime
+  // Computed weighted % achievement (from KPIs)
+  achievement Float    @default(0)
+  createdAt   DateTime @default(now())
+  kpis        Kpi[]
+  initiativeLinks InitiativeObjective[]
+}
+
+model Kpi {
+  id            String   @id @default(cuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id])
+  objectiveId   String?
+  objective     StrategicObjective? @relation(fields: [objectiveId], references: [id])
+  name          String
+  description   String?
+  unit          String   @default("NUMBER") // NUMBER | CURRENCY | PERCENT
+  direction     String   @default("MAX")    // MAX | MIN
+  weight        Float    @default(1.0)
+  startingValue Float    @default(0)
+  targetValue   Float
+  currentValue  Float    @default(0)
+  achievement   Float    @default(0) // 0–1
+  createdAt     DateTime @default(now())
+  initiativeKpis InitiativeKpi[]
+}
+
+// Many-to-many: which initiatives contribute to which objectives, with impact rating
+model InitiativeObjective {
+  id           String   @id @default(cuid())
+  initiativeId String
+  objectiveId  String
+  impact       String   @default("MEDIUM") // LOW | MEDIUM | HIGH
+  initiative   Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  objective    StrategicObjective @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+
+  @@unique([initiativeId, objectiveId])
+}
+
+// Initiative-scoped KPIs (separate from enterprise KPIs)
+model InitiativeKpi {
+  id           String   @id @default(cuid())
+  initiativeId String
+  kpiId        String
+  initiative   Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  kpi          Kpi @relation(fields: [kpiId], references: [id], onDelete: Cascade)
+
+  @@unique([initiativeId, kpiId])
+}
+
+// ─── Resources (light) ─────────────────────────────────────────────────
+
+model Resource {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  name      String
+  role      String?
+  hourlyRate Float   @default(0)
+  capacity  Float    @default(40) // hours per week
+  createdAt DateTime @default(now())
+}
+
+// ─── Notifications ─────────────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  subject   String
+  body      String
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// ─── Audit log ─────────────────────────────────────────────────────────
+
+model AuditEntry {
+  id         String   @id @default(cuid())
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+  entityType String   // Initiative | Program | RaidItem | …
+  entityId   String
+  action     String   // CREATE | UPDATE | DELETE | STAGE_CHANGE | APPROVE
+  actorEmail String
+  diff       String?  // JSON
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+}
+
+// ─── Business rules engine ─────────────────────────────────────────────
+
+model BusinessRule {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  name        String
+  entityType  String   // Initiative | RaidItem | …
+  trigger     String   // ON_CREATE | ON_UPDATE | ON_FIELD_CHANGE
+  fieldName   String?  // for ON_FIELD_CHANGE
+  fieldValue  String?  // value to match
+  action      String   // SET_VALUE | NOTIFY | RUN_RULE
+  actionConfig String  // JSON: { field, value, recipients, subject, body }
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
