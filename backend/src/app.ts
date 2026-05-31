@@ -1,3 +1,4 @@
+import './types/express.js'; // loads the Express.Request augmentation into the build graph
 import express from 'express';
 import type { Request, Response, ErrorRequestHandler } from 'express';
 import cors from 'cors';
