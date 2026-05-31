@@ -4,18 +4,20 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --watch src/index.js",
-    "start": "node src/index.js",
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate",
     "vercel-build": "prisma migrate deploy",
     "prisma:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:setup": "prisma generate && prisma db push && node src/seed/seed.js",
-    "db:reset": "prisma migrate reset --force --skip-seed && node src/seed/seed.js",
-    "db:seed": "node src/seed/seed.js",
+    "db:setup": "prisma generate && prisma db push && tsx src/seed/seed.ts",
+    "db:reset": "prisma migrate reset --force --skip-seed && tsx src/seed/seed.ts",
+    "db:seed": "tsx src/seed/seed.ts",
     "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@cascade/shared": "*",
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -27,6 +29,14 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "prisma": "^5.22.0"
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^20.17.6",
+    "prisma": "^5.22.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
   }
 }
