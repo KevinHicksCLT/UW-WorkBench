@@ -6,16 +6,9 @@ import type { HealthResponse } from '@cascade/shared';
 
 import { prisma } from './db/prisma.js';
 import authRoutes from './routes/auth.js';
-import programRoutes from './routes/programs.js';
-import workstreamRoutes from './routes/workstreams.js';
-import initiativeRoutes from './routes/initiatives.js';
-import benefitCostRoutes from './routes/benefitsCosts.js';
-import raidRoutes from './routes/raid.js';
-import okrRoutes from './routes/okr.js';
-import dashboardRoutes from './routes/dashboard.js';
-import notificationRoutes from './routes/notifications.js';
 import auditRoutes from './routes/audit.js';
-import rulesRoutes from './routes/rules.js';
+import companyRoutes from './routes/companies.js';
+import valueStreamRoutes from './routes/valueStreams.js';
 
 const app = express();
 app.use(cors());
@@ -41,16 +34,9 @@ app.get('/health', async (_req: Request, res: Response) => {
 });
 
 app.use('/auth', authRoutes);
-app.use('/programs', programRoutes);
-app.use('/workstreams', workstreamRoutes);
-app.use('/initiatives', initiativeRoutes);
-app.use('/benefits-costs', benefitCostRoutes);
-app.use('/raid', raidRoutes);
-app.use('/okr', okrRoutes);
-app.use('/dashboard', dashboardRoutes);
-app.use('/notifications', notificationRoutes);
 app.use('/audit', auditRoutes);
-app.use('/rules', rulesRoutes);
+app.use('/companies', companyRoutes);
+app.use('/value-streams', valueStreamRoutes);
 
 const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   console.error(err);

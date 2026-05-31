@@ -211,7 +211,7 @@ Push to `main` → Vercel auto-builds: `prisma generate` → `prisma migrate dep
 
 **The question:** Can I run the app locally, talk to Neon through Prisma, deploy a blank shell to Vercel, and is the toolchain TypeScript end-to-end?
 
-**Status:** Not started.
+**Status:** ✅ Complete (2026-05-31). TypeScript migration done across `backend`, `frontend`, and a `shared/` zod workspace; Prisma `globalThis` singleton, `api/index.ts`, `GET /api/health` (live `SELECT 1`), and `tsc --noEmit` green in both workspaces. **Deviations from the plan:** the full Cascade domain was ported to TS and kept rather than skipped (it is replaced in Phase 1 instead); `vercel.json` retains the existing **`experimentalServices`** config (not the `rewrites` style), so Express mounts routers at the **root** and the dev proxy strips `/api`. Exit #1/#2 (Vercel deploy + Neon-branch preview) pending the first deploy.
 
 **What exists at the end:** A Vite + React + TS frontend and an Express + TS API (Vercel serverless) in one project, connected to Neon via Prisma, with a `GET /api/health` route confirming a live DB round-trip. Reusable Cascade infra is ported to TS. No domain data yet.
 
@@ -235,7 +235,7 @@ Push to `main` → Vercel auto-builds: `prisma generate` → `prisma migrate dep
 
 **The question:** Is the entire v12 operating model loaded into Neon, normalized, idempotent, type-safe, and queryable by recursive drill-down?
 
-**Status:** Not started.
+**Status:** ✅ Complete (2026-05-31). The operating-model spine replaces the Cascade domain, seeded from `IT_Roles_Analytics_v12.xlsx` via `transform-workbook.ts` → committed `backend/data/seed/spine.json` → idempotent `seed.ts`. `verify-seed.ts` passes: 14 divisions · 97 departments · **162 roles** (159 org-placed + 3 checklist-only architects the workbook defines checklists for but never places in the org chart) · 19 categories · 26 value streams · 208 sub-streams (104 L3 + 104 L4) · 3,337 checklist items · 4,743 role tasks · 329 role↔stream links · 27 external interactions. `/companies/:id/tree` (<1 s) and `/value-streams/:id` (recursive-CTE sub-stream tree + participation types) verified end-to-end via Playwright against the running app. **Deviations:** provenance is inline `sourceSheet`/`sourceRow` columns (not a separate `SourceRef` table); the fixed-depth org tree uses a typed nested include while the recursive CTE drives the sub-value-stream tree; tenant scoping is a direct `tenantId` filter (every spine table carries it). Exit #5 (automated cross-tenant test) deferred to the Phase 6 RLS work.
 
 **What exists at the end:** The full Prisma schema (hierarchy + junctions + people/stats models, all `tenantId`-scoped) and an idempotent seed loading all 14 divisions, ~97 departments, 159 roles, ~25 value streams, ~100 sub-streams, ~3,337 checklist items, ~4,743 tasks, ~19 categories, and external interactions — for one seeded company. A handful of typed API routes return the data, drill-downs via recursive CTE.
 

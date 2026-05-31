@@ -3,12 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 
 const NAV = [
-  { to: '/', label: 'Portfolio', icon: '◧' },
-  { to: '/programs', label: 'Programs', icon: '⌘' },
-  { to: '/raid', label: 'RAID', icon: '⚠' },
-  { to: '/okrs', label: 'OKRs', icon: '◎' },
-  { to: '/rules', label: 'Rules', icon: '⚙' },
-  { to: '/audit', label: 'Audit', icon: '☱' },
+  { to: '/', label: 'Operating Model', icon: '◧' },
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('demo@cascade.io');
+  const [email, setEmail] = useState('demo@strata.io');
   const [password, setPassword] = useState('demo1234');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -58,7 +58,7 @@ export default function Login() {
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
           <p className="text-xs text-slate-500 text-center">
-            Demo: <code>demo@cascade.io</code> / <code>demo1234</code>
+            Demo: <code>demo@strata.io</code> / <code>demo1234</code>
           </p>
         </form>
       </div>

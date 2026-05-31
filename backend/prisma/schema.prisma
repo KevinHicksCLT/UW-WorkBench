@@ -1,5 +1,11 @@
-// Cascade Platform — Data Model
-// Multi-tenant SPM/Transformation platform
+// Strata — Operating-Model Data Spine (Phase 1)
+// One governed model of a company's operating model:
+//   Company → Division → Department → Role
+//   ValueStream → SubValueStream (L3→L4 self-relation)
+//   Role ↔ ValueStream (participation), Role → ChecklistItem / RoleTask,
+//   Category, ExternalInteraction.
+// Seeded from IT_Roles_Analytics_v12.xlsx. Every spine record carries inline
+// provenance (sourceSheet/sourceRow) back to the workbook.
 
 generator client {
   provider      = "prisma-client-js"
@@ -12,21 +18,16 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ─── Tenancy & Identity ────────────────────────────────────────────────
+// ─── Tenancy & Identity (reusable infra, carried from Cascade) ──────────
 
 model Tenant {
-  id            String   @id @default(cuid())
-  name          String
-  slug          String   @unique
-  createdAt     DateTime @default(now())
-  users         User[]
-  programs      Program[]
-  objectives    StrategicObjective[]
-  kpis          Kpi[]
-  resources     Resource[]
-  notifications Notification[]
-  auditEntries  AuditEntry[]
-  businessRules BusinessRule[]
+  id           String       @id @default(cuid())
+  name         String
+  slug         String       @unique
+  createdAt    DateTime     @default(now())
+  users        User[]
+  companies    Company[]
+  auditEntries AuditEntry[]
 }
 
 model User {
@@ -35,280 +36,262 @@ model User {
   tenant    Tenant   @relation(fields: [tenantId], references: [id])
   email     String   @unique
   name      String
-  password  String   // bcrypt hash
+  password  String // bcrypt hash
   role      String   @default("MEMBER") // ADMIN | MANAGER | MEMBER | VIEWER
   createdAt DateTime @default(now())
-  ownedInitiatives  Initiative[] @relation("InitiativeOwner")
-  sponsoredInits    Initiative[] @relation("InitiativeSponsor")
-  raidItems         RaidItem[]
-  notifications     Notification[]
 }
 
-// ─── Program / Workstream / Initiative hierarchy ───────────────────────
+// ─── Operating-model spine ──────────────────────────────────────────────
 
-model Program {
-  id           String   @id @default(cuid())
-  tenantId     String
-  tenant       Tenant   @relation(fields: [tenantId], references: [id])
-  name         String
-  description  String?
-  startDate    DateTime
-  endDate      DateTime
-  status       String   @default("ON_TRACK") // ON_TRACK | AT_RISK | OFF_TRACK
-  statusNote   String?
-  createdAt    DateTime @default(now())
-  workstreams  Workstream[]
-}
-
-model Workstream {
-  id          String   @id @default(cuid())
-  programId   String
-  program     Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
-  name        String
-  description String?
-  status      String   @default("ON_TRACK")
-  statusNote  String?
-  createdAt   DateTime @default(now())
-  initiatives Initiative[]
-}
-
-model Initiative {
-  id              String   @id @default(cuid())
-  workstreamId    String
-  workstream      Workstream @relation(fields: [workstreamId], references: [id], onDelete: Cascade)
-  name            String
-  description     String?
-  // Stage-gate workflow
-  stage           String   @default("IDEA") // IDEA | PLAN | EXECUTE | REALIZE | COMPLETE
-  workflowAction  String?  // SUBMIT | APPROVE | MOVE_BACK
-  state           String   @default("PLANNING") // PLANNING | ACTIVE | DONE
-  // Status
-  status          String   @default("ON_TRACK") // ON_TRACK | AT_RISK | OFF_TRACK
-  statusNote      String?
-  // Dates
-  startDate       DateTime
-  dueDate         DateTime
-  // People
-  ownerId         String?
-  owner           User?    @relation("InitiativeOwner", fields: [ownerId], references: [id])
-  sponsorId       String?
-  sponsor         User?    @relation("InitiativeSponsor", fields: [sponsorId], references: [id])
-  // Computed (denormalized for read performance — refreshed by rollup service)
-  cumulativeBenefit  Float @default(0)
-  cumulativeCost     Float @default(0)
-  cumulativeNetBenefit Float @default(0)
-  valueScore         Float @default(0)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  benefits        BenefitLine[]
-  costs           CostLine[]
-  milestones      Milestone[]
-  raidItems       RaidItem[]
-  objectiveLinks  InitiativeObjective[]
-  initiativeKpis  InitiativeKpi[]
-}
-
-// ─── Time-phased Metrics (Benefits / Costs) ────────────────────────────
-
-// Each line item carries multiple monthly data points keyed by dataset.
-// Datasets: ACTUAL, TARGET, FORECAST, VARIANCE (computed)
-
-model BenefitLine {
-  id           String   @id @default(cuid())
-  initiativeId String
-  initiative   Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
-  name         String
-  category     String?  // e.g. Cost Savings, Revenue Uplift, Cost Avoidance
-  startDate    DateTime
-  endDate      DateTime
-  createdAt    DateTime @default(now())
-  values       MetricValue[]
-}
-
-model CostLine {
-  id           String   @id @default(cuid())
-  initiativeId String
-  initiative   Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
-  name         String
-  category     String?  // OPEX, CAPEX, Resource, Vendor
-  startDate    DateTime
-  endDate      DateTime
-  createdAt    DateTime @default(now())
-  values       MetricValue[]
-}
-
-// Generic time-phased value record.
-// Either benefitLineId OR costLineId is set (sparse FK pattern).
-model MetricValue {
-  id            String   @id @default(cuid())
-  benefitLineId String?
-  costLineId    String?
-  benefitLine   BenefitLine? @relation(fields: [benefitLineId], references: [id], onDelete: Cascade)
-  costLine      CostLine?    @relation(fields: [costLineId], references: [id], onDelete: Cascade)
-  dataset       String   // ACTUAL | TARGET | FORECAST
-  periodStart   DateTime // first day of the month
-  amount        Float
-
-  @@index([benefitLineId, dataset, periodStart])
-  @@index([costLineId, dataset, periodStart])
-}
-
-// ─── Milestones ────────────────────────────────────────────────────────
-
-model Milestone {
-  id           String   @id @default(cuid())
-  initiativeId String
-  initiative   Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
-  name         String
-  dueDate      DateTime
-  completedAt  DateTime?
-  isGate       Boolean  @default(false) // Stage-gate milestone?
-  status       String   @default("PENDING") // PENDING | DONE | MISSED
-  createdAt    DateTime @default(now())
-}
-
-// ─── RAID Log ──────────────────────────────────────────────────────────
-
-model RaidItem {
-  id           String   @id @default(cuid())
-  initiativeId String
-  initiative   Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
-  type         String   // RISK | ASSUMPTION | ISSUE | DECISION
-  title        String
-  description  String?
-  probability  Int      @default(3) // 1 (low) – 5 (high) — for risks
-  impact       Int      @default(3) // 1 – 5
-  severity     Int      @default(9) // computed = probability * impact
-  mitigation   String?
-  status       String   @default("OPEN") // OPEN | MITIGATED | CLOSED
-  ownerId      String?
-  owner        User?    @relation(fields: [ownerId], references: [id])
-  dueDate      DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-// ─── OKR module ────────────────────────────────────────────────────────
-
-model StrategicObjective {
-  id          String   @id @default(cuid())
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-  parentId    String?
-  parent      StrategicObjective?  @relation("ObjectiveTree", fields: [parentId], references: [id])
-  children    StrategicObjective[] @relation("ObjectiveTree")
-  name        String
-  description String?
-  ownerName   String?
-  startDate   DateTime
-  endDate     DateTime
-  // Computed weighted % achievement (from KPIs)
-  achievement Float    @default(0)
-  createdAt   DateTime @default(now())
-  kpis        Kpi[]
-  initiativeLinks InitiativeObjective[]
-}
-
-model Kpi {
-  id            String   @id @default(cuid())
-  tenantId      String
-  tenant        Tenant   @relation(fields: [tenantId], references: [id])
-  objectiveId   String?
-  objective     StrategicObjective? @relation(fields: [objectiveId], references: [id])
-  name          String
-  description   String?
-  unit          String   @default("NUMBER") // NUMBER | CURRENCY | PERCENT
-  direction     String   @default("MAX")    // MAX | MIN
-  weight        Float    @default(1.0)
-  startingValue Float    @default(0)
-  targetValue   Float
-  currentValue  Float    @default(0)
-  achievement   Float    @default(0) // 0–1
-  createdAt     DateTime @default(now())
-  initiativeKpis InitiativeKpi[]
-}
-
-// Many-to-many: which initiatives contribute to which objectives, with impact rating
-model InitiativeObjective {
-  id           String   @id @default(cuid())
-  initiativeId String
-  objectiveId  String
-  impact       String   @default("MEDIUM") // LOW | MEDIUM | HIGH
-  initiative   Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
-  objective    StrategicObjective @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
-
-  @@unique([initiativeId, objectiveId])
-}
-
-// Initiative-scoped KPIs (separate from enterprise KPIs)
-model InitiativeKpi {
-  id           String   @id @default(cuid())
-  initiativeId String
-  kpiId        String
-  initiative   Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
-  kpi          Kpi @relation(fields: [kpiId], references: [id], onDelete: Cascade)
-
-  @@unique([initiativeId, kpiId])
-}
-
-// ─── Resources (light) ─────────────────────────────────────────────────
-
-model Resource {
+model Company {
   id        String   @id @default(cuid())
   tenantId  String
   tenant    Tenant   @relation(fields: [tenantId], references: [id])
   name      String
-  role      String?
-  hourlyRate Float   @default(0)
-  capacity  Float    @default(40) // hours per week
+  slug      String
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  divisions            Division[]
+  departments          Department[]
+  roles                Role[]
+  categories           Category[]
+  valueStreams         ValueStream[]
+  externalInteractions ExternalInteraction[]
+
+  @@unique([tenantId, slug])
 }
 
-// ─── Notifications ─────────────────────────────────────────────────────
+model Division {
+  id        String  @id @default(cuid())
+  tenantId  String
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  code      String
+  name      String
 
-model Notification {
+  sourceSheet String?
+  sourceRow   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  departments Department[]
+  roles       Role[]
+
+  @@unique([tenantId, companyId, name])
+  @@index([companyId])
+}
+
+model Department {
+  id         String   @id @default(cuid())
+  tenantId   String
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  divisionId String
+  division   Division @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  name       String
+
+  sourceSheet String?
+  sourceRow   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  roles Role[]
+
+  @@unique([divisionId, name])
+  @@index([companyId])
+  @@index([divisionId])
+}
+
+model Role {
+  id           String      @id @default(cuid())
+  tenantId     String
+  companyId    String
+  company      Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  divisionId   String?
+  division     Division?   @relation(fields: [divisionId], references: [id])
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  name         String // canonical display name
+  itemRole     String? // name used by the Items / Aligned Role Tasks sheets (join key)
+  roleFamily   String?
+  sourceSheet  String?
+  sourceRow    Int?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  checklistItems       ChecklistItem[]
+  roleTasks            RoleTask[]
+  valueStreamLinks     RoleValueStream[]
+  externalInteractions ExternalInteraction[]
+
+  @@unique([tenantId, companyId, name])
+  @@index([companyId])
+  @@index([departmentId])
+}
+
+model Category {
   id        String   @id @default(cuid())
   tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id])
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  subject   String
-  body      String
-  link      String?
-  read      Boolean  @default(false)
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name      String
   createdAt DateTime @default(now())
+
+  checklistItems ChecklistItem[]
+  roleTasks      RoleTask[]
+
+  @@unique([tenantId, companyId, name])
+  @@index([companyId])
 }
 
-// ─── Audit log ─────────────────────────────────────────────────────────
+model ValueStream {
+  id        String  @id @default(cuid())
+  tenantId  String
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name      String
+  domain    String?
+
+  sourceSheet String?
+  sourceRow   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subStreams SubValueStream[]
+  roleLinks  RoleValueStream[]
+
+  @@unique([tenantId, companyId, name])
+  @@index([companyId])
+}
+
+// L3 (Process Area) and L4 (Sub-Process) nodes. L4 nodes point at their L3
+// parent via parentId (self-relation), queried by recursive CTE.
+model SubValueStream {
+  id            String           @id @default(cuid())
+  tenantId      String
+  valueStreamId String
+  valueStream   ValueStream      @relation(fields: [valueStreamId], references: [id], onDelete: Cascade)
+  parentId      String?
+  parent        SubValueStream?  @relation("SubStreamTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children      SubValueStream[] @relation("SubStreamTree")
+  level         Int // 3 = Process Area, 4 = Sub-Process
+  name          String
+  inputs        String?
+  outputs       String?
+  upstream      String?
+  downstream    String?
+  notes         String?
+
+  sourceSheet String?
+  sourceRow   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([valueStreamId, parentId, name])
+  @@index([valueStreamId])
+  @@index([parentId])
+}
+
+model ChecklistItem {
+  id         String    @id @default(cuid())
+  tenantId   String
+  roleId     String
+  role       Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+  text       String
+  crossRole  Boolean   @default(false)
+
+  sourceSheet String?
+  sourceRow   Int?
+  createdAt   DateTime @default(now())
+
+  @@index([roleId])
+  @@index([categoryId])
+}
+
+model RoleTask {
+  id         String    @id @default(cuid())
+  tenantId   String
+  roleId     String
+  role       Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+  text       String
+
+  sourceSheet String?
+  sourceRow   Int?
+  createdAt   DateTime @default(now())
+
+  @@index([roleId])
+  @@index([categoryId])
+}
+
+// Role ↔ ValueStream participation (one row per role/stream/sub-stream).
+model RoleValueStream {
+  id                String      @id @default(cuid())
+  tenantId          String
+  roleId            String
+  role              Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  valueStreamId     String
+  valueStream       ValueStream @relation(fields: [valueStreamId], references: [id], onDelete: Cascade)
+  subStream         String?
+  participationType String // Lead | Core | Support | Oversight | Control
+  inputs            String?
+  outputs           String?
+  upstream          String?
+  downstream        String?
+  notes             String?
+
+  sourceSheet String?
+  sourceRow   Int?
+  createdAt   DateTime @default(now())
+
+  @@unique([roleId, valueStreamId, subStream])
+  @@index([roleId])
+  @@index([valueStreamId])
+}
+
+model ExternalInteraction {
+  id                 String  @id @default(cuid())
+  tenantId           String
+  companyId          String
+  company            Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  partyType          String
+  externalRole       String
+  internalRoleId     String?
+  internalRole       Role?   @relation(fields: [internalRoleId], references: [id])
+  internalRoleOwner  String? // raw owner text (may name multiple roles)
+  divisionFunction   String?
+  interactionType    String?
+  inputs             String?
+  outputs            String?
+  relatedValueStream String?
+  dependencyType     String?
+  frequency          String?
+  notes              String?
+
+  sourceSheet String?
+  sourceRow   Int?
+  createdAt   DateTime @default(now())
+
+  @@index([companyId])
+  @@index([internalRoleId])
+}
+
+// ─── Audit log (reusable infra, carried from Cascade) ───────────────────
 
 model AuditEntry {
   id         String   @id @default(cuid())
   tenantId   String
   tenant     Tenant   @relation(fields: [tenantId], references: [id])
-  entityType String   // Initiative | Program | RaidItem | …
+  entityType String
   entityId   String
-  action     String   // CREATE | UPDATE | DELETE | STAGE_CHANGE | APPROVE
+  action     String
   actorEmail String
-  diff       String?  // JSON
+  diff       String? // JSON
   createdAt  DateTime @default(now())
 
   @@index([entityType, entityId])
-}
-
-// ─── Business rules engine ─────────────────────────────────────────────
-
-model BusinessRule {
-  id          String   @id @default(cuid())
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-  name        String
-  entityType  String   // Initiative | RaidItem | …
-  trigger     String   // ON_CREATE | ON_UPDATE | ON_FIELD_CHANGE
-  fieldName   String?  // for ON_FIELD_CHANGE
-  fieldValue  String?  // value to match
-  action      String   // SET_VALUE | NOTIFY | RUN_RULE
-  actionConfig String  // JSON: { field, value, recipients, subject, body }
-  enabled     Boolean  @default(true)
-  createdAt   DateTime @default(now())
 }
