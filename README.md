@@ -262,7 +262,7 @@ Push to `main` → Vercel auto-builds: `prisma generate` → `prisma migrate dep
 
 **The question:** Can a user navigate the entire operating model in the browser, top to bottom, without dead ends?
 
-**Status:** Not started.
+**Status:** ✅ Complete (2026-05-31). Read-only drill-down SPA, verified end-to-end via Playwright (0 console errors): Overview → Division → Department → Role, and Value Streams → detail, with SPA breadcrumbs, a debounced global search (divisions/departments/roles/value-streams/sub-streams) as a live sidebar dropdown plus a `/search` page, and no dead ends (role ↔ value-stream cross-links). Role pages show value-stream participation with type (Lead/Core/Support/Oversight/Control) and checklist items + role tasks grouped by category; value-stream pages render the L3/L4 sub-process tree (recursive CTE) with inputs/outputs and participating roles by type. New backend read endpoints: `/divisions/:id`, `/departments/:id`, `/roles/:id`, `/search`. `tsc --noEmit` green in both workspaces. **Scope note:** people, applications, SOPs, and development initiatives are not navigable — they aren't in the v12 workbook/seed (deferred to later phases), so the "Illustrative" badge (exit #4) isn't needed yet (all data is real workbook data).
 
 **What exists at the end:** A navigable React SPA — company overview → division → department → value stream → sub-stream → role → (illustrative) people, with breadcrumbs, search, and detail panels. Read-only. The first thing a stakeholder can click through.
 

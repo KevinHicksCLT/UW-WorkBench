@@ -7,7 +7,18 @@ import { tenantValueStream } from '../lib/tenant.js';
 const router = Router();
 router.use(requireAuth);
 
-type SubRow = { id: string; parentId: string | null; level: number; name: string; depth: number };
+type SubRow = {
+  id: string;
+  parentId: string | null;
+  level: number;
+  name: string;
+  inputs: string | null;
+  outputs: string | null;
+  upstream: string | null;
+  downstream: string | null;
+  notes: string | null;
+  depth: number;
+};
 
 // GET /value-streams — list streams in the tenant.
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
@@ -33,15 +44,15 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     // recursive CTE for deep drill-downs). ${vs.id} is parameterized.
     const subStreams = await prisma.$queryRaw<SubRow[]>`
       WITH RECURSIVE tree AS (
-        SELECT id, "parentId", level, name, 0 AS depth
+        SELECT id, "parentId", level, name, inputs, outputs, upstream, downstream, notes, 0 AS depth
         FROM "SubValueStream"
         WHERE "valueStreamId" = ${vs.id} AND "parentId" IS NULL
         UNION ALL
-        SELECT s.id, s."parentId", s.level, s.name, tree.depth + 1
+        SELECT s.id, s."parentId", s.level, s.name, s.inputs, s.outputs, s.upstream, s.downstream, s.notes, tree.depth + 1
         FROM "SubValueStream" s
         JOIN tree ON s."parentId" = tree.id
       )
-      SELECT id, "parentId", level, name, depth FROM tree
+      SELECT id, "parentId", level, name, inputs, outputs, upstream, downstream, notes, depth FROM tree
       ORDER BY depth, name
     `;
 

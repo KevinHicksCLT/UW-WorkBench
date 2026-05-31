@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 
 type Crumb = { label: string; to?: string };
 
@@ -18,7 +19,7 @@ export default function PageHeader({ title, subtitle, actions, breadcrumbs }: Pr
             <span key={i} className="flex items-center gap-1.5">
               {i > 0 && <span className="text-slate-300">/</span>}
               {b.to ? (
-                <a href={b.to} className="hover:text-brand-700">{b.label}</a>
+                <Link to={b.to} className="hover:text-brand-700">{b.label}</Link>
               ) : (
                 <span>{b.label}</span>
               )}

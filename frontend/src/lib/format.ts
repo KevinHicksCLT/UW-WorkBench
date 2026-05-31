@@ -56,3 +56,12 @@ export const STATUS_LABEL: Record<string, string> = {
   AT_RISK: 'At Risk',
   OFF_TRACK: 'Off Track',
 };
+
+// Value-stream participation types (from the workbook) → pill style.
+export const PARTICIPATION_CLASS: Record<string, string> = {
+  Lead: 'pill-blue',
+  Core: 'pill-green',
+  Support: 'pill-slate',
+  Oversight: 'pill-amber',
+  Control: 'pill-amber',
+};

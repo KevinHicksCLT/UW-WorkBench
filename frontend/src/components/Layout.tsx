@@ -1,9 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
+import SearchBox from './SearchBox';
 
 const NAV = [
-  { to: '/', label: 'Operating Model', icon: '◧' },
+  { to: '/', label: 'Overview', icon: '◧' },
+  { to: '/value-streams', label: 'Value Streams', icon: '⇄' },
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {
@@ -78,6 +80,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             </svg>
           </button>
         </div>
+        <SearchBox />
         <nav className="flex-1 py-4 overflow-y-auto">
           {NAV.map((item) => (
             <NavLink

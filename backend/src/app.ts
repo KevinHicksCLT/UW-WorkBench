@@ -9,7 +9,11 @@ import { prisma } from './db/prisma.js';
 import authRoutes from './routes/auth.js';
 import auditRoutes from './routes/audit.js';
 import companyRoutes from './routes/companies.js';
+import divisionRoutes from './routes/divisions.js';
+import departmentRoutes from './routes/departments.js';
+import roleRoutes from './routes/roles.js';
 import valueStreamRoutes from './routes/valueStreams.js';
+import searchRoutes from './routes/search.js';
 
 const app = express();
 app.use(cors());
@@ -37,7 +41,11 @@ app.get('/health', async (_req: Request, res: Response) => {
 app.use('/auth', authRoutes);
 app.use('/audit', auditRoutes);
 app.use('/companies', companyRoutes);
+app.use('/divisions', divisionRoutes);
+app.use('/departments', departmentRoutes);
+app.use('/roles', roleRoutes);
 app.use('/value-streams', valueStreamRoutes);
+app.use('/search', searchRoutes);
 
 const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   console.error(err);
