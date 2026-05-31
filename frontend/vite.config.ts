@@ -7,11 +7,18 @@ import react from '@vitejs/plugin-react';
 // Express mounts its routers at the root.
 export default defineConfig({
   plugins: [react()],
+  // Pre-bundle the heavy viz libs in the initial optimize pass so Vite doesn't
+  // re-optimize mid-load (which caused "504 Outdated Optimize Dep" on first run).
+  optimizeDeps: {
+    include: ['@xyflow/react', '@dagrejs/dagre', 'recharts'],
+  },
   server: {
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:4000',
+        // Defaults to the local backend; override with BACKEND_PROXY to point an
+        // alternate-port dev/validation instance without editing this file.
+        target: process.env.BACKEND_PROXY || 'http://localhost:4000',
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },

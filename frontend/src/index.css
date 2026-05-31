@@ -4,16 +4,19 @@
 
 html, body, #root {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 html {
   -webkit-text-size-adjust: 100%;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
 
 body {
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
+  color: #1f2937;
+  background: #f5f7fb;
 }
 
 input, select, textarea {
@@ -29,6 +32,8 @@ input, select, textarea {
 .safe-pr { padding-right: env(safe-area-inset-right); }
 .safe-px { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
 
+.tnum { font-variant-numeric: tabular-nums; }
+
 @layer components {
   .card {
     @apply bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-5;
@@ -43,14 +48,14 @@ input, select, textarea {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors;
   }
   .btn-primary {
-    @apply btn bg-brand-600 text-white hover:bg-brand-700 disabled:bg-slate-300;
+    @apply btn bg-accent-600 text-white hover:bg-accent-700 disabled:bg-slate-300;
   }
   .btn-secondary {
     @apply btn bg-white border border-slate-300 text-slate-700 hover:bg-slate-50;
   }
   .input {
     @apply block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm
-           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500;
+           focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500;
   }
   .label {
     @apply block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1;
@@ -63,4 +68,75 @@ input, select, textarea {
   .pill-red   { @apply pill bg-red-100 text-red-800; }
   .pill-slate { @apply pill bg-slate-100 text-slate-700; }
   .pill-blue  { @apply pill bg-brand-100 text-brand-800; }
+
+  /* ─── Elevated-light tokens (operating-model explorer) ─── */
+  /* `gradient-text` retired → a restrained navy display treatment. */
+  .gradient-text {
+    @apply text-brand-950;
+    letter-spacing: -0.025em;
+  }
+  .card-elevated {
+    @apply bg-white rounded-2xl border border-slate-200/70;
+    box-shadow: theme('boxShadow.card');
+  }
+  .lens-card {
+    @apply rounded-xl border border-slate-200/80 bg-white p-4;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium;
+  }
+  .chip-soft { @apply chip bg-slate-100 text-slate-600 border border-slate-200/70; }
+  .metric-tile {
+    @apply rounded-xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-3;
+  }
+  .illustrative-badge {
+    @apply inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide;
+  }
+  .lens-eyebrow {
+    @apply flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1;
+  }
+
+  /* Drillable row: accent text + persistent chevron = "you can dig deeper here".
+     Plain facts stay in slate with no chevron, so the two read differently. */
+  .drill-row {
+    @apply w-full flex items-center gap-2 text-left text-sm text-accent-700 rounded-md px-1.5 py-1 -mx-1.5 transition-colors hover:bg-accent-50;
+  }
+  .drill-row:disabled { @apply text-slate-500 cursor-default hover:bg-transparent; }
+  .drill-chev { @apply ml-auto flex-shrink-0 text-accent-400 text-base leading-none transition-colors; }
+  .drill-row:hover .drill-chev { @apply text-accent-700; }
+  .drill-row:disabled .drill-chev { @apply text-transparent; }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    @apply rounded-lg bg-slate-100;
+    background-image: linear-gradient(90deg, #eef1f7 0px, #e2e8f0 200px, #eef1f7 400px);
+    background-size: 800px 100%;
+    @apply animate-shimmer;
+  }
+}
+
+/* ─── React Flow theme overrides (scoped premium chrome) ─── */
+.rf-stage .react-flow__attribution { display: none; }
+.rf-stage .react-flow__background { color: #cdd6e6; }
+.rf-stage .react-flow__node { cursor: pointer; }
+.rf-stage .react-flow__node.nopan { cursor: pointer; }
+.rf-stage .react-flow__edge-path { stroke-width: 1.25px; }
+.rf-stage .react-flow__controls {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 8px 24px -16px rgba(20,31,55,0.4);
+  border: 1px solid rgba(226,232,240,0.9);
+}
+.rf-stage .react-flow__controls-button {
+  background: #ffffff;
+  border-bottom: 1px solid #eef1f7;
+  color: #475569;
+  width: 30px;
+  height: 30px;
+}
+.rf-stage .react-flow__controls-button:hover { background: #f5f7fb; }
+.rf-stage .react-flow__minimap {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid rgba(226,232,240,0.9);
 }

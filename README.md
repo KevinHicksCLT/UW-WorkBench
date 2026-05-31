@@ -282,173 +282,183 @@ Push to `main` → Vercel auto-builds: `prisma generate` → `prisma migrate dep
 
 ---
 
-## Phase 3 — Interactive Diagrams & Flow Charts
+## Phase 3 — The Operating Model Explorer (the app *is* the drill)
 
-**The question:** Can a user *see* the operating model — pan, zoom, and click into value-stream flows, application-dependency graphs, and org charts?
+**The question:** Can a CEO open one modern, immersive, top-down interactive flow on the whole company and drill all the way to a single person's tasks and performance — with the six lenses answerable at *every* level?
 
-**Status:** Not started.
+**Status:** ✅ Complete (2026-05-31). The Explorer **is** the application: it's the home route (`/`), the other top-level tabs are retired (detail pages remain as deep-link targets, reachable from the inspector and global search). One reusable React Flow surface (`DrillCanvas` + custom data-driven `DrillNode`) renders every canvas level; the deepest record levels (person, task) swap the canvas for a Recharts profile board. A type-aware `Inspector` answers the **six lenses — Who · What · How · Where · Why/Risk · How well** — for whatever node is focused, at every level. Verified end-to-end via Playwright (0 console errors) for both CEO acceptance walkthroughs.
 
-**What exists at the end:** Three interactive surfaces driven live from the relational data: (a) value-stream flow maps (L2 → L3/L4 with inputs/outputs/upstream/downstream), (b) application-dependency graphs (apps ↔ value streams ↔ external interactions), (c) the org chart (division → department → role). Clicking a node deep-links to its Phase 2 detail page.
+The full drill, all working today: **Company → Division → Department → Value Stream → Sub-Value Stream → Applications (internal/external) → Initiatives in progress → Dependencies/Risks → Roles → Person (employee/contractor) → Tasks → Person metrics.** Levels with no real workbook data — initiatives, people/contractors, per-person tasks, person metrics, first-class risks — are seeded as **illustrative** data (`illustrative=true`), badged everywhere in the UI; later phases swap illustrative → real/authored/connected data with **no UI change** (the contract is uniform).
+
+**Design direction: "elevated light."** Inter type scale, a single restrained accent over the navy neutral, three soft-shadow depth tiers, full-bleed canvas, custom nodes, animated level changes, and React Flow chrome fully themed (no default attribution, no rainbow palette). The "looks cheap" verdict on the prior three-surface version is what this phase exists to fix.
+
+**What exists at the end:** A single immersive drill that opens on the company and digs to a person's metrics, with a persistent breadcrumb (deep-linkable, browser-back works), a focus inspector showing the six lenses for any node, lazy + cached level loading with hover prefetch, and skeleton states throughout. The three Phase-3-v1 surfaces (org chart, value-stream flow, dependency graph) are **absorbed** into drill levels and the Where/Why lenses.
 
 **Components:**
-- React Flow (`@xyflow/react`) for flow maps and dependency graphs; custom typed nodes show name, owner role, participation type, automation/exposure color band.
-- Auto-layout (dagre/elk); pan/zoom/minimap/controls.
-- d3-org-chart (thin React/TS wrapper) for the collapsible org chart with headcount badges.
-- Edges built from junction-model rows (`RoleValueStream`, `ApplicationValueStream`, `ExternalInteraction`) served by typed endpoints.
-- Click-through: node → Phase 2 detail page; drill node → expand L3/L4 children in place.
+- **Uniform per-node contract** (`backend/src/routes/explorer.ts`): `GET /explorer/node/:type/:id → { type, id, name, subtitle, illustrative, lenses{who,what,how,where,why,howWell}, children:{ childType, items[], total, nextCursor } }`, plus `/explorer/node/:type/:id/children?cursor=…` for big fan-outs. `:type` ∈ company|division|department|valueStream|subValueStream|application|initiative|role|person|task. One fetch per node serves **both** the inspector (its `lenses`) and the canvas (its `children`). Lens math reuses `CONTROL_CATEGORIES`/`PART_ORDER`; headcount via `groupBy`, person metrics via `avg` on the latest period; department→stream and division→stream are **derived** (Role → RoleValueStream), no new columns.
+- **Schema (additive):** `Initiative`, `InitiativeValueStream`, `InitiativeDivision`, `Person`, `Assignment` (denormalized `employmentType`, index `[initiativeId, employmentType]` powering UC1), `PersonTask`, `PersonMetric` (`@@unique([personId, period, name])`), `Risk` — all `tenantId`-scoped, `illustrative` flagged, cascading from `Company` so the seed wipe stays one line.
+- **Illustrative seed** (`backend/src/seed/illustrative.ts → seedDeepLevels`): deterministic (FNV-1a hash) — 6 flagship initiatives (Claims Transformation, Underwriting Modernization, …), ~492 people (≈70% contractor/SI in tech/claims/data), assignments, 3–6 tasks each, 4 metrics × 6 monthly periods, risks. Forces ≥1 **offshore UI-Developer contractor on Claims Transformation** so UC1 always resolves.
+- **Frontend:** `pages/Explorer.tsx` (drill-frame stack + URL `/n/<type:id>/…` sync + cache + prefetch), `viz/DrillCanvas.tsx`, `viz/nodes/DrillNode.tsx`, `components/DrillBreadcrumb.tsx`, `components/Inspector.tsx` (type-keyed lens renderer registry), `components/PersonBoard.tsx` + `TaskBoard.tsx` (Recharts metric trends). Elevated-light tokens in `index.css` + `tailwind.config.js` (Inter, type scale, accent/surface, shadow tiers, RF theme overrides).
 
-**Exit criteria:**
-1. **Given** a value stream, **When** I open its flow map, **Then** its L3/L4 sub-processes render as a laid-out, pannable/zoomable graph with inputs/outputs visible, in <2 s.
-2. **Given** a flow node, **When** I click it, **Then** I deep-link to that entity; **When** I expand it, **Then** child sub-streams appear without a full reload.
-3. **Given** the application-dependency view, **When** I select an application, **Then** the graph highlights every value stream and external interaction it touches, sourced from junction rows (not hardcoded).
-4. **Given** the org chart, **When** I collapse/expand a division, **Then** departments and roles animate and headcount badges are correct.
-5. **Given** a diagram, **When** the underlying data changes (Phase 5), **Then** re-opening it reflects the change with no code edit (connected-data proof).
+**Exit criteria (Given/When/Then):**
+1. **Given** the app, **When** I land on `/`, **Then** the company opens as the parent of a drillable canvas and the inspector answers all six lenses for it.
+2. **Given** any level, **When** I view its inspector, **Then** all six lens blocks (Who/What/How/Where/Why/How well) render, and illustrative levels show the "Illustrative" badge.
+3. **(CEO UC1)** **Given** the Explorer, **When** I drill Company → Claims value stream → Claims Transformation initiative → its offshore UI-Developer contributor, **Then** I see that contractor's vendor/region and their performance metrics (throughput/quality/utilization/cycle-time trends).
+4. **(CEO UC2)** **Given** the Underwriting division, **When** I drill to a single underwriter, **Then** the person board shows that one person's allocation, current tasks, and metric trends — "the value of a single underwriter."
+5. **Given** any drilled node, **When** I copy its URL and reload, **Then** the full breadcrumb path restores (deep-linkable) and browser-back pops one level.
+6. **Given** the build, **When** I run `tsc --noEmit` (both workspaces) and `vite build`, **Then** both pass; the Playwright walkthroughs run with 0 console errors; no React Flow attribution or rainbow palette remains.
 
 ---
 
-## Phase 4 — ROI & Overview Dashboards
+## Phase 4 — Broader organization (v13) + insight visualizations at every level
 
-**The question:** Can an executive get on-demand roll-up insight — KPIs, ROI, and the role-by-category analytics — without exporting anything?
+**The question:** Can a CEO read *how the company operates as a whole* — at every drill level — from charts and graphs, rather than reading off labeled fields? And does the drill broaden to the full v13 model (value-stream domains, KPIs, process flows, I/O, reporting lines)?
 
-**Status:** Not started.
+**Status:** ✅ Complete (2026-05-31). Re-sourced from **`IT_Roles_Analytics_v13.xlsx`** and broadened the model into a single **operating-model-led drill with the org nested underneath**: **Company → Value-Stream Domain → Value Stream → Process Area → Sub-Process → Process Step**, and at the value-stream level *"who runs it"* leads into the org (**Role → People**, each linking back to its Division). The workbook's noisy 13–15 value-stream domains (six single-stream, several compound `A / B` labels) are **consolidated into 6 clean domains** (Core Insurance, Distribution & Customer, Technology & Data, Finance & Actuarial, Risk/Compliance/Audit, Corporate & Enterprise). The six operating-model questions are **answered silently through visualizations** — the labeled "● 01 · Who …" lens cards are gone; the inspector is an **insights panel** of titled chart cards (workforce donut + on/near/offshore split, KPI-attainment bars, KPI-vs-target bars, process-flow strip, risk-severity bars, work-focus category bars, reporting, systems, I/O mix). The **sidebar is a navigable index** — *How it operates* (the 6 domains) and *Who runs it* (the 14 divisions) — so the canvas stays operating-model-led while the org is one click away. **Drillable vs. static is explicit everywhere:** canvas nodes show a persistent "Dig deeper ›" cue (leaves show "detail"); panel rows that drill are accent-coloured with a `›` chevron, plain facts stay grey. Verified end-to-end via Playwright (0 console errors): company → 6 domains, domain → value-stream KPIs + process flow, value-stream "who runs it" → role → people, sidebar jump to any domain/division, and the CEO walkthroughs still resolve. **Data confirmed faithful to the workbook** (e.g. Claims Intake-to-Settlement: 17 KPIs / 36 steps / 32 I/O loaded = workbook exactly).
 
-**What exists at the end:** A dashboard layer: a portfolio/overview dashboard (counts, coverage, status roll-ups), an ROI dashboard (cost/benefit/automation roll-ups with drill-to-source), and the role × category analytics matrix as an interactive heatmap — all generated live from Neon.
+**What exists at the end:** The v13 spine loaded accurately — **15 value-stream domains, 14 divisions, 244 roles (90 reporting links + 84 extended roles), 26 value streams, 243 real KPI definitions, 256 E2E process steps, 835 inputs/outputs + data elements, 24 department standards** — plus the illustrative deep levels (people/initiatives/tasks/metrics/risks). Every drill node returns the same six-lens payload, but the UI renders it as charts titled by insight.
 
 **Components:**
-- Recharts KPI cards, bar/area/line charts, delta indicators (Recharts already ships in Cascade; Tremon/Tremor optional if a richer card library is wanted).
-- Role-by-category heatmap (the `Role_by_Category` matrix) as a derived raw-SQL view, click-to-drill into underlying tasks.
-- ROI roll-ups computed by recursive CTE over the hierarchy (every figure drillable to its source role/task — "show your work"), in a ported/extended `services/rollup.ts`.
-- Scope filters (company / division / value stream) recompute roll-ups live.
-- Heavy aggregates cached per (tenant, scope) with explicit invalidation on write.
+- `transform-workbook.ts` rewritten for v13 → expanded `spine.json` (domains, KPIs, process steps, I/O, extended roles, role-hierarchy, standards); role-name reconciliation extended; extended roles inherit division/department from their manager.
+- Schema (migration `v13_domains_metrics_steps_io_roles`): `ValueStreamDomain`; `Metric` extended with the real KPI definition (category/formula/target text/owner/framework) + an illustrative current reading parsed against the real target; `ProcessStep`; `IoItem`; `Standard`; `Role` gains `managerRoleId` self-relation + `roleLevel`/`description`/`responsibilities`/`status`.
+- Backend `explorer.ts`: `company` returns **grouped** children (Operating model + Organization); `domain → value streams`; `valueStream` lenses carry real KPIs + attainment + the step flow + I/O; `subValueStream(L4) → process steps`; `role → Direct reports + People` (grouped). KPI attainment is rolled up by category for domain/division/company.
+- Frontend: `viz/charts.tsx` (Recharts donut/attainment-bars/KPI-bars/severity/category/flow-strip/IO-mix); `Inspector.tsx` rebuilt as the chart-driven insights panel (no lens labels); `DrillCanvas` clusters children into labeled bands; `DrillNode` gains domain/process-step styling + a band-label node.
 
 **Exit criteria:**
-1. **Given** the seeded company, **When** I open the overview dashboard, **Then** counts match the DB exactly and render <2 s p95.
-2. **Given** the ROI dashboard, **When** I drill any roll-up figure, **Then** it decomposes to contributing roles/tasks down to the source row.
-3. **Given** the analytics heatmap, **When** I click a (role, category) cell, **Then** I see the exact tasks behind that count.
-4. **Given** a scope filter, **When** I switch from company to a division, **Then** every figure recomputes within 1 s.
-5. **Given** a value edited in Phase 5, **When** I reload the dashboard, **Then** roll-ups reflect it (connected data, no manual cache refresh).
+1. **Given** the home view, **When** I open `/`, **Then** the Company drills into its **6 consolidated value-stream domains** (operating-model-led, not parallel bands), and the panel shows workforce, operating-model, and KPI-attainment charts — no labeled lens cards.
+2. **Given** a value stream, **When** I focus it, **Then** I see its real KPIs charted against target, KPI attainment by category, its E2E process flow as a step strip, and a *"who runs it"* list of roles that drills into the org.
+3. **Given** the sidebar, **When** I pick a domain or a division, **Then** the canvas jumps there and the current location is highlighted — both entry points are always visible.
+4. **Given** any node or panel row, **When** I look at it, **Then** drillable elements carry a persistent "Dig deeper ›"/`›` affordance and plain facts do not, so it's obvious what digs deeper; and the six questions are answerable from charts with no "● 01 · Who" labels.
+5. **Given** the build, **When** I run `tsc --noEmit` (both workspaces) + `vite build`, **Then** both pass and the Playwright walkthroughs run with 0 console errors.
 
 ---
 
-## Phase 5 — Authoring / CRUD (add & edit everything)
+## Phase 5 — Applications & Initiatives: real data + authoring
 
-**The question:** Can a user create and edit companies, divisions, value streams, sub-streams, SOPs, applications, initiatives, and roles — with the same depth as the seeded data?
+**Replaces illustrative:** the **Where** lens (applications) and the **Initiative** drill level + **Why** lens (risks/dependencies) — today seeded illustrative; this phase makes them authored/real. **Adds:** application, initiative, and risk authoring + link editors; retires the standalone dependencies surface.
+
+**The question:** Can a user author real applications, initiatives, and risks — with their system roles, value-stream/division links, and contributors — so the Where lens, the Initiative level, and the Why/Risk lens become real, and the standalone dependency view is no longer needed?
 
 **Status:** Not started.
 
-**What exists at the end:** Full create/edit/(soft-)delete for every entity and relationship, with validation, optimistic UI, and the connected-data guarantee. This is what makes Strata a platform rather than a viewer.
+**What exists at the end:** CRUD for `Application`, `Initiative`, `Risk` and their junctions (`ApplicationValueStream` system role; `InitiativeValueStream`/`InitiativeDivision`; risk links to stream/initiative/owner-role). The Where lens, the initiative drill level (with its contributor roll-up), and the Why/Risk lens all read authored data. Dependencies and risks live inside the Why lens and as risk nodes — the standalone external-interactions/dependency graph is absorbed and removed from the IA.
 
 **Components:**
-- zod-validated typed forms (shared schemas) and Express route handlers per entity; relationship editors (link a role to value streams with a participation type; attach applications to streams; assign roles to a department) — the Cascade route pattern (zod parse → tenant-scoped lookup → Prisma write → audit), ported to TS.
-- A "new company" wizard scaffolding an empty tenant with the canonical category taxonomy pre-loaded.
-- Optimistic updates + server reconciliation; recursive-CTE roll-ups recompute on write; affected dashboard caches invalidated.
-- Soft delete (`archivedAt`) so nothing referenced is hard-deleted under a diagram.
-- Inline validation (a sub-stream must belong to a value stream; a role's department must belong to a division).
+- zod forms + Express CRUD for applications/initiatives/risks; link editors (attach an app to a stream with a system role; link an initiative to streams/divisions; register a risk against a stream/initiative/owner role).
+- The `illustrative` flag flips to `false` on authored rows; the badge disappears for them automatically (no UI change — uniform contract).
+- Initiative contributor roll-up (`/explorer/initiatives/:id/contributors`) reads real assignments; the offshore-contractor query (UC1) resolves against authored data.
+- Import path for an applications/initiatives CSV to bulk-author.
 
 **Exit criteria:**
-1. **Given** the authoring UI, **When** I create a value stream and attach two roles with participation types, **Then** it appears in the hierarchy, the flow map, and the dashboards with no code change or manual cache bust.
-2. **Given** an existing role, **When** I move it to another department, **Then** the org chart, roster, and every roll-up update on next view.
-3. **Given** a "new company" action, **When** I complete the wizard, **Then** an isolated tenant exists with the taxonomy seeded and zero cross-tenant data visible.
-4. **Given** invalid input (orphan sub-stream, missing required field), **When** I submit, **Then** the form blocks with a specific message and nothing is written.
-5. **Given** an entity referenced by a diagram, **When** I archive it, **Then** it disappears from active views but historical references resolve gracefully.
-6. **Given** any create/edit, **When** it succeeds, **Then** the change reflects in <1 s in the editing view and is durable across reload.
+1. **Given** the authoring UI, **When** I create an application and attach it to two value streams with system roles, **Then** it appears in those streams' Where lens (no badge) with no code change.
+2. **Given** an initiative I author with value-stream/division links and a sponsor, **When** I drill into it, **Then** its lenses and contributor canvas render from authored data.
+3. **Given** a risk I register against a value stream, **When** I view that stream's Why/Risk lens, **Then** the risk appears with severity/status and links to its owner role.
+4. **Given** authored applications/initiatives, **When** I run the CEO UC1 drill, **Then** the offshore UI-Developer contributor still resolves — now against real data.
+5. **Given** an entity referenced in a drill, **When** I archive it, **Then** it leaves active lenses but historical references resolve gracefully.
 
 ---
 
 ## Phase 6 — Connected Data, RBAC, Audit & Governance
 
-**The question:** Is this enterprise-trustworthy — role-based access, an audit trail, data-freshness signals, and proven multi-tenant isolation (now backed by RLS)?
+**Replaces illustrative:** nothing — this is the trust layer. **Adds:** the drill is now **gated by scope** (a viewer only drills what they're entitled to), every write is audited, and tenant isolation is RLS-backed.
+
+**The question:** Is this enterprise-trustworthy — role-based access that gates the drill, an audit trail, data-freshness signals, and proven multi-tenant isolation (now backed by RLS)?
 
 **Status:** Not started.
 
-**What exists at the end:** JWT authentication (Cascade's, ported to TS), role-based permissions, the append-only audit log populated across all writes, data-freshness/staleness flags, **and Postgres Row-Level Security as defense-in-depth** behind the app-layer scoping.
+**What exists at the end:** JWT authentication (Cascade's, ported to TS), role-based permissions that scope what a user can drill into, the append-only audit log populated across all writes, data-freshness/staleness flags surfaced in the lenses, **and Postgres Row-Level Security as defense-in-depth** behind the app-layer scoping.
 
 **Components:**
 - Auth: `bcryptjs` + `jsonwebtoken`, `requireAuth` deriving `tenantId` from the session (never the request body), `requireRole(...)` — Cascade's middleware, migrated.
-- RBAC layer: `Viewer` / `Editor` / `Admin` scoped to divisions/value streams; enforced per request, backed by RLS.
+- RBAC layer: `Viewer` / `Editor` / `Admin` scoped to divisions/value streams; enforced per request and reflected in the drill — out-of-scope nodes are hidden/locked, the node endpoint 404s them.
 - `AuditEntry` (append-only): actor, action, entity, before/after diff, UTC timestamp; queryable in-app (Cascade's `audit` route + `logAudit`, ported).
 - Data-freshness: `updatedAt` + `lastReviewedAt` on records; a staleness flag surfaces records not reviewed in N months; optional review reminders.
 - **RLS migration:** a raw-SQL Prisma migration enabling RLS and `CREATE POLICY USING (tenant_id = current_setting('app.current_tenant')::uuid)` on every table; the app connects as a non-owner role; middleware issues `SET LOCAL app.current_tenant = $1` inside the request transaction (see risk register for the pooled-connection caveat).
 - Multi-tenant isolation test suite proving no query crosses tenants even with the GUC unset or a hostile `tenantId` in the body.
 
 **Exit criteria:**
-1. **Given** a `Viewer` scoped to one division, **When** they attempt to edit a role or view another division, **Then** the action is denied cleanly and an audit event is recorded.
+1. **Given** a `Viewer` scoped to one division, **When** they try to drill into another division (canvas or deep-link URL), **Then** the node 404s cleanly, the action is denied, and an audit event is recorded.
 2. **Given** any create/edit/delete, **When** it completes, **Then** an `AuditEntry` with actor, before/after diff, and UTC timestamp exists and is visible.
 3. **Given** two tenants, **When** an automated test queries tenant A's data while authenticated as tenant B (including a forged `tenantId`), **Then** zero rows leak — enforced by **both** app-layer scoping and RLS.
-4. **Given** a record not reviewed in N months, **When** I view it or the governance dashboard, **Then** it shows a staleness flag.
+4. **Given** a record not reviewed in N months, **When** I focus it in the drill, **Then** its lens shows a staleness flag.
 5. **Given** the audit log, **When** I filter by entity or actor, **Then** I can reconstruct the full change history of any record.
 
 ---
 
-## Phase 7 — People, Assignments, Deliverables & Work Stats (manual)
+## Phase 7 — People, Assignments, Deliverables & Tasks: real (manual + CSV)
 
-**The question:** Can the model carry real people, role assignments, deliverables, and work stats — entered manually now, plugin-fed later?
+**Replaces illustrative:** the **Person** and **Task** levels and the **Who** lens — today seeded illustrative; this phase makes people, assignments, deliverables, and per-person tasks real (manual entry + CSV). **Adds:** people management and the employee-vs-offshore-contractor distinction everywhere in the drill.
+
+**The question:** Can the model carry real people, role assignments, deliverables, and tasks — entered manually now, plugin-fed later — so the person board and Who lens are real?
 
 **Status:** Not started.
 
-**What exists at the end:** The `Person` / `Assignment` / `Deliverable` / `WorkStat` layer is fully usable: assign employees and contractors to roles, attach checklists/deliverables, record work stats by hand or CSV. The `WorkStat` schema is the exact shape the Phase 8 connectors will write to.
+**What exists at the end:** The `Person` / `Assignment` / `PersonTask` / deliverable layer is fully usable and authored: assign employees and contractors (with `employmentType`, vendor, region) to roles and initiatives, attach checklists/deliverables, record tasks by hand or CSV. Only `PersonMetric` remains illustrative (filled by Phase 8). The person board renders real tasks; UC1/UC2 run on real people.
 
 **Components:**
-- People management UI: create employees/contractors, set `employmentType`, assign to roles with allocation % and dates.
-- Per-person deliverables/checklist with completion status (seeded from `Items`, editable).
-- `WorkStat` entry + CSV import (`source = "manual"`, normalized `metric`/`value`/`periodStart`).
-- Person dashboard: assignments, deliverable completion, work-stat trends (Recharts).
-- Roll-ups: department/value-stream views aggregate person-level stats.
+- People management UI: create employees/contractors, set `employmentType`/`vendor`/`region`, assign to roles + initiatives with allocation % and dates.
+- Per-person deliverables/checklist with completion status (seeded from `Items`, editable); `PersonTask` entry + CSV import.
+- The drill's person board reads real assignments/tasks; the `illustrative` badge clears on Who/What for authored people.
+- Roll-ups: department/value-stream/initiative headcount and load aggregate real person-level data.
 
 **Exit criteria:**
-1. **Given** a role, **When** I assign an employee and a contractor with allocation %, **Then** both appear on the role, the department roster, and the org-chart headcount.
-2. **Given** a person, **When** I attach deliverables and mark some complete, **Then** completion % is correct on the person dashboard and rolls up to the department.
-3. **Given** a CSV of work stats, **When** I import it, **Then** rows land in `WorkStat` with `source="manual"` and render as trends.
-4. **Given** the `WorkStat` schema, **When** reviewed against the Phase 8 connector contract, **Then** a connector can write with no migration (verified by a mock connector writing one row).
-5. **Given** an employee vs. a contractor, **When** I view assignments, **Then** `employmentType` is distinguished everywhere it matters.
+1. **Given** a role, **When** I assign an employee and an offshore contractor with allocation %, **Then** both appear on the role's person canvas, the headcount lens, and the initiative contributor roll-up.
+2. **Given** a person, **When** I attach deliverables and mark some complete, **Then** completion % is correct on the person board and rolls up to the department lens.
+3. **Given** a CSV of tasks, **When** I import it, **Then** rows land as `PersonTask`s and render on the person board.
+4. **Given** an employee vs. an offshore contractor, **When** I drill either, **Then** `employmentType`/region is distinguished on the node, the board, and the Who lens.
+5. **Given** real people, **When** I run CEO UC1 and UC2, **Then** both walkthroughs resolve against authored data (only the metric trends remain illustrative until Phase 8).
 
 ---
 
-## Phase 8 — Connector Framework + First Plugin + DORA
+## Phase 8 — Connectors + DORA → real person metrics (last illustrative replaced)
 
-**The question:** Can external tools (GitHub/Jira/Slack) auto-populate work stats, and can we compute DORA metrics from them?
+**Replaces illustrative:** the **How-well** lens at the person level — `PersonMetric` is the last illustrative data; this phase feeds it from real connectors so the person board's throughput/quality/cycle-time trends become real. **Adds:** the connector framework + DORA.
+
+**The question:** Can external tools (GitHub/Jira/Slack) auto-populate person metrics, computing DORA, so the deepest lens (How well) is real and **no illustrative data remains anywhere**?
 
 **Status:** Not started.
 
-**What exists at the end:** A pluggable connector framework (OAuth, webhook-first ingestion under `/api/connectors`, normalized into `WorkStat`) and the first live connector (GitHub *or* Jira), feeding real commits/PRs/tickets into existing person and dashboard views. DORA metrics are computed by correlating connector data.
+**What exists at the end:** A pluggable connector framework (OAuth, webhook-first ingestion under `/api/connectors`, normalized into `PersonMetric`/`WorkStat`) and the first live connector (GitHub *or* Jira), feeding real commits/PRs/tickets into the person board and the roll-up How-well lenses. DORA metrics computed by correlating connector data. After this phase the "Illustrative" badge is gone from the product.
 
 **Components:**
 - Connector abstraction: a declarative manifest per integration; centralized OAuth/token storage/refresh, rate-limiting, retries, observability; Express webhook receivers with polling fallback.
-- First connector (GitHub recommended — commits/PRs/review duration map cleanly to `WorkStat`).
-- Normalization layer: external events → internal `WorkStat` rows, attributed to the right `Person`/`Assignment`.
-- DORA computation correlating GitHub deploys + (Jira/incident) signals; surfaced on a delivery dashboard with the caveat that no single source has all four metrics.
+- First connector (GitHub recommended — commits/PRs/review duration map cleanly to person throughput/quality).
+- Normalization layer: external events → `PersonMetric` rows (period/name/value), attributed to the right `Person`/`Assignment`; `illustrative` flips to `false`.
+- DORA computation correlating deploys + incident signals; surfaced in the delivery roll-up lens, drillable to source events.
 - Privacy boundary: tenant/person identity derived from connector config + payload, never cross-tenant.
 
 **Exit criteria:**
-1. **Given** a connected GitHub org, **When** a commit/PR lands, **Then** within the ingestion window a normalized `WorkStat` row appears against the correct person.
+1. **Given** a connected GitHub org, **When** a commit/PR lands, **Then** within the ingestion window a normalized `PersonMetric` row appears against the correct person and shows on their board (no badge).
 2. **Given** the framework, **When** a second connector is added, **Then** it reuses the OAuth/normalization/observability scaffolding without bespoke plumbing.
-3. **Given** correlated deploy + incident data, **When** I open the delivery dashboard, **Then** all four DORA metrics compute over a chosen window and each is drillable to source events.
+3. **Given** correlated deploy + incident data, **When** I focus the delivery lens, **Then** all four DORA metrics compute over a chosen window, each drillable to source events.
 4. **Given** a token expiry, **When** ingestion runs, **Then** it refreshes silently or surfaces a clear re-auth prompt — never crashing the pipeline.
-5. **Given** a connector for tenant A, **When** it ingests, **Then** no data is written to any other tenant (isolation test).
+5. **Given** the whole product, **When** I drill any level, **Then** no "Illustrative" badge remains — every lens is real or authored.
 
 ---
 
 ## Phase 9 — Polish & Daily-Driver Hardening
 
-**The question:** Is the attention to detail off the charts — fast, accessible, exportable, and good enough that an executive uses it unprompted?
+**Replaces illustrative:** nothing — the data is all real by Phase 8. **Adds:** the drill is fast, keyboard-navigable, accessible, and exportable at every level.
+
+**The question:** Is the drill off the charts — per-level performance budgets, keyboard drill navigation, accessibility, board-ready export of any drill view, and onboarding good enough that a CEO uses it unprompted?
 
 **Status:** Not started.
 
-**What exists at the end:** Performance budgets met, accessibility pass, board-ready exports (PDF/PNG of diagrams and dashboards), empty/loading/error states everywhere, keyboard navigation, onboarding polish.
+**What exists at the end:** Per-level p95 budgets met, keyboard-driven drill (enter to drill, esc/backspace to pop, arrow between sibling nodes), accessibility pass over the canvas + inspector, PDF/PNG export of any drill view (canvas or person board), polished empty/loading/error/skeleton states everywhere, onboarding polish.
 
 **Components:**
-- Performance: query/index tuning, aggregate caching, p95 budgets enforced in CI (alongside `tsc --noEmit`).
-- Accessibility: keyboard nav, ARIA, contrast, focus management across diagrams and tables.
-- Exports: PDF/PNG of any diagram or dashboard, watermarked with tenant + timestamp.
-- Polished empty/loading/error/skeleton states on every surface; micro-interactions on diagrams.
-- Onboarding: first-run guide for the "new company" path.
+- Performance: query/index tuning, node-payload caching, per-level p95 budgets enforced in CI (alongside `tsc --noEmit`).
+- Keyboard drill nav: focus-ring traversal of sibling nodes, enter = drill, esc/backspace = pop, `/` = search; full breadcrumb reachable by keyboard.
+- Accessibility: ARIA on the canvas/nodes/inspector lenses, contrast, focus management; charts have text alternatives.
+- Export: PDF/PNG of any drill view or person board, watermarked with tenant + timestamp.
+- Onboarding: first-run guided drill (Company → a person) for the "show me the value of one person" path.
 
 **Exit criteria:**
-1. **Given** any primary page on a mid-tier laptop, **When** it loads, **Then** it meets its p95 budget (lists <1.5 s, diagrams <2 s, dashboards <2 s) and CI fails on regression.
-2. **Given** an accessibility audit on core flows, **Then** zero critical violations and every interactive element is keyboard-reachable.
-3. **Given** any diagram or dashboard, **When** I export it, **Then** I get a clean PDF/PNG watermarked with tenant + timestamp.
-4. **Given** any data-fetching surface, **When** data is empty/loading/errored, **Then** a purpose-built state renders.
-5. **Given** a new user, **When** they create their first company, **Then** the onboarding guide walks them through it.
+1. **Given** any drill level on a mid-tier laptop, **When** I open it, **Then** it meets its p95 budget (canvas levels <2 s, boards <1.5 s) and CI fails on regression.
+2. **Given** an accessibility audit on the drill, **Then** zero critical violations and every node/lens/breadcrumb is keyboard-reachable.
+3. **Given** any drill view, **When** I export it, **Then** I get a clean PDF/PNG watermarked with tenant + timestamp.
+4. **Given** any node, **When** its data is empty/loading/errored, **Then** a purpose-built state renders.
+5. **Given** a new CEO user, **When** they first sign in, **Then** the onboarding drill walks them from the company to a single person's metrics.
 
 ---
 

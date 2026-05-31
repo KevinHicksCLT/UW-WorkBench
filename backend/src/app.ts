@@ -13,6 +13,8 @@ import divisionRoutes from './routes/divisions.js';
 import departmentRoutes from './routes/departments.js';
 import roleRoutes from './routes/roles.js';
 import valueStreamRoutes from './routes/valueStreams.js';
+import externalInteractionRoutes from './routes/externalInteractions.js';
+import explorerRoutes from './routes/explorer.js';
 import searchRoutes from './routes/search.js';
 
 const app = express();
@@ -45,6 +47,8 @@ app.use('/divisions', divisionRoutes);
 app.use('/departments', departmentRoutes);
 app.use('/roles', roleRoutes);
 app.use('/value-streams', valueStreamRoutes);
+app.use('/external-interactions', externalInteractionRoutes);
+app.use('/explorer', explorerRoutes);
 app.use('/search', searchRoutes);
 
 const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {

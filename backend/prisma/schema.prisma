@@ -58,6 +58,13 @@ model Company {
   categories           Category[]
   valueStreams         ValueStream[]
   externalInteractions ExternalInteraction[]
+  applications         Application[]
+  metrics              Metric[]
+  initiatives          Initiative[]
+  people               Person[]
+  risks                Risk[]
+  domains              ValueStreamDomain[]
+  standards            Standard[]
 
   @@unique([tenantId, slug])
 }
@@ -75,8 +82,9 @@ model Division {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  departments Department[]
-  roles       Role[]
+  departments     Department[]
+  roles           Role[]
+  initiativeLinks InitiativeDivision[]
 
   @@unique([tenantId, companyId, name])
   @@index([companyId])
@@ -115,6 +123,16 @@ model Role {
   name         String // canonical display name
   itemRole     String? // name used by the Items / Aligned Role Tasks sheets (join key)
   roleFamily   String?
+  // v13 extended attributes (reporting hierarchy + role profile)
+  roleLevel          String? // Executive | Leadership | Manager | Individual Contributor
+  description        String?
+  responsibilities   String?
+  status             String? // New (Extended Role Inventory) | null (org-chart roster)
+  primaryDomain      String?
+  primaryValueStream String?
+  managerRoleId      String?
+  manager            Role?   @relation("RoleReports", fields: [managerRoleId], references: [id])
+  reports            Role[]  @relation("RoleReports")
   sourceSheet  String?
   sourceRow    Int?
   createdAt    DateTime    @default(now())
@@ -124,10 +142,14 @@ model Role {
   roleTasks            RoleTask[]
   valueStreamLinks     RoleValueStream[]
   externalInteractions ExternalInteraction[]
+  assignments          Assignment[]
+  sponsoredInitiatives Initiative[]          @relation("InitiativeSponsor")
+  ownedRisks           Risk[]               @relation("RiskOwner")
 
   @@unique([tenantId, companyId, name])
   @@index([companyId])
   @@index([departmentId])
+  @@index([managerRoleId])
 }
 
 model Category {
@@ -151,17 +173,42 @@ model ValueStream {
   companyId String
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
   name      String
-  domain    String?
+  domain    String? // raw domain label (also linked via domainId below)
+  domainId  String?
+  domainRef ValueStreamDomain? @relation(fields: [domainId], references: [id])
 
   sourceSheet String?
   sourceRow   Int?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  subStreams SubValueStream[]
-  roleLinks  RoleValueStream[]
+  subStreams       SubValueStream[]
+  roleLinks        RoleValueStream[]
+  applicationLinks ApplicationValueStream[]
+  metrics          Metric[]
+  initiativeLinks  InitiativeValueStream[]
+  risks            Risk[]
+  processSteps     ProcessStep[]
+  ioItems          IoItem[]
 
   @@unique([tenantId, companyId, name])
+  @@index([companyId])
+  @@index([domainId])
+}
+
+// v13 value-stream DOMAINS — the top of the "how the business operates" axis
+// (Core Insurance, Technology, Finance, Risk & Control, …). Groups value streams.
+model ValueStreamDomain {
+  id           String        @id @default(cuid())
+  tenantId     String
+  companyId    String
+  company      Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name         String
+  illustrative Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  valueStreams ValueStream[]
+
+  @@unique([companyId, name])
   @@index([companyId])
 }
 
@@ -223,6 +270,8 @@ model RoleTask {
   sourceSheet String?
   sourceRow   Int?
   createdAt   DateTime @default(now())
+
+  personTasks PersonTask[]
 
   @@index([roleId])
   @@index([categoryId])
@@ -294,4 +343,323 @@ model AuditEntry {
   createdAt  DateTime @default(now())
 
   @@index([entityType, entityId])
+}
+
+// ─── Systems & metrics (illustrative — the "Where" and "How well" lenses) ──
+// Synthesized data, flagged `illustrative`, until real systems/metrics arrive
+// via the Phase 8 connector framework.
+
+model Application {
+  id           String  @id @default(cuid())
+  tenantId     String
+  companyId    String
+  company      Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name         String
+  kind         String  @default("Internal") // Core | SaaS | Internal | External | Platform
+  category     String? // Policy | Claims | Billing | Distribution | Data | Finance | Security | Infra
+  vendor       String?
+  criticality  String  @default("Medium") // High | Medium | Low
+  description  String?
+  illustrative Boolean @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  valueStreamLinks ApplicationValueStream[]
+
+  @@unique([tenantId, companyId, name])
+  @@index([companyId])
+}
+
+model ApplicationValueStream {
+  id            String      @id @default(cuid())
+  tenantId      String
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  valueStreamId String
+  valueStream   ValueStream @relation(fields: [valueStreamId], references: [id], onDelete: Cascade)
+  systemRole    String      @default("Supporting") // System of Record | Supporting | Channel | Analytics
+  illustrative  Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+
+  @@unique([applicationId, valueStreamId])
+  @@index([applicationId])
+  @@index([valueStreamId])
+}
+
+// Value-stream KPI. v13 supplies a real DEFINITION (category, formula, target
+// text, owner, framework); `value` is an illustrative current actual plotted
+// against the parsed numeric `target` (so the definition is real, the reading
+// is synthesized → illustrative=true).
+model Metric {
+  id            String       @id @default(cuid())
+  tenantId      String
+  companyId     String
+  company       Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  valueStreamId String?
+  valueStream   ValueStream? @relation(fields: [valueStreamId], references: [id], onDelete: Cascade)
+  l3            String? // process area the KPI measures
+  category      String? // Financial | Operational | Quality | DORA | …
+  name          String
+  description   String?
+  formula       String?
+  targetText    String? // raw target/benchmark, e.g. "30-45 days", ">99%"
+  measurementLevel String?
+  frequency     String?
+  ownerRole     String?
+  framework     String?
+  notes         String?
+  value         Float
+  unit          String // % | days | /mo | score
+  target        Float?
+  direction     String  @default("up") // up = higher is better, down = lower is better
+  illustrative  Boolean @default(true)
+  createdAt     DateTime @default(now())
+
+  @@index([companyId])
+  @@index([valueStreamId])
+}
+
+// v13 E2E process flow — sequenced steps for a value stream (optionally scoped
+// to an L3 process area / L4 sub-process). The "how the work flows" axis.
+model ProcessStep {
+  id                   String      @id @default(cuid())
+  tenantId             String
+  valueStreamId        String
+  valueStream          ValueStream @relation(fields: [valueStreamId], references: [id], onDelete: Cascade)
+  l3                   String?
+  l4                   String?
+  stepNumber           Int
+  name                 String
+  description          String?
+  leads                String?
+  supporting           String?
+  inputs               String?
+  outputs              String?
+  notes                String?
+  externalParticipants String?
+  illustrative         Boolean     @default(false)
+  createdAt            DateTime    @default(now())
+
+  @@index([valueStreamId])
+  @@index([valueStreamId, stepNumber])
+}
+
+// v13 Inputs/Outputs/Deliverables inventory + their data elements.
+model IoItem {
+  id            String      @id @default(cuid())
+  tenantId      String
+  valueStreamId String
+  valueStream   ValueStream @relation(fields: [valueStreamId], references: [id], onDelete: Cascade)
+  l3            String?
+  l4            String?
+  type          String // Input | Output | Deliverable
+  name          String
+  keyRoles      String?
+  dataElements  String?
+  illustrative  Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+
+  @@index([valueStreamId])
+  @@index([valueStreamId, type])
+}
+
+// v13 department standards index (count, charter, owner) — governance signal.
+model Standard {
+  id              String   @id @default(cuid())
+  tenantId        String
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  department      String
+  count           Int      @default(0)
+  charterIncluded Boolean  @default(false)
+  owner           String?
+  link            String?
+  illustrative    Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@index([companyId])
+}
+
+// ─── Initiatives / People / Tasks / Risks (illustrative) ────────────────
+// Transformation initiatives, the people (employees + contractors) who staff
+// roles, their live tasks + performance metrics, and first-class risks. All
+// synthesized for now (illustrative=true); replaced by real/authored/connected
+// data in later phases. These power the deep levels of the explorer drill.
+
+model Initiative {
+  id            String   @id @default(cuid())
+  tenantId      String
+  companyId     String
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name          String
+  code          String?
+  description   String?
+  status        String   @default("In Progress") // Proposed | In Progress | On Hold | Delivered | Cancelled
+  stage         String? // Discovery | Build | Pilot | Rollout | BAU
+  health        String   @default("Green") // Green | Amber | Red
+  sponsorRoleId String?
+  sponsorRole   Role?    @relation("InitiativeSponsor", fields: [sponsorRoleId], references: [id])
+  budget        Float?
+  startDate     DateTime?
+  targetDate    DateTime?
+  illustrative  Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  valueStreamLinks InitiativeValueStream[]
+  divisionLinks    InitiativeDivision[]
+  assignments      Assignment[]
+  risks            Risk[]
+
+  @@unique([tenantId, companyId, name])
+  @@index([companyId])
+  @@index([sponsorRoleId])
+}
+
+model InitiativeValueStream {
+  id            String      @id @default(cuid())
+  tenantId      String
+  initiativeId  String
+  initiative    Initiative  @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  valueStreamId String
+  valueStream   ValueStream @relation(fields: [valueStreamId], references: [id], onDelete: Cascade)
+  impactType    String      @default("Transforms") // Transforms | Enables | Depends-on
+  illustrative  Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+
+  @@unique([initiativeId, valueStreamId])
+  @@index([initiativeId])
+  @@index([valueStreamId])
+}
+
+model InitiativeDivision {
+  id           String     @id @default(cuid())
+  tenantId     String
+  initiativeId String
+  initiative   Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  divisionId   String
+  division     Division   @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  role         String     @default("Sponsoring") // Sponsoring | Contributing | Impacted
+  illustrative Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+
+  @@unique([initiativeId, divisionId])
+  @@index([initiativeId])
+  @@index([divisionId])
+}
+
+model Person {
+  id             String   @id @default(cuid())
+  tenantId       String
+  companyId      String
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name           String
+  email          String?
+  employmentType String   @default("badged") // badged | contractor | si_partner
+  vendor         String? // set for contractor / si_partner
+  location       String?
+  region         String? // Onshore | Nearshore | Offshore
+  title          String?
+  illustrative   Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  assignments Assignment[]
+  tasks       PersonTask[]
+  metrics     PersonMetric[]
+
+  @@index([companyId])
+  @@index([companyId, employmentType])
+}
+
+model Assignment {
+  id             String      @id @default(cuid())
+  tenantId       String
+  personId       String
+  person         Person      @relation(fields: [personId], references: [id], onDelete: Cascade)
+  roleId         String
+  role           Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  initiativeId   String?
+  initiative     Initiative? @relation(fields: [initiativeId], references: [id], onDelete: SetNull)
+  employmentType String      @default("badged") // denormalized for fast filtering
+  allocationPct  Int         @default(100)
+  isPrimary      Boolean     @default(true)
+  startDate      DateTime?
+  endDate        DateTime?
+  illustrative   Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+
+  tasks PersonTask[]
+
+  @@index([roleId])
+  @@index([personId])
+  @@index([initiativeId])
+  @@index([initiativeId, employmentType])
+}
+
+model PersonTask {
+  id           String      @id @default(cuid())
+  tenantId     String
+  personId     String
+  person       Person      @relation(fields: [personId], references: [id], onDelete: Cascade)
+  assignmentId String?
+  assignment   Assignment? @relation(fields: [assignmentId], references: [id], onDelete: SetNull)
+  roleTaskId   String?
+  roleTask     RoleTask?   @relation(fields: [roleTaskId], references: [id], onDelete: SetNull)
+  title        String
+  status       String      @default("In Progress") // To Do | In Progress | Blocked | Done
+  priority     String      @default("Medium") // High | Medium | Low
+  dueDate      DateTime?
+  illustrative Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+
+  @@index([personId])
+  @@index([personId, status])
+  @@index([assignmentId])
+}
+
+model PersonMetric {
+  id           String   @id @default(cuid())
+  tenantId     String
+  personId     String
+  person       Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  period       String // YYYY-MM
+  name         String // Throughput | Quality | Utilization | Cycle time
+  value        Float
+  unit         String // % | /mo | days | score
+  target       Float?
+  direction    String   @default("up") // up | down
+  illustrative Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  @@unique([personId, period, name])
+  @@index([personId])
+  @@index([personId, period])
+}
+
+model Risk {
+  id            String       @id @default(cuid())
+  tenantId      String
+  companyId     String
+  company       Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  valueStreamId String?
+  valueStream   ValueStream? @relation(fields: [valueStreamId], references: [id], onDelete: SetNull)
+  initiativeId  String?
+  initiative    Initiative?  @relation(fields: [initiativeId], references: [id], onDelete: SetNull)
+  ownerRoleId   String?
+  ownerRole     Role?        @relation("RiskOwner", fields: [ownerRoleId], references: [id])
+  title         String
+  category      String       @default("Operational") // Operational | Compliance | Delivery | Security | Financial | Vendor
+  severity      String       @default("Medium") // Critical | High | Medium | Low
+  likelihood    String       @default("Possible") // Rare | Unlikely | Possible | Likely | Almost Certain
+  status        String       @default("Open") // Open | Mitigating | Accepted | Closed
+  mitigation    String?
+  illustrative  Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([companyId])
+  @@index([valueStreamId])
+  @@index([initiativeId])
+  @@index([ownerRoleId])
 }

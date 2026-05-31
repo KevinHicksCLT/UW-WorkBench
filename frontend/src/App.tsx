@@ -4,11 +4,10 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './lib/auth';
 import Layout from './components/Layout';
 import Login from './pages/Login';
-import Home from './pages/Home';
+import Explorer from './pages/Explorer';
 import DivisionDetail from './pages/DivisionDetail';
 import DepartmentDetail from './pages/DepartmentDetail';
 import RoleDetail from './pages/RoleDetail';
-import ValueStreams from './pages/ValueStreams';
 import ValueStreamDetail from './pages/ValueStreamDetail';
 import SearchResults from './pages/SearchResults';
 
@@ -35,11 +34,15 @@ export default function App() {
   return (
     <Layout>
       <Routes>
-        <Route path="/" element={<Home />} />
+        {/* The Operating Model Explorer IS the application. `/` opens on the
+            company; `/n/*` carries the drill path (deep-linkable). */}
+        <Route path="/" element={<Explorer />} />
+        <Route path="/n/*" element={<Explorer />} />
+        <Route path="/explorer" element={<Navigate to="/" replace />} />
+        {/* Detail pages remain as deep-link targets from inspector + search. */}
         <Route path="/divisions/:id" element={<DivisionDetail />} />
         <Route path="/departments/:id" element={<DepartmentDetail />} />
         <Route path="/roles/:id" element={<RoleDetail />} />
-        <Route path="/value-streams" element={<ValueStreams />} />
         <Route path="/value-streams/:id" element={<ValueStreamDetail />} />
         <Route path="/search" element={<SearchResults />} />
         <Route path="/login" element={<Navigate to="/" replace />} />
