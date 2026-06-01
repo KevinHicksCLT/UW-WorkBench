@@ -38,6 +38,14 @@ const APPS: App[] = [
   { name: 'Workday HCM', kind: 'SaaS', category: 'Finance', vendor: 'Workday', criticality: 'Medium', systemRole: 'System of Record', streams: ['Talent'] },
   { name: 'Archer GRC', kind: 'SaaS', category: 'Security', vendor: 'Archer', criticality: 'Medium', systemRole: 'Supporting', streams: ['Risk, Compliance', 'Audit & Assurance', 'Legal'] },
   { name: 'FRISS Fraud Detection', kind: 'SaaS', category: 'Claims', vendor: 'FRISS', criticality: 'Medium', systemRole: 'Analytics', streams: ['Claims Intake', 'Risk, Compliance'] },
+  // External / third-party systems (dependencies outside the company boundary)
+  { name: 'Broker & Agent Portal', kind: 'External', category: 'Distribution', vendor: 'Partner network', criticality: 'High', systemRole: 'Channel', streams: ['Distribution', 'Submission-to-Bind', 'Delegated Authority'] },
+  { name: 'Payment Gateway', kind: 'External', category: 'Billing', vendor: 'Stripe/ACI', criticality: 'High', systemRole: 'Channel', streams: ['Billing'] },
+  { name: 'Bank & Treasury Network', kind: 'External', category: 'Finance', vendor: 'SWIFT/Banks', criticality: 'High', systemRole: 'Supporting', streams: ['Finance', 'Investment', 'Billing'] },
+  { name: 'Reinsurer Exchange', kind: 'External', category: 'Policy', vendor: 'RI markets', criticality: 'Medium', systemRole: 'Supporting', streams: ['Reinsurance'] },
+  { name: 'Regulatory Filing Portal', kind: 'External', category: 'Security', vendor: 'Regulators', criticality: 'High', systemRole: 'Channel', streams: ['Risk, Compliance', 'Audit', 'Actuarial'] },
+  { name: 'Credit Bureau & Data Services', kind: 'External', category: 'Data', vendor: 'Experian/LexisNexis', criticality: 'Medium', systemRole: 'Analytics', streams: ['Submission-to-Bind', 'Claims Intake'] },
+  { name: 'Catastrophe Data Provider', kind: 'External', category: 'Data', vendor: 'Verisk/Moody’s', criticality: 'Medium', systemRole: 'Analytics', streams: ['Actuarial', 'Reinsurance'] },
 ];
 
 // Deterministic pseudo-values, so re-seeds are stable.

@@ -24,6 +24,28 @@ export function Card({ title, hint, illustrative, children }: { title: string; h
   );
 }
 
+// Honest stand-in where a live reading would go. The current metric VALUES are
+// not from a connected source, so we show the real definitions (names/targets)
+// without fabricating a number.
+export function Placeholder({ note, items }: { note: string; items?: { name: string; target?: string | null }[] }) {
+  return (
+    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50/60 p-3">
+      <div className="flex items-center gap-1.5 text-[11px] text-slate-500"><span className="w-1.5 h-1.5 rounded-full bg-slate-300" />{note}</div>
+      {items?.length ? (
+        <ul className="mt-2 space-y-1">
+          {items.slice(0, 8).map((m, i) => (
+            <li key={i} className="flex items-center justify-between gap-2 text-[11px]">
+              <span className="text-slate-600 truncate">{m.name}</span>
+              {m.target ? <span className="chip-soft flex-shrink-0">target {m.target}</span> : <span className="text-slate-300">—</span>}
+            </li>
+          ))}
+          {items.length > 8 && <li className="text-[11px] text-slate-400">+{items.length - 8} more</li>}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
 export function StatRow({ items }: { items: { value: ReactNode; label: string; tone?: string }[] }) {
   return (
     <div className="flex flex-wrap gap-2">

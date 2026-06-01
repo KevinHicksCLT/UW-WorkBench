@@ -88,9 +88,18 @@ async function main() {
   await prisma.valueStreamDomain.createMany({ data: spine.domains.map((d) => ({ tenantId: t, companyId: c, name: d.name })) });
   const domainId = new Map((await prisma.valueStreamDomain.findMany({ where: { companyId: c }, select: { id: true, name: true } })).map((d) => [d.name, d.id] as const));
 
-  // ── Divisions ──
+  // ── Divisions (with higherCategory from Org Chart View 2 "Higher-Level Category") ──
+  const HIGHER_CAT: Record<string, string> = {
+    'Actuarial': 'Core Business', 'Claims': 'Core Business',
+    'Operations & Customer Service': 'Core Business', 'Reinsurance': 'Core Business',
+    'Sales, Distribution & Marketing': 'Core Business', 'Underwriting': 'Core Business',
+    'Cybersecurity & IAM': 'IT', 'Data & AI': 'IT',
+    'Product, Delivery & PMO': 'IT', 'Technology & Engineering': 'IT',
+    'Finance & Investments': 'Corporate Function', 'Human Resources & Talent': 'Corporate Function',
+    'Legal & Corporate Governance': 'Corporate Function', 'Risk, Compliance & Audit': 'Corporate Function',
+  };
   await prisma.division.createMany({
-    data: spine.divisions.map((d) => ({ tenantId: t, companyId: c, code: d.code, name: d.name, sourceSheet: 'Org Chart View', sourceRow: d.sourceRow })),
+    data: spine.divisions.map((d) => ({ tenantId: t, companyId: c, code: d.code, name: d.name, higherCategory: HIGHER_CAT[d.name] ?? null, sourceSheet: 'Org Chart View', sourceRow: d.sourceRow })),
   });
   const divisionId = new Map((await prisma.division.findMany({ where: { companyId: c }, select: { id: true, name: true } })).map((d) => [d.name, d.id] as const));
 

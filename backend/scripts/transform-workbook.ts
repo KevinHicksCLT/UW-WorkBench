@@ -229,11 +229,33 @@ for (let i = 4; i < vsm.length; i++) {
 }
 
 // ─── E2E Process Flows → 256 sequenced steps ────────────────────────────
+// The E2E sheet uses abbreviated value-stream names that differ from the
+// canonical names in the Value Streams sheet. This map reconciles them.
+const PROCESS_VS_MAP: Record<string, string> = {
+  'Submission-to-Bind': 'Submission-to-Bind / Underwriting',
+  'Reinsurance Management': 'Reinsurance & Retrocession Management',
+  'Product Design & Management': 'Product & Proposition Management',
+  'Distribution Management': 'Distribution & Channel Management',
+  'Actuarial & Reserving': 'Actuarial Pricing, Reserving & Capital Modeling',
+  'Financial Planning & Reporting': 'Finance, Treasury & Capital Management',
+  'Human Capital Management': 'Talent & Workforce Management',
+  'Risk & Compliance Management': 'Risk, Compliance & Regulatory Management',
+  'Customer Service & Experience': 'Customer Service, Complaints & Experience',
+  'Vendor & Third-Party Management': 'Third-Party & Vendor Management',
+  'Data & Analytics': 'Data, Analytics & AI Management',
+  'Enterprise Risk Management': 'Risk, Compliance & Regulatory Management',
+  'Investment Management': 'Investment & Asset Management',
+  'Capital & Treasury Management': 'Finance, Treasury & Capital Management',
+  'Legal & Compliance': 'Legal, Governance & Privacy Management',
+};
+const canonicalVS = (name: string) => PROCESS_VS_MAP[name] ?? name;
+
 const e2e = grid('E2E Process Flows'); // header row 3; data 4+
 const processSteps: any[] = [];
 for (let i = 4; i < e2e.length; i++) {
-  const valueStreamName = str(e2e[i][1]); const name = str(e2e[i][5]);
-  if (!valueStreamName || !name) continue;
+  const rawVS = str(e2e[i][1]); const name = str(e2e[i][5]);
+  if (!rawVS || !name) continue;
+  const valueStreamName = canonicalVS(rawVS);
   processSteps.push({
     valueStreamName, l3: orNull(e2e[i][2]), l4: orNull(e2e[i][3]), stepNumber: intOrNull(e2e[i][4]) ?? 0, name,
     description: orNull(e2e[i][6]), leads: orNull(e2e[i][7]), supporting: orNull(e2e[i][8]),
@@ -294,6 +316,18 @@ for (let i = 4; i < si.length; i++) {
   standards.push({ department: dept, count: intOrNull(si[i][2]) ?? 0, charterIncluded: /yes/i.test(str(si[i][3])), link: orNull(si[i][4]), owner: orNull(si[i][5]), sourceRow: i });
 }
 
+// CEO-facing top-level grouping derived from Org Chart View 2 "Higher-Level Category".
+// Source of truth: IT_Roles_Analytics_v15.xlsx, Org Chart View 2, column A.
+const HIGHER_CAT: Record<string, string> = {
+  'Actuarial': 'Core Business', 'Claims': 'Core Business',
+  'Operations & Customer Service': 'Core Business', 'Reinsurance': 'Core Business',
+  'Sales, Distribution & Marketing': 'Core Business', 'Underwriting': 'Core Business',
+  'Cybersecurity & IAM': 'IT', 'Data & AI': 'IT',
+  'Product, Delivery & PMO': 'IT', 'Technology & Engineering': 'IT',
+  'Finance & Investments': 'Corporate Function', 'Human Resources & Talent': 'Corporate Function',
+  'Legal & Corporate Governance': 'Corporate Function', 'Risk, Compliance & Audit': 'Corporate Function',
+};
+
 const codeFor = (name: string) =>
   name.replace(/[^A-Za-z0-9 ]/g, '').split(' ').filter(Boolean).map((w) => w[0]).join('').toUpperCase().slice(0, 6);
 
@@ -306,7 +340,7 @@ const out = {
   generatedFrom: WORKBOOK,
   company: { name: 'Meridian Insurance Group', slug: 'meridian' },
   domains,
-  divisions: divisionNames.map((name, idx) => ({ code: codeFor(name), name, sourceRow: idx })),
+  divisions: divisionNames.map((name, idx) => ({ code: codeFor(name), name, higherCategory: HIGHER_CAT[name] ?? null, sourceRow: idx })),
   departments,
   roles,
   roleHierarchy,

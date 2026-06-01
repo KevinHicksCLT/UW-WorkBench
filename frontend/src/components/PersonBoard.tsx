@@ -1,4 +1,3 @@
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, CartesianGrid } from 'recharts';
 import type { DrillItem } from '../viz/DrillCanvas';
 
 const EMP_LABEL: Record<string, string> = { contractor: 'Contractor', si_partner: 'SI Partner', badged: 'Employee' };
@@ -13,6 +12,12 @@ const STATUS_TONE: Record<string, string> = {
   'To Do': 'bg-slate-100 text-slate-600 border-slate-200',
   'Blocked': 'bg-red-50 text-red-700 border-red-200',
 };
+const PRIORITY_TONE: Record<string, string> = {
+  'High': 'bg-loss-50 text-loss-700 border-loss-200',
+  'Medium': 'bg-overlap-50 text-overlap-700 border-overlap-200',
+  'Low': 'bg-slate-50 text-slate-500 border-slate-200',
+};
+const HEALTH_DOT: Record<string, string> = { Green: '#10b981', Amber: '#f59e0b', Red: '#ef4444' };
 
 function monogram(name: string) {
   return name.split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? '').join('');
@@ -20,18 +25,23 @@ function monogram(name: string) {
 
 export default function PersonBoard({ node, onInspect }: { node: any; onInspect: (item: DrillItem) => void }) {
   const who = node.lenses.who ?? {};
-  const hw = node.lenses.howWell ?? {};
-  const series: { name: string; points: { period: string; value: number }[] }[] = hw.series ?? [];
-  const latest: any[] = hw.latest ?? [];
-  const latestByName = new Map(latest.map((m) => [m.name, m]));
   const tasks: any[] = node.children?.items ?? [];
+  const blocked = tasks.filter((t) => t.badges?.status === 'Blocked');
+  const inProgress = tasks.filter((t) => t.badges?.status === 'In Progress');
+  const toDo = tasks.filter((t) => t.badges?.status === 'To Do');
+  const done = tasks.filter((t) => t.badges?.status === 'Done');
 
   return (
-    <div className="h-full w-full overflow-y-auto rounded-2xl border border-slate-200/70 bg-surface-sunken p-5 animate-fade-in">
-      {/* Identity */}
+    <div className="h-full w-full overflow-y-auto rounded-2xl border border-slate-200/70 bg-surface-sunken p-5 animate-rise-in">
+
+      {/* ── Identity card ─────────────────────────────────────────────────── */}
       <div className="card-elevated p-5 mb-4">
         <div className="flex items-start gap-4">
-          <span className="grid place-items-center rounded-2xl text-white text-lg font-bold flex-shrink-0" style={{ width: 56, height: 56, background: '#0f766e' }}>
+          {/* Avatar */}
+          <span
+            className="grid place-items-center rounded-2xl text-white text-lg font-bold flex-shrink-0 shadow-card"
+            style={{ width: 56, height: 56, background: '#0f766e' }}
+          >
             {monogram(node.name)}
           </span>
           <div className="min-w-0 flex-1">
@@ -39,7 +49,7 @@ export default function PersonBoard({ node, onInspect }: { node: any; onInspect:
               <h2 className="text-h2 text-slate-900">{node.name}</h2>
               <span className="illustrative-badge">Illustrative</span>
             </div>
-            <div className="text-sm text-slate-500 mt-0.5">{who.title}</div>
+            {who.title && <div className="text-sm text-slate-500 mt-0.5">{who.title}</div>}
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <span className="chip-soft">{EMP_LABEL[who.employmentType] ?? who.employmentType}</span>
               {who.region && <span className={`chip border ${REGION_TONE[who.region] ?? 'bg-slate-100 text-slate-600 border-slate-200'}`}>{who.region}</span>}
@@ -48,86 +58,99 @@ export default function PersonBoard({ node, onInspect }: { node: any; onInspect:
             </div>
           </div>
         </div>
+
+        {/* Role & initiative assignments */}
         {(who.roles?.length || who.initiatives?.length) ? (
-          <div className="mt-4 grid sm:grid-cols-2 gap-3">
+          <div className="mt-4 border-t border-slate-100 pt-4 grid sm:grid-cols-2 gap-4">
             {who.roles?.length > 0 && (
               <div>
                 <div className="lens-eyebrow">Role &amp; allocation</div>
-                {who.roles.map((r: any) => (
-                  <div key={r.id} className="flex items-center justify-between text-sm py-0.5">
-                    <span className="text-slate-700 truncate">{r.name}</span>
-                    <span className="tnum text-slate-500">{r.allocationPct}%</span>
-                  </div>
-                ))}
+                <div className="mt-1 space-y-1">
+                  {who.roles.map((r: any) => (
+                    <div key={r.id} className="flex items-center justify-between text-sm">
+                      <span className="text-slate-700 truncate">{r.name}</span>
+                      <span className="tnum text-slate-400 text-xs ml-2 flex-shrink-0">{r.allocationPct}%</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
             {who.initiatives?.length > 0 && (
               <div>
                 <div className="lens-eyebrow">On initiatives</div>
-                {who.initiatives.map((i: any) => (
-                  <div key={i.id} className="flex items-center gap-2 text-sm py-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: i.health === 'Red' ? '#ef4444' : i.health === 'Amber' ? '#f59e0b' : '#10b981' }} />
-                    <span className="text-slate-700 truncate">{i.name}</span>
-                  </div>
-                ))}
+                <div className="mt-1 space-y-1">
+                  {who.initiatives.map((i: any) => (
+                    <div key={i.id} className="flex items-center gap-2 text-sm">
+                      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: HEALTH_DOT[i.health] ?? '#94a3b8' }} />
+                      <span className="text-slate-700 truncate">{i.name}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
         ) : null}
       </div>
 
-      {/* Performance — How well */}
-      <div className="lens-eyebrow mb-2">Performance · last 6 months <span className="illustrative-badge ml-1">Illustrative</span></div>
-      <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-5">
-        {series.map((s) => {
-          const m: any = latestByName.get(s.name) ?? {};
-          const good = m.target == null ? null : m.direction === 'down' ? m.value <= m.target : m.value >= m.target;
-          return (
-            <div key={s.name} className="card-elevated p-4">
-              <div className="flex items-baseline justify-between">
-                <div className="text-[11px] uppercase tracking-wide text-slate-400">{s.name}</div>
-                {m.target != null && (
-                  <span className={`text-[10px] font-semibold ${good ? 'text-emerald-600' : 'text-amber-600'}`}>{good ? 'on target' : 'below'}</span>
-                )}
-              </div>
-              <div className="text-2xl font-bold text-slate-900 tnum leading-tight mt-0.5">
-                {m.value ?? s.points[s.points.length - 1]?.value}
-                <span className="text-sm font-medium text-slate-400 ml-1">{m.unit}</span>
-              </div>
-              <div style={{ height: 56 }} className="mt-1 -mx-1">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={s.points} margin={{ top: 6, right: 6, bottom: 0, left: 6 }}>
-                    <CartesianGrid vertical={false} stroke="#eef1f7" />
-                    <XAxis dataKey="period" tickFormatter={(p) => p.slice(5)} tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                    <YAxis hide domain={['dataMin - 2', 'dataMax + 2']} />
-                    <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid #e2e8f0' }} labelFormatter={(p) => p} />
-                    {m.target != null && <ReferenceLine y={m.target} stroke="#f59e0b" strokeDasharray="3 3" />}
-                    <Line type="monotone" dataKey="value" stroke="#3a5ff0" strokeWidth={2} dot={{ r: 2 }} activeDot={{ r: 4 }} isAnimationActive={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          );
-        })}
+      {/* ── Performance placeholder ────────────────────────────────────────── */}
+      <div className="mb-4">
+        <div className="lens-eyebrow mb-2">Performance</div>
+        <div className="lens-card border-dashed">
+          <div className="flex items-start gap-2 text-sm text-slate-500">
+            <span className="w-2 h-2 rounded-full bg-slate-300 mt-0.5 flex-shrink-0" />
+            <span>Individual metrics aren't connected to a live source yet.</span>
+          </div>
+          <div className="mt-1.5 text-xs text-slate-400">Throughput, quality, utilization and cycle-time will populate here once a connector (Git / Jira / ITSM) is wired up.</div>
+        </div>
       </div>
 
-      {/* Tasks — What */}
-      <div className="lens-eyebrow mb-2">Current work · {tasks.length} tasks</div>
-      <div className="grid sm:grid-cols-2 gap-2">
-        {tasks.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => onInspect({ id: t.id, type: 'task', name: t.name, subtitle: t.subtitle, badges: t.badges })}
-            className="text-left card-elevated p-3 hover:shadow-float hover:-translate-y-0.5 transition-all"
-          >
-            <div className="flex items-center gap-2">
-              <span className={`chip border ${STATUS_TONE[t.badges?.status] ?? 'bg-slate-100 text-slate-600 border-slate-200'}`}>{t.badges?.status}</span>
-              {t.badges?.priority && <span className="chip-soft">{t.badges.priority}</span>}
+      {/* ── Task board ────────────────────────────────────────────────────── */}
+      {tasks.length > 0 && (
+        <>
+          <div className="lens-eyebrow mb-2">
+            Current work
+            <span className="ml-auto text-[10px] font-medium normal-case tracking-normal text-slate-400">{tasks.length} tasks</span>
+          </div>
+
+          {/* Summary bar */}
+          <div className="flex items-center gap-3 mb-3 text-[11px] text-slate-500">
+            {blocked.length > 0 && <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-loss-500" />{blocked.length} blocked</span>}
+            {inProgress.length > 0 && <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-accent-400" />{inProgress.length} in progress</span>}
+            {toDo.length > 0 && <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-slate-300" />{toDo.length} to do</span>}
+            {done.length > 0 && <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-gain-500" />{done.length} done</span>}
+          </div>
+
+          {/* Blocked tasks first (if any) */}
+          {blocked.length > 0 && (
+            <div className="callout-loss mb-3">
+              <span className="dot-loss flex-shrink-0 mt-0.5" />
+              <span>{blocked.length} task{blocked.length !== 1 ? 's' : ''} blocked — requires attention.</span>
             </div>
-            <div className="text-sm text-slate-700 mt-1.5 line-clamp-2">{t.name}</div>
-          </button>
-        ))}
-      </div>
+          )}
+
+          <div className="grid sm:grid-cols-2 gap-2">
+            {tasks.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => onInspect({ id: t.id, type: 'task', name: t.name, subtitle: t.subtitle, badges: t.badges })}
+                className="text-left card-elevated p-3 hover:shadow-float hover:-translate-y-0.5 transition-all duration-200 ease-out"
+              >
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className={`chip border ${STATUS_TONE[t.badges?.status] ?? 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                    {t.badges?.status}
+                  </span>
+                  {t.badges?.priority && (
+                    <span className={`chip border ${PRIORITY_TONE[t.badges.priority] ?? 'chip-soft'}`}>
+                      {t.badges.priority}
+                    </span>
+                  )}
+                </div>
+                <div className="text-[13px] font-medium text-slate-700 mt-1.5 line-clamp-2 leading-snug">{t.name}</div>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

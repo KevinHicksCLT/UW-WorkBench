@@ -26,33 +26,50 @@ input, select, textarea {
   input, select, textarea { font-size: 0.875rem; }
 }
 
-.safe-pt { padding-top: env(safe-area-inset-top); }
-.safe-pb { padding-bottom: env(safe-area-inset-bottom); }
-.safe-pl { padding-left: env(safe-area-inset-left); }
-.safe-pr { padding-right: env(safe-area-inset-right); }
-.safe-px { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+.safe-pt  { padding-top:    env(safe-area-inset-top); }
+.safe-pb  { padding-bottom: env(safe-area-inset-bottom); }
+.safe-pl  { padding-left:   env(safe-area-inset-left); }
+.safe-pr  { padding-right:  env(safe-area-inset-right); }
+.safe-px  { padding-left:   env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
 
+/* Tabular numerics — always apply to data values */
 .tnum { font-variant-numeric: tabular-nums; }
 
 @layer components {
+
+  /* ─── Base card primitives ─────────────────────────────────────────────── */
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-5;
+    @apply bg-white rounded-xl border border-slate-200/80 p-4 sm:p-5;
+    box-shadow: theme('boxShadow.card');
   }
-  .table-scroll {
-    @apply -mx-4 sm:mx-0 overflow-x-auto;
+  .card-elevated {
+    @apply bg-white rounded-2xl border border-slate-200/70;
+    box-shadow: theme('boxShadow.card');
   }
-  .table-scroll > table {
-    @apply min-w-[640px] mx-4 sm:mx-0;
+  /* Inspector / sidebar sub-card — tighter, no outer radius */
+  .lens-card {
+    @apply rounded-xl border border-slate-200/80 bg-white p-4;
   }
+
+  /* ─── Table scroll wrapper ─────────────────────────────────────────────── */
+  .table-scroll { @apply -mx-4 sm:mx-0 overflow-x-auto; }
+  .table-scroll > table { @apply min-w-[640px] mx-4 sm:mx-0; }
+
+  /* ─── Buttons ──────────────────────────────────────────────────────────── */
   .btn {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors;
   }
   .btn-primary {
-    @apply btn bg-accent-600 text-white hover:bg-accent-700 disabled:bg-slate-300;
+    @apply btn bg-accent-600 text-white hover:bg-accent-700 disabled:bg-slate-300 disabled:cursor-not-allowed;
   }
   .btn-secondary {
-    @apply btn bg-white border border-slate-300 text-slate-700 hover:bg-slate-50;
+    @apply btn bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed;
   }
+  .btn-ghost {
+    @apply btn text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+  }
+
+  /* ─── Form primitives ──────────────────────────────────────────────────── */
   .input {
     @apply block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm
            focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500;
@@ -60,67 +77,134 @@ input, select, textarea {
   .label {
     @apply block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1;
   }
-  .pill {
-    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
-  }
-  .pill-green { @apply pill bg-emerald-100 text-emerald-800; }
-  .pill-amber { @apply pill bg-amber-100 text-amber-800; }
-  .pill-red   { @apply pill bg-red-100 text-red-800; }
-  .pill-slate { @apply pill bg-slate-100 text-slate-700; }
-  .pill-blue  { @apply pill bg-brand-100 text-brand-800; }
 
-  /* ─── Elevated-light tokens (operating-model explorer) ─── */
-  /* `gradient-text` retired → a restrained navy display treatment. */
-  .gradient-text {
-    @apply text-brand-950;
-    letter-spacing: -0.025em;
+  /* ─── Status pills ─────────────────────────────────────────────────────── */
+  /* Base shape — always combine with a tone modifier */
+  .pill        { @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium; }
+  .pill-green  { @apply pill bg-emerald-100 text-emerald-800; }
+  .pill-amber  { @apply pill bg-amber-100   text-amber-800; }
+  .pill-red    { @apply pill bg-red-100     text-red-800; }
+  .pill-slate  { @apply pill bg-slate-100   text-slate-700; }
+  .pill-blue   { @apply pill bg-brand-100   text-brand-800; }
+
+  /* ─── Chips (smaller than pills — used inline in tables / nodes) ─────── */
+  .chip      { @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium; }
+  .chip-soft { @apply chip bg-slate-100 text-slate-600 border border-slate-200/70; }
+
+  /* ─── Domain semantic chips ────────────────────────────────────────────── */
+  /* Apply to any element that needs to be attributed to a CEO domain.
+     The color is the domain's canonical hue — teal / indigo / violet.
+     Use the filled variant for strong attribution (node accents, group labels).
+     Use the soft variant for inline references within prose / tables. */
+  .chip-domain-core {
+    @apply chip bg-domain-core-100 text-domain-core-700 border border-domain-core-200;
   }
-  .card-elevated {
-    @apply bg-white rounded-2xl border border-slate-200/70;
+  .chip-domain-it {
+    @apply chip bg-domain-it-100 text-domain-it-700 border border-domain-it-200;
+  }
+  .chip-domain-corp {
+    @apply chip bg-domain-corp-100 text-domain-corp-700 border border-domain-corp-200;
+  }
+
+  /* ─── Value-delta semantic chips (gain / loss / overlap) ────────────────── */
+  /* These encode WHERE value is generated, lost, or ambiguous.
+     They should appear only on value-stream cross-connection indicators,
+     role-to-stream attribution edges, and summary insight callouts.
+     Never use for decoration; always pair with a meaningful data point. */
+  .chip-gain {
+    @apply chip bg-gain-50 text-gain-700 border border-gain-200;
+  }
+  .chip-loss {
+    @apply chip bg-loss-50 text-loss-700 border border-loss-200;
+  }
+  .chip-overlap {
+    @apply chip bg-overlap-50 text-overlap-700 border border-overlap-200;
+  }
+
+  /* Dot-only indicators — the smallest scannable encoding.
+     Pair with a text label via aria-label or adjacent text. */
+  .dot-gain    { @apply inline-block w-2 h-2 rounded-full bg-gain-500; }
+  .dot-loss    { @apply inline-block w-2 h-2 rounded-full bg-loss-500; }
+  .dot-overlap { @apply inline-block w-2 h-2 rounded-full bg-overlap-500; }
+
+  /* Callout strip — a horizontal bar to frame an insight in the Inspector.
+     Example: "3 value-stream overlaps detected in this department." */
+  .callout-gain {
+    @apply flex items-start gap-2 rounded-lg bg-gain-50 border border-gain-200 px-3 py-2 text-[12px] text-gain-800;
+  }
+  .callout-loss {
+    @apply flex items-start gap-2 rounded-lg bg-loss-50 border border-loss-200 px-3 py-2 text-[12px] text-loss-800;
+  }
+  .callout-overlap {
+    @apply flex items-start gap-2 rounded-lg bg-overlap-50 border border-overlap-200 px-3 py-2 text-[12px] text-overlap-800;
+  }
+
+  /* ─── Metric tile ──────────────────────────────────────────────────────── */
+  /* Used in KpiTile and Inspector StatRow — a quiet number container. */
+  .metric-tile {
+    @apply rounded-xl border border-slate-200/80 bg-white p-3;
     box-shadow: theme('boxShadow.card');
   }
-  .lens-card {
-    @apply rounded-xl border border-slate-200/80 bg-white p-4;
-  }
-  .chip {
-    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium;
-  }
-  .chip-soft { @apply chip bg-slate-100 text-slate-600 border border-slate-200/70; }
-  .metric-tile {
-    @apply rounded-xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-3;
-  }
+
+  /* ─── Illustrative data badge ──────────────────────────────────────────── */
+  /* Signals that a number comes from the spreadsheet model, not a live source. */
   .illustrative-badge {
-    @apply inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide;
+    @apply inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700
+           border border-amber-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide;
   }
+
+  /* ─── Inspector typography helpers ────────────────────────────────────── */
+  /* Uppercase section label above a lens card — not a heading level, just a divider. */
   .lens-eyebrow {
     @apply flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1;
   }
 
-  /* Drillable row: accent text + persistent chevron = "you can dig deeper here".
-     Plain facts stay in slate with no chevron, so the two read differently. */
-  .drill-row {
-    @apply w-full flex items-center gap-2 text-left text-sm text-accent-700 rounded-md px-1.5 py-1 -mx-1.5 transition-colors hover:bg-accent-50;
+  /* ─── Gradient text (restrained — navy only) ───────────────────────────── */
+  /* Was a CSS gradient; now a pure navy treatment so it stays readable on any bg. */
+  .gradient-text {
+    @apply text-brand-950;
+    letter-spacing: -0.025em;
   }
-  .drill-row:disabled { @apply text-slate-500 cursor-default hover:bg-transparent; }
-  .drill-chev { @apply ml-auto flex-shrink-0 text-accent-400 text-base leading-none transition-colors; }
-  .drill-row:hover .drill-chev { @apply text-accent-700; }
-  .drill-row:disabled .drill-chev { @apply text-transparent; }
 
-  /* Skeleton shimmer */
+  /* ─── Drill affordances ────────────────────────────────────────────────── */
+  /* Two visual registers: accent (drillable) vs slate (fact-only).
+     The chevron appears on hover for drillable rows — absence of a chevron
+     signals "this is information, not a doorway." */
+  .drill-row {
+    @apply w-full flex items-center gap-2 text-left text-sm text-accent-700
+           rounded-md px-1.5 py-1 -mx-1.5 transition-colors hover:bg-accent-50;
+  }
+  .drill-row:disabled  { @apply text-slate-500 cursor-default hover:bg-transparent; }
+  .drill-chev          { @apply ml-auto flex-shrink-0 text-accent-400 text-base leading-none transition-colors; }
+  .drill-row:hover .drill-chev        { @apply text-accent-700; }
+  .drill-row:disabled  .drill-chev    { @apply text-transparent; }
+
+  /* ─── Skeleton shimmer ─────────────────────────────────────────────────── */
   .skeleton {
     @apply rounded-lg bg-slate-100;
     background-image: linear-gradient(90deg, #eef1f7 0px, #e2e8f0 200px, #eef1f7 400px);
     background-size: 800px 100%;
     @apply animate-shimmer;
   }
+
+  /* ─── Divider ──────────────────────────────────────────────────────────── */
+  /* Horizontal rule at the weight of the border token — not a visual anchor. */
+  .divider { @apply border-t border-slate-200/70 my-3; }
+
+  /* ─── Stage progress bar ───────────────────────────────────────────────── */
+  /* Used in StageBadge — the filled segments are brand-600, unfilled slate-200. */
+  .stage-pip          { @apply h-1.5 rounded-full transition-colors flex-1 min-w-[20px]; }
+  .stage-pip-filled   { @apply bg-brand-600; }
+  .stage-pip-empty    { @apply bg-slate-200; }
 }
 
-/* ─── React Flow theme overrides (scoped premium chrome) ─── */
-.rf-stage .react-flow__attribution { display: none; }
-.rf-stage .react-flow__background { color: #cdd6e6; }
-.rf-stage .react-flow__node { cursor: pointer; }
-.rf-stage .react-flow__node.nopan { cursor: pointer; }
-.rf-stage .react-flow__edge-path { stroke-width: 1.25px; }
+/* ─── React Flow theme overrides (scoped to .rf-stage wrapper) ─────────── */
+/* All overrides are scoped — no global ReactFlow style pollution. */
+.rf-stage .react-flow__attribution        { display: none; }
+.rf-stage .react-flow__background         { color: #cdd6e6; }
+.rf-stage .react-flow__node               { cursor: pointer; }
+.rf-stage .react-flow__node.nopan         { cursor: pointer; }
+.rf-stage .react-flow__edge-path          { stroke-width: 1.25px; }
 .rf-stage .react-flow__controls {
   border-radius: 0.75rem;
   overflow: hidden;

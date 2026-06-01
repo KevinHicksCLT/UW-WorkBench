@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
-import DrillCanvas, { type DrillItem, type DrillParent } from '../viz/DrillCanvas';
+import DrillCanvas, { type DrillItem, type DrillParent, type DivsByGroup } from '../viz/DrillCanvas';
 import DrillBreadcrumb, { type Frame } from '../components/DrillBreadcrumb';
 import Inspector from '../components/Inspector';
 import PersonBoard from '../components/PersonBoard';
@@ -50,10 +50,16 @@ export default function Explorer() {
 
   const nameFor = (type: string, id: string) => cache.current.get(key(type, id))?.name ?? nameHints.current.get(key(type, id)) ?? '…';
 
+  // Extract the CEO domain category from a loaded node (division/department carry higherCategory).
+  const domainFor = (type: string, id: string): string | undefined => {
+    const n = cache.current.get(key(type, id));
+    return n?.higherCategory ?? undefined;
+  };
+
   const frames: Frame[] = useMemo(() => {
     if (!company) return [];
     const f: Frame[] = [{ type: 'company', id: company.id, name: company.name }];
-    for (const t of tail) f.push({ type: t.type, id: t.id, name: nameFor(t.type, t.id) });
+    for (const t of tail) f.push({ type: t.type, id: t.id, name: nameFor(t.type, t.id), domainCategory: domainFor(t.type, t.id) });
     return f;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [company, tail, version]);
@@ -96,6 +102,12 @@ export default function Explorer() {
       .finally(() => setLoadingMore(false));
   }, [openNode, openFrame, loadingMore, bump]);
 
+  // divsByGroup is only present on the company node — the CEO's three-domain org split.
+  const divsByGroup: DivsByGroup | undefined = openNode?.divsByGroup;
+
+  // The open node's domain category (for division/department parent nodes).
+  const openDomainCategory: string | undefined = openNode?.higherCategory ?? undefined;
+
   return (
     <div className="flex flex-col h-[calc(100dvh-3.5rem)] lg:h-full min-h-0">
       <header className="flex-shrink-0 px-4 sm:px-6 pt-4 pb-3 border-b border-slate-200/70 bg-white/70 backdrop-blur">
@@ -119,9 +131,17 @@ export default function Explorer() {
             <TaskBoard node={openNode} />
           ) : (
             <DrillCanvas
-              parent={{ type: openNode.type, id: openNode.id, name: openNode.name, subtitle: openNode.subtitle, illustrative: openNode.illustrative } as DrillParent}
+              parent={{
+                type: openNode.type,
+                id: openNode.id,
+                name: openNode.name,
+                subtitle: openNode.subtitle,
+                illustrative: openNode.illustrative,
+                domainCategory: openDomainCategory,
+              } as DrillParent}
               children={openNode.children}
               focusId={focus?.id ?? null}
+              divsByGroup={divsByGroup}
               onInspect={inspect}
               onDrill={(it) => drill({ type: it.type, id: it.id, name: it.name })}
               onHover={hover}
