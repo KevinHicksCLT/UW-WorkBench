@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import {
   DOMAIN_HEX, DOMAIN_BG, DOMAIN_BORDER, DOMAIN_TEXT,
+  CARD_W, CARD_H,
   type NodeFocusState,
 } from '../model';
 
@@ -78,7 +79,10 @@ const CompanyNodeImpl = memo(function CompanyNodeImpl({ data }: NodeProps) {
     <div
       className={fc}
       style={{
-        width: 220,
+        width: CARD_W,
+        height: CARD_H,
+        boxSizing: 'border-box',
+        overflow: 'hidden',
         padding: '12px 16px',
         borderRadius: 12,
         background: '#171717',
@@ -87,6 +91,9 @@ const CompanyNodeImpl = memo(function CompanyNodeImpl({ data }: NodeProps) {
         cursor: 'pointer',
         userSelect: 'none',
         position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
       }}
     >
       <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a3a3a3', marginBottom: 2 }}>
@@ -116,7 +123,10 @@ const CoreNodeImpl = memo(function CoreNodeImpl({ data }: NodeProps) {
     <div
       className={fc}
       style={{
-        width: 200,
+        width: CARD_W,
+        height: CARD_H,
+        boxSizing: 'border-box',
+        overflow: 'hidden',
         padding: '10px 14px',
         borderRadius: 10,
         background: bg,
@@ -126,31 +136,35 @@ const CoreNodeImpl = memo(function CoreNodeImpl({ data }: NodeProps) {
         cursor: 'pointer',
         userSelect: 'none',
         position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
         ...animStyle,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-        <span
-          style={{
-            display: 'inline-block',
-            width: 8,
-            height: 8,
-            borderRadius: '50%',
-            background: hex,
-            flexShrink: 0,
-          }}
-        />
-        <span
-          style={{
-            fontSize: 12,
-            fontWeight: 700,
-            color: text,
-            letterSpacing: '-0.01em',
-            lineHeight: 1.3,
-          }}
-        >
-          {d.label}
-        </span>
+      <div
+        style={{
+          fontSize: 10,
+          fontWeight: 600,
+          letterSpacing: '0.10em',
+          textTransform: 'uppercase',
+          color: text,
+          opacity: 0.6,
+          marginBottom: 3,
+        }}
+      >
+        Domain
+      </div>
+      <div
+        style={{
+          fontSize: 14,
+          fontWeight: 600,
+          color: text,
+          letterSpacing: '-0.011em',
+          lineHeight: 1.25,
+        }}
+      >
+        {d.label}
       </div>
       <AllHandles />
     </div>
@@ -172,9 +186,10 @@ const DivisionNodeImpl = memo(function DivisionNodeImpl({ data }: NodeProps) {
     <div
       className={`group ${fc}`}
       style={{
-        width: 210,
-        minHeight: 78,
+        width: CARD_W,
+        height: CARD_H,
         boxSizing: 'border-box',
+        overflow: 'hidden',
         padding: '12px 30px 12px 14px',
         borderRadius: 10,
         background: '#ffffff',
@@ -190,7 +205,7 @@ const DivisionNodeImpl = memo(function DivisionNodeImpl({ data }: NodeProps) {
       }}
     >
       {/* Name */}
-      <div style={{ fontSize: 13, fontWeight: 600, color: '#171717', lineHeight: 1.3, marginBottom: 5 }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.3, marginBottom: 6 }}>
         {d.name}
       </div>
       {/* Domain tag */}
@@ -198,17 +213,17 @@ const DivisionNodeImpl = memo(function DivisionNodeImpl({ data }: NodeProps) {
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: 4,
+          alignSelf: 'flex-start',
           borderRadius: 5,
-          padding: '2px 7px',
+          padding: '2px 8px',
           fontSize: 10,
           fontWeight: 600,
+          letterSpacing: '0.01em',
           background: bg,
           color: text,
           border: `1px solid ${border}`,
         }}
       >
-        <span style={{ width: 6, height: 6, borderRadius: '50%', background: hex, display: 'inline-block', flexShrink: 0 }} />
         {d.category === 'Corporate Function' ? 'Corp Func' : d.category}
       </span>
       {/* Arrow affordance */}
@@ -237,10 +252,10 @@ const DivisionNodeImpl = memo(function DivisionNodeImpl({ data }: NodeProps) {
 
 const PART_COLOR: Record<string, string> = {
   Lead:  '#0d9488',
-  Core:  '#4f46e5',
-  Support: '#94a3b8',
+  Core:  '#2563eb',
+  Support: '#64748b',
   Control: '#d97706',
-  Oversight: '#a3a3a3',
+  Oversight: '#6b7280',
 };
 
 const ValueStreamNodeImpl = memo(function ValueStreamNodeImpl({ data }: NodeProps) {
@@ -253,12 +268,15 @@ const ValueStreamNodeImpl = memo(function ValueStreamNodeImpl({ data }: NodeProp
     <div
       className={`animate-piece-arrive ${fc}`}
       style={{
-        width: 188,
+        width: CARD_W,
+        height: CARD_H,
+        boxSizing: 'border-box',
+        overflow: 'hidden',
         padding: '10px 12px',
         borderRadius: 10,
         background: '#ffffff',
         border: '1px solid #eaeaea',
-        borderLeft: '3px solid #0d9488',
+        borderLeft: `3px solid ${partColor}`,
         boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
         cursor: 'pointer',
         position: 'relative',
@@ -288,7 +306,7 @@ const ValueStreamNodeImpl = memo(function ValueStreamNodeImpl({ data }: NodeProp
         </span>
       </div>
       {/* Name */}
-      <div style={{ fontSize: 12, fontWeight: 600, color: '#171717', lineHeight: 1.35 }}>
+      <div style={{ fontSize: 12.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35 }}>
         {d.name}
       </div>
       <AllHandles />
@@ -305,13 +323,6 @@ function domainTagClass(cat: string): string {
   return 'chip-soft';
 }
 
-function domainDotClass(cat: string): string {
-  if (cat === 'Core Business') return 'dot-core';
-  if (cat === 'Corporate Function') return 'dot-corp';
-  if (cat === 'IT') return 'dot-it';
-  return '';
-}
-
 const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
   const d = data as StepNodeData;
   const fc = focusClass(d.focusState);
@@ -323,7 +334,10 @@ const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
     <div
       className={`animate-piece-arrive ${fc}`}
       style={{
-        width: 172,
+        width: CARD_W,
+        height: CARD_H,
+        boxSizing: 'border-box',
+        overflow: 'hidden',
         padding: '11px 12px',
         borderRadius: 10,
         background: '#ffffff',
@@ -355,21 +369,19 @@ const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
         >
           {d.step}
         </span>
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#171717', lineHeight: 1.35 }}>
+        <span style={{ fontSize: 12.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35 }}>
           {d.name}
         </span>
       </div>
       {/* Domain tags */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
         {d.primaryCategory && (
-          <span className={domainTagClass(d.primaryCategory)} style={{ fontSize: 9, padding: '2px 5px' }}>
-            <span className={domainDotClass(d.primaryCategory)} style={{ marginRight: 2 }} />
+          <span className={domainTagClass(d.primaryCategory)} style={{ fontSize: 9, padding: '2px 6px' }}>
             {d.primaryCategory === 'Corporate Function' ? 'Corp' : d.primaryCategory === 'Core Business' ? 'Core' : 'IT'}
           </span>
         )}
         {secondary.map((cat) => (
-          <span key={cat} className={domainTagClass(cat)} style={{ fontSize: 9, padding: '2px 5px' }}>
-            <span className={domainDotClass(cat)} style={{ marginRight: 2 }} />
+          <span key={cat} className={domainTagClass(cat)} style={{ fontSize: 9, padding: '2px 6px' }}>
             {cat === 'Corporate Function' ? 'Corp' : cat === 'Core Business' ? 'Core' : 'IT'}
           </span>
         ))}

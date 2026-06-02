@@ -17,27 +17,31 @@ import { mapNodeTypes } from './nodes/MapNode';
 import type {
   CompanyNodeData, CoreNodeData, DivisionNodeData, ValueStreamNodeData, StepNodeData,
 } from './nodes/MapNode';
+import { CARD_W, CARD_H, DOMAIN_HEX } from './model';
 import type { NodeFocusState, DivisionSummary, DivisionFlow, FlowStep, FlowValueStream } from './model';
 import ContextSidebar, { type StepContext } from '../components/ContextSidebar';
 import { api } from '../lib/api';
 
 // ── Layout constants ─────────────────────────────────────────────────────────
 
-const COMPANY_H        = 64;
+// Every card is the same size (CARD_W × CARD_H, from model.ts) so the whole map
+// reads as one consistent grid. The per-level aliases below keep the layout math
+// readable but all resolve to the same dimensions.
+const COMPANY_H        = CARD_H;
 const DOMAIN_TOP_OFFSET = 72;  // y offset from company bottom to the domain row
-const CORE_W          = 200;
-const CORE_H          = 52;
-const DIV_W           = 210;
-const DIV_H           = 78;   // fixed row height (division nodes use this as min-height → even gaps)
+const CORE_W          = CARD_W;
+const CORE_H          = CARD_H;
+const DIV_W           = CARD_W;
+const DIV_H           = CARD_H;
 const DIV_GAP_Y       = 20;
 const COL_GAP_X       = 160;   // horizontal gap between column centers
 const DIV_TOP_OFFSET  = 60;    // y offset from domain bottom to first division top
-const VS_W            = 188;
-const VS_H            = 68;
+const VS_W            = CARD_W;
+const VS_H            = CARD_H;
 const VS_GAP_X        = 12;
 const VS_TOP_OFFSET   = 28;    // gap between focused-division bottom and VS row top
-const STEP_W          = 172;
-const STEP_H          = 80;
+const STEP_W          = CARD_W;
+const STEP_H          = CARD_H;
 const STEP_GAP_X      = 12;
 const STEP_TOP_OFFSET = 24;    // gap between focused-VS bottom and step row top
 
@@ -49,6 +53,25 @@ function catFor(div: DivisionSummary): Category {
   if (div.higherCategory === 'Corporate Function') return 'Corporate Function';
   if (div.higherCategory === 'IT') return 'IT';
   return 'Core Business';
+}
+
+// Top-to-bottom order within each column = the order the work happens (the
+// business value chain), not alphabetical. e.g. Core Business starts at Sales.
+// Names match Division.name exactly; anything unlisted falls to the bottom in
+// its incoming (alphabetical) order.
+const DIVISION_SEQUENCE: string[] = [
+  // Core Business — sell → underwrite → pay claims → cede risk → service
+  'Sales, Distribution & Marketing', 'Underwriting', 'Actuarial',
+  'Claims', 'Reinsurance', 'Operations & Customer Service',
+  // IT — plan → build → data → secure
+  'Product, Delivery & PMO', 'Technology & Engineering', 'Data & AI', 'Cybersecurity & IAM',
+  // Corporate Function — staff → fund → govern → assure
+  'Human Resources & Talent', 'Finance & Investments',
+  'Legal & Corporate Governance', 'Risk, Compliance & Audit',
+];
+function divSeq(name: string): number {
+  const i = DIVISION_SEQUENCE.indexOf(name);
+  return i === -1 ? Number.MAX_SAFE_INTEGER : i;
 }
 
 // ── Inner canvas ─────────────────────────────────────────────────────────────
@@ -194,11 +217,19 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
     const ns: Node[] = [];
     const es: Edge[] = [];
 
-    // Partition divisions by category, preserving order from the API.
+    // Edge palette. Base lines are a visible neutral gray (darker than before so
+    // the structure reads); the actively-drilled "selected flow" is drawn in the
+    // selected domain's color, thicker and fully opaque.
+    const LINE   = '#9ca3af';                                   // visible neutral line
+    const accent = selectedDomain ? (DOMAIN_HEX[selectedDomain] ?? LINE) : LINE;
+
+    // Partition divisions by category, then order each column top→bottom by the
+    // value-chain sequence (the order the work happens).
+    const bySeq = (a: DivisionSummary, b: DivisionSummary) => divSeq(a.name) - divSeq(b.name);
     const cols: Record<Category, DivisionSummary[]> = {
-      'Core Business':      divisions.filter((d) => catFor(d) === 'Core Business'),
-      'Corporate Function': divisions.filter((d) => catFor(d) === 'Corporate Function'),
-      'IT':                 divisions.filter((d) => catFor(d) === 'IT'),
+      'Core Business':      divisions.filter((d) => catFor(d) === 'Core Business').sort(bySeq),
+      'Corporate Function': divisions.filter((d) => catFor(d) === 'Corporate Function').sort(bySeq),
+      'IT':                 divisions.filter((d) => catFor(d) === 'IT').sort(bySeq),
     };
 
     // Column center-x values, left→right: Corporate Function · Core Business · IT.
@@ -215,7 +246,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
     ns.push({
       id: 'company',
       type: 'companyNode',
-      position: { x: middleX - 220 / 2, y: 0 },
+      position: { x: middleX - CARD_W / 2, y: 0 },
       data: { name: companyName, focusState: companyFs } satisfies CompanyNodeData,
       draggable: false,
       selectable: false,
@@ -261,8 +292,9 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
         sourceHandle: 'b',
         targetHandle: 't',
         style: {
-          stroke: '#d4d4d4', strokeWidth: 1,
-          strokeOpacity: (selectedDomain && !isDomainSelected) ? 0.12 : 0.35,
+          stroke: isDomainSelected ? accent : LINE,
+          strokeWidth: isDomainSelected ? 2 : 1.25,
+          strokeOpacity: isDomainSelected ? 0.95 : (selectedDomain ? 0.2 : 0.55),
         },
       });
 
@@ -308,9 +340,9 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
           sourceHandle: 'b',
           targetHandle: 't',
           style: {
-            stroke: '#d4d4d4',
-            strokeWidth: 1,
-            strokeOpacity: (focusedDivisionId && !isDivFocused) ? 0.12 : 0.35,
+            stroke: isDivFocused ? accent : LINE,
+            strokeWidth: isDivFocused ? 2 : 1.25,
+            strokeOpacity: isDivFocused ? 0.95 : (focusedDivisionId ? 0.18 : 0.55),
           },
         });
 
@@ -354,9 +386,9 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
               sourceHandle: 'b',
               targetHandle: 't',
               style: {
-                stroke: '#d4d4d4',
-                strokeWidth: 1,
-                strokeOpacity: (focusedVsId && !isVsFocused) ? 0.15 : 0.5,
+                stroke: isVsFocused ? accent : LINE,
+                strokeWidth: isVsFocused ? 2 : 1.25,
+                strokeOpacity: isVsFocused ? 0.95 : (focusedVsId ? 0.18 : 0.6),
               },
             });
 
@@ -364,11 +396,11 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
             if (isVsFocused && vsFlowData && steps.length > 0) {
               const stepsTop = vsY + VS_H + STEP_TOP_OFFSET;
 
-              // Center steps on the focused VS x.
+              // Center the whole step row exactly under the focused VS so the
+              // process reads as one perpendicular band beneath it.
+              const vsCenterX = vsX + VS_W / 2;
               const totalStepsWidth = steps.length * STEP_W + (steps.length - 1) * STEP_GAP_X;
-              const stepsLeft = vsX + VS_W / 2 - totalStepsWidth / 2;
-              // Clamp so we don't go off-screen left
-              const stepsLeftClamped = Math.max(stepsLeft, 16);
+              const stepsLeft = vsCenterX - totalStepsWidth / 2;
 
               steps.forEach((step, si) => {
                 const stepNodeId = `step:${step.id}`;
@@ -380,7 +412,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
                 ns.push({
                   id: stepNodeId,
                   type: 'stepNode',
-                  position: { x: stepsLeftClamped + si * (STEP_W + STEP_GAP_X), y: stepsTop },
+                  position: { x: stepsLeft + si * (STEP_W + STEP_GAP_X), y: stepsTop },
                   data: {
                     step: step.step,
                     name: step.name,
@@ -403,7 +435,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
                     sourceHandle: 'r',
                     targetHandle: 'l',
                     type: 'smoothstep',
-                    style: { stroke: '#d4d4d4', strokeWidth: 1.25, strokeOpacity: 0.7 },
+                    style: { stroke: accent, strokeWidth: 2, strokeOpacity: 0.9 },
                   });
                 }
               });
@@ -415,7 +447,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
                 target: `step:${steps[0].id}`,
                 sourceHandle: 'b',
                 targetHandle: 't',
-                style: { stroke: '#d4d4d4', strokeWidth: 1, strokeOpacity: 0.4 },
+                style: { stroke: accent, strokeWidth: 2, strokeOpacity: 0.8 },
               });
             }
           });
@@ -432,7 +464,16 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
     flowData, valueStreams, vsFlowData, steps,
   ]);
 
-  // ── Camera helper ─────────────────────────────────────────────────────────
+  // ── Camera helpers ────────────────────────────────────────────────────────
+  // Fit a specific set of nodes in frame (used to frame the whole process row).
+  const fitNodes = useCallback((nodeIds: string[], padding = 0.2) => {
+    setTimeout(() => {
+      const present = nodeIds.filter((id) => rf.getNode(id));
+      if (!present.length) return;
+      rf.fitView({ nodes: present.map((id) => ({ id })), padding, duration: 460, maxZoom: 1 });
+    }, 80);
+  }, [rf]);
+
   const moveCameraToNode = useCallback((nodeId: string, yBias = 0.5) => {
     setTimeout(() => {
       const node = rf.getNode(nodeId);
@@ -463,10 +504,15 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
     else if (selectedDomain) moveCameraToNode(`core:${selectedDomain}`, 1.4);
   }, [focusedDivisionId]); // eslint-disable-line
 
-  // Camera: re-center when VS data arrives (async)
+  // Camera: when the division's value streams arrive, frame the whole row — the
+  // division plus its full left-to-right value-stream row, so nothing is cut off.
   useEffect(() => {
     if (level >= 1 && focusedDivisionId && flowData) {
-      setTimeout(() => moveCameraToNode(focusedDivisionId, 0.8), 120);
+      if (valueStreams.length > 0) {
+        fitNodes([focusedDivisionId, ...valueStreams.map((vs) => `vs:${vs.id}`)], 0.22);
+      } else {
+        setTimeout(() => moveCameraToNode(focusedDivisionId, 0.8), 120);
+      }
     }
   }, [flowData]); // eslint-disable-line
 
@@ -475,10 +521,15 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
     if (level >= 2 && focusedVsId) moveCameraToNode(`vs:${focusedVsId}`, 0.8);
   }, [focusedVsId]); // eslint-disable-line
 
-  // Camera: re-center when step data arrives (async)
+  // Camera: when the process steps arrive, frame the whole process — the focused
+  // value stream plus its full (centered, perpendicular) step row.
   useEffect(() => {
     if (level >= 2 && focusedVsId && vsFlowData) {
-      setTimeout(() => moveCameraToNode(`vs:${focusedVsId}`, 0.8), 120);
+      if (steps.length > 0) {
+        fitNodes([`vs:${focusedVsId}`, ...steps.map((s) => `step:${s.id}`)], 0.22);
+      } else {
+        setTimeout(() => moveCameraToNode(`vs:${focusedVsId}`, 0.8), 120);
+      }
     }
   }, [vsFlowData]); // eslint-disable-line
 
