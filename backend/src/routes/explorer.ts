@@ -156,6 +156,92 @@ router.get('/overview', async (req: Request, res: Response, next: NextFunction) 
   } catch (e) { next(e); }
 });
 
+// Flat value-stream list for the cross-cutting bottom rail of the column board.
+// Each stream carries the divisions / higher-categories / roles that participate
+// in it (via RoleValueStream → Role → Division.higherCategory), so selecting a
+// stream can light up its participants across the three category columns.
+router.get('/value-streams', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true } });
+    if (!company) return res.status(404).json({ error: 'No company' });
+    const [streams, links] = await Promise.all([
+      prisma.valueStream.findMany({ where: { companyId: company.id }, orderBy: [{ domain: 'asc' }, { name: 'asc' }], select: { id: true, name: true, domain: true, domainRef: { select: { id: true, name: true } } } }),
+      prisma.roleValueStream.findMany({ where: { valueStream: { companyId: company.id } }, select: { valueStreamId: true, roleId: true, role: { select: { division: { select: { id: true, name: true, higherCategory: true } } } } } }),
+    ]);
+    const agg = new Map<string, { divisionIds: Set<string>; categories: Set<string>; roleIds: Set<string> }>();
+    for (const l of links) {
+      let a = agg.get(l.valueStreamId);
+      if (!a) { a = { divisionIds: new Set(), categories: new Set(), roleIds: new Set() }; agg.set(l.valueStreamId, a); }
+      a.roleIds.add(l.roleId);
+      if (l.role.division) { a.divisionIds.add(l.role.division.id); if (l.role.division.higherCategory) a.categories.add(l.role.division.higherCategory); }
+    }
+    res.json({
+      valueStreams: streams.map((s) => {
+        const a = agg.get(s.id);
+        return {
+          id: s.id, name: s.name, domain: s.domain ?? null, domainId: s.domainRef?.id ?? null,
+          divisionIds: a ? [...a.divisionIds] : [], categories: a ? [...a.categories] : [], roleIds: a ? [...a.roleIds] : [],
+        };
+      }),
+    });
+  } catch (e) { next(e); }
+});
+
+// End-to-end process flow for a division's value stream(s). Clicking a division
+// in the column board reveals the L3 process flow (e.g. Claims: Claim Intake/FNOL →
+// Coverage & Assignment → Investigation & Evaluation → Resolution & Recovery), each
+// L3 stage carrying its L4 sub-processes. Every stage is tagged with the higher-
+// categories of the roles that PERFORM it — so a Core-Business value stream that
+// leans on IT or Corporate-Function steps shows that cross-domain dependency.
+router.get('/division/:id/flow', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const tenantId = req.tenantId;
+    const div = await prisma.division.findFirst({ where: { id: req.params.id, tenantId }, select: { id: true, name: true, higherCategory: true } });
+    if (!div) return res.status(404).json({ error: 'Not found' });
+    // The division's value streams, ranked by strongest participation (Lead first).
+    const streams = await streamsForRoles({ divisionId: div.id });
+    const wantVs = typeof req.query.vs === 'string' ? req.query.vs : undefined;
+    const selectedVs = streams.find((s) => s.id === wantVs) ?? streams[0] ?? null;
+
+    let selected: any = null;
+    if (selectedVs) {
+      const [subs, rvs] = await Promise.all([
+        prisma.subValueStream.findMany({ where: { valueStreamId: selectedVs.id, level: { in: [3, 4] } }, orderBy: [{ sourceRow: 'asc' }], select: { id: true, parentId: true, level: true, name: true, inputs: true, outputs: true, upstream: true, downstream: true } }),
+        prisma.roleValueStream.findMany({ where: { valueStreamId: selectedVs.id, subStream: { not: null } }, select: { subStream: true, participationType: true, role: { select: { name: true, division: { select: { higherCategory: true } } } } } }),
+      ]);
+      const l3 = subs.filter((s) => s.level === 3);
+      const steps = l3.map((s, i) => {
+        const links = rvs.filter((r) => r.subStream!.startsWith(s.name + ' — '));
+        const catCount = new Map<string, number>();
+        let leadCat: string | null = null;
+        const roleNames = new Set<string>();
+        for (const l of links) {
+          const cat = l.role.division?.higherCategory ?? null;
+          if (l.role.name) roleNames.add(l.role.name);
+          if (cat) { catCount.set(cat, (catCount.get(cat) ?? 0) + 1); if (l.participationType === 'Lead' && !leadCat) leadCat = cat; }
+        }
+        const categories = [...catCount.keys()].sort((a, b) => (catCount.get(b)! - catCount.get(a)!));
+        const primaryCategory = leadCat ?? categories[0] ?? div.higherCategory ?? null;
+        return {
+          id: s.id, step: i + 1, name: s.name,
+          subSteps: subs.filter((c) => c.level === 4 && c.parentId === s.id).map((c) => c.name),
+          inputs: s.inputs, outputs: s.outputs, upstream: s.upstream, downstream: s.downstream,
+          roles: [...roleNames], categories, primaryCategory,
+          crossDomain: categories.some((c) => c !== div.higherCategory),
+          unowned: links.length === 0,
+        };
+      });
+      selected = { id: selectedVs.id, name: selectedVs.name, steps };
+    }
+    res.json({
+      division: div,
+      valueStreams: streams.map((s) => ({ id: s.id, name: s.name, participationType: s.participationType })),
+      selectedId: selectedVs?.id ?? null,
+      selected,
+    });
+  } catch (e) { next(e); }
+});
+
 // ── unified drill node endpoint ─────────────────────────────────────────
 router.get('/node/:type/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -210,6 +296,22 @@ async function nodeCompany(tenantId: string, id: string) {
   ]);
   const kpiRoll = await kpisFor(allVs.map((v) => v.id));
   const stepCount = await prisma.processStep.count({ where: { valueStream: { companyId: c } } });
+  // Real-app TCO rollup across all 6 apps with TCO data (illustrative=false).
+  const realApps = await prisma.application.findMany({
+    where: { companyId: c, illustrative: false, totalTco: { not: null } },
+    select: { licenseCost: true, laborCost: true, vendorServicesCost: true, infraCost: true, depreciationCost: true, overheadCost: true, totalTco: true },
+  });
+  const tcoByBucket = { license: 0, labor: 0, vendorServices: 0, infra: 0, depreciation: 0, overhead: 0 };
+  let totalRealTco = 0;
+  for (const a of realApps) {
+    tcoByBucket.license += a.licenseCost ?? 0;
+    tcoByBucket.labor += a.laborCost ?? 0;
+    tcoByBucket.vendorServices += a.vendorServicesCost ?? 0;
+    tcoByBucket.infra += a.infraCost ?? 0;
+    tcoByBucket.depreciation += a.depreciationCost ?? 0;
+    tcoByBucket.overhead += a.overheadCost ?? 0;
+    totalRealTco += a.totalTco ?? 0;
+  }
   // Operating-model-led: the company drills into its value-stream domains. The
   // organization (divisions → people) nests underneath value streams and is also
   // a click away in the sidebar.
@@ -223,7 +325,9 @@ async function nodeCompany(tenantId: string, id: string) {
       who: { headcount: ppl },
       what: { domains: domains.length, divisions: divisions.length, valueStreams: allVs.length, kpis: kpi },
       how: { processSteps: stepCount, valueStreams: allVs.length },
-      where: { systems: apps.reduce((a, x) => a + x._count._all, 0), byKind: apps.map((x) => ({ kind: x.kind, count: x._count._all })) },
+      // realAppCount / totalRealTco: only the 6 real apps from the TCO sheet (illustrative=false).
+      // tcoByBucket: aggregate license/labor/vendorServices/infra/depreciation/overhead spend.
+      where: { systems: apps.reduce((a, x) => a + x._count._all, 0), byKind: apps.map((x) => ({ kind: x.kind, count: x._count._all })), realAppCount: realApps.length, totalRealTco, tcoByBucket },
       why: { risks: risk.total, bySeverity: risk.bySeverity },
       howWell: { attainment: kpiRoll.attainment, initiatives: inits.map((x) => ({ health: x.health, count: x._count._all })) },
     },
@@ -267,7 +371,7 @@ async function nodeDivision(tenantId: string, id: string) {
   const div = await prisma.division.findFirst({ where: { id, tenantId }, include: { departments: { orderBy: { name: 'asc' }, include: { _count: { select: { roles: true } } } } } });
   if (!div) return null;
   const roleWhere = { divisionId: div.id };
-  const [roles, ppl, streams, controls, metrics, leaders, risk, cats, standards] = await Promise.all([
+  const [roles, ppl, streams, controls, metrics, leaders, risk, cats, standards, divApps] = await Promise.all([
     prisma.role.findMany({ where: roleWhere, select: { id: true } }),
     headcount({ assignments: { some: { role: roleWhere } } }),
     streamsForRoles(roleWhere),
@@ -277,16 +381,32 @@ async function nodeDivision(tenantId: string, id: string) {
     risksBySeverity({ valueStream: { roleLinks: { some: { role: roleWhere } } } }),
     prisma.role.findMany({ where: roleWhere, select: { id: true } }).then((r) => categoryCounts(r.map((x) => x.id))),
     prisma.standard.findMany({ where: { companyId: div.companyId }, select: { department: true, count: true, charterIncluded: true, owner: true } }),
+    // TCO rollup: apps whose primaryDivisionName matches this division's name (from TCO sheet).
+    prisma.application.findMany({ where: { companyId: div.companyId, primaryDivisionName: div.name, totalTco: { not: null } }, select: { id: true, name: true, ownershipModel: true, totalTco: true, licenseCost: true, laborCost: true, vendorServicesCost: true, infraCost: true, depreciationCost: true, overheadCost: true } }),
   ]);
   const apps = await appsForStreams(streams.map((s) => s.id));
   const kpi = await kpisFor(streams.map((s) => s.id));
+  // Aggregate division-level TCO from apps whose primaryDivisionName matches.
+  const divTcoByBucket = { license: 0, labor: 0, vendorServices: 0, infra: 0, depreciation: 0, overhead: 0 };
+  let divTotalTco = 0;
+  for (const a of divApps) {
+    divTcoByBucket.license += a.licenseCost ?? 0;
+    divTcoByBucket.labor += a.laborCost ?? 0;
+    divTcoByBucket.vendorServices += a.vendorServicesCost ?? 0;
+    divTcoByBucket.infra += a.infraCost ?? 0;
+    divTcoByBucket.depreciation += a.depreciationCost ?? 0;
+    divTcoByBucket.overhead += a.overheadCost ?? 0;
+    divTotalTco += a.totalTco ?? 0;
+  }
   return {
     type: 'division', id: div.id, name: div.name, higherCategory: div.higherCategory, subtitle: `${div.departments.length} departments · ${roles.length} roles · ${ppl.total} people`, illustrative: false,
     lenses: {
       who: { headcount: ppl, leaders: leaders.map((l) => ({ id: l.id, name: l.name })) },
       what: { roles: roles.length, valueStreams: streams.length, categories: cats },
       how: { valueStreams: streams.slice(0, 14) },
-      where: { applications: apps.slice(0, 14) },
+      // tco: real-app spend for apps tagged to this division via primaryDivisionName (from TCO sheet).
+      // null means no real app is tagged to this division.
+      where: { applications: apps.slice(0, 14), tco: divTotalTco > 0 ? { total: divTotalTco, byBucket: divTcoByBucket, apps: divApps.map((a) => ({ id: a.id, name: a.name, ownershipModel: a.ownershipModel, totalTco: a.totalTco })) } : null },
       why: { controls: controls.count, byCategory: controls.byCategory, risks: risk.total, bySeverity: risk.bySeverity, standards: standards.slice(0, 6) },
       howWell: { metrics, attainment: kpi.attainment },
     },
@@ -327,7 +447,7 @@ async function nodeValueStream(tenantId: string, id: string) {
   const [links, subStreams, apps, metrics, inits, risk, steps, io] = await Promise.all([
     prisma.roleValueStream.findMany({ where: { valueStreamId: vs.id }, include: { role: { select: { id: true, name: true } } } }),
     prisma.subValueStream.findMany({ where: { valueStreamId: vs.id }, orderBy: [{ level: 'asc' }, { sourceRow: 'asc' }], select: { id: true, parentId: true, level: true, name: true, inputs: true, outputs: true, sourceRow: true } }),
-    prisma.applicationValueStream.findMany({ where: { valueStreamId: vs.id }, include: { application: { select: { id: true, name: true, kind: true, vendor: true, criticality: true, illustrative: true } } } }),
+    prisma.applicationValueStream.findMany({ where: { valueStreamId: vs.id }, include: { application: { select: { id: true, name: true, kind: true, vendor: true, criticality: true, illustrative: true, ownershipModel: true, totalTco: true, licenseCost: true, laborCost: true, vendorServicesCost: true, infraCost: true, depreciationCost: true, overheadCost: true } } } }),
     prisma.metric.findMany({ where: { valueStreamId: vs.id }, select: { name: true, value: true, unit: true, target: true, targetText: true, direction: true, category: true, l3: true, ownerRole: true, framework: true } }),
     prisma.initiativeValueStream.findMany({ where: { valueStreamId: vs.id }, include: { initiative: { select: { id: true, name: true, health: true, stage: true } } } }),
     risksBySeverity({ valueStreamId: vs.id }),
@@ -343,6 +463,19 @@ async function nodeValueStream(tenantId: string, id: string) {
   // Gap 2: compute roleLinkCount per L3 process area (ownership gap signal).
   const l3LinkCounts = await l3RoleLinkCounts(vs.id, l3);
   const ownershipGaps = l3.filter((s) => (l3LinkCounts.get(s.id) ?? 0) === 0).length;
+  // TCO rollup: sum real-app TCO across all apps linked to this value stream.
+  const vsTcoByBucket = { license: 0, labor: 0, vendorServices: 0, infra: 0, depreciation: 0, overhead: 0 };
+  let vsTotalTco = 0;
+  for (const a of apps) {
+    if (a.application.illustrative || a.application.totalTco == null) continue;
+    vsTcoByBucket.license += a.application.licenseCost ?? 0;
+    vsTcoByBucket.labor += a.application.laborCost ?? 0;
+    vsTcoByBucket.vendorServices += a.application.vendorServicesCost ?? 0;
+    vsTcoByBucket.infra += a.application.infraCost ?? 0;
+    vsTcoByBucket.depreciation += a.application.depreciationCost ?? 0;
+    vsTcoByBucket.overhead += a.application.overheadCost ?? 0;
+    vsTotalTco += a.application.totalTco;
+  }
   const appItems = apps.map((a) => child(a.application.id, 'application', a.application.name, { group: a.application.kind === 'External' ? 'External applications' : 'Supporting applications', subtitle: `${a.application.kind}${a.application.vendor ? ' · ' + a.application.vendor : ''}`, badges: { kind: a.application.kind } }));
   return {
     type: 'valueStream', id: vs.id, name: vs.name, subtitle: vs.domain ?? undefined, illustrative: false,
@@ -351,7 +484,8 @@ async function nodeValueStream(tenantId: string, id: string) {
       what: { deliverables: subStreams.filter((s) => s.level === 4 && s.outputs).map((s) => ({ process: s.name, output: s.outputs })), io },
       // ownershipGaps: count of L3 process areas with no owning/contributing roles (accountability gap / loss signal).
       how: { processAreas: l3.length, subProcesses: subStreams.filter((s) => s.level === 4).length, ownershipGaps, steps, initiatives: inits.map((i) => ({ id: i.initiativeId, name: i.initiative.name, health: i.initiative.health })) },
-      where: { applications: apps.map((a) => ({ ...a.application, systemRole: a.systemRole })) },
+      // tco: real-app TCO rollup for apps linked to this value stream (null buckets mean no real apps here).
+      where: { applications: apps.map((a) => ({ ...a.application, systemRole: a.systemRole })), tco: vsTotalTco > 0 ? { total: vsTotalTco, byBucket: vsTcoByBucket } : null },
       why: { controls: controls.count, byCategory: controls.byCategory, risks: risk.total, bySeverity: risk.bySeverity },
       howWell: { metrics, attainment: attainmentOf(metrics) },
     },
@@ -403,9 +537,34 @@ async function nodeSubValueStream(tenantId: string, id: string) {
       valueStreamId: s.valueStreamId,
       subStream: isL3 ? { startsWith: s.name + ' — ' } : compoundKey!,
     },
-    select: { roleId: true },
+    select: { roleId: true, participationType: true, role: { select: { id: true, name: true, division: { select: { higherCategory: true } } } } },
   });
   const roleLinkCount = rvsRows.length;
+  // Domain tags: which higher-categories perform this sub-process (Core Business /
+  // Corporate Function / IT), derived from the participating roles' divisions.
+  const catCount = new Map<string, number>();
+  let leadCat: string | null = null;
+  for (const r of rvsRows) {
+    const cat = r.role.division?.higherCategory ?? null;
+    if (cat) { catCount.set(cat, (catCount.get(cat) ?? 0) + 1); if (r.participationType === 'Lead' && !leadCat) leadCat = cat; }
+  }
+  const categories = [...catCount.keys()].sort((a, b) => (catCount.get(b)! - catCount.get(a)!));
+  const domain = { primaryCategory: leadCat ?? categories[0] ?? null, categories, crossDomain: categories.length > 1 };
+  // Supporting applications (value-stream-level in v15) and the people who perform
+  // this sub-process (via the involved roles) — both surface in the left sidebar.
+  const supportApps = await appsForStreams([s.valueStreamId]);
+  const roleIds = roles.map((r) => r.id);
+  const people = roleIds.length
+    ? await prisma.person.findMany({ where: { tenantId, assignments: { some: { roleId: { in: roleIds } } } }, select: { id: true, name: true, title: true, region: true, employmentType: true }, take: 40 })
+    : [];
+  // byParticipation: group roles by their participationType for this sub-stream.
+  // Provides Lead/Core/Support/Control/Oversight breakdown at process-area level.
+  const byParticipation: Record<string, { id: string; name: string }[]> = { Lead: [], Core: [], Support: [], Control: [], Oversight: [] };
+  for (const r of rvsRows) {
+    const pt = r.participationType;
+    if (!byParticipation[pt]) byParticipation[pt] = [];
+    byParticipation[pt].push({ id: r.role.id, name: r.role.name });
+  }
   // Children: the next flow level (sub-processes for L3, steps for L4) plus the
   // roles involved nested right under the flow.
   const flowItems = isL3
@@ -417,9 +576,15 @@ async function nodeSubValueStream(tenantId: string, id: string) {
     type: 'subValueStream', id: s.id, name: s.name, subtitle: isL3 ? 'Process area' : 'Sub-process', illustrative: false,
     // roleLinkCount / hasOwner: Gap 2 ownership signal. hasOwner=false = accountability gap (loss signal).
     roleLinkCount, hasOwner: roleLinkCount > 0,
+    // domain: the higher-categories that perform this sub-process (for domain tags).
+    domain,
     lenses: {
-      who: { rolesInvolved: roles },
-      what: { output: s.outputs, io }, how: { inputs: s.inputs, outputs: s.outputs, upstream: s.upstream, downstream: s.downstream, steps }, where: {}, why: { notes: s.notes }, howWell: {},
+      // byParticipation: roles grouped by participation type (Lead/Core/Support/Control/Oversight).
+      // people: the individuals performing this sub-process (left-sidebar list).
+      who: { rolesInvolved: roles, byParticipation, people },
+      what: { output: s.outputs, io }, how: { inputs: s.inputs, outputs: s.outputs, upstream: s.upstream, downstream: s.downstream, steps },
+      // applications: supporting systems (value-stream-level in v15) for the left sidebar.
+      where: { applications: supportApps }, why: { notes: s.notes }, howWell: {},
     },
     children: { childType: 'mixed', total: items.length, nextCursor: null, items },
   };
@@ -461,7 +626,8 @@ async function nodeRole(tenantId: string, id: string, cursor?: string) {
   return {
     type: 'role', id: role.id, name: role.name, subtitle: `${[role.roleLevel, role.department?.name, role.division?.name].filter(Boolean).join(' · ') || 'Role'} · ${ppl.total} people`, illustrative: false,
     lenses: {
-      who: { headcount: ppl, division: role.division, department: role.department, manager: role.manager, directReports: reports.length },
+      // roleFamily / roleLevel: from Extended Role Inventory (v15 data). null for org-roster roles not in that sheet.
+      who: { headcount: ppl, division: role.division, department: role.department, manager: role.manager, directReports: reports.length, roleFamily: role.roleFamily, roleLevel: role.roleLevel },
       what: { categories: cats, roleTasks, responsibilities: role.responsibilities, description: role.description, kpisOwned },
       how: { valueStreams: [...streams.values()] },
       where: { applications: apps.slice(0, 12) },
@@ -554,13 +720,25 @@ async function nodeApplication(tenantId: string, id: string) {
   const roles = [...rm.values()].sort((a, b) => (PART_ORDER[a.p] ?? 9) - (PART_ORDER[b.p] ?? 9));
   const roleItems = roles.slice(0, 30).map((r) => child(r.id, 'role', r.name, { group: 'Roles involved', subtitle: r.org ?? r.department ?? undefined }));
 
+  // TCO lens: only populated for real apps (illustrative=false) with TCO data.
+  const tco = (!app.illustrative && app.totalTco != null)
+    ? {
+        license: app.licenseCost, labor: app.laborCost, vendorServices: app.vendorServicesCost,
+        infra: app.infraCost, depreciation: app.depreciationCost, overhead: app.overheadCost,
+        total: app.totalTco, illustrative: false,
+      }
+    : null;
+
   const items = [...roleItems, ...internal.map((a) => toItem(a, 'Internal systems')), ...external.map((a) => toItem(a, 'External systems'))];
+  // subtitle includes ownershipModel for real apps (Hybrid/In-house/SaaS).
+  const subtitleParts = [app.kind, app.vendor ?? null, app.ownershipModel ? `${app.ownershipModel} ownership` : null, `${app.criticality} criticality`].filter(Boolean);
   return {
-    type: 'application', id: app.id, name: app.name, subtitle: `${app.kind}${app.vendor ? ' · ' + app.vendor : ''} · ${app.criticality} criticality`, illustrative: app.illustrative,
+    type: 'application', id: app.id, name: app.name, subtitle: subtitleParts.join(' · '), illustrative: app.illustrative,
     lenses: {
       who: { roles: roles.map((r) => ({ id: r.id, name: r.name, org: r.org, department: r.department, participationType: r.p })) },
-      what: { category: app.category }, how: { systemRoles: app.valueStreamLinks.map((l) => ({ stream: l.valueStream.name, role: l.systemRole })) },
-      where: { kind: app.kind, vendor: app.vendor, criticality: app.criticality, internal: internal.length, external: external.length, valueStreams: app.valueStreamLinks.map((l) => ({ id: l.valueStreamId, name: l.valueStream.name })) },
+      // tco: full 6-bucket breakdown for real apps; null for illustrative apps.
+      what: { category: app.category, tco }, how: { systemRoles: app.valueStreamLinks.map((l) => ({ stream: l.valueStream.name, role: l.systemRole })) },
+      where: { kind: app.kind, ownershipModel: app.ownershipModel, vendor: app.vendor, criticality: app.criticality, internal: internal.length, external: external.length, valueStreams: app.valueStreamLinks.map((l) => ({ id: l.valueStreamId, name: l.valueStream.name })) },
       why: { criticality: app.criticality }, howWell: {},
     },
     children: { childType: 'mixed', total: items.length, nextCursor: null, items },

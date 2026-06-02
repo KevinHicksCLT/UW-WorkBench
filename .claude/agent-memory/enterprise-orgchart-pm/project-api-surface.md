@@ -1,11 +1,11 @@
 ---
 name: project-api-surface
-description: Explorer API endpoints and shapes available for the UI team after v15 reconciliation
+description: Explorer API endpoints and shapes available for the UI team — updated for v3 (TCO, byParticipation, roleFamily/roleLevel, org/tree)
 metadata:
   type: project
 ---
 
-## Explorer API Surface (post-v15 reconciliation)
+## Explorer API Surface (v3 — post-TCO implementation, 2026-06-01)
 
 All endpoints require `Authorization: Bearer <token>` (JWT from POST /auth/login).
 
@@ -25,12 +25,12 @@ GET /explorer/overview
 → {
     company: { id, name },
     counts: { domains, divisions, valueStreams },
-    domains: [{ id, name, valueStreams: number }],  // 6 consolidated domains
-    divisions: [{ id, name, higherCategory, roles: number }]  // NEW: higherCategory field
+    domains: [{ id, name, valueStreams: number }],
+    divisions: [{ id, name, higherCategory, roles: number }]
   }
 ```
 
-`higherCategory` values: `"Core Business"` | `"IT"` | `"Corporate Function"` — the three CEO-facing top-level buckets.
+`higherCategory` values: `"Core Business"` | `"IT"` | `"Corporate Function"`
 
 ### Unified drill node
 
@@ -39,24 +39,21 @@ GET /explorer/node/:type/:id[?cursor=<id>]
 → { type, id, name, subtitle, illustrative, lenses: {...}, children: { childType, total, nextCursor, items } }
 ```
 
-`children.items` each have: `{ id, type, name, subtitle?, group?, badges?, flow? }`
-
 #### Node types and their children
 
 | type | children | key lenses |
 |------|----------|-----------|
-| `company` | `domain` (6) | `divsByGroup` (NEW: Core Business/IT/Corporate Function groupings), who/what/how/where/why/howWell |
+| `company` | `domain` (6) | divsByGroup, capabilityOverlaps, where.realAppCount/totalRealTco/tcoByBucket (NEW v3) |
 | `domain` | `valueStream` | KPIs, apps, process steps |
-| `valueStream` | `subValueStream` (L3) + `application` | who (roles), how (process areas/steps), where (apps) |
-| `subValueStream` L3 | `subValueStream` (L4) + `role` | inputs/outputs, upstream/downstream |
-| `subValueStream` L4 | `processStep` + `role` | I/O counts |
-| `processStep` | (none) | leads, supporting, inputs, outputs |
-| `division` | `department` | higherCategory (NEW), headcount, value streams, controls |
+| `valueStream` | `subValueStream` (L3) + `application` | where.tco (NEW v3): total + byBucket for real apps |
+| `subValueStream` L3/L4 | L4s + `role` | who.byParticipation (NEW v3): Lead/Core/Support/Control/Oversight |
+| `division` | `department` | where.tco (NEW v3): total + byBucket + apps via primaryDivisionName match |
+| `role` | `role` (reports) + `person` | who.roleFamily + who.roleLevel (NEW v3) |
+| `application` | `role` + `application` | what.tco (NEW v3): 6-bucket breakdown, illustrative flag |
 | `department` | `role` | headcount, value streams |
-| `role` | `role` (reports) + `person` | categories (40 in v15), roleTasks count, value streams |
+| `processStep` | (none) | leads, supporting, inputs, outputs |
 | `person` | `task` | assignments, metrics (illustrative) |
 | `initiative` | `person` | health, value streams, risks (all illustrative) |
-| `application` | `role` + `application` | TCO, system role, value streams (illustrative) |
 | `task` | (none) | status, priority (illustrative) |
 
 ### Company node special fields
@@ -70,67 +67,105 @@ GET /explorer/node/:type/:id[?cursor=<id>]
 }
 ```
 
-`capabilityOverlaps`: **Gap 1 — cross-division capability overlap signal** (added 2026-06-01)
-Derived from `Role.roleFamily`. Returns families that appear in 2+ divisions. 157/244 roles have null roleFamily and are excluded (they have unique names, not a family tag).
+`capabilityOverlaps`: Gap 1 — cross-division capability overlap signal
 ```json
-[
-  { "capability": "Engineering", "count": 5, "divisions": [{ "id", "name" }, ...] },
-  { "capability": "Operations & Service", "count": 3, "divisions": [...] },
-  { "capability": "Product & Distribution", "count": 2, "divisions": [...] },
-  { "capability": "Delivery", "count": 2, "divisions": [...] },
-  { "capability": "Corporate Services", "count": 2, "divisions": [...] }
-]
+[{ "capability": "Engineering", "count": 5, "divisions": [{ "id", "name" }] }]
 ```
-Sorted by `count` desc. Currently 5 overlapping families across 14 divisions.
 
-### ValueStream node — Gap 2 fields (added 2026-06-01)
+`lenses.where` (v3 additions):
+```json
+{
+  "systems": 35,
+  "byKind": [...],
+  "realAppCount": 6,
+  "totalRealTco": 5335000,
+  "tcoByBucket": {
+    "license": 1660000, "labor": 1620000, "vendorServices": 870000,
+    "infra": 690000, "depreciation": 270000, "overhead": 225000
+  }
+}
+```
 
-`lenses.how.ownershipGaps`: integer count of L3 process areas in this value stream that have zero role links (accountability gap / loss signal).
+### ValueStream node — TCO rollup (v3)
 
-`children.items` for `subValueStream` type now include:
-- `roleLinkCount: number` — count of `RoleValueStream` rows whose `subStream` starts with `"L3Name — "` (for L3 nodes)
-- `hasOwner: boolean` — `false` when `roleLinkCount === 0` (the accountability gap flag)
+`lenses.where.tco`: aggregated from real apps (illustrative=false) linked to this value stream via ApplicationValueStream. `null` if no real app is linked.
+```json
+{ "total": 985000, "byBucket": { "license": 210000, "labor": 340000, "vendorServices": 180000, "infra": 145000, "depreciation": 60000, "overhead": 50000 } }
+```
 
-### SubValueStream node — Gap 2 fields (added 2026-06-01)
+### Division node — TCO rollup (v3)
 
-Top-level fields on the node response itself:
-- `roleLinkCount: number` — same computation as above, directly on the drilled node
-- `hasOwner: boolean` — `false` = no roles mapped = accountability gap
+`lenses.where.tco`: apps where `primaryDivisionName == division.name`. `null` if no real app is tagged to this division.
+```json
+{ "total": 985000, "byBucket": {...}, "apps": [{ "id", "name", "ownershipModel", "totalTco" }] }
+```
 
-**Join key note**: `RoleValueStream.subStream` stores compound strings `"L3Name — L4Name"`. Match L3 nodes via prefix `l3.name + ' — '`; match L4 nodes via exact string `"l3parent.name — l4.name"`. Do NOT try to join on `SubValueStream.id` — there is no FK.
+### SubValueStream node — byParticipation (v3)
 
-**Current gap counts** (v15 data, verified 2026-06-01):
-- 12 of 104 L3 process areas have `hasOwner=false`
-- Affected value streams: Billing/Collections (2), Delegated Authority Mgmt (3), Change Mgmt & Adoption (1), Investment & Asset Mgmt (1), Third-Party & Vendor Mgmt (2), Audit & Assurance (2), Claims Recoveries & Subrogation (1)
+`lenses.who.byParticipation`: roles grouped by participationType from RoleValueStream for this sub-stream.
+```json
+{ "Lead": [], "Core": [{ "id", "name" }], "Support": [], "Control": [], "Oversight": [] }
+```
 
-### Counts (DB-verified as of v15 seed)
+### Role node — roleFamily + roleLevel (v3)
 
-- Domains: 6 (consolidated from 13 raw)
-- Divisions: 14 (all with higherCategory)
-- Value streams: 26 (canonical names)
-- Sub-value streams: 104 (L3 + L4)
-- Process steps: 256 (all linked via PROCESS_VS_MAP)
-- Metrics/KPIs: 243 (real definitions + illustrative readings)
-- I/O items: 835
-- Checklist items: 4743
-- Role tasks: 4743
-- Categories: 40 (normalized from 42 raw)
-- Roles: 244 (159 org-chart + 84 extended + 1 auto-added from value stream refs)
-- Applications: 29 (illustrative)
-- People: 730 (illustrative)
+`lenses.who.roleFamily`: from Extended Role Inventory (v15). Null for org-roster roles not in that sheet.
+`lenses.who.roleLevel`: "Executive" | "Leadership" | "Manager" | "Individual Contributor" | null.
+
+### Application node — TCO (v3)
+
+`lenses.what.tco`: full 6-bucket breakdown for real apps (illustrative=false). `null` for illustrative apps.
+```json
+{ "license": 210000, "labor": 340000, "vendorServices": 180000, "infra": 145000, "depreciation": 60000, "overhead": 50000, "total": 985000, "illustrative": false }
+```
+`lenses.where.ownershipModel`: "Hybrid" | "In-house" | "SaaS" | null (real apps only).
+`subtitle` now includes ownership model: `"Core · Hybrid ownership · High criticality"`.
+
+### Org tree endpoint (v3)
+
+```
+GET /explorer/org/tree
+→ {
+    nodes: [{ id, name, roleLevel, divisionId, managerRoleId }],  // 244 nodes
+    edges: [{ from, to, type: "reports-to" }]                     // 90 edges
+  }
+```
+Note: matrixRoles is a raw string on Role (no FK) — cannot serve structured matrix edges. Clients should treat it as a label on the node only.
+
+### Real Applications (v3 seed)
+
+6 real apps from IT_Roles_Analytics_v15.xlsx "Application TCO" sheet (illustrative=false):
+| App | ownershipModel | primaryDivisionName | totalTco |
+|-----|---------------|---------------------|----------|
+| Claims Management Platform | Hybrid | Claims | $985,000 |
+| Policy Administration Platform | In-house | Operations & Customer Service | $1,245,000 |
+| Finance ERP | Hybrid | Finance & Investments | $985,000 |
+| IAM Platform | SaaS | Cybersecurity & IAM | $705,000 |
+| Data Analytics Platform | Hybrid | Data & AI | $815,000 |
+| Broker / Distribution Portal | SaaS | Sales, Distribution & Marketing | $600,000 |
+
+Company-level totalRealTco = $5,335,000.
+
+### Gap signals
+
+**Gap 1 — capability overlaps**: `company.capabilityOverlaps` — role families in 2+ divisions.
+**Gap 2 — ownership gaps**: `subValueStream.hasOwner=false` + `valueStream.lenses.how.ownershipGaps`. 12 of 104 L3 process areas unowned.
+
+### Counts (DB-verified v3 seed)
+
+- Domains: 6 | Divisions: 14 | Value streams: 26
+- Sub-value streams: 104 (L3+L4) | Process steps: 256 | Metrics/KPIs: 243
+- Roles: 244 (90 reporting links) | Applications: 35 (29 illustrative + 6 real)
+- People: 730 (illustrative) | Initiatives: 6 (illustrative) | Risks: 31
 
 ### Other endpoints
 
 ```
 GET /explorer/node/:type/:id/children   → children array only
 GET /explorer/initiatives/:id/contributors[?employmentType=&region=]
-GET /value-streams    → array of value streams
-GET /companies        → array of companies
-GET /divisions        → list (requires auth)
-GET /departments      → list (requires auth)
-GET /search?q=&limit= → [{ type, id, name, sublabel, href }]
+GET /value-streams | /companies | /divisions | /departments | /search?q=&limit=
 ```
 
 ### Illustrative data badge
 
-`illustrative: true` on: Application, ApplicationValueStream, Initiative, InitiativeValueStream, InitiativeDivision, Person, Assignment, PersonTask, PersonMetric, Risk. These are synthesized and badge in the UI with "Illustrative".
+`illustrative: true` on: Application (29 of 35), ApplicationValueStream (illustrative ones), Initiative, InitiativeValueStream, InitiativeDivision, Person, Assignment, PersonTask, PersonMetric, Risk.

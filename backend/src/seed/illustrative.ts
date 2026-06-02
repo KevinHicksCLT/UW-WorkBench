@@ -233,3 +233,146 @@ export async function seedDeepLevels(prisma: PrismaClient, ctx: { tenantId: stri
 
   console.log(`   + ${initRows.length} initiatives, ${people.length} people, ${assignments.length} assignments, ${tasks.length} tasks, ${metrics.length} person-metrics, ${risks.length} risks`);
 }
+
+// ─── Real Application TCO records (from v15 Application TCO sheet) ─────────
+// 6 real apps with full 6-bucket TCO breakdown (illustrative=false).
+// Each is upserted by name so re-seeding is idempotent.
+// Division match via primaryDivisionName; value stream match by exact name.
+
+type TcoApp = {
+  name: string;
+  ownershipModel: string;
+  primaryDivisionName: string;
+  linkedValueStreamName: string;
+  licenseCost: number;
+  laborCost: number;
+  vendorServicesCost: number;
+  infraCost: number;
+  depreciationCost: number;
+  overheadCost: number;
+  totalTco: number;
+  kind: string;
+  criticality: string;
+};
+
+const REAL_APPS: TcoApp[] = [
+  {
+    name: 'Claims Management Platform',
+    ownershipModel: 'Hybrid',
+    primaryDivisionName: 'Claims',
+    linkedValueStreamName: 'Claims',
+    licenseCost: 210000, laborCost: 340000, vendorServicesCost: 180000,
+    infraCost: 145000, depreciationCost: 60000, overheadCost: 50000,
+    totalTco: 985000,
+    kind: 'Core', criticality: 'High',
+  },
+  {
+    name: 'Policy Administration Platform',
+    ownershipModel: 'In-house',
+    primaryDivisionName: 'Operations & Customer Service',
+    linkedValueStreamName: 'Policy Administration',
+    licenseCost: 0, laborCost: 620000, vendorServicesCost: 280000,
+    infraCost: 215000, depreciationCost: 80000, overheadCost: 50000,
+    totalTco: 1245000,
+    kind: 'Core', criticality: 'High',
+  },
+  {
+    name: 'Finance ERP',
+    ownershipModel: 'Hybrid',
+    primaryDivisionName: 'Finance & Investments',
+    linkedValueStreamName: 'Finance',
+    licenseCost: 320000, laborCost: 280000, vendorServicesCost: 160000,
+    infraCost: 130000, depreciationCost: 45000, overheadCost: 50000,
+    totalTco: 985000,
+    kind: 'Core', criticality: 'High',
+  },
+  {
+    name: 'IAM Platform',
+    ownershipModel: 'SaaS',
+    primaryDivisionName: 'Cybersecurity & IAM',
+    linkedValueStreamName: 'Cybersecurity',
+    licenseCost: 480000, laborCost: 80000, vendorServicesCost: 60000,
+    infraCost: 45000, depreciationCost: 20000, overheadCost: 20000,
+    totalTco: 705000,
+    kind: 'SaaS', criticality: 'High',
+  },
+  {
+    name: 'Data Analytics Platform',
+    ownershipModel: 'Hybrid',
+    primaryDivisionName: 'Data & AI',
+    linkedValueStreamName: 'Data, Analytics',
+    licenseCost: 290000, laborCost: 220000, vendorServicesCost: 130000,
+    infraCost: 105000, depreciationCost: 40000, overheadCost: 30000,
+    totalTco: 815000,
+    kind: 'SaaS', criticality: 'High',
+  },
+  {
+    name: 'Broker / Distribution Portal',
+    ownershipModel: 'SaaS',
+    primaryDivisionName: 'Sales, Distribution & Marketing',
+    linkedValueStreamName: 'Distribution',
+    licenseCost: 360000, laborCost: 80000, vendorServicesCost: 60000,
+    infraCost: 50000, depreciationCost: 25000, overheadCost: 25000,
+    totalTco: 600000,
+    kind: 'SaaS', criticality: 'Medium',
+  },
+];
+
+export async function seedRealApplications(
+  prisma: PrismaClient,
+  ctx: { tenantId: string; companyId: string; valueStreams: { id: string; name: string }[] }
+) {
+  const { tenantId, companyId, valueStreams } = ctx;
+  let created = 0;
+
+  for (const a of REAL_APPS) {
+    const app = await prisma.application.upsert({
+      where: { tenantId_companyId_name: { tenantId, companyId, name: a.name } },
+      update: {
+        illustrative: false,
+        ownershipModel: a.ownershipModel,
+        primaryDivisionName: a.primaryDivisionName,
+        licenseCost: a.licenseCost,
+        laborCost: a.laborCost,
+        vendorServicesCost: a.vendorServicesCost,
+        infraCost: a.infraCost,
+        depreciationCost: a.depreciationCost,
+        overheadCost: a.overheadCost,
+        totalTco: a.totalTco,
+        kind: a.kind,
+        criticality: a.criticality,
+      },
+      create: {
+        tenantId, companyId, name: a.name, kind: a.kind, criticality: a.criticality,
+        illustrative: false,
+        ownershipModel: a.ownershipModel,
+        primaryDivisionName: a.primaryDivisionName,
+        licenseCost: a.licenseCost,
+        laborCost: a.laborCost,
+        vendorServicesCost: a.vendorServicesCost,
+        infraCost: a.infraCost,
+        depreciationCost: a.depreciationCost,
+        overheadCost: a.overheadCost,
+        totalTco: a.totalTco,
+      },
+    });
+    created++;
+
+    // Link to value stream by name (case-insensitive substring)
+    const matchedStreams = valueStreams.filter((vs) =>
+      vs.name.toLowerCase().includes(a.linkedValueStreamName.toLowerCase()) ||
+      a.linkedValueStreamName.toLowerCase().includes(vs.name.toLowerCase())
+    );
+    if (matchedStreams.length > 0) {
+      await prisma.applicationValueStream.createMany({
+        data: matchedStreams.map((vs) => ({
+          tenantId, applicationId: app.id, valueStreamId: vs.id,
+          systemRole: 'System of Record', illustrative: false,
+        })),
+        skipDuplicates: true,
+      });
+    }
+  }
+
+  console.log(`   + ${created} real TCO application records (illustrative=false)`);
+}

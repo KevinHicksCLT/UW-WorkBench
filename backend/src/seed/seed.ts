@@ -10,7 +10,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { seedIllustrative, seedDeepLevels, metricReading } from './illustrative.js';
+import { seedIllustrative, seedDeepLevels, seedRealApplications, metricReading } from './illustrative.js';
 
 const prisma = new PrismaClient();
 const SPINE = resolve(dirname(fileURLToPath(import.meta.url)), '../../data/seed/spine.json');
@@ -213,7 +213,9 @@ async function main() {
   console.log(`   spine: ${spine.domains.length} domains, ${spine.divisions.length} divisions, ${spine.roles.length} roles (${mgrUpdates.length} reporting links), ${spine.valueStreams.length} value streams, ${spine.metrics.length} KPIs, ${spine.processSteps.length} steps, ${spine.ioItems.length} I/O, ${spine.standards.length} standards`);
 
   // ── Illustrative systems + deep levels (people, initiatives, tasks, metrics, risks) ──
-  await seedIllustrative(prisma, { tenantId: t, companyId: c, valueStreams: await prisma.valueStream.findMany({ where: { companyId: c }, select: { id: true, name: true } }) });
+  const allVsForSeed = await prisma.valueStream.findMany({ where: { companyId: c }, select: { id: true, name: true } });
+  await seedIllustrative(prisma, { tenantId: t, companyId: c, valueStreams: allVsForSeed });
+  await seedRealApplications(prisma, { tenantId: t, companyId: c, valueStreams: allVsForSeed });
   await seedDeepLevels(prisma, { tenantId: t, companyId: c });
 
   console.log('✅ Seeded company:', company.name);

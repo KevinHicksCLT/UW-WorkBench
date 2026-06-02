@@ -12,54 +12,45 @@ export default {
         h1:      ['1.625rem', { lineHeight: '1.15', letterSpacing: '-0.02em',  fontWeight: '700' }],
         h2:      ['1.25rem',  { lineHeight: '1.2',  letterSpacing: '-0.015em', fontWeight: '700' }],
         h3:      ['1.0625rem',{ lineHeight: '1.3',  letterSpacing: '-0.01em',  fontWeight: '600' }],
-        eyebrow: ['0.6875rem',{ lineHeight: '1',    letterSpacing: '0.14em',   fontWeight: '700' }],
+        eyebrow: ['0.6875rem',{ lineHeight: '1',    letterSpacing: '0.10em',   fontWeight: '600' }],
       },
       colors: {
-        // ── Neutral spine ─────────────────────────────────────────────────────
-        // Cool navy: sidebar, depth anchors, strong text.
+        // ── Vercel/Geist neutral spine ─────────────────────────────────────────
+        // Near-black to near-white — monochrome-first, zero blue cast.
         brand: {
-          50:  '#f3f6fb',
-          100: '#e3eaf6',
-          200: '#c2d2eb',
-          300: '#92b1da',
-          400: '#5e8bc6',
-          500: '#3d6db1',
-          600: '#2c5594',
-          700: '#264478',
-          800: '#233a64',
-          900: '#1f3253',
-          950: '#141f37',
+          50:  '#fafafa',
+          100: '#f5f5f5',
+          200: '#e5e5e5',
+          300: '#d4d4d4',
+          400: '#a3a3a3',
+          500: '#737373',
+          600: '#525252',
+          700: '#404040',
+          800: '#262626',
+          900: '#171717',
+          950: '#0a0a0a',
         },
 
-        // ── Interaction accent ─────────────────────────────────────────────────
-        // Selection rings, CTAs, focused breadcrumb, drill affordances.
+        // ── Vercel blue — links, focus rings, used sparingly ──────────────────
         accent: {
-          50:  '#eef4ff',
-          100: '#dbe6ff',
-          200: '#bdd0ff',
-          300: '#90b0ff',
-          400: '#5f86fa',
-          500: '#3a5ff0',
-          600: '#2945d6',
-          700: '#2237ab',
-          800: '#213188',
-          900: '#212f6c',
+          50:  '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#3b82f6',
+          600: '#0070f3',
+          700: '#1d4ed8',
+          800: '#1e40af',
+          900: '#1e3a8a',
         },
 
         // ── CEO-domain semantic accents ────────────────────────────────────────
-        // Each domain gets its own hue family so nodes, pills, and lenses are
-        // instantly attributable at a glance. Hues are chosen for contrast with
-        // the navy sidebar and with each other; saturation is kept moderate so
-        // three domains live together without fighting.
-        //
+        // Rendered as small subtle chips/tags only — no big fills.
         // Core Business  → teal   (value-creation, growth)
         // IT             → indigo (systems, enablement)
-        // Corporate Fn   → slate-violet (governance, stewardship)
-        //
-        // These are the SEMANTIC layers — consumers reference `domain-core.*`,
-        // `domain-it.*`, `domain-corp.*` rather than raw hue names.
+        // Corporate Fn   → violet (governance, stewardship)
         'domain-core': {
-          // Teal — Core Business
           50:  '#f0fdfa',
           100: '#ccfbf1',
           200: '#99f6e4',
@@ -72,7 +63,6 @@ export default {
           900: '#134e4a',
         },
         'domain-it': {
-          // Indigo — IT
           50:  '#eef2ff',
           100: '#e0e7ff',
           200: '#c7d2fe',
@@ -85,7 +75,6 @@ export default {
           900: '#312e81',
         },
         'domain-corp': {
-          // Slate-violet — Corporate Function
           50:  '#f5f3ff',
           100: '#ede9fe',
           200: '#ddd6fe',
@@ -99,17 +88,6 @@ export default {
         },
 
         // ── Overlap / gain / loss semantic encoding ────────────────────────────
-        // The cross-cutting value-stream story: where do roles straddle domain
-        // lines, where is value generated, where does it leak? These three
-        // semantic colors must be read instantly; they are NEVER decorative.
-        //
-        // gain    → emerald (positive delta, value added, capacity freed)
-        // loss    → rose    (negative delta, leakage, unmet demand, waste)
-        // overlap → amber   (ambiguity, dual accountability, handoff risk)
-        //
-        // Each has a full scale so the ui-component-designer can build filled
-        // chips, dot indicators, background washes, and border highlights
-        // without inventing off-spec colors.
         gain: {
           50:  '#ecfdf5',
           100: '#d1fae5',
@@ -147,24 +125,61 @@ export default {
           900: '#78350f',
         },
 
-        // ── Surface tokens ─────────────────────────────────────────────────────
+        // ── Vercel surface tokens ──────────────────────────────────────────────
+        // White main, near-white sunken, hairline borders
         surface: {
           DEFAULT: '#ffffff',
           raised:  '#ffffff',
-          sunken:  '#f5f7fb',
-          muted:   '#eef1f7',
+          sunken:  '#fafafa',
+          muted:   '#f5f5f5',
+        },
+
+        // ── Piece-type tokens ───────────────────────────────────────────────────
+        'piece-person': {
+          50:  '#f0fdf4',
+          100: '#dcfce7',
+          200: '#bbf7d0',
+          300: '#86efac',
+          400: '#4ade80',
+          500: '#22c55e',
+          600: '#16a34a',
+          700: '#15803d',
+          800: '#166534',
+          900: '#14532d',
+        },
+        'piece-app': {
+          50:  '#faf5ff',
+          100: '#f3e8ff',
+          200: '#e9d5ff',
+          300: '#d8b4fe',
+          400: '#c084fc',
+          500: '#a855f7',
+          600: '#9333ea',
+          700: '#7e22ce',
+          800: '#6b21a8',
+          900: '#581c87',
+        },
+        'piece-kpi': {
+          50:  '#fffbeb',
+          100: '#fef3c7',
+          200: '#fde68a',
+          300: '#fcd34d',
+          400: '#fbbf24',
+          500: '#f59e0b',
+          600: '#d97706',
+          700: '#b45309',
+          800: '#92400e',
+          900: '#78350f',
         },
       },
 
       boxShadow: {
-        // card   : resting card — barely visible lift
-        // float  : hovered card / focused inspector panel
-        // pop    : selected parent node in the drill canvas
-        // inset  : subtle inner border for sunken wells
-        card:  '0 1px 2px rgba(15,23,42,0.05), 0 8px 24px -18px rgba(20,31,55,0.30)',
-        float: '0 2px 6px rgba(15,23,42,0.06), 0 24px 48px -24px rgba(20,31,55,0.38)',
-        pop:   '0 10px 28px -8px rgba(33,49,136,0.30), 0 2px 8px rgba(15,23,42,0.08)',
-        inset: 'inset 0 1px 3px rgba(15,23,42,0.06)',
+        // Vercel-style: extremely subtle, borders do the heavy lifting
+        card:  '0 1px 2px rgba(0,0,0,0.04)',
+        float: '0 4px 16px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)',
+        pop:   '0 8px 24px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)',
+        inset: 'inset 0 1px 2px rgba(0,0,0,0.04)',
+        focus: '0 0 0 2px rgba(0,112,243,0.25)',
       },
 
       borderRadius: {
@@ -173,16 +188,19 @@ export default {
       },
 
       keyframes: {
-        'fade-in': { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-        'rise-in': { '0%': { opacity: '0', transform: 'translateY(8px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-        shimmer:   { '0%': { backgroundPosition: '-400px 0' }, '100%': { backgroundPosition: '400px 0' } },
-        // Subtle pulse for "live / connected" indicators (data freshness dot).
-        ping:      { '75%, 100%': { transform: 'scale(2)', opacity: '0' } },
+        'fade-in':       { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+        'rise-in':       { '0%': { opacity: '0', transform: 'translateY(6px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+        shimmer:         { '0%': { backgroundPosition: '-400px 0' }, '100%': { backgroundPosition: '400px 0' } },
+        ping:            { '75%, 100%': { transform: 'scale(2)', opacity: '0' } },
+        'node-focus-in': { '0%': { opacity: '0.7', transform: 'scale(0.97)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
+        'piece-arrive':  { '0%': { opacity: '0', transform: 'translateY(8px) scale(0.96)' }, '100%': { opacity: '1', transform: 'translateY(0) scale(1)' } },
       },
       animation: {
-        'fade-in': 'fade-in 0.25s ease-out both',
-        'rise-in': 'rise-in 0.32s cubic-bezier(0.22,1,0.36,1) both',
-        shimmer:   'shimmer 1.4s linear infinite',
+        'fade-in':       'fade-in 0.15s ease-out both',
+        'rise-in':       'rise-in 0.2s cubic-bezier(0.22,1,0.36,1) both',
+        shimmer:         'shimmer 1.4s linear infinite',
+        'node-focus-in': 'node-focus-in 0.2s cubic-bezier(0.22,1,0.36,1) both',
+        'piece-arrive':  'piece-arrive 0.25s cubic-bezier(0.22,1,0.36,1) both',
       },
     },
   },

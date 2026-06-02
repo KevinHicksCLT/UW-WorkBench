@@ -10,16 +10,16 @@ export default function Layout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [navOpen, setNavOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [domains, setDomains] = useState<IndexItem[]>([]);
   const [divisions, setDivisions] = useState<IndexItem[]>([]);
   const isExplorer = location.pathname === '/' || location.pathname.startsWith('/n/');
 
-  useEffect(() => { setNavOpen(false); }, [location.pathname]);
+  useEffect(() => { setMobileMenuOpen(false); }, [location.pathname]);
   useEffect(() => {
-    document.body.style.overflow = navOpen ? 'hidden' : '';
+    document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
-  }, [navOpen]);
+  }, [mobileMenuOpen]);
   useEffect(() => {
     if (!user) return;
     api.get('/explorer/overview')
@@ -28,171 +28,180 @@ export default function Layout({ children }: { children: ReactNode }) {
   }, [user]);
 
   const here = (key: string) => location.pathname.includes(key);
-  const go = (url: string) => { navigate(url); setNavOpen(false); };
+  const go = (url: string) => { navigate(url); setMobileMenuOpen(false); };
 
-  // Sidebar nav item for Operating Model and Organisation entries.
-  // The active state uses a left-border accent + slightly lighter bg to let
-  // the item "step forward" within the dark sidebar.
-  const IndexRow = ({
+  // ── Nav link helper ────────────────────────────────────────────────────────
+  const NavLink = ({ to, children: label }: { to: string; children: ReactNode }) => {
+    const active = location.pathname === to || (to !== '/' && location.pathname.startsWith(to));
+    return (
+      <Link
+        to={to}
+        className={
+          'inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-150 ' +
+          (active
+            ? 'bg-[#f5f5f5] text-[#171717]'
+            : 'text-[#525252] hover:text-[#171717] hover:bg-[#fafafa]')
+        }
+      >
+        {label}
+      </Link>
+    );
+  };
+
+  // ── Mobile dropdown row ────────────────────────────────────────────────────
+  const MobileRow = ({
     item, url, active, count, unit,
   }: { item: IndexItem; url: string; active: boolean; count?: number; unit: string }) => (
     <button
       onClick={() => go(url)}
       className={
-        'w-full flex items-center gap-2 pl-5 pr-3 py-2 text-sm text-left border-l-2 transition-colors group ' +
+        'w-full flex items-center gap-2 px-4 py-2 text-sm text-left transition-colors duration-150 ' +
         (active
-          ? 'bg-brand-800 text-white border-accent-400'
-          : 'text-brand-200 hover:bg-brand-900 hover:text-white border-transparent')
+          ? 'bg-[#fafafa] text-[#171717] font-medium'
+          : 'text-[#525252] hover:bg-[#fafafa] hover:text-[#171717]')
       }
     >
       <span className="truncate flex-1">{item.name}</span>
       {count != null && (
-        <span className={'text-[10px] tnum tabular-nums ' + (active ? 'text-brand-200' : 'text-brand-400')}>
-          {count} {unit}
-        </span>
+        <span className="text-[10px] tnum text-[#a3a3a3]">{count} {unit}</span>
       )}
-      <span className={'text-base leading-none select-none ' + (active ? 'text-accent-300' : 'text-brand-500 group-hover:text-accent-300')}>›</span>
     </button>
   );
 
   return (
-    <div className="lg:flex lg:h-screen bg-slate-50">
+    <div className="flex flex-col h-screen bg-white">
 
-      {/* ── Mobile top bar ──────────────────────────────────────────────── */}
-      <header className="lg:hidden sticky top-0 z-30 bg-brand-950 text-white safe-pt safe-px">
-        <div className="flex items-center justify-between px-4 h-14">
-          <div className="flex items-center gap-3 min-w-0">
+      {/* ── Top navigation bar ──────────────────────────────────────────────── */}
+      {/* Vercel-style: white background, hairline bottom border, wordmark left,
+          sparse nav links, sign-out right. Stays mounted at all screen sizes. */}
+      <header className="flex-shrink-0 z-30 bg-white border-b border-[#eaeaea] safe-pt safe-px">
+        <div className="flex items-center gap-4 px-4 sm:px-6 h-12">
+
+          {/* Wordmark */}
+          <Link to="/" className="flex items-center gap-2 flex-shrink-0 group">
+            <span className="font-bold text-[#171717] text-[15px] tracking-tight group-hover:text-[#525252] transition-colors duration-150">
+              Strata
+            </span>
+          </Link>
+
+          {/* Separator */}
+          <span className="text-[#eaeaea] select-none hidden sm:inline">/</span>
+
+          {/* Desktop nav links */}
+          <nav className="hidden sm:flex items-center gap-1" aria-label="Main navigation">
+            <NavLink to="/">Explorer</NavLink>
+          </nav>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Search — desktop */}
+          <div className="hidden md:block w-64">
+            <SearchBox />
+          </div>
+
+          {/* User + sign-out — desktop */}
+          <div className="hidden sm:flex items-center gap-3">
+            <span className="text-sm text-[#525252] truncate max-w-[160px]">{user?.name}</span>
             <button
-              type="button"
-              aria-label="Open navigation"
-              aria-expanded={navOpen}
-              onClick={() => setNavOpen(true)}
-              className="p-2 -ml-2 rounded-lg hover:bg-brand-900 active:bg-brand-800"
+              onClick={logout}
+              className="text-sm text-[#525252] hover:text-[#171717] transition-colors duration-150"
             >
-              {/* Hamburger */}
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              Sign out
+            </button>
+          </div>
+
+          {/* Mobile hamburger */}
+          <button
+            type="button"
+            aria-label={mobileMenuOpen ? 'Close navigation' : 'Open navigation'}
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            className="sm:hidden p-2 -mr-1 rounded-md text-[#525252] hover:text-[#171717] hover:bg-[#fafafa] transition-colors duration-150"
+          >
+            {mobileMenuOpen ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                 <path d="M3 6h18M3 12h18M3 18h18" />
               </svg>
-            </button>
-            <div className="min-w-0">
-              <div className="font-bold text-base leading-tight tracking-tight truncate">Strata</div>
-              <div className="text-[10px] text-brand-300 leading-tight truncate">Operating Model Intelligence</div>
-            </div>
-          </div>
+            )}
+          </button>
         </div>
       </header>
 
-      {/* Backdrop */}
-      {navOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-slate-900/60 z-40"
-          onClick={() => setNavOpen(false)}
-          aria-hidden="true"
-        />
+      {/* ── Mobile dropdown menu ─────────────────────────────────────────────── */}
+      {mobileMenuOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="sm:hidden fixed inset-0 z-20 bg-black/20"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="sm:hidden fixed top-12 left-0 right-0 z-30 bg-white border-b border-[#eaeaea] max-h-[70vh] overflow-y-auto shadow-md">
+            {/* Search */}
+            <div className="px-4 py-3 border-b border-[#eaeaea]">
+              <SearchBox />
+            </div>
+
+            {/* Nav links */}
+            <div className="py-1">
+              <button
+                onClick={() => go('/')}
+                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (location.pathname === '/' ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
+              >
+                Explorer
+              </button>
+            </div>
+
+            {/* Operating Model */}
+            {domains.length > 0 && (
+              <>
+                <div className="px-4 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3]">
+                  Operating Model
+                </div>
+                {domains.map((d) => (
+                  <MobileRow key={d.id} item={d} url={`/n/domain:${d.id}`} active={here(`domain:${d.id}`)} count={d.valueStreams} unit="streams" />
+                ))}
+              </>
+            )}
+
+            {/* Organization */}
+            {divisions.length > 0 && (
+              <>
+                <div className="px-4 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3]">
+                  Organization
+                </div>
+                {divisions.map((d) => (
+                  <MobileRow key={d.id} item={d} url={`/n/division:${d.id}`} active={here(`division:${d.id}`)} count={d.roles} unit="roles" />
+                ))}
+              </>
+            )}
+
+            {/* Sign out */}
+            <div className="px-4 py-3 border-t border-[#eaeaea] mt-1">
+              <div className="text-sm font-medium text-[#171717]">{user?.name}</div>
+              <div className="text-[11px] text-[#a3a3a3] mt-0.5">{user?.email}</div>
+              <button onClick={logout} className="mt-2 text-sm text-[#525252] hover:text-[#171717] transition-colors duration-150">
+                Sign out
+              </button>
+            </div>
+          </div>
+        </>
       )}
 
-      {/* ── Sidebar ─────────────────────────────────────────────────────── */}
-      {/* Dark navy background keeps the canvas / content area visually primary. */}
-      <aside
-        className={
-          'bg-brand-950 text-brand-100 flex flex-col z-50 fixed inset-y-0 left-0 w-72 max-w-[85vw] ' +
-          'transform transition-transform duration-200 ease-out ' +
-          (navOpen ? 'translate-x-0' : '-translate-x-full') +
-          ' lg:static lg:translate-x-0 lg:w-64 lg:max-w-none lg:transition-none'
-        }
-        aria-hidden={!navOpen && typeof window !== 'undefined' && window.innerWidth < 1024}
-      >
-        {/* Wordmark */}
-        <div className="px-5 py-4 border-b border-brand-900 safe-pt flex items-center justify-between gap-3">
-          <Link to="/" className="min-w-0 group">
-            <div className="font-bold text-white text-lg tracking-tight group-hover:text-brand-200 transition-colors">
-              Strata
-            </div>
-            <div className="text-xs text-brand-300">Operating Model Intelligence</div>
-          </Link>
-          <button
-            type="button"
-            aria-label="Close navigation"
-            onClick={() => setNavOpen(false)}
-            className="lg:hidden p-2 -mr-2 rounded-lg text-brand-200 hover:bg-brand-900 hover:text-white"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-          </button>
-        </div>
-
-        <SearchBox />
-
-        <nav className="flex-1 py-3 overflow-y-auto" aria-label="Main navigation">
-          {/* Company overview — the root drill level */}
-          <button
-            onClick={() => go('/')}
-            className={
-              'w-full flex items-center gap-3 px-5 py-2.5 text-sm border-l-2 transition-colors ' +
-              (location.pathname === '/'
-                ? 'bg-brand-800 text-white border-accent-400'
-                : 'text-brand-100 hover:bg-brand-900 hover:text-white border-transparent')
-            }
-          >
-            {/* Diamond icon signals "root / overview" without any icon library */}
-            <span className="text-accent-300 select-none" aria-hidden="true">◈</span>
-            Company Overview
-          </button>
-
-          {/* Operating Model axis — value-stream domains */}
-          <div className="px-5 pt-4 pb-1 text-[10px] font-bold uppercase tracking-widest text-brand-400">
-            Operating Model
-          </div>
-          {domains.length === 0
-            ? <div className="px-5 py-1 text-[11px] text-brand-500">Loading…</div>
-            : domains.map((d) => (
-              <IndexRow
-                key={d.id}
-                item={d}
-                url={`/n/domain:${d.id}`}
-                active={here(`domain:${d.id}`)}
-                count={d.valueStreams}
-                unit="streams"
-              />
-            ))}
-
-          {/* Organisation axis — CEO domain → divisions */}
-          <div className="px-5 pt-4 pb-1 text-[10px] font-bold uppercase tracking-widest text-brand-400">
-            Organization
-          </div>
-          {divisions.length === 0
-            ? <div className="px-5 py-1 text-[11px] text-brand-500">Loading…</div>
-            : divisions.map((d) => (
-              <IndexRow
-                key={d.id}
-                item={d}
-                url={`/n/division:${d.id}`}
-                active={here(`division:${d.id}`)}
-                count={d.roles}
-                unit="roles"
-              />
-            ))}
-        </nav>
-
-        {/* Session footer */}
-        <div className="px-5 py-4 border-t border-brand-900 text-xs safe-pb">
-          <div className="font-medium text-white truncate">{user?.name}</div>
-          <div className="text-brand-300 truncate">{user?.email}</div>
-          <button onClick={logout} className="mt-2 text-brand-300 hover:text-white transition-colors">
-            Sign out
-          </button>
-        </div>
-      </aside>
-
-      {/* ── Main content area ───────────────────────────────────────────── */}
+      {/* ── Main content area ────────────────────────────────────────────────── */}
       {isExplorer ? (
         // Explorer: full-bleed, overflow managed internally by the canvas.
-        <main className="flex-1 min-h-0 lg:overflow-hidden safe-px">{children}</main>
+        // Background is #fafafa (Vercel sunken surface) to let white cards pop.
+        <main className="flex-1 min-h-0 overflow-hidden bg-[#fafafa] safe-px">{children}</main>
       ) : (
-        // Detail pages: scrollable with a centred max-width container.
-        <main className="flex-1 lg:overflow-auto safe-px">
-          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+        // Detail pages: scrollable, centred max-width container.
+        <main className="flex-1 overflow-auto bg-[#fafafa] safe-px">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
             {children}
           </div>
         </main>

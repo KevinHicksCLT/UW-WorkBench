@@ -364,6 +364,16 @@ model Application {
   criticality  String  @default("Medium") // High | Medium | Low
   description  String?
   illustrative Boolean @default(true)
+  // v15 Application TCO fields (null for illustrative apps; populated for the 6 real apps)
+  ownershipModel      String? // Hybrid | In-house | SaaS
+  primaryDivisionName String? // raw string from TCO sheet; joins to Division by name
+  licenseCost         Float?  // License / Subscription
+  laborCost           Float?  // Internal Labor
+  vendorServicesCost  Float?  // Vendor Services
+  infraCost           Float?  // Infrastructure / Platform
+  depreciationCost    Float?  // Depreciation / Amortization
+  overheadCost        Float?  // Allocated Overhead
+  totalTco            Float?  // Total Annual TCO
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
