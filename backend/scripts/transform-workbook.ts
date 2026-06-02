@@ -25,6 +25,7 @@ const grid = (name: string): unknown[][] => {
 const str = (v: unknown): string => (v == null ? '' : String(v).trim().replace(/\s+/g, ' '));
 const orNull = (v: unknown): string | null => str(v) || null;
 const intOrNull = (v: unknown): number | null => { const n = parseInt(str(v), 10); return Number.isFinite(n) ? n : null; };
+const numOrNull = (v: unknown): number | null => { if (v == null || str(v) === '') return null; const n = Number(String(v).replace(/[$,]/g, '')); return Number.isFinite(n) ? n : null; };
 
 // Consolidate the workbook's 13–15 noisy value-stream domains (six are
 // single-stream; several are compound "A / B" labels) into a clean, legible set
@@ -316,6 +317,22 @@ for (let i = 4; i < si.length; i++) {
   standards.push({ department: dept, count: intOrNull(si[i][2]) ?? 0, charterIncluded: /yes/i.test(str(si[i][3])), link: orNull(si[i][4]), owner: orNull(si[i][5]), sourceRow: i });
 }
 
+// ─── Scenario Inputs → change-impact economics (initiatives) ────────────
+// Header row index 2; data 3+. One row per modeled operating-model change.
+const sc = grid('Scenario Inputs');
+const scenarios: any[] = [];
+for (let i = 3; i < sc.length; i++) {
+  const name = str(sc[i][0]); if (!name) continue;
+  scenarios.push({
+    name, changeType: orNull(sc[i][1]), impactScope: orNull(sc[i][2]),
+    divisionName: orNull(sc[i][3]), valueStreamName: orNull(sc[i][4]),
+    application: orNull(sc[i][5]), roleImpact: orNull(sc[i][6]),
+    oneTimeCost: numOrNull(sc[i][7]), annualBenefit: numOrNull(sc[i][8]),
+    annualAddedCost: numOrNull(sc[i][9]), annualNetImpact: numOrNull(sc[i][10]),
+    confidence: orNull(sc[i][11]), sourceRow: i,
+  });
+}
+
 // CEO-facing top-level grouping derived from Org Chart View 2 "Higher-Level Category".
 // Source of truth: IT_Roles_Analytics_v15.xlsx, Org Chart View 2, column A.
 const HIGHER_CAT: Record<string, string> = {
@@ -355,6 +372,7 @@ const out = {
   roleTasks,
   roleValueStreams,
   externalInteractions,
+  scenarios,
 };
 
 mkdirSync(dirname(OUT), { recursive: true });
@@ -368,6 +386,7 @@ console.table({
   metrics: out.metrics.length, processSteps: out.processSteps.length, ioItems: out.ioItems.length,
   standards: out.standards.length, checklistItems: out.checklistItems.length, roleTasks: out.roleTasks.length,
   roleValueStreams: out.roleValueStreams.length, externalInteractions: out.externalInteractions.length,
+  scenarios: out.scenarios.length,
 });
 const placed = roles.filter((r) => r.divisionName).length;
 console.log(`Roles placed in a division: ${placed}/${roles.length}; with manager: ${roles.filter((r) => r.managerRoleName).length}`);

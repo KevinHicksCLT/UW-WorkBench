@@ -65,6 +65,7 @@ model Company {
   risks                Risk[]
   domains              ValueStreamDomain[]
   standards            Standard[]
+  scenarios            Scenario[]
 
   @@unique([tenantId, slug])
 }
@@ -330,6 +331,35 @@ model ExternalInteraction {
 
   @@index([companyId])
   @@index([internalRoleId])
+}
+
+// v15 Scenario Inputs — operating-model change-impact economics. Each row is a
+// modeled change (automation, rationalization, control uplift, …) with its
+// one-time cost, recurring benefit/added-cost, net impact, and confidence,
+// linked to a division + value stream. Real workbook data ("Scenario Inputs").
+model Scenario {
+  id              String   @id @default(cuid())
+  tenantId        String
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name            String
+  changeType      String? // Automation | Application rationalization | Control uplift | SaaS replacement | Digital enablement
+  impactScope     String? // Cross-functional | Finance-led | …
+  divisionName    String? // raw; joins to Division by name
+  valueStreamName String? // raw; joins to ValueStream by name
+  application     String?
+  roleImpact      String?
+  oneTimeCost     Float?
+  annualBenefit   Float?
+  annualAddedCost Float?
+  annualNetImpact Float?
+  confidence      String? // High | Medium | Low
+
+  sourceSheet String?
+  sourceRow   Int?
+  createdAt   DateTime @default(now())
+
+  @@index([companyId])
 }
 
 // ─── Audit log (reusable infra, carried from Cascade) ───────────────────

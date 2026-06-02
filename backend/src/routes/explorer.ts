@@ -253,6 +253,296 @@ router.get('/division/:id/flow', async (req: Request, res: Response, next: NextF
   } catch (e) { next(e); }
 });
 
+// ── Per-level metric dashboards: PERFORMANCE & CHANGE IMPACT ─────────────
+// Each level surfaces DISTINCT performance + change-impact metrics from the real
+// workbook: KPI definitions w/ frameworks & targets ("Value Stream Metrics"),
+// change-initiative economics ("Scenario Inputs": one-time cost, annual benefit,
+// net impact, payback, confidence), and application run cost ("Application TCO").
+// Bar/list items may carry a `drill` target that navigates to the next map level.
+type Fmt = 'money' | 'years' | 'number';
+type MetricItem = { label: string; value: number; hint?: string; sub?: string; format?: Fmt; illustrative?: boolean; drill?: { level: string; id: string } };
+type MetricSection = { title: string; kind: 'bar' | 'list' | 'kpi'; items: MetricItem[]; illustrative?: boolean };
+// Loaded annual resource cost by role level — ILLUSTRATIVE. The workbook has no
+// compensation data; the "Financial Driver Map" only states the method
+// (FTE × compensation band), so these bands are assumptions, not workbook values.
+const COMP_BAND: Record<string, number> = { Executive: 450000, Leadership: 300000, Manager: 180000, 'Individual Contributor': 120000 };
+const loadedCost = (roleLevel: string | null, allocationPct = 100) => Math.round(((COMP_BAND[roleLevel ?? ''] ?? 120000) * allocationPct) / 100);
+// Build the KPI metric+target list: each item is one KPI (name + target benchmark
+// + category/framework), so the actual metrics show alongside their targets.
+function kpiList(kpis: { name: string; targetText: string | null; category: string | null; framework: string | null }[]): MetricItem[] {
+  return kpis.map((k) => ({ label: k.name, value: 0, hint: k.targetText ?? '—', sub: [k.category, k.framework].filter(Boolean).join(' · ') || undefined }));
+}
+type Dashboard = { level: string; title: string; subtitle?: string; tiles: { label: string; value: number; hint?: string; format?: Fmt; illustrative?: boolean }[]; sections: MetricSection[] };
+
+type ScenarioRow = { name: string; changeType: string | null; divisionName: string | null; valueStreamName: string | null; confidence: string | null; oneTimeCost: number | null; annualBenefit: number | null; annualAddedCost: number | null; annualNetImpact: number | null };
+function scenarioRoll(rows: ScenarioRow[]) {
+  const sum = (f: (s: ScenarioRow) => number | null) => rows.reduce((a, s) => a + (f(s) ?? 0), 0);
+  const oneTime = sum((s) => s.oneTimeCost), net = sum((s) => s.annualNetImpact);
+  return { count: rows.length, benefit: sum((s) => s.annualBenefit), added: sum((s) => s.annualAddedCost), oneTime, net, payback: net > 0 ? Math.round((oneTime / net) * 10) / 10 : 0 };
+}
+const TCO_SELECT = { totalTco: true, licenseCost: true, laborCost: true, vendorServicesCost: true, infraCost: true, depreciationCost: true, overheadCost: true } as const;
+type TcoApp = { totalTco: number | null; licenseCost: number | null; laborCost: number | null; vendorServicesCost: number | null; infraCost: number | null; depreciationCost: number | null; overheadCost: number | null };
+const tcoTotal = (apps: TcoApp[]) => apps.reduce((a, x) => a + (x.totalTco ?? 0), 0);
+function tcoBuckets(apps: TcoApp[]): MetricItem[] {
+  const b: Record<string, number> = { License: 0, 'Internal labor': 0, 'Vendor services': 0, Infrastructure: 0, Depreciation: 0, Overhead: 0 };
+  for (const a of apps) { b.License += a.licenseCost ?? 0; b['Internal labor'] += a.laborCost ?? 0; b['Vendor services'] += a.vendorServicesCost ?? 0; b.Infrastructure += a.infraCost ?? 0; b.Depreciation += a.depreciationCost ?? 0; b.Overhead += a.overheadCost ?? 0; }
+  return Object.entries(b).filter(([, v]) => v > 0).map(([label, value]) => ({ label, value, format: 'money' as const })).sort((a, c) => c.value - a.value);
+}
+function kpiBars(metrics: { framework: string | null }[]): MetricItem[] {
+  const m = new Map<string, number>();
+  for (const k of metrics) m.set(k.framework ?? 'Other', (m.get(k.framework ?? 'Other') ?? 0) + 1);
+  return [...m.entries()].map(([label, value]) => ({ label, value })).sort((a, c) => c.value - a.value);
+}
+async function participatedVsIds(divIds: string[]): Promise<string[]> {
+  if (!divIds.length) return [];
+  const links = await prisma.roleValueStream.findMany({ where: { role: { divisionId: { in: divIds } } }, select: { valueStreamId: true } });
+  return [...new Set(links.map((l) => l.valueStreamId))];
+}
+
+async function metricsCompany(c: string, name: string): Promise<Dashboard> {
+  const [scenarios, metrics, apps, divisions] = await Promise.all([
+    prisma.scenario.findMany({ where: { companyId: c } }),
+    prisma.metric.findMany({ where: { companyId: c }, select: { framework: true } }),
+    prisma.application.findMany({ where: { companyId: c, illustrative: false, totalTco: { not: null } }, select: TCO_SELECT }),
+    prisma.division.findMany({ where: { companyId: c }, select: { name: true, higherCategory: true } }),
+  ]);
+  const roll = scenarioRoll(scenarios);
+  const catOf = new Map(divisions.map((d) => [d.name, d.higherCategory ?? 'Core Business']));
+  const byCat = new Map<string, number>();
+  for (const s of scenarios) { const k = s.divisionName ? catOf.get(s.divisionName) ?? 'Core Business' : 'Enterprise'; byCat.set(k, (byCat.get(k) ?? 0) + (s.annualNetImpact ?? 0)); }
+  return {
+    level: 'company', title: name, subtitle: 'Performance & change impact',
+    tiles: [
+      { label: 'Change initiatives', value: roll.count },
+      { label: 'Annual net impact', value: roll.net, format: 'money' },
+      { label: 'Annual benefit', value: roll.benefit, format: 'money' },
+      { label: 'One-time cost', value: roll.oneTime, format: 'money' },
+      { label: 'Payback', value: roll.payback, format: 'years' },
+      { label: 'App run cost', value: tcoTotal(apps), format: 'money', hint: 'annual TCO' },
+      { label: 'KPIs defined', value: metrics.length },
+      { label: 'Frameworks', value: new Set(metrics.map((m) => m.framework).filter(Boolean)).size },
+    ],
+    sections: [
+      { title: 'Net impact by domain', kind: 'bar', items: [...byCat.entries()].map(([label, value]) => ({ label, value, format: 'money' as const, drill: label !== 'Enterprise' ? { level: 'domain', id: label } : undefined })).sort((a, b) => b.value - a.value) },
+      { title: 'App run cost by bucket', kind: 'bar', items: tcoBuckets(apps) },
+      { title: 'KPIs by framework', kind: 'bar', items: kpiBars(metrics) },
+      { title: 'Change initiatives', kind: 'list', items: scenarios.map((s) => ({ label: s.name, value: s.annualNetImpact ?? 0, format: 'money' as const, hint: s.confidence ?? undefined, drill: s.divisionName && catOf.get(s.divisionName) ? { level: 'domain', id: catOf.get(s.divisionName)! } : undefined })).sort((a, b) => b.value - a.value) },
+    ],
+  };
+}
+
+async function metricsDomain(c: string, category: string): Promise<Dashboard | null> {
+  const divisions = await prisma.division.findMany({ where: { companyId: c, higherCategory: category }, select: { id: true, name: true } });
+  if (!divisions.length) return null;
+  const divIds = divisions.map((d) => d.id);
+  const divIdByName = new Map(divisions.map((d) => [d.name, d.id]));
+  const names = divisions.map((d) => d.name);
+  const vsIds = await participatedVsIds(divIds);
+  const [scenarios, metrics, apps] = await Promise.all([
+    prisma.scenario.findMany({ where: { companyId: c, divisionName: { in: names } } }),
+    prisma.metric.findMany({ where: { valueStreamId: { in: vsIds.length ? vsIds : ['_'] } }, select: { framework: true } }),
+    prisma.application.findMany({ where: { companyId: c, illustrative: false, totalTco: { not: null }, primaryDivisionName: { in: names } }, select: TCO_SELECT }),
+  ]);
+  const roll = scenarioRoll(scenarios);
+  const byDiv = new Map<string, number>();
+  for (const s of scenarios) { if (!s.divisionName) continue; byDiv.set(s.divisionName, (byDiv.get(s.divisionName) ?? 0) + (s.annualNetImpact ?? 0)); }
+  return {
+    level: 'domain', title: category, subtitle: 'Performance & change impact',
+    tiles: [
+      { label: 'Change initiatives', value: roll.count },
+      { label: 'Annual net impact', value: roll.net, format: 'money' },
+      { label: 'Annual benefit', value: roll.benefit, format: 'money' },
+      { label: 'App run cost', value: tcoTotal(apps), format: 'money', hint: 'annual TCO' },
+      { label: 'KPIs defined', value: metrics.length },
+      { label: 'Divisions', value: divisions.length },
+    ],
+    sections: [
+      { title: 'Net impact by division', kind: 'bar', items: [...byDiv.entries()].map(([label, value]) => ({ label, value, format: 'money' as const, drill: divIdByName.get(label) ? { level: 'division', id: divIdByName.get(label)! } : undefined })).sort((a, b) => b.value - a.value) },
+      { title: 'KPIs by framework', kind: 'bar', items: kpiBars(metrics) },
+      { title: 'Change initiatives', kind: 'list', items: scenarios.map((s) => ({ label: s.name, value: s.annualNetImpact ?? 0, format: 'money' as const, hint: s.confidence ?? undefined, drill: s.divisionName && divIdByName.get(s.divisionName) ? { level: 'division', id: divIdByName.get(s.divisionName)! } : undefined })).sort((a, b) => b.value - a.value) },
+    ],
+  };
+}
+
+async function metricsDivision(tenantId: string, c: string, id: string): Promise<Dashboard | null> {
+  const div = await prisma.division.findFirst({ where: { id, tenantId, companyId: c }, select: { id: true, name: true, higherCategory: true } });
+  if (!div) return null;
+  const vsIds = await participatedVsIds([id]);
+  const [scenarios, metrics, apps, vsLinks] = await Promise.all([
+    prisma.scenario.findMany({ where: { companyId: c, divisionName: div.name } }),
+    prisma.metric.findMany({ where: { valueStreamId: { in: vsIds.length ? vsIds : ['_'] } }, select: { framework: true } }),
+    prisma.application.findMany({ where: { companyId: c, illustrative: false, totalTco: { not: null }, primaryDivisionName: div.name }, select: TCO_SELECT }),
+    prisma.roleValueStream.findMany({ where: { role: { divisionId: id } }, select: { valueStreamId: true, participationType: true, valueStream: { select: { name: true } } } }),
+  ]);
+  const roll = scenarioRoll(scenarios);
+  const vsMap = new Map<string, { id: string; name: string; part: string }>();
+  for (const l of vsLinks) { const cur = vsMap.get(l.valueStreamId); if (!cur || (PART_ORDER[l.participationType] ?? 9) < (PART_ORDER[cur.part] ?? 9)) vsMap.set(l.valueStreamId, { id: l.valueStreamId, name: l.valueStream.name, part: l.participationType }); }
+  return {
+    level: 'division', title: div.name, subtitle: 'Performance & change impact',
+    tiles: [
+      { label: 'Change initiatives', value: roll.count },
+      { label: 'Annual net impact', value: roll.net, format: 'money' },
+      { label: 'Annual benefit', value: roll.benefit, format: 'money' },
+      { label: 'One-time cost', value: roll.oneTime, format: 'money' },
+      { label: 'App run cost', value: tcoTotal(apps), format: 'money', hint: 'annual TCO' },
+      { label: 'KPIs defined', value: metrics.length },
+    ],
+    sections: [
+      { title: 'Change initiatives', kind: 'list', items: scenarios.map((s) => ({ label: s.name, value: s.annualNetImpact ?? 0, format: 'money' as const, hint: s.confidence ?? undefined, drill: s.valueStreamName && vsMap.size && [...vsMap.values()].find((v) => v.name === s.valueStreamName) ? { level: 'valueStream', id: [...vsMap.values()].find((v) => v.name === s.valueStreamName)!.id } : undefined })).sort((a, b) => b.value - a.value) },
+      { title: 'App run cost by bucket', kind: 'bar', items: tcoBuckets(apps) },
+      { title: 'KPIs by framework', kind: 'bar', items: kpiBars(metrics) },
+      { title: 'Value streams', kind: 'list', items: [...vsMap.values()].sort((a, b) => (PART_ORDER[a.part] ?? 9) - (PART_ORDER[b.part] ?? 9)).map((v) => ({ label: v.name, value: 0, hint: v.part, drill: { level: 'valueStream', id: v.id } })) },
+    ],
+  };
+}
+
+async function metricsValueStream(tenantId: string, c: string, id: string): Promise<Dashboard | null> {
+  const vs = await prisma.valueStream.findFirst({ where: { id, tenantId, companyId: c }, select: { id: true, name: true, domain: true } });
+  if (!vs) return null;
+  const [scenarios, kpis, appLinks, l3rows, ps] = await Promise.all([
+    prisma.scenario.findMany({ where: { companyId: c, valueStreamName: vs.name } }),
+    prisma.metric.findMany({ where: { valueStreamId: id }, orderBy: [{ l3: 'asc' }, { category: 'asc' }], select: { name: true, targetText: true, category: true, framework: true } }),
+    prisma.applicationValueStream.findMany({ where: { valueStreamId: id }, select: { application: { select: { illustrative: true, ...TCO_SELECT } } } }),
+    prisma.subValueStream.findMany({ where: { valueStreamId: id, level: 3 }, orderBy: { sourceRow: 'asc' }, select: { id: true, name: true } }),
+    prisma.processStep.findMany({ where: { valueStreamId: id }, select: { l3: true } }),
+  ]);
+  const roll = scenarioRoll(scenarios);
+  const apps = appLinks.map((l) => l.application).filter((a) => !a.illustrative && a.totalTco != null);
+  const stepByL3 = new Map<string, number>();
+  for (const p of ps) { if (!p.l3) continue; stepByL3.set(p.l3, (stepByL3.get(p.l3) ?? 0) + 1); }
+  return {
+    level: 'valueStream', title: vs.name, subtitle: 'Performance & change impact',
+    tiles: [
+      { label: 'KPIs defined', value: kpis.length },
+      { label: 'Change initiatives', value: roll.count },
+      { label: 'Annual net impact', value: roll.net, format: 'money' },
+      { label: 'Annual benefit', value: roll.benefit, format: 'money' },
+      { label: 'Added cost', value: roll.added, format: 'money' },
+      { label: 'App run cost', value: tcoTotal(apps), format: 'money', hint: 'annual TCO' },
+    ],
+    sections: [
+      { title: 'KPIs & targets', kind: 'kpi', items: kpiList(kpis) },
+      { title: 'Change initiatives', kind: 'list', items: scenarios.map((s) => ({ label: s.name, value: s.annualNetImpact ?? 0, format: 'money' as const, hint: s.confidence ?? undefined })).sort((a, b) => b.value - a.value) },
+      { title: 'App run cost by bucket', kind: 'bar', items: tcoBuckets(apps) },
+      { title: 'Process areas', kind: 'list', items: l3rows.map((s) => ({ label: s.name, value: stepByL3.get(s.name) ?? 0, hint: stepByL3.get(s.name) ? `${stepByL3.get(s.name)} steps` : 'no flow', drill: { level: 'step', id: s.id } })) },
+    ],
+  };
+}
+
+async function metricsStep(tenantId: string, id: string): Promise<Dashboard | null> {
+  const s = await prisma.subValueStream.findFirst({ where: { id, tenantId, level: 3 }, select: { id: true, name: true, valueStreamId: true } });
+  if (!s) return null;
+  const [kpis, steps, io, rvs] = await Promise.all([
+    prisma.metric.findMany({ where: { valueStreamId: s.valueStreamId, l3: s.name }, orderBy: { category: 'asc' }, select: { name: true, targetText: true, category: true, framework: true } }),
+    prisma.processStep.count({ where: { valueStreamId: s.valueStreamId, l3: s.name } }),
+    prisma.ioItem.groupBy({ by: ['type'], where: { valueStreamId: s.valueStreamId, l3: s.name }, _count: { _all: true } }),
+    prisma.roleValueStream.findMany({ where: { valueStreamId: s.valueStreamId, subStream: { startsWith: s.name + ' — ' } }, select: { roleId: true, participationType: true, role: { select: { id: true, name: true } } } }),
+  ]);
+  const ioTotal = io.reduce((a, x) => a + x._count._all, 0);
+  const inputs = io.find((x) => x.type === 'Input')?._count._all ?? 0;
+  const outputs = io.find((x) => x.type === 'Output')?._count._all ?? 0;
+  const roleMap = new Map<string, { id: string; name: string; part: string }>();
+  for (const l of rvs) { const cur = roleMap.get(l.roleId); if (!cur || (PART_ORDER[l.participationType] ?? 9) < (PART_ORDER[cur.part] ?? 9)) roleMap.set(l.roleId, { id: l.role.id, name: l.role.name, part: l.participationType }); }
+  return {
+    level: 'step', title: s.name, subtitle: 'Performance (process area)',
+    tiles: [
+      { label: 'KPIs defined', value: kpis.length }, { label: 'Process steps', value: steps },
+      { label: 'Roles', value: roleMap.size }, { label: 'I/O items', value: ioTotal },
+      { label: 'Inputs', value: inputs }, { label: 'Outputs', value: outputs },
+    ],
+    sections: [
+      { title: 'KPIs & targets', kind: 'kpi', items: kpiList(kpis) },
+      { title: 'Roles involved', kind: 'list', items: [...roleMap.values()].sort((a, b) => (PART_ORDER[a.part] ?? 9) - (PART_ORDER[b.part] ?? 9)).map((r) => ({ label: r.name, value: 0, hint: r.part, drill: { level: 'role', id: r.id } })) },
+    ],
+  };
+}
+
+// Role: real profile + deliverables + tasks (workbook) PLUS illustrative people,
+// resource cost, and aggregate performance (tagged illustrative). Drills → person.
+async function metricsRole(tenantId: string, id: string): Promise<Dashboard | null> {
+  const role = await prisma.role.findFirst({ where: { id, tenantId }, select: { id: true, name: true, roleLevel: true, roleFamily: true, division: { select: { name: true } }, department: { select: { name: true } } } });
+  if (!role) return null;
+  const [rvs, tasks, assignments, perf] = await Promise.all([
+    prisma.roleValueStream.findMany({ where: { roleId: id }, select: { participationType: true, outputs: true, valueStream: { select: { name: true } } } }),
+    prisma.roleTask.findMany({ where: { roleId: id }, select: { text: true } }),
+    prisma.assignment.findMany({ where: { roleId: id }, select: { allocationPct: true, person: { select: { id: true, name: true, employmentType: true, region: true } } } }),
+    prisma.personMetric.groupBy({ by: ['name', 'unit'], where: { period: LATEST_PERIOD, person: { assignments: { some: { roleId: id } } } }, _avg: { value: true } }),
+  ]);
+  const fte = assignments.length;
+  const cost = assignments.reduce((a, x) => a + loadedCost(role.roleLevel, x.allocationPct), 0);
+  const deliverables = rvs.filter((r) => r.outputs).map((r) => ({ label: r.outputs!, value: 0, sub: r.valueStream.name }));
+  return {
+    level: 'role', title: role.name, subtitle: [role.roleLevel, role.department?.name ?? role.division?.name].filter(Boolean).join(' · ') || 'Role',
+    tiles: [
+      { label: 'People (FTE)', value: fte, illustrative: true },
+      { label: 'Resource cost', value: cost, format: 'money', hint: 'loaded, annual', illustrative: true },
+      { label: 'Value streams', value: new Set(rvs.map((r) => r.valueStream.name)).size },
+      { label: 'Deliverables', value: deliverables.length },
+      { label: 'Responsibilities', value: tasks.length, hint: 'role tasks' },
+      { label: 'Participations', value: rvs.length, hint: 'process mappings' },
+    ],
+    sections: [
+      { title: 'People in role', kind: 'list', illustrative: true, items: assignments.map((a) => ({ label: a.person.name, value: loadedCost(role.roleLevel, a.allocationPct), format: 'money' as const, hint: a.person.employmentType, illustrative: true, drill: { level: 'person', id: a.person.id } })) },
+      { title: 'Deliverables', kind: 'list', items: deliverables },
+      { title: 'Value-stream participation', kind: 'list', items: rvs.map((r) => ({ label: r.valueStream.name, value: 0, hint: r.participationType })) },
+      { title: 'Performance (avg, latest month)', kind: 'list', illustrative: true, items: perf.map((p) => ({ label: p.name, value: 0, hint: `${Math.round((p._avg.value ?? 0) * 10) / 10} ${p.unit}`, illustrative: true })) },
+      { title: 'Responsibilities (role tasks)', kind: 'list', items: tasks.slice(0, 25).map((t) => ({ label: t.text, value: 0 })) },
+    ],
+  };
+}
+
+// Person: ILLUSTRATIVE individual. Identity, resource cost, performance, and tasks
+// are synthesized; only the role link and its deliverables trace to the workbook.
+async function metricsPerson(tenantId: string, id: string): Promise<Dashboard | null> {
+  const person = await prisma.person.findFirst({ where: { id, tenantId }, select: { id: true, name: true, title: true, region: true, employmentType: true, vendor: true } });
+  if (!person) return null;
+  const [assignments, perf, tasks] = await Promise.all([
+    prisma.assignment.findMany({ where: { personId: id }, select: { allocationPct: true, role: { select: { id: true, name: true, roleLevel: true } } } }),
+    prisma.personMetric.findMany({ where: { personId: id, period: LATEST_PERIOD }, select: { name: true, value: true, unit: true, target: true, direction: true } }),
+    prisma.personTask.groupBy({ by: ['status'], where: { personId: id }, _count: { _all: true } }),
+  ]);
+  const cost = assignments.reduce((a, x) => a + loadedCost(x.role.roleLevel, x.allocationPct), 0);
+  const roleIds = assignments.map((a) => a.role.id);
+  const rvs = roleIds.length ? await prisma.roleValueStream.findMany({ where: { roleId: { in: roleIds }, outputs: { not: null } }, select: { outputs: true, valueStream: { select: { name: true } } } }) : [];
+  return {
+    level: 'person', title: person.name, subtitle: [person.title, person.region].filter(Boolean).join(' · ') || 'Individual contributor',
+    tiles: [
+      { label: 'Resource cost', value: cost, format: 'money', hint: 'loaded, annual', illustrative: true },
+      { label: 'Allocation', value: assignments.reduce((a, x) => a + x.allocationPct, 0), hint: '% across roles', illustrative: true },
+      { label: 'Roles', value: assignments.length },
+      { label: 'Tasks', value: tasks.reduce((a, x) => a + x._count._all, 0), illustrative: true },
+      { label: 'Metrics', value: perf.length, hint: 'tracked', illustrative: true },
+      { label: 'Deliverables', value: rvs.length },
+    ],
+    sections: [
+      { title: 'Performance (latest month)', kind: 'list', illustrative: true, items: perf.map((p) => ({ label: p.name, value: 0, hint: `${p.value}${p.unit}${p.target != null ? ` / target ${p.target}${p.unit}` : ''}`, illustrative: true })) },
+      { title: 'Deliverables', kind: 'list', items: rvs.map((r) => ({ label: r.outputs!, value: 0, sub: r.valueStream.name })) },
+      { title: 'Roles', kind: 'list', items: assignments.map((a) => ({ label: a.role.name, value: 0, hint: a.role.roleLevel ?? undefined, drill: { level: 'role', id: a.role.id } })) },
+      { title: 'Tasks by status', kind: 'bar', illustrative: true, items: tasks.map((t) => ({ label: t.status, value: t._count._all })).sort((a, b) => b.value - a.value) },
+    ],
+  };
+}
+
+router.get('/metrics/:level/:id?', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true, name: true } });
+    if (!company) return res.status(404).json({ error: 'No company' });
+    const id = req.params.id ? decodeURIComponent(req.params.id) : undefined;
+    let out: Dashboard | null = null;
+    switch (req.params.level) {
+      case 'company':     out = await metricsCompany(company.id, company.name); break;
+      case 'domain':      out = id ? await metricsDomain(company.id, id) : null; break;
+      case 'division':    out = id ? await metricsDivision(req.tenantId, company.id, id) : null; break;
+      case 'valueStream': out = id ? await metricsValueStream(req.tenantId, company.id, id) : null; break;
+      case 'step':        out = id ? await metricsStep(req.tenantId, id) : null; break;
+      case 'role':        out = id ? await metricsRole(req.tenantId, id) : null; break;
+      case 'person':      out = id ? await metricsPerson(req.tenantId, id) : null; break;
+    }
+    if (!out) return res.status(404).json({ error: 'Not found' });
+    res.json(out);
+  } catch (e) { next(e); }
+});
+
 // ── unified drill node endpoint ─────────────────────────────────────────
 router.get('/node/:type/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {

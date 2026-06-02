@@ -2,7 +2,8 @@
 // Three cores pinned at top; divisions cascade down per column.
 // Click a division → gap opens, value streams render L-to-R.
 // Click a value stream → process steps render L-to-R.
-// Deepest level → right ContextSidebar with people + apps.
+// A right-hand MetricsSidebar shows a spreadsheet-derived dashboard for whatever
+// level is currently focused (company / domain / division / value stream / area).
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -19,7 +20,7 @@ import type {
 } from './nodes/MapNode';
 import { CARD_W, CARD_H, DOMAIN_HEX } from './model';
 import type { NodeFocusState, DivisionSummary, DivisionFlow, FlowStep, FlowValueStream } from './model';
-import ContextSidebar, { type StepContext } from '../components/ContextSidebar';
+import MetricsSidebar, { type Dashboard } from '../components/MetricsSidebar';
 import { api } from '../lib/api';
 
 // ── Layout constants ─────────────────────────────────────────────────────────
@@ -98,8 +99,9 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
   const [flowLoading, setFlowLoading] = useState(false);
   const [vsFlowData, setVsFlowData] = useState<DivisionFlow | null>(null);
   const [vsFlowLoading, setVsFlowLoading] = useState(false);
-  const [stepCtx, setStepCtx] = useState<StepContext | null>(null);
-  const [stepCtxLoading, setStepCtxLoading] = useState(false);
+  // Right-hand metrics dashboard (per-level, spreadsheet-derived).
+  const [dash, setDash] = useState<Dashboard | null>(null);
+  const [dashLoading, setDashLoading] = useState(false);
 
   // Fetch helpers
   const fetchFlow = useCallback(async (divId: string) => {
@@ -122,20 +124,10 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
     finally { setVsFlowLoading(false); }
   }, []);
 
-  const fetchStepCtx = useCallback(async (stepId: string) => {
-    setStepCtxLoading(true);
-    setStepCtx(null);
-    try {
-      const data: StepContext = await api.get(`/explorer/node/subValueStream/${stepId}`);
-      setStepCtx(data);
-    } catch { /* ignore */ }
-    finally { setStepCtxLoading(false); }
-  }, []);
-
   // Reset everything below the domain level.
   const resetBelowDomain = useCallback(() => {
     setLevel(0); setFocusedDivisionId(null); setFlowData(null);
-    setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null); setStepCtx(null);
+    setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null);
   }, []);
 
   // Click handlers
@@ -158,45 +150,45 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
   const onDivisionClick = useCallback((divId: string) => {
     if (focusedDivisionId === divId && level >= 1) {
       setLevel(0); setFocusedDivisionId(null); setFlowData(null);
-      setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null); setStepCtx(null);
+      setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null);
       return;
     }
     setLevel(1); setFocusedDivisionId(divId);
-    setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null); setStepCtx(null);
+    setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null);
     fetchFlow(divId);
   }, [focusedDivisionId, level, fetchFlow]);
 
   const onVsClick = useCallback((vsId: string) => {
     if (!focusedDivisionId) return;
     if (focusedVsId === vsId && level >= 2) {
-      setLevel(1); setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null); setStepCtx(null);
+      setLevel(1); setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null);
       return;
     }
-    setLevel(2); setFocusedVsId(vsId); setFocusedStepId(null); setStepCtx(null);
+    setLevel(2); setFocusedVsId(vsId); setFocusedStepId(null);
     fetchVsFlow(focusedDivisionId, vsId);
   }, [focusedDivisionId, focusedVsId, level, fetchVsFlow]);
 
-  // Clicking a process step (L3): open its context sidebar AND, if the spreadsheet
-  // has E2E detail for it, reveal its sub-process steps as a left-to-right flow below.
+  // Clicking a process step (L3): focus it and, if the spreadsheet has E2E detail
+  // for it, reveal its sub-process steps as a left-to-right flow below. The right
+  // dashboard updates to this process area's metrics.
   const onStepClick = useCallback((stepId: string) => {
     if (focusedStepId === stepId && level === 3) {
-      setLevel(2); setFocusedStepId(null); setStepCtx(null);
+      setLevel(2); setFocusedStepId(null);
       return;
     }
     setLevel(3); setFocusedStepId(stepId);
-    fetchStepCtx(stepId);
-  }, [focusedStepId, level, fetchStepCtx]);
+  }, [focusedStepId, level]);
 
   // Breadcrumb collapse
   const crumbToL0 = useCallback(() => {
     setLevel(0); setFocusedDivisionId(null); setFlowData(null);
-    setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null); setStepCtx(null);
+    setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null);
   }, []);
   const crumbToL1 = useCallback(() => {
-    if (level >= 2) { setLevel(1); setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null); setStepCtx(null); }
+    if (level >= 2) { setLevel(1); setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null); }
   }, [level]);
   const crumbToL2 = useCallback(() => {
-    if (level >= 3) { setLevel(2); setFocusedStepId(null); setStepCtx(null); }
+    if (level >= 3) { setLevel(2); setFocusedStepId(null); }
   }, [level]);
   // Back to the domains row (clears the selected domain + everything below).
   const crumbToDomains = useCallback(() => {
@@ -209,6 +201,38 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
   const focusedVs = valueStreams.find((vs) => vs.id === focusedVsId) ?? null;
   const steps: FlowStep[] = vsFlowData?.selected?.steps ?? [];
   const focusedStep = steps.find((s) => s.id === focusedStepId) ?? null;
+
+  // ── Metrics dashboard target (deepest focused level) ───────────────────────
+  const metricTarget = useMemo<{ level: string; id: string } | null>(() => {
+    if (level === 3 && focusedStep) return { level: 'step', id: focusedStep.id };
+    if (level >= 2 && focusedVs) return { level: 'valueStream', id: focusedVs.id };
+    if (level >= 1 && focusedDivision) return { level: 'division', id: focusedDivision.id };
+    if (selectedDomain) return { level: 'domain', id: selectedDomain };
+    if (companyOpen) return { level: 'company', id: '' };
+    return null;
+  }, [level, focusedStep, focusedVs, focusedDivision, selectedDomain, companyOpen]);
+
+  // Sidebar-internal drill stack for role → person (these aren't map nodes, so
+  // they navigate inside the dashboard rather than the canvas).
+  const [ovStack, setOvStack] = useState<{ level: string; id: string }[]>([]);
+  const dashTarget = ovStack.length ? ovStack[ovStack.length - 1] : metricTarget;
+
+  // Map navigation resets the sidebar drill stack.
+  useEffect(() => { setOvStack([]); }, [metricTarget?.level, metricTarget?.id]);
+
+  useEffect(() => {
+    if (!dashTarget) { setDash(null); return; }
+    let cancelled = false;
+    setDashLoading(true); setDash(null);
+    const path = dashTarget.id
+      ? `/explorer/metrics/${dashTarget.level}/${encodeURIComponent(dashTarget.id)}`
+      : `/explorer/metrics/${dashTarget.level}`;
+    api.get(path)
+      .then((d: Dashboard) => { if (!cancelled) setDash(d); })
+      .catch(() => { if (!cancelled) setDash(null); })
+      .finally(() => { if (!cancelled) setDashLoading(false); });
+    return () => { cancelled = true; };
+  }, [dashTarget?.level, dashTarget?.id]); // eslint-disable-line
 
   // ── Build nodes and edges ─────────────────────────────────────────────────
   // Two-pass layout:
@@ -613,6 +637,18 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
     // subStepNode is display-only (non-interactive)
   }, [onCompanyClick, onDomainClick, onDivisionClick, onVsClick, onStepClick]);
 
+  // ── Dashboard drill-down ────────────────────────────────────────────────────
+  // Map levels move the canvas; role/person drill inside the sidebar (stack).
+  const onDrill = useCallback((lvl: string, id: string) => {
+    if (lvl === 'role' || lvl === 'person') { setOvStack((s) => [...s, { level: lvl, id }]); return; }
+    setOvStack([]);
+    if (lvl === 'domain') onDomainClick(id as Category);
+    else if (lvl === 'division') onDivisionClick(id);
+    else if (lvl === 'valueStream') onVsClick(id);
+    else if (lvl === 'step') onStepClick(id);
+  }, [onDomainClick, onDivisionClick, onVsClick, onStepClick]);
+  const onDashBack = useCallback(() => setOvStack((s) => s.slice(0, -1)), []);
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div style={{ position: 'relative', height: '100%', display: 'flex' }}>
@@ -669,18 +705,6 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
         breadcrumbSlot
       )}
 
-      {/* Right sidebar at L3 — people + apps for the selected process step. */}
-      {level === 3 && (
-        <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, zIndex: 15 }}>
-          <ContextSidebar
-            stepName={focusedStep?.name ?? ''}
-            ctx={stepCtx}
-            loading={stepCtxLoading}
-            side="right"
-          />
-        </div>
-      )}
-
       {/* Fetch loading indicator */}
       {(flowLoading || vsFlowLoading) && (
         <div
@@ -715,6 +739,11 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
           <Controls showInteractive={false} position="bottom-left" />
         </ReactFlow>
       </div>
+
+      {/* Right metrics dashboard — appears once the company is opened. */}
+      {dashTarget && (
+        <MetricsSidebar dash={dash} loading={dashLoading} onDrill={onDrill} onBack={ovStack.length ? onDashBack : undefined} />
+      )}
     </div>
   );
 }

@@ -63,6 +63,12 @@ type Spine = {
     relatedValueStream: string | null; dependencyType: string | null; frequency: string | null; notes: string | null;
     sourceRow: number;
   }[];
+  scenarios: {
+    name: string; changeType: string | null; impactScope: string | null; divisionName: string | null;
+    valueStreamName: string | null; application: string | null; roleImpact: string | null;
+    oneTimeCost: number | null; annualBenefit: number | null; annualAddedCost: number | null;
+    annualNetImpact: number | null; confidence: string | null; sourceRow: number;
+  }[];
 };
 
 async function chunked<T>(rows: T[], fn: (c: T[]) => Promise<unknown>, size = 1000) {
@@ -210,7 +216,12 @@ async function main() {
     data: spine.externalInteractions.map((e) => ({ tenantId: t, companyId: c, partyType: e.partyType, externalRole: e.externalRole, internalRoleId: e.internalRoleName ? roleId.get(e.internalRoleName) ?? null : null, internalRoleOwner: e.internalRoleOwner, divisionFunction: e.divisionFunction, interactionType: e.interactionType, inputs: e.inputs, outputs: e.outputs, relatedValueStream: e.relatedValueStream, dependencyType: e.dependencyType, frequency: e.frequency, notes: e.notes, sourceSheet: 'External Interactions', sourceRow: e.sourceRow })),
   });
 
-  console.log(`   spine: ${spine.domains.length} domains, ${spine.divisions.length} divisions, ${spine.roles.length} roles (${mgrUpdates.length} reporting links), ${spine.valueStreams.length} value streams, ${spine.metrics.length} KPIs, ${spine.processSteps.length} steps, ${spine.ioItems.length} I/O, ${spine.standards.length} standards`);
+  // ── Change-impact scenarios (initiatives) ──
+  await prisma.scenario.createMany({
+    data: spine.scenarios.map((s) => ({ tenantId: t, companyId: c, name: s.name, changeType: s.changeType, impactScope: s.impactScope, divisionName: s.divisionName, valueStreamName: s.valueStreamName, application: s.application, roleImpact: s.roleImpact, oneTimeCost: s.oneTimeCost, annualBenefit: s.annualBenefit, annualAddedCost: s.annualAddedCost, annualNetImpact: s.annualNetImpact, confidence: s.confidence, sourceSheet: 'Scenario Inputs', sourceRow: s.sourceRow })),
+  });
+
+  console.log(`   spine: ${spine.domains.length} domains, ${spine.divisions.length} divisions, ${spine.roles.length} roles (${mgrUpdates.length} reporting links), ${spine.valueStreams.length} value streams, ${spine.metrics.length} KPIs, ${spine.processSteps.length} steps, ${spine.ioItems.length} I/O, ${spine.standards.length} standards, ${spine.scenarios.length} scenarios`);
 
   // ── Illustrative systems + deep levels (people, initiatives, tasks, metrics, risks) ──
   const allVsForSeed = await prisma.valueStream.findMany({ where: { companyId: c }, select: { id: true, name: true } });
