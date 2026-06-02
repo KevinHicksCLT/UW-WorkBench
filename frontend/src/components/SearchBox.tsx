@@ -43,7 +43,7 @@ export default function SearchBox() {
                    px-3 py-1.5 text-sm border border-[#eaeaea]
                    focus:outline-none focus:border-[#0070f3] focus:ring-2 focus:ring-[rgba(0,112,243,0.20)]
                    transition-colors duration-150"
-        placeholder="Search the model…"
+        placeholder="Search"
         value={q}
         onChange={(e) => setQ(e.target.value)}
         onFocus={() => results.length && setOpen(true)}

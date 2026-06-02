@@ -78,9 +78,10 @@ export default function Layout({ children }: { children: ReactNode }) {
         <div className="flex items-center gap-4 px-4 sm:px-6 h-12">
 
           {/* Wordmark */}
-          <Link to="/" className="flex items-center gap-2 flex-shrink-0 group">
-            <span className="font-bold text-[#171717] text-[15px] tracking-tight group-hover:text-[#525252] transition-colors duration-150">
-              Strata
+          <Link to="/" className="flex items-center gap-2 flex-shrink-0 group" aria-label="Capgemini Transformation Bridge — home">
+            <img src="/capgemini-logo.svg" alt="" className="h-[24px] w-auto" />
+            <span className="font-semibold text-[#171717] text-[15px] tracking-tight whitespace-nowrap group-hover:text-[#525252] transition-colors duration-150">
+              Capgemini Transformation Bridge
             </span>
           </Link>
 

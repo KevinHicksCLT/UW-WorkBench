@@ -15,7 +15,7 @@ import '@xyflow/react/dist/style.css';
 
 import { mapNodeTypes } from './nodes/MapNode';
 import type {
-  CompanyNodeData, CoreNodeData, DivisionNodeData, ValueStreamNodeData, StepNodeData,
+  CompanyNodeData, CoreNodeData, DivisionNodeData, ValueStreamNodeData, StepNodeData, SubStepNodeData,
 } from './nodes/MapNode';
 import { CARD_W, CARD_H, DOMAIN_HEX } from './model';
 import type { NodeFocusState, DivisionSummary, DivisionFlow, FlowStep, FlowValueStream } from './model';
@@ -44,6 +44,8 @@ const STEP_W          = CARD_W;
 const STEP_H          = CARD_H;
 const STEP_GAP_X      = 12;
 const STEP_TOP_OFFSET = 24;    // gap between focused-VS bottom and step row top
+const SUBSTEP_GAP_X     = 12;
+const SUBSTEP_TOP_OFFSET = 24; // gap between focused-step bottom and sub-process row top
 
 // Left-to-right order requested by the user: Corporate Function · Core Business · IT.
 const CATEGORIES = ['Corporate Function', 'Core Business', 'IT'] as const;
@@ -174,6 +176,8 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
     fetchVsFlow(focusedDivisionId, vsId);
   }, [focusedDivisionId, focusedVsId, level, fetchVsFlow]);
 
+  // Clicking a process step (L3): open its context sidebar AND, if the spreadsheet
+  // has E2E detail for it, reveal its sub-process steps as a left-to-right flow below.
   const onStepClick = useCallback((stepId: string) => {
     if (focusedStepId === stepId && level === 3) {
       setLevel(2); setFocusedStepId(null); setStepCtx(null);
@@ -257,9 +261,11 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
 
     const domainRowY = COMPANY_H + DOMAIN_TOP_OFFSET;
 
-    // ── Compute VS block height (depends on step data) ────────────────────────
+    // ── Compute VS block height (depends on step + sub-step data) ─────────────
+    const hasSubSteps = level >= 3 && !!focusedStep && focusedStep.subSteps.length > 0;
+    const subStepsBlockHeight = hasSubSteps ? (SUBSTEP_TOP_OFFSET + CARD_H) : 0;
     const hasSteps = level >= 2 && focusedVsId && vsFlowData && steps.length > 0;
-    const stepsBlockHeight = hasSteps ? (STEP_TOP_OFFSET + STEP_H) : 0;
+    const stepsBlockHeight = hasSteps ? (STEP_TOP_OFFSET + STEP_H + subStepsBlockHeight) : 0;
     const vsBlockHeight = (level >= 1 && flowData && valueStreams.length > 0)
       ? (VS_TOP_OFFSET + VS_H + stepsBlockHeight)
       : 0;
@@ -438,6 +444,52 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
                     style: { stroke: accent, strokeWidth: 2, strokeOpacity: 0.9 },
                   });
                 }
+
+                // ── If this step is focused, insert its sub-process row below ───
+                if (isStepFocused && step.subSteps.length > 0) {
+                  const subStepX = stepsLeft + si * (STEP_W + STEP_GAP_X);
+                  const stepCenterX = subStepX + STEP_W / 2;
+                  const subTop = stepsTop + STEP_H + SUBSTEP_TOP_OFFSET;
+                  const subs = step.subSteps;
+                  const totalSubWidth = subs.length * CARD_W + (subs.length - 1) * SUBSTEP_GAP_X;
+                  const subLeft = stepCenterX - totalSubWidth / 2;
+
+                  subs.forEach((sub, sj) => {
+                    const subNodeId = `substep:${sub.id}`;
+
+                    ns.push({
+                      id: subNodeId,
+                      type: 'subStepNode',
+                      position: { x: subLeft + sj * (CARD_W + SUBSTEP_GAP_X), y: subTop },
+                      data: { step: sub.step, name: sub.name, focusState: 'neutral', pieceIndex: sj } satisfies SubStepNodeData,
+                      draggable: false,
+                      selectable: false,
+                    });
+
+                    // Edge: subStep[j-1] → subStep[j]
+                    if (sj > 0) {
+                      es.push({
+                        id: `e:substep${subs[sj - 1].id}->substep${sub.id}`,
+                        source: `substep:${subs[sj - 1].id}`,
+                        target: subNodeId,
+                        sourceHandle: 'r',
+                        targetHandle: 'l',
+                        type: 'smoothstep',
+                        style: { stroke: accent, strokeWidth: 2, strokeOpacity: 0.9 },
+                      });
+                    }
+                  });
+
+                  // Edge: step → first sub-process
+                  es.push({
+                    id: `e:${stepNodeId}->substep:${subs[0].id}`,
+                    source: stepNodeId,
+                    target: `substep:${subs[0].id}`,
+                    sourceHandle: 'b',
+                    targetHandle: 't',
+                    style: { stroke: accent, strokeWidth: 2, strokeOpacity: 0.8 },
+                  });
+                }
               });
 
               // Edge: VS → first step
@@ -460,7 +512,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
     return { nodes: ns, edges: es };
   }, [
     divisions, companyName, companyOpen, selectedDomain, level,
-    focusedDivisionId, focusedDivision, focusedVsId, focusedStepId,
+    focusedDivisionId, focusedDivision, focusedVsId, focusedStepId, focusedStep,
     flowData, valueStreams, vsFlowData, steps,
   ]);
 
@@ -533,9 +585,16 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
     }
   }, [vsFlowData]); // eslint-disable-line
 
-  // Camera: L3 → focus step
+  // Camera: L3 → focus step. If the spreadsheet has a sub-process flow for it,
+  // frame the step plus its full left-to-right sub-process row; else center it.
   useEffect(() => {
-    if (level === 3 && focusedStepId) moveCameraToNode(`step:${focusedStepId}`, 0.3);
+    if (level < 3 || !focusedStepId) return;
+    const step = steps.find((s) => s.id === focusedStepId);
+    if (step && step.subSteps.length > 0) {
+      fitNodes([`step:${focusedStepId}`, ...step.subSteps.map((s) => `substep:${s.id}`)], 0.22);
+    } else {
+      moveCameraToNode(`step:${focusedStepId}`, 0.3);
+    }
   }, [focusedStepId]); // eslint-disable-line
 
   // ── Node click handler ────────────────────────────────────────────────────
@@ -551,6 +610,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
     } else if (node.type === 'stepNode') {
       onStepClick(node.id.replace(/^step:/, ''));
     }
+    // subStepNode is display-only (non-interactive)
   }, [onCompanyClick, onDomainClick, onDivisionClick, onVsClick, onStepClick]);
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -609,7 +669,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
         breadcrumbSlot
       )}
 
-      {/* Right sidebar at L3 */}
+      {/* Right sidebar at L3 — people + apps for the selected process step. */}
       {level === 3 && (
         <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, zIndex: 15 }}>
           <ContextSidebar

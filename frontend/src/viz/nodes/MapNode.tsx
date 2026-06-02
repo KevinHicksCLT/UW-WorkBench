@@ -69,6 +69,13 @@ export type StepNodeData = {
   pieceIndex?: number;
 };
 
+export type SubStepNodeData = {
+  step: number;
+  name: string;
+  focusState?: NodeFocusState;
+  pieceIndex?: number;
+};
+
 // ── companyNode ──────────────────────────────────────────────────────────────
 // The enterprise root. Click to reveal the three domains.
 
@@ -400,9 +407,65 @@ const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
             padding: '2px 5px', fontSize: 9, fontWeight: 600,
             background: '#fafafa', color: '#525252', border: '1px solid #eaeaea',
           }}>
-            {d.subStepCount} sub
+            {d.subStepCount} {d.subStepCount === 1 ? 'sub-process' : 'sub-processes'}
           </span>
         )}
+      </div>
+      <AllHandles />
+    </div>
+  );
+});
+
+// ── subStepNode ───────────────────────────────────────────────────────────────
+// L4 sub-processes that sit under a selected process step (deepest flow level).
+
+const SubStepNodeImpl = memo(function SubStepNodeImpl({ data }: NodeProps) {
+  const d = data as SubStepNodeData;
+  const fc = focusClass(d.focusState);
+  const animStyle = d.pieceIndex != null ? { animationDelay: `${d.pieceIndex * 40}ms` } : undefined;
+
+  return (
+    <div
+      className={`animate-piece-arrive ${fc}`}
+      style={{
+        width: CARD_W,
+        height: CARD_H,
+        boxSizing: 'border-box',
+        overflow: 'hidden',
+        padding: '11px 12px',
+        borderRadius: 10,
+        background: '#ffffff',
+        border: '1px solid #eaeaea',
+        borderLeft: '3px solid #64748b',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        cursor: 'pointer',
+        position: 'relative',
+        ...animStyle,
+      }}
+    >
+      {/* Step number + name */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+        <span
+          style={{
+            flexShrink: 0,
+            width: 18,
+            height: 18,
+            borderRadius: '50%',
+            background: '#64748b',
+            color: '#fff',
+            fontSize: 9,
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 1,
+          }}
+        >
+          {d.step}
+        </span>
+        <span style={{ fontSize: 12.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35 }}>
+          {d.name}
+        </span>
       </div>
       <AllHandles />
     </div>
@@ -417,4 +480,5 @@ export const mapNodeTypes = {
   divisionNode:    DivisionNodeImpl,
   valueStreamNode: ValueStreamNodeImpl,
   stepNode:        StepNodeImpl,
+  subStepNode:     SubStepNodeImpl,
 };

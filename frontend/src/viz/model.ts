@@ -52,7 +52,7 @@ export type FlowStep = {
   id: string;
   step: number;
   name: string;
-  subSteps: string[];
+  subSteps: { id: string; name: string; step: number }[];
   inputs: string | null;
   outputs: string | null;
   upstream: string | null;

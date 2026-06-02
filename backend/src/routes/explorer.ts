@@ -205,10 +205,19 @@ router.get('/division/:id/flow', async (req: Request, res: Response, next: NextF
 
     let selected: any = null;
     if (selectedVs) {
-      const [subs, rvs] = await Promise.all([
+      const [subs, rvs, processSteps] = await Promise.all([
         prisma.subValueStream.findMany({ where: { valueStreamId: selectedVs.id, level: { in: [3, 4] } }, orderBy: [{ sourceRow: 'asc' }], select: { id: true, parentId: true, level: true, name: true, inputs: true, outputs: true, upstream: true, downstream: true } }),
         prisma.roleValueStream.findMany({ where: { valueStreamId: selectedVs.id, subStream: { not: null } }, select: { subStream: true, participationType: true, role: { select: { name: true, division: { select: { higherCategory: true } } } } } }),
+        // E2E Process Flows — the real ordered sub-process steps within each L3 process area.
+        prisma.processStep.findMany({ where: { valueStreamId: selectedVs.id }, orderBy: { stepNumber: 'asc' }, select: { id: true, name: true, l3: true, stepNumber: true } }),
       ]);
+      // Bucket E2E steps by their L3 process-area name (already in stepNumber order).
+      const stepsByL3 = new Map<string, { id: string; name: string; step: number }[]>();
+      for (const p of processSteps) {
+        if (!p.l3) continue;
+        if (!stepsByL3.has(p.l3)) stepsByL3.set(p.l3, []);
+        stepsByL3.get(p.l3)!.push({ id: p.id, name: p.name, step: p.stepNumber });
+      }
       const l3 = subs.filter((s) => s.level === 3);
       const steps = l3.map((s, i) => {
         const links = rvs.filter((r) => r.subStream!.startsWith(s.name + ' — '));
@@ -224,7 +233,9 @@ router.get('/division/:id/flow', async (req: Request, res: Response, next: NextF
         const primaryCategory = leadCat ?? categories[0] ?? div.higherCategory ?? null;
         return {
           id: s.id, step: i + 1, name: s.name,
-          subSteps: subs.filter((c) => c.level === 4 && c.parentId === s.id).map((c) => c.name),
+          // Real ordered sub-process steps for this L3 (from E2E Process Flows);
+          // empty when the spreadsheet has no E2E detail for this process area.
+          subSteps: stepsByL3.get(s.name) ?? [],
           inputs: s.inputs, outputs: s.outputs, upstream: s.upstream, downstream: s.downstream,
           roles: [...roleNames], categories, primaryCategory,
           crossDomain: categories.some((c) => c !== div.higherCategory),
