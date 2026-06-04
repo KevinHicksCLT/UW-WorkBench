@@ -68,13 +68,13 @@ export default function ValueStreamDetail() {
                             <div className="text-xs text-[#525252] mt-1.5 space-y-1">
                               {sub.inputs?.length > 0 && (
                                 <div className="flex gap-1.5">
-                                  <span className="flex-shrink-0 rounded bg-[#171717] text-white text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 leading-[14px]">In</span>
+                                  <span className="flex-shrink-0 rounded bg-[#171717] text-white text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 leading-[14px]">Inputs</span>
                                   <span>{sub.inputs.join(', ')}</span>
                                 </div>
                               )}
                               {sub.outputs?.length > 0 && (
                                 <div className="flex gap-1.5">
-                                  <span className="flex-shrink-0 rounded bg-[#404040] text-white text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 leading-[14px]">Out</span>
+                                  <span className="flex-shrink-0 rounded bg-[#404040] text-white text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 leading-[14px]">Outputs</span>
                                   <span>{sub.outputs.join(', ')}</span>
                                 </div>
                               )}

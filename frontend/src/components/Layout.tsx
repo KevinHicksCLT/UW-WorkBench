@@ -84,11 +84,12 @@ export default function Layout({ children }: { children: ReactNode }) {
         {/* Row 1 — brand + utilities */}
         <div className="flex items-center gap-4 px-4 sm:px-6 h-14 border-b border-[#eaeaea] sm:border-b-0">
 
-          {/* Wordmark */}
-          <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 group" aria-label="Capgemini Transformation Bridge — home">
-            <img src="/capgemini-logo.svg" alt="" className="h-[26px] w-auto" />
-            <span className="font-semibold text-[#171717] text-[15px] tracking-tight whitespace-nowrap group-hover:text-[#525252] transition-colors duration-150">
-              Capgemini Transformation Bridge
+          {/* Wordmark — Capgemini logotype flowing into the product name as one lockup */}
+          <Link to="/" className="flex items-baseline gap-2 flex-shrink-0 group" aria-label="Capgemini Transformation Bridge — home">
+            {/* h-[20px] matches the logotype cap-height to the text; translate-y aligns its baseline */}
+            <img src="/capgemini-wordmark.svg" alt="Capgemini" className="h-[20px] w-auto translate-y-[5.5px]" />
+            <span className="font-semibold text-[#0070AD] text-[15px] tracking-tight whitespace-nowrap -translate-y-[1.5px] group-hover:text-[#12abdb] transition-colors duration-150">
+              Transformation Bridge
             </span>
           </Link>
 

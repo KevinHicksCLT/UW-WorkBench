@@ -42,8 +42,10 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const [
       divisions, departments, roles, valueStreams, domains, people,
       initiatives, risks, applications, metrics, scenarios, processSteps,
+      deliverables, tasks,
       divisionGroups, empGroups, regionGroups, statusGroups, healthGroups,
-      severityGroups, kindGroups, scenarioSum, tcoSum,
+      severityGroups, kindGroups,
+      scenarioSum, tcoSum,
       topVsRaw, topDivRaw, companies,
     ] = await Promise.all([
       prisma.division.count({ where: w }),
@@ -58,6 +60,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       prisma.metric.count({ where: w }),
       prisma.scenario.count({ where: w }),
       prisma.processStep.count({ where: wVs }),
+      prisma.deliverable.count({ where: w }),
+      prisma.task.count({ where: w }),
       prisma.division.groupBy({ by: ['higherCategory'], where: w, _count: { _all: true } }),
       prisma.person.groupBy({ by: ['employmentType'], where: w, _count: { _all: true } }),
       prisma.person.groupBy({ by: ['region'], where: w, _count: { _all: true } }),
@@ -87,6 +91,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       totals: {
         divisions, departments, roles, valueStreams, domains, people,
         initiatives, risks, applications, metrics, scenarios, processSteps,
+        deliverables, tasks,
       },
       divisionsByCategory: ordered(divisionGroups, 'higherCategory', ['Core Business', 'IT', 'Corporate Function']),
       workforce: {

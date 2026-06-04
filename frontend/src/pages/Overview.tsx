@@ -26,7 +26,15 @@ type Dashboard = {
 const CAT_COLOR: Record<string, string> = {
   'Core Business': '#0d9488', 'IT': '#4f46e5', 'Corporate Function': '#7c3aed',
 };
-const TYPE_LABEL: Record<string, string> = { badged: 'Badged', contractor: 'Contractor', si_partner: 'SI Partner' };
+// Workforce mix is presented in two buckets: badged headcount as "Employees",
+// and contractors + SI partners merged into "Contingent Workers".
+function workforceBuckets(byType: Group[]): Group[] {
+  const count = (k: string) => byType.find((g) => g.key === k)?.count ?? 0;
+  return [
+    { key: 'Employees', count: count('badged') },
+    { key: 'Contingent Workers', count: count('contractor') + count('si_partner') },
+  ];
+}
 
 function Tile({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
   return (
@@ -102,11 +110,13 @@ export default function Overview() {
       />
 
       {/* Headline metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
         <Tile label="Divisions" value={t.divisions} hint={`${t.departments} departments`} />
         <Tile label="Roles" value={t.roles} />
         <Tile label="Value Streams" value={t.valueStreams} hint={`${t.domains} domains`} />
         <Tile label="Initiatives" value={t.initiatives} />
+        <Tile label="Deliverables" value={t.deliverables} />
+        <Tile label="Tasks" value={t.tasks} />
       </div>
 
       {/* Breakdowns */}
@@ -117,27 +127,9 @@ export default function Overview() {
 
         <Card title="Workforce mix" to="/roles" toLabel="Roles">
           <div className="text-xs text-[#a3a3a3] mb-2 tnum">{fmt.number(workforceTotal)} people</div>
-          <BarList
-            groups={data.workforce.byType.map((g) => ({ key: TYPE_LABEL[g.key] ?? g.key, count: g.count }))}
-            color="#4f46e5"
-          />
+          <BarList groups={workforceBuckets(data.workforce.byType)} color="#4f46e5" />
           <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mt-4 mb-2">By region</div>
           <BarList groups={data.workforce.byRegion} color="#0d9488" />
-        </Card>
-
-        <Card title="Applications by kind">
-          <BarList groups={data.applicationsByKind} color="#4f46e5" />
-        </Card>
-
-        <Card title="Top value streams" to="/overview" toLabel="Explorer">
-          <div className="space-y-1.5">
-            {data.topValueStreams.map((v) => (
-              <Link key={v.id} to={`/overview?focus=${v.id}`} className="flex items-center justify-between py-1 group">
-                <span className="text-sm text-[#171717] group-hover:text-[#4f46e5] truncate">{v.name}</span>
-                <span className="text-xs text-[#a3a3a3] tnum flex-shrink-0 ml-2">{v.roles} roles</span>
-              </Link>
-            ))}
-          </div>
         </Card>
 
         <Card title="Largest divisions" to="/roles" toLabel="Roles">
@@ -153,15 +145,15 @@ export default function Overview() {
 
         <Card title="Model footprint">
           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-            {[
-              ['Process steps', t.processSteps],
-              ['Change scenarios', t.scenarios], ['Applications', t.applications],
-              ['Departments', t.departments], ['Domains', t.domains],
-            ].map(([label, val]) => (
-              <div key={label as string} className="flex items-center justify-between border-b border-[#f5f5f5] pb-1">
-                <span className="text-[#525252]">{label}</span>
+            {([
+              ['Process steps', t.processSteps, '/overview?view=list'],
+              ['Change scenarios', t.scenarios, '/portfolio'], ['Applications', t.applications, '/portfolio'],
+              ['Departments', t.departments, '/roles?view=departments'], ['Domains', t.domains, '/overview'],
+            ] as [string, number, string][]).map(([label, val, to]) => (
+              <Link key={label} to={to} className="flex items-center justify-between border-b border-[#f5f5f5] pb-1 group">
+                <span className="text-[#525252] group-hover:text-[#4f46e5]">{label}</span>
                 <span className="text-[#171717] tnum">{val}</span>
-              </div>
+              </Link>
             ))}
           </div>
         </Card>

@@ -1,5 +1,5 @@
-import { useMemo, useState, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useApi } from '../lib/useApi';
 import PageHeader from '../components/PageHeader';
 import { PARTICIPATION_CLASS } from '../lib/format';
@@ -26,7 +26,31 @@ export default function OrgTable() {
   const [personId, setPersonId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
 
+  // Deep-link: `?view=departments` (from the home "Departments" footprint tile)
+  // lands on a flat grid of every department across divisions. Lift it into
+  // state and clear the param so it doesn't linger or re-fire.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [deptOverview, setDeptOverview] = useState(false);
+  useEffect(() => {
+    if (searchParams.get('view') !== 'departments') return;
+    setDeptOverview(true);
+    const next = new URLSearchParams(searchParams);
+    next.delete('view');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
+
   const allDivisions = useMemo(() => (data ? data.segments.flatMap((s) => s.divisions) : []), [data]);
+
+  // Every department, flattened with its parent division/segment — for the
+  // departments-overview grid reached via the home page.
+  const allDepartments = useMemo(() => {
+    if (!data) return [] as (Dept & { divisionId: string; divisionName: string; segment: string })[];
+    const out: (Dept & { divisionId: string; divisionName: string; segment: string })[] = [];
+    for (const seg of data.segments) for (const dv of seg.divisions) for (const dp of dv.departments) {
+      out.push({ ...dp, divisionId: dv.id, divisionName: dv.name, segment: seg.name });
+    }
+    return out;
+  }, [data]);
 
   // Flattened roles (with their division/department context) for the search bar —
   // scope is roles only, not people / value streams / other entities.
@@ -87,8 +111,10 @@ export default function OrgTable() {
         // ── Level 1: all divisions, grouped by segment ───────────────────────
         <>
           <PageHeader
-            title="Roles & People"
-            subtitle={`${t.divisions} divisions · ${t.departments} teams · ${t.roles} roles · ${t.people} people`}
+            title={deptOverview ? 'Departments' : 'Roles & People'}
+            subtitle={deptOverview
+              ? `${t.departments} teams across ${t.divisions} divisions`
+              : `${t.divisions} divisions · ${t.departments} teams · ${t.roles} roles · ${t.people} people`}
           />
           <RoleSearch value={query} onChange={setQuery} />
           {q ? (
@@ -108,6 +134,15 @@ export default function OrgTable() {
                 </Grid>
               </section>
             )
+          ) : deptOverview ? (
+            // ── Departments overview: every team across divisions ────────────────
+            <Grid>
+              {allDepartments.map((dp) => (
+                <Box key={dp.id} title={dp.name}
+                  meta={`${dp.divisionName} · ${dp.roleCount} roles · ${dp.peopleCount} people`}
+                  onClick={() => { setDivId(dp.divisionId); setDeptId(dp.id); }} />
+              ))}
+            </Grid>
           ) : data.segments.map((seg) => (
             <section key={seg.name} className="mb-8">
               <div className="flex items-center gap-2 mb-3">

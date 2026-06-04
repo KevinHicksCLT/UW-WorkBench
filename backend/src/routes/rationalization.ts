@@ -2,7 +2,8 @@ import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
-import { LAYERS, progressOf } from '../lib/rationalization.js';
+import { LAYERS, progressOf, STATUS_WEIGHT } from '../lib/rationalization.js';
+import { logAudit, computeDiff } from '../services/audit.js';
 
 // "Evergreen" Application Rationalization — read API for the value-stream board.
 // An application's value stream is broken into business-process STAGES (chevrons);
@@ -147,14 +148,15 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       northstar: w.northstar,
       status: w.status,
       illustrative: w.illustrative,
+      layout: w.layout ?? null,
       progress: progressFor(caps),
       counts: { findings: caps.length, ...capdanCounts(caps) },
       byLayer,
       // Brown-field apps (the grid columns).
-      apps: w.apps.map((a) => ({ id: a.id, name: a.name, techStack: a.techStack, position: a.position })),
+      apps: w.apps.map((a) => ({ id: a.id, name: a.name, techStack: a.techStack, disposition: a.disposition, position: a.position })),
       // CAPDAN normalized components (one per layer), with destination service.
       components: w.components.map((c) => ({
-        id: c.id, layer: c.layer, name: c.name, pattern: c.pattern, targetTech: c.targetTech,
+        id: c.id, layer: c.layer, name: c.name, principle: c.principle, pattern: c.pattern, targetTech: c.targetTech,
         destination: c.destination, microserviceId: c.microserviceId,
         migrationStatus: c.migrationStatus,
       })),
@@ -170,6 +172,132 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         effort: c.effort, complexity: c.complexity, migrationStatus: c.migrationStatus,
       })),
     });
+  } catch (e) { next(e); }
+});
+
+// PATCH /rationalization/components/:id — edit a CAPDAN normalize component
+// (the "Edit CAPDAN" panel). Every change is audited against the parent
+// workspace so the workspace change log captures the full edit history.
+const COMPONENT_FIELDS = ['name', 'principle', 'pattern', 'targetTech', 'destination', 'migrationStatus'] as const;
+
+router.patch('/components/:id', requireRole('ADMIN', 'MANAGER'), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const before = await prisma.rationalizationComponent.findFirst({ where: { id: req.params.id, tenantId: req.tenantId } });
+    if (!before) return res.status(404).json({ error: 'Not found' });
+
+    const body = (req.body ?? {}) as Record<string, unknown>;
+    const data: Record<string, unknown> = {};
+    for (const f of COMPONENT_FIELDS) {
+      if (!(f in body)) continue;
+      const v = body[f];
+      if (v !== null && typeof v !== 'string') return res.status(400).json({ error: `${f} must be a string` });
+      data[f] = typeof v === 'string' && v.trim() === '' ? null : v;
+    }
+    if (data.name === null) return res.status(400).json({ error: 'name is required' });
+    if (typeof data.migrationStatus === 'string' && !(data.migrationStatus in STATUS_WEIGHT)) {
+      return res.status(400).json({ error: 'Invalid migrationStatus' });
+    }
+    if (Object.keys(data).length === 0) return res.json(toComponentDto(before));
+
+    const updated = await prisma.rationalizationComponent.update({ where: { id: before.id }, data });
+    const changes = computeDiff(before, updated, [...COMPONENT_FIELDS]);
+    if (Object.keys(changes).length) {
+      logAudit({
+        tenantId: req.tenantId, actorEmail: req.user.email,
+        entityType: 'RationalizationWorkspace', entityId: updated.workspaceId,
+        action: 'UPDATE_CAPDAN', diff: { subject: updated.name, layer: updated.layer, changes },
+      });
+    }
+    res.json(toComponentDto(updated));
+  } catch (e) { next(e); }
+});
+
+function toComponentDto(c: { id: string; layer: string; name: string; principle: string | null; pattern: string | null; targetTech: string | null; destination: string | null; microserviceId: string | null; migrationStatus: string }) {
+  return { id: c.id, layer: c.layer, name: c.name, principle: c.principle, pattern: c.pattern, targetTech: c.targetTech, destination: c.destination, microserviceId: c.microserviceId, migrationStatus: c.migrationStatus };
+}
+
+// Shared string-field patch: whitelist fields, blank → null, diff + audit
+// against the parent workspace so every box edit lands in the change log.
+async function patchBoxEntity(
+  req: Request, res: Response,
+  load: () => Promise<({ id: string; workspaceId: string; name: string } & Record<string, unknown>) | null>,
+  update: (id: string, data: Record<string, unknown>) => Promise<{ id: string; workspaceId: string; name: string } & Record<string, unknown>>,
+  fields: readonly string[], action: string,
+) {
+  const before = await load();
+  if (!before) { res.status(404).json({ error: 'Not found' }); return null; }
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const data: Record<string, unknown> = {};
+  for (const f of fields) {
+    if (!(f in body)) continue;
+    const v = body[f];
+    if (v !== null && typeof v !== 'string') { res.status(400).json({ error: `${f} must be a string` }); return null; }
+    data[f] = typeof v === 'string' && v.trim() === '' ? null : v;
+  }
+  if (data.name === null) { res.status(400).json({ error: 'name is required' }); return null; }
+  if (Object.keys(data).length === 0) return before;
+  const updated = await update(before.id, data);
+  const changes = computeDiff(before, updated, [...fields]);
+  if (Object.keys(changes).length) {
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'RationalizationWorkspace', entityId: updated.workspaceId, action, diff: { subject: updated.name, changes } });
+  }
+  return updated;
+}
+
+// PATCH /rationalization/apps/:id — edit a brown-field legacy app (column).
+const APP_FIELDS = ['name', 'techStack', 'disposition', 'vendor', 'hosting', 'criticality'] as const;
+router.patch('/apps/:id', requireRole('ADMIN', 'MANAGER'), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const updated = await patchBoxEntity(req, res,
+      () => prisma.rationalizationApp.findFirst({ where: { id: req.params.id, tenantId: req.tenantId } }),
+      (id, data) => prisma.rationalizationApp.update({ where: { id }, data }),
+      APP_FIELDS, 'UPDATE_BROWNFIELD');
+    if (updated) res.json({ id: updated.id, name: updated.name, techStack: updated.techStack ?? null, disposition: updated.disposition ?? null, position: updated.position });
+  } catch (e) { next(e); }
+});
+
+// PATCH /rationalization/microservices/:id — edit a green-field target service.
+const MS_FIELDS = ['name', 'kind', 'status', 'techStack', 'ownerRole'] as const;
+router.patch('/microservices/:id', requireRole('ADMIN', 'MANAGER'), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const updated = await patchBoxEntity(req, res,
+      () => prisma.rationalizationMicroservice.findFirst({ where: { id: req.params.id, tenantId: req.tenantId } }),
+      (id, data) => prisma.rationalizationMicroservice.update({ where: { id }, data }),
+      MS_FIELDS, 'UPDATE_GREENFIELD');
+    if (updated) res.json({ id: updated.id, name: updated.name, kind: updated.kind, status: updated.status, techStack: updated.techStack ?? null, ownerRole: updated.ownerRole ?? null });
+  } catch (e) { next(e); }
+});
+
+// POST /rationalization/:id/layout — commit the user-curated board overlay
+// (node positions + added/removed arrows). The submitted `changes` list is the
+// commit: it is recorded in the workspace change log so the history reads like
+// a commit tree. Stores the full overlay so the board restores on reload.
+router.post('/:id/layout', requireRole('ADMIN', 'MANAGER'), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const w = await prisma.rationalizationWorkspace.findFirst({ where: { id: req.params.id, tenantId: req.tenantId }, select: { id: true } });
+    if (!w) return res.status(404).json({ error: 'Not found' });
+
+    const body = (req.body ?? {}) as { layout?: unknown; changes?: unknown };
+    const raw = (body.layout ?? {}) as Record<string, unknown>;
+    if (typeof raw !== 'object' || Array.isArray(raw)) return res.status(400).json({ error: 'layout must be an object' });
+    // Normalize to the known overlay shape; ignore anything unexpected.
+    const layout = {
+      positions: (raw.positions && typeof raw.positions === 'object' && !Array.isArray(raw.positions)) ? raw.positions : {},
+      addedEdges: Array.isArray(raw.addedEdges) ? raw.addedEdges : [],
+      removedEdges: Array.isArray(raw.removedEdges) ? raw.removedEdges.filter((x) => typeof x === 'string') : [],
+    };
+    const changes = Array.isArray(body.changes) ? body.changes.slice(0, 200) : [];
+
+    await prisma.rationalizationWorkspace.update({ where: { id: w.id }, data: { layout } });
+
+    if (changes.length) {
+      logAudit({
+        tenantId: req.tenantId, actorEmail: req.user.email,
+        entityType: 'RationalizationWorkspace', entityId: w.id,
+        action: 'COMMIT_BOARD', diff: { summary: `${changes.length} board change${changes.length === 1 ? '' : 's'}`, changes },
+      });
+    }
+    res.json({ ok: true, layout });
   } catch (e) { next(e); }
 });
 

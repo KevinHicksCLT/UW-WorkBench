@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('demo@strata.io');
+  const [email, setEmail] = useState('kevin.hicks@capgemini.com');
   const [password, setPassword] = useState('demo1234');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,11 +28,11 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-700 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="flex items-center justify-center gap-2.5 mb-1">
-            <img src="/capgemini-logo.svg" alt="" className="h-9 w-auto" />
-            <h1 className="text-xl font-bold text-brand-950 tracking-tight">Capgemini Transformation Bridge</h1>
+          <div className="flex items-baseline justify-center gap-2 mb-1">
+            {/* sized so the logotype cap-height matches the heading; translate-y aligns the baseline */}
+            <img src="/capgemini-wordmark.svg" alt="Capgemini" className="h-[27px] w-auto translate-y-[7.5px]" />
+            <h1 className="text-xl font-bold text-[#0070AD] tracking-tight -translate-y-[2px]">Transformation Bridge</h1>
           </div>
-          <p className="text-sm text-slate-500 mt-1">Operating Model Intelligence</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -60,9 +60,6 @@ export default function Login() {
           <button type="submit" className="btn-primary w-full" disabled={loading}>
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
-          <p className="text-xs text-slate-500 text-center">
-            Demo: <code>demo@strata.io</code> / <code>demo1234</code>
-          </p>
         </form>
       </div>
     </div>

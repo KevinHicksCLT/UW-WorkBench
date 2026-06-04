@@ -2,9 +2,28 @@ import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
+import { buildRoleResolver } from '../lib/roleMatch.js';
 
 const router = Router();
 router.use(requireAuth);
+
+// Workforce/digital-experience signals — the per-person telemetry (Viva Insights,
+// Microsoft 365, GitHub, delivery analytics) that the model can roll up from the
+// individual to the role, team, and division. `store` is which table holds the
+// time-series (PersonSignal vs PersonMetric); the catalog drill reads it by role.
+const WORKFORCE_SIGNALS = [
+  { name: 'Time online', store: 'signal', source: 'Viva Insights', category: 'Collaboration', unit: 'hrs/day', frequency: 'Daily', direction: 'up', description: 'Active digital working time per day.' },
+  { name: 'Focus hours', store: 'signal', source: 'Viva Insights', category: 'Wellbeing', unit: 'hrs/wk', frequency: 'Weekly', direction: 'up', description: 'Uninterrupted time available for deep, focused work.' },
+  { name: 'Meetings', store: 'signal', source: 'Viva Insights', category: 'Collaboration', unit: 'hrs/wk', frequency: 'Weekly', direction: 'down', description: 'Time spent in meetings per week.' },
+  { name: 'Team messages', store: 'signal', source: 'Microsoft Teams', category: 'Collaboration', unit: 'msgs/wk', frequency: 'Weekly', direction: 'up', description: 'Chat messages sent per week.' },
+  { name: 'GitHub activity', store: 'signal', source: 'GitHub', category: 'Engineering', unit: 'commits/mo', frequency: 'Monthly', direction: 'up', description: 'Code commits per month.' },
+  { name: 'Throughput', store: 'metric', source: 'Delivery analytics', category: 'Delivery', unit: '/mo', frequency: 'Monthly', direction: 'up', description: 'Work items completed per month.' },
+  { name: 'Quality', store: 'metric', source: 'Delivery analytics', category: 'Quality', unit: '%', frequency: 'Monthly', direction: 'up', description: 'Share of output meeting the quality bar.' },
+  { name: 'Utilization', store: 'metric', source: 'Delivery analytics', category: 'Operational', unit: '%', frequency: 'Monthly', direction: 'up', description: 'Share of capacity actively utilized.' },
+  { name: 'Cycle time', store: 'metric', source: 'Delivery analytics', category: 'Delivery', unit: 'days', frequency: 'Monthly', direction: 'down', description: 'Elapsed time from work started to done.' },
+] as const;
+// Levels a workforce signal can be tracked / rolled up at (individual → org).
+const WORKFORCE_LEVELS = ['Individual', 'Role', 'Team', 'Division', 'Company'];
 
 const CONTROL_CATEGORIES = ['Governance/Compliance', 'Security', 'Reviews/Audits', 'Approvals/Sign-offs', 'Risk & Compliance', 'Runbooks'];
 const PART_ORDER: Record<string, number> = { Lead: 0, Core: 1, Control: 2, Oversight: 3, Support: 4 };
@@ -184,6 +203,131 @@ router.get('/value-streams', async (req: Request, res: Response, next: NextFunct
         };
       }),
     });
+  } catch (e) { next(e); }
+});
+
+// Telemetry catalog — the full inventory of trackable signals/metrics defined for
+// the company (the "what can we measure" reference, akin to a Viva Insights metric
+// catalog). Read straight from the Metric table, which is sourced from the
+// operating-model workbook. Returns one flat row per metric plus the distinct
+// values backing the filter dropdowns.
+router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const requested = typeof req.query.companyId === 'string' ? req.query.companyId : '';
+    const company = await prisma.company.findFirst({
+      where: requested ? { id: requested, tenantId: req.tenantId } : { tenantId: req.tenantId },
+      orderBy: { createdAt: 'asc' }, select: { id: true },
+    });
+    if (!company) return res.status(404).json({ error: 'No company' });
+
+    const [metrics, roles] = await Promise.all([
+      prisma.metric.findMany({
+        where: { companyId: company.id },
+        orderBy: [{ category: 'asc' }, { name: 'asc' }],
+        select: {
+          id: true, name: true, description: true, category: true, framework: true,
+          frequency: true, measurementLevel: true, ownerRole: true, targetText: true,
+          unit: true, direction: true, l3: true,
+          valueStream: { select: { id: true, name: true, domain: true } },
+        },
+      }),
+      prisma.role.findMany({ where: { companyId: company.id }, select: { id: true, name: true, itemRole: true } }),
+    ]);
+    // Resolve each KPI's free-text owner role to a linkable operating-model Role so
+    // the catalog can drill down to the role level.
+    const resolve = buildRoleResolver(roles);
+
+    type Signal = {
+      id: string; kind: 'workforce' | 'kpi'; name: string; description: string | null;
+      source: string | null; category: string | null; framework: string | null;
+      frequency: string | null; unit: string | null; direction: string; target: string | null;
+      levels: string[]; store?: string; roleDrill: boolean;
+      valueStreamName: string | null; domain: string | null; l3: string | null;
+      ownerRole: string | null; ownerRoleId: string | null;
+    };
+
+    // Workforce/Viva signals first — tracked at the individual level, rolled up to role.
+    const workforce: Signal[] = WORKFORCE_SIGNALS.map((s) => ({
+      id: `wf:${s.name}`, kind: 'workforce', name: s.name, description: s.description,
+      source: s.source, category: s.category, framework: null, frequency: s.frequency,
+      unit: s.unit, direction: s.direction, target: null, levels: WORKFORCE_LEVELS, store: s.store,
+      roleDrill: true, valueStreamName: null, domain: null, l3: null, ownerRole: null, ownerRoleId: null,
+    }));
+
+    // Operating-model KPIs from the workbook.
+    const kpis: Signal[] = metrics.map((m) => {
+      const owner = m.ownerRole ? resolve(m.ownerRole) : null;
+      return {
+        id: m.id, kind: 'kpi', name: m.name, description: m.description,
+        source: m.framework, category: m.category, framework: m.framework, frequency: m.frequency,
+        unit: m.unit, direction: m.direction, target: m.targetText,
+        levels: m.measurementLevel ? [m.measurementLevel] : [], roleDrill: !!owner,
+        valueStreamName: m.valueStream?.name ?? null, domain: m.valueStream?.domain ?? null, l3: m.l3,
+        ownerRole: m.ownerRole, ownerRoleId: owner?.id ?? null,
+      };
+    });
+
+    const signals = [...workforce, ...kpis];
+    const uniq = (vals: (string | null)[]) => [...new Set(vals.filter((v): v is string => !!v))].sort((a, b) => a.localeCompare(b));
+    res.json({
+      signals,
+      filters: {
+        sources: uniq(signals.map((s) => s.source)),
+        categories: uniq(signals.map((s) => s.category)),
+        frequencies: uniq(signals.map((s) => s.frequency)),
+        levels: uniq(signals.flatMap((s) => s.levels)),
+        domains: uniq(signals.map((s) => s.domain)),
+      },
+    });
+  } catch (e) { next(e); }
+});
+
+// Role-level drill for a single trackable signal — "go down to the role level".
+// For a workforce signal, averages the per-person time-series (latest period)
+// across the people assigned to each role. For a KPI, returns its owning role.
+router.get('/telemetry-signal/by-role', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const requested = typeof req.query.companyId === 'string' ? req.query.companyId : '';
+    const company = await prisma.company.findFirst({
+      where: requested ? { id: requested, tenantId: req.tenantId } : { tenantId: req.tenantId },
+      orderBy: { createdAt: 'asc' }, select: { id: true },
+    });
+    if (!company) return res.status(404).json({ error: 'No company' });
+
+    const name = typeof req.query.name === 'string' ? req.query.name : '';
+    const store = typeof req.query.store === 'string' ? req.query.store : '';
+    if (!name) return res.status(400).json({ error: 'name required' });
+
+    // Map each person to their primary role (the rollup path person → role).
+    const assignments = await prisma.assignment.findMany({
+      where: { person: { companyId: company.id }, isPrimary: true },
+      select: { personId: true, role: { select: { id: true, name: true } } },
+    });
+    const roleOf = new Map<string, { id: string; name: string }>();
+    for (const a of assignments) if (a.role) roleOf.set(a.personId, a.role);
+
+    // Latest-period reading per person for this signal.
+    const where = { name, period: LATEST_PERIOD, person: { companyId: company.id } };
+    const readings = store === 'metric'
+      ? await prisma.personMetric.findMany({ where, select: { personId: true, value: true, unit: true } })
+      : await prisma.personSignal.findMany({ where, select: { personId: true, value: true, unit: true } });
+
+    // Average per role.
+    const agg = new Map<string, { roleId: string; roleName: string; sum: number; n: number }>();
+    let unit = '';
+    for (const r of readings) {
+      unit = r.unit;
+      const role = roleOf.get(r.personId);
+      if (!role) continue;
+      let a = agg.get(role.id);
+      if (!a) { a = { roleId: role.id, roleName: role.name, sum: 0, n: 0 }; agg.set(role.id, a); }
+      a.sum += r.value; a.n += 1;
+    }
+    const rows = [...agg.values()]
+      .map((a) => ({ roleId: a.roleId, roleName: a.roleName, value: Math.round((a.sum / a.n) * 10) / 10, people: a.n, unit }))
+      .sort((x, y) => y.people - x.people || y.value - x.value);
+
+    res.json({ name, unit, period: LATEST_PERIOD, roles: rows });
   } catch (e) { next(e); }
 });
 
@@ -646,11 +790,6 @@ function nameRank(name: string): number {
   return 3;                                                                                  // individual contributors
 }
 const bySeniority = (a: RoleLite, b: RoleLite) => nameRank(a.name) - nameRank(b.name) || a.name.localeCompare(b.name);
-function tierBars(roles: RoleLite[]): MetricItem[] {
-  const counts = [0, 0, 0, 0];
-  for (const r of roles) counts[nameRank(r.name)]++;
-  return TIER_LABEL.map((label, i) => ({ label, value: counts[i] })).filter((x) => x.value > 0);
-}
 
 async function rolesCompany(c: string, name: string): Promise<Dashboard> {
   const [roles, divisions] = await Promise.all([
@@ -661,7 +800,6 @@ async function rolesCompany(c: string, name: string): Promise<Dashboard> {
     level: 'company', title: name, subtitle: 'Roles · top-down ownership',
     tiles: [{ label: 'Roles', value: roles.length }, { label: 'Divisions', value: divisions.length }],
     sections: [
-      { title: 'By tier', kind: 'bar', items: tierBars(roles) },
       { title: 'Roles by division', kind: 'list', items: divisions.map((d) => ({ label: d.name, value: d._count.roles, drill: { level: 'division', id: d.id } })) },
     ],
   };
@@ -674,7 +812,6 @@ async function rolesDomain(c: string, category: string): Promise<Dashboard | nul
     level: 'domain', title: category, subtitle: 'Roles · top-down ownership',
     tiles: [{ label: 'Roles', value: roles.length }, { label: 'Divisions', value: divisions.length }],
     sections: [
-      { title: 'By tier', kind: 'bar', items: tierBars(roles) },
       { title: 'Roles by division', kind: 'list', items: divisions.map((d) => ({ label: d.name, value: d._count.roles, drill: { level: 'division', id: d.id } })) },
     ],
   };
@@ -692,7 +829,7 @@ async function rolesDivision(tenantId: string, c: string, id: string): Promise<D
   return {
     level: 'division', title: div.name, subtitle: 'Roles · top-down ownership',
     tiles: [{ label: 'Roles', value: roles.length }, { label: 'Departments', value: departments.length }],
-    sections: [{ title: 'By tier', kind: 'bar', items: tierBars(roles) }, breakdown],
+    sections: [breakdown],
   };
 }
 async function rolesDepartment(tenantId: string, id: string): Promise<Dashboard | null> {
