@@ -16,7 +16,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [domains, setDomains] = useState<IndexItem[]>([]);
   const [divisions, setDivisions] = useState<IndexItem[]>([]);
-  const isExplorer = location.pathname.startsWith('/overview') || location.pathname.startsWith('/n/');
+  const isExplorer = location.pathname.startsWith('/overview') || location.pathname.startsWith('/n/') || location.pathname === '/roles';
 
   useEffect(() => { setMobileMenuOpen(false); }, [location.pathname]);
   useEffect(() => {
@@ -174,7 +174,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         >
           <NavLink to="/">Home</NavLink>
           <NavLink to="/overview">Value Streams</NavLink>
-          <NavLink to="/roles">Roles</NavLink>
+          <NavLink to="/roles">Organization</NavLink>
           <NavLink to="/standards">Standards</NavLink>
           <NavLink to="/active-ai">Telemetry</NavLink>
           <NavLink to="/portfolio">Initiatives</NavLink>
@@ -232,7 +232,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                 onClick={() => go('/roles')}
                 className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/roles') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
               >
-                Roles
+                Organization
               </button>
               <button
                 onClick={() => go('/standards')}

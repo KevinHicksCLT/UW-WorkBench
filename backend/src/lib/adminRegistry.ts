@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import { VALUE_STREAMS_ENTITY } from './valueStreamAdmin.js';
+import { LEVEL_ENTITIES } from './valueStreamAdmin.js';
 
 // ─── Generic admin registry ─────────────────────────────────────────────
 // Derives editable-entity metadata directly from Prisma's DMMF (the runtime
@@ -53,14 +53,14 @@ const DENY = new Set([
 // The raw value-stream tables back FK pickers elsewhere, so they stay resolvable
 // but are hidden from the sidebar — the unified "Value Streams" entity (below)
 // replaces them with one level-numbered (L1–L5) list.
-const HIDDEN = new Set(['valueStream', 'subValueStream']);
+const HIDDEN = new Set(['valueStream', 'subValueStream', 'level', 'orgLevel']);
 
 // Sidebar groups — entities organized by operating-model area so a user can find
 // what to update at a glance. This array defines BOTH the section order and the
 // within-section order. The Data Dictionary (frontend lib/glossary.ts) mirrors
 // these group names and order. Entities not listed fall into "Other" at the end.
 const GROUPS: { group: string; slugs: string[] }[] = [
-  { group: 'Organization', slugs: ['company', 'valueStreamDomain', 'division', 'department', 'role'] },
+  { group: 'Organization', slugs: ['organization', 'company', 'valueStreamDomain', 'division', 'department', 'role'] },
   { group: 'Value Streams', slugs: ['valueStreams', 'processStep', 'ioItem'] },
   { group: 'Role Work', slugs: ['category', 'checklistItem', 'roleTask', 'roleValueStream'] },
   { group: 'Applications & Metrics', slugs: ['application', 'applicationValueStream', 'metric', 'standard', 'standardItem'] },
@@ -195,7 +195,7 @@ export const ENTITIES: Record<string, AdminEntity> = build();
 for (const slug of HIDDEN) {
   if (ENTITIES[slug]) ENTITIES[slug].hidden = true;
 }
-ENTITIES[VALUE_STREAMS_ENTITY.slug] = VALUE_STREAMS_ENTITY;
+for (const e of LEVEL_ENTITIES) ENTITIES[e.slug] = e;
 
 // Tag every entity with its sidebar group (unlisted ones → "Other").
 for (const e of Object.values(ENTITIES)) {

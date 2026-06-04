@@ -270,13 +270,11 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
   // The metrics/roles dashboards bottom out at the process-area (L3) level, so
   // drilling into L4 sub-processes / L5 steps keeps the L3 dashboard in view.
   const metricTarget = useMemo<{ level: string; id: string } | null>(() => {
-    if (level >= 3 && focusedStep) return { level: 'step', id: focusedStep.id };
-    if (level >= 2 && focusedVs) return { level: 'valueStream', id: focusedVs.id };
-    if (level >= 1 && focusedDivision) return { level: 'division', id: focusedDivision.id };
-    if (selectedDomain) return { level: 'domain', id: selectedDomain };
-    if (companyOpen) return { level: 'company', id: '' };
+    // The metrics sidebar only renders at the very last step (L5) — the only level
+    // carrying actual detail (description / roles / inputs / outputs / external).
+    if (level >= 4 && focusedSubStep) return { level: 'step', id: focusedSubStep.id };
     return null;
-  }, [level, focusedStep, focusedVs, focusedDivision, selectedDomain, companyOpen]);
+  }, [level, focusedSubStep]);
 
   // Sidebar-internal drill stack for role → person (these aren't map nodes, so
   // they navigate inside the dashboard rather than the canvas).

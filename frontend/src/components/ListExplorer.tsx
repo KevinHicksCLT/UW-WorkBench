@@ -80,39 +80,36 @@ const InfoRow = ({ depth, text }: { depth: number; text: string }) => (
 // ── Nodes — every level starts expanded; carets still collapse on demand. ──────
 // L4 sub-process → its L5 process steps. Pure expand/collapse outline.
 function SubProcessNode({ sub, depth }: { sub: SubProc; depth: number }) {
-  const [open, setOpen] = useState(true);
+  // The last step (L5) is the only level that opens the metrics panel — it carries
+  // the actual detail (description / roles / inputs / outputs / external).
+  const { open: openMetrics, activeKey } = useMetrics();
   return (
-    <>
-      <Row depth={depth} leaf={sub.steps.length === 0} open={open} muted
-        onClick={sub.steps.length ? () => setOpen((o) => !o) : undefined}
-        num={sub.step} label={sub.name} meta={sub.steps.length ? <Meta>{sub.steps.length} steps</Meta> : undefined} />
-      {open && sub.steps.map((s) => <Row key={s.id} depth={depth + 1} leaf num={s.step} label={s.name} muted />)}
-    </>
+    <Row depth={depth} leaf muted selected={activeKey === `step:${sub.id}`}
+      onClick={() => openMetrics('step', sub.id)}
+      num={sub.step} label={sub.name} />
   );
 }
 
 function AreaNode({ area, depth }: { area: Area; depth: number }) {
-  const { open: openMetrics, activeKey } = useMetrics();
   const [open, setOpen] = useState(true);
   const subs = area.subProcesses;
   return (
     <>
-      <Row depth={depth} leaf={subs.length === 0} open={open} selected={activeKey === `step:${area.id}`}
-        onClick={() => { if (subs.length) setOpen((o) => !o); openMetrics('step', area.id); }}
-        num={area.step} label={area.name} meta={<Meta>{subs.length} sub-processes</Meta>} />
+      <Row depth={depth} leaf={subs.length === 0} open={open}
+        onClick={subs.length ? () => setOpen((o) => !o) : undefined}
+        num={area.step} label={area.name} meta={<Meta>{subs.length} steps</Meta>} />
       {open && subs.map((ss) => <SubProcessNode key={ss.id} sub={ss} depth={depth + 1} />)}
     </>
   );
 }
 
 function ValueStreamNode({ vs, depth }: { vs: VS; depth: number }) {
-  const { open: openMetrics, activeKey } = useMetrics();
   const [open, setOpen] = useState(true);
   return (
     <>
-      <Row depth={depth} leaf={vs.areas.length === 0} open={open} selected={activeKey === `valueStream:${vs.id}`}
-        onClick={() => { if (vs.areas.length) setOpen((o) => !o); openMetrics('valueStream', vs.id); }}
-        label={vs.name} meta={<Meta>{vs.areas.length} areas</Meta>} />
+      <Row depth={depth} leaf={vs.areas.length === 0} open={open}
+        onClick={vs.areas.length ? () => setOpen((o) => !o) : undefined}
+        label={vs.name} meta={<Meta>{vs.areas.length} sub-processes</Meta>} />
       {open && (vs.areas.length > 0
         ? vs.areas.map((a) => <AreaNode key={a.id} area={a} depth={depth + 1} />)
         : <InfoRow depth={depth + 1} text="No process areas mapped." />)}
@@ -121,14 +118,13 @@ function ValueStreamNode({ vs, depth }: { vs: VS; depth: number }) {
 }
 
 function DivisionNode({ div, depth, accent }: { div: Div; depth: number; accent: string }) {
-  const { open: openMetrics, activeKey } = useMetrics();
   const [open, setOpen] = useState(true);
   const vss = div.valueStreams;
   return (
     <>
-      <Row depth={depth} leaf={vss.length === 0} open={open} selected={activeKey === `division:${div.id}`}
-        onClick={() => { if (vss.length) setOpen((o) => !o); openMetrics('division', div.id); }}
-        accent={accent} label={div.name} meta={<Meta>{div.roles} roles · {vss.length} streams</Meta>} />
+      <Row depth={depth} leaf={vss.length === 0} open={open}
+        onClick={vss.length ? () => setOpen((o) => !o) : undefined}
+        accent={accent} label={div.name} meta={<Meta>{vss.length} value streams</Meta>} />
       {open && (vss.length > 0
         ? vss.map((vs) => <ValueStreamNode key={vs.id} vs={vs} depth={depth + 1} />)
         : <InfoRow depth={depth + 1} text="No led value streams." />)}
@@ -137,12 +133,11 @@ function DivisionNode({ div, depth, accent }: { div: Div; depth: number; accent:
 }
 
 function DomainNode({ cat, divs, depth }: { cat: Category; divs: Div[]; depth: number }) {
-  const { open: openMetrics, activeKey } = useMetrics();
   const [open, setOpen] = useState(true);
   return (
     <>
-      <Row depth={depth} open={open} selected={activeKey === `domain:${cat}`}
-        onClick={() => { setOpen((o) => !o); openMetrics('domain', cat); }}
+      <Row depth={depth} open={open}
+        onClick={() => setOpen((o) => !o)}
         accent={DOMAIN_HEX[cat]} label={cat} strong meta={<Meta>{divs.length} divisions</Meta>} />
       {open && divs.map((d) => <DivisionNode key={d.id} div={d} depth={depth + 1} accent={DOMAIN_HEX[cat]} />)}
     </>
@@ -312,24 +307,21 @@ export default function ListExplorer({ companyName }: { companyName: string; div
   // Banner depth metrics — recomputed from the visible (filtered) tree.
   const stats = useMemo(() => {
     const seenVs = new Set<string>();
-    let divisions = 0, valueStreams = 0, areas = 0, subProcesses = 0, steps = 0;
+    let divisions = 0, valueStreams = 0, subProcesses = 0, steps = 0;
     for (const g of visibleDomains) for (const d of g.divs) {
       divisions++;
       for (const vs of d.valueStreams) {
         if (seenVs.has(vs.id)) continue; seenVs.add(vs.id);
         valueStreams++;
-        for (const a of vs.areas) { areas++; for (const sp of a.subProcesses) { subProcesses++; steps += sp.steps.length; } }
+        for (const a of vs.areas) { subProcesses++; steps += a.subProcesses.length; }
       }
     }
-    // Never let the banner read out exactly 666 steps — roll over to 667.
-    if (steps === 666) steps += 1;
     return [
-      { label: 'Process Level 1', value: visibleDomains.length },
-      { label: 'Process Level 2', value: divisions },
-      { label: 'Process Level 3', value: valueStreams },
-      { label: 'Process Level 4', value: areas },
-      { label: 'Process Level 5', value: subProcesses },
-      { label: 'Process Level 6', value: steps },
+      { label: 'Domains', value: visibleDomains.length },
+      { label: 'Divisions', value: divisions },
+      { label: 'Value Streams', value: valueStreams },
+      { label: 'Sub-Processes', value: subProcesses },
+      { label: 'Steps', value: steps },
     ];
   }, [visibleDomains]);
 
@@ -362,8 +354,8 @@ export default function ListExplorer({ companyName }: { companyName: string; div
 
                 <div className="card p-0 overflow-hidden">
                   {/* Company root */}
-                  <Row depth={0} open={rootOpen} selected={activeKey === 'company:'} strong label={name} meta={<Meta>{visibleDomains.length} domains</Meta>}
-                    onClick={() => { setRootOpen((o) => !o); openMetrics('company', ''); }} />
+                  <Row depth={0} open={rootOpen} strong label={name} meta={<Meta>{visibleDomains.length} domains</Meta>}
+                    onClick={() => setRootOpen((o) => !o)} />
                   {rootOpen && (visibleDomains.length > 0
                     ? visibleDomains.map((dom) => <DomainNode key={dom.cat} cat={dom.cat} divs={dom.divs} depth={1} />)
                     : <InfoRow depth={1} text="No divisions match the current filters." />)}

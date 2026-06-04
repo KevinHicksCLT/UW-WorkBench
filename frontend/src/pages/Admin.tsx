@@ -4,6 +4,7 @@ import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
 import PageHeader from '../components/PageHeader';
 import EntityForm from '../components/EntityForm';
+import ValueStreamLevels from '../components/ValueStreamLevels';
 import DataDictionary from './DataDictionary';
 import type { AdminEntity, ListResponse } from '../lib/adminTypes';
 
@@ -47,8 +48,28 @@ export default function Admin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [editing, setEditing] = useState<Record<string, any> | null | 'new'>(null);
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  // Set when an unwired tab leaf is selected — shows a "coming soon" panel.
+  const [placeholder, setPlaceholder] = useState<string | null>(null);
 
   const entity = useMemo(() => entities.find((e) => e.slug === slug) ?? null, [entities, slug]);
+
+  // The sidebar mirrors the app's main navigation: each tab is a section header
+  // with a single config leaf beneath it. Only Value Streams → Levels is wired up
+  // today (the existing level editor); the rest are placeholders. Everything else
+  // lives in the collapsible "Data Catalog" below.
+  const TAB_TREE: { tab: string; leaf: string; slug?: string }[] = [
+    { tab: 'Home', leaf: 'Config' },
+    { tab: 'Value Streams', leaf: 'Levels', slug: 'valueStreams' },
+    { tab: 'Organization', leaf: 'Levels', slug: 'organization' },
+    { tab: 'Standards', leaf: 'Config' },
+    { tab: 'Telemetry', leaf: 'Config' },
+    { tab: 'Initiatives', leaf: 'Config' },
+    { tab: 'Deliverables & Tasks', leaf: 'Config' },
+  ];
+  // valueStreams is surfaced under Value Streams → Levels above, so keep it out of
+  // the catalog to avoid listing it twice.
+  const catalogEntities = useMemo(() => entities.filter((e) => e.slug !== 'valueStreams'), [entities]);
 
   // Columns shown in the table: label field first, then a few short scalars.
   const columns = useMemo(() => {
@@ -64,7 +85,7 @@ export default function Admin() {
     api.get('/admin/_meta')
       .then((m) => {
         setEntities(m.entities);
-        if (m.entities.length) setSlug((s) => s || m.entities[0].slug);
+        if (m.entities.length) setSlug((s) => s || 'valueStreams');
       })
       .catch((e) => setError(e.message));
   }, []);
@@ -131,41 +152,75 @@ export default function Admin() {
         <DataDictionary embedded />
       ) : (
       <div className="flex flex-col lg:flex-row gap-5">
-        {/* Entity sidebar — grouped by operating-model area. Entities arrive
-            pre-ordered by group, so a section header is rendered whenever the
-            group changes. */}
+        {/* Entity sidebar — the levels we edit are pinned at the top; the rest of
+            the operating-model data lives in a collapsed "Data Catalog". */}
         <aside className="lg:w-56 flex-shrink-0">
           <div className="card-elevated p-2 max-h-[70vh] overflow-y-auto">
             <nav className="space-y-0.5">
-              {entities.map((e, i) => {
-                const newGroup = e.group && e.group !== entities[i - 1]?.group;
+              {TAB_TREE.map(({ tab, leaf, slug: leafSlug }, i) => {
+                const active = leafSlug ? (leafSlug === slug && !placeholder) : placeholder === tab;
                 return (
-                  <div key={e.slug}>
-                    {newGroup && (
-                      <div className={'px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] ' + (i === 0 ? 'pt-1' : 'pt-3')}>
-                        {e.group}
-                      </div>
-                    )}
+                  <div key={tab}>
+                    <div className={'px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] ' + (i === 0 ? 'pt-1' : 'pt-3')}>
+                      {tab}
+                    </div>
                     <button
-                      onClick={() => setSlug(e.slug)}
+                      onClick={() => {
+                        if (leafSlug) { setSlug(leafSlug); setPlaceholder(null); }
+                        else setPlaceholder(tab);
+                      }}
                       className={
                         'w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors duration-150 ' +
-                        (e.slug === slug
-                          ? 'bg-[#f5f5f5] text-[#171717] font-medium'
-                          : 'text-[#525252] hover:bg-[#fafafa] hover:text-[#171717]')
+                        (active ? 'bg-[#f5f5f5] text-[#171717] font-medium' : 'text-[#525252] hover:bg-[#fafafa] hover:text-[#171717]')
+                      }
+                    >
+                      {leaf}
+                    </button>
+                  </div>
+                );
+              })}
+
+              {/* Data Catalog — all importable data; collapsed to start. */}
+              <div className="pt-3">
+                <button
+                  onClick={() => setCatalogOpen((o) => !o)}
+                  className="w-full flex items-center gap-1.5 px-3 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] hover:text-[#525252]"
+                >
+                  <span className="text-[8px] leading-none">{catalogOpen ? '▼' : '▶'}</span>
+                  Data Catalog
+                </button>
+                {catalogOpen && catalogEntities.map((e, i) => (
+                  <div key={e.slug}>
+                    {(e.group && e.group !== catalogEntities[i - 1]?.group) && (
+                      <div className="px-3 pt-2 pb-1 text-[10px] font-medium uppercase tracking-[0.08em] text-[#c4c4c4]">{e.group}</div>
+                    )}
+                    <button
+                      onClick={() => { setSlug(e.slug); setPlaceholder(null); }}
+                      className={
+                        'w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors duration-150 ' +
+                        (e.slug === slug && !placeholder ? 'bg-[#f5f5f5] text-[#171717] font-medium' : 'text-[#525252] hover:bg-[#fafafa] hover:text-[#171717]')
                       }
                     >
                       {e.label}
                     </button>
                   </div>
-                );
-              })}
+                ))}
+              </div>
             </nav>
           </div>
         </aside>
 
         {/* Records */}
         <section className="flex-1 min-w-0">
+          {placeholder ? (
+            <div className="card-elevated p-10 text-center">
+              <div className="text-sm font-medium text-[#525252] mb-1">{placeholder} configuration</div>
+              <div className="text-sm text-[#a3a3a3]">This screen is coming soon.</div>
+            </div>
+          ) : (slug === 'valueStreams' || slug === 'organization') ? (
+            <ValueStreamLevels companyId={companyId} entity={slug} />
+          ) : (
+          <>
           <div className="flex items-center gap-3 mb-3">
             <input
               className="input max-w-xs"
@@ -214,6 +269,8 @@ export default function Admin() {
               </table>
             </div>
           </div>
+          </>
+          )}
         </section>
       </div>
       )}
