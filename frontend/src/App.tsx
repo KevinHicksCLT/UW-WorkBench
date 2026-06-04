@@ -11,7 +11,7 @@ import Explorer from './pages/Explorer';
 import DivisionDetail from './pages/DivisionDetail';
 import DepartmentDetail from './pages/DepartmentDetail';
 import RoleDetail from './pages/RoleDetail';
-import OrgTable from './pages/OrgTable';
+import Organization from './pages/Organization';
 import ValueStreamDetail from './pages/ValueStreamDetail';
 import SearchResults from './pages/SearchResults';
 import Admin from './pages/Admin';
@@ -59,7 +59,7 @@ export default function App() {
         <Route path="/n/*" element={<Explorer />} />
         <Route path="/explorer" element={<Navigate to="/overview" replace />} />
         {/* Roles & people — interactive table (org groupings → person, value-stream cross-link). */}
-        <Route path="/roles" element={<OrgTable />} />
+        <Route path="/roles" element={<Organization />} />
         {/* Detail pages remain as deep-link targets from inspector + search. */}
         <Route path="/divisions/:id" element={<DivisionDetail />} />
         <Route path="/departments/:id" element={<DepartmentDetail />} />

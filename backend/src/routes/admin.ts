@@ -4,7 +4,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { ENTITY_LIST, getEntity, buildData, companyWhere, type AdminEntity } from '../lib/adminRegistry.js';
-import { VS_MODEL, vsList, vsGetOne, vsCreate, vsUpdate, vsDelete } from '../lib/valueStreamAdmin.js';
+import { LEVEL_HANDLERS } from '../lib/valueStreamAdmin.js';
 import { logAudit, computeDiff } from '../services/audit.js';
 
 // Generic, schema-driven CRUD over every tenant-scoped operating-model table.
@@ -101,10 +101,13 @@ router.get('/:entity', async (req: Request, res: Response, next: NextFunction) =
     const skip = Number(req.query.offset) || 0;
     const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
 
-    if (entity.model === VS_MODEL) {
+    const lhList = LEVEL_HANDLERS[entity.model];
+    if (lhList) {
       const cid = requireCompanyId(req, res);
       if (!cid) return;
-      return res.json(await vsList(req.tenantId, cid, search, take, skip));
+      // The level editor renders the whole tree, so allow a much larger page here.
+      const lvlTake = Math.min(Number(req.query.limit) || 2000, 5000);
+      return res.json(await lhList.list(req.tenantId, cid, search, lvlTake, skip));
     }
 
     const scope = readScope(req, res, entity);
@@ -133,10 +136,11 @@ router.get('/:entity/:id', async (req: Request, res: Response, next: NextFunctio
   try {
     const entity = resolve(req, res);
     if (!entity) return;
-    if (entity.model === VS_MODEL) {
+    const lhGet = LEVEL_HANDLERS[entity.model];
+    if (lhGet) {
       const cid = requireCompanyId(req, res);
       if (!cid) return;
-      const row = await vsGetOne(req.tenantId, cid, req.params.id);
+      const row = await lhGet.getOne(req.tenantId, cid, req.params.id);
       if (!row) return res.status(404).json({ error: 'Not found' });
       return res.json(row);
     }
@@ -157,10 +161,11 @@ router.post('/:entity', async (req: Request, res: Response, next: NextFunction) 
     const entity = resolve(req, res);
     if (!entity) return;
 
-    if (entity.model === VS_MODEL) {
+    const lhCreate = LEVEL_HANDLERS[entity.model];
+    if (lhCreate) {
       const cid = requireCompanyId(req, res);
       if (!cid) return;
-      const created = await vsCreate(req.tenantId, cid, req.user.email, req.body ?? {});
+      const created = await lhCreate.create(req.tenantId, cid, req.user.email, req.body ?? {});
       return res.status(201).json(created);
     }
 
@@ -195,10 +200,11 @@ router.patch('/:entity/:id', async (req: Request, res: Response, next: NextFunct
     const entity = resolve(req, res);
     if (!entity) return;
 
-    if (entity.model === VS_MODEL) {
+    const lhUpdate = LEVEL_HANDLERS[entity.model];
+    if (lhUpdate) {
       const cid = requireCompanyId(req, res);
       if (!cid) return;
-      const updated = await vsUpdate(req.tenantId, cid, req.user.email, req.params.id, req.body ?? {});
+      const updated = await lhUpdate.update(req.tenantId, cid, req.user.email, req.params.id, req.body ?? {});
       if (!updated) return res.status(404).json({ error: 'Not found' });
       return res.json(updated);
     }
@@ -241,10 +247,11 @@ router.delete('/:entity/:id', async (req: Request, res: Response, next: NextFunc
     const entity = resolve(req, res);
     if (!entity) return;
 
-    if (entity.model === VS_MODEL) {
+    const lhDelete = LEVEL_HANDLERS[entity.model];
+    if (lhDelete) {
       const cid = requireCompanyId(req, res);
       if (!cid) return;
-      const ok = await vsDelete(req.tenantId, cid, req.user.email, req.params.id);
+      const ok = await lhDelete.remove(req.tenantId, cid, req.user.email, req.params.id);
       if (!ok) return res.status(404).json({ error: 'Not found' });
       return res.status(204).end();
     }

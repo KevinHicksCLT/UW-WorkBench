@@ -21,7 +21,7 @@ const HOME: Crumb = { to: '/', label: 'Home' };
 // root nested value-stream pages.
 const TABS: Crumb[] = [
   { to: '/overview', label: 'Value Streams' },
-  { to: '/roles', label: 'Roles' },
+  { to: '/roles', label: 'Organization' },
   { to: '/standards', label: 'Standards' },
   { to: '/active-ai', label: 'Telemetry' },
   { to: '/portfolio', label: 'Initiatives' },

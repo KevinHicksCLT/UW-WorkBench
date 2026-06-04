@@ -221,18 +221,22 @@ router.get('/overview', async (req: Request, res: Response, next: NextFunction) 
     // The sidebar index: both ways into the model (operating-model domains +
     // the org's divisions), so the canvas can be operating-model-led while the
     // org stays one click away.
-    const [domains, divisions, valueStreams] = await Promise.all([
-      prisma.valueStreamDomain.findMany({ where: { companyId: company.id }, orderBy: { createdAt: 'asc' }, include: { _count: { select: { valueStreams: true } } } }),
-      prisma.division.findMany({ where: { companyId: company.id }, orderBy: { name: 'asc' }, include: { _count: { select: { roles: true } } } }),
-      prisma.valueStream.count({ where: { companyId: company.id } }),
-    ]);
+    // Value-stream map now renders from the configurable Level tree (Data Admin):
+    // L1 Domain = higherCategory bucket, L2 = Division, L3 = Value Stream.
+    const levels = await prisma.level.findMany({
+      where: { companyId: company.id, levelNumber: { in: [1, 2, 3] } },
+      orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, levelNumber: true, parentId: true },
+    });
+    const domains = levels.filter((l) => l.levelNumber === 1);
+    const domainName = new Map(domains.map((d) => [d.id, d.name] as const));
+    const divisions = levels.filter((l) => l.levelNumber === 2);
+    const vsCount = levels.filter((l) => l.levelNumber === 3).length;
     res.json({
       company,
-      counts: { domains: domains.length, divisions: divisions.length, valueStreams },
-      domains: domains.map((d) => ({ id: d.id, name: d.name, valueStreams: d._count.valueStreams })),
-      // higherCategory groups divisions into the three CEO-facing top-level buckets:
-      // "Core Business" | "IT" | "Corporate Function" (from Org Chart View 2).
-      divisions: divisions.map((d) => ({ id: d.id, name: d.name, higherCategory: d.higherCategory, roles: d._count.roles })),
+      counts: { domains: domains.length, divisions: divisions.length, valueStreams: vsCount },
+      domains: domains.map((d) => ({ id: d.id, name: d.name, valueStreams: 0 })),
+      // higherCategory = the L1 domain bucket ("Core Business" | "IT" | "Corporate Function").
+      divisions: divisions.map((d) => ({ id: d.id, name: d.name, higherCategory: d.parentId ? domainName.get(d.parentId) ?? null : null, roles: 0 })),
     });
   } catch (e) { next(e); }
 });
@@ -431,25 +435,13 @@ router.get('/telemetry-signal/by-role', async (req: Request, res: Response, next
 // to a value stream uses this to drop the user onto the map at the right level.
 router.get('/value-stream/:id/focus', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const vs = await prisma.valueStream.findFirst({ where: { id: req.params.id, tenantId: req.tenantId }, select: { id: true } });
-    if (!vs) return res.status(404).json({ error: 'Not found' });
-    const links = await prisma.roleValueStream.findMany({
-      where: { valueStreamId: vs.id, role: { divisionId: { not: null } } },
-      select: { participationType: true, role: { select: { division: { select: { id: true, higherCategory: true } } } } },
-    });
-    // Per division: best (lowest) participation rank + total participating roles.
-    const byDiv = new Map<string, { id: string; category: string | null; rank: number; count: number }>();
-    for (const l of links) {
-      const d = l.role.division;
-      if (!d) continue;
-      const rank = PART_ORDER[l.participationType] ?? 9;
-      const cur = byDiv.get(d.id);
-      if (!cur) byDiv.set(d.id, { id: d.id, category: d.higherCategory, rank, count: 1 });
-      else { cur.rank = Math.min(cur.rank, rank); cur.count += 1; }
-    }
-    const best = [...byDiv.values()].sort((a, b) => a.rank - b.rank || b.count - a.count)[0];
-    if (!best) return res.status(404).json({ error: 'No participating division' });
-    res.json({ valueStreamId: vs.id, divisionId: best.id, category: best.category ?? 'Core Business' });
+    // Value stream = an L3 Level node; its division is its L2 parent and the
+    // category is that division's L1 domain.
+    const vs = await prisma.level.findFirst({ where: { id: req.params.id, tenantId: req.tenantId, levelNumber: 3 }, select: { id: true, parentId: true } });
+    if (!vs || !vs.parentId) return res.status(404).json({ error: 'No participating division' });
+    const div = await prisma.level.findFirst({ where: { id: vs.parentId }, select: { id: true, parentId: true } });
+    const category = div?.parentId ? (await prisma.level.findFirst({ where: { id: div.parentId }, select: { name: true } }))?.name ?? null : null;
+    res.json({ valueStreamId: vs.id, divisionId: vs.parentId, category: category ?? 'Core Business' });
   } catch (e) { next(e); }
 });
 
@@ -462,66 +454,37 @@ router.get('/value-stream/:id/focus', async (req: Request, res: Response, next: 
 router.get('/division/:id/flow', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const tenantId = req.tenantId;
-    const div = await prisma.division.findFirst({ where: { id: req.params.id, tenantId }, select: { id: true, name: true, higherCategory: true } });
+    // Division = an L2 node in the configurable Level tree. Its category is its
+    // parent L1 domain's name.
+    const div = await prisma.level.findFirst({ where: { id: req.params.id, tenantId, levelNumber: 2 }, select: { id: true, name: true, parentId: true } });
     if (!div) return res.status(404).json({ error: 'Not found' });
-    // The division's value streams, ranked by strongest participation (Lead first).
-    const streams = await streamsForRoles({ divisionId: div.id });
+    const domain = div.parentId ? await prisma.level.findFirst({ where: { id: div.parentId }, select: { name: true } }) : null;
+    const higherCategory = domain?.name ?? null;
+
+    // Value streams = this division's L3 children.
+    const streams = await prisma.level.findMany({ where: { tenantId, parentId: div.id, levelNumber: 3 }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true } });
     const wantVs = typeof req.query.vs === 'string' ? req.query.vs : undefined;
     const selectedVs = streams.find((s) => s.id === wantVs) ?? streams[0] ?? null;
 
     let selected: any = null;
     if (selectedVs) {
-      const [subs, rvs] = await Promise.all([
-        // Full process hierarchy below the value stream: L3 Process Area →
-        // L4 Sub-Process → L5 Process Step (v15), in workbook (sourceRow) order.
-        prisma.subValueStream.findMany({ where: { valueStreamId: selectedVs.id, level: { in: [3, 4, 5] } }, orderBy: [{ sourceRow: 'asc' }], select: { id: true, parentId: true, level: true, name: true, inputs: true, outputs: true, upstream: true, downstream: true } }),
-        prisma.roleValueStream.findMany({ where: { valueStreamId: selectedVs.id, subStream: { not: null } }, select: { subStream: true, participationType: true, role: { select: { name: true, division: { select: { higherCategory: true } } } } } }),
-      ]);
-      // Index sub-streams by parent so each L3 nests its L4 sub-processes, and each
-      // L4 nests its L5 process steps (children already in sourceRow order).
-      const childrenOf = new Map<string, typeof subs>();
-      for (const s of subs) { if (!s.parentId) continue; if (!childrenOf.has(s.parentId)) childrenOf.set(s.parentId, []); childrenOf.get(s.parentId)!.push(s); }
-      const l3 = subs.filter((s) => s.level === 3);
-      const steps = l3.map((s, i) => {
-        const links = rvs.filter((r) => r.subStream!.startsWith(s.name + ' — '));
-        const catCount = new Map<string, number>();
-        let leadCat: string | null = null;
-        const roleNames = new Set<string>();
-        for (const l of links) {
-          const cat = l.role.division?.higherCategory ?? null;
-          if (l.role.name) roleNames.add(l.role.name);
-          if (cat) { catCount.set(cat, (catCount.get(cat) ?? 0) + 1); if (l.participationType === 'Lead' && !leadCat) leadCat = cat; }
-        }
-        const categories = [...catCount.keys()].sort((a, b) => (catCount.get(b)! - catCount.get(a)!));
-        const primaryCategory = leadCat ?? categories[0] ?? div.higherCategory ?? null;
-        return {
-          id: s.id, step: i + 1, name: s.name,
-          // L4 sub-processes for this L3 area, each carrying its ordered L5 steps.
-          subSteps: (childrenOf.get(s.id) ?? []).map((l4, j) => ({
-            id: l4.id, name: l4.name, step: j + 1,
-            l5: (childrenOf.get(l4.id) ?? []).map((l5, k) => ({ id: l5.id, name: l5.name, step: k + 1 })),
-          })),
-          inputs: s.inputs, outputs: s.outputs, upstream: s.upstream, downstream: s.downstream,
-          roles: [...roleNames], categories, primaryCategory,
-          crossDomain: categories.some((c) => c !== div.higherCategory),
-          unowned: links.length === 0,
-        };
-      });
-      // Never let the flow read out exactly 666 steps — append one placeholder
-      // so the count rolls over to 667.
-      if (steps.length === 666) {
-        steps.push({
-          id: `${selectedVs.id}-continuity`, step: steps.length + 1, name: 'Continuity checkpoint',
-          subSteps: [], inputs: null, outputs: null, upstream: null, downstream: null,
-          roles: [], categories: [], primaryCategory: div.higherCategory ?? '',
-          crossDomain: false, unowned: true,
-        });
-      }
+      // L4 Sub-Processes (the flow row) and their L5 Process Steps.
+      const l4 = await prisma.level.findMany({ where: { tenantId, parentId: selectedVs.id, levelNumber: 4 }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, inputs: true, outputs: true } });
+      const l5 = await prisma.level.findMany({ where: { tenantId, levelNumber: 5, parentId: { in: l4.map((x) => x.id) } }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, parentId: true } });
+      const l5ByParent = new Map<string, typeof l5>();
+      for (const s of l5) { if (!s.parentId) continue; if (!l5ByParent.has(s.parentId)) l5ByParent.set(s.parentId, []); l5ByParent.get(s.parentId)!.push(s); }
+      const steps = l4.map((s, i) => ({
+        id: s.id, step: i + 1, name: s.name,
+        subSteps: (l5ByParent.get(s.id) ?? []).map((x, k) => ({ id: x.id, name: x.name, step: k + 1, l5: [] as { id: string; name: string; step: number }[] })),
+        inputs: s.inputs, outputs: s.outputs, upstream: null, downstream: null,
+        roles: [] as string[], categories: [] as string[], primaryCategory: higherCategory,
+        crossDomain: false, unowned: false,
+      }));
       selected = { id: selectedVs.id, name: selectedVs.name, steps };
     }
     res.json({
-      division: div,
-      valueStreams: streams.map((s) => ({ id: s.id, name: s.name, participationType: s.participationType })),
+      division: { id: div.id, name: div.name, higherCategory },
+      valueStreams: streams.map((s) => ({ id: s.id, name: s.name, participationType: 'Lead' })),
       selectedId: selectedVs?.id ?? null,
       selected,
     });
@@ -536,50 +499,29 @@ router.get('/tree', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true, name: true } });
     if (!company) return res.status(404).json({ error: 'No company' });
-    const [divisions, links, subs] = await Promise.all([
-      prisma.division.findMany({ where: { companyId: company.id }, orderBy: { name: 'asc' }, select: { id: true, name: true, higherCategory: true, _count: { select: { roles: true } } } }),
-      // Division → value-stream participation, to find each division's LEAD streams
-      // (mirrors the per-division flow view, which filters value streams to Lead).
-      prisma.roleValueStream.findMany({ where: { valueStream: { companyId: company.id }, role: { divisionId: { not: null } } }, select: { valueStreamId: true, participationType: true, role: { select: { divisionId: true } }, valueStream: { select: { name: true } } } }),
-      // Whole process hierarchy for the company (L3/L4/L5), in workbook order.
-      prisma.subValueStream.findMany({ where: { valueStream: { companyId: company.id }, level: { in: [3, 4, 5] } }, orderBy: { sourceRow: 'asc' }, select: { id: true, parentId: true, level: true, name: true, valueStreamId: true } }),
-    ]);
-
-    // Strongest participation per (division, value stream); keep the Lead pairs.
-    const strongest = new Map<string, { part: string; vsName: string }>();
-    for (const l of links) {
-      const div = l.role.divisionId; if (!div) continue;
-      const key = div + '|' + l.valueStreamId; const cur = strongest.get(key);
-      if (!cur || (PART_ORDER[l.participationType] ?? 9) < (PART_ORDER[cur.part] ?? 9)) strongest.set(key, { part: l.participationType, vsName: l.valueStream.name });
-    }
-    const leadVsByDiv = new Map<string, { id: string; name: string }[]>();
-    for (const [key, v] of strongest) {
-      if (v.part !== 'Lead') continue;
-      const div = key.slice(0, key.indexOf('|')); const vs = key.slice(key.indexOf('|') + 1);
-      if (!leadVsByDiv.has(div)) leadVsByDiv.set(div, []);
-      leadVsByDiv.get(div)!.push({ id: vs, name: v.vsName });
-    }
-
-    // Index sub-streams by parent (children already in sourceRow order) and L3s by VS.
-    const childrenOf = new Map<string, typeof subs>();
-    const l3ByVs = new Map<string, typeof subs>();
-    for (const s of subs) {
-      if (s.parentId) { if (!childrenOf.has(s.parentId)) childrenOf.set(s.parentId, []); childrenOf.get(s.parentId)!.push(s); }
-      if (s.level === 3) { if (!l3ByVs.has(s.valueStreamId)) l3ByVs.set(s.valueStreamId, []); l3ByVs.get(s.valueStreamId)!.push(s); }
-    }
-    const areasOf = (vsId: string) => (l3ByVs.get(vsId) ?? []).map((l3, i) => ({
-      id: l3.id, step: i + 1, name: l3.name,
-      subProcesses: (childrenOf.get(l3.id) ?? []).map((l4, j) => ({
-        id: l4.id, step: j + 1, name: l4.name,
-        steps: (childrenOf.get(l4.id) ?? []).map((l5, k) => ({ id: l5.id, step: k + 1, name: l5.name })),
-      })),
-    }));
+    // List view renders from the SAME configurable Level tree as the map:
+    // L1 Domain → L2 Division → L3 Value Stream → L4 Sub-Process → L5 Step.
+    const levels = await prisma.level.findMany({
+      where: { companyId: company.id, levelNumber: { in: [1, 2, 3, 4, 5] } },
+      orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, levelNumber: true, parentId: true },
+    });
+    const childrenOf = new Map<string, typeof levels>();
+    for (const l of levels) { if (!l.parentId) continue; if (!childrenOf.has(l.parentId)) childrenOf.set(l.parentId, []); childrenOf.get(l.parentId)!.push(l); }
+    const domainName = new Map(levels.filter((l) => l.levelNumber === 1).map((d) => [d.id, d.name] as const));
+    const divisions = levels.filter((l) => l.levelNumber === 2);
 
     res.json({
       company,
       divisions: divisions.map((d) => ({
-        id: d.id, name: d.name, higherCategory: d.higherCategory, roles: d._count.roles,
-        valueStreams: (leadVsByDiv.get(d.id) ?? []).sort((a, b) => a.name.localeCompare(b.name)).map((vs) => ({ id: vs.id, name: vs.name, areas: areasOf(vs.id) })),
+        id: d.id, name: d.name, higherCategory: d.parentId ? domainName.get(d.parentId) ?? null : null, roles: 0,
+        // VS → Sub-Process (L4) as "areas" → Step (L5) as "subProcesses" (leaf).
+        valueStreams: (childrenOf.get(d.id) ?? []).map((vs) => ({
+          id: vs.id, name: vs.name,
+          areas: (childrenOf.get(vs.id) ?? []).map((l4, i) => ({
+            id: l4.id, step: i + 1, name: l4.name,
+            subProcesses: (childrenOf.get(l4.id) ?? []).map((l5, j) => ({ id: l5.id, step: j + 1, name: l5.name, steps: [] as { id: string; step: number; name: string }[] })),
+          })),
+        })),
       })),
     });
   } catch (e) { next(e); }
@@ -1048,11 +990,37 @@ async function rolesPerson(tenantId: string, id: string): Promise<Dashboard | nu
   };
 }
 
+// Build a sidebar dashboard from a configurable Level node — used when the map
+// focuses any Level (esp. an L5 Process Step): Description, Supporting Roles
+// (leads + supporting), Key Inputs, Key Outputs, External Participants.
+function splitList(v: string | null): string[] {
+  if (!v) return [];
+  return v.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean);
+}
+function levelDashboard(l: { name: string; levelNumber: number; description: string | null; leads: string | null; supporting: string | null; inputs: string | null; outputs: string | null; externalParticipants: string | null }): Dashboard {
+  const sections: MetricSection[] = [];
+  if (l.description) sections.push({ title: 'Step Description', kind: 'kpi', items: [{ label: l.description, value: 0 }] });
+  const roles = [...splitList(l.leads), ...splitList(l.supporting)];
+  if (roles.length) sections.push({ title: 'Supporting Roles', kind: 'list', items: roles.map((r) => ({ label: r, value: 0 })) });
+  const inputs = splitList(l.inputs);
+  if (inputs.length) sections.push({ title: 'Key Inputs', kind: 'list', items: inputs.map((r) => ({ label: r, value: 0 })) });
+  const outputs = splitList(l.outputs);
+  if (outputs.length) sections.push({ title: 'Key Outputs', kind: 'list', items: outputs.map((r) => ({ label: r, value: 0 })) });
+  const ext = splitList(l.externalParticipants);
+  if (ext.length) sections.push({ title: 'External Participants', kind: 'list', items: ext.map((r) => ({ label: r, value: 0 })) });
+  return { level: 'step', title: l.name, subtitle: `Level ${l.levelNumber}`, tiles: [], sections };
+}
+
 router.get('/roles/:level/:id?', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true, name: true } });
     if (!company) return res.status(404).json({ error: 'No company' });
     const id = req.params.id ? decodeURIComponent(req.params.id) : undefined;
+    // Configurable-Level node → serve its detail (value-stream map drill-down).
+    if (id) {
+      const lvl = await prisma.level.findFirst({ where: { id, tenantId: req.tenantId }, select: { name: true, levelNumber: true, description: true, leads: true, supporting: true, inputs: true, outputs: true, externalParticipants: true } });
+      if (lvl) return res.json(levelDashboard(lvl));
+    }
     let out: Dashboard | null = null;
     switch (req.params.level) {
       case 'company':     out = await rolesCompany(company.id, company.name); break;

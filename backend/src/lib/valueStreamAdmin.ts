@@ -1,252 +1,211 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 import { logAudit, computeDiff } from '../services/audit.js';
 import type { AdminEntity } from './adminRegistry.js';
 
-// ─── Unified "Value Streams" admin entity ────────────────────────────────
-// The value-stream hierarchy lives in three physical tables — ValueStreamDomain
-// (the grouping), ValueStream (the stream), and SubValueStream (the L3–L5
-// breakdown). Those tables are still referenced as FK targets elsewhere, so they
-// stay in the registry (hidden from the sidebar). This module folds all three
-// into ONE level-numbered list (L1 Domain → L2 Stream → L3/L4/L5 sub-levels) so
-// value streams read by level — never bucketed under a company's divisions.
-//
-// Rows carry a prefixed id (`d:`, `v:`, `s:`) so a generic create/edit/delete
-// from the unified list can be routed back to the correct underlying table.
+// ─── Generic configurable "level" admin (Value Streams + Organization) ───
+// Two SEPARATE self-referential tables — `Level` (value streams) and `OrgLevel`
+// (organization) — are each folded into the admin console as one level-numbered
+// list: `levelNumber` is the depth and `parentId` connects each node to the one
+// above. Keeping them distinct means configuring one never touches the other or
+// the live operating data (IoItem/ProcessStep/RoleValueStream/etc.). This module
+// builds an identical create/edit/delete + re-parent + import-from-catalog
+// handler set for each, parameterized only by the Prisma delegate.
 
 export const VS_MODEL = '__valueStreams';
+export const ORG_MODEL = '__organization';
+const MAX_LEVEL = 6;
 
-// Level numbers follow the value-stream-intrinsic axis used across the app's
-// glossary (Domain = L1, Stream = L2). SubValueStream stores its own level
-// (3/4/5), which is already the L number — so no renumbering is needed.
-const DOMAIN_LEVEL = 1;
-const STREAM_LEVEL = 2;
-const MAX_LEVEL = 5;
-
-type Kind = 'domain' | 'stream' | 'sub';
-const PREFIX: Record<Kind, string> = { domain: 'd:', stream: 'v:', sub: 's:' };
-
-function encodeId(kind: Kind, id: string): string {
-  return PREFIX[kind] + id;
-}
-function decodeId(prefixed: string): { kind: Kind; id: string } | null {
-  if (prefixed.startsWith('d:')) return { kind: 'domain', id: prefixed.slice(2) };
-  if (prefixed.startsWith('v:')) return { kind: 'stream', id: prefixed.slice(2) };
-  if (prefixed.startsWith('s:')) return { kind: 'sub', id: prefixed.slice(2) };
-  return null;
-}
-
-// The synthetic registry entry. `level` and `parent` are surfaced so the list
-// shows a level column and the form offers a parent picker; `level` is derived
-// (read-only). Descriptive fields only apply to sub-levels but are harmless on
-// the others.
-export const VALUE_STREAMS_ENTITY: AdminEntity = {
-  slug: 'valueStreams',
-  model: VS_MODEL,
-  label: 'Process Levels',
-  labelField: 'name',
-  companyVia: { kind: 'direct' },
-  fields: [
-    { name: 'level', kind: 'string', required: false, multiline: false, readonly: true },
-    { name: 'name', kind: 'string', required: true, multiline: false },
-    { name: 'parentId', kind: 'string', required: false, multiline: false, createOnly: true, relation: { entity: 'valueStreams', labelField: 'optionLabel' } },
-    { name: 'inputs', kind: 'string', required: false, multiline: true },
-    { name: 'outputs', kind: 'string', required: false, multiline: true },
-    { name: 'upstream', kind: 'string', required: false, multiline: true },
-    { name: 'downstream', kind: 'string', required: false, multiline: true },
-    { name: 'notes', kind: 'string', required: false, multiline: true },
-  ],
+type LevelRec = {
+  id: string; name: string; levelNumber: number; parentId: string | null; sortOrder: number;
+  description: string | null; leads: string | null; supporting: string | null;
+  inputs: string | null; outputs: string | null; externalParticipants: string | null; notes: string | null;
 };
+type Row = LevelRec & { level: string; optionLabel: string; _lvl: number };
 
-type Row = {
-  id: string;
-  name: string;
-  level: string;
-  optionLabel: string; // "<level> — <name>", shown when this row is offered as a parent
-  parentId: string | null;
-  inputs: string | null;
-  outputs: string | null;
-  upstream: string | null;
-  downstream: string | null;
-  notes: string | null;
-  _lvl: number; // numeric level, for ordering only
-};
+const SELECT = {
+  id: true, name: true, levelNumber: true, parentId: true, sortOrder: true,
+  description: true, leads: true, supporting: true, inputs: true, outputs: true,
+  externalParticipants: true, notes: true,
+} as const;
+const DETAIL = ['description', 'leads', 'supporting', 'inputs', 'outputs', 'externalParticipants', 'notes'] as const;
 
-function domainRow(d: { id: string; name: string }): Row {
-  const level = `Process Level ${DOMAIN_LEVEL}`;
-  return { id: encodeId('domain', d.id), name: d.name, level, optionLabel: `${level} — ${d.name}`, parentId: null, inputs: null, outputs: null, upstream: null, downstream: null, notes: null, _lvl: DOMAIN_LEVEL };
+function toRow(l: LevelRec): Row {
+  const level = `Level ${l.levelNumber}`;
+  return { ...l, level, optionLabel: `${level} — ${l.name}`, _lvl: l.levelNumber };
 }
-function streamRow(v: { id: string; name: string; domainId: string | null }): Row {
-  const level = 'Process Level 3'; // value stream sits below domain (PL1) and division (PL2)
-  return { id: encodeId('stream', v.id), name: v.name, level, optionLabel: `${level} — ${v.name}`, parentId: v.domainId ? encodeId('domain', v.domainId) : null, inputs: null, outputs: null, upstream: null, downstream: null, notes: null, _lvl: STREAM_LEVEL };
+const str = (v: unknown): string | null => (v === undefined || v === null || v === '' ? null : String(v));
+const nameFilter = (search: string) => (search ? { name: { contains: search, mode: 'insensitive' as const } } : {});
+function detail(body: Record<string, unknown>) {
+  const d: Record<string, unknown> = {};
+  for (const f of DETAIL) if (f in body) d[f] = str(body[f]);
+  return d;
 }
-function subRow(s: { id: string; name: string; level: number; valueStreamId: string; parentId: string | null; inputs: string | null; outputs: string | null; upstream: string | null; downstream: string | null; notes: string | null }): Row {
-  const level = `Process Level ${s.level + 1}`;
-  return {
-    id: encodeId('sub', s.id),
-    name: s.name,
-    level,
-    optionLabel: `${level} — ${s.name}`,
-    parentId: s.parentId ? encodeId('sub', s.parentId) : encodeId('stream', s.valueStreamId),
-    inputs: s.inputs, outputs: s.outputs, upstream: s.upstream, downstream: s.downstream, notes: s.notes,
-    _lvl: s.level,
-  };
-}
-
-const nameFilter = (search: string) =>
-  search ? { name: { contains: search, mode: 'insensitive' as const } } : {};
-
-// GET — the merged, level-ordered list (paginated in memory; admin-scale data).
-export async function vsList(tenantId: string, companyId: string, search: string, take: number, skip: number) {
-  const [domains, streams, subs] = await Promise.all([
-    prisma.valueStreamDomain.findMany({ where: { tenantId, companyId, ...nameFilter(search) }, select: { id: true, name: true } }),
-    prisma.valueStream.findMany({ where: { tenantId, companyId, ...nameFilter(search) }, select: { id: true, name: true, domainId: true } }),
-    prisma.subValueStream.findMany({ where: { tenantId, valueStream: { companyId }, ...nameFilter(search) }, select: { id: true, name: true, level: true, valueStreamId: true, parentId: true, inputs: true, outputs: true, upstream: true, downstream: true, notes: true } }),
-  ]);
-
-  const rows: Row[] = [
-    ...domains.map(domainRow),
-    ...streams.map(streamRow),
-    ...subs.map(subRow),
-  ].sort((a, b) => a._lvl - b._lvl || a.name.localeCompare(b.name));
-
-  const total = rows.length;
-  return { rows: rows.slice(skip, skip + take), total, limit: take, offset: skip };
-}
-
-// GET one — used by the edit form's initial load.
-export async function vsGetOne(tenantId: string, companyId: string, prefixed: string): Promise<Row | null> {
-  const ref = decodeId(prefixed);
-  if (!ref) return null;
-  if (ref.kind === 'domain') {
-    const d = await prisma.valueStreamDomain.findFirst({ where: { id: ref.id, tenantId, companyId }, select: { id: true, name: true } });
-    return d ? domainRow(d) : null;
-  }
-  if (ref.kind === 'stream') {
-    const v = await prisma.valueStream.findFirst({ where: { id: ref.id, tenantId, companyId }, select: { id: true, name: true, domainId: true } });
-    return v ? streamRow(v) : null;
-  }
-  const s = await prisma.subValueStream.findFirst({ where: { id: ref.id, tenantId, valueStream: { companyId } }, select: { id: true, name: true, level: true, valueStreamId: true, parentId: true, inputs: true, outputs: true, upstream: true, downstream: true, notes: true } });
-  return s ? subRow(s) : null;
-}
-
-const str = (v: unknown): string | null => {
-  if (v === undefined || v === null || v === '') return null;
-  return String(v);
-};
-
-// POST — create a node. The chosen parent determines which table/level it lands
-// in: no parent → a new L1 domain; under a domain → an L2 stream; under a stream
-// → an L3 sub-level; under a sub-level → the next level down (capped at L5).
-export async function vsCreate(tenantId: string, companyId: string, actorEmail: string, body: Record<string, unknown>): Promise<Row> {
-  const name = str(body.name);
-  if (!name) throw httpError('name is required', 400);
-  const parentRef = body.parentId ? decodeId(String(body.parentId)) : null;
-
-  let created: Row;
-  let model: string;
-  let id: string;
-
-  if (!parentRef) {
-    const d = await prisma.valueStreamDomain.create({ data: { tenantId, companyId, name } });
-    created = domainRow(d); model = 'ValueStreamDomain'; id = d.id;
-  } else if (parentRef.kind === 'domain') {
-    const domain = await prisma.valueStreamDomain.findFirst({ where: { id: parentRef.id, tenantId, companyId }, select: { id: true, name: true } });
-    if (!domain) throw httpError('Parent Process Level 1 not found in this company', 400);
-    const v = await prisma.valueStream.create({ data: { tenantId, companyId, name, domainId: domain.id, domain: domain.name } });
-    created = streamRow(v); model = 'ValueStream'; id = v.id;
-  } else if (parentRef.kind === 'stream') {
-    const stream = await prisma.valueStream.findFirst({ where: { id: parentRef.id, tenantId, companyId }, select: { id: true } });
-    if (!stream) throw httpError('Parent Process Level 3 not found in this company', 400);
-    const s = await prisma.subValueStream.create({ data: { tenantId, valueStreamId: stream.id, level: 3, name, ...descriptive(body) } });
-    created = subRow(s); model = 'SubValueStream'; id = s.id;
-  } else {
-    const parent = await prisma.subValueStream.findFirst({ where: { id: parentRef.id, tenantId, valueStream: { companyId } }, select: { id: true, level: true, valueStreamId: true } });
-    if (!parent) throw httpError('Parent process level not found in this company', 400);
-    if (parent.level >= MAX_LEVEL) throw httpError(`Cannot nest deeper than Process Level ${MAX_LEVEL + 1}`, 400);
-    const s = await prisma.subValueStream.create({ data: { tenantId, valueStreamId: parent.valueStreamId, parentId: parent.id, level: parent.level + 1, name, ...descriptive(body) } });
-    created = subRow(s); model = 'SubValueStream'; id = s.id;
-  }
-
-  logAudit({ tenantId, actorEmail, entityType: model, entityId: id, action: 'CREATE', diff: { name } });
-  return created;
-}
-
-// PATCH — update name (+ descriptive fields for sub-levels). Level and parent
-// are structural and not edited here.
-export async function vsUpdate(tenantId: string, companyId: string, actorEmail: string, prefixed: string, body: Record<string, unknown>): Promise<Row | null> {
-  const ref = decodeId(prefixed);
-  if (!ref) return null;
-
-  if (ref.kind === 'domain') {
-    const before = await prisma.valueStreamDomain.findFirst({ where: { id: ref.id, tenantId, companyId } });
-    if (!before) return null;
-    const data = 'name' in body ? { name: str(body.name) ?? before.name } : {};
-    const after = await prisma.valueStreamDomain.update({ where: { id: ref.id }, data });
-    audit(tenantId, actorEmail, 'ValueStreamDomain', ref.id, before, after, ['name']);
-    return domainRow(after);
-  }
-  if (ref.kind === 'stream') {
-    const before = await prisma.valueStream.findFirst({ where: { id: ref.id, tenantId, companyId } });
-    if (!before) return null;
-    const data = 'name' in body ? { name: str(body.name) ?? before.name } : {};
-    const after = await prisma.valueStream.update({ where: { id: ref.id }, data });
-    audit(tenantId, actorEmail, 'ValueStream', ref.id, before, after, ['name']);
-    return streamRow(after);
-  }
-  const before = await prisma.subValueStream.findFirst({ where: { id: ref.id, tenantId, valueStream: { companyId } } });
-  if (!before) return null;
-  const data: Record<string, unknown> = {};
-  if ('name' in body) data.name = str(body.name) ?? before.name;
-  for (const f of ['inputs', 'outputs', 'upstream', 'downstream', 'notes'] as const) {
-    if (f in body) data[f] = str(body[f]);
-  }
-  const after = await prisma.subValueStream.update({ where: { id: ref.id }, data });
-  audit(tenantId, actorEmail, 'SubValueStream', ref.id, before, after, ['name', 'inputs', 'outputs', 'upstream', 'downstream', 'notes']);
-  return subRow(after);
-}
-
-// DELETE — removes the node (cascades to children for streams/sub-levels).
-export async function vsDelete(tenantId: string, companyId: string, actorEmail: string, prefixed: string): Promise<boolean> {
-  const ref = decodeId(prefixed);
-  if (!ref) return false;
-  if (ref.kind === 'domain') {
-    const before = await prisma.valueStreamDomain.findFirst({ where: { id: ref.id, tenantId, companyId }, select: { id: true, name: true } });
-    if (!before) return false;
-    await prisma.valueStreamDomain.delete({ where: { id: ref.id } });
-    logAudit({ tenantId, actorEmail, entityType: 'ValueStreamDomain', entityId: ref.id, action: 'DELETE', diff: { name: before.name } });
-    return true;
-  }
-  if (ref.kind === 'stream') {
-    const before = await prisma.valueStream.findFirst({ where: { id: ref.id, tenantId, companyId }, select: { id: true, name: true } });
-    if (!before) return false;
-    await prisma.valueStream.delete({ where: { id: ref.id } });
-    logAudit({ tenantId, actorEmail, entityType: 'ValueStream', entityId: ref.id, action: 'DELETE', diff: { name: before.name } });
-    return true;
-  }
-  const before = await prisma.subValueStream.findFirst({ where: { id: ref.id, tenantId, valueStream: { companyId } }, select: { id: true, name: true } });
-  if (!before) return false;
-  await prisma.subValueStream.delete({ where: { id: ref.id } });
-  logAudit({ tenantId, actorEmail, entityType: 'SubValueStream', entityId: ref.id, action: 'DELETE', diff: { name: before.name } });
-  return true;
-}
-
-function descriptive(body: Record<string, unknown>) {
-  return {
-    inputs: str(body.inputs),
-    outputs: str(body.outputs),
-    upstream: str(body.upstream),
-    downstream: str(body.downstream),
-    notes: str(body.notes),
-  };
-}
-
-function audit(tenantId: string, actorEmail: string, model: string, id: string, before: Record<string, unknown>, after: Record<string, unknown>, fields: string[]) {
-  const diff = computeDiff(before, after, fields);
-  if (Object.keys(diff).length) {
-    logAudit({ tenantId, actorEmail, entityType: model, entityId: id, action: 'UPDATE', diff });
-  }
-}
-
 function httpError(message: string, status: number): Error {
   return Object.assign(new Error(message), { status });
 }
+
+// Resolve an org node's name for Import-from-Data-Catalog (Division/Department/Role).
+async function orgNodeName(tenantId: string, companyId: string, ref: Record<string, unknown>): Promise<string | null> {
+  const id = str(ref.id);
+  const type = str(ref.type);
+  if (!id || !type) return null;
+  const where = { id, tenantId, companyId };
+  if (type === 'division') return (await prisma.division.findFirst({ where, select: { name: true } }))?.name ?? null;
+  if (type === 'department') return (await prisma.department.findFirst({ where, select: { name: true } }))?.name ?? null;
+  if (type === 'role') return (await prisma.role.findFirst({ where, select: { name: true } }))?.name ?? null;
+  return null;
+}
+
+export type LevelHandlers = {
+  entity: AdminEntity;
+  list: (tenantId: string, companyId: string, search: string, take: number, skip: number) => Promise<unknown>;
+  getOne: (tenantId: string, companyId: string, id: string) => Promise<Row | null>;
+  create: (tenantId: string, companyId: string, actorEmail: string, body: Record<string, unknown>) => Promise<Row>;
+  update: (tenantId: string, companyId: string, actorEmail: string, id: string, body: Record<string, unknown>) => Promise<Row | null>;
+  remove: (tenantId: string, companyId: string, actorEmail: string, id: string) => Promise<boolean>;
+};
+
+function buildLevelAdmin(opts: { model: string; slug: string; label: string; delegateName: 'level' | 'orgLevel'; tableName: string }): LevelHandlers {
+  const del = () => (prisma as unknown as Record<string, any>)[opts.delegateName];
+  const auditModel = opts.delegateName === 'level' ? 'Level' : 'OrgLevel';
+
+  const entity: AdminEntity = {
+    slug: opts.slug,
+    model: opts.model,
+    label: opts.label,
+    labelField: 'name',
+    companyVia: { kind: 'direct' },
+    fields: [
+      { name: 'level', kind: 'string', required: false, multiline: false, readonly: true },
+      { name: 'name', kind: 'string', required: true, multiline: false },
+      { name: 'parentId', kind: 'string', required: false, multiline: false, relation: { entity: opts.slug, labelField: 'optionLabel' } },
+      { name: 'description', kind: 'string', required: false, multiline: true },
+      { name: 'leads', kind: 'string', required: false, multiline: false },
+      { name: 'supporting', kind: 'string', required: false, multiline: false },
+      { name: 'inputs', kind: 'string', required: false, multiline: true },
+      { name: 'outputs', kind: 'string', required: false, multiline: true },
+      { name: 'externalParticipants', kind: 'string', required: false, multiline: false },
+      { name: 'notes', kind: 'string', required: false, multiline: true },
+    ],
+  };
+
+  const list = async (tenantId: string, companyId: string, search: string, take: number, skip: number) => {
+    const where = { tenantId, companyId, ...nameFilter(search) };
+    const [rows, total] = await Promise.all([
+      del().findMany({ where, select: SELECT, orderBy: [{ levelNumber: 'asc' }, { sortOrder: 'asc' }, { name: 'asc' }], take, skip }),
+      del().count({ where }),
+    ]);
+    return { rows: (rows as LevelRec[]).map(toRow), total, limit: take, offset: skip };
+  };
+
+  const getOne = async (tenantId: string, companyId: string, id: string): Promise<Row | null> => {
+    const l = await del().findFirst({ where: { id, tenantId, companyId }, select: SELECT });
+    return l ? toRow(l as LevelRec) : null;
+  };
+
+  const create = async (tenantId: string, companyId: string, actorEmail: string, body: Record<string, unknown>): Promise<Row> => {
+    let name = str(body.name);
+    if (!name && body.importOrg) name = await orgNodeName(tenantId, companyId, body.importOrg as Record<string, unknown>);
+    if (!name) throw httpError('name is required', 400);
+    let parentId: string | null = null;
+    let levelNumber = 0;
+    if (body.parentId) {
+      const parent = await del().findFirst({ where: { id: String(body.parentId), tenantId, companyId }, select: { id: true, levelNumber: true } });
+      if (!parent) throw httpError('Parent level not found in this company', 400);
+      if (parent.levelNumber >= MAX_LEVEL) throw httpError(`Cannot nest deeper than Level ${MAX_LEVEL}`, 400);
+      parentId = parent.id;
+      levelNumber = parent.levelNumber + 1;
+    }
+    const org = body.importOrg as { type?: unknown; id?: unknown } | undefined;
+    const created = await del().create({
+      data: { tenantId, companyId, name, parentId, levelNumber, sourceType: org ? str(org.type) : 'manual', sourceRefId: org ? str(org.id) : null, ...detail(body) },
+      select: SELECT,
+    });
+    logAudit({ tenantId, actorEmail, entityType: auditModel, entityId: created.id, action: 'CREATE', diff: { name } });
+    return toRow(created as LevelRec);
+  };
+
+  const update = async (tenantId: string, companyId: string, actorEmail: string, id: string, body: Record<string, unknown>): Promise<Row | null> => {
+    const before = await del().findFirst({ where: { id, tenantId, companyId } });
+    if (!before) return null;
+    const data: Record<string, unknown> = {};
+    if ('name' in body) data.name = str(body.name) ?? before.name;
+    for (const f of DETAIL) if (f in body) data[f] = str(body[f]);
+    let delta = 0;
+    if ('parentId' in body) {
+      const pid = body.parentId ? String(body.parentId) : null;
+      let newLevelNumber: number;
+      if (pid) {
+        if (pid === id) throw httpError('A level cannot be its own parent', 400);
+        const parent = await del().findFirst({ where: { id: pid, tenantId, companyId }, select: { id: true, levelNumber: true } });
+        if (!parent) throw httpError('Parent level not found in this company', 400);
+        if (await isWithinSubtree(opts.delegateName, tenantId, companyId, id, parent.id)) throw httpError('Cannot connect a level to one of its own descendants', 400);
+        data.parentId = parent.id;
+        newLevelNumber = parent.levelNumber + 1;
+      } else {
+        data.parentId = null;
+        newLevelNumber = 0;
+      }
+      if (newLevelNumber > MAX_LEVEL) throw httpError(`Cannot nest deeper than Level ${MAX_LEVEL}`, 400);
+      delta = newLevelNumber - before.levelNumber;
+      if (delta !== 0) data.levelNumber = newLevelNumber;
+    }
+    const after = await del().update({ where: { id }, data, select: SELECT });
+    if (delta !== 0) await shiftSubtree(opts.delegateName, opts.tableName, tenantId, companyId, id, delta);
+    const diff = computeDiff(before, after as Record<string, unknown>, ['name', 'parentId', 'levelNumber', ...DETAIL]);
+    if (Object.keys(diff).length) logAudit({ tenantId, actorEmail, entityType: auditModel, entityId: id, action: 'UPDATE', diff });
+    return toRow(after as LevelRec);
+  };
+
+  const remove = async (tenantId: string, companyId: string, actorEmail: string, id: string): Promise<boolean> => {
+    const before = await del().findFirst({ where: { id, tenantId, companyId }, select: { id: true, name: true } });
+    if (!before) return false;
+    await del().delete({ where: { id } });
+    logAudit({ tenantId, actorEmail, entityType: auditModel, entityId: id, action: 'DELETE', diff: { name: before.name } });
+    return true;
+  };
+
+  return { entity, list, getOne, create, update, remove };
+}
+
+async function isWithinSubtree(delegateName: 'level' | 'orgLevel', tenantId: string, companyId: string, rootId: string, candidateId: string): Promise<boolean> {
+  const del = (prisma as unknown as Record<string, any>)[delegateName];
+  let cur: string | null = candidateId;
+  for (let i = 0; i < MAX_LEVEL + 2 && cur; i++) {
+    const curId: string = cur;
+    if (curId === rootId) return true;
+    const p: { parentId: string | null } | null = await del.findFirst({ where: { id: curId, tenantId, companyId }, select: { parentId: true } });
+    cur = p?.parentId ?? null;
+  }
+  return false;
+}
+
+async function shiftSubtree(delegateName: 'level' | 'orgLevel', tableName: string, tenantId: string, companyId: string, rootId: string, delta: number): Promise<void> {
+  const del = (prisma as unknown as Record<string, any>)[delegateName];
+  let frontier = [rootId];
+  const descendants: string[] = [];
+  for (let depth = 0; depth < MAX_LEVEL + 2 && frontier.length; depth++) {
+    const kids = await del.findMany({ where: { tenantId, companyId, parentId: { in: frontier } }, select: { id: true } });
+    const ids = (kids as { id: string }[]).map((k) => k.id);
+    descendants.push(...ids);
+    frontier = ids;
+  }
+  if (descendants.length) {
+    await prisma.$executeRawUnsafe(
+      `UPDATE "${tableName}" SET "levelNumber" = "levelNumber" + $1 WHERE "id" IN (${descendants.map((_, i) => `$${i + 2}`).join(', ')})`,
+      delta, ...descendants,
+    );
+  }
+}
+
+// The two configurable level entities.
+export const VALUE_STREAMS = buildLevelAdmin({ model: VS_MODEL, slug: 'valueStreams', label: 'Value Streams', delegateName: 'level', tableName: 'Level' });
+export const ORGANIZATION = buildLevelAdmin({ model: ORG_MODEL, slug: 'organization', label: 'Organization', delegateName: 'orgLevel', tableName: 'OrgLevel' });
+
+export const VALUE_STREAMS_ENTITY = VALUE_STREAMS.entity;
+export const LEVEL_ENTITIES: AdminEntity[] = [VALUE_STREAMS.entity, ORGANIZATION.entity];
+export const LEVEL_HANDLERS: Record<string, LevelHandlers> = {
+  [VS_MODEL]: VALUE_STREAMS,
+  [ORG_MODEL]: ORGANIZATION,
+};

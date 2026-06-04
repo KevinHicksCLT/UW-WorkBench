@@ -68,8 +68,86 @@ model Company {
   standardItems        StandardItem[]
   scenarios            Scenario[]
   rationalizationWorkspaces RationalizationWorkspace[]
+  levels               Level[]
+  orgLevels            OrgLevel[]
 
   @@unique([tenantId, slug])
+}
+
+// ─── Configurable Level hierarchy (value-stream rebuild) ────────────────
+// A single, fully-configurable, self-referential level tree that backs the
+// "Levels" editor in Data Admin and (next) the value-stream list + map.
+// `levelNumber` is the depth (0 Company · 1 Domain · 2 Division · 3 Value Stream
+// · 4 Sub-Process · 5 Process Step) and `parentId` connects each node to the one
+// above it. L0–L2 mirror the org spine (sourceType/sourceRefId point back to the
+// Company/Division record); L3–L5 are imported from the E2E Process Flows catalog.
+// The detail fields carry the L5 step metadata shown in the metrics sidebar.
+model Level {
+  id          String  @id @default(cuid())
+  tenantId    String
+  companyId   String
+  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  levelNumber Int
+  parentId    String?
+  parent      Level?  @relation("LevelTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Level[] @relation("LevelTree")
+  name        String
+  sortOrder   Int     @default(0)
+
+  // L5 step detail (also generic). From the E2E catalog: G description, H+I roles,
+  // J inputs, K outputs, M external participants, L notes.
+  description          String?
+  leads                String?
+  supporting           String?
+  inputs               String?
+  outputs              String?
+  externalParticipants String?
+  notes                String?
+
+  // Provenance. sourceType ∈ company | domain | division | catalog; sourceRefId
+  // points at the org record for L0–L2 nodes mirrored from the spine.
+  sourceType  String?
+  sourceRefId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId, levelNumber])
+  @@index([parentId])
+}
+
+// Organization level tree — the SEPARATE configurable hierarchy for the org side
+// (Company · Domain · Division · Department · Role …). Kept distinct from `Level`
+// (value streams) so configuring one never touches the other or the live
+// operating data (IoItem/ProcessStep/etc.). Same shape as Level for a shared editor.
+model OrgLevel {
+  id          String  @id @default(cuid())
+  tenantId    String
+  companyId   String
+  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  levelNumber Int
+  parentId    String?
+  parent      OrgLevel?  @relation("OrgLevelTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children    OrgLevel[] @relation("OrgLevelTree")
+  name        String
+  sortOrder   Int     @default(0)
+
+  description          String?
+  leads                String?
+  supporting           String?
+  inputs               String?
+  outputs              String?
+  externalParticipants String?
+  notes                String?
+
+  sourceType  String?
+  sourceRefId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId, levelNumber])
+  @@index([parentId])
 }
 
 model Division {

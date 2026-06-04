@@ -91,7 +91,7 @@ export default function OrgTable() {
   if (!data) return null;
 
   const t = data.totals;
-  const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Roles', onClick: (divId || roleId) ? goDivisions : undefined }];
+  const crumbs: { label: string; onClick?: () => void }[] = [{ label: 'Organization', onClick: (divId || roleId) ? goDivisions : undefined }];
   if (division) crumbs.push({ label: division.name, onClick: deptId ? goTeams : undefined });
   if (deptId) crumbs.push({ label: deptId === LOOSE ? 'Direct to division' : dept?.name ?? '…', onClick: roleId ? goRoles : undefined });
 
@@ -111,7 +111,7 @@ export default function OrgTable() {
         // ── Level 1: all divisions, grouped by segment ───────────────────────
         <>
           <PageHeader
-            title={deptOverview ? 'Departments' : 'Roles & People'}
+            title={deptOverview ? 'Departments' : 'Organization'}
             subtitle={deptOverview
               ? `${t.departments} teams across ${t.divisions} divisions`
               : `${t.divisions} divisions · ${t.departments} teams · ${t.roles} roles · ${t.people} people`}
@@ -160,7 +160,7 @@ export default function OrgTable() {
       ) : !deptId ? (
         // ── Level 2: teams (departments) within a division ───────────────────
         <>
-          <PageHeader title={division.name} subtitle={`${division.departments.length} teams · ${division.roleCount} roles · ${division.peopleCount} people`} />
+          <PageHeader hideBreadcrumb title={division.name} subtitle={`${division.departments.length} teams · ${division.roleCount} roles · ${division.peopleCount} people`} />
           {division.departments.length === 0 && division.looseRoles.length === 0 ? (
             <div className="card text-sm text-slate-500 italic">No teams or roles in this division.</div>
           ) : (
@@ -178,7 +178,7 @@ export default function OrgTable() {
       ) : (
         // ── Level 3: roles within a team ─────────────────────────────────────
         <>
-          <PageHeader title={deptId === LOOSE ? 'Direct to division' : dept?.name ?? ''} subtitle={`${rolesInView.length} roles · ${division.name}`} />
+          <PageHeader hideBreadcrumb title={deptId === LOOSE ? 'Direct to division' : dept?.name ?? ''} subtitle={`${rolesInView.length} roles · ${division.name}`} />
           {rolesInView.length === 0 ? (
             <div className="card text-sm text-slate-500 italic">No roles here.</div>
           ) : (
@@ -251,6 +251,7 @@ function RoleDetailView({ roleId, crumbs, onSelectPerson }: { roleId: string; cr
       ) : !r ? null : (
         <>
           <PageHeader
+            hideBreadcrumb
             title={r.name}
             subtitle={[r.roleFamily, r.department?.name, r.division?.name].filter(Boolean).join(' · ') || 'Role'}
             actions={<Link to={`/roles/${r.id}`} className="btn-ghost">Full role page →</Link>}
@@ -455,6 +456,7 @@ function PersonDetailView({ personId, crumbs }: { personId: string; crumbs: { la
       ) : !d ? null : (
         <>
           <PageHeader
+            hideBreadcrumb
             title={d.person.name}
             subtitle={[d.person.title, d.person.employmentType !== 'badged' ? (d.person.vendor ?? d.person.employmentType) : 'Employee'].filter(Boolean).join(' · ')}
           />
@@ -652,19 +654,42 @@ function Box({ title, meta, tag, onClick }: { title: string; meta: string; tag?:
   );
 }
 
+// Same chevron + dark-pill + clear-focus treatment as the Value Streams map
+// breadcrumb (see MapCanvas.tsx / .focus-crumb-* in index.css). The ✕ resets to
+// the Roles base via the first crumb's handler (goDivisions).
 function Crumbs({ crumbs }: { crumbs: { label: string; onClick?: () => void }[] }) {
+  const clear = crumbs[0]?.onClick;
   return (
-    <nav className="flex items-center gap-1.5 text-xs text-[#a3a3a3] mb-4" aria-label="Breadcrumb">
-      {crumbs.map((b, i) => (
-        <span key={i} className="flex items-center gap-1.5">
-          {i > 0 && <span className="text-[#d4d4d4] select-none">/</span>}
-          {b.onClick ? (
-            <button onClick={b.onClick} className="hover:text-[#171717] transition-colors duration-150">{b.label}</button>
-          ) : (
-            <span className="text-[#666666]">{b.label}</span>
-          )}
-        </span>
-      ))}
+    <nav className="flex items-center flex-wrap mb-4" aria-label="Breadcrumb">
+      {crumbs.map((b, i) => {
+        const isLast = i === crumbs.length - 1;
+        return (
+          <span key={i} className="inline-flex items-center">
+            {i > 0 && <span style={{ color: '#d4d4d4', margin: '0 4px' }}>›</span>}
+            {isLast ? (
+              <span className="focus-crumb-active">{b.label}</span>
+            ) : b.onClick ? (
+              <button onClick={b.onClick} className="focus-crumb-ancestor">{b.label}</button>
+            ) : (
+              <span className="focus-crumb-ancestor" style={{ cursor: 'default' }}>{b.label}</span>
+            )}
+          </span>
+        );
+      })}
+      {clear && (
+        <button
+          onClick={clear}
+          aria-label="Clear focus"
+          style={{
+            marginLeft: 6, width: 22, height: 22, borderRadius: 6,
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 12, color: '#a3a3a3',
+            background: 'transparent', border: '1px solid #eaeaea', cursor: 'pointer',
+          }}
+        >
+          ✕
+        </button>
+      )}
     </nav>
   );
 }
