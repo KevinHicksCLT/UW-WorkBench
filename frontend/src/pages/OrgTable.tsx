@@ -214,8 +214,6 @@ type RoleDetailData = {
 
 function RoleDetailView({ roleId, crumbs, onSelectPerson }: { roleId: string; crumbs: { label: string; onClick?: () => void }[]; onSelectPerson: (id: string) => void }) {
   const { data: r, error, loading } = useApi<RoleDetailData>(`/roles/${roleId}`);
-  // Performance graph for the people in THIS role — each scored against the role average.
-  const { data: perf } = useApi<LeaderboardData>(`/explorer/leaderboard/role/${roleId}`);
 
   // Inputs & deliverables, related per (value stream, sub-process), at the LOWEST
   // level. Prefer the server's role-resolved I/O inventory (one row per L4
@@ -257,9 +255,6 @@ function RoleDetailView({ roleId, crumbs, onSelectPerson }: { roleId: string; cr
             subtitle={[r.roleFamily, r.department?.name, r.division?.name].filter(Boolean).join(' · ') || 'Role'}
             actions={<Link to={`/roles/${r.id}`} className="btn-ghost">Full role page →</Link>}
           />
-          {perf && perf.people.length > 0 && (
-            <RolePerformanceGraph data={perf} onSelect={onSelectPerson} />
-          )}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
               {/* Inputs & Deliverables — every input the role receives and
@@ -340,10 +335,15 @@ function RoleDetailView({ roleId, crumbs, onSelectPerson }: { roleId: string; cr
                   <div className="text-sm text-slate-500 italic">No responsibilities recorded.</div>
                 ) : (
                   r.responsibilities.map((g) => (
-                    <div key={g.category} className="mb-3 last:mb-0">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">{g.category} ({g.items.length})</div>
-                      <ul className="list-disc list-inside text-sm text-slate-700 space-y-0.5">
-                        {g.items.map((it, i) => <li key={i}>{it}</li>)}
+                    <div key={g.category} className="mb-4 last:mb-0">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">{g.category} ({g.items.length})</div>
+                      <ul className="space-y-1.5">
+                        {g.items.map((it, i) => (
+                          <li key={i} className="flex gap-2 text-sm text-slate-700 leading-snug">
+                            <span className="mt-[7px] h-1 w-1 rounded-full bg-slate-300 flex-shrink-0" aria-hidden="true" />
+                            <span className="min-w-0 break-words">{it}</span>
+                          </li>
+                        ))}
                       </ul>
                     </div>
                   ))
@@ -602,60 +602,6 @@ function DRow({ label, value }: { label: string; value: ReactNode }) {
     <div className="flex justify-between gap-3">
       <dt className="text-slate-500 flex-shrink-0">{label}</dt>
       <dd className="font-medium text-slate-800 text-right">{value}</dd>
-    </div>
-  );
-}
-
-// ── Performance within a role: each person vs the role average ─────────────
-type LeaderPerson = { id: string; name: string; roleId: string; roleName: string | null; region: string | null; employmentType: string; vendor: string | null; score: number; onTarget: number; total: number; topMetric: { name: string; value: number; unit: string } | null };
-type LeaderboardData = { scope: string; count: number; period: string; people: LeaderPerson[] };
-
-// Bars are scored 0..scaleMax left-to-right; a dashed vertical line marks the
-// role average. People at/above the line read green, below read amber, so the
-// distribution within the role is legible at a glance. The line is positioned
-// with calc() to land on the bar track (past the fixed name column, before the
-// fixed score column) so it aligns with every row's bar.
-function RolePerformanceGraph({ data, onSelect }: { data: LeaderboardData; onSelect: (personId: string) => void }) {
-  const people = data.people; // server-sorted by score, descending
-  const avg = Math.round(people.reduce((a, p) => a + p.score, 0) / people.length);
-  const scaleMax = Math.max(...people.map((p) => p.score), avg, 100);
-  const above = people.filter((p) => p.score >= avg).length;
-  // Track geometry: name col w-40 (10rem) + gap-3 (0.75rem) on the left; score
-  // col w-9 (2.25rem) + gap-3 (0.75rem) on the right. Bar track is what remains.
-  const avgLeft = `calc(10.75rem + (100% - 13.75rem) * ${avg / scaleMax})`;
-
-  return (
-    <div className="card mb-6">
-      <div className="flex items-baseline justify-between gap-2 mb-1">
-        <h3 className="font-semibold text-slate-900">Performance vs Role Average</h3>
-        <span className="text-xs text-[#a3a3a3]">Role avg <span className="font-semibold text-[#171717] tnum">{avg}</span> · {above}/{people.length} at or above</span>
-      </div>
-      <p className="text-xs text-[#a3a3a3] mb-4">Each person in this role by KPI attainment vs target · {data.period}. The dashed line is the role average — green is at or above it, amber below.</p>
-      <div className="relative pt-4">
-        {/* Role-average reference line, aligned to the bar track */}
-        <div className="absolute top-0 bottom-0 border-l border-dashed border-[#64748b] z-10 pointer-events-none" style={{ left: avgLeft }}>
-          <span className="absolute top-0 left-1 text-[10px] font-semibold text-[#64748b] whitespace-nowrap">avg {avg}</span>
-        </div>
-        <div className="space-y-1.5">
-          {people.map((p) => {
-            const aboveAvg = p.score >= avg;
-            const color = aboveAvg ? '#16a34a' : '#d97706';
-            return (
-              <button key={p.id} onClick={() => onSelect(p.id)}
-                className="w-full flex items-center gap-3 text-left rounded-md px-0 py-1 group">
-                <div className="w-40 min-w-0 flex-shrink-0">
-                  <div className="text-sm text-[#171717] truncate group-hover:underline">{p.name}</div>
-                  <div className="text-[11px] text-[#a3a3a3] truncate">{[p.region, `${p.onTarget}/${p.total} on target`].filter(Boolean).join(' · ')}</div>
-                </div>
-                <div className="flex-1 h-3 rounded-full bg-[#f0f0f0] overflow-hidden min-w-[60px]">
-                  <div className="h-full rounded-full transition-[width] duration-300" style={{ width: `${(p.score / scaleMax) * 100}%`, background: color }} />
-                </div>
-                <span className="w-9 text-right text-sm font-semibold tnum flex-shrink-0" style={{ color }}>{p.score}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
     </div>
   );
 }

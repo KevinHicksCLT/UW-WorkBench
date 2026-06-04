@@ -36,14 +36,22 @@ function workforceBuckets(byType: Group[]): Group[] {
   ];
 }
 
-function Tile({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
-  return (
-    <div className="card-elevated p-4">
+function Tile({ label, value, hint, to }: { label: string; value: string | number; hint?: string; to?: string }) {
+  const body = (
+    <>
       <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</div>
       <div className="text-2xl font-semibold text-[#171717] mt-1 tnum">{value}</div>
       {hint && <div className="text-[11px] text-[#a3a3a3] mt-0.5">{hint}</div>}
-    </div>
+    </>
   );
+  if (to) {
+    return (
+      <Link to={to} className="card-elevated p-4 block transition-colors hover:border-[#4f46e5] group">
+        {body}
+      </Link>
+    );
+  }
+  return <div className="card-elevated p-4">{body}</div>;
 }
 
 // Horizontal bar list. Bars are scaled to the largest value in the set.
@@ -71,7 +79,11 @@ function Card({ title, children, to, toLabel }: { title: string; children: React
   return (
     <div className="card-elevated p-5">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-semibold text-[#171717]">{title}</h2>
+        {to ? (
+          <Link to={to} className="text-sm font-semibold text-[#171717] hover:text-[#4f46e5]">{title}</Link>
+        ) : (
+          <h2 className="text-sm font-semibold text-[#171717]">{title}</h2>
+        )}
         {to && <Link to={to} className="text-xs text-[#525252] hover:text-[#171717]">{toLabel ?? 'View'} →</Link>}
       </div>
       {children}
@@ -111,12 +123,12 @@ export default function Overview() {
 
       {/* Headline metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-        <Tile label="Divisions" value={t.divisions} hint={`${t.departments} departments`} />
-        <Tile label="Roles" value={t.roles} />
-        <Tile label="Value Streams" value={t.valueStreams} hint={`${t.domains} domains`} />
-        <Tile label="Initiatives" value={t.initiatives} />
-        <Tile label="Deliverables" value={t.deliverables} />
-        <Tile label="Tasks" value={t.tasks} />
+        <Tile label="Divisions" value={t.divisions} hint={`${t.departments} departments`} to="/roles" />
+        <Tile label="Roles" value={t.roles} to="/roles" />
+        <Tile label="Value Streams" value={t.valueStreams} hint={`${t.domains} domains`} to="/overview" />
+        <Tile label="Initiatives" value={t.initiatives} to="/portfolio" />
+        <Tile label="Deliverables" value={t.deliverables} to="/work" />
+        <Tile label="Tasks" value={t.tasks} to="/work" />
       </div>
 
       {/* Breakdowns */}

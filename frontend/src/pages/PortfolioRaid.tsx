@@ -45,7 +45,6 @@ export default function PortfolioRaid({ embedded = false }: { embedded?: boolean
         <PageHeader
           title="RAID Log"
           subtitle="Risks, Assumptions, Issues and Decisions across the portfolio"
-          breadcrumbs={[{ to: '/portfolio', label: 'Initiatives' }, { label: 'RAID Log' }]}
         />
       )}
 

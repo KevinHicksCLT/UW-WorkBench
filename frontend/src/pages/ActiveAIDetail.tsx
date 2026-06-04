@@ -77,7 +77,7 @@ export default function ActiveAIDetail() {
   if (!vs || !summary) {
     return (
       <div>
-        <PageHeader title="Value stream not found" breadcrumbs={[{ label: 'Telemetry', to: '/active-ai' }]} />
+        <PageHeader title="Value stream not found" />
         <Link to="/active-ai" className="text-sm text-[#4338ca] hover:underline">← Back to the AI heat map</Link>
       </div>
     );
@@ -89,7 +89,6 @@ export default function ActiveAIDetail() {
         eyebrow={vs.domain ?? undefined}
         title={vs.name}
         subtitle="How AI is applied in this value stream — role utilization, efficiency gain, and the use cases behind each mode."
-        breadcrumbs={[{ label: 'Telemetry', to: '/active-ai' }, { label: vs.name }]}
         actions={<Link to={`/overview?focus=${vs.id}`} className="btn-secondary">View in map →</Link>}
       />
 

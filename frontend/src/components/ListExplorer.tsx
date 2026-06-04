@@ -324,12 +324,12 @@ export default function ListExplorer({ companyName }: { companyName: string; div
     // Never let the banner read out exactly 666 steps — roll over to 667.
     if (steps === 666) steps += 1;
     return [
-      { label: 'Domains', value: visibleDomains.length },
-      { label: 'Divisions', value: divisions },
-      { label: 'Value streams', value: valueStreams },
-      { label: 'Process areas', value: areas },
-      { label: 'Sub-processes', value: subProcesses },
-      { label: 'Steps', value: steps },
+      { label: 'Process Level 1', value: visibleDomains.length },
+      { label: 'Process Level 2', value: divisions },
+      { label: 'Process Level 3', value: valueStreams },
+      { label: 'Process Level 4', value: areas },
+      { label: 'Process Level 5', value: subProcesses },
+      { label: 'Process Level 6', value: steps },
     ];
   }, [visibleDomains]);
 

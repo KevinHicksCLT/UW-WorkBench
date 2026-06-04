@@ -42,13 +42,13 @@ function decodeId(prefixed: string): { kind: Kind; id: string } | null {
 export const VALUE_STREAMS_ENTITY: AdminEntity = {
   slug: 'valueStreams',
   model: VS_MODEL,
-  label: 'Value Streams',
+  label: 'Process Levels',
   labelField: 'name',
   companyVia: { kind: 'direct' },
   fields: [
     { name: 'level', kind: 'string', required: false, multiline: false, readonly: true },
     { name: 'name', kind: 'string', required: true, multiline: false },
-    { name: 'parentId', kind: 'string', required: false, multiline: false, createOnly: true, relation: { entity: 'valueStreams', labelField: 'name' } },
+    { name: 'parentId', kind: 'string', required: false, multiline: false, createOnly: true, relation: { entity: 'valueStreams', labelField: 'optionLabel' } },
     { name: 'inputs', kind: 'string', required: false, multiline: true },
     { name: 'outputs', kind: 'string', required: false, multiline: true },
     { name: 'upstream', kind: 'string', required: false, multiline: true },
@@ -61,6 +61,7 @@ type Row = {
   id: string;
   name: string;
   level: string;
+  optionLabel: string; // "<level> — <name>", shown when this row is offered as a parent
   parentId: string | null;
   inputs: string | null;
   outputs: string | null;
@@ -71,16 +72,20 @@ type Row = {
 };
 
 function domainRow(d: { id: string; name: string }): Row {
-  return { id: encodeId('domain', d.id), name: d.name, level: `L${DOMAIN_LEVEL}`, parentId: null, inputs: null, outputs: null, upstream: null, downstream: null, notes: null, _lvl: DOMAIN_LEVEL };
+  const level = `Process Level ${DOMAIN_LEVEL}`;
+  return { id: encodeId('domain', d.id), name: d.name, level, optionLabel: `${level} — ${d.name}`, parentId: null, inputs: null, outputs: null, upstream: null, downstream: null, notes: null, _lvl: DOMAIN_LEVEL };
 }
 function streamRow(v: { id: string; name: string; domainId: string | null }): Row {
-  return { id: encodeId('stream', v.id), name: v.name, level: `L${STREAM_LEVEL}`, parentId: v.domainId ? encodeId('domain', v.domainId) : null, inputs: null, outputs: null, upstream: null, downstream: null, notes: null, _lvl: STREAM_LEVEL };
+  const level = 'Process Level 3'; // value stream sits below domain (PL1) and division (PL2)
+  return { id: encodeId('stream', v.id), name: v.name, level, optionLabel: `${level} — ${v.name}`, parentId: v.domainId ? encodeId('domain', v.domainId) : null, inputs: null, outputs: null, upstream: null, downstream: null, notes: null, _lvl: STREAM_LEVEL };
 }
 function subRow(s: { id: string; name: string; level: number; valueStreamId: string; parentId: string | null; inputs: string | null; outputs: string | null; upstream: string | null; downstream: string | null; notes: string | null }): Row {
+  const level = `Process Level ${s.level + 1}`;
   return {
     id: encodeId('sub', s.id),
     name: s.name,
-    level: `L${s.level}`,
+    level,
+    optionLabel: `${level} — ${s.name}`,
     parentId: s.parentId ? encodeId('sub', s.parentId) : encodeId('stream', s.valueStreamId),
     inputs: s.inputs, outputs: s.outputs, upstream: s.upstream, downstream: s.downstream, notes: s.notes,
     _lvl: s.level,
@@ -146,18 +151,18 @@ export async function vsCreate(tenantId: string, companyId: string, actorEmail: 
     created = domainRow(d); model = 'ValueStreamDomain'; id = d.id;
   } else if (parentRef.kind === 'domain') {
     const domain = await prisma.valueStreamDomain.findFirst({ where: { id: parentRef.id, tenantId, companyId }, select: { id: true, name: true } });
-    if (!domain) throw httpError('Parent domain not found in this company', 400);
+    if (!domain) throw httpError('Parent Process Level 1 not found in this company', 400);
     const v = await prisma.valueStream.create({ data: { tenantId, companyId, name, domainId: domain.id, domain: domain.name } });
     created = streamRow(v); model = 'ValueStream'; id = v.id;
   } else if (parentRef.kind === 'stream') {
     const stream = await prisma.valueStream.findFirst({ where: { id: parentRef.id, tenantId, companyId }, select: { id: true } });
-    if (!stream) throw httpError('Parent value stream not found in this company', 400);
+    if (!stream) throw httpError('Parent Process Level 3 not found in this company', 400);
     const s = await prisma.subValueStream.create({ data: { tenantId, valueStreamId: stream.id, level: 3, name, ...descriptive(body) } });
     created = subRow(s); model = 'SubValueStream'; id = s.id;
   } else {
     const parent = await prisma.subValueStream.findFirst({ where: { id: parentRef.id, tenantId, valueStream: { companyId } }, select: { id: true, level: true, valueStreamId: true } });
-    if (!parent) throw httpError('Parent process step not found in this company', 400);
-    if (parent.level >= MAX_LEVEL) throw httpError(`Cannot nest deeper than L${MAX_LEVEL}`, 400);
+    if (!parent) throw httpError('Parent process level not found in this company', 400);
+    if (parent.level >= MAX_LEVEL) throw httpError(`Cannot nest deeper than Process Level ${MAX_LEVEL + 1}`, 400);
     const s = await prisma.subValueStream.create({ data: { tenantId, valueStreamId: parent.valueStreamId, parentId: parent.id, level: parent.level + 1, name, ...descriptive(body) } });
     created = subRow(s); model = 'SubValueStream'; id = s.id;
   }

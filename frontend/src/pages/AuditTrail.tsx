@@ -78,7 +78,6 @@ export default function AuditTrail() {
       <PageHeader
         title="Audit Trail"
         subtitle="Every create, update, and delete across the platform."
-        breadcrumbs={[{ label: 'Data Admin', to: '/admin' }, { label: 'Audit Trail' }]}
         actions={
           <select className="input max-w-[200px]" value={filter} onChange={(e) => setFilter(e.target.value)}>
             <option value="">All entity types</option>

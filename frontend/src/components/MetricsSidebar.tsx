@@ -19,7 +19,7 @@ export type Dashboard = {
 
 const LEVEL_LABEL: Record<string, string> = {
   company: 'Enterprise', domain: '', division: 'Division', department: 'Department',
-  valueStream: 'Value Stream', step: 'Process Area', role: 'Role', person: 'Individual',
+  valueStream: 'Process Level 3', step: 'Process Level 4', role: 'Role', person: 'Individual',
 };
 
 const BAR = '#2563eb';
@@ -55,17 +55,9 @@ export default function MetricsSidebar({
   onViewDetail?: () => void;
 }) {
   // Minimizable: collapse the panel to a thin rail to give the map full width.
-  // Persisted so the choice survives drilling and reloads.
-  const [collapsed, setCollapsed] = useState<boolean>(
-    () => typeof localStorage !== 'undefined' && localStorage.getItem('cascade.metricsSidebar.collapsed') === '1',
-  );
-  const toggleCollapsed = () => {
-    setCollapsed((c) => {
-      const next = !c;
-      try { localStorage.setItem('cascade.metricsSidebar.collapsed', next ? '1' : '0'); } catch { /* ignore */ }
-      return next;
-    });
-  };
+  // Always starts collapsed by default; the user can expand it per session.
+  const [collapsed, setCollapsed] = useState<boolean>(true);
+  const toggleCollapsed = () => setCollapsed((c) => !c);
   const levelLabel = dash ? (LEVEL_LABEL[dash.level] ?? 'Roles') : 'Roles';
 
   // ── Collapsed rail ──────────────────────────────────────────────────────────

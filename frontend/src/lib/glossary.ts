@@ -79,14 +79,14 @@ export const GLOSSARY: GlossaryGroup[] = [
       {
         term: 'Value Stream',
         definition:
-          'An end-to-end flow of work that delivers value (a business capability such as Underwriting or Claims). It is the spine of the "how the business operates" view and crosses org boundaries — many roles from different divisions participate in one value stream. In Data Admin every level of the value-stream tree is edited from one level-numbered "Value Streams" list.',
+          'An end-to-end flow of work that delivers value (a business capability such as Underwriting or Claims). It is the spine of the "how the business operates" view and crosses org boundaries — many roles from different divisions participate in one value stream. In Data Admin every level of the value-stream tree is edited from one level-numbered "Process Levels" list.',
       },
       {
-        term: 'Value Stream Levels (L1–L5)',
-        aka: 'Domain · Stream · Process Area · Sub-Process · Process Step',
+        term: 'Process Levels (0–6)',
+        aka: 'Company · Domain · Division · Value Stream · Process Area · Sub-Process · Step',
         definition:
-          'The value-stream tree, numbered by level — never by division, so it reads the same across companies. L1 is the Domain (top grouping, e.g. Core Insurance); L2 is the Value Stream itself; L3 is a Process Area; L4 is a Sub-Process within it; L5 is a single ordered Process Step (each carries a brief description). Data Admin shows all five levels as one list with an "L#" column.',
-        values: ['L1 Domain', 'L2 Value Stream', 'L3 Process Area', 'L4 Sub-Process', 'L5 Process Step'],
+          'The operating model numbered by depth, so it reads the same across companies. Process Level 0 is the Company; Process Level 1 is a Domain (top grouping, e.g. Core Insurance); Process Level 2 is a Division; Process Level 3 is the Value Stream; Process Level 4 is a Process Area; Process Level 5 is a Sub-Process; Process Level 6 is a single ordered Process Step. In Data Admin the top tiers are the Process 0 / 1 / 2 tabs, and the value-stream tree (Process Levels 3–6) is edited as one level-numbered list.',
+        values: ['Process Level 0 — Company', 'Process Level 1 — Domain', 'Process Level 2 — Division', 'Process Level 3 — Value Stream', 'Process Level 4 — Process Area', 'Process Level 5 — Sub-Process', 'Process Level 6 — Process Step'],
       },
       {
         term: 'Process Step',

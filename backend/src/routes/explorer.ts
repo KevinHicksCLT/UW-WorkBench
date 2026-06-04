@@ -1,5 +1,8 @@
 import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { buildRoleResolver } from '../lib/roleMatch.js';
@@ -24,6 +27,65 @@ const WORKFORCE_SIGNALS = [
 ] as const;
 // Levels a workforce signal can be tracked / rolled up at (individual → org).
 const WORKFORCE_LEVELS = ['Individual', 'Role', 'Team', 'Division', 'Company'];
+
+// Full trackable-metric catalog extracted from the operating-model workbook
+// (Metric_Catalog_Expanded + External_Metric_Catalog): every Viva Insights / M365
+// and system-of-record metric the company could track. A reference inventory —
+// no per-person readings yet, so these don't drill to the role level.
+type CatalogMetric = {
+  name: string; origin: string | null; source: string | null; category: string | null;
+  dataType: string | null; queryType: string | null; description: string | null;
+  managerRelevance: string | null; applicability: string | null; applicableRoles: string | null; useCases: string | null;
+};
+const TELEMETRY_CATALOG: CatalogMetric[] = JSON.parse(
+  readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '../../data/telemetry-catalog.json'), 'utf8'),
+);
+
+// ── Trackable-metric filter taxonomy ─────────────────────────────────────────
+// `type` = the grain a metric is tracked at, collapsed to four plain buckets.
+const TYPE_ORDER = ['User', 'Role', 'Division', 'System'] as const;
+function metricType(kind: string, levels: string[]): string {
+  if (kind === 'system') return 'System';
+  if (kind === 'workforce') return 'User'; // per-person Viva/M365 telemetry
+  // KPIs: classify by their measurement level.
+  const l = levels[0] ?? '';
+  if (l === 'Individual') return 'User';
+  if (['Division', 'Executive', 'Company', 'Product'].includes(l)) return 'Division';
+  return 'Role'; // Team / Department / unspecified
+}
+
+// Split a raw (often compound) source string into clean, canonical system tokens
+// so the Source filter reads "GitHub", "Viva Insights", "ServiceNow" — not
+// "Jira / Rally / Pega / ServiceNow". Framework labels (DORA, NIST…) pass through.
+function canonicalSource(t: string): string {
+  const low = t.toLowerCase();
+  if (/viva/.test(low)) return 'Viva Insights';
+  if (/teams/.test(low)) return 'Microsoft Teams';
+  if (/microsoft 365|m365|office 365|outlook|sharepoint/.test(low)) return 'Microsoft 365';
+  if (/github/.test(low)) return 'GitHub';
+  if (/azure devops/.test(low)) return 'Azure DevOps';
+  if (/azure virtual desktop/.test(low)) return 'Azure Virtual Desktop';
+  if (/cloudtrail|codebuild|cloudwatch|\baws\b/.test(low)) return 'AWS';
+  if (/\bazure\b/.test(low)) return 'Azure';
+  if (/jira/.test(low)) return 'Jira';
+  if (/rally/.test(low)) return 'Rally';
+  if (/servicenow/.test(low)) return 'ServiceNow';
+  if (/pega/.test(low)) return 'Pega';
+  if (/guidewire|claimcenter|policycenter/.test(low)) return 'Guidewire';
+  if (/duck creek/.test(low)) return 'Duck Creek';
+  if (/okta/.test(low)) return 'Okta';
+  if (/splunk/.test(low)) return 'Splunk';
+  if (/opentelemetry|otel/.test(low)) return 'OpenTelemetry';
+  if (/in[\s‑-]house|rules engine|process mining|claim|policy system/.test(low)) return 'In-house apps';
+  return t.trim();
+}
+function normalizeSource(raw: string | null): string[] {
+  if (!raw) return [];
+  // Split only on spaced separators ("A / B", "A, B", "A & B") so we don't break
+  // tokens like "GDPR/Privacy" or "issue/PR support".
+  const parts = raw.split(/\s+\/\s+|\s*,\s*|\s+&\s+|\sand\s/).map((p) => p.trim()).filter(Boolean);
+  return [...new Set(parts.map(canonicalSource))];
+}
 
 const CONTROL_CATEGORIES = ['Governance/Compliance', 'Security', 'Reviews/Audits', 'Approvals/Sign-offs', 'Risk & Compliance', 'Runbooks'];
 const PART_ORDER: Record<string, number> = { Lead: 0, Core: 1, Control: 2, Oversight: 3, Support: 4 };
@@ -238,7 +300,7 @@ router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextF
     const resolve = buildRoleResolver(roles);
 
     type Signal = {
-      id: string; kind: 'workforce' | 'kpi'; name: string; description: string | null;
+      id: string; kind: 'workforce' | 'kpi' | 'system'; name: string; description: string | null;
       source: string | null; category: string | null; framework: string | null;
       frequency: string | null; unit: string | null; direction: string; target: string | null;
       levels: string[]; store?: string; roleDrill: boolean;
@@ -267,16 +329,46 @@ router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextF
       };
     });
 
-    const signals = [...workforce, ...kpis];
-    const uniq = (vals: (string | null)[]) => [...new Set(vals.filter((v): v is string => !!v))].sort((a, b) => a.localeCompare(b));
+    // Full reference catalog from the workbook — every metric the company could
+    // track. Dedupe against the live workforce signals (which carry real per-person
+    // readings) by name so they aren't listed twice.
+    const liveNames = new Set(workforce.map((s) => s.name.toLowerCase()));
+    const catalog: Signal[] = TELEMETRY_CATALOG
+      .filter((m) => m.name && !liveNames.has(m.name.toLowerCase()))
+      .map((m, i) => {
+        // Workforce = Viva Insights / M365 collaboration telemetry; everything else
+        // (Jira, ServiceNow, GitHub, Guidewire, Okta, Splunk, AWS/Azure …) is a
+        // system-of-record metric.
+        const isViva = /viva|microsoft|teams|m365|outlook|sharepoint|office 365/i.test(m.source ?? '');
+        return {
+          id: `cat:${i}`, kind: isViva ? 'workforce' : 'system', name: m.name, description: m.description,
+          source: m.source, category: m.category, framework: null, frequency: null,
+          unit: m.dataType, direction: 'up', target: null, levels: ['Individual', 'Role'], roleDrill: false,
+          valueStreamName: null, domain: null, l3: null, ownerRole: null, ownerRoleId: null,
+        };
+      });
+
+    // Augment every signal with a simple grain `type` (User/Role/Division/System)
+    // and a clean, split list of `sourceTokens` (GitHub, Viva Insights, ServiceNow…)
+    // so the UI can offer four straightforward filters instead of seven.
+    const signals = [...workforce, ...kpis, ...catalog].map((s) => ({
+      ...s,
+      type: metricType(s.kind, s.levels),
+      sourceTokens: normalizeSource(s.source),
+    }));
+
+    // Case-insensitive unique + sort (collapses "Vendor/Third-party" casing dupes).
+    const uniqCI = (vals: (string | null)[]) => {
+      const m = new Map<string, string>();
+      for (const v of vals) if (v && !m.has(v.toLowerCase())) m.set(v.toLowerCase(), v);
+      return [...m.values()].sort((a, b) => a.localeCompare(b));
+    };
     res.json({
       signals,
       filters: {
-        sources: uniq(signals.map((s) => s.source)),
-        categories: uniq(signals.map((s) => s.category)),
-        frequencies: uniq(signals.map((s) => s.frequency)),
-        levels: uniq(signals.flatMap((s) => s.levels)),
-        domains: uniq(signals.map((s) => s.domain)),
+        types: TYPE_ORDER.filter((t) => signals.some((s) => s.type === t)),
+        sources: uniqCI(signals.flatMap((s) => s.sourceTokens)),
+        categories: uniqCI(signals.map((s) => s.category)),
       },
     });
   } catch (e) { next(e); }
@@ -650,11 +742,11 @@ async function metricsValueStream(tenantId: string, c: string, id: string): Prom
     level: 'valueStream', title: vs.name, subtitle: 'Performance',
     tiles: [
       { label: 'KPIs defined', value: kpis.length },
-      { label: 'Process areas', value: l3rows.length },
+      { label: 'Process Level 4', value: l3rows.length },
     ],
     sections: [
       { title: 'KPIs & targets', kind: 'kpi', items: kpiList(kpis) },
-      { title: 'Process areas', kind: 'list', items: l3rows.map((s) => ({ label: s.name, value: stepByL3.get(s.name) ?? 0, hint: stepByL3.get(s.name) ? `${stepByL3.get(s.name)} steps` : 'no flow', drill: { level: 'step', id: s.id } })) },
+      { title: 'Process Level 4', kind: 'list', items: l3rows.map((s) => ({ label: s.name, value: stepByL3.get(s.name) ?? 0, hint: stepByL3.get(s.name) ? `${stepByL3.get(s.name)} steps` : 'no flow', drill: { level: 'step', id: s.id } })) },
     ],
   };
 }
@@ -674,7 +766,7 @@ async function metricsStep(tenantId: string, id: string): Promise<Dashboard | nu
   const roleMap = new Map<string, { id: string; name: string; part: string }>();
   for (const l of rvs) { const cur = roleMap.get(l.roleId); if (!cur || (PART_ORDER[l.participationType] ?? 9) < (PART_ORDER[cur.part] ?? 9)) roleMap.set(l.roleId, { id: l.role.id, name: l.role.name, part: l.participationType }); }
   return {
-    level: 'step', title: s.name, subtitle: 'Performance (process area)',
+    level: 'step', title: s.name, subtitle: 'Performance (Process Level 4)',
     tiles: [
       { label: 'KPIs defined', value: kpis.length }, { label: 'Process steps', value: steps },
       { label: 'Roles', value: roleMap.size }, { label: 'I/O items', value: ioTotal },
@@ -854,14 +946,11 @@ async function rolesValueStream(tenantId: string, c: string, id: string): Promis
   if (!vs) return null;
   const links = await prisma.roleValueStream.findMany({ where: { valueStreamId: id }, select: { participationType: true, role: { select: { id: true, name: true, roleLevel: true } } } });
   const roles = dedupeByStrongestPart(links);
-  const leads = roles.filter((r) => r.part === 'Lead');
-  const partBars = (() => { const m = new Map<string, number>(); for (const r of roles) m.set(r.part, (m.get(r.part) ?? 0) + 1); return [...m.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => (PART_ORDER[a.label] ?? 9) - (PART_ORDER[b.label] ?? 9)); })();
   return {
     level: 'valueStream', title: vs.name, subtitle: 'Roles · who owns what',
-    tiles: [{ label: 'Roles', value: roles.length }, { label: 'Leads', value: leads.length }],
+    tiles: [{ label: 'Roles', value: roles.length }],
     sections: [
-      { title: 'By participation', kind: 'bar', items: partBars },
-      { title: 'Roles', kind: 'list', items: roles.map((r) => ({ label: r.name, value: 0, hint: r.part, drill: { level: 'role', id: r.id } })) },
+      { title: 'Participating Roles', kind: 'list', items: roles.map((r) => ({ label: r.name, value: 0, hint: r.part, drill: { level: 'role', id: r.id } })) },
     ],
   };
 }
@@ -870,10 +959,9 @@ async function rolesStep(tenantId: string, id: string): Promise<Dashboard | null
   if (!s) return null;
   const links = await prisma.roleValueStream.findMany({ where: { valueStreamId: s.valueStreamId, subStream: { startsWith: s.name + ' — ' } }, select: { participationType: true, role: { select: { id: true, name: true, roleLevel: true } } } });
   const roles = dedupeByStrongestPart(links);
-  const leads = roles.filter((r) => r.part === 'Lead');
   return {
     level: 'step', title: s.name, subtitle: 'Roles · who owns what',
-    tiles: [{ label: 'Roles', value: roles.length }, { label: 'Leads', value: leads.length }],
+    tiles: [{ label: 'Roles', value: roles.length }],
     sections: [
       { title: 'Roles involved', kind: 'list', items: roles.map((r) => ({ label: r.name, value: 0, hint: r.part, drill: { level: 'role', id: r.id } })) },
     ],

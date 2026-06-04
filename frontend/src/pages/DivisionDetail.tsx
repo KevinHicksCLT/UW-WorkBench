@@ -15,7 +15,6 @@ export default function DivisionDetail() {
       <PageHeader
         title={d.name}
         subtitle={`${d.departments.length} departments`}
-        breadcrumbs={[{ label: 'Overview', to: '/' }, { label: d.name }]}
       />
       <div className="space-y-4">
         {d.departments.length === 0 ? (

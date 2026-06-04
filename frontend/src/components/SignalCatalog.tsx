@@ -10,19 +10,18 @@ import { withCompany } from '../lib/portfolio';
 // ROLE LEVEL. Data: GET /explorer/telemetry-catalog (+ /telemetry-signal/by-role).
 
 type Signal = {
-  id: string; kind: 'workforce' | 'kpi'; name: string; description: string | null;
-  source: string | null; category: string | null; framework: string | null;
+  id: string; kind: 'workforce' | 'kpi' | 'system'; type: string; name: string; description: string | null;
+  source: string | null; sourceTokens: string[]; category: string | null; framework: string | null;
   frequency: string | null; unit: string | null; direction: string; target: string | null;
   levels: string[]; store?: string; roleDrill: boolean;
   valueStreamName: string | null; domain: string | null; l3: string | null;
   ownerRole: string | null; ownerRoleId: string | null;
 };
-type Filters = { sources: string[]; categories: string[]; frequencies: string[]; levels: string[]; domains: string[] };
+type Filters = { types: string[]; sources: string[]; categories: string[] };
 type Catalog = { signals: Signal[]; filters: Filters };
 type RoleRow = { roleId: string; roleName: string; value: number; people: number; unit: string };
 type ByRole = { name: string; unit: string; period: string; roles: RoleRow[] };
 
-const KIND_LABEL: Record<string, string> = { workforce: 'Workforce signal', kpi: 'Operating-model KPI' };
 const LEVEL_CLASS: Record<string, string> = {
   Individual: 'bg-[#eef2ff] text-[#4338ca]', Role: 'bg-[#e0e7ff] text-[#3730a3]',
   Team: 'bg-[#ecfdf5] text-[#047857]', Department: 'bg-[#fef3c7] text-[#92400e]',
@@ -133,12 +132,9 @@ export default function SignalCatalog({ companyId }: { companyId: string | null 
   const [drill, setDrill] = useState<Signal | null>(null);
 
   const [search, setSearch] = useState('');
-  const [kind, setKind] = useState('All');
+  const [type, setType] = useState('All');
   const [source, setSource] = useState('All');
   const [category, setCategory] = useState('All');
-  const [level, setLevel] = useState('All');
-  const [frequency, setFrequency] = useState('All');
-  const [domain, setDomain] = useState('All');
 
   useEffect(() => {
     setLoading(true); setError('');
@@ -153,17 +149,14 @@ export default function SignalCatalog({ companyId }: { companyId: string | null 
       .some((v) => v?.toLowerCase().includes(q));
     return data.signals.filter((s) =>
       matchesSearch(s)
-      && (kind === 'All' || KIND_LABEL[s.kind] === kind)
-      && (source === 'All' || s.source === source)
+      && (type === 'All' || s.type === type)
+      && (source === 'All' || s.sourceTokens.includes(source))
       && (category === 'All' || s.category === category)
-      && (level === 'All' || s.levels.includes(level))
-      && (frequency === 'All' || s.frequency === frequency)
-      && (domain === 'All' || s.domain === domain)
     );
-  }, [data, search, kind, source, category, level, frequency, domain]);
+  }, [data, search, type, source, category]);
 
-  const reset = () => { setSearch(''); setKind('All'); setSource('All'); setCategory('All'); setLevel('All'); setFrequency('All'); setDomain('All'); };
-  const anyFilter = !!search || [kind, source, category, level, frequency, domain].some((v) => v !== 'All');
+  const reset = () => { setSearch(''); setType('All'); setSource('All'); setCategory('All'); };
+  const anyFilter = !!search || [type, source, category].some((v) => v !== 'All');
 
   return (
     <div className="card-elevated overflow-hidden">
@@ -192,12 +185,9 @@ export default function SignalCatalog({ companyId }: { companyId: string | null 
                 className="w-full rounded-lg border border-[#eaeaea] bg-white px-3 py-1.5 text-sm text-[#171717] placeholder:text-[#c4c4c4] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150"
               />
             </div>
-            <Dropdown label="Type" value={kind} onChange={setKind} options={Object.values(KIND_LABEL)} />
+            <Dropdown label="Type" value={type} onChange={setType} options={data.filters.types} />
             <Dropdown label="Source" value={source} onChange={setSource} options={data.filters.sources} />
             <Dropdown label="Category" value={category} onChange={setCategory} options={data.filters.categories} />
-            <Dropdown label="Level" value={level} onChange={setLevel} options={data.filters.levels} />
-            <Dropdown label="Frequency" value={frequency} onChange={setFrequency} options={data.filters.frequencies} />
-            <Dropdown label="Domain" value={domain} onChange={setDomain} options={data.filters.domains} />
             {anyFilter && (
               <button onClick={reset} className="text-xs text-[#525252] hover:text-[#171717] underline underline-offset-2 pb-2">Clear</button>
             )}

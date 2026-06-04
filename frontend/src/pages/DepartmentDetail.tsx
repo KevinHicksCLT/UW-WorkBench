@@ -30,11 +30,6 @@ export default function DepartmentDetail() {
       <PageHeader
         title={d.name}
         subtitle={`${d.totals.roles} roles · ${d.totals.people} people`}
-        breadcrumbs={[
-          { label: 'Overview', to: '/' },
-          { label: d.division.name, to: `/divisions/${d.division.id}` },
-          { label: d.name },
-        ]}
       />
 
       <div className="card p-0 overflow-hidden">

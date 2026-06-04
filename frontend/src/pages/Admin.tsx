@@ -173,7 +173,6 @@ export default function Admin() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <span className="text-xs text-[#a3a3a3] tnum">{list ? `${list.total} total` : ''}</span>
             <div className="flex-1" />
             <button className="btn-primary" disabled={!entity} onClick={() => setEditing('new')}>
               + New {entity?.label}
@@ -215,9 +214,6 @@ export default function Admin() {
               </table>
             </div>
           </div>
-          {list && list.total > list.rows.length && (
-            <p className="text-xs text-[#a3a3a3] mt-2">Showing first {list.rows.length} of {list.total}. Refine with search.</p>
-          )}
         </section>
       </div>
       )}

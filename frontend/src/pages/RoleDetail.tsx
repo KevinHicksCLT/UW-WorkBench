@@ -12,17 +12,11 @@ export default function RoleDetail() {
   if (error) return <div className="text-red-600">{error}</div>;
   if (!r) return null;
 
-  const crumbs: { label: string; to?: string }[] = [{ label: 'Overview', to: '/' }];
-  if (r.division) crumbs.push({ label: r.division.name, to: `/divisions/${r.division.id}` });
-  if (r.department) crumbs.push({ label: r.department.name, to: `/departments/${r.department.id}` });
-  crumbs.push({ label: r.name });
-
   return (
     <div>
       <PageHeader
         title={r.name}
         subtitle={[r.roleFamily, r.department?.name, r.division?.name].filter(Boolean).join(' · ') || 'Checklist-only role (not placed in the org chart)'}
-        breadcrumbs={crumbs}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -169,10 +163,15 @@ function Grouped({ title, groups }: { title: string; groups: { category: string;
         <div className="text-sm text-slate-500 italic">None.</div>
       ) : (
         groups.map((g) => (
-          <div key={g.category} className="mb-3 last:mb-0">
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">{g.category} ({g.items.length})</div>
-            <ul className="list-disc list-inside text-sm text-slate-700 space-y-0.5">
-              {g.items.map((it, i) => <li key={i}>{it}</li>)}
+          <div key={g.category} className="mb-4 last:mb-0">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">{g.category} ({g.items.length})</div>
+            <ul className="space-y-1.5">
+              {g.items.map((it, i) => (
+                <li key={i} className="flex gap-2 text-sm text-slate-700 leading-snug">
+                  <span className="mt-[7px] h-1 w-1 rounded-full bg-slate-300 flex-shrink-0" aria-hidden="true" />
+                  <span className="min-w-0 break-words">{it}</span>
+                </li>
+              ))}
             </ul>
           </div>
         ))
