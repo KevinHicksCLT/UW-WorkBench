@@ -23,9 +23,6 @@ type Dashboard = {
   topDivisions: { id: string; name: string; higherCategory: string | null; roles: number }[];
 };
 
-const CAT_COLOR: Record<string, string> = {
-  'Core Business': '#0d9488', 'IT': '#4f46e5', 'Corporate Function': '#7c3aed',
-};
 // Workforce mix is presented in two buckets: badged headcount as "Employees",
 // and contractors + SI partners merged into "Contingent Workers".
 function workforceBuckets(byType: Group[]): Group[] {
@@ -133,26 +130,11 @@ export default function Overview() {
 
       {/* Breakdowns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card title="Divisions by category" to="/overview" toLabel="Explorer">
-          <BarList groups={data.divisionsByCategory} color={(k) => CAT_COLOR[k] ?? '#171717'} />
-        </Card>
-
         <Card title="Workforce mix" to="/roles" toLabel="Roles">
           <div className="text-xs text-[#a3a3a3] mb-2 tnum">{fmt.number(workforceTotal)} people</div>
           <BarList groups={workforceBuckets(data.workforce.byType)} color="#4f46e5" />
           <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mt-4 mb-2">By region</div>
           <BarList groups={data.workforce.byRegion} color="#0d9488" />
-        </Card>
-
-        <Card title="Largest divisions" to="/roles" toLabel="Roles">
-          <div className="space-y-1.5">
-            {data.topDivisions.map((d) => (
-              <Link key={d.id} to={`/divisions/${d.id}`} className="flex items-center justify-between py-1 group">
-                <span className="text-sm text-[#171717] group-hover:text-[#4f46e5] truncate">{d.name}</span>
-                <span className="text-xs text-[#a3a3a3] tnum flex-shrink-0 ml-2">{d.roles} roles</span>
-              </Link>
-            ))}
-          </div>
         </Card>
 
         <Card title="Model footprint">
