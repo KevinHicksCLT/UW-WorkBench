@@ -23,9 +23,6 @@ type Dashboard = {
   topDivisions: { id: string; name: string; higherCategory: string | null; roles: number }[];
 };
 
-const CAT_COLOR: Record<string, string> = {
-  'Core Business': '#0d9488', 'IT': '#4f46e5', 'Corporate Function': '#7c3aed',
-};
 // Workforce mix is presented in two buckets: badged headcount as "Employees",
 // and contractors + SI partners merged into "Contingent Workers".
 function workforceBuckets(byType: Group[]): Group[] {
@@ -36,14 +33,22 @@ function workforceBuckets(byType: Group[]): Group[] {
   ];
 }
 
-function Tile({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
-  return (
-    <div className="card-elevated p-4">
+function Tile({ label, value, hint, to }: { label: string; value: string | number; hint?: string; to?: string }) {
+  const body = (
+    <>
       <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</div>
       <div className="text-2xl font-semibold text-[#171717] mt-1 tnum">{value}</div>
       {hint && <div className="text-[11px] text-[#a3a3a3] mt-0.5">{hint}</div>}
-    </div>
+    </>
   );
+  if (to) {
+    return (
+      <Link to={to} className="card-elevated p-4 block transition-colors hover:border-[#4f46e5] group">
+        {body}
+      </Link>
+    );
+  }
+  return <div className="card-elevated p-4">{body}</div>;
 }
 
 // Horizontal bar list. Bars are scaled to the largest value in the set.
@@ -71,7 +76,11 @@ function Card({ title, children, to, toLabel }: { title: string; children: React
   return (
     <div className="card-elevated p-5">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-semibold text-[#171717]">{title}</h2>
+        {to ? (
+          <Link to={to} className="text-sm font-semibold text-[#171717] hover:text-[#4f46e5]">{title}</Link>
+        ) : (
+          <h2 className="text-sm font-semibold text-[#171717]">{title}</h2>
+        )}
         {to && <Link to={to} className="text-xs text-[#525252] hover:text-[#171717]">{toLabel ?? 'View'} →</Link>}
       </div>
       {children}
@@ -111,36 +120,21 @@ export default function Overview() {
 
       {/* Headline metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-        <Tile label="Divisions" value={t.divisions} hint={`${t.departments} departments`} />
-        <Tile label="Roles" value={t.roles} />
-        <Tile label="Value Streams" value={t.valueStreams} hint={`${t.domains} domains`} />
-        <Tile label="Initiatives" value={t.initiatives} />
-        <Tile label="Deliverables" value={t.deliverables} />
-        <Tile label="Tasks" value={t.tasks} />
+        <Tile label="Divisions" value={t.divisions} hint={`${t.departments} departments`} to="/roles" />
+        <Tile label="Roles" value={t.roles} to="/roles" />
+        <Tile label="Value Streams" value={t.valueStreams} hint={`${t.domains} domains`} to="/overview" />
+        <Tile label="Initiatives" value={t.initiatives} to="/portfolio" />
+        <Tile label="Deliverables" value={t.deliverables} to="/work" />
+        <Tile label="Tasks" value={t.tasks} to="/work" />
       </div>
 
       {/* Breakdowns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card title="Divisions by category" to="/overview" toLabel="Explorer">
-          <BarList groups={data.divisionsByCategory} color={(k) => CAT_COLOR[k] ?? '#171717'} />
-        </Card>
-
         <Card title="Workforce mix" to="/roles" toLabel="Roles">
           <div className="text-xs text-[#a3a3a3] mb-2 tnum">{fmt.number(workforceTotal)} people</div>
           <BarList groups={workforceBuckets(data.workforce.byType)} color="#4f46e5" />
           <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mt-4 mb-2">By region</div>
           <BarList groups={data.workforce.byRegion} color="#0d9488" />
-        </Card>
-
-        <Card title="Largest divisions" to="/roles" toLabel="Roles">
-          <div className="space-y-1.5">
-            {data.topDivisions.map((d) => (
-              <Link key={d.id} to={`/divisions/${d.id}`} className="flex items-center justify-between py-1 group">
-                <span className="text-sm text-[#171717] group-hover:text-[#4f46e5] truncate">{d.name}</span>
-                <span className="text-xs text-[#a3a3a3] tnum flex-shrink-0 ml-2">{d.roles} roles</span>
-              </Link>
-            ))}
-          </div>
         </Card>
 
         <Card title="Model footprint">

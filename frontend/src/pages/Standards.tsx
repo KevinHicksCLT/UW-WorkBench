@@ -49,7 +49,6 @@ export default function Standards() {
       <PageHeader
         title="Standards"
         subtitle={`${t.areas} standard areas · ${t.standards} standards across ${data.company.name}`}
-        breadcrumbs={[{ label: 'Overview', to: '/' }, { label: 'Standards' }]}
       />
 
       {/* Controls */}

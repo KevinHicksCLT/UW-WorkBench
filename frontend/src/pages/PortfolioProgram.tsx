@@ -49,7 +49,6 @@ export default function PortfolioProgram() {
       <PageHeader
         title={program.name}
         subtitle={program.description ?? undefined}
-        breadcrumbs={[{ to: '/portfolio', label: 'Initiatives' }, { label: program.name }]}
         actions={<button className="btn-primary" onClick={() => setShowCreateWs(true)}>+ New Workstream</button>}
       />
 

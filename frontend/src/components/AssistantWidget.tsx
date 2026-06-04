@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../lib/api';
+import AssistantMarkdown from './AssistantMarkdown';
 
 // Floating AI Assistant — a launcher button (bottom-right) that opens a chat
 // popup, available on every page. The backend (/chat) answers each question by
@@ -145,7 +146,7 @@ export default function AssistantWidget() {
             {messages.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center text-center gap-4">
                 <div className="text-xs text-[#737373] max-w-[16rem]">
-                  Ask anything about roles, value streams, processes, or checklists. Numbers come straight from the database.
+                  Ask about roles, value streams, processes, or checklists — or for analysis and recommendations. Facts come from the data; charts and tables render inline.
                 </div>
                 <div className="flex flex-col gap-1.5 w-full">
                   {SUGGESTIONS.map((s) => (
@@ -170,7 +171,7 @@ export default function AssistantWidget() {
                 </div>
               ) : (
                 <div key={i} className="flex flex-col gap-1.5">
-                  <div className="text-sm text-[#171717] whitespace-pre-wrap leading-relaxed">{m.content}</div>
+                  <AssistantMarkdown content={m.content} />
                   {m.queries && m.queries.length > 0 && <QueryDisclosure queries={m.queries} />}
                 </div>
               ),

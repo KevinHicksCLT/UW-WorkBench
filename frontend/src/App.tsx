@@ -3,6 +3,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './lib/auth';
 import { CompanyProvider } from './lib/company';
+import { BreadcrumbProvider } from './lib/breadcrumbs';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Overview from './pages/Overview';
@@ -47,6 +48,7 @@ export default function App() {
 
   return (
     <CompanyProvider>
+    <BreadcrumbProvider>
     <Layout>
       <Routes>
         {/* Home IS the executive dashboard — the application landing. */}
@@ -91,6 +93,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>
+    </BreadcrumbProvider>
     </CompanyProvider>
   );
 }

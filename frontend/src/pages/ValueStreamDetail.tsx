@@ -23,7 +23,6 @@ export default function ValueStreamDetail() {
       <PageHeader
         title={vs.name}
         subtitle={vs.domain || undefined}
-        breadcrumbs={[{ label: 'Value Streams', to: '/overview' }, { label: vs.name }]}
       />
 
       <div className="border-b border-[#eaeaea] mb-5 flex gap-1">
@@ -48,7 +47,7 @@ export default function ValueStreamDetail() {
           <div className="lg:col-span-2 card">
             <div className="flex items-center gap-2 mb-4 pb-2.5 border-b border-[#eaeaea]">
               <span className="w-1 h-3.5 rounded-full bg-[#171717]" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.10em] text-[#525252]">Process Areas &amp; Sub-Processes</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.10em] text-[#525252]">Process Level 4 &amp; Process Level 5</span>
             </div>
             {processAreas.length === 0 ? (
               <div className="text-sm text-[#a3a3a3] italic">No process areas.</div>

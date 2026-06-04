@@ -5,25 +5,19 @@ import { useCompany } from '../lib/company';
 import PageHeader from '../components/PageHeader';
 import SignalCatalog from '../components/SignalCatalog';
 import {
-  MODES, HEAT, SDLC_FLOW, KNOWLEDGE_AGENT, levelsFor, type AiMode,
+  MODES, HEAT, levelsFor,
 } from '../lib/aiAdoption';
 
 // Active AI — where AI is being applied across the company, and how far up the
-// autonomy spectrum (AI assistant → fully autonomous agent). Two views:
-//   1. The SDLC augmented phase-by-phase with purpose-built agents.
-//   2. A heat map crossing every real value stream with the four AI modes.
-// The adoption level IS the traffic light: red (piloting) → green (embedded),
-// so leaders and laggards read at a glance. Use cases + levels are authored per
-// value stream in lib/aiAdoption.ts, grounded in each stream's real work.
+// autonomy spectrum (AI assistant → fully autonomous agent). A heat map crosses
+// every real value stream with the four AI modes. The adoption level IS the
+// traffic light: red (piloting) → green (embedded), so leaders and laggards read
+// at a glance. Use cases + levels are authored per value stream in
+// lib/aiAdoption.ts, grounded in each stream's real work.
 
 type ValueStream = {
   id: string; name: string; domain: string | null; domainId: string | null;
   divisionIds: string[]; categories: string[]; roleIds: string[];
-};
-
-// Soft accent for the SDLC band's mode tag (the software-delivery view).
-const MODE_ACCENT: Record<AiMode['key'], string> = {
-  assistant: '#6366f1', augmented: '#6366f1', workflow: '#4f46e5', agent: '#4338ca',
 };
 
 function Tile({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
@@ -106,81 +100,10 @@ export default function ActiveAI() {
       ) : (
       <>
       {/* Coverage headline */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
         <Tile label="Value streams with AI" value={`${stats.anyAi}/${stats.total}`} hint="at least one active mode" />
         <Tile label="Embedded somewhere" value={stats.embedded} hint="a mode fully embedded" />
         <Tile label="Running autonomous agents" value={stats.autonomous} hint="beyond pilot" />
-        <Tile label="SDLC phases agent-enabled" value={SDLC_FLOW.length} hint="planning → maintenance" />
-      </div>
-
-      {/* ── SDLC augmented with AI agents (software-delivery view) ──────────── */}
-      <div className="card-elevated p-5 mb-6">
-        <div className="flex items-start justify-between gap-4 mb-1">
-          <h2 className="text-sm font-semibold text-[#171717]">Augmenting the SDLC with AI agents</h2>
-          <span className="hidden sm:inline-flex chip-soft">{KNOWLEDGE_AGENT.agent} span every phase</span>
-        </div>
-        <p className="text-xs text-[#666666] mb-4 max-w-3xl">
-          The software-delivery view: each agent's output (human-approved) cascades to the next phase, maintaining
-          end-to-end data fidelity and accelerating delivery.
-        </p>
-
-        {/* Phase flow — horizontally scrollable on small screens. */}
-        <div className="overflow-x-auto -mx-1 px-1">
-          <div className="flex items-stretch gap-2 min-w-[860px]">
-            {SDLC_FLOW.map((p, i) => {
-              const mode = MODES.find((m) => m.key === p.mode)!;
-              const accent = MODE_ACCENT[p.mode];
-              return (
-                <div key={p.phase} className="flex items-stretch gap-2 flex-1">
-                  <div className="flex-1 rounded-lg border border-[#eaeaea] bg-white overflow-hidden flex flex-col">
-                    {/* Phase header */}
-                    <div className="px-3 py-2 bg-[#fafafa] border-b border-[#eaeaea]">
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">
-                        {String(i + 1).padStart(2, '0')}
-                      </div>
-                      <div className="text-xs font-semibold text-[#171717] leading-tight">{p.phase}</div>
-                    </div>
-                    {/* Body */}
-                    <div className="px-3 py-2.5 flex flex-col gap-2 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="inline-block h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: accent }} />
-                        <span className="text-xs font-semibold text-[#171717] leading-tight">{p.agent}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        {p.personas.map((h) => (
-                          <span key={h} className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#f5f5f5] text-[10px] text-[#525252]">{h}</span>
-                        ))}
-                      </div>
-                      <div className="mt-auto pt-1">
-                        <span
-                          className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium"
-                          style={{ backgroundColor: accent + '14', color: accent }}
-                          title={mode.desc}
-                        >
-                          {mode.label}
-                        </span>
-                        <div className="text-[10px] text-[#a3a3a3] mt-1 truncate" title={p.sor}>{p.sor}</div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Cascade arrow between phases */}
-                  {i < SDLC_FLOW.length - 1 && (
-                    <div className="self-center text-[#c7d2fe] flex-shrink-0" aria-hidden="true">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M5 12h14M13 6l6 6-6 6" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          {/* Cross-cutting knowledge layer */}
-          <div className="min-w-[860px] mt-2 rounded-lg border border-dashed border-[#c7d2fe] bg-[#f5f7ff] px-3 py-2 flex items-center gap-2">
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#4338ca] text-[10px] font-semibold text-white flex-shrink-0">{KNOWLEDGE_AGENT.agent}</span>
-            <span className="text-[11px] text-[#4338ca]/80">{KNOWLEDGE_AGENT.blurb}</span>
-          </div>
-        </div>
       </div>
 
       {/* ── Value-stream × AI-mode heat map ────────────────────────────────── */}
@@ -251,16 +174,23 @@ export default function ActiveAI() {
   );
 }
 
-// One domain section: a sub-header row, then its value-stream rows.
+// One domain section: a collapsible sub-header row, then its value-stream rows.
 function DomainGroup({ domain, rows }: { domain: string; rows: { vs: ValueStream; cells: number[] }[] }) {
+  const [open, setOpen] = useState(true);
   return (
     <>
-      <tr className="bg-[#fafafa] border-b border-[#eaeaea]">
+      <tr className="bg-[#fafafa] border-b border-[#eaeaea] cursor-pointer hover:bg-[#f5f5f5]" onClick={() => setOpen((v) => !v)}>
         <td colSpan={MODES.length + 1} className="px-5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#666666] sticky left-0 bg-[#fafafa]">
-          {domain} <span className="text-[#a3a3a3] font-normal">· {rows.length}</span>
+          <button type="button" aria-expanded={open} className="inline-flex items-center gap-1.5 text-left">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              className={'text-[#a3a3a3] transition-transform duration-150 ' + (open ? '' : '-rotate-90')} aria-hidden="true">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+            {domain} <span className="text-[#a3a3a3] font-normal">· {rows.length}</span>
+          </button>
         </td>
       </tr>
-      {rows.map(({ vs, cells }) => (
+      {open && rows.map(({ vs, cells }) => (
         <tr key={vs.id} className="border-b border-[#f5f5f5] hover:bg-[#fafafa] group">
           <td className="px-5 py-2 sticky left-0 bg-white group-hover:bg-[#fafafa] z-10">
             <Link to={`/active-ai/${vs.id}`} className="text-sm text-[#171717] group-hover:text-[#4338ca] truncate block max-w-[260px]">

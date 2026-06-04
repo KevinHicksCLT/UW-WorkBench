@@ -10,7 +10,7 @@ export default defineConfig({
   // Pre-bundle the heavy viz libs in the initial optimize pass so Vite doesn't
   // re-optimize mid-load (which caused "504 Outdated Optimize Dep" on first run).
   optimizeDeps: {
-    include: ['@xyflow/react', '@dagrejs/dagre', 'recharts'],
+    include: ['@xyflow/react', '@dagrejs/dagre'],
   },
   server: {
     port: 5173,

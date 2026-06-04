@@ -53,14 +53,14 @@ const DENY = new Set([
 // The raw value-stream tables back FK pickers elsewhere, so they stay resolvable
 // but are hidden from the sidebar — the unified "Value Streams" entity (below)
 // replaces them with one level-numbered (L1–L5) list.
-const HIDDEN = new Set(['valueStreamDomain', 'valueStream', 'subValueStream']);
+const HIDDEN = new Set(['valueStream', 'subValueStream']);
 
 // Sidebar groups — entities organized by operating-model area so a user can find
 // what to update at a glance. This array defines BOTH the section order and the
 // within-section order. The Data Dictionary (frontend lib/glossary.ts) mirrors
 // these group names and order. Entities not listed fall into "Other" at the end.
 const GROUPS: { group: string; slugs: string[] }[] = [
-  { group: 'Organization', slugs: ['company', 'division', 'department', 'role'] },
+  { group: 'Organization', slugs: ['company', 'valueStreamDomain', 'division', 'department', 'role'] },
   { group: 'Value Streams', slugs: ['valueStreams', 'processStep', 'ioItem'] },
   { group: 'Role Work', slugs: ['category', 'checklistItem', 'roleTask', 'roleValueStream'] },
   { group: 'Applications & Metrics', slugs: ['application', 'applicationValueStream', 'metric', 'standard', 'standardItem'] },
@@ -142,6 +142,8 @@ function buildEntity(model: Prisma.DMMF.Model, companyModels: Set<string>): Admi
     if (f.name === 'tenantId' || f.name === 'createdAt') continue;
     // companyId is auto-set from the active company, never edited in the form.
     if (f.name === 'companyId') continue;
+    // Provenance / legacy columns are noise in the admin sheets — never surface.
+    if (f.name === 'sourceSheet' || f.name === 'sourceRow' || f.name === 'code') continue;
 
     const target = fkTarget[f.name];
     fields.push({
@@ -199,6 +201,12 @@ ENTITIES[VALUE_STREAMS_ENTITY.slug] = VALUE_STREAMS_ENTITY;
 for (const e of Object.values(ENTITIES)) {
   e.group = SLUG_POS.get(e.slug)?.group ?? OTHER_GROUP;
 }
+
+// The top operating-model tiers are presented as Process 0 / 1 / 2 tabs:
+// Company (Process 0) → Domain (Process 1) → Division (Process 2).
+if (ENTITIES['company']) ENTITIES['company'].label = 'Process 0';
+if (ENTITIES['valueStreamDomain']) ENTITIES['valueStreamDomain'].label = 'Process 1';
+if (ENTITIES['division']) ENTITIES['division'].label = 'Process 2';
 
 // Ordered list for the sidebar / _meta response: by group order, then by the
 // order declared within the group. Hidden entities stay in ENTITIES for FK

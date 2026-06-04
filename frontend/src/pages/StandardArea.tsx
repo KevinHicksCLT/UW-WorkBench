@@ -65,7 +65,6 @@ export default function StandardArea() {
         title={a.department}
         subtitle={`${data.totals.items} standards across ${data.totals.categories} categories · ${data.totals.withOwnerRole} mapped to a role`}
         eyebrow="Standards area"
-        breadcrumbs={[{ label: 'Overview', to: '/' }, { label: 'Standards', to: '/standards' }, { label: a.department }]}
       />
 
       {/* Charter — mission + scope from the department standards sheet */}

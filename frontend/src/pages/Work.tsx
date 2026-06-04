@@ -51,7 +51,7 @@ function SourceTag({ source }: { source: string }) {
   const isRole = source === 'role';
   return (
     <span
-      title={isRole ? 'From a role responsibility' : 'From an L5 process step'}
+      title={isRole ? 'From a role responsibility' : 'From a Process Level 6 step'}
       className={'text-[10px] font-semibold uppercase tracking-[0.06em] px-1.5 py-0.5 rounded flex-shrink-0 ' +
         (isRole ? 'bg-[#eef2ff] text-[#4338ca]' : 'bg-[#f5f5f5] text-[#737373]')}
     >
@@ -234,12 +234,12 @@ function DetailBody({ detail }: { detail: Detail }) {
 
       {/* Where it lives in the operating model */}
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Value Stream">
+        <Field label="Process Level 3">
           {detail.valueStream
             ? <>{detail.valueStream.name}{detail.kind === 'deliverable' && detail.valueStream.domain && <span className="text-[#a3a3a3]"> · {detail.valueStream.domain}</span>}</>
             : <span className="text-[#a3a3a3]">—</span>}
         </Field>
-        <Field label="Sub-process">
+        <Field label="Process Level 5">
           {detail.kind === 'deliverable'
             ? (detail.subProcesses.length ? detail.subProcesses.join(', ') : <span className="text-[#a3a3a3]">—</span>)
             : (detail.subProcess ?? <span className="text-[#a3a3a3]">—</span>)}

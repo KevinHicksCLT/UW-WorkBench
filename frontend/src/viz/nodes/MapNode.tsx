@@ -113,7 +113,7 @@ const CompanyNodeImpl = memo(function CompanyNodeImpl({ data }: NodeProps) {
       }}
     >
       <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a3a3a3', marginBottom: 2 }}>
-        L0
+        PL0
       </div>
       <div style={{ fontSize: 15, fontWeight: 700, color: '#ffffff', lineHeight: 1.25 }}>
         {d.name}
@@ -169,7 +169,7 @@ const CoreNodeImpl = memo(function CoreNodeImpl({ data }: NodeProps) {
           marginBottom: 3,
         }}
       >
-        L1
+        PL1
       </div>
       <div
         style={{
@@ -222,7 +222,7 @@ const DivisionNodeImpl = memo(function DivisionNodeImpl({ data }: NodeProps) {
     >
       {/* Level tag */}
       <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#a3a3a3', marginBottom: 3 }}>
-        L2
+        PL2
       </div>
       {/* Name */}
       <div style={{ fontSize: 13, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.3, marginBottom: 6 }}>
@@ -305,7 +305,7 @@ const ValueStreamNodeImpl = memo(function ValueStreamNodeImpl({ data }: NodeProp
     >
       {/* Level tag */}
       <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#a3a3a3', marginBottom: 4 }}>
-        L3
+        PL3
       </div>
       {/* Name */}
       <div style={{ fontSize: 12.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35 }}>
@@ -353,7 +353,7 @@ const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
     >
       {/* Level tag */}
       <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#a3a3a3', marginBottom: 3 }}>
-        L4
+        PL4
       </div>
       {/* Step number + name */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 6 }}>
@@ -427,7 +427,7 @@ const SubStepNodeImpl = memo(function SubStepNodeImpl({ data }: NodeProps) {
     >
       {/* Level tag */}
       <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#a3a3a3', marginBottom: 3 }}>
-        L5
+        PL5
       </div>
       {/* Step number + name */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 6 }}>
@@ -456,7 +456,7 @@ const SubStepNodeImpl = memo(function SubStepNodeImpl({ data }: NodeProps) {
       {/* L5 drill affordance */}
       {!!d.l5Count && (
         <span className="chip-soft" style={{ fontSize: 9, padding: '2px 6px' }}>
-          {d.l5Count} L5 step{d.l5Count === 1 ? '' : 's'} ›
+          {d.l5Count} PL6 step{d.l5Count === 1 ? '' : 's'} ›
         </span>
       )}
       <AllHandles />
@@ -493,7 +493,7 @@ const LeafStepNodeImpl = memo(function LeafStepNodeImpl({ data }: NodeProps) {
     >
       {/* Level tag */}
       <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#a3a3a3', marginBottom: 3 }}>
-        L6
+        PL6
       </div>
       {/* Step number + name */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>

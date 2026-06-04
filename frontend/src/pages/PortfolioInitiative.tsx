@@ -40,11 +40,6 @@ export default function PortfolioInitiative() {
       <PageHeader
         title={init.name}
         subtitle={init.description ?? undefined}
-        breadcrumbs={[
-          { to: '/portfolio', label: 'Initiatives' },
-          { to: `/portfolio/programs/${program.id}`, label: program.name },
-          { label: init.workstream.name },
-        ]}
         actions={
           <>
             {init.workflowAction === 'SUBMIT' && (
