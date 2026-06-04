@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ReactFlow, ReactFlowProvider, Background, Controls, MarkerType, Handle, Position,
-  type Node, type Edge, type NodeProps,
+  useNodesState, useEdgesState, addEdge, reconnectEdge,
+  type Node, type Edge, type NodeProps, type Connection,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { api } from '../lib/api';
@@ -10,7 +11,7 @@ import { withCompany } from '../lib/portfolio';
 import PageHeader from '../components/PageHeader';
 import {
   LAYERS, pct, statusDot, STATUS_META, CAPDAN_META, categoryTags,
-  type StageListItem, type StageDetail, type Layer, type Capdan, type CategoryTag, type Finding,
+  type StageListItem, type StageDetail, type Layer, type Capdan, type CategoryTag, type Finding, type BoardLayout,
 } from '../lib/rationalization';
 
 const belongsHere = (c: Capdan) => c === 'Common' || c === 'Different';
@@ -21,20 +22,26 @@ type Drill =
   | { kind: 'capdan'; layer: Layer }
   | { kind: 'service'; serviceId: string };
 
+// A change-log entry (audit row scoped to the workspace).
+type LogEntry = { id: string; action: string; actorEmail: string; createdAt: string; diff: string | null };
+
 // ── Custom React Flow nodes ─────────────────────────────────────────────────
+// Handles are hidden in read mode and revealed via the `.board-editing` CSS
+// class on the canvas when editing; connectability follows the global
+// `nodesConnectable` flag, so no per-handle override is needed.
 const sideHandles = (
   <>
-    <Handle id="l" type="target" position={Position.Left} style={{ opacity: 0 }} isConnectable={false} />
-    <Handle id="r" type="source" position={Position.Right} style={{ opacity: 0 }} isConnectable={false} />
+    <Handle id="l" type="target" position={Position.Left} className="board-handle" />
+    <Handle id="r" type="source" position={Position.Right} className="board-handle" />
   </>
 );
 
 function CellNode({ data }: NodeProps) {
   const d = data as { layer: Layer; appId: string; tags: CategoryTag[]; onDrill: DrillFn };
   return (
-    <div className="rounded-lg border border-[#eaeaea] bg-white shadow-sm px-2.5 py-2" style={{ width: 230 }}>
+    <div className="rounded-lg border-2 border-[#e7d3b5] bg-[#fdf8f0] shadow-sm px-2.5 py-2" style={{ width: 230 }}>
       {sideHandles}
-      <div className="text-[11px] font-semibold text-[#171717] mb-1.5">{d.layer}</div>
+      <div className="text-[14px] font-bold text-[#8a5a1a] mb-1.5">{d.layer}</div>
       <div className="flex flex-wrap gap-1">
         {d.tags.length === 0 ? <span className="text-[11px] text-[#cfcfcf]">—</span> : d.tags.map((t) => {
           const ok = belongsHere(t.capdan);
@@ -63,8 +70,8 @@ function CapdanNode({ data }: NodeProps) {
         <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#4f46e5]">Normalize</div>
         <div className="text-[10px] text-[#a3a3a3] tnum">{d.count} ›</div>
       </div>
-      <div className="text-[12px] font-semibold text-[#171717] leading-tight mt-0.5">{d.name}</div>
-      {d.destination && <div className="text-[10px] text-[#0f766e] mt-1">→ {d.destination}</div>}
+      <div className="text-[15px] font-bold text-[#171717] leading-tight mt-0.5">{d.name}</div>
+      {d.destination && <div className="text-[11px] text-[#0f766e] mt-1">→ {d.destination}</div>}
     </div>
   );
 }
@@ -78,7 +85,7 @@ function ServiceNode({ data }: NodeProps) {
         <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#0f766e]">Green-field · {d.status}</div>
         <div className="text-[10px] text-[#0f766e] tnum">{d.count} ›</div>
       </div>
-      <div className="text-[13px] font-semibold text-[#171717] leading-tight mt-0.5">{d.name}</div>
+      <div className="text-[16px] font-bold text-[#171717] leading-tight mt-0.5">{d.name}</div>
       {/* IT layers this service owns — aligns the green-field app to the stack */}
       <div className="flex flex-wrap gap-1 mt-1.5">
         {d.layers.map((l) => (
@@ -92,24 +99,123 @@ function ServiceNode({ data }: NodeProps) {
 
 function HeaderNode({ data }: NodeProps) {
   const d = data as { title: string; sub?: string; tone?: 'brown' | 'indigo' | 'teal' };
-  const tone = d.tone === 'brown' ? 'text-[#8a5a1a]' : d.tone === 'teal' ? 'text-[#0f766e]' : 'text-[#4f46e5]';
+  const tone =
+    d.tone === 'brown'
+      ? { text: 'text-[#8a5a1a]', box: 'border-[#e7d3b5] bg-[#fdf8f0]' }
+      : d.tone === 'teal'
+      ? { text: 'text-[#0f766e]', box: 'border-[#a7f3d0] bg-[#ecfdf5]' }
+      : { text: 'text-[#4f46e5]', box: 'border-[#c7d2fe] bg-[#f5f7ff]' };
   return (
-    <div style={{ width: 236 }}>
-      <div className={`text-[10px] font-semibold uppercase tracking-[0.10em] ${tone}`}>{d.title}</div>
-      {d.sub && <div className="text-[12px] font-semibold text-[#171717] leading-tight truncate">{d.sub}</div>}
+    <div className={`rounded-lg border-2 shadow-sm px-3 py-2 ${tone.box}`} style={{ width: 236 }}>
+      <div className={`text-[13px] font-semibold uppercase tracking-[0.10em] ${tone.text}`}>{d.title}</div>
+      {d.sub && <div className="text-[19px] font-bold text-[#171717] leading-tight truncate">{d.sub}</div>}
     </div>
   );
 }
 
 function LayerLabelNode({ data }: NodeProps) {
   const d = data as { layer: string };
-  return <div className="text-[12px] font-semibold text-[#171717] text-right" style={{ width: 100 }}>{d.layer}</div>;
+  return (
+    <div className="rounded-lg border border-[#e5e5e5] bg-white shadow-sm px-3 py-2 text-[15px] font-bold text-[#171717] text-right" style={{ width: 120 }}>
+      {d.layer}
+    </div>
+  );
 }
 
 const nodeTypes = { cell: CellNode, capdan: CapdanNode, service: ServiceNode, header: HeaderNode, layerLabel: LayerLabelNode };
 
 const X = { label: -130, app0: 0, app1: 260, capdan: 600, service: 900 };
 const ROW_H = 150;
+
+// ── Board overlay (user-curated drag/connect layer) ──────────────────────────
+type Overlay = {
+  positions: Record<string, { x: number; y: number }>;
+  addedEdges: { id: string; source: string; target: string; sourceHandle?: string | null; targetHandle?: string | null }[];
+  removedEdges: string[];
+};
+const EMPTY_OVERLAY: Overlay = { positions: {}, addedEdges: [], removedEdges: [] };
+
+type StagedChange = { type: 'move' | 'connect' | 'reconnect' | 'disconnect'; label: string };
+const CHANGE_DOT: Record<StagedChange['type'], string> = { move: '#a3a3a3', connect: '#10b981', reconnect: '#4f46e5', disconnect: '#be123c' };
+
+// Visual style for any arrow the user has drawn or re-pointed.
+const USER_EDGE = {
+  type: 'default' as const,
+  style: { stroke: '#4f46e5', strokeWidth: 2 },
+  markerEnd: { type: MarkerType.ArrowClosed, color: '#4f46e5', width: 16, height: 16 },
+  reconnectable: true as const,
+};
+
+function normalizeOverlay(layout: BoardLayout | null | undefined): Overlay {
+  if (!layout) return EMPTY_OVERLAY;
+  return {
+    positions: layout.positions ?? {},
+    addedEdges: layout.addedEdges ?? [],
+    removedEdges: layout.removedEdges ?? [],
+  };
+}
+
+// Lay the saved/user overlay on top of the data-derived board.
+function applyOverlay(base: { nodes: Node[]; edges: Edge[] }, ov: Overlay): { nodes: Node[]; edges: Edge[] } {
+  const nodes = base.nodes.map((n) => (ov.positions[n.id] ? { ...n, position: ov.positions[n.id] } : n));
+  const removed = new Set(ov.removedEdges);
+  const kept = base.edges.filter((e) => !removed.has(e.id));
+  const added: Edge[] = ov.addedEdges.map((e) => ({ ...USER_EDGE, id: e.id, source: e.source, target: e.target, sourceHandle: e.sourceHandle ?? 'r', targetHandle: e.targetHandle ?? 'l' }));
+  return { nodes, edges: [...kept, ...added] };
+}
+
+function boardNodeLabel(id: string, detail: StageDetail): string {
+  if (id.startsWith('cell:')) { const [, appId, layer] = id.split(':'); const app = detail.apps.find((a) => a.id === appId)?.name ?? 'App'; return `${app} · ${layer}`; }
+  if (id.startsWith('cap:')) { const layer = id.slice(4); return detail.components.find((c) => c.layer === layer)?.name ?? `Normalize ${layer}`; }
+  if (id.startsWith('svc:')) { return detail.microservices.find((m) => m.id === id.slice(4))?.name ?? 'Green-field service'; }
+  return id;
+}
+
+// Diff a working board against a reference: which positions moved, which arrows
+// were added / re-pointed / removed. Drives both the overlay to persist and the
+// human-readable staged-change list.
+function diffBoard(
+  ref: { nodes: Node[]; edges: Edge[] },
+  work: { nodes: Node[]; edges: Edge[] },
+  detail: StageDetail,
+): { overlay: Overlay; changes: StagedChange[] } {
+  const positions: Overlay['positions'] = {};
+  const addedEdges: Overlay['addedEdges'] = [];
+  const removedEdges: string[] = [];
+  const changes: StagedChange[] = [];
+
+  const refPos = new Map(ref.nodes.map((n) => [n.id, n.position]));
+  for (const n of work.nodes) {
+    const p = refPos.get(n.id);
+    if (!p) continue;
+    if (Math.round(p.x) !== Math.round(n.position.x) || Math.round(p.y) !== Math.round(n.position.y)) {
+      positions[n.id] = { x: Math.round(n.position.x), y: Math.round(n.position.y) };
+      changes.push({ type: 'move', label: `Moved ${boardNodeLabel(n.id, detail)}` });
+    }
+  }
+
+  const serialize = (e: Edge) => ({ id: e.id, source: e.source, target: e.target, sourceHandle: e.sourceHandle ?? 'r', targetHandle: e.targetHandle ?? 'l' });
+  const refById = new Map(ref.edges.map((e) => [e.id, e]));
+  const workById = new Map(work.edges.map((e) => [e.id, e]));
+  for (const [id, e] of workById) {
+    const b = refById.get(id);
+    if (!b) {
+      addedEdges.push(serialize(e));
+      changes.push({ type: 'connect', label: `Connected ${boardNodeLabel(e.source, detail)} → ${boardNodeLabel(e.target, detail)}` });
+    } else if (b.source !== e.source || b.target !== e.target || (b.sourceHandle ?? 'r') !== (e.sourceHandle ?? 'r') || (b.targetHandle ?? 'l') !== (e.targetHandle ?? 'l')) {
+      removedEdges.push(id);
+      addedEdges.push(serialize(e));
+      changes.push({ type: 'reconnect', label: `Re-pointed ${boardNodeLabel(e.source, detail)} → ${boardNodeLabel(e.target, detail)}` });
+    }
+  }
+  for (const [id, e] of refById) {
+    if (!workById.has(id)) {
+      removedEdges.push(id);
+      changes.push({ type: 'disconnect', label: `Removed ${boardNodeLabel(e.source, detail)} → ${boardNodeLabel(e.target, detail)}` });
+    }
+  }
+  return { overlay: { positions, addedEdges, removedEdges }, changes };
+}
 
 // ── Board ───────────────────────────────────────────────────────────────────
 // Embeddable: pass `embedded` to render inside another page (Initiatives tab)
@@ -126,6 +232,15 @@ export default function ApplicationRationalization({ embedded = false }: { embed
   const [showNew, setShowNew] = useState(false);
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
+  const [editTarget, setEditTarget] = useState<{ kind: 'app' | 'component' | 'service'; id: string } | null>(null);
+  const [log, setLog] = useState<LogEntry[]>([]);
+  const [showLog, setShowLog] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [bnodes, setBNodes, onNodesChange] = useNodesState<Node>([]);
+  const [bedges, setBEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const editingRef = useRef(false);
+  useEffect(() => { editingRef.current = editing; }, [editing]);
 
   const appOf = (s: StageListItem) => s.application ?? 'Unassigned';
 
@@ -168,25 +283,52 @@ export default function ApplicationRationalization({ embedded = false }: { embed
     finally { setCreating(false); }
   }, [newName, companyId, loadList]);
 
-  useEffect(() => {
-    if (!selectedId) { setDetail(null); return; }
-    setDetail(null); setDrill(null);
+  const loadDetail = useCallback(() => {
+    if (!selectedId) return;
     api.get(`/rationalization/${selectedId}`).then(setDetail).catch((e) => setError(e.message));
   }, [selectedId]);
+  const loadLog = useCallback(() => {
+    if (!selectedId) { setLog([]); return; }
+    api.get(`/audit?entityType=RationalizationWorkspace&entityId=${selectedId}`).then(setLog).catch(() => setLog([]));
+  }, [selectedId]);
 
-  const onDrill = useCallback<DrillFn>((appId, layer, category) => setDrill({ kind: 'cell', appId, layer, category }), []);
+  useEffect(() => {
+    setDrill(null);
+    setEditing(false); // leave any in-progress board edit when switching stages
+    if (!selectedId) { setDetail(null); setLog([]); return; }
+    setDetail(null);
+    loadDetail();
+    loadLog();
+  }, [selectedId, loadDetail, loadLog]);
+
+  const onDrill = useCallback<DrillFn>((appId, layer, category) => { if (editingRef.current) return; setDrill({ kind: 'cell', appId, layer, category }); }, []);
   const onNodeClick = useCallback((_e: unknown, node: Node) => {
+    if (editingRef.current) return;
     if (node.id.startsWith('cap:')) setDrill({ kind: 'capdan', layer: node.id.slice(4) as Layer });
     else if (node.id.startsWith('svc:')) setDrill({ kind: 'service', serviceId: node.id.slice(4) });
   }, []);
+  // In edit mode, double-clicking a box opens its edit popup. Brown-field cells
+  // (and their column header) edit the app; CAPDAN boxes edit the component;
+  // green-field boxes edit the service.
+  const onNodeDoubleClick = useCallback((_e: unknown, node: Node) => {
+    if (!editingRef.current) return;
+    const d = node.data as { appId?: string; componentId?: string; sub?: string };
+    if (node.id.startsWith('cell:') && d.appId) setEditTarget({ kind: 'app', id: d.appId });
+    else if (node.id.startsWith('hdr:') && d.sub) setEditTarget({ kind: 'app', id: node.id.slice(4) });
+    else if (node.id.startsWith('cap:') && d.componentId) setEditTarget({ kind: 'component', id: d.componentId });
+    else if (node.id.startsWith('svc:')) setEditTarget({ kind: 'service', id: node.id.slice(4) });
+  }, []);
 
-  const { nodes, edges } = useMemo(() => {
+  // The data-derived board (before any user overlay). Headers and layer labels
+  // are scaffolding — always locked; the cell / CAPDAN / service boxes follow
+  // the global `nodesDraggable` flag so they can be dragged in edit mode.
+  const base = useMemo(() => {
     if (!detail) return { nodes: [] as Node[], edges: [] as Edge[] };
     const nodes: Node[] = [];
     const edges: Edge[] = [];
     const appX = [X.app0, X.app1];
     const layerIndex = Object.fromEntries(LAYERS.map((l, i) => [l, i])) as Record<Layer, number>;
-    const noDrag = { draggable: false } as const;
+    const lock = { draggable: false, selectable: false } as const;
 
     // layers owned by each green-field service + kept-finding counts
     const layersByService = new Map<string, Layer[]>();
@@ -196,19 +338,19 @@ export default function ApplicationRationalization({ embedded = false }: { embed
     const keptCountByLayer = (layer: Layer) => detail.findings.filter((f) => f.layer === layer && belongsHere(f.capdan)).length;
 
     // Headers
-    nodes.push({ id: 'hdr:cap', type: 'header', position: { x: X.capdan, y: -78 }, data: { title: 'CAPDAN — Normalize', tone: 'indigo' }, selectable: false, ...noDrag });
-    nodes.push({ id: 'hdr:svc', type: 'header', position: { x: X.service, y: -78 }, data: { title: 'Green-field', tone: 'teal' }, selectable: false, ...noDrag });
+    nodes.push({ id: 'hdr:cap', type: 'header', position: { x: X.capdan, y: -78 }, data: { title: 'CAPDAN — Normalize', tone: 'indigo' }, ...lock });
+    nodes.push({ id: 'hdr:svc', type: 'header', position: { x: X.service, y: -78 }, data: { title: 'Green-field', tone: 'teal' }, ...lock });
     detail.apps.slice(0, 2).forEach((a, i) => {
-      nodes.push({ id: `hdr:${a.id}`, type: 'header', position: { x: appX[i], y: -86 }, data: { title: 'Brown-field', sub: a.name, tone: 'brown' }, selectable: false, ...noDrag });
+      nodes.push({ id: `hdr:${a.id}`, type: 'header', position: { x: appX[i], y: -86 }, data: { title: 'Brown-field', sub: a.name, tone: 'brown' }, ...lock });
     });
 
     LAYERS.forEach((layer, li) => {
       const y = li * ROW_H;
-      nodes.push({ id: `lbl:${layer}`, type: 'layerLabel', position: { x: X.label, y: y + 18 }, data: { layer }, selectable: false, ...noDrag });
+      nodes.push({ id: `lbl:${layer}`, type: 'layerLabel', position: { x: X.label, y: y + 18 }, data: { layer }, ...lock });
 
       detail.apps.slice(0, 2).forEach((a, i) => {
         const tags = categoryTags(detail.findings, layer, a.id);
-        nodes.push({ id: `cell:${a.id}:${layer}`, type: 'cell', position: { x: appX[i], y }, data: { layer, appId: a.id, tags, onDrill }, selectable: false, ...noDrag });
+        nodes.push({ id: `cell:${a.id}:${layer}`, type: 'cell', position: { x: appX[i], y }, data: { layer, appId: a.id, tags, onDrill }, selectable: false });
         if (tags.some((t) => belongsHere(t.capdan))) {
           edges.push({ id: `c-${a.id}-${layer}`, source: `cell:${a.id}:${layer}`, target: `cap:${layer}`, sourceHandle: 'r', targetHandle: 'l', type: 'default', style: { stroke: '#cbd5e1', strokeWidth: 1.5 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#94a3b8', width: 14, height: 14 } });
         }
@@ -223,7 +365,7 @@ export default function ApplicationRationalization({ embedded = false }: { embed
 
       const comp = detail.components.find((c) => c.layer === layer);
       if (comp) {
-        nodes.push({ id: `cap:${layer}`, type: 'capdan', position: { x: X.capdan, y: y + 8 }, data: { name: comp.name, destination: comp.destination, targetTech: comp.targetTech, count: keptCountByLayer(layer) }, ...noDrag });
+        nodes.push({ id: `cap:${layer}`, type: 'capdan', position: { x: X.capdan, y: y + 8 }, data: { name: comp.name, destination: comp.destination, targetTech: comp.targetTech, count: keptCountByLayer(layer), componentId: comp.id } });
       }
     });
 
@@ -234,7 +376,7 @@ export default function ApplicationRationalization({ embedded = false }: { embed
       const ys = owned.length ? owned.map((l) => layerIndex[l] * ROW_H) : [span / 2];
       const y = ys.reduce((s, v) => s + v, 0) / ys.length;
       const count = owned.reduce((s, l) => s + keptCountByLayer(l), 0);
-      nodes.push({ id: `svc:${m.id}`, type: 'service', position: { x: X.service, y: y + 2 }, data: { name: m.name, status: m.status, tech: m.techStack, layers: owned, count }, ...noDrag });
+      nodes.push({ id: `svc:${m.id}`, type: 'service', position: { x: X.service, y: y + 2 }, data: { name: m.name, status: m.status, tech: m.techStack, layers: owned, count } });
     });
     for (const comp of detail.components) {
       if (!comp.microserviceId) continue;
@@ -243,6 +385,51 @@ export default function ApplicationRationalization({ embedded = false }: { embed
 
     return { nodes, edges };
   }, [detail, onDrill]);
+
+  // Saved overlay + the effective (data + saved overlay) board shown read-only.
+  const savedOverlay = useMemo(() => normalizeOverlay(detail?.layout), [detail]);
+  const effective = useMemo(() => applyOverlay(base, savedOverlay), [base, savedOverlay]);
+
+  // Keep the live board synced to the effective board while NOT editing; when
+  // editing, leave it under the user's control (their staged edits live here).
+  useEffect(() => {
+    if (editing) return;
+    setBNodes(effective.nodes);
+    setBEdges(effective.edges);
+  }, [effective, editing, setBNodes, setBEdges]);
+
+  // Edit interactions: draw a new arrow, or re-point an existing one. The id is
+  // deterministic per connection so it survives remounts without colliding.
+  const onConnect = useCallback((c: Connection) => {
+    const id = `u:${c.source}.${c.sourceHandle ?? 'r'}-${c.target}.${c.targetHandle ?? 'l'}`;
+    setBEdges((eds) => addEdge({ ...USER_EDGE, ...c, id }, eds));
+  }, [setBEdges]);
+  const onReconnect = useCallback((oldEdge: Edge, newConn: Connection) => {
+    setBEdges((eds) => reconnectEdge(oldEdge, newConn, eds));
+  }, [setBEdges]);
+
+  // Staged (this session, vs the effective board) and the absolute overlay to save (vs base).
+  const session = useMemo(
+    () => (detail ? diffBoard(effective, { nodes: bnodes, edges: bedges }, detail) : { overlay: EMPTY_OVERLAY, changes: [] }),
+    [effective, bnodes, bedges, detail],
+  );
+  const saveOverlay = useMemo(
+    () => (detail ? diffBoard(base, { nodes: bnodes, edges: bedges }, detail).overlay : EMPTY_OVERLAY),
+    [base, bnodes, bedges, detail],
+  );
+
+  const submitBoard = useCallback(async () => {
+    if (!selectedId) return;
+    setSaving(true); setError('');
+    try {
+      await api.post(`/rationalization/${selectedId}/layout`, { layout: saveOverlay, changes: session.changes });
+      setEditing(false);
+      loadDetail(); loadLog();
+    } catch (e) { setError((e as Error).message); }
+    finally { setSaving(false); }
+  }, [selectedId, saveOverlay, session.changes, loadDetail, loadLog]);
+
+  const discardBoard = useCallback(() => { setEditing(false); }, []); // sync effect re-seeds from effective
 
   // What the drawer shows for the current drill subject.
   const drillView = useMemo(() => {
@@ -268,28 +455,16 @@ export default function ApplicationRationalization({ embedded = false }: { embed
   if (loading || companyLoading) return <div className="text-sm text-[#a3a3a3]">Loading rationalization…</div>;
   if (error) return <div className="text-sm text-[#be123c]">{error}</div>;
 
-  const application = selectedApp ?? detail?.application ?? undefined;
-  const belongCount = detail ? detail.counts.Common + detail.counts.Different : 0;
-  const subtitle = application
-    ? `${application} — drag to pan, zoom with the controls. Flow left → right: legacy apps → CAPDAN normalization → green-field. Click any tag, component or service for the granular detail.`
-    : 'Decompose legacy applications and re-platform onto green-field.';
-
   return (
     <div>
       {embedded ? (
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="min-w-0">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#4f46e5]">“Evergreen” Portfolio Rationalization</div>
-            <h2 className="text-lg font-semibold text-[#171717] mt-0.5">Application Rationalization</h2>
-            <p className="text-[13px] text-[#666666] mt-0.5">{subtitle}</p>
+            <h2 className="text-3xl font-bold text-[#171717] tracking-tight">Application Rationalization</h2>
           </div>
         </div>
       ) : (
-        <PageHeader
-          title="Application Rationalization"
-          subtitle={subtitle}
-          eyebrow="“Evergreen” Portfolio Rationalization"
-        />
+        <PageHeader title="Application Rationalization" />
       )}
 
       {/* Application selector — the company runs many rationalization initiatives */}
@@ -340,26 +515,36 @@ export default function ApplicationRationalization({ embedded = false }: { embed
       </div>
 
       {detail && (
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mb-3 text-[12px]">
-          <span className="inline-flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-full bg-[#10b981]" /> Belongs here <span className="tnum font-semibold text-[#171717]">{belongCount}</span></span>
-          <span className="inline-flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-full bg-[#be123c]" /> Move <span className="tnum font-semibold text-[#171717]">{detail.counts.Relocate}</span></span>
-          <span className="inline-flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-full bg-[#be123c]" /> Eliminate <span className="tnum font-semibold text-[#171717]">{detail.counts.Eliminate}</span></span>
-          <span className="text-[#d4d4d4]">·</span>
-          <span className="text-[#525252]">{detail.counts.findings} findings · {detail.name} {pct(detail.progress)} migrated</span>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div className="text-[12px] text-[#666666] min-w-0">
+            {editing
+              ? <span><span className="font-semibold text-[#4f46e5]">Editing the board.</span> Drag boxes to reposition. Hover a box edge for the blue dots, then drag dot → dot to draw an arrow, or drag an arrow’s end onto another box to re-point it. Click an arrow and press Delete to remove. <span className="font-medium">Double-click any box (brown-field, CAPDAN or green-field) to edit it.</span> Staged below.</span>
+              : <span>Read-only view. Use <span className="font-medium">Edit board</span> to drag boxes, re-wire arrows, and double-click a box to edit it.</span>}
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {editing
+              ? <button onClick={discardBoard} disabled={saving} className="btn-ghost text-[12px]">Exit</button>
+              : <button onClick={() => setEditing(true)} className="btn-secondary text-[12px]">Edit board</button>}
+          </div>
         </div>
       )}
 
-      <div className="rounded-xl border border-[#eaeaea] bg-[#fafafa] overflow-hidden" style={{ height: '64vh', minHeight: 460 }}>
+      <div className="rounded-xl border border-[#eaeaea] bg-[#fafafa] overflow-hidden" style={{ height: '82vh', minHeight: 640 }}>
         {!detail ? (
           <div className="h-full flex items-center justify-center text-sm text-[#a3a3a3]">Loading stage…</div>
         ) : (
-          <ReactFlowProvider>
+          <ReactFlowProvider key={selectedId}>
             <ReactFlow
-              nodes={nodes} edges={edges} nodeTypes={nodeTypes} onNodeClick={onNodeClick}
+              nodes={bnodes} edges={bedges} nodeTypes={nodeTypes}
+              onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
+              onConnect={onConnect} onReconnect={onReconnect} onNodeClick={onNodeClick} onNodeDoubleClick={onNodeDoubleClick}
               fitView fitViewOptions={{ padding: 0.15 }}
-              nodesDraggable={false} nodesConnectable={false} elementsSelectable={false}
+              nodesDraggable={editing} nodesConnectable={editing} elementsSelectable={editing}
+              edgesReconnectable={editing}
+              deleteKeyCode={editing ? ['Backspace', 'Delete'] : null}
               panOnDrag zoomOnScroll={false} zoomOnPinch zoomOnDoubleClick={false} minZoom={0.3} maxZoom={1.6}
               proOptions={{ hideAttribution: true }}
+              className={editing ? 'board-editing' : undefined}
             >
               <Background color="#e5e5e5" gap={20} />
               <Controls showInteractive={false} />
@@ -368,13 +553,13 @@ export default function ApplicationRationalization({ embedded = false }: { embed
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-[#666666] mt-3">
-        <span className="inline-flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded border bg-[#ecfdf5] border-[#a7f3d0]" /> <span className="font-medium">Belongs here</span></span>
-        <span className="inline-flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded border bg-[#fff1f2] border-[#fecdd3]" /> <span className="font-medium">Move / eliminate</span></span>
-        <span className="inline-flex items-center gap-1.5 text-[#94a3b8]"><svg width="20" height="6"><path d="M1 3h13" stroke="#94a3b8" strokeWidth="1.5" /><path d="M20 3 L14 1 L14 5 Z" fill="#94a3b8" /></svg> normalize</span>
-        <span className="inline-flex items-center gap-1.5 text-[#7c3aed]"><svg width="20" height="6"><path d="M1 3h13" stroke="#7c3aed" strokeWidth="1.5" strokeDasharray="4 2" /><path d="M20 3 L14 1 L14 5 Z" fill="#7c3aed" /></svg> relocate to correct layer</span>
-        <span className="inline-flex items-center gap-1.5 text-[#14b8a6]"><svg width="20" height="6"><path d="M1 3h13" stroke="#14b8a6" strokeWidth="1.5" /><path d="M20 3 L14 1 L14 5 Z" fill="#14b8a6" /></svg> → green-field service</span>
-      </div>
+      {/* Staged-changes commit panel — visible while editing, before submit. */}
+      {editing && (
+        <CommitPanel changes={session.changes} saving={saving} onSubmit={submitBoard} onDiscard={discardBoard} error={error} />
+      )}
+
+      {/* Change log — running total of committed edits, expandable to the detail. */}
+      <ChangeLog entries={log} open={showLog} onToggle={() => setShowLog((v) => !v)} />
        </>
       )}
 
@@ -447,6 +632,225 @@ export default function ApplicationRationalization({ embedded = false }: { embed
           </div>
         </>
       )}
+
+      {/* Box editor popup — opened by double-clicking a box in edit mode */}
+      {editTarget && detail && (
+        <EditBoxModal
+          target={editTarget}
+          detail={detail}
+          onClose={() => setEditTarget(null)}
+          onSaved={() => { loadDetail(); loadLog(); }}
+        />
+      )}
     </div>
+  );
+}
+
+// ── Box editor popup ─────────────────────────────────────────────────────────
+// Double-clicking any box in edit mode opens this popup. It resolves the box to
+// its underlying record (brown-field app · CAPDAN component · green-field
+// service) and edits the right fields against the matching PATCH endpoint.
+type BoxField = { key: string; label: string; placeholder?: string; multiline?: boolean };
+type BoxConfig = { endpoint: string; eyebrow: string; title: string; fields: BoxField[]; values: Record<string, string> };
+
+function buildBoxConfig(target: { kind: string; id: string }, detail: StageDetail): BoxConfig | null {
+  const v = (s: string | null | undefined) => s ?? '';
+  if (target.kind === 'app') {
+    const a = detail.apps.find((x) => x.id === target.id);
+    if (!a) return null;
+    return {
+      endpoint: `/rationalization/apps/${a.id}`, eyebrow: 'Brown-field · legacy app', title: 'Edit application',
+      fields: [
+        { key: 'name', label: 'Name' },
+        { key: 'techStack', label: 'Tech stack', placeholder: 'e.g. C# / .NET, SQL Server' },
+        { key: 'disposition', label: 'Disposition', placeholder: 'Retain | Refactor | Replace | Retire' },
+      ],
+      values: { name: v(a.name), techStack: v(a.techStack), disposition: v(a.disposition) },
+    };
+  }
+  if (target.kind === 'component') {
+    const c = detail.components.find((x) => x.id === target.id);
+    if (!c) return null;
+    return {
+      endpoint: `/rationalization/components/${c.id}`, eyebrow: `CAPDAN — Normalize · ${c.layer}`, title: 'Edit CAPDAN box',
+      fields: [
+        { key: 'name', label: 'Name' },
+        { key: 'destination', label: 'Destination', placeholder: 'green-field target' },
+        { key: 'targetTech', label: 'Target tech' },
+        { key: 'pattern', label: 'Pattern', placeholder: 'e.g. Strangler facade' },
+        { key: 'principle', label: 'Principle (CAPDAN rationale)', multiline: true },
+      ],
+      values: { name: v(c.name), destination: v(c.destination), targetTech: v(c.targetTech), pattern: v(c.pattern), principle: v(c.principle) },
+    };
+  }
+  const m = detail.microservices.find((x) => x.id === target.id);
+  if (!m) return null;
+  return {
+    endpoint: `/rationalization/microservices/${m.id}`, eyebrow: 'Green-field · target service', title: 'Edit service',
+    fields: [
+      { key: 'name', label: 'Name' },
+      { key: 'kind', label: 'Kind', placeholder: 'Microservice | Application' },
+      { key: 'status', label: 'Status', placeholder: 'Planned | Building | Live' },
+      { key: 'techStack', label: 'Tech stack' },
+      { key: 'ownerRole', label: 'Owner role' },
+    ],
+    values: { name: v(m.name), kind: v(m.kind), status: v(m.status), techStack: v(m.techStack), ownerRole: v(m.ownerRole) },
+  };
+}
+
+function EditBoxModal({ target, detail, onClose, onSaved }: { target: { kind: 'app' | 'component' | 'service'; id: string }; detail: StageDetail; onClose: () => void; onSaved: () => void }) {
+  const cfg = useMemo(() => buildBoxConfig(target, detail), [target, detail]);
+  const [form, setForm] = useState<Record<string, string>>(() => cfg?.values ?? {});
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  if (!cfg) return null;
+
+  async function save() {
+    if (!(form.name ?? '').trim()) { setError('Name is required'); return; }
+    setSaving(true); setError('');
+    try {
+      await api.patch(cfg!.endpoint, form);
+      onSaved();
+      onClose();
+    } catch (e) { setError((e as Error).message); }
+    finally { setSaving(false); }
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/30" onClick={() => !saving && onClose()} aria-hidden="true" />
+      <div className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-[92vw] max-w-[460px] max-h-[88vh] overflow-y-auto rounded-xl border border-[#eaeaea] bg-white shadow-xl p-5">
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#4f46e5]">{cfg.eyebrow}</div>
+            <h3 className="text-[16px] font-bold text-[#171717] mt-0.5">{cfg.title}</h3>
+          </div>
+          <button onClick={onClose} disabled={saving} className="flex-shrink-0 p-1.5 -mr-1.5 rounded-md text-[#a3a3a3] hover:text-[#171717] hover:bg-[#fafafa]" aria-label="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+        </div>
+        <div className="space-y-2.5">
+          {cfg.fields.map((f, i) => (
+            <div key={f.key}>
+              <label className="block text-[11px] font-medium text-[#525252] mb-1">{f.label}</label>
+              {f.multiline
+                ? <textarea className="input" rows={2} value={form[f.key] ?? ''} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
+                : <input autoFocus={i === 0} className="input" value={form[f.key] ?? ''} placeholder={f.placeholder} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />}
+            </div>
+          ))}
+        </div>
+        {error && <div className="text-[12px] text-[#be123c] mt-2">{error}</div>}
+        <div className="flex items-center justify-end gap-2 mt-4">
+          <button onClick={onClose} disabled={saving} className="btn-ghost text-sm">Cancel</button>
+          <button onClick={save} disabled={saving} className="btn-primary text-sm">{saving ? 'Saving…' : 'Save'}</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ── Staged-changes commit panel ──────────────────────────────────────────────
+// The pre-submit "commit": the running list of board edits the user has staged,
+// shown as a commit-tree-style list with type dots, before they submit.
+function CommitPanel({ changes, saving, onSubmit, onDiscard, error }: { changes: StagedChange[]; saving: boolean; onSubmit: () => void; onDiscard: () => void; error: string }) {
+  return (
+    <div className="mt-3 rounded-lg border border-[#c7d2fe] bg-[#f5f7ff] p-4">
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <span className="text-[12px] font-semibold text-[#171717]">
+          Staged changes
+          <span className="ml-2 inline-flex items-center justify-center min-w-[20px] h-[18px] rounded-full bg-white text-[11px] font-semibold text-[#4f46e5] px-1.5 tnum border border-[#c7d2fe]">{changes.length}</span>
+        </span>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button onClick={onDiscard} disabled={saving} className="btn-ghost text-[12px]">Discard</button>
+          <button onClick={onSubmit} disabled={saving || changes.length === 0} className="btn-primary text-[12px]">{saving ? 'Submitting…' : 'Submit changes'}</button>
+        </div>
+      </div>
+      {error && <div className="text-[12px] text-[#be123c] mb-2">{error}</div>}
+      {changes.length === 0 ? (
+        <div className="text-[12px] text-[#a3a3a3]">Nothing staged yet — drag a box or re-wire an arrow and it will appear here.</div>
+      ) : (
+        <ul className="space-y-1.5 pl-1 border-l border-[#c7d2fe]">
+          {changes.map((c, i) => (
+            <li key={i} className="flex items-center gap-2 -ml-[5px] text-[12px] text-[#171717]">
+              <span className="inline-block w-2 h-2 rounded-full ring-2 ring-[#f5f7ff] flex-shrink-0" style={{ background: CHANGE_DOT[c.type] }} />
+              <span className="truncate">{c.label}</span>
+              <span className="text-[9px] uppercase tracking-[0.08em] text-[#a3a3a3] flex-shrink-0">{c.type}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// ── Change log ───────────────────────────────────────────────────────────────
+// Collapsed: a running total of edits. Expanded: the field-level detail.
+type CapdanDiff = { subject?: string; summary?: string; layer?: string; changes?: Record<string, { from: unknown; to: unknown }> | StagedChange[] };
+
+function ChangeLog({ entries, open, onToggle }: { entries: LogEntry[]; open: boolean; onToggle: () => void }) {
+  return (
+    <div className="mt-4 rounded-lg border border-[#eaeaea] overflow-hidden">
+      <button onClick={onToggle} aria-expanded={open} className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-[#fafafa] transition-colors duration-150">
+        <span className="text-[12px] font-semibold text-[#171717]">
+          Change log
+          <span className="ml-2 inline-flex items-center justify-center min-w-[20px] h-[18px] rounded-full bg-[#f5f5f5] text-[11px] font-semibold text-[#525252] px-1.5 tnum">{entries.length}</span>
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          className={'text-[#a3a3a3] transition-transform duration-150 ' + (open ? 'rotate-180' : '')} aria-hidden="true">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+      {open && (
+        <div className="border-t border-[#eaeaea] px-4 py-3 max-h-72 overflow-y-auto">
+          {entries.length === 0 ? (
+            <div className="text-[12px] text-[#a3a3a3]">No changes recorded yet.</div>
+          ) : (
+            <ul className="space-y-3">
+              {entries.map((e) => <ChangeLogRow key={e.id} entry={e} />)}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ChangeLogRow({ entry }: { entry: LogEntry }) {
+  let parsed: CapdanDiff | null = null;
+  try { parsed = entry.diff ? JSON.parse(entry.diff) : null; } catch { parsed = null; }
+  const boardChanges = Array.isArray(parsed?.changes) ? (parsed!.changes as StagedChange[]) : null;
+  const fieldChanges = parsed?.changes && !Array.isArray(parsed.changes) ? Object.entries(parsed.changes) : [];
+  const title = parsed?.subject ?? parsed?.summary ?? (entry.action === 'COMMIT_BOARD' ? 'Board changes' : entry.action);
+  return (
+    <li className="flex gap-3 text-[12px]">
+      <div className="text-[11px] text-[#a3a3a3] w-32 flex-shrink-0 tnum">{new Date(entry.createdAt).toLocaleString()}</div>
+      <div className="min-w-0 flex-1">
+        <div className="text-[#171717]">
+          <span className="font-medium">{title}</span>
+          {parsed?.layer && <span className="text-[#a3a3a3]"> · {parsed.layer}</span>}
+          <span className="text-[#a3a3a3]"> — {entry.actorEmail}</span>
+        </div>
+        {boardChanges && boardChanges.length > 0 && (
+          <ul className="mt-1 space-y-0.5 pl-1 border-l border-[#eaeaea]">
+            {boardChanges.map((c, i) => (
+              <li key={i} className="flex items-center gap-1.5 -ml-[4px] text-[11px] text-[#666666]">
+                <span className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: CHANGE_DOT[c.type] ?? '#a3a3a3' }} />
+                <span className="truncate">{c.label}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {fieldChanges.length > 0 && (
+          <div className="mt-1 space-y-0.5">
+            {fieldChanges.map(([f, v]) => (
+              <div key={f} className="text-[11px] text-[#666666]">
+                <span className="font-medium text-[#525252]">{f}</span>: <span className="text-[#a3a3a3] line-through">{String(v.from ?? '—')}</span> → <span className="text-[#171717]">{String(v.to ?? '—')}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </li>
   );
 }

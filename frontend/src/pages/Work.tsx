@@ -1,15 +1,16 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
 import PageHeader from '../components/PageHeader';
 import { SectionCard, Tile, withCompany } from '../lib/portfolio';
 
-// Deliverables & Tasks — a standalone work tracker. Deliverables render as a
-// collapsible tree: each one lists its tasks nested underneath when expanded
-// (all expanded by default). Clicking a deliverable or task opens a right-hand
-// sidebar with the granular drill-down — roles, value stream, downstream impact.
-// All data is scoped to the active company.
+// Deliverables & Tasks — a standalone work tracker rendered as a spreadsheet
+// matrix: one row per task, with the deliverable columns (title/type/value
+// stream) repeating across the tasks that share a deliverable. Each column
+// header is a filter (dropdown, or free-text search for Task). Clicking a
+// deliverable or task cell opens a right-hand sidebar with the granular
+// drill-down — roles, value stream, downstream impact. Scoped to the active company.
 
 type Deliverable = {
   id: string; title: string; description: string | null; owner: string | null; type: string;
@@ -59,26 +60,118 @@ function SourceTag({ source }: { source: string }) {
   );
 }
 
-// A label + native <select>, styled to match the app's company picker.
-function Dropdown({ label, value, onChange, options }: {
+// Matrix column header that doubles as a filter: the column name sits above a
+// compact native <select>. A value other than 'All' narrows the rows to that
+// column value. Styled to match the app's company picker.
+function HeaderFilter({ label, value, onChange, options }: {
   label: string; value: string; onChange: (v: string) => void; options: string[];
 }) {
+  const active = value !== 'All';
   return (
-    <div className="min-w-[140px]">
-      <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-1">{label}</label>
+    <th className="text-left align-top px-3 py-2.5 border-b border-[#eaeaea]">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1.5">{label}</div>
       <div className="relative">
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="appearance-none w-full rounded-lg border border-[#eaeaea] bg-white pl-3 pr-8 py-1.5 text-sm text-[#171717] cursor-pointer hover:border-[#d4d4d4] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150"
+          className={'appearance-none w-full rounded-md border bg-white pl-2.5 pr-7 py-1 text-xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150 ' +
+            (active ? 'border-[#171717] text-[#171717] font-medium' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4]')}
         >
           {options.map((o) => <option key={o} value={o}>{o}</option>)}
         </select>
-        <svg className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a3a3a3]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[#a3a3a3]" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M6 9l6 6 6-6" />
         </svg>
       </div>
-    </div>
+    </th>
+  );
+}
+
+// Like HeaderFilter but with a search box inside the dropdown — used for the
+// Deliverable column, whose option list is long enough to want type-ahead. A
+// custom combobox (native <select> can't host an input); closes on outside click.
+function HeaderComboFilter({ label, value, onChange, options }: {
+  label: string; value: string; onChange: (v: string) => void; options: string[];
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const ref = useRef<HTMLTableCellElement>(null);
+  const active = value !== 'All';
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
+
+  const q = query.trim().toLowerCase();
+  // 'All' always stays selectable so the filter can be cleared from the list.
+  const filtered = options.filter((o) => o === 'All' || o.toLowerCase().includes(q));
+  function pick(o: string) { onChange(o); setOpen(false); setQuery(''); }
+
+  return (
+    <th ref={ref} className="text-left align-top px-3 py-2.5 border-b border-[#eaeaea] relative">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1.5">{label}</div>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={'flex items-center justify-between gap-1 w-full rounded-md border bg-white pl-2.5 pr-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150 ' +
+          (active ? 'border-[#171717] text-[#171717] font-medium' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4]')}
+      >
+        <span className="truncate">{value}</span>
+        <svg className={'flex-shrink-0 text-[#a3a3a3] transition-transform duration-150 ' + (open ? 'rotate-180' : '')} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute z-20 left-3 mt-1 min-w-[220px] rounded-md border border-[#eaeaea] bg-white shadow-lg">
+          <div className="p-1.5 border-b border-[#f5f5f5]">
+            <input
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search…"
+              className="w-full rounded border border-[#eaeaea] bg-white px-2 py-1 text-xs text-[#171717] placeholder:text-[#a3a3a3] focus:outline-none focus:ring-1 focus:ring-[#171717]"
+            />
+          </div>
+          <div className="max-h-56 overflow-y-auto py-1">
+            {filtered.length === 0 ? (
+              <div className="px-2.5 py-1.5 text-xs text-[#a3a3a3]">No matches</div>
+            ) : filtered.map((o) => (
+              <button
+                key={o}
+                type="button"
+                onClick={() => pick(o)}
+                className={'block w-full truncate text-left px-2.5 py-1.5 text-xs hover:bg-[#fafafa] transition-colors duration-100 ' +
+                  (o === value ? 'text-[#171717] font-medium bg-[#fafafa]' : 'text-[#525252]')}
+              >
+                {o}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </th>
+  );
+}
+
+// Like HeaderFilter but free-text — used for the Task column, whose values are
+// too many/unique for a dropdown.
+function HeaderSearch({ label, value, onChange }: {
+  label: string; value: string; onChange: (v: string) => void;
+}) {
+  return (
+    <th className="text-left align-top px-3 py-2.5 border-b border-[#eaeaea]">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1.5">{label}</div>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Search…"
+        className={'w-full rounded-md border bg-white px-2.5 py-1 text-xs placeholder:text-[#a3a3a3] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150 ' +
+          (value.trim() ? 'border-[#171717] text-[#171717]' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4]')}
+      />
+    </th>
   );
 }
 
@@ -224,41 +317,45 @@ function DetailBody({ detail }: { detail: Detail }) {
   );
 }
 
-// Chevron that rotates when its row is expanded.
-function Chevron({ open }: { open: boolean }) {
-  return (
-    <svg className={'text-[#a3a3a3] transition-transform duration-150 ' + (open ? 'rotate-90' : '')} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M9 6l6 6-6 6" />
-    </svg>
-  );
-}
+// One flattened matrix row. Each task becomes a row; the deliverable columns
+// (title/type/value stream) repeat across the tasks that share a deliverable. A
+// deliverable with no tasks still gets a row (task cells blank), and tasks with
+// no deliverable get a row with the deliverable cells blank.
+const DASH = '—';
+type Row = {
+  key: string;
+  deliverableId: string | null; deliverable: string;
+  task: string; type: string; valueStream: string; role: string; priority: string;
+  source: string | null;
+  kind: 'deliverable' | 'task'; drillId: string;
+};
+
+// Priority columns sort High → Medium → Low; anything else trails alphabetically.
+const PRIORITY_ORDER: Record<string, number> = { High: 0, Medium: 1, Low: 2 };
+const byPriority = (a: string, b: string) =>
+  (PRIORITY_ORDER[a] ?? 9) - (PRIORITY_ORDER[b] ?? 9) || a.localeCompare(b);
 
 export default function Work() {
   const { companyId, loading: companyLoading } = useCompany();
   const [data, setData] = useState<WorkData>({ deliverables: [], tasks: [], valueStreams: [] });
   const [detail, setDetail] = useState<Detail | null>(null);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  // Filters.
+  // Column-header filters ('All' = no filter); Task is a free-text search.
+  const [deliverable, setDeliverable] = useState('All');
+  const [taskSearch, setTaskSearch] = useState('');
   const [type, setType] = useState('All');
   const [valueStream, setValueStream] = useState('All');
-  const [owner, setOwner] = useState('All');
-  const [search, setSearch] = useState('');
+  const [role, setRole] = useState('All');
+  const [priority, setPriority] = useState('All');
 
   useEffect(() => {
     if (companyLoading) return;
     api.get(withCompany('/work', companyId)).then(setData).catch(() => {});
   }, [companyId, companyLoading]);
 
-  // Start fully expanded whenever the deliverable set loads/changes.
-  useEffect(() => { setExpanded(new Set(data.deliverables.map((d) => d.id))); }, [data.deliverables]);
-
   // Open a row's drill-down in the sidebar by fetching its detail.
   function openDrill(kind: 'deliverable' | 'task', id: string) {
     api.get(withCompany(`/work/${kind}/${id}`, companyId)).then(setDetail).catch(() => {});
-  }
-  function toggle(id: string) {
-    setExpanded((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   }
 
   const { deliverables, tasks } = data;
@@ -273,40 +370,74 @@ export default function Work() {
   }, [tasks]);
   const orphanTasks = useMemo(() => tasks.filter((t) => !t.deliverableId), [tasks]);
 
-  // ── Filter option lists derived from the data ──────────────────────────────
-  const owners = useMemo(() => {
-    const set = new Set<string>();
-    deliverables.forEach((d) => d.owner && set.add(d.owner));
-    return ['All', ...[...set].sort()];
-  }, [deliverables]);
-  const types = useMemo(() => ['All', ...[...new Set(deliverables.map((d) => d.type))].sort()], [deliverables]);
-  const valueStreamNames = useMemo(() => ['All', ...data.valueStreams.map((v) => v.name)], [data.valueStreams]);
+  // ── Flatten deliverables + tasks into matrix rows ──────────────────────────
+  const rows = useMemo(() => {
+    const out: Row[] = [];
+    for (const d of deliverables) {
+      const childTasks = tasksByDeliverable.get(d.id) ?? [];
+      if (childTasks.length === 0) {
+        out.push({
+          key: `d-${d.id}`, deliverableId: d.id, deliverable: d.title,
+          task: DASH, type: d.type, valueStream: d.valueStreamName ?? DASH,
+          role: d.owner ?? DASH, priority: DASH, source: null,
+          kind: 'deliverable', drillId: d.id,
+        });
+      } else {
+        for (const t of childTasks) {
+          out.push({
+            key: `t-${t.id}`, deliverableId: d.id, deliverable: d.title,
+            task: t.title, type: d.type, valueStream: d.valueStreamName ?? DASH,
+            role: t.owner ?? DASH, priority: t.priority, source: t.source,
+            kind: 'task', drillId: t.id,
+          });
+        }
+      }
+    }
+    for (const t of orphanTasks) {
+      out.push({
+        key: `t-${t.id}`, deliverableId: null, deliverable: DASH,
+        task: t.title, type: DASH, valueStream: DASH,
+        role: t.owner ?? DASH, priority: t.priority, source: t.source,
+        kind: 'task', drillId: t.id,
+      });
+    }
+    return out;
+  }, [deliverables, tasksByDeliverable, orphanTasks]);
 
-  const matchesSearch = (s: string) => !search.trim() || s.toLowerCase().includes(search.trim().toLowerCase());
+  // ── Filter option lists derived from the rows ──────────────────────────────
+  const distinct = (vals: string[]) => [...new Set(vals.filter((v) => v && v !== DASH))];
+  const deliverableOptions = useMemo(() => ['All', ...distinct(rows.map((r) => r.deliverable)).sort()], [rows]);
+  const typeOptions = useMemo(() => ['All', ...distinct(rows.map((r) => r.type)).sort()], [rows]);
+  const valueStreamOptions = useMemo(() => ['All', ...data.valueStreams.map((v) => v.name)], [data.valueStreams]);
+  const roleOptions = useMemo(() => ['All', ...distinct(rows.map((r) => r.role)).sort()], [rows]);
+  const priorityOptions = useMemo(() => ['All', ...distinct(rows.map((r) => r.priority)).sort(byPriority)], [rows]);
 
-  // A deliverable stays visible if it matches the filters and either it or one of
-  // its tasks matches the search term.
-  const filteredDeliverables = useMemo(() => deliverables.filter((d) =>
-    (type === 'All' || d.type === type)
-    && (valueStream === 'All' || d.valueStreamName === valueStream)
-    && (owner === 'All' || d.owner === owner)
-    && (matchesSearch(d.title) || (tasksByDeliverable.get(d.id) ?? []).some((t) => matchesSearch(t.title)))
-  ), [deliverables, type, valueStream, owner, search, tasksByDeliverable]);
+  // A row survives every active column filter.
+  const filteredRows = useMemo(() => {
+    const q = taskSearch.trim().toLowerCase();
+    return rows.filter((r) =>
+      (deliverable === 'All' || r.deliverable === deliverable)
+      && (type === 'All' || r.type === type)
+      && (valueStream === 'All' || r.valueStream === valueStream)
+      && (role === 'All' || r.role === role)
+      && (priority === 'All' || r.priority === priority)
+      && (!q || r.task.toLowerCase().includes(q))
+    );
+  }, [rows, deliverable, type, valueStream, role, priority, taskSearch]);
 
-  const filteredOrphans = useMemo(() => orphanTasks.filter((t) =>
-    (owner === 'All' || t.owner === owner) && matchesSearch(t.title)
-  ), [orphanTasks, owner, search]);
+  // Tiles count distinct deliverables and task rows among the visible rows.
+  const visibleDeliverables = useMemo(
+    () => new Set(filteredRows.filter((r) => r.deliverableId).map((r) => r.deliverableId)).size,
+    [filteredRows],
+  );
+  const visibleTasks = useMemo(() => filteredRows.filter((r) => r.kind === 'task').length, [filteredRows]);
 
-  // Tasks visible under the current filters: those nested in the shown
-  // deliverables, plus the shown orphan tasks. Drives the (filtered) tiles.
-  const visibleTaskCount = useMemo(() => {
-    let n = filteredOrphans.length;
-    for (const d of filteredDeliverables) n += (tasksByDeliverable.get(d.id) ?? []).length;
-    return n;
-  }, [filteredDeliverables, filteredOrphans, tasksByDeliverable]);
-
-  const anyExpanded = expanded.size > 0;
-  const empty = filteredDeliverables.length === 0 && filteredOrphans.length === 0;
+  const anyFilter = deliverable !== 'All' || type !== 'All' || valueStream !== 'All'
+    || role !== 'All' || priority !== 'All' || taskSearch.trim() !== '';
+  function clearFilters() {
+    setDeliverable('All'); setType('All'); setValueStream('All');
+    setRole('All'); setPriority('All'); setTaskSearch('');
+  }
 
   return (
     <div>
@@ -314,94 +445,77 @@ export default function Work() {
 
       {/* ── Overview metric tiles ──────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <Tile label="Deliverables" value={filteredDeliverables.length} />
-        <Tile label="Tasks" value={visibleTaskCount} />
+        <Tile label="Deliverables" value={visibleDeliverables} />
+        <Tile label="Tasks" value={visibleTasks} />
       </div>
 
-      {/* ── Filter bar + collapsible tree ──────────────────────────────────── */}
+      {/* ── Matrix: one row per task, filterable column headers ────────────── */}
       <SectionCard
-        title="Work items"
-        actions={
+        title="Work matrix"
+        actions={anyFilter ? (
           <button
-            onClick={() => setExpanded(anyExpanded ? new Set() : new Set(filteredDeliverables.map((d) => d.id)))}
+            onClick={clearFilters}
             className="text-xs font-medium text-[#525252] hover:text-[#171717] transition-colors duration-150"
           >
-            {anyExpanded ? 'Collapse all' : 'Expand all'}
+            Clear filters
           </button>
-        }
+        ) : undefined}
       >
-        <div className="flex flex-wrap items-end gap-3 mb-4">
-          <Dropdown label="Type" value={type} onChange={setType} options={types} />
-          <Dropdown label="Value Stream" value={valueStream} onChange={setValueStream} options={valueStreamNames} />
-          <Dropdown label="Role" value={owner} onChange={setOwner} options={owners} />
-          <div className="flex-1 min-w-[180px]">
-            <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-1">Search</label>
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search deliverables & tasks…"
-              className="w-full rounded-lg border border-[#eaeaea] bg-white px-3 py-1.5 text-sm text-[#171717] placeholder:text-[#a3a3a3] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150"
-            />
-          </div>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr>
+                <HeaderComboFilter label="Deliverable" value={deliverable} onChange={setDeliverable} options={deliverableOptions} />
+                <HeaderSearch label="Task" value={taskSearch} onChange={setTaskSearch} />
+                <HeaderFilter label="Type" value={type} onChange={setType} options={typeOptions} />
+                <HeaderComboFilter label="Value Stream" value={valueStream} onChange={setValueStream} options={valueStreamOptions} />
+                <HeaderComboFilter label="Role" value={role} onChange={setRole} options={roleOptions} />
+                <HeaderFilter label="Priority" value={priority} onChange={setPriority} options={priorityOptions} />
+              </tr>
+            </thead>
+            <tbody>
+              {filteredRows.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-sm text-[#a3a3a3] py-8 text-center">No work items match the filters.</td>
+                </tr>
+              ) : filteredRows.map((r) => (
+                <tr key={r.key} className="border-t border-[#f5f5f5] hover:bg-[#fafafa]">
+                  {/* Deliverable — clickable when present; drills the deliverable */}
+                  <td className="px-3 py-2.5 align-top">
+                    {r.deliverableId ? (
+                      <button
+                        onClick={() => openDrill('deliverable', r.deliverableId!)}
+                        className="text-left font-medium text-[#171717] hover:underline"
+                      >
+                        {r.deliverable}
+                      </button>
+                    ) : <span className="text-[#a3a3a3]">{r.deliverable}</span>}
+                  </td>
+                  {/* Task — clickable when present; drills the task */}
+                  <td className="px-3 py-2.5 align-top">
+                    {r.kind === 'task' ? (
+                      <button
+                        onClick={() => openDrill('task', r.drillId)}
+                        className="flex items-center gap-2 text-left text-[#171717] hover:underline"
+                      >
+                        {r.source && <SourceTag source={r.source} />}
+                        <span>{r.task}</span>
+                      </button>
+                    ) : <span className="text-[#a3a3a3]">{r.task}</span>}
+                  </td>
+                  <td className="px-3 py-2.5 align-top">
+                    {r.type === DASH ? <span className="text-[#a3a3a3]">{DASH}</span> : <span className="pill-slate text-xs">{r.type}</span>}
+                  </td>
+                  <td className="px-3 py-2.5 align-top text-[#525252]">{r.valueStream}</td>
+                  <td className="px-3 py-2.5 align-top text-[#525252]">{r.role}</td>
+                  <td className="px-3 py-2.5 align-top">
+                    {r.priority === DASH ? <span className="text-[#a3a3a3]">{DASH}</span> : <span className={`${PRIORITY_PILL[r.priority] ?? 'pill-slate'} text-xs`}>{r.priority}</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-
-        {/* ── Tree ──────────────────────────────────────────────────────────── */}
-        {empty ? (
-          <div className="text-sm text-[#a3a3a3] py-6 text-center">No work items match the filters.</div>
-        ) : (
-          <div className="border-t border-[#eaeaea]">
-            {filteredDeliverables.map((d) => {
-              const childTasks = tasksByDeliverable.get(d.id) ?? [];
-              const open = expanded.has(d.id);
-              return (
-                <div key={d.id} className="border-b border-[#f5f5f5]">
-                  {/* Deliverable row */}
-                  <div className="flex items-center gap-2 py-2.5 hover:bg-[#fafafa] cursor-pointer" onClick={() => openDrill('deliverable', d.id)}>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); toggle(d.id); }}
-                      className={'flex items-center justify-center w-5 h-5 rounded ' + (childTasks.length ? 'hover:bg-[#eaeaea]' : 'invisible')}
-                      aria-label={open ? 'Collapse' : 'Expand'}
-                    >
-                      <Chevron open={open} />
-                    </button>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-[#171717] truncate">{d.title}</div>
-                      {d.description && <div className="text-xs text-[#a3a3a3] mt-0.5 line-clamp-1">{d.description}</div>}
-                    </div>
-                    <span className="pill-slate text-xs flex-shrink-0">{d.type}</span>
-                    <span className="hidden sm:block text-xs text-[#525252] w-32 truncate flex-shrink-0">{d.valueStreamName ?? '—'}</span>
-                    <span className="hidden sm:block text-xs text-[#525252] w-28 truncate flex-shrink-0">{d.owner ?? '—'}</span>
-                    <span className="text-xs text-[#a3a3a3] tnum w-16 text-right flex-shrink-0">{childTasks.length} task{childTasks.length !== 1 && 's'}</span>
-                  </div>
-                  {/* Nested tasks */}
-                  {open && childTasks.map((t) => (
-                    <div key={t.id} className="flex items-center gap-2 py-2 pl-9 hover:bg-[#fafafa] cursor-pointer border-t border-[#fafafa]" onClick={() => openDrill('task', t.id)}>
-                      <SourceTag source={t.source} />
-                      <div className="flex-1 min-w-0 text-sm text-[#171717] truncate">{t.title}</div>
-                      <span className="hidden sm:block text-xs text-[#525252] w-28 truncate flex-shrink-0">{t.owner ?? '—'}</span>
-                      <span className={`${PRIORITY_PILL[t.priority] ?? 'pill-slate'} text-xs flex-shrink-0`}>{t.priority}</span>
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
-
-            {/* Tasks not linked to any deliverable */}
-            {filteredOrphans.length > 0 && (
-              <div className="border-b border-[#f5f5f5]">
-                <div className="py-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">Tasks without a deliverable</div>
-                {filteredOrphans.map((t) => (
-                  <div key={t.id} className="flex items-center gap-2 py-2 pl-9 hover:bg-[#fafafa] cursor-pointer border-t border-[#fafafa]" onClick={() => openDrill('task', t.id)}>
-                    <SourceTag source={t.source} />
-                    <div className="flex-1 min-w-0 text-sm text-[#171717] truncate">{t.title}</div>
-                    <span className="hidden sm:block text-xs text-[#525252] w-28 truncate flex-shrink-0">{t.owner ?? '—'}</span>
-                    <span className={`${PRIORITY_PILL[t.priority] ?? 'pill-slate'} text-xs flex-shrink-0`}>{t.priority}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </SectionCard>
 
       {detail && (

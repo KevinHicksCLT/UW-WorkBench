@@ -89,8 +89,8 @@ async function main() {
 
   const tenant = await prisma.tenant.upsert({ where: { slug: 'strata' }, update: {}, create: { name: 'Strata Demo', slug: 'strata' } });
   await prisma.user.upsert({
-    where: { email: 'demo@strata.io' }, update: {},
-    create: { tenantId: tenant.id, email: 'demo@strata.io', name: 'Kevin Hicks', password: await bcrypt.hash('demo1234', 10), role: 'ADMIN' },
+    where: { email: 'kevin.hicks@capgemini.com' }, update: {},
+    create: { tenantId: tenant.id, email: 'kevin.hicks@capgemini.com', name: 'Kevin Hicks', password: await bcrypt.hash('demo1234', 10), role: 'ADMIN' },
   });
 
   await prisma.company.deleteMany({ where: { tenantId: tenant.id } });
@@ -292,7 +292,7 @@ async function main() {
   await seedWork(prisma, { tenantId: t, companyId: c });
 
   console.log('✅ Seeded company:', company.name);
-  console.log('   Login: demo@strata.io / demo1234');
+  console.log('   Login: kevin.hicks@capgemini.com / demo1234');
 }
 
 main()

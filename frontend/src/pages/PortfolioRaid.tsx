@@ -17,7 +17,9 @@ type RaidRow = {
 const TYPES = ['ALL', 'RISK', 'ASSUMPTION', 'ISSUE', 'DECISION'];
 const STATUSES = ['ALL', 'OPEN', 'MITIGATED', 'CLOSED'];
 
-export default function PortfolioRaid() {
+// Embeddable: pass `embedded` to render inside another page (Initiatives tab)
+// without its own page header.
+export default function PortfolioRaid({ embedded = false }: { embedded?: boolean } = {}) {
   const { companyId, loading: companyLoading } = useCompany();
   const [items, setItems] = useState<RaidRow[]>([]);
   const [type, setType] = useState('ALL');
@@ -39,11 +41,13 @@ export default function PortfolioRaid() {
 
   return (
     <div>
-      <PageHeader
-        title="RAID Log"
-        subtitle="Risks, Assumptions, Issues and Decisions across the portfolio"
-        breadcrumbs={[{ to: '/portfolio', label: 'Initiatives' }, { label: 'RAID Log' }]}
-      />
+      {!embedded && (
+        <PageHeader
+          title="RAID Log"
+          subtitle="Risks, Assumptions, Issues and Decisions across the portfolio"
+          breadcrumbs={[{ to: '/portfolio', label: 'Initiatives' }, { label: 'RAID Log' }]}
+        />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <SectionCard title="Risk heatmap (probability × impact)">

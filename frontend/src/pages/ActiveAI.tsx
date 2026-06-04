@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
 import PageHeader from '../components/PageHeader';
+import SignalCatalog from '../components/SignalCatalog';
 import {
   MODES, HEAT, SDLC_FLOW, KNOWLEDGE_AGENT, levelsFor, type AiMode,
 } from '../lib/aiAdoption';
@@ -40,6 +41,7 @@ export default function ActiveAI() {
   const [streams, setStreams] = useState<ValueStream[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [view, setView] = useState<'adoption' | 'signals'>('adoption');
 
   useEffect(() => {
     if (companyLoading) return;
@@ -83,6 +85,26 @@ export default function ActiveAI() {
         eyebrow={company?.name}
       />
 
+      {/* Sub-view switcher — AI adoption vs the trackable-signal catalog. */}
+      <div className="border-b border-[#eaeaea] mb-5 flex gap-1">
+        {([['adoption', 'AI Adoption'], ['signals', 'Trackable Metrics']] as const).map(([v, label]) => (
+          <button
+            key={v}
+            onClick={() => setView(v)}
+            className={
+              'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors duration-150 ' +
+              (view === v ? 'text-[#171717] border-[#171717]' : 'text-[#a3a3a3] border-transparent hover:text-[#525252]')
+            }
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {view === 'signals' ? (
+        <SignalCatalog companyId={companyId} />
+      ) : (
+      <>
       {/* Coverage headline */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <Tile label="Value streams with AI" value={`${stats.anyAi}/${stats.total}`} hint="at least one active mode" />
@@ -223,6 +245,8 @@ export default function ActiveAI() {
       <p className="text-[11px] text-[#a3a3a3] mt-3 italic">
         Adoption levels and use cases are illustrative — authored per value stream from its real work until live adoption telemetry is wired in.
       </p>
+      </>
+      )}
     </div>
   );
 }

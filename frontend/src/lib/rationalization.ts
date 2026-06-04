@@ -55,13 +55,21 @@ export type Finding = {
   migrationStatus: string;
 };
 
-export type AppCol = { id: string; name: string; techStack: string | null; position: number };
+export type AppCol = { id: string; name: string; techStack: string | null; disposition: string | null; position: number };
 export type Component = {
-  id: string; layer: Layer; name: string; pattern: string | null; targetTech: string | null;
+  id: string; layer: Layer; name: string; principle: string | null; pattern: string | null; targetTech: string | null;
   destination: string | null; microserviceId: string | null; migrationStatus: string;
 };
 export type Microservice = {
   id: string; name: string; kind: string; status: string; techStack: string | null; ownerRole: string | null;
+};
+
+// User-curated board overlay persisted on the workspace. Positions override the
+// derived layout; addedEdges/removedEdges layer on top of the derived arrows.
+export type BoardLayout = {
+  positions?: Record<string, { x: number; y: number }>;
+  addedEdges?: { id: string; source: string; target: string; sourceHandle?: string | null; targetHandle?: string | null }[];
+  removedEdges?: string[];
 };
 
 export type StageDetail = {
@@ -74,6 +82,7 @@ export type StageDetail = {
   northstar: string | null;
   status: string;
   illustrative: boolean;
+  layout: BoardLayout | null;
   progress: number;
   counts: { findings: number } & ByCapdan;
   byLayer: LayerRollup[];

@@ -43,19 +43,23 @@ export default function Explorer() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<View>('map');
-  // Deep-link: `?focus=<valueStreamId>` arrives when the user clicks a value
-  // stream elsewhere in the app. Lift it into state, force the map view, and
-  // clear the param so it doesn't linger in the URL or re-fire.
+  // Deep-link arrives when the user clicks through from elsewhere in the app:
+  //   `?focus=<valueStreamId>` → map view focused on that value stream;
+  //   `?view=list|map`         → force that view (list is fully exploded to the
+  //                              process-step level, e.g. the home "Process steps" tile).
+  // Lift it into state and clear the param so it doesn't linger or re-fire.
   const [searchParams, setSearchParams] = useSearchParams();
   const [focusVsId, setFocusVsId] = useState<string | null>(null);
 
   useEffect(() => {
     const f = searchParams.get('focus');
-    if (!f) return;
-    setFocusVsId(f);
-    setView('map');
+    const v = searchParams.get('view');
+    if (!f && v !== 'list' && v !== 'map') return;
+    if (f) { setFocusVsId(f); setView('map'); }
+    else if (v === 'list' || v === 'map') setView(v);
     const next = new URLSearchParams(searchParams);
     next.delete('focus');
+    next.delete('view');
     setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
 

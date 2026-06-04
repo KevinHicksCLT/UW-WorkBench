@@ -4,6 +4,8 @@
 // straight from the workbook tables. Items carrying a `drill` target render as
 // buttons that navigate one level deeper in the map.
 
+import { useState } from 'react';
+
 export type Fmt = 'money' | 'years' | 'number';
 export type MetricItem = { label: string; value: number; hint?: string; sub?: string; format?: Fmt; illustrative?: boolean; drill?: { level: string; id: string } };
 export type MetricSection = { title: string; kind: 'bar' | 'list' | 'kpi'; items: MetricItem[]; illustrative?: boolean };
@@ -16,7 +18,7 @@ export type Dashboard = {
 };
 
 const LEVEL_LABEL: Record<string, string> = {
-  company: 'Enterprise', domain: 'CEO Domain', division: 'Division', department: 'Department',
+  company: 'Enterprise', domain: '', division: 'Division', department: 'Department',
   valueStream: 'Value Stream', step: 'Process Area', role: 'Role', person: 'Individual',
 };
 
@@ -52,6 +54,41 @@ export default function MetricsSidebar({
   // When provided (value-stream level), renders a link to the full detail page.
   onViewDetail?: () => void;
 }) {
+  // Minimizable: collapse the panel to a thin rail to give the map full width.
+  // Persisted so the choice survives drilling and reloads.
+  const [collapsed, setCollapsed] = useState<boolean>(
+    () => typeof localStorage !== 'undefined' && localStorage.getItem('cascade.metricsSidebar.collapsed') === '1',
+  );
+  const toggleCollapsed = () => {
+    setCollapsed((c) => {
+      const next = !c;
+      try { localStorage.setItem('cascade.metricsSidebar.collapsed', next ? '1' : '0'); } catch { /* ignore */ }
+      return next;
+    });
+  };
+  const levelLabel = dash ? (LEVEL_LABEL[dash.level] ?? 'Roles') : 'Roles';
+
+  // ── Collapsed rail ──────────────────────────────────────────────────────────
+  if (collapsed) {
+    return (
+      <aside className="hidden md:flex flex-col items-center bg-[#eaf1ff] border-l border-[#cdddff] flex-shrink-0" style={{ width: 44 }}>
+        <button
+          onClick={toggleCollapsed}
+          aria-label="Expand panel"
+          title="Expand panel"
+          className="mt-3 w-8 h-8 rounded-full bg-[#0070AD] text-white shadow-sm hover:bg-[#005a8c] flex items-center justify-center"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+        </button>
+        {levelLabel && (
+          <div className="mt-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0070AD] [writing-mode:vertical-rl] rotate-180 select-none">
+            {levelLabel}
+          </div>
+        )}
+      </aside>
+    );
+  }
+
   return (
     <aside
       className="hidden md:flex flex-col bg-white border-l border-[#eaeaea] overflow-y-auto flex-shrink-0"
@@ -65,11 +102,22 @@ export default function MetricsSidebar({
               <svg width="15" height="15" viewBox="0 0 13 13" fill="none"><path d="M11 6.5H2M6 2.5l-4 4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
           )}
-          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3]">
-            {dash ? (LEVEL_LABEL[dash.level] ?? 'Roles') : 'Roles'}
-          </div>
+          {levelLabel && (
+            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3]">
+              {levelLabel}
+            </div>
+          )}
+          {/* Minimize — collapse to a thin rail. */}
+          <button
+            onClick={toggleCollapsed}
+            aria-label="Minimize panel"
+            title="Minimize panel"
+            className={'ml-auto flex-shrink-0 text-[#a3a3a3] hover:text-[#171717] w-6 h-6 rounded-md hover:bg-[#fafafa] flex items-center justify-center' + (onClose ? '' : ' -mr-1')}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+          </button>
           {onClose && (
-            <button onClick={onClose} aria-label="Close" className="ml-auto -mr-1 flex-shrink-0 text-[#a3a3a3] hover:text-[#171717] w-6 h-6 rounded-md hover:bg-[#fafafa] flex items-center justify-center">
+            <button onClick={onClose} aria-label="Close" className="-mr-1 flex-shrink-0 text-[#a3a3a3] hover:text-[#171717] w-6 h-6 rounded-md hover:bg-[#fafafa] flex items-center justify-center">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
           )}

@@ -90,8 +90,9 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
   const rf = useReactFlow();
   const navigate = useNavigate();
 
-  // Top-of-map gating: company → domains → divisions.
-  const [companyOpen, setCompanyOpen] = useState(false);
+  // Top-of-map gating: company → domains → divisions. The company starts open by
+  // default so the three domains are visible on load (drill begins one level in).
+  const [companyOpen, setCompanyOpen] = useState(true);
   const [selectedDomain, setSelectedDomain] = useState<Category | null>(null);
 
   // Level / focus state (within a selected domain)
@@ -824,7 +825,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
           </div>
         ) : (
           <span className="text-[13px] text-[#666666]">
-            Click the company to reveal its domains, then a domain to drill into the end-to-end process.
+            Click a domain to drill into the end-to-end process.
           </span>
         ),
         breadcrumbSlot
