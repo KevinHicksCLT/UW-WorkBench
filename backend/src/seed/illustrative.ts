@@ -76,7 +76,10 @@ export function metricReading(def: { name: string; target: string | null; notes:
     value = target === 0 ? Math.round((h % 5)) : Math.round(target * (1 + jitter) * 10) / 10;
   } else {
     value = Math.round((40 + (h % 60)) * 10) / 10; // unitless score 40-100
-    target = null;
+    // No parseable number in the target text (qualitative goal like "Downward
+    // trend" / "Within tolerance"). Synthesize a numeric target near the reading
+    // using the same jitter family, so every KPI has a computable target.
+    target = Math.round((value / (1 + jitter)) * 10) / 10;
   }
   if (unit === '%') value = Math.max(0, Math.min(100, value));
   return { value, unit, target, direction };
@@ -124,13 +127,47 @@ const INITIATIVES = [
   { code: 'DIST-SS', name: 'Distribution Self-Service', stage: 'Discovery', health: 'Green', budget: 3_600_000, vs: ['Distribution', 'Customer Service'], div: ['Sales'] },
 ];
 
+// Most-used-app pools for the person drill ("Most used apps"). Tech vs business
+// roles draw from different mixes. ILLUSTRATIVE: the workbook has no app telemetry.
+const TECH_APPS = [
+  { appName: 'VS Code', category: 'IDE' },
+  { appName: 'IntelliJ IDEA', category: 'IDE' },
+  { appName: 'GitHub', category: 'IDE' },
+  { appName: 'Microsoft Teams', category: 'Comms' },
+  { appName: 'Jira', category: 'Productivity' },
+  { appName: 'Snowflake', category: 'Analytics' },
+  { appName: 'Azure Portal', category: 'Domain' },
+];
+const BIZ_APPS = [
+  { appName: 'Outlook', category: 'Comms' },
+  { appName: 'Microsoft Teams', category: 'Comms' },
+  { appName: 'Excel', category: 'Productivity' },
+  { appName: 'Power BI', category: 'Analytics' },
+  { appName: 'Guidewire', category: 'Domain' },
+  { appName: 'ServiceNow', category: 'Domain' },
+  { appName: 'Salesforce', category: 'Domain' },
+];
+const APP_WEIGHTS = [40, 28, 20, 12]; // descending share of active time, sums to 100
+
 const pickFrom = <T>(seed: number, arr: T[]): T => arr[seed % arr.length];
 async function chunked<T>(rows: T[], fn: (c: T[]) => Promise<unknown>, size = 1000) {
   for (let i = 0; i < rows.length; i += size) await fn(rows.slice(i, i + size));
 }
 
-export async function seedDeepLevels(prisma: PrismaClient, ctx: { tenantId: string; companyId: string }) {
-  const { tenantId, companyId } = ctx;
+export async function seedDeepLevels(prisma: PrismaClient, ctx: { tenantId: string; companyId: string; clear?: boolean }) {
+  const { tenantId, companyId, clear = true } = ctx;
+
+  // Idempotent rebuild: clear this company's deep levels first. Deleting people
+  // cascades to assignments, person-tasks, person-metrics, signals and app-usage;
+  // deleting initiatives cascades to value-stream/division links. Harmless no-op
+  // during a full re-seed (the company was just recreated, so these are empty).
+  // Pass clear:false to run as a purely additive fill onto empty tables.
+  if (clear) {
+    await prisma.person.deleteMany({ where: { companyId } });
+    await prisma.risk.deleteMany({ where: { companyId } });
+    await prisma.initiative.deleteMany({ where: { companyId } });
+  }
+
   const [divisions, roles, valueStreams, roleTaskRows] = await Promise.all([
     prisma.division.findMany({ where: { companyId }, select: { id: true, name: true } }),
     prisma.role.findMany({ where: { companyId }, select: { id: true, name: true, roleFamily: true, divisionId: true } }),
@@ -162,8 +199,9 @@ export async function seedDeepLevels(prisma: PrismaClient, ctx: { tenantId: stri
   await prisma.initiativeValueStream.createMany({ data: ivsRows, skipDuplicates: true });
   await prisma.initiativeDivision.createMany({ data: idivRows, skipDuplicates: true });
 
-  // People + assignments + tasks + metrics.
+  // People + assignments + tasks + metrics + productivity signals + app usage.
   const people: any[] = [], assignments: any[] = [], tasks: any[] = [], metrics: any[] = [];
+  const signals: any[] = [], appUsage: any[] = [];
   const GENERIC = ['Refine backlog item', 'Implement feature', 'Peer code review', 'Resolve defects', 'Update runbook', 'Prepare release notes'];
   for (const role of roles) {
     const dName = role.divisionId ? divName.get(role.divisionId) ?? '' : '';
@@ -175,13 +213,13 @@ export async function seedDeepLevels(prisma: PrismaClient, ctx: { tenantId: stri
       const h = hash(`${role.id}:${i}`);
       const name = `${pickFrom(h, FIRST)} ${pickFrom(h >> 5, LAST)}`;
       let employmentType = (h % 100) < (heavy ? 65 : 15) ? (h % 7 === 0 ? 'si_partner' : 'contractor') : 'badged';
-      let region = 'Onshore', vendor: string | null = null, location = pickFrom(h >> 7, ONSHORE_LOC);
-      if (employmentType !== 'badged') {
-        const r = h % 100;
-        region = r < 60 ? 'Offshore' : r < 80 ? 'Nearshore' : 'Onshore';
-        vendor = pickFrom(h >> 3, VENDORS);
-        location = region === 'Offshore' ? pickFrom(h >> 7, OFFSHORE_LOC) : region === 'Nearshore' ? pickFrom(h >> 7, NEARSHORE_LOC) : pickFrom(h >> 7, ONSHORE_LOC);
-      }
+      // Region mix reflects a typical offshore-led delivery model: ~60% Offshore,
+      // ~10% Nearshore, ~30% Onshore (i.e. ~70% off/near-shore). Applies to badged
+      // and non-badged staff alike, with location following region.
+      const r = h % 100;
+      let region = r < 60 ? 'Offshore' : r < 70 ? 'Nearshore' : 'Onshore';
+      let vendor: string | null = employmentType !== 'badged' ? pickFrom(h >> 3, VENDORS) : null;
+      let location = region === 'Offshore' ? pickFrom(h >> 7, OFFSHORE_LOC) : region === 'Nearshore' ? pickFrom(h >> 7, NEARSHORE_LOC) : pickFrom(h >> 7, ONSHORE_LOC);
       if (isUIDev && i === 0) { employmentType = 'contractor'; region = 'Offshore'; vendor = pickFrom(h, VENDORS); location = pickFrom(h, OFFSHORE_LOC); }
       people.push({ id: pid, tenantId, companyId, name, email: `${name.replace(/[^a-z]+/gi, '.').toLowerCase()}@example.com`, employmentType, vendor, location, region, title: role.name, illustrative: true });
 
@@ -196,6 +234,7 @@ export async function seedDeepLevels(prisma: PrismaClient, ctx: { tenantId: stri
         const title = (roleTexts.length ? roleTexts[th % roleTexts.length] : GENERIC[th % GENERIC.length]).slice(0, 140);
         tasks.push({ tenantId, personId: pid, title, status: pickFrom(th, ['In Progress', 'In Progress', 'Done', 'Done', 'To Do', 'Blocked']), priority: pickFrom(th >> 3, ['High', 'Medium', 'Medium', 'Low']), illustrative: true });
       }
+      const tech = /engineer|developer|data|devops|architect|analyst|scientist|sre|platform/i.test(role.name);
       for (const period of PERIODS) {
         const mh = hash(`${pid}:${period}`);
         const mp = (lo: number, hi: number, salt: number) => lo + (((mh >> (salt % 20)) % 1000) / 1000) * (hi - lo);
@@ -205,13 +244,32 @@ export async function seedDeepLevels(prisma: PrismaClient, ctx: { tenantId: stri
           { tenantId, personId: pid, period, name: 'Utilization', value: Math.round(mp(60, 98, 9)), unit: '%', target: 85, direction: 'up', illustrative: true },
           { tenantId, personId: pid, period, name: 'Cycle time', value: Math.round(mp(2, 15, 13) * 10) / 10, unit: 'days', target: 5, direction: 'down', illustrative: true },
         );
+        // Digital-productivity signals (monthly time-series, read by the person drill).
+        const sh = hash(`${pid}:sig:${period}`);
+        const sp = (lo: number, hi: number, salt: number) => Math.round((lo + (((sh >> (salt % 20)) % 1000) / 1000) * (hi - lo)) * 10) / 10;
+        signals.push(
+          { tenantId, personId: pid, period, name: 'Time online', value: sp(6, 9.5, 1), unit: 'hrs/day', illustrative: true },
+          { tenantId, personId: pid, period, name: 'GitHub activity', value: tech ? sp(8, 60, 3) : sp(0, 6, 3), unit: 'commits/mo', illustrative: true },
+          { tenantId, personId: pid, period, name: 'Team messages', value: sp(20, 140, 5), unit: 'msgs/wk', illustrative: true },
+          { tenantId, personId: pid, period, name: 'Focus hours', value: sp(8, 26, 7), unit: 'hrs/wk', illustrative: true },
+          { tenantId, personId: pid, period, name: 'Meetings', value: sp(3, 22, 9), unit: 'hrs/wk', illustrative: true },
+        );
       }
+      // Most-used apps: a deterministic, role-appropriate ranked top-4 mix.
+      const pool = tech ? TECH_APPS : BIZ_APPS;
+      const start = hash(`${pid}:apps`) % pool.length;
+      const ordered = [...pool.slice(start), ...pool.slice(0, start)].slice(0, APP_WEIGHTS.length);
+      ordered.forEach((app, idx) => {
+        appUsage.push({ tenantId, personId: pid, appName: app.appName, category: app.category, usagePct: APP_WEIGHTS[idx], rank: idx + 1, illustrative: true });
+      });
     }
   }
   await prisma.person.createMany({ data: people });
   await prisma.assignment.createMany({ data: assignments });
   await chunked(tasks, (c) => prisma.personTask.createMany({ data: c }));
   await chunked(metrics, (c) => prisma.personMetric.createMany({ data: c }));
+  await chunked(signals, (c) => prisma.personSignal.createMany({ data: c }));
+  await chunked(appUsage, (c) => prisma.personAppUsage.createMany({ data: c }));
 
   // Risks: per initiative + a few per value stream.
   const SEV = ['Critical', 'High', 'Medium', 'Low'], STATUS = ['Open', 'Mitigating', 'Accepted', 'Open'];
@@ -231,7 +289,7 @@ export async function seedDeepLevels(prisma: PrismaClient, ctx: { tenantId: stri
   }
   await prisma.risk.createMany({ data: risks });
 
-  console.log(`   + ${initRows.length} initiatives, ${people.length} people, ${assignments.length} assignments, ${tasks.length} tasks, ${metrics.length} person-metrics, ${risks.length} risks`);
+  console.log(`   + ${initRows.length} initiatives, ${people.length} people, ${assignments.length} assignments, ${tasks.length} tasks, ${metrics.length} person-metrics, ${signals.length} signals, ${appUsage.length} app-usage, ${risks.length} risks`);
 }
 
 // ─── Real Application TCO records (from v15 Application TCO sheet) ─────────

@@ -65,7 +65,9 @@ model Company {
   risks                Risk[]
   domains              ValueStreamDomain[]
   standards            Standard[]
+  standardItems        StandardItem[]
   scenarios            Scenario[]
+  rationalizationWorkspaces RationalizationWorkspace[]
 
   @@unique([tenantId, slug])
 }
@@ -149,6 +151,7 @@ model Role {
   assignments          Assignment[]
   sponsoredInitiatives Initiative[]          @relation("InitiativeSponsor")
   ownedRisks           Risk[]               @relation("RiskOwner")
+  ownedStandardItems   StandardItem[]       @relation("StandardItemOwner")
 
   @@unique([tenantId, companyId, name])
   @@index([companyId])
@@ -216,8 +219,9 @@ model ValueStreamDomain {
   @@index([companyId])
 }
 
-// L3 (Process Area) and L4 (Sub-Process) nodes. L4 nodes point at their L3
-// parent via parentId (self-relation), queried by recursive CTE.
+// L3 (Process Area), L4 (Sub-Process), and L5 (Process Step) nodes. Each level
+// points at its parent via parentId (self-relation), queried by recursive CTE.
+// L5 steps (v15) carry their brief description in `notes`; ordered by sourceRow.
 model SubValueStream {
   id            String           @id @default(cuid())
   tenantId      String
@@ -226,7 +230,7 @@ model SubValueStream {
   parentId      String?
   parent        SubValueStream?  @relation("SubStreamTree", fields: [parentId], references: [id], onDelete: Cascade)
   children      SubValueStream[] @relation("SubStreamTree")
-  level         Int // 3 = Process Area, 4 = Sub-Process
+  level         Int // 3 = Process Area, 4 = Sub-Process, 5 = Process Step
   name          String
   inputs        String?
   outputs       String?
@@ -507,6 +511,8 @@ model IoItem {
 }
 
 // v13 department standards index (count, charter, owner) — governance signal.
+// `count` is the number of individual StandardItem rows in the area; `mission`
+// and `scope` come from the per-department Standards sheet's charter block.
 model Standard {
   id              String   @id @default(cuid())
   tenantId        String
@@ -517,10 +523,43 @@ model Standard {
   charterIncluded Boolean  @default(false)
   owner           String?
   link            String?
+  mission         String?
+  scope           String? // newline-joined scope bullets from the charter block
   illustrative    Boolean  @default(false)
   createdAt       DateTime @default(now())
 
+  items           StandardItem[]
+
   @@index([companyId])
+}
+
+// Individual standard / guideline within a department standards area. Real,
+// authored data from the workbook's per-department Standards sheets. `ownerRole`
+// is the accountable role as written; `ownerRoleId` resolves it to a roster Role
+// when one matches (left null otherwise — the raw text still displays).
+model StandardItem {
+  id              String   @id @default(cuid())
+  tenantId        String
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  standardId      String
+  standard        Standard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  category        String // grouping within the area, e.g. "Encryption"
+  name            String // the standard / guideline title
+  description     String
+  buildRun        String? // Build | Run | Build/Run — lifecycle phase it applies in
+  ownerRole       String? // accountable role, raw text from the sheet
+  ownerRoleId     String?
+  ownerRoleRef    Role?    @relation("StandardItemOwner", fields: [ownerRoleId], references: [id])
+  relatedRole     String? // "Related Items (Role)" cross-reference
+  relatedCategory String? // "Related Items (Category)" cross-reference
+  itemsLink       String? // pointer back into the workbook Items sheet
+  sourceRow       Int?
+  createdAt       DateTime @default(now())
+
+  @@index([companyId])
+  @@index([standardId])
+  @@index([ownerRoleId])
 }
 
 // ─── Initiatives / People / Tasks / Risks (illustrative) ────────────────
@@ -610,9 +649,47 @@ model Person {
   assignments Assignment[]
   tasks       PersonTask[]
   metrics     PersonMetric[]
+  signals     PersonSignal[]
+  appUsage    PersonAppUsage[]
 
   @@index([companyId])
   @@index([companyId, employmentType])
+}
+
+// Digital-productivity signals for an individual (time online, code activity,
+// collaboration). ILLUSTRATIVE: the workbook has no such telemetry, so these are
+// synthesized to show how individual activity would surface. Monthly time-series.
+model PersonSignal {
+  id           String   @id @default(cuid())
+  tenantId     String
+  personId     String
+  person       Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  period       String // YYYY-MM
+  name         String // Time online | GitHub activity | Team messages | Focus hours | Meetings
+  value        Float
+  unit         String // hrs/day | commits/mo | msgs/wk | hrs/wk
+  illustrative Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  @@unique([personId, period, name])
+  @@index([personId])
+}
+
+// Application usage mix for an individual (the "most used app" signal). One row
+// per app, ranked by share of active time. ILLUSTRATIVE.
+model PersonAppUsage {
+  id           String   @id @default(cuid())
+  tenantId     String
+  personId     String
+  person       Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  appName      String
+  category     String? // IDE | Comms | Analytics | Domain | Productivity
+  usagePct     Int // share of active time (0–100)
+  rank         Int // 1 = most used
+  illustrative Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  @@index([personId])
 }
 
 model Assignment {
@@ -705,4 +782,407 @@ model Risk {
   @@index([valueStreamId])
   @@index([initiativeId])
   @@index([ownerRoleId])
+}
+
+// ─── "Evergreen" Portfolio Rationalization ("How") ──────────────────────
+// Decompose overlapping legacy ("brown-field") applications by business-process
+// step AND IT layer, classify each capability as keep vs anti-pattern, normalize
+// the overlap (CAPDAN — Common As Possible, Different As Needed) into target
+// components, and re-constitute onto a green-field microservice architecture.
+// Migration status on every capability/component/microservice rolls up into the
+// workspace's progress. All illustrative until real portfolio data arrives.
+//
+// IT layers are a fixed vocabulary (string, not a table):
+//   UI | Integration | Business Service | Data | Infrastructure
+// migrationStatus is an ordered vocabulary that drives progress %:
+//   Identified | In Analysis | Normalized | In Migration | Migrated | Retired
+
+model RationalizationWorkspace {
+  id              String   @id @default(cuid())
+  tenantId        String
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name            String
+  application     String? // the application/platform being rationalized (groups stages into one chevron flow)
+  stageOrder      Int      @default(0) // position in the value-stream chevron flow
+  businessProcess String? // the value-stream stage / business-process this chevron represents
+  description     String?
+  northstar       String? // the green-field / Northstar architecture target statement
+  valueStreamId   String? // optional link to the value stream this process belongs to
+  status          String   @default("In Progress") // Proposed | In Progress | Migrating | Complete
+  illustrative    Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  apps          RationalizationApp[]
+  capabilities  RationalizationCapability[]
+  components    RationalizationComponent[]
+  microservices RationalizationMicroservice[]
+  planSteps     RationalizationPlanStep[]
+
+  @@unique([tenantId, companyId, name])
+  @@index([companyId])
+}
+
+// Brown-field legacy application in a workspace (one grid column).
+model RationalizationApp {
+  id           String                    @id @default(cuid())
+  tenantId     String
+  companyId    String
+  workspaceId  String
+  workspace    RationalizationWorkspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  disposition  String   @default("Refactor") // Retain | Refactor | Replace | Retire
+  // Application-specific profile of the legacy system being decomposed.
+  techStack    String? // e.g. "C# / .NET Framework 4.7, WCF, SQL Server 2014"
+  vendor       String? // COTS vendor / "In-house"
+  hosting      String? // On-prem | Private cloud | SaaS | Hybrid
+  criticality  String? // High | Medium | Low (business criticality)
+  ageYears     Int?    // years in production
+  annualCost   Float?  // run cost ($/yr)
+  position     Int      @default(0) // left-to-right column order
+  illustrative Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  capabilities RationalizationCapability[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+}
+
+// CAPDAN-normalized target component for one IT layer (one middle-column box).
+// Where the kept capabilities across apps re-constitute, and where they land.
+model RationalizationComponent {
+  id             String                       @id @default(cuid())
+  tenantId       String
+  companyId      String
+  workspaceId    String
+  workspace      RationalizationWorkspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  layer          String // UI | Integration | Business Service | Data | Infrastructure
+  name           String // e.g. "UI Components / Fields"
+  principle      String? // CAPDAN rationale — what is common vs intentionally different
+  pattern        String? // target architecture pattern, e.g. "Strangler facade", "CQRS + event sourcing"
+  targetTech     String? // target technology, e.g. "React + Module Federation", "Spring Boot + Kafka"
+  destination    String? // free-text destination label
+  microserviceId String? // green-field microservice it lands in
+  microservice   RationalizationMicroservice? @relation(fields: [microserviceId], references: [id], onDelete: SetNull)
+  migrationStatus String  @default("Identified")
+  illustrative   Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  capabilities RationalizationCapability[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([microserviceId])
+}
+
+// A single decomposed capability (one line inside a grid cell). Classified keep
+// (Retain) vs anti-pattern (Eliminate); kept ones map to a normalized component.
+model RationalizationCapability {
+  id              String                     @id @default(cuid())
+  tenantId        String
+  companyId       String
+  workspaceId     String
+  workspace       RationalizationWorkspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  appId           String
+  app             RationalizationApp         @relation(fields: [appId], references: [id], onDelete: Cascade)
+  layer           String // current layer: UI | Integration | Business Service | Data | Infrastructure
+  name            String // the specific finding (e.g. "Validate premium > 0")
+  category        String? // finding group used for the high-level tag, e.g. "Business validations"
+  capdan          String   @default("Common") // Common | Different | Relocate | Eliminate (CAPDAN classification)
+  targetLayer     String? // when capdan=Relocate: the layer this finding belongs in (drives the relocation line)
+  treatment       String   @default("Retain") // Retain (keep) | Eliminate (anti-pattern) — derived from capdan
+  migrationStatus String   @default("Identified")
+  componentId     String? // normalized target component it folds into (kept capabilities)
+  component       RationalizationComponent?  @relation(fields: [componentId], references: [id], onDelete: SetNull)
+  // Application-specific decomposition detail.
+  codeRef         String? // the specific code identified, e.g. "PolicyForm.aspx.cs : ValidatePremium()"
+  migrationApproach String? // how this finding is migrated / normalized
+  targetTech      String? // where/how it is rebuilt, e.g. "Drools rules service"
+  rationale       String? // why keep / why eliminate (the application-specific reason)
+  effort          String? // S | M | L | XL (rebuild/decommission effort)
+  complexity      String? // Low | Medium | High
+  notes           String?
+  illustrative    Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([appId])
+  @@index([componentId])
+}
+
+// Green-field target microservice / application (one right-column box).
+model RationalizationMicroservice {
+  id           String                     @id @default(cuid())
+  tenantId     String
+  companyId    String
+  workspaceId  String
+  workspace    RationalizationWorkspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name         String
+  kind         String   @default("Microservice") // Microservice | Application
+  description  String?
+  status       String   @default("Planned") // Planned | Building | Live
+  techStack    String? // target runtime/stack, e.g. "Java 21 / Spring Boot, Postgres, Kafka"
+  ownerRole    String? // owning team / role
+  repo         String? // source repository / service slug
+  position     Int      @default(0)
+  illustrative Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  components RationalizationComponent[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+}
+
+// Migration plan — a sequenced wave/step in re-constituting the business process
+// onto the green-field architecture. Gives each initiative an actual roadmap
+// (deliverables, owner, target window, dependencies) with its own status that
+// rolls up alongside the capability-level progress.
+model RationalizationPlanStep {
+  id           String                   @id @default(cuid())
+  tenantId     String
+  companyId    String
+  workspaceId  String
+  workspace    RationalizationWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  wave         Int      @default(1) // grouping (Wave 1, 2, 3 …)
+  sequence     Int      @default(0) // order within the plan
+  name         String
+  description  String?
+  layer        String? // optional IT-layer focus (UI | Integration | …)
+  status       String   @default("Not Started") // Not Started | In Progress | Done | Blocked
+  ownerRole    String?
+  targetWindow String? // e.g. "Q3 2026"
+  effortWeeks  Int?
+  dependsOn    String? // free-text dependency / predecessor
+  deliverables String? // what ships at the end of this step
+  illustrative Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([workspaceId, wave, sequence])
+}
+
+// ─── Initiative Tracker (strategic-portfolio management) ─────────────────
+// A self-contained SPM tracker carried over from the Cascade app, surfaced in
+// its own "Initiatives" tab. Hierarchy: Program → Workstream → PortfolioInitiative
+// (named to avoid colliding with the operating-model `Initiative` above). Each
+// initiative carries a stage-gate workflow (IDEA→PLAN→EXECUTE→REALIZE→COMPLETE),
+// time-phased benefit/cost lines (monthly MetricValue rows keyed by dataset),
+// milestones, and a RAID log. It integrates with the operating model through
+// optional scalar links (valueStreamId / divisionId / owner+sponsor roleId);
+// those FKs are enforced at the DB level (see the migration) but are NOT modeled
+// as Prisma relations, so no existing model is touched. Every write is recorded
+// in the shared AuditEntry log. Scoped to tenant + company.
+
+model Program {
+  id          String   @id @default(cuid())
+  tenantId    String
+  companyId   String
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  status      String   @default("ON_TRACK") // ON_TRACK | AT_RISK | OFF_TRACK
+  statusNote  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workstreams Workstream[]
+
+  @@index([companyId])
+}
+
+model Workstream {
+  id          String   @id @default(cuid())
+  tenantId    String
+  companyId   String
+  programId   String
+  program     Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  status      String   @default("ON_TRACK")
+  statusNote  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  initiatives PortfolioInitiative[]
+
+  @@index([companyId])
+  @@index([programId])
+}
+
+model PortfolioInitiative {
+  id             String     @id @default(cuid())
+  tenantId       String
+  companyId      String
+  workstreamId   String
+  workstream     Workstream @relation(fields: [workstreamId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  // Stage-gate workflow
+  stage          String     @default("IDEA") // IDEA | PLAN | EXECUTE | REALIZE | COMPLETE
+  workflowAction String? // SUBMIT (pending approval) | null
+  state          String     @default("PLANNING") // PLANNING | ACTIVE | DONE
+  status         String     @default("ON_TRACK") // ON_TRACK | AT_RISK | OFF_TRACK
+  statusNote     String?
+  startDate      DateTime
+  dueDate        DateTime
+  // Operating-model integration — optional scalar FKs (constraints in the migration).
+  valueStreamId  String?
+  divisionId     String?
+  ownerRoleId    String?
+  sponsorRoleId  String?
+  // Denormalized rollups, refreshed by the rollup service after benefit/cost writes.
+  cumulativeBenefit    Float @default(0)
+  cumulativeCost       Float @default(0)
+  cumulativeNetBenefit Float @default(0)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  benefits   BenefitLine[]
+  costs      CostLine[]
+  milestones Milestone[]
+  raidItems  RaidItem[]
+
+  @@index([companyId])
+  @@index([workstreamId])
+  @@index([valueStreamId])
+  @@index([divisionId])
+}
+
+model BenefitLine {
+  id           String              @id @default(cuid())
+  initiativeId String
+  initiative   PortfolioInitiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  name         String
+  category     String? // e.g. Cost Savings, Revenue Uplift, Cost Avoidance
+  startDate    DateTime
+  endDate      DateTime
+  createdAt    DateTime            @default(now())
+
+  values MetricValue[]
+
+  @@index([initiativeId])
+}
+
+model CostLine {
+  id           String              @id @default(cuid())
+  initiativeId String
+  initiative   PortfolioInitiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  name         String
+  category     String? // OPEX | CAPEX | Resource | Vendor
+  startDate    DateTime
+  endDate      DateTime
+  createdAt    DateTime            @default(now())
+
+  values MetricValue[]
+
+  @@index([initiativeId])
+}
+
+// Time-phased monthly value. Either benefitLineId OR costLineId is set (sparse FK).
+model MetricValue {
+  id            String       @id @default(cuid())
+  benefitLineId String?
+  costLineId    String?
+  benefitLine   BenefitLine? @relation(fields: [benefitLineId], references: [id], onDelete: Cascade)
+  costLine      CostLine?    @relation(fields: [costLineId], references: [id], onDelete: Cascade)
+  dataset       String // ACTUAL | TARGET | FORECAST
+  periodStart   DateTime // first day of the month
+  amount        Float
+
+  @@index([benefitLineId, dataset, periodStart])
+  @@index([costLineId, dataset, periodStart])
+}
+
+model Milestone {
+  id           String              @id @default(cuid())
+  initiativeId String
+  initiative   PortfolioInitiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  name         String
+  dueDate      DateTime
+  completedAt  DateTime?
+  isGate       Boolean             @default(false) // stage-gate milestone?
+  status       String              @default("PENDING") // PENDING | DONE | MISSED
+  createdAt    DateTime            @default(now())
+
+  @@index([initiativeId])
+}
+
+model RaidItem {
+  id           String              @id @default(cuid())
+  initiativeId String
+  initiative   PortfolioInitiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  type         String // RISK | ASSUMPTION | ISSUE | DECISION
+  title        String
+  description  String?
+  probability  Int                 @default(3) // 1–5 (risks)
+  impact       Int                 @default(3) // 1–5
+  severity     Int                 @default(9) // probability * impact
+  mitigation   String?
+  status       String              @default("OPEN") // OPEN | MITIGATED | CLOSED
+  ownerRoleId  String? // optional link to an operating-model Role (constraint in migration)
+  dueDate      DateTime?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@index([initiativeId])
+}
+
+// ─── Deliverables & Tasks (work tracker) ─────────────────────────────────
+// A lightweight, standalone work tracker surfaced in its own "Deliverables &
+// Tasks" tab. A Deliverable is a tangible output (document, system, report …);
+// a Task is a unit of work, optionally rolling up to a Deliverable. Both are
+// scoped to tenant + company and may link to an operating-model ValueStream
+// (DB-level FK with ON DELETE SET NULL, declared in the migration — not modeled
+// as a Prisma relation, so no existing model is touched). Illustrative demo data.
+
+model Deliverable {
+  id            String   @id @default(cuid())
+  tenantId      String
+  companyId     String
+  title         String
+  description   String?
+  owner         String? // free-text owner / accountable role
+  type          String   @default("Document") // Document | System | Report | Process | Model | Other
+  status        String   @default("Not Started") // Not Started | In Progress | At Risk | Done
+  valueStreamId String? // optional link to an operating-model ValueStream (constraint in migration)
+  dueDate       DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tasks Task[]
+
+  @@index([companyId])
+  @@index([valueStreamId])
+}
+
+model Task {
+  id            String       @id @default(cuid())
+  tenantId      String
+  companyId     String
+  deliverableId String?
+  deliverable   Deliverable? @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  title         String
+  owner         String? // free-text assignee
+  status        String       @default("To Do") // To Do | In Progress | Blocked | Done
+  priority      String       @default("Medium") // High | Medium | Low
+  source        String       @default("process") // process (L5 step) | role (role responsibility)
+  dueDate       DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([companyId])
+  @@index([deliverableId])
+  @@index([status])
 }

@@ -16,15 +16,15 @@ export type Dashboard = {
 };
 
 const LEVEL_LABEL: Record<string, string> = {
-  company: 'Enterprise', domain: 'CEO Domain', division: 'Division',
+  company: 'Enterprise', domain: 'CEO Domain', division: 'Division', department: 'Department',
   valueStream: 'Value Stream', step: 'Process Area', role: 'Role', person: 'Individual',
 };
 
 const BAR = '#2563eb';
 
-function IllusTag() {
-  return <span className="text-[8px] font-semibold uppercase tracking-wide text-[#b45309] bg-[#fff7ed] border border-[#fdd9a8] rounded px-1 py-0.5 flex-shrink-0">illus.</span>;
-}
+// Sidebar is narrow (300px), so long lists overflow/truncate. Cap each section to
+// a few rows; the overflow opens the comprehensive view in a wide drawer.
+const SECTION_LIMIT = 6;
 
 function money(n: number) {
   const a = Math.abs(n);
@@ -39,12 +39,18 @@ function fmt(n: number, f?: Fmt) {
 }
 
 export default function MetricsSidebar({
-  dash, loading, onDrill, onBack,
+  dash, loading, onDrill, onBack, onClose, onViewAll, onViewDetail,
 }: {
   dash: Dashboard | null;
   loading: boolean;
   onDrill: (level: string, id: string) => void;
   onBack?: () => void;
+  // When provided (list view), renders a close button. The map omits it.
+  onClose?: () => void;
+  // Opens a section's comprehensive (uncapped) view in a wide drawer.
+  onViewAll?: (section: MetricSection) => void;
+  // When provided (value-stream level), renders a link to the full detail page.
+  onViewDetail?: () => void;
 }) {
   return (
     <aside
@@ -60,14 +66,30 @@ export default function MetricsSidebar({
             </button>
           )}
           <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3]">
-            {dash ? (LEVEL_LABEL[dash.level] ?? 'Metrics') : 'Metrics'}
+            {dash ? (LEVEL_LABEL[dash.level] ?? 'Roles') : 'Roles'}
           </div>
+          {onClose && (
+            <button onClick={onClose} aria-label="Close" className="ml-auto -mr-1 flex-shrink-0 text-[#a3a3a3] hover:text-[#171717] w-6 h-6 rounded-md hover:bg-[#fafafa] flex items-center justify-center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+          )}
         </div>
         <div className="text-[14px] font-bold text-[#171717] leading-snug">
           {loading ? 'Loading…' : dash?.title ?? '—'}
         </div>
         {dash?.subtitle && !loading && (
           <div className="text-[11px] text-[#a3a3a3] mt-0.5">{dash.subtitle}</div>
+        )}
+        {onViewDetail && !loading && (
+          <button
+            onClick={onViewDetail}
+            className="mt-2.5 inline-flex items-center gap-1 rounded-md border border-[#dbe7ff] bg-[#f5f8ff] px-2.5 py-1.5 text-[11.5px] font-semibold text-[#1d4ed8] hover:bg-[#eaf1ff] transition-colors duration-150"
+          >
+            View full details
+            <svg width="11" height="11" viewBox="0 0 13 13" fill="none" className="flex-shrink-0">
+              <path d="M2 6.5h9M6.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
         )}
       </div>
 
@@ -84,7 +106,7 @@ export default function MetricsSidebar({
             {dash.tiles.map((t) => (
               <div key={t.label} className="rounded-lg border border-[#eaeaea] bg-[#fafafa] px-3 py-2.5">
                 <div className="text-[19px] font-bold text-[#171717] leading-none tabular-nums">{t.value === 0 && t.hint ? '—' : fmt(t.value, t.format)}</div>
-                <div className="text-[10.5px] text-[#525252] mt-1 leading-tight flex items-center gap-1">{t.label}{t.illustrative && <IllusTag />}</div>
+                <div className="text-[10.5px] text-[#525252] mt-1 leading-tight flex items-center gap-1">{t.label}</div>
                 {t.hint && <div className="text-[9px] text-[#a3a3a3] mt-0.5 leading-tight">{t.hint}</div>}
               </div>
             ))}
@@ -93,15 +115,17 @@ export default function MetricsSidebar({
           {/* Sections */}
           {dash.sections.filter((s) => s.items.length > 0).map((section) => {
             const max = Math.max(1, ...section.items.map((i) => i.value));
+            const shown = section.items.slice(0, SECTION_LIMIT);
+            const hidden = section.items.length - shown.length;
             return (
               <div key={section.title} className="px-4 py-3 border-b border-[#eaeaea] last:border-b-0">
                 <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] mb-2.5 flex items-center gap-1.5">
-                  {section.title}{section.illustrative && <IllusTag />}
+                  {section.title}
                 </div>
 
                 {section.kind === 'bar' ? (
                   <div className="flex flex-col gap-2">
-                    {section.items.map((item) => {
+                    {shown.map((item) => {
                       const pct = Math.round((item.value / max) * 100);
                       const inner = (
                         <>
@@ -136,7 +160,7 @@ export default function MetricsSidebar({
                   </div>
                 ) : section.kind === 'kpi' ? (
                   <div className="flex flex-col gap-1.5">
-                    {section.items.map((item) => (
+                    {shown.map((item) => (
                       <div key={item.label} className="rounded-md border border-[#eaeaea] bg-[#fafafa] px-2.5 py-2">
                         <div className="flex items-start justify-between gap-2">
                           <span className="text-[11.5px] font-semibold text-[#171717] leading-snug">{item.label}</span>
@@ -152,7 +176,7 @@ export default function MetricsSidebar({
                   </div>
                 ) : (
                   <div className="flex flex-col gap-0.5">
-                    {section.items.map((item) =>
+                    {shown.map((item) =>
                       item.drill ? (
                         <button
                           key={item.label}
@@ -176,15 +200,127 @@ export default function MetricsSidebar({
                     )}
                   </div>
                 )}
+
+                {hidden > 0 && onViewAll && (
+                  <button
+                    onClick={() => onViewAll(section)}
+                    className="mt-2 w-full flex items-center justify-center gap-1 rounded-md py-1.5 text-[11px] font-medium text-[#1d4ed8] hover:bg-[#f5f8ff] transition-colors duration-150"
+                  >
+                    View all {section.items.length}
+                    <svg width="10" height="10" viewBox="0 0 13 13" fill="none" className="flex-shrink-0">
+                      <path d="M2 6.5h9M6.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                )}
               </div>
             );
           })}
 
           <div className="px-4 py-3 text-[9px] text-[#cbcbcb]">
-            Metrics sourced from the operating-model workbook.
+            Roles from the operating-model workbook.
           </div>
         </>
       )}
     </aside>
+  );
+}
+
+// ── Comprehensive (uncapped) view ──────────────────────────────────────────────
+// Wide drawer that slides over the map canvas to show a section's full, untruncated
+// list. Closing it leaves the map exactly where it was — no navigation, so the
+// breadcrumb and drill state are preserved.
+export function MetricsDrawer({
+  section, contextTitle, onClose, onDrill,
+}: {
+  section: MetricSection;
+  contextTitle: string;
+  onClose: () => void;
+  onDrill: (level: string, id: string) => void;
+}) {
+  const max = Math.max(1, ...section.items.map((i) => i.value));
+  const drill = (d: { level: string; id: string }) => { onDrill(d.level, d.id); onClose(); };
+
+  return (
+    <div className="absolute inset-0 z-30 flex justify-end" role="dialog" aria-modal="true">
+      {/* Backdrop dims the map; click to dismiss. */}
+      <div className="absolute inset-0 bg-black/20" onClick={onClose} />
+
+      <aside
+        className="relative h-full bg-white border-l border-[#eaeaea] shadow-2xl flex flex-col"
+        style={{ width: 520, maxWidth: '90vw' }}
+      >
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-[#eaeaea] flex items-start justify-between gap-3 flex-shrink-0">
+          <div className="min-w-0">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3] truncate">{contextTitle}</div>
+            <div className="text-[15px] font-bold text-[#171717] leading-snug flex items-center gap-1.5">
+              {section.title}
+              <span className="text-[#a3a3a3] font-normal tabular-nums">({section.items.length})</span>
+            </div>
+          </div>
+          <button onClick={onClose} aria-label="Close" className="-mr-1 flex-shrink-0 text-[#a3a3a3] hover:text-[#171717] w-7 h-7 rounded-md hover:bg-[#fafafa] flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+        </div>
+
+        {/* Body — full list, nothing truncated */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {section.kind === 'bar' ? (
+            <div className="flex flex-col gap-3">
+              {section.items.map((item) => (
+                <div key={item.label}>
+                  <div className="flex items-center justify-between mb-1 gap-3">
+                    <span className="text-[13px] text-[#171717]">{item.label}</span>
+                    <span className="text-[13px] font-semibold text-[#171717] tabular-nums flex-shrink-0">{fmt(item.value, item.format)}</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-[#f0f0f0] overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${Math.round((item.value / max) * 100)}%`, background: BAR }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : section.kind === 'kpi' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {section.items.map((item) => (
+                <div key={item.label} className="rounded-md border border-[#eaeaea] bg-[#fafafa] px-3 py-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[13px] font-semibold text-[#171717] leading-snug">{item.label}</span>
+                    {item.hint && (
+                      <span className="text-[11px] font-semibold text-[#1d4ed8] bg-[#eef3ff] border border-[#dbe7ff] rounded px-1.5 py-0.5 whitespace-nowrap flex-shrink-0">{item.hint}</span>
+                    )}
+                  </div>
+                  {item.sub && <div className="text-[11px] text-[#a3a3a3] mt-1">{item.sub}</div>}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              {section.items.map((item) =>
+                item.drill ? (
+                  <button
+                    key={item.label}
+                    onClick={() => drill(item.drill!)}
+                    className="w-full flex items-center gap-2.5 text-left rounded-md px-2.5 py-2 hover:bg-[#f5f8ff] border border-transparent hover:border-[#dbe7ff] transition-colors duration-150"
+                  >
+                    <span className="text-[13px] text-[#171717] flex-1">{item.label}</span>
+                    {item.value !== 0 && <span className="text-[13px] font-semibold text-[#171717] tabular-nums flex-shrink-0">{fmt(item.value, item.format)}</span>}
+                    {item.hint && <span className="text-[10px] font-medium text-[#525252] bg-[#f0f0f0] rounded px-1.5 py-0.5 flex-shrink-0">{item.hint}</span>}
+                    <svg width="12" height="12" viewBox="0 0 13 13" fill="none" className="text-[#a3a3a3] flex-shrink-0">
+                      <path d="M2 6.5h9M6.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                ) : (
+                  <div key={item.label} className="flex items-center gap-2.5 px-2.5 py-2">
+                    <span className="text-[13px] text-[#525252] flex-1">{item.label}</span>
+                    {item.value !== 0 && <span className="text-[13px] font-semibold text-[#171717] tabular-nums flex-shrink-0">{fmt(item.value, item.format)}</span>}
+                    {item.hint && <span className="text-[10px] text-[#a3a3a3] flex-shrink-0">{item.hint}</span>}
+                  </div>
+                )
+              )}
+            </div>
+          )}
+        </div>
+      </aside>
+    </div>
   );
 }

@@ -11,6 +11,9 @@ import { fileURLToPath } from 'node:url';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { seedIllustrative, seedDeepLevels, seedRealApplications, metricReading } from './illustrative.js';
+import { seedRationalization } from './rationalization.js';
+import { seedPortfolio } from './portfolio.js';
+import { seedWork } from './work.js';
 
 const prisma = new PrismaClient();
 const SPINE = resolve(dirname(fileURLToPath(import.meta.url)), '../../data/seed/spine.json');
@@ -35,6 +38,7 @@ type Spine = {
     inputs: string | null; outputs: string | null; upstream: string | null; downstream: string | null;
     notes: string | null; sourceRow: number;
   }[];
+  l5Steps: { l4Name: string; stepNumber: number; name: string; description: string | null; sourceSheet: string; sourceRow: number }[];
   metrics: {
     domain: string | null; valueStreamName: string; l3: string | null; category: string | null; name: string;
     description: string | null; formula: string | null; target: string | null; measurementLevel: string | null;
@@ -49,7 +53,11 @@ type Spine = {
     valueStreamName: string; l3: string | null; l4: string | null; type: string; name: string;
     keyRoles: string | null; dataElements: string | null; sourceRow: number;
   }[];
-  standards: { department: string; count: number; charterIncluded: boolean; owner: string | null; link: string | null; sourceRow: number }[];
+  standards: { department: string; count: number; charterIncluded: boolean; owner: string | null; link: string | null; mission: string | null; scope: string | null; sourceRow: number }[];
+  standardItems: {
+    areaLink: string | null; category: string; name: string; description: string; buildRun: string | null;
+    ownerRole: string | null; relatedRole: string | null; relatedCategory: string | null; itemsLink: string | null; sourceRow: number;
+  }[];
   checklistItems: { roleName: string; category: string | null; text: string; crossRole: boolean; sourceRow: number }[];
   roleTasks: { roleName: string; category: string | null; text: string; sourceRow: number }[];
   roleValueStreams: {
@@ -82,7 +90,7 @@ async function main() {
   const tenant = await prisma.tenant.upsert({ where: { slug: 'strata' }, update: {}, create: { name: 'Strata Demo', slug: 'strata' } });
   await prisma.user.upsert({
     where: { email: 'demo@strata.io' }, update: {},
-    create: { tenantId: tenant.id, email: 'demo@strata.io', name: 'Dana Chen', password: await bcrypt.hash('demo1234', 10), role: 'ADMIN' },
+    create: { tenantId: tenant.id, email: 'demo@strata.io', name: 'Kevin Hicks', password: await bcrypt.hash('demo1234', 10), role: 'ADMIN' },
   });
 
   await prisma.company.deleteMany({ where: { tenantId: tenant.id } });
@@ -163,6 +171,18 @@ async function main() {
   }
   await prisma.subValueStream.createMany({ data: l4Rows });
 
+  // ── L5 process steps: ordered children of each L4 sub-process (level 5) ──
+  // L4 names are globally unique in the workbook, so the l5Steps[] (keyed by L4
+  // name) resolve to exactly one L4 node; description lands in `notes`.
+  const l4ByName = new Map((await prisma.subValueStream.findMany({ where: { level: 4, valueStream: { companyId: c } }, select: { id: true, name: true, valueStreamId: true } })).map((x) => [x.name, { id: x.id, valueStreamId: x.valueStreamId }] as const));
+  const l5Seen = new Set<string>(); const l5Rows: any[] = [];
+  for (const s of spine.l5Steps) {
+    const parent = l4ByName.get(s.l4Name); if (!parent) continue;
+    const key = `${parent.id}␟${s.name}`; if (l5Seen.has(key)) continue; l5Seen.add(key);
+    l5Rows.push({ tenantId: t, valueStreamId: parent.valueStreamId, parentId: parent.id, level: 5, name: s.name, notes: s.description, sourceSheet: s.sourceSheet, sourceRow: s.sourceRow });
+  }
+  await prisma.subValueStream.createMany({ data: l5Rows });
+
   // ── Real KPIs (243) with illustrative current readings ──
   await chunked(spine.metrics, (batch) => prisma.metric.createMany({
     data: batch.flatMap((m) => {
@@ -192,8 +212,47 @@ async function main() {
     }),
   }));
 
-  // ── Department standards index ──
-  await prisma.standard.createMany({ data: spine.standards.map((s) => ({ tenantId: t, companyId: c, department: s.department, count: s.count, charterIncluded: s.charterIncluded, owner: s.owner, link: s.link })) });
+  // ── Department standards index (area summaries + charter) ──
+  await prisma.standard.createMany({ data: spine.standards.map((s) => ({ tenantId: t, companyId: c, department: s.department, count: s.count, charterIncluded: s.charterIncluded, owner: s.owner, link: s.link, mission: s.mission ?? null, scope: s.scope ?? null })) });
+  const standardAreaId = new Map((await prisma.standard.findMany({ where: { companyId: c }, select: { id: true, link: true } })).map((s) => [s.link, s.id] as const));
+
+  // ── Individual standards (343), each linked to its area + resolved owner role ──
+  // Owner text is informal ("CISO", "Chief UW Officer", "ISO Security Architect");
+  // resolve it to a roster Role where one matches, else keep the text (no link).
+  const normName = (s: string) => s.toLowerCase().replace(/[._()-]/g, ' ').replace(/&/g, 'and').replace(/\s+/g, ' ').trim();
+  const roleByNorm = new Map<string, string>();
+  for (const [name, id] of roleId) roleByNorm.set(normName(name), id);
+  const ROLE_ALIAS: Record<string, string> = {
+    ciso: 'Chief Info Security Officer', cto: 'Chief Technology Officer', cfo: 'Chief Financial Officer',
+    chro: 'Chief HR Officer', cro: 'Chief Risk Officer', cco: 'Head of Compliance', coo: 'Chief Operating Officer',
+    cdo: 'Chief Data Officer', cio: 'Chief Information Officer', cpo: 'Chief Product Officer',
+    'iso security architect': 'ISO Architect', rte: 'Release Train Engineer', 'pmo director': 'Program Mgmt Office',
+    'chief uw officer': 'Chief Underwriting Officer', 'uw manager': 'Underwriting Director / Manager',
+    underwriter: 'Senior Underwriter', 'chief compliance officer': 'Head of Compliance',
+    'compliance manager': 'Compliance Officer', 'data privacy officer': 'Data Protection Officer',
+    'l and d manager': 'Learning Development Manager', 'training manager': 'Learning Development Manager',
+    'claims manager': 'Claims Director / Manager', 'project manager': 'Technical Project Manager',
+    'devops engineer': 'DevOps / Platform Automation Engineer', 'data governance lead': 'Data Governance',
+    treasurer: 'Treasury Manager', 'data engineer lead': 'Data Engineer', 'pricing actuary lead': 'Pricing Actuary',
+    'reserving actuary lead': 'Reserving Actuary', 'actuarial analyst lead': 'Actuarial Analyst',
+  };
+  const resolveOwnerRoleId = (raw: string | null): string | null => {
+    if (!raw) return null;
+    const n = normName(raw);
+    const alias = ROLE_ALIAS[n];
+    if (alias) return roleByNorm.get(normName(alias)) ?? null;
+    return roleByNorm.get(n) ?? null;
+  };
+  await chunked(spine.standardItems, (batch) => prisma.standardItem.createMany({
+    data: batch.flatMap((it) => {
+      const standardId = standardAreaId.get(it.areaLink); if (!standardId) return [];
+      return [{
+        tenantId: t, companyId: c, standardId, category: it.category, name: it.name, description: it.description,
+        buildRun: it.buildRun, ownerRole: it.ownerRole, ownerRoleId: resolveOwnerRoleId(it.ownerRole),
+        relatedRole: it.relatedRole, relatedCategory: it.relatedCategory, itemsLink: it.itemsLink, sourceRow: it.sourceRow,
+      }];
+    }),
+  }));
 
   // ── Checklist items ──
   await chunked(spine.checklistItems, (batch) => prisma.checklistItem.createMany({
@@ -221,13 +280,16 @@ async function main() {
     data: spine.scenarios.map((s) => ({ tenantId: t, companyId: c, name: s.name, changeType: s.changeType, impactScope: s.impactScope, divisionName: s.divisionName, valueStreamName: s.valueStreamName, application: s.application, roleImpact: s.roleImpact, oneTimeCost: s.oneTimeCost, annualBenefit: s.annualBenefit, annualAddedCost: s.annualAddedCost, annualNetImpact: s.annualNetImpact, confidence: s.confidence, sourceSheet: 'Scenario Inputs', sourceRow: s.sourceRow })),
   });
 
-  console.log(`   spine: ${spine.domains.length} domains, ${spine.divisions.length} divisions, ${spine.roles.length} roles (${mgrUpdates.length} reporting links), ${spine.valueStreams.length} value streams, ${spine.metrics.length} KPIs, ${spine.processSteps.length} steps, ${spine.ioItems.length} I/O, ${spine.standards.length} standards, ${spine.scenarios.length} scenarios`);
+  console.log(`   spine: ${spine.domains.length} domains, ${spine.divisions.length} divisions, ${spine.roles.length} roles (${mgrUpdates.length} reporting links), ${spine.valueStreams.length} value streams, ${l3Rows.length} L3 / ${l4Rows.length} L4 / ${l5Rows.length} L5 sub-streams, ${spine.metrics.length} KPIs, ${spine.processSteps.length} steps, ${spine.ioItems.length} I/O, ${spine.standards.length} standards, ${spine.scenarios.length} scenarios`);
 
   // ── Illustrative systems + deep levels (people, initiatives, tasks, metrics, risks) ──
   const allVsForSeed = await prisma.valueStream.findMany({ where: { companyId: c }, select: { id: true, name: true } });
   await seedIllustrative(prisma, { tenantId: t, companyId: c, valueStreams: allVsForSeed });
   await seedRealApplications(prisma, { tenantId: t, companyId: c, valueStreams: allVsForSeed });
   await seedDeepLevels(prisma, { tenantId: t, companyId: c });
+  await seedRationalization(prisma, { tenantId: t, companyId: c });
+  await seedPortfolio(prisma, { tenantId: t, companyId: c });
+  await seedWork(prisma, { tenantId: t, companyId: c });
 
   console.log('✅ Seeded company:', company.name);
   console.log('   Login: demo@strata.io / demo1234');

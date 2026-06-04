@@ -1,8 +1,14 @@
-// transform-workbook.ts — IT_Roles_Analytics_v13.xlsx → normalized spine.json
+// transform-workbook.ts — IT_Roles_Analytics_v16.xlsx → normalized spine.json
 //
-// v13 broadens the model: value-stream DOMAINS, 243 real KPI definitions,
+// v13 broadened the model: value-stream DOMAINS, 243 real KPI definitions,
 // 256 E2E process steps, 835 inputs/outputs, 84 extended roles + a reporting
 // hierarchy, and department standards — on top of the v12 org/value-stream spine.
+// v15 added the L5 process-step decomposition plus Scenario Inputs / Application TCO.
+// v16 normalizes the process model: "Sub-Value Streams" + "E2E Process Flows" are
+// archived and replaced by "L4 Process Master" (one row per L4, stable Process ID)
+// and "L5 Process Steps" (one row per L5 step, full lead/support/IO detail). It
+// also introduces 3 new value streams — FinOps, AIOps, MLOps — in the process
+// model that the Value Streams roster doesn't yet map roles to.
 // Isolates workbook quirks (title/helper rows, role-name variants) from the
 // schema. The seed reads the committed spine.json, never the .xlsx.
 //
@@ -12,7 +18,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as XLSX from 'xlsx';
 
-const WORKBOOK = process.argv[2] || 'IT_Roles_Analytics_v13.xlsx';
+const WORKBOOK = process.argv[2] || 'IT_Roles_Analytics_v16.xlsx';
 const OUT = resolve(dirname(fileURLToPath(import.meta.url)), '../data/seed/spine.json');
 
 const wb = XLSX.read(readFileSync(WORKBOOK), { cellDates: true });
@@ -203,15 +209,79 @@ for (let i = 4; i < vs.length; i++) {
   });
 }
 
-// ─── Sub-Value Streams → L3/L4 nodes ────────────────────────────────────
-const svs = grid('Sub-Value Streams'); // header row 3; data 4+
+// ─── L4 Process Master → L3/L4 nodes (one row per L4 sub-process) ───────
+// v16 replaces the old "Sub-Value Streams" sheet (archived as ZZ_ARCHIVE_*) with a
+// normalized master carrying a stable Process ID per L4. A few value streams
+// (FinOps / AIOps / MLOps) appear here but not yet in the Value Streams roster —
+// register them so their process detail isn't lost (they carry no role links
+// until the roster maps roles to them).
+// Value streams present in the roster (Value Streams sheet) already carry role
+// participation; ones that exist ONLY in the L4 master (FinOps / AIOps / MLOps) do
+// not — so we derive their role↔stream links from each L4's Key Roles +
+// Participation Focus below, so they surface in the division flow like any other.
+const rosterVs = new Set(seenVs);
+const l4m = grid('L4 Process Master'); // header row 2; data 3+
 const subValueStreams: any[] = [];
-for (let i = 4; i < svs.length; i++) {
-  const l2 = str(svs[i][1]); if (!l2) continue;
+let derivedRvs = 0;
+for (let i = 3; i < l4m.length; i++) {
+  const l2 = str(l4m[i][2]); const l4 = str(l4m[i][4]);
+  if (!l2 || !l4) continue;
+  const l3 = orNull(l4m[i][3]);
+  const domain = cleanDomain(orNull(l4m[i][1]));
+  if (!seenVs.has(l2)) { seenVs.add(l2); valueStreams.push({ name: l2, domain, sourceRow: i }); if (domain) domainSet.add(domain); }
   subValueStreams.push({
-    valueStreamName: l2, l3: orNull(svs[i][2]), l4: orNull(svs[i][3]), keyRoles: orNull(svs[i][4]),
-    inputs: orNull(svs[i][6]), outputs: orNull(svs[i][7]), upstream: orNull(svs[i][8]), downstream: orNull(svs[i][9]),
-    notes: orNull(svs[i][10]), externalParticipants: orNull(svs[i][11]), sourceRow: i,
+    processId: orNull(l4m[i][0]), valueStreamName: l2, l3, l4, keyRoles: orNull(l4m[i][5]),
+    inputs: orNull(l4m[i][7]), outputs: orNull(l4m[i][8]), upstream: orNull(l4m[i][9]), downstream: orNull(l4m[i][10]),
+    notes: orNull(l4m[i][11]), externalParticipants: orNull(l4m[i][12]), sourceRow: i,
+  });
+  // Non-roster value stream → synthesize role participation from this L4 so the
+  // division(s) whose roles do this work lead/participate in it on the map. The
+  // "L3 — L4" subStream matches the flow endpoint's role-ownership convention.
+  if (!rosterVs.has(l2)) {
+    const focus = str(l4m[i][6]) || 'Support';
+    const subStream = l3 ? `${l3} — ${l4}` : l4;
+    for (const raw of str(l4m[i][5]).split(',')) {
+      const roleName = ensureRole(raw, 'L4 Process Master');
+      if (!roleName) continue;
+      roleValueStreams.push({
+        roleName, valueStreamName: l2, subStream, participationType: focus,
+        inputs: orNull(l4m[i][7]), outputs: orNull(l4m[i][8]), upstream: orNull(l4m[i][9]), downstream: orNull(l4m[i][10]),
+        notes: null, externalParticipants: orNull(l4m[i][12]), sourceRow: i,
+      });
+      derivedRvs++;
+    }
+  }
+}
+
+// ─── L5 Process Steps → ordered L5 steps within each L4 sub-process ──────
+// v16 unifies the old "Sheet2" / "L5 for Select L4's" / "E2E Process Flows" into
+// one normalized sheet — one row per L5 step, linked to its L4 via Parent Process
+// ID and carrying the full L4 Sub-Process name. We key L5 steps back to their L4
+// by that name (globally unique in the L4 Process Master). The same sheet also
+// feeds the ProcessStep (E2E) table below.
+const l4Canon: string[] = [...new Set(subValueStreams.map((s) => s.l4).filter((x): x is string => !!x))];
+const l4Norm = (v: unknown): string => str(v).toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+const l4NormMap = new Map<string, string>(l4Canon.map((n) => [l4Norm(n), n] as const));
+const resolveL4 = (raw: unknown): string | null => {
+  const sn = l4Norm(raw);
+  if (!sn) return null;
+  const exact = l4NormMap.get(sn);
+  if (exact) return exact;
+  // Tolerate truncated / depluralized source names by prefix match.
+  const pref = l4Canon.find((n) => l4Norm(n).startsWith(sn));
+  return pref ?? null;
+};
+const l5g = grid('L5 Process Steps'); // header row 2; data 3+
+const l5Steps: any[] = [];
+const l5Unmatched = new Set<string>();
+for (let i = 3; i < l5g.length; i++) {
+  const rawL4 = str(l5g[i][5]); const name = str(l5g[i][7]);
+  if (!rawL4 || !name) continue;
+  const l4Name = resolveL4(rawL4);
+  if (!l4Name) { l5Unmatched.add(rawL4); continue; }
+  l5Steps.push({
+    l4Name, stepNumber: intOrNull(l5g[i][6]) ?? 0, name,
+    description: orNull(l5g[i][8]), sourceSheet: 'L5 Process Steps', sourceRow: i,
   });
 }
 
@@ -229,38 +299,20 @@ for (let i = 4; i < vsm.length; i++) {
   });
 }
 
-// ─── E2E Process Flows → 256 sequenced steps ────────────────────────────
-// The E2E sheet uses abbreviated value-stream names that differ from the
-// canonical names in the Value Streams sheet. This map reconciles them.
-const PROCESS_VS_MAP: Record<string, string> = {
-  'Submission-to-Bind': 'Submission-to-Bind / Underwriting',
-  'Reinsurance Management': 'Reinsurance & Retrocession Management',
-  'Product Design & Management': 'Product & Proposition Management',
-  'Distribution Management': 'Distribution & Channel Management',
-  'Actuarial & Reserving': 'Actuarial Pricing, Reserving & Capital Modeling',
-  'Financial Planning & Reporting': 'Finance, Treasury & Capital Management',
-  'Human Capital Management': 'Talent & Workforce Management',
-  'Risk & Compliance Management': 'Risk, Compliance & Regulatory Management',
-  'Customer Service & Experience': 'Customer Service, Complaints & Experience',
-  'Vendor & Third-Party Management': 'Third-Party & Vendor Management',
-  'Data & Analytics': 'Data, Analytics & AI Management',
-  'Enterprise Risk Management': 'Risk, Compliance & Regulatory Management',
-  'Investment Management': 'Investment & Asset Management',
-  'Capital & Treasury Management': 'Finance, Treasury & Capital Management',
-  'Legal & Compliance': 'Legal, Governance & Privacy Management',
-};
-const canonicalVS = (name: string) => PROCESS_VS_MAP[name] ?? name;
-
-const e2e = grid('E2E Process Flows'); // header row 3; data 4+
+// ─── Process steps (E2E) → derived from the unified L5 Process Steps sheet ──
+// v16 archived the standalone "E2E Process Flows" sheet; the same sequenced step
+// detail (lead / supporting / inputs / outputs) now lives in "L5 Process Steps",
+// keyed by canonical L2 value-stream name (no abbreviation map needed). We keep
+// the ProcessStep table populated so step counts + the node explorer keep working,
+// while the L5 tree (l5Steps above) drives the visual drill-down.
 const processSteps: any[] = [];
-for (let i = 4; i < e2e.length; i++) {
-  const rawVS = str(e2e[i][1]); const name = str(e2e[i][5]);
-  if (!rawVS || !name) continue;
-  const valueStreamName = canonicalVS(rawVS);
+for (let i = 3; i < l5g.length; i++) {
+  const valueStreamName = str(l5g[i][3]); const name = str(l5g[i][7]);
+  if (!valueStreamName || !name) continue;
   processSteps.push({
-    valueStreamName, l3: orNull(e2e[i][2]), l4: orNull(e2e[i][3]), stepNumber: intOrNull(e2e[i][4]) ?? 0, name,
-    description: orNull(e2e[i][6]), leads: orNull(e2e[i][7]), supporting: orNull(e2e[i][8]),
-    inputs: orNull(e2e[i][9]), outputs: orNull(e2e[i][10]), notes: orNull(e2e[i][11]), externalParticipants: orNull(e2e[i][12]), sourceRow: i,
+    valueStreamName, l3: orNull(l5g[i][4]), l4: orNull(l5g[i][5]), stepNumber: intOrNull(l5g[i][6]) ?? 0, name,
+    description: orNull(l5g[i][8]), leads: orNull(l5g[i][9]), supporting: orNull(l5g[i][10]),
+    inputs: orNull(l5g[i][11]), outputs: orNull(l5g[i][12]), notes: orNull(l5g[i][13]), externalParticipants: orNull(l5g[i][14]), sourceRow: i,
   });
 }
 
@@ -314,7 +366,54 @@ const si = grid('Standards Index'); // header row 3; data 4+
 const standards: any[] = [];
 for (let i = 4; i < si.length; i++) {
   const dept = str(si[i][1]); if (!dept) continue;
-  standards.push({ department: dept, count: intOrNull(si[i][2]) ?? 0, charterIncluded: /yes/i.test(str(si[i][3])), link: orNull(si[i][4]), owner: orNull(si[i][5]), sourceRow: i });
+  // A real standards-index row has a numeric count in column C. Rows below the
+  // table (legend / notes that also use column B) lack one — skip them so the
+  // legend text doesn't leak in as bogus "standards".
+  const count = intOrNull(si[i][2]); if (count == null) continue;
+  standards.push({ department: dept, count, charterIncluded: /yes/i.test(str(si[i][3])), link: orNull(si[i][4]), owner: orNull(si[i][5]), mission: null as string | null, scope: null as string | null, sourceRow: i });
+}
+
+// ─── Per-department Standards sheets → individual standards + charter ────
+// One sheet per area (named exactly as the Standards-Index `link`, e.g.
+// "Cybersecurity Standards"). Each has a charter block (MISSION / SCOPE) above a
+// table: Category | Standard / Guideline | Description | Build/Run | Owner Role |
+// Related Items (Role) | Related Items (Category) | Items Link. We pull every
+// standard and fold the mission/scope back onto its area.
+const STANDARD_SHEETS = [
+  'Cybersecurity Standards', 'Architecture Standards', 'Claims Standards', 'Underwriting Standards',
+  'Engineering Standards', 'Finance Standards', 'Data & Analytics Standards', 'HR Standards',
+  'Compliance & Risk Standards', 'PMO & Delivery Standards', 'Operations Standards', 'Legal Standards',
+  'Actuarial Standards',
+];
+const standardItems: any[] = [];
+for (const sheetName of STANDARD_SHEETS) {
+  const g = grid(sheetName);
+  let mission: string | null = null;
+  const scopeBullets: string[] = [];
+  let hdr = -1;
+  for (let i = 0; i < g.length; i++) {
+    const a = str(g[i][0]);
+    if (a.toUpperCase() === 'MISSION') mission = orNull(g[i + 1]?.[0]);
+    if (a.toUpperCase() === 'SCOPE') {
+      for (let j = i + 1; j < g.length && str(g[j][0]).startsWith('•'); j++) {
+        scopeBullets.push(str(g[j][0]).replace(/^•\s*/, ''));
+      }
+    }
+    if (a === 'Category' && /standard/i.test(str(g[i][1]))) { hdr = i; break; }
+  }
+  const area = standards.find((s) => s.link === sheetName);
+  if (area) { area.mission = mission; area.scope = scopeBullets.length ? scopeBullets.join('\n') : null; }
+  if (hdr < 0) throw new Error(`No standards table header found in sheet: ${sheetName}`);
+  for (let i = hdr + 1; i < g.length; i++) {
+    const category = str(g[i][0]); const name = str(g[i][1]);
+    if (!category || !name) continue;
+    standardItems.push({
+      areaLink: sheetName, category, name,
+      description: str(g[i][2]), buildRun: orNull(g[i][3]),
+      ownerRole: orNull(g[i][4]), relatedRole: orNull(g[i][5]),
+      relatedCategory: orNull(g[i][6]), itemsLink: orNull(g[i][7]), sourceRow: i,
+    });
+  }
 }
 
 // ─── Scenario Inputs → change-impact economics (initiatives) ────────────
@@ -364,10 +463,12 @@ const out = {
   categories: canonicalCategories,
   valueStreams,
   subValueStreams,
+  l5Steps,
   metrics,
   processSteps,
   ioItems,
   standards,
+  standardItems,
   checklistItems,
   roleTasks,
   roleValueStreams,
@@ -383,11 +484,14 @@ console.table({
   domains: out.domains.length, divisions: out.divisions.length, departments: out.departments.length,
   roles: out.roles.length, extendedRolesAdded: extendedCount, roleHierarchy: out.roleHierarchy.length,
   categories: out.categories.length, valueStreams: out.valueStreams.length, subValueStreams: out.subValueStreams.length,
-  metrics: out.metrics.length, processSteps: out.processSteps.length, ioItems: out.ioItems.length,
-  standards: out.standards.length, checklistItems: out.checklistItems.length, roleTasks: out.roleTasks.length,
+  l5Steps: out.l5Steps.length, metrics: out.metrics.length, processSteps: out.processSteps.length, ioItems: out.ioItems.length,
+  standards: out.standards.length, standardItems: out.standardItems.length, checklistItems: out.checklistItems.length, roleTasks: out.roleTasks.length,
   roleValueStreams: out.roleValueStreams.length, externalInteractions: out.externalInteractions.length,
   scenarios: out.scenarios.length,
 });
 const placed = roles.filter((r) => r.divisionName).length;
 console.log(`Roles placed in a division: ${placed}/${roles.length}; with manager: ${roles.filter((r) => r.managerRoleName).length}`);
+console.log(`L5 steps: ${l5Steps.length} across ${new Set(l5Steps.map((s) => s.l4Name)).size}/${l4Canon.length} L4 sub-processes.`);
+console.log(`Derived ${derivedRvs} role↔stream links from L4 Process Master for non-roster value streams (FinOps/AIOps/MLOps).`);
+if (l5Unmatched.size) console.log(`⚠ ${l5Unmatched.size} L5 row L4-name(s) could not be matched: ${[...l5Unmatched].join('; ')}`);
 if (autoAdded.length) console.log(`ℹ ${new Set(autoAdded).size} referenced role(s) auto-added (not in Org Chart).`);

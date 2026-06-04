@@ -1,12 +1,14 @@
 // MapCanvas.tsx — Interactive operating-model map with spatial drill-down.
-// Three cores pinned at top; divisions cascade down per column.
-// Click a division → gap opens, value streams render L-to-R.
-// Click a value stream → process steps render L-to-R.
+// L0 Enterprise → L1 Domain (3 CEO domains, horizontal row) → L2 Division
+// (horizontal row under the selected domain) → L3 Value Stream → L4 Process Area
+// → L5 Sub-Process → L6 Process Step (the workbook's L5 steps) — each level
+// rendering left-to-right as you drill in.
 // A right-hand MetricsSidebar shows a spreadsheet-derived dashboard for whatever
 // level is currently focused (company / domain / division / value stream / area).
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   ReactFlow, Background, Controls, ReactFlowProvider,
   useReactFlow,
@@ -16,11 +18,11 @@ import '@xyflow/react/dist/style.css';
 
 import { mapNodeTypes } from './nodes/MapNode';
 import type {
-  CompanyNodeData, CoreNodeData, DivisionNodeData, ValueStreamNodeData, StepNodeData, SubStepNodeData,
+  CompanyNodeData, CoreNodeData, DivisionNodeData, ValueStreamNodeData, StepNodeData, SubStepNodeData, LeafStepNodeData,
 } from './nodes/MapNode';
 import { CARD_W, CARD_H, DOMAIN_HEX } from './model';
 import type { NodeFocusState, DivisionSummary, DivisionFlow, FlowStep, FlowValueStream } from './model';
-import MetricsSidebar, { type Dashboard } from '../components/MetricsSidebar';
+import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from '../components/MetricsSidebar';
 import { api } from '../lib/api';
 
 // ── Layout constants ─────────────────────────────────────────────────────────
@@ -34,7 +36,7 @@ const CORE_W          = CARD_W;
 const CORE_H          = CARD_H;
 const DIV_W           = CARD_W;
 const DIV_H           = CARD_H;
-const DIV_GAP_Y       = 20;
+const DIV_GAP_X       = 16;    // horizontal gap between divisions in the L2 row
 const COL_GAP_X       = 160;   // horizontal gap between column centers
 const DIV_TOP_OFFSET  = 60;    // y offset from domain bottom to first division top
 const VS_W            = CARD_W;
@@ -47,9 +49,12 @@ const STEP_GAP_X      = 12;
 const STEP_TOP_OFFSET = 24;    // gap between focused-VS bottom and step row top
 const SUBSTEP_GAP_X     = 12;
 const SUBSTEP_TOP_OFFSET = 24; // gap between focused-step bottom and sub-process row top
+const LEAF_GAP_X        = 12;
+const LEAF_TOP_OFFSET   = 24;  // gap between focused-sub-process bottom and L5 step row top
 
-// Left-to-right order requested by the user: Corporate Function · Core Business · IT.
-const CATEGORIES = ['Corporate Function', 'Core Business', 'IT'] as const;
+// Left-to-right order = logical exploded view of the enterprise: value-producing
+// (Core Business) → enabling (IT) → governing (Corporate Function).
+const CATEGORIES = ['Core Business', 'IT', 'Corporate Function'] as const;
 type Category = (typeof CATEGORIES)[number];
 
 function catFor(div: DivisionSummary): Category {
@@ -79,20 +84,22 @@ function divSeq(name: string): number {
 
 // ── Inner canvas ─────────────────────────────────────────────────────────────
 
-type Props = { divisions: DivisionSummary[]; companyName: string; breadcrumbSlot?: HTMLElement | null };
+type Props = { divisions: DivisionSummary[]; companyName: string; breadcrumbSlot?: HTMLElement | null; focusVsId?: string | null };
 
-function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
+function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: Props) {
   const rf = useReactFlow();
+  const navigate = useNavigate();
 
   // Top-of-map gating: company → domains → divisions.
   const [companyOpen, setCompanyOpen] = useState(false);
   const [selectedDomain, setSelectedDomain] = useState<Category | null>(null);
 
   // Level / focus state (within a selected domain)
-  const [level, setLevel] = useState<0 | 1 | 2 | 3>(0);
+  const [level, setLevel] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [focusedDivisionId, setFocusedDivisionId] = useState<string | null>(null);
   const [focusedVsId, setFocusedVsId] = useState<string | null>(null);
   const [focusedStepId, setFocusedStepId] = useState<string | null>(null);
+  const [focusedSubStepId, setFocusedSubStepId] = useState<string | null>(null);
 
   // API data
   const [flowData, setFlowData] = useState<DivisionFlow | null>(null);
@@ -102,6 +109,8 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
   // Right-hand metrics dashboard (per-level, spreadsheet-derived).
   const [dash, setDash] = useState<Dashboard | null>(null);
   const [dashLoading, setDashLoading] = useState(false);
+  // Comprehensive "view all" drawer (a snapshot of one sidebar section).
+  const [drawerSection, setDrawerSection] = useState<MetricSection | null>(null);
 
   // Fetch helpers
   const fetchFlow = useCallback(async (divId: string) => {
@@ -127,7 +136,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
   // Reset everything below the domain level.
   const resetBelowDomain = useCallback(() => {
     setLevel(0); setFocusedDivisionId(null); setFlowData(null);
-    setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null);
+    setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null); setFocusedSubStepId(null);
   }, []);
 
   // Click handlers
@@ -150,45 +159,89 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
   const onDivisionClick = useCallback((divId: string) => {
     if (focusedDivisionId === divId && level >= 1) {
       setLevel(0); setFocusedDivisionId(null); setFlowData(null);
-      setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null);
+      setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null); setFocusedSubStepId(null);
       return;
     }
     setLevel(1); setFocusedDivisionId(divId);
-    setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null);
+    setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null); setFocusedSubStepId(null);
     fetchFlow(divId);
   }, [focusedDivisionId, level, fetchFlow]);
 
   const onVsClick = useCallback((vsId: string) => {
     if (!focusedDivisionId) return;
     if (focusedVsId === vsId && level >= 2) {
-      setLevel(1); setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null);
+      setLevel(1); setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null); setFocusedSubStepId(null);
       return;
     }
-    setLevel(2); setFocusedVsId(vsId); setFocusedStepId(null);
+    setLevel(2); setFocusedVsId(vsId); setFocusedStepId(null); setFocusedSubStepId(null);
     fetchVsFlow(focusedDivisionId, vsId);
   }, [focusedDivisionId, focusedVsId, level, fetchVsFlow]);
 
-  // Clicking a process step (L3): focus it and, if the spreadsheet has E2E detail
-  // for it, reveal its sub-process steps as a left-to-right flow below. The right
-  // dashboard updates to this process area's metrics.
+  // Clicking a process area (L3): focus it and reveal its L4 sub-processes as a
+  // left-to-right flow below. The right dashboard updates to this area's metrics.
   const onStepClick = useCallback((stepId: string) => {
-    if (focusedStepId === stepId && level === 3) {
-      setLevel(2); setFocusedStepId(null);
+    if (focusedStepId === stepId && level >= 3) {
+      setLevel(2); setFocusedStepId(null); setFocusedSubStepId(null);
       return;
     }
-    setLevel(3); setFocusedStepId(stepId);
+    setLevel(3); setFocusedStepId(stepId); setFocusedSubStepId(null);
   }, [focusedStepId, level]);
+
+  // Clicking an L4 sub-process: focus it and reveal its L5 process steps (v15)
+  // as a left-to-right flow below. Toggles back to the sub-process row (L3 focus).
+  const onSubStepClick = useCallback((subId: string) => {
+    if (focusedSubStepId === subId && level === 4) {
+      setLevel(3); setFocusedSubStepId(null);
+      return;
+    }
+    setLevel(4); setFocusedSubStepId(subId);
+  }, [focusedSubStepId, level]);
+
+  // Deep-link focus: jump straight to a value stream (company → domain → division
+  // → VS) in one shot. Used when the user arrives from a value-stream link
+  // elsewhere in the app. Sets the whole drill path at once and kicks off both
+  // flow fetches, so the VS node + its process row + the sidebar all resolve.
+  const focusValueStream = useCallback((category: Category, divisionId: string, vsId: string) => {
+    setCompanyOpen(true);
+    setSelectedDomain(category);
+    setLevel(2);
+    setFocusedDivisionId(divisionId);
+    setFocusedVsId(vsId);
+    setFocusedStepId(null);
+    setFocusedSubStepId(null);
+    fetchFlow(divisionId);
+    fetchVsFlow(divisionId, vsId);
+  }, [fetchFlow, fetchVsFlow]);
+
+  // Apply an incoming focus target once per id. The backend resolves which domain
+  // + division surfaces the stream (it may not be a division's LEAD stream).
+  const appliedFocusRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!focusVsId || divisions.length === 0) return;
+    if (appliedFocusRef.current === focusVsId) return;
+    appliedFocusRef.current = focusVsId;
+    let cancelled = false;
+    api.get(`/explorer/value-stream/${focusVsId}/focus`)
+      .then((f: { divisionId: string; category: string }) => {
+        if (!cancelled) focusValueStream(f.category as Category, f.divisionId, focusVsId);
+      })
+      .catch(() => { /* unresolvable → leave the map at its default view */ });
+    return () => { cancelled = true; };
+  }, [focusVsId, divisions.length, focusValueStream]);
 
   // Breadcrumb collapse
   const crumbToL0 = useCallback(() => {
     setLevel(0); setFocusedDivisionId(null); setFlowData(null);
-    setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null);
+    setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null); setFocusedSubStepId(null);
   }, []);
   const crumbToL1 = useCallback(() => {
-    if (level >= 2) { setLevel(1); setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null); }
+    if (level >= 2) { setLevel(1); setFocusedVsId(null); setVsFlowData(null); setFocusedStepId(null); setFocusedSubStepId(null); }
   }, [level]);
   const crumbToL2 = useCallback(() => {
-    if (level >= 3) { setLevel(2); setFocusedStepId(null); }
+    if (level >= 3) { setLevel(2); setFocusedStepId(null); setFocusedSubStepId(null); }
+  }, [level]);
+  const crumbToL3 = useCallback(() => {
+    if (level >= 4) { setLevel(3); setFocusedSubStepId(null); }
   }, [level]);
   // Back to the domains row (clears the selected domain + everything below).
   const crumbToDomains = useCallback(() => {
@@ -197,14 +250,26 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
 
   // Derived
   const focusedDivision = divisions.find((d) => d.id === focusedDivisionId) ?? null;
-  const valueStreams: FlowValueStream[] = flowData?.valueStreams ?? [];
+  // L3 renders only the value streams this division LEADS (render-only filter; the
+  // other participations remain in the DB, just not drawn on the map). Exception:
+  // a deep-linked focus VS that this division participates in but doesn't lead is
+  // appended so the user still lands on it (links resolve to the strongest, not
+  // necessarily leading, division — see /explorer/value-stream/:id/focus).
+  const leadStreams: FlowValueStream[] = (flowData?.valueStreams ?? []).filter((vs) => vs.participationType === 'Lead');
+  const focusedExtra = focusedVsId && !leadStreams.some((vs) => vs.id === focusedVsId)
+    ? (flowData?.valueStreams ?? []).find((vs) => vs.id === focusedVsId) ?? null
+    : null;
+  const valueStreams: FlowValueStream[] = focusedExtra ? [...leadStreams, focusedExtra] : leadStreams;
   const focusedVs = valueStreams.find((vs) => vs.id === focusedVsId) ?? null;
   const steps: FlowStep[] = vsFlowData?.selected?.steps ?? [];
   const focusedStep = steps.find((s) => s.id === focusedStepId) ?? null;
+  const focusedSubStep = focusedStep?.subSteps.find((s) => s.id === focusedSubStepId) ?? null;
 
   // ── Metrics dashboard target (deepest focused level) ───────────────────────
+  // The metrics/roles dashboards bottom out at the process-area (L3) level, so
+  // drilling into L4 sub-processes / L5 steps keeps the L3 dashboard in view.
   const metricTarget = useMemo<{ level: string; id: string } | null>(() => {
-    if (level === 3 && focusedStep) return { level: 'step', id: focusedStep.id };
+    if (level >= 3 && focusedStep) return { level: 'step', id: focusedStep.id };
     if (level >= 2 && focusedVs) return { level: 'valueStream', id: focusedVs.id };
     if (level >= 1 && focusedDivision) return { level: 'division', id: focusedDivision.id };
     if (selectedDomain) return { level: 'domain', id: selectedDomain };
@@ -220,13 +285,16 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
   // Map navigation resets the sidebar drill stack.
   useEffect(() => { setOvStack([]); }, [metricTarget?.level, metricTarget?.id]);
 
+  // Any change of the focused entity makes the drawer's snapshot stale — close it.
+  useEffect(() => { setDrawerSection(null); }, [dashTarget?.level, dashTarget?.id]);
+
   useEffect(() => {
     if (!dashTarget) { setDash(null); return; }
     let cancelled = false;
     setDashLoading(true); setDash(null);
     const path = dashTarget.id
-      ? `/explorer/metrics/${dashTarget.level}/${encodeURIComponent(dashTarget.id)}`
-      : `/explorer/metrics/${dashTarget.level}`;
+      ? `/explorer/roles/${dashTarget.level}/${encodeURIComponent(dashTarget.id)}`
+      : `/explorer/roles/${dashTarget.level}`;
     api.get(path)
       .then((d: Dashboard) => { if (!cancelled) setDash(d); })
       .catch(() => { if (!cancelled) setDash(null); })
@@ -260,14 +328,14 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
       'IT':                 divisions.filter((d) => catFor(d) === 'IT').sort(bySeq),
     };
 
-    // Column center-x values, left→right: Corporate Function · Core Business · IT.
+    // Column center-x values, left→right: Core Business · IT · Corporate Function.
     const colWidth = DIV_W + COL_GAP_X;
     const colCenterX: Record<Category, number> = {
-      'Corporate Function': colWidth * 0,
-      'Core Business':      colWidth * 1,
-      'IT':                 colWidth * 2,
+      'Core Business':      colWidth * 0,
+      'IT':                 colWidth * 1,
+      'Corporate Function': colWidth * 2,
     };
-    const middleX = colCenterX['Core Business']; // geometric centre of the 3 columns
+    const middleX = colWidth * 1; // geometric centre of the 3 columns
 
     // ── Company root (always present) ─────────────────────────────────────────
     const companyFs: NodeFocusState = !companyOpen ? 'neutral' : 'expanded';
@@ -285,19 +353,9 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
 
     const domainRowY = COMPANY_H + DOMAIN_TOP_OFFSET;
 
-    // ── Compute VS block height (depends on step + sub-step data) ─────────────
-    const hasSubSteps = level >= 3 && !!focusedStep && focusedStep.subSteps.length > 0;
-    const subStepsBlockHeight = hasSubSteps ? (SUBSTEP_TOP_OFFSET + CARD_H) : 0;
-    const hasSteps = level >= 2 && focusedVsId && vsFlowData && steps.length > 0;
-    const stepsBlockHeight = hasSteps ? (STEP_TOP_OFFSET + STEP_H + subStepsBlockHeight) : 0;
-    const vsBlockHeight = (level >= 1 && flowData && valueStreams.length > 0)
-      ? (VS_TOP_OFFSET + VS_H + stepsBlockHeight)
-      : 0;
-
-    // ── Process each column ───────────────────────────────────────────────────
+    // ── Process each domain column ─────────────────────────────────────────────
     CATEGORIES.forEach((cat, ci) => {
       const cx = colCenterX[cat];
-      const divLeft  = cx - DIV_W / 2;
       const coreLeft = cx - CORE_W / 2;
       const isDomainSelected = selectedDomain === cat;
 
@@ -328,22 +386,19 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
         },
       });
 
-      // Divisions render ONLY for the selected domain (hidden otherwise).
+      // Divisions render ONLY for the selected domain — as a horizontal (L2) row
+      // centered under the domain header.
       if (!isDomainSelected) return;
 
       const divs = cols[cat];
-      const focusedDivInThisCol = (focusedDivision && catFor(focusedDivision) === cat) ? focusedDivision : null;
-      const focusedIndexInCol = focusedDivInThisCol ? divs.findIndex((d) => d.id === focusedDivInThisCol.id) : -1;
-
-      let currentDivY = domainRowY + CORE_H + DIV_TOP_OFFSET;
+      const divRowY = domainRowY + CORE_H + DIV_TOP_OFFSET;
+      const totalDivRowWidth = divs.length * DIV_W + (divs.length - 1) * DIV_GAP_X;
+      const divRowLeft = cx - totalDivRowWidth / 2;
 
       divs.forEach((div, di) => {
         const isDivFocused = div.id === focusedDivisionId;
-
-        // Push this division down if it comes after the focused one in this column.
-        if (focusedIndexInCol >= 0 && di > focusedIndexInCol) {
-          currentDivY += vsBlockHeight;
-        }
+        const divX = divRowLeft + di * (DIV_W + DIV_GAP_X);
+        const divCenterX = divX + DIV_W / 2;
 
         const divFs: NodeFocusState = !focusedDivisionId ? 'neutral'
           : isDivFocused ? 'focused'
@@ -352,7 +407,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
         ns.push({
           id: div.id,
           type: 'divisionNode',
-          position: { x: divLeft, y: currentDivY },
+          position: { x: divX, y: divRowY },
           data: {
             name: div.name,
             category: cat,
@@ -376,14 +431,13 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
           },
         });
 
-        // ── If this is the focused division, insert VS block below it ─────────
+        // ── Focused division → its value streams render L-to-R below it ───────
         if (isDivFocused && flowData && valueStreams.length > 0) {
-          const vsRowTop = currentDivY + DIV_H + VS_TOP_OFFSET;
+          const vsRowTop = divRowY + DIV_H + VS_TOP_OFFSET;
 
-          // VS row: centered on the focused division's column x.
-          // Total VS row width
+          // VS row: centered under the focused division.
           const totalVsRowWidth = valueStreams.length * VS_W + (valueStreams.length - 1) * VS_GAP_X;
-          const vsRowLeft = cx - totalVsRowWidth / 2;
+          const vsRowLeft = divCenterX - totalVsRowWidth / 2;
 
           valueStreams.forEach((vs, vi) => {
             const vsNodeId = `vs:${vs.id}`;
@@ -469,7 +523,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
                   });
                 }
 
-                // ── If this step is focused, insert its sub-process row below ───
+                // ── If this step is focused, insert its L4 sub-process row below ─
                 if (isStepFocused && step.subSteps.length > 0) {
                   const subStepX = stepsLeft + si * (STEP_W + STEP_GAP_X);
                   const stepCenterX = subStepX + STEP_W / 2;
@@ -480,14 +534,18 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
 
                   subs.forEach((sub, sj) => {
                     const subNodeId = `substep:${sub.id}`;
+                    const isSubFocused = focusedSubStepId === sub.id;
+                    const subFs: NodeFocusState = level < 4 ? 'neutral'
+                      : isSubFocused ? 'focused'
+                      : 'dimmed';
+                    const subX = subLeft + sj * (CARD_W + SUBSTEP_GAP_X);
 
                     ns.push({
                       id: subNodeId,
                       type: 'subStepNode',
-                      position: { x: subLeft + sj * (CARD_W + SUBSTEP_GAP_X), y: subTop },
-                      data: { step: sub.step, name: sub.name, focusState: 'neutral', pieceIndex: sj } satisfies SubStepNodeData,
+                      position: { x: subX, y: subTop },
+                      data: { step: sub.step, name: sub.name, l5Count: sub.l5.length, focusState: subFs, pieceIndex: sj } satisfies SubStepNodeData,
                       draggable: false,
-                      selectable: false,
                     });
 
                     // Edge: subStep[j-1] → subStep[j]
@@ -500,6 +558,49 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
                         targetHandle: 'l',
                         type: 'smoothstep',
                         style: { stroke: accent, strokeWidth: 2, strokeOpacity: 0.9 },
+                      });
+                    }
+
+                    // ── If this sub-process is focused, insert its L5 step row ──
+                    if (isSubFocused && sub.l5.length > 0) {
+                      const subCenterX = subX + CARD_W / 2;
+                      const leafTop = subTop + CARD_H + LEAF_TOP_OFFSET;
+                      const l5 = sub.l5;
+                      const totalLeafWidth = l5.length * CARD_W + (l5.length - 1) * LEAF_GAP_X;
+                      const leafLeft = subCenterX - totalLeafWidth / 2;
+
+                      l5.forEach((leaf, lk) => {
+                        const leafNodeId = `leaf:${leaf.id}`;
+                        ns.push({
+                          id: leafNodeId,
+                          type: 'leafStepNode',
+                          position: { x: leafLeft + lk * (CARD_W + LEAF_GAP_X), y: leafTop },
+                          data: { step: leaf.step, name: leaf.name, focusState: 'neutral', pieceIndex: lk } satisfies LeafStepNodeData,
+                          draggable: false,
+                          selectable: false,
+                        });
+                        // Edge: leaf[k-1] → leaf[k]
+                        if (lk > 0) {
+                          es.push({
+                            id: `e:leaf${l5[lk - 1].id}->leaf${leaf.id}`,
+                            source: `leaf:${l5[lk - 1].id}`,
+                            target: leafNodeId,
+                            sourceHandle: 'r',
+                            targetHandle: 'l',
+                            type: 'smoothstep',
+                            style: { stroke: accent, strokeWidth: 2, strokeOpacity: 0.9 },
+                          });
+                        }
+                      });
+
+                      // Edge: sub-process → first L5 step
+                      es.push({
+                        id: `e:${subNodeId}->leaf:${l5[0].id}`,
+                        source: subNodeId,
+                        target: `leaf:${l5[0].id}`,
+                        sourceHandle: 'b',
+                        targetHandle: 't',
+                        style: { stroke: accent, strokeWidth: 2, strokeOpacity: 0.8 },
                       });
                     }
                   });
@@ -528,26 +629,26 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
             }
           });
         }
-
-        currentDivY += DIV_H + DIV_GAP_Y;
       });
     });
 
     return { nodes: ns, edges: es };
   }, [
     divisions, companyName, companyOpen, selectedDomain, level,
-    focusedDivisionId, focusedDivision, focusedVsId, focusedStepId, focusedStep,
+    focusedDivisionId, focusedDivision, focusedVsId, focusedStepId, focusedStep, focusedSubStepId,
     flowData, valueStreams, vsFlowData, steps,
   ]);
 
   // ── Camera helpers ────────────────────────────────────────────────────────
   // Fit a specific set of nodes in frame (used to frame the whole process row).
-  const fitNodes = useCallback((nodeIds: string[], padding = 0.2) => {
-    setTimeout(() => {
-      const present = nodeIds.filter((id) => rf.getNode(id));
+  const fitNodes = useCallback((nodeIds: string[], padding = 0.28) => {
+    // Defer past a frame + a tick so freshly-added nodes are measured before we
+    // frame them — otherwise fitView frames a stale/partial set and clips boxes.
+    requestAnimationFrame(() => setTimeout(() => {
+      const present = nodeIds.filter((id) => rf.getNode(id) && rf.getNode(id)!.measured?.width);
       if (!present.length) return;
       rf.fitView({ nodes: present.map((id) => ({ id })), padding, duration: 460, maxZoom: 1 });
-    }, 80);
+    }, 130));
   }, [rf]);
 
   const moveCameraToNode = useCallback((nodeId: string, yBias = 0.5) => {
@@ -585,7 +686,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
   useEffect(() => {
     if (level >= 1 && focusedDivisionId && flowData) {
       if (valueStreams.length > 0) {
-        fitNodes([focusedDivisionId, ...valueStreams.map((vs) => `vs:${vs.id}`)], 0.22);
+        fitNodes([focusedDivisionId, ...valueStreams.map((vs) => `vs:${vs.id}`)], 0.3);
       } else {
         setTimeout(() => moveCameraToNode(focusedDivisionId, 0.8), 120);
       }
@@ -602,7 +703,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
   useEffect(() => {
     if (level >= 2 && focusedVsId && vsFlowData) {
       if (steps.length > 0) {
-        fitNodes([`vs:${focusedVsId}`, ...steps.map((s) => `step:${s.id}`)], 0.22);
+        fitNodes([`vs:${focusedVsId}`, ...steps.map((s) => `step:${s.id}`)], 0.3);
       } else {
         setTimeout(() => moveCameraToNode(`vs:${focusedVsId}`, 0.8), 120);
       }
@@ -615,11 +716,22 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
     if (level < 3 || !focusedStepId) return;
     const step = steps.find((s) => s.id === focusedStepId);
     if (step && step.subSteps.length > 0) {
-      fitNodes([`step:${focusedStepId}`, ...step.subSteps.map((s) => `substep:${s.id}`)], 0.22);
+      fitNodes([`step:${focusedStepId}`, ...step.subSteps.map((s) => `substep:${s.id}`)], 0.3);
     } else {
       moveCameraToNode(`step:${focusedStepId}`, 0.3);
     }
   }, [focusedStepId]); // eslint-disable-line
+
+  // Camera: L4 → focus sub-process. Frame it plus its full L5 process-step row.
+  useEffect(() => {
+    if (level < 4 || !focusedSubStepId) return;
+    const sub = focusedStep?.subSteps.find((s) => s.id === focusedSubStepId);
+    if (sub && sub.l5.length > 0) {
+      fitNodes([`substep:${focusedSubStepId}`, ...sub.l5.map((s) => `leaf:${s.id}`)], 0.3);
+    } else {
+      moveCameraToNode(`substep:${focusedSubStepId}`, 0.3);
+    }
+  }, [focusedSubStepId]); // eslint-disable-line
 
   // ── Node click handler ────────────────────────────────────────────────────
   const onNodeClick: NodeMouseHandler = useCallback((_e, node) => {
@@ -633,20 +745,25 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
       onVsClick(node.id.replace(/^vs:/, ''));
     } else if (node.type === 'stepNode') {
       onStepClick(node.id.replace(/^step:/, ''));
+    } else if (node.type === 'subStepNode') {
+      onSubStepClick(node.id.replace(/^substep:/, ''));
     }
-    // subStepNode is display-only (non-interactive)
-  }, [onCompanyClick, onDomainClick, onDivisionClick, onVsClick, onStepClick]);
+    // leafStepNode (L5) is display-only (non-interactive)
+  }, [onCompanyClick, onDomainClick, onDivisionClick, onVsClick, onStepClick, onSubStepClick]);
 
   // ── Dashboard drill-down ────────────────────────────────────────────────────
   // Map levels move the canvas; role/person drill inside the sidebar (stack).
   const onDrill = useCallback((lvl: string, id: string) => {
-    if (lvl === 'role' || lvl === 'person') { setOvStack((s) => [...s, { level: lvl, id }]); return; }
+    // Roles are the leaf of the sidebar drill — clicking one leaves the map and
+    // opens the dedicated role page rather than an in-sidebar role dashboard.
+    if (lvl === 'role') { navigate(`/roles/${id}`); return; }
+    if (lvl === 'person' || lvl === 'department') { setOvStack((s) => [...s, { level: lvl, id }]); return; }
     setOvStack([]);
     if (lvl === 'domain') onDomainClick(id as Category);
     else if (lvl === 'division') onDivisionClick(id);
     else if (lvl === 'valueStream') onVsClick(id);
     else if (lvl === 'step') onStepClick(id);
-  }, [onDomainClick, onDivisionClick, onVsClick, onStepClick]);
+  }, [navigate, onDomainClick, onDivisionClick, onVsClick, onStepClick]);
   const onDashBack = useCallback(() => setOvStack((s) => s.slice(0, -1)), []);
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -678,10 +795,18 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
                   : <button onClick={crumbToL2} className="focus-crumb-ancestor">{focusedVs.name}</button>}
               </>
             )}
-            {level === 3 && focusedStep && (
+            {level >= 3 && focusedStep && (
               <>
                 <span style={{ color: '#d4d4d4', margin: '0 4px' }}>›</span>
-                <span className="focus-crumb-active">{focusedStep.name}</span>
+                {level === 3
+                  ? <span className="focus-crumb-active">{focusedStep.name}</span>
+                  : <button onClick={crumbToL3} className="focus-crumb-ancestor">{focusedStep.name}</button>}
+              </>
+            )}
+            {level === 4 && focusedSubStep && (
+              <>
+                <span style={{ color: '#d4d4d4', margin: '0 4px' }}>›</span>
+                <span className="focus-crumb-active">{focusedSubStep.name}</span>
               </>
             )}
             <button
@@ -738,11 +863,29 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
           <Background color="#e5e5e5" gap={20} size={1} />
           <Controls showInteractive={false} position="bottom-left" />
         </ReactFlow>
+
+        {/* Comprehensive "view all" drawer — overlays the canvas; closing it leaves
+            the map (and its breadcrumb) exactly where the user left it. */}
+        {drawerSection && (
+          <MetricsDrawer
+            section={drawerSection}
+            contextTitle={dash?.title ?? ''}
+            onClose={() => setDrawerSection(null)}
+            onDrill={onDrill}
+          />
+        )}
       </div>
 
       {/* Right metrics dashboard — appears once the company is opened. */}
       {dashTarget && (
-        <MetricsSidebar dash={dash} loading={dashLoading} onDrill={onDrill} onBack={ovStack.length ? onDashBack : undefined} />
+        <MetricsSidebar
+          dash={dash}
+          loading={dashLoading}
+          onDrill={onDrill}
+          onBack={ovStack.length ? onDashBack : undefined}
+          onViewAll={setDrawerSection}
+          onViewDetail={dashTarget?.level === 'valueStream' && dashTarget.id ? () => navigate(`/value-streams/${dashTarget.id}`) : undefined}
+        />
       )}
     </div>
   );
@@ -750,10 +893,10 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot }: Props) {
 
 // ── Provider wrapper ──────────────────────────────────────────────────────────
 
-export default function MapCanvas({ divisions, companyName, breadcrumbSlot }: Props) {
+export default function MapCanvas({ divisions, companyName, breadcrumbSlot, focusVsId }: Props) {
   return (
     <ReactFlowProvider>
-      <MapCanvasInner divisions={divisions} companyName={companyName} breadcrumbSlot={breadcrumbSlot} />
+      <MapCanvasInner divisions={divisions} companyName={companyName} breadcrumbSlot={breadcrumbSlot} focusVsId={focusVsId} />
     </ReactFlowProvider>
   );
 }

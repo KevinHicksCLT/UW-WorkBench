@@ -36,7 +36,7 @@ export default function RoleDetail() {
                 {r.participation.map((p: any, i: number) => (
                   <div key={i} className="flex items-center justify-between gap-3 py-1.5 border-b border-slate-100 last:border-0">
                     <div className="min-w-0">
-                      <Link to={`/value-streams/${p.valueStreamId}`} className="text-sm text-brand-700 hover:underline">{p.valueStreamName}</Link>
+                      <Link to={`/overview?focus=${p.valueStreamId}`} className="text-sm text-brand-700 hover:underline">{p.valueStreamName}</Link>
                       {p.subStream && <div className="text-xs text-slate-400 truncate">{p.subStream}</div>}
                     </div>
                     <span className={`${PARTICIPATION_CLASS[p.participationType] || 'pill-slate'} flex-shrink-0`}>{p.participationType}</span>
@@ -46,8 +46,14 @@ export default function RoleDetail() {
             )}
           </div>
 
-          <Grouped title={`Readiness Checklist (${r._count.checklistItems})`} groups={r.checklist} />
-          <Grouped title={`Role Tasks (${r._count.roleTasks})`} groups={r.tasks} />
+          <InputsDeliverables rows={r.ioRows ?? []} inputCount={r.inputCount ?? 0} deliverableCount={r.deliverableCount ?? 0} />
+
+          <Tasks tasks={r.processTasks ?? []} />
+
+          <Grouped
+            title={`Responsibilities (${(r.responsibilities ?? []).reduce((n: number, g: any) => n + g.items.length, 0)})`}
+            groups={r.responsibilities}
+          />
         </div>
 
         <div className="space-y-6">
@@ -74,6 +80,83 @@ export default function RoleDetail() {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+type IoRow = { valueStreamId: string; valueStreamName: string; l4: string | null; inputs: string[]; deliverables: string[] };
+
+// Lowest-level inputs the role consumes and deliverables it produces, grouped by
+// value stream + L4 sub-process (resolved on read from the I/O inventory).
+function InputsDeliverables({ rows, inputCount, deliverableCount }: { rows: IoRow[]; inputCount: number; deliverableCount: number }) {
+  return (
+    <div className="card">
+      <h3 className="font-semibold text-slate-900 mb-3">Inputs &amp; Deliverables ({inputCount} in · {deliverableCount} out)</h3>
+      {rows.length === 0 ? (
+        <div className="text-sm text-slate-500 italic">No inputs or deliverables mapped.</div>
+      ) : (
+        <div className="space-y-3">
+          {rows.map((row, i) => (
+            <div key={i} className="pb-3 border-b border-slate-100 last:border-0 last:pb-0">
+              <Link to={`/overview?focus=${row.valueStreamId}`} className="text-sm text-brand-700 hover:underline">{row.valueStreamName}</Link>
+              {row.l4 && <div className="text-xs text-slate-400 mb-1.5">{row.l4}</div>}
+              {row.inputs.length > 0 && (
+                <ChipRow label="Inputs" items={row.inputs} />
+              )}
+              {row.deliverables.length > 0 && (
+                <ChipRow label="Deliverables" items={row.deliverables} />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ChipRow({ label, items }: { label: string; items: string[] }) {
+  return (
+    <div className="flex flex-wrap items-baseline gap-1.5 mt-1">
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 mr-1">{label}</span>
+      {items.map((it, i) => <span key={i} className="chip-soft">{it}</span>)}
+    </div>
+  );
+}
+
+type ProcTask = { valueStreamId: string; valueStreamName: string; l4: string | null; name: string; relation: 'Lead' | 'Support'; outputs: string | null };
+
+// Lowest-level process steps the role leads or supports, grouped by value stream.
+function Tasks({ tasks }: { tasks: ProcTask[] }) {
+  const byStream = new Map<string, { valueStreamId: string; valueStreamName: string; tasks: ProcTask[] }>();
+  for (const t of tasks) {
+    let g = byStream.get(t.valueStreamId);
+    if (!g) { g = { valueStreamId: t.valueStreamId, valueStreamName: t.valueStreamName, tasks: [] }; byStream.set(t.valueStreamId, g); }
+    g.tasks.push(t);
+  }
+  return (
+    <div className="card">
+      <h3 className="font-semibold text-slate-900 mb-3">Tasks ({tasks.length})</h3>
+      {tasks.length === 0 ? (
+        <div className="text-sm text-slate-500 italic">No process tasks mapped.</div>
+      ) : (
+        [...byStream.values()].map((g) => (
+          <div key={g.valueStreamId} className="mb-3 last:mb-0">
+            <Link to={`/overview?focus=${g.valueStreamId}`} className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1 inline-block hover:underline">{g.valueStreamName} ({g.tasks.length})</Link>
+            <ul className="space-y-1.5">
+              {g.tasks.map((t, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className={`${t.relation === 'Lead' ? 'pill-blue' : 'pill-slate'} flex-shrink-0 mt-0.5`}>{t.relation}</span>
+                  <div className="min-w-0">
+                    <div className="text-sm text-slate-700">{t.name}</div>
+                    {t.l4 && <div className="text-xs text-slate-400">{t.l4}</div>}
+                    {t.outputs && <div className="text-xs text-slate-400 italic">→ {t.outputs}</div>}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      )}
     </div>
   );
 }

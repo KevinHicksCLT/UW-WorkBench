@@ -72,6 +72,15 @@ export type StepNodeData = {
 export type SubStepNodeData = {
   step: number;
   name: string;
+  l5Count?: number; // # of L5 process steps that drill open underneath
+  focusState?: NodeFocusState;
+  pieceIndex?: number;
+};
+
+// Deepest flow node — an L5 Process Step (v15) under an L4 sub-process.
+export type LeafStepNodeData = {
+  step: number;
+  name: string;
   focusState?: NodeFocusState;
   pieceIndex?: number;
 };
@@ -104,7 +113,7 @@ const CompanyNodeImpl = memo(function CompanyNodeImpl({ data }: NodeProps) {
       }}
     >
       <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a3a3a3', marginBottom: 2 }}>
-        Enterprise
+        L0
       </div>
       <div style={{ fontSize: 15, fontWeight: 700, color: '#ffffff', lineHeight: 1.25 }}>
         {d.name}
@@ -160,7 +169,7 @@ const CoreNodeImpl = memo(function CoreNodeImpl({ data }: NodeProps) {
           marginBottom: 3,
         }}
       >
-        Domain
+        L1
       </div>
       <div
         style={{
@@ -211,6 +220,10 @@ const DivisionNodeImpl = memo(function DivisionNodeImpl({ data }: NodeProps) {
         ...animStyle,
       }}
     >
+      {/* Level tag */}
+      <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#a3a3a3', marginBottom: 3 }}>
+        L2
+      </div>
       {/* Name */}
       <div style={{ fontSize: 13, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.3, marginBottom: 6 }}>
         {d.name}
@@ -290,27 +303,9 @@ const ValueStreamNodeImpl = memo(function ValueStreamNodeImpl({ data }: NodeProp
         ...animStyle,
       }}
     >
-      {/* Participation badge */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 4 }}>
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            borderRadius: 99,
-            padding: '1px 6px',
-            fontSize: 9,
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            color: '#fff',
-            background: partColor,
-            lineHeight: 1.4,
-            flexShrink: 0,
-            marginTop: 1,
-          }}
-        >
-          {d.participationType}
-        </span>
+      {/* Level tag */}
+      <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#a3a3a3', marginBottom: 4 }}>
+        L3
       </div>
       {/* Name */}
       <div style={{ fontSize: 12.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35 }}>
@@ -356,6 +351,10 @@ const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
         ...animStyle,
       }}
     >
+      {/* Level tag */}
+      <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#a3a3a3', marginBottom: 3 }}>
+        L4
+      </div>
       {/* Step number + name */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 6 }}>
         <span
@@ -392,24 +391,6 @@ const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
             {cat === 'Corporate Function' ? 'Corp' : cat === 'Core Business' ? 'Core' : 'IT'}
           </span>
         ))}
-        {d.unowned && (
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', borderRadius: 5,
-            padding: '2px 5px', fontSize: 9, fontWeight: 600,
-            background: '#fff1f2', color: '#be123c', border: '1px solid #fecdd3',
-          }}>
-            No owner
-          </span>
-        )}
-        {d.subStepCount > 0 && (
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', borderRadius: 5,
-            padding: '2px 5px', fontSize: 9, fontWeight: 600,
-            background: '#fafafa', color: '#525252', border: '1px solid #eaeaea',
-          }}>
-            {d.subStepCount} {d.subStepCount === 1 ? 'sub-process' : 'sub-processes'}
-          </span>
-        )}
       </div>
       <AllHandles />
     </div>
@@ -417,7 +398,8 @@ const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
 });
 
 // ── subStepNode ───────────────────────────────────────────────────────────────
-// L4 sub-processes that sit under a selected process step (deepest flow level).
+// L4 sub-processes that sit under a selected process area. Clickable — drilling in
+// reveals their L5 process steps (v15). The count chip signals how many.
 
 const SubStepNodeImpl = memo(function SubStepNodeImpl({ data }: NodeProps) {
   const d = data as SubStepNodeData;
@@ -443,6 +425,76 @@ const SubStepNodeImpl = memo(function SubStepNodeImpl({ data }: NodeProps) {
         ...animStyle,
       }}
     >
+      {/* Level tag */}
+      <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#a3a3a3', marginBottom: 3 }}>
+        L5
+      </div>
+      {/* Step number + name */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 6 }}>
+        <span
+          style={{
+            flexShrink: 0,
+            width: 18,
+            height: 18,
+            borderRadius: '50%',
+            background: '#64748b',
+            color: '#fff',
+            fontSize: 9,
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 1,
+          }}
+        >
+          {d.step}
+        </span>
+        <span style={{ fontSize: 12.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35 }}>
+          {d.name}
+        </span>
+      </div>
+      {/* L5 drill affordance */}
+      {!!d.l5Count && (
+        <span className="chip-soft" style={{ fontSize: 9, padding: '2px 6px' }}>
+          {d.l5Count} L5 step{d.l5Count === 1 ? '' : 's'} ›
+        </span>
+      )}
+      <AllHandles />
+    </div>
+  );
+});
+
+// ── leafStepNode ──────────────────────────────────────────────────────────────
+// L5 Process Step (v15) — the deepest flow node, opened under an L4 sub-process.
+
+const LeafStepNodeImpl = memo(function LeafStepNodeImpl({ data }: NodeProps) {
+  const d = data as LeafStepNodeData;
+  const fc = focusClass(d.focusState);
+  const animStyle = d.pieceIndex != null ? { animationDelay: `${d.pieceIndex * 40}ms` } : undefined;
+
+  return (
+    <div
+      className={`animate-piece-arrive ${fc}`}
+      style={{
+        width: CARD_W,
+        height: CARD_H,
+        boxSizing: 'border-box',
+        overflow: 'hidden',
+        padding: '11px 12px',
+        borderRadius: 10,
+        background: '#ffffff',
+        border: '1px solid #eaeaea',
+        borderLeft: '3px solid #94a3b8',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        cursor: 'default',
+        position: 'relative',
+        ...animStyle,
+      }}
+    >
+      {/* Level tag */}
+      <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#a3a3a3', marginBottom: 3 }}>
+        L6
+      </div>
       {/* Step number + name */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
         <span
@@ -451,7 +503,7 @@ const SubStepNodeImpl = memo(function SubStepNodeImpl({ data }: NodeProps) {
             width: 18,
             height: 18,
             borderRadius: '50%',
-            background: '#64748b',
+            background: '#94a3b8',
             color: '#fff',
             fontSize: 9,
             fontWeight: 700,
@@ -481,4 +533,5 @@ export const mapNodeTypes = {
   valueStreamNode: ValueStreamNodeImpl,
   stepNode:        StepNodeImpl,
   subStepNode:     SubStepNodeImpl,
+  leafStepNode:    LeafStepNodeImpl,
 };

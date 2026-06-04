@@ -48,11 +48,13 @@ export type DivisionSummary = {
 };
 
 // ── Division process flow (from /explorer/division/:id/flow) ────────────────
+// A sub-step is an L4 Sub-Process; its `l5` are the L5 Process Steps (v15).
+export type FlowSubStep = { id: string; name: string; step: number; l5: { id: string; name: string; step: number }[] };
 export type FlowStep = {
   id: string;
   step: number;
   name: string;
-  subSteps: { id: string; name: string; step: number }[];
+  subSteps: FlowSubStep[];
   inputs: string | null;
   outputs: string | null;
   upstream: string | null;

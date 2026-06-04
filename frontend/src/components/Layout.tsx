@@ -1,19 +1,22 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
+import { useCompany } from '../lib/company';
 import { api } from '../lib/api';
 import SearchBox from './SearchBox';
+import AssistantWidget from './AssistantWidget';
 
 type IndexItem = { id: string; name: string; valueStreams?: number; roles?: number };
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
+  const { companies, companyId, setCompanyId } = useCompany();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [domains, setDomains] = useState<IndexItem[]>([]);
   const [divisions, setDivisions] = useState<IndexItem[]>([]);
-  const isExplorer = location.pathname === '/' || location.pathname.startsWith('/n/');
+  const isExplorer = location.pathname.startsWith('/overview') || location.pathname.startsWith('/n/');
 
   useEffect(() => { setMobileMenuOpen(false); }, [location.pathname]);
   useEffect(() => {
@@ -31,16 +34,18 @@ export default function Layout({ children }: { children: ReactNode }) {
   const go = (url: string) => { navigate(url); setMobileMenuOpen(false); };
 
   // ── Nav link helper ────────────────────────────────────────────────────────
+  // Underline-style tab: sits on the nav row's hairline, dark indicator when active.
   const NavLink = ({ to, children: label }: { to: string; children: ReactNode }) => {
     const active = location.pathname === to || (to !== '/' && location.pathname.startsWith(to));
     return (
       <Link
         to={to}
+        aria-current={active ? 'page' : undefined}
         className={
-          'inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-150 ' +
+          'relative inline-flex items-center h-11 -mb-px px-0.5 text-sm whitespace-nowrap border-b-2 transition-colors duration-150 ' +
           (active
-            ? 'bg-[#f5f5f5] text-[#171717]'
-            : 'text-[#525252] hover:text-[#171717] hover:bg-[#fafafa]')
+            ? 'text-[#171717] font-semibold border-[#171717]'
+            : 'text-[#666666] font-medium border-transparent hover:text-[#171717] hover:border-[#d4d4d4]')
         }
       >
         {label}
@@ -71,30 +76,56 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="flex flex-col h-screen bg-white">
 
-      {/* ── Top navigation bar ──────────────────────────────────────────────── */}
-      {/* Vercel-style: white background, hairline bottom border, wordmark left,
-          sparse nav links, sign-out right. Stays mounted at all screen sizes. */}
-      <header className="flex-shrink-0 z-30 bg-white border-b border-[#eaeaea] safe-pt safe-px">
-        <div className="flex items-center gap-4 px-4 sm:px-6 h-12">
+      {/* ── Top navigation ──────────────────────────────────────────────────── */}
+      {/* Two-tier, Vercel/Linear-style: brand + utilities on top, a dedicated
+          full-width tab bar below so all tabs get room. Mounted at all sizes. */}
+      <header className="flex-shrink-0 z-30 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/75 safe-pt safe-px">
+
+        {/* Row 1 — brand + utilities */}
+        <div className="flex items-center gap-4 px-4 sm:px-6 h-14 border-b border-[#eaeaea] sm:border-b-0">
 
           {/* Wordmark */}
-          <Link to="/" className="flex items-center gap-2 flex-shrink-0 group" aria-label="Capgemini Transformation Bridge — home">
-            <img src="/capgemini-logo.svg" alt="" className="h-[24px] w-auto" />
+          <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 group" aria-label="Capgemini Transformation Bridge — home">
+            <img src="/capgemini-logo.svg" alt="" className="h-[26px] w-auto" />
             <span className="font-semibold text-[#171717] text-[15px] tracking-tight whitespace-nowrap group-hover:text-[#525252] transition-colors duration-150">
               Capgemini Transformation Bridge
             </span>
           </Link>
 
-          {/* Separator */}
-          <span className="text-[#eaeaea] select-none hidden sm:inline">/</span>
-
-          {/* Desktop nav links */}
-          <nav className="hidden sm:flex items-center gap-1" aria-label="Main navigation">
-            <NavLink to="/">Explorer</NavLink>
-          </nav>
-
           {/* Spacer */}
           <div className="flex-1" />
+
+          {/* Active company — every view + edit is scoped to this company. */}
+          {companies.length > 0 && (
+            <div className="hidden sm:block relative">
+              {/* Leading building glyph */}
+              <svg
+                className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
+                width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+              >
+                <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4M9 9h.01M9 13h.01M9 17h.01" />
+              </svg>
+              <select
+                aria-label="Active company"
+                className="appearance-none rounded-lg border border-[#eaeaea] bg-white pl-8 pr-8 py-1.5 text-sm font-medium text-[#171717] max-w-[220px] truncate cursor-pointer hover:border-[#d4d4d4] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150"
+                value={companyId ?? ''}
+                onChange={(e) => setCompanyId(e.target.value)}
+              >
+                {companies.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+              {/* Custom chevron */}
+              <svg
+                className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
+                width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </div>
+          )}
 
           {/* Search — desktop */}
           <div className="hidden md:block w-64">
@@ -102,8 +133,11 @@ export default function Layout({ children }: { children: ReactNode }) {
           </div>
 
           {/* User + sign-out — desktop */}
-          <div className="hidden sm:flex items-center gap-3">
-            <span className="text-sm text-[#525252] truncate max-w-[160px]">{user?.name}</span>
+          <div className="hidden sm:flex items-center gap-3 pl-1">
+            <span className="flex items-center justify-center h-7 w-7 rounded-full bg-[#f5f5f5] text-[11px] font-semibold text-[#525252] flex-shrink-0" aria-hidden="true">
+              {(user?.name ?? '?').slice(0, 1).toUpperCase()}
+            </span>
+            <span className="text-sm text-[#525252] truncate max-w-[140px]">{user?.name}</span>
             <button
               onClick={logout}
               className="text-sm text-[#525252] hover:text-[#171717] transition-colors duration-150"
@@ -131,6 +165,21 @@ export default function Layout({ children }: { children: ReactNode }) {
             )}
           </button>
         </div>
+
+        {/* Row 2 — full-width tab bar (desktop) */}
+        <nav
+          className="hidden sm:flex items-center gap-7 px-4 sm:px-6 border-b border-[#eaeaea] overflow-x-auto"
+          aria-label="Main navigation"
+        >
+          <NavLink to="/">Home</NavLink>
+          <NavLink to="/overview">Value Streams</NavLink>
+          <NavLink to="/roles">Roles</NavLink>
+          <NavLink to="/standards">Standards</NavLink>
+          <NavLink to="/active-ai">Telemetry</NavLink>
+          <NavLink to="/portfolio">Initiatives</NavLink>
+          <NavLink to="/work">Deliverables &amp; Tasks</NavLink>
+          {user?.role === 'ADMIN' && <NavLink to="/admin">Data Admin</NavLink>}
+        </nav>
       </header>
 
       {/* ── Mobile dropdown menu ─────────────────────────────────────────────── */}
@@ -142,11 +191,27 @@ export default function Layout({ children }: { children: ReactNode }) {
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
           />
-          <div className="sm:hidden fixed top-12 left-0 right-0 z-30 bg-white border-b border-[#eaeaea] max-h-[70vh] overflow-y-auto shadow-md">
+          <div className="sm:hidden fixed top-14 left-0 right-0 z-30 bg-white border-b border-[#eaeaea] max-h-[70vh] overflow-y-auto shadow-md">
             {/* Search */}
             <div className="px-4 py-3 border-b border-[#eaeaea]">
               <SearchBox />
             </div>
+
+            {/* Active company */}
+            {companies.length > 0 && (
+              <div className="px-4 py-3 border-b border-[#eaeaea]">
+                <label className="block text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] mb-1">Company</label>
+                <select
+                  className="w-full rounded-md border border-[#eaeaea] bg-white px-2 py-1.5 text-sm text-[#171717]"
+                  value={companyId ?? ''}
+                  onChange={(e) => setCompanyId(e.target.value)}
+                >
+                  {companies.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Nav links */}
             <div className="py-1">
@@ -154,8 +219,52 @@ export default function Layout({ children }: { children: ReactNode }) {
                 onClick={() => go('/')}
                 className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (location.pathname === '/' ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
               >
-                Explorer
+                Home
               </button>
+              <button
+                onClick={() => go('/overview')}
+                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/overview') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
+              >
+                Value Streams
+              </button>
+              <button
+                onClick={() => go('/roles')}
+                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/roles') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
+              >
+                Roles
+              </button>
+              <button
+                onClick={() => go('/standards')}
+                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/standards') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
+              >
+                Standards
+              </button>
+              <button
+                onClick={() => go('/active-ai')}
+                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/active-ai') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
+              >
+                Telemetry
+              </button>
+              <button
+                onClick={() => go('/portfolio')}
+                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/portfolio') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
+              >
+                Initiatives
+              </button>
+              <button
+                onClick={() => go('/work')}
+                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/work') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
+              >
+                Deliverables & Tasks
+              </button>
+              {user?.role === 'ADMIN' && (
+                <button
+                  onClick={() => go('/admin')}
+                  className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/admin') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
+                >
+                  Data Admin
+                </button>
+              )}
             </div>
 
             {/* Operating Model */}
@@ -207,6 +316,9 @@ export default function Layout({ children }: { children: ReactNode }) {
           </div>
         </main>
       )}
+
+      {/* Floating AI assistant — available on every authenticated page. */}
+      <AssistantWidget />
     </div>
   );
 }

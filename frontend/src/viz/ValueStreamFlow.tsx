@@ -15,11 +15,12 @@ type Sub = {
   notes: string | null;
 };
 
-// Value-stream flow map: L2 (root) → L3 process areas → L4 sub-processes.
-// L3 nodes expand/collapse their children in place; clicking any sub-process
-// node opens its inputs/outputs/dependencies in the side panel.
+// Value-stream flow map: L2 (root) → L3 process areas → L4 sub-processes → L5
+// process steps (v15). Any node with children expands/collapses in place; clicking
+// a node opens its inputs/outputs/dependencies in the side panel. L4 sub-processes
+// start collapsed so their L5 steps reveal on demand.
 export default function ValueStreamFlow({ name, subStreams }: { name: string; subStreams: Sub[] }) {
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set(subStreams.filter((s) => s.level === 4).map((s) => s.id)));
   const [selected, setSelected] = useState<Sub | null>(null);
 
   const toggle = useCallback((id: string) => {
@@ -40,11 +41,18 @@ export default function ValueStreamFlow({ name, subStreams }: { name: string; su
       data: { label: name },
     });
 
-    const pushSub = (s: Sub, isL3: boolean) => {
-      const hasChildren = isL3 && childrenOf(s.id).length > 0;
+    // Per-level card styling: L3 (process area) tinted, L4 (sub-process) white,
+    // L5 (process step) faint.
+    const styleFor = (lvl: number) => lvl === 3 ? { bg: '#e3eaf6', border: '#92b1da' }
+      : lvl === 4 ? { bg: '#ffffff', border: '#cbd5e1' }
+      : { bg: '#f8fafc', border: '#e2e8f0' };
+
+    const pushSub = (s: Sub) => {
+      const hasChildren = childrenOf(s.id).length > 0;
+      const st = styleFor(s.level);
       ns.push({
-        id: s.id, position: { x: 0, y: 0 }, width: 230, height: isL3 ? 44 : 56,
-        style: { background: isL3 ? '#e3eaf6' : '#ffffff', border: `1px solid ${isL3 ? '#92b1da' : '#cbd5e1'}`, borderRadius: 8, padding: 6, width: 230, fontSize: 11 },
+        id: s.id, position: { x: 0, y: 0 }, width: 230, height: s.level === 3 ? 44 : 56,
+        style: { background: st.bg, border: `1px solid ${st.border}`, borderRadius: 8, padding: 6, width: 230, fontSize: 11 },
         data: {
           sub: s,
           label: (
@@ -56,7 +64,7 @@ export default function ValueStreamFlow({ name, subStreams }: { name: string; su
               )}
               <div className="min-w-0 leading-tight">
                 <div className="font-medium truncate">{s.name}</div>
-                {!isL3 && s.inputs && <div className="text-[9px] opacity-60 truncate">In: {s.inputs}</div>}
+                {s.level === 4 && s.inputs && <div className="text-[9px] opacity-60 truncate">In: {s.inputs}</div>}
               </div>
             </div>
           ),
@@ -64,19 +72,23 @@ export default function ValueStreamFlow({ name, subStreams }: { name: string; su
       });
     };
 
-    for (const a of l3) {
-      pushSub(a, true);
-      es.push({ id: `root-${a.id}`, source: ROOT, target: a.id, style: { stroke: '#94a3b8' } });
-      if (!collapsed.has(a.id)) {
-        for (const c of childrenOf(a.id)) {
-          pushSub(c, false);
-          es.push({ id: `${a.id}-${c.id}`, source: a.id, target: c.id, style: { stroke: '#cbd5e1' } });
-        }
+    // Walk a node and (unless collapsed) its descendants — L3 → L4 → L5.
+    const walk = (s: Sub) => {
+      pushSub(s);
+      if (collapsed.has(s.id)) return;
+      for (const c of childrenOf(s.id)) {
+        es.push({ id: `${s.id}-${c.id}`, source: s.id, target: c.id, style: { stroke: '#cbd5e1' } });
+        walk(c);
       }
+    };
+
+    for (const a of l3) {
+      es.push({ id: `root-${a.id}`, source: ROOT, target: a.id, style: { stroke: '#94a3b8' } });
+      walk(a);
     }
     for (const c of orphanL4) {
-      pushSub(c, false);
       es.push({ id: `root-${c.id}`, source: ROOT, target: c.id, style: { stroke: '#94a3b8' } });
+      walk(c);
     }
 
     return { nodes: layoutGraph(ns, es, { direction: 'LR', nodeWidth: 230, nodeHeight: 52, ranksep: 90, nodesep: 16 }), edges: es };

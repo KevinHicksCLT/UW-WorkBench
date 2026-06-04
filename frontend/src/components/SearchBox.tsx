@@ -47,6 +47,9 @@ export default function SearchBox() {
         value={q}
         onChange={(e) => setQ(e.target.value)}
         onFocus={() => results.length && setOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && q.trim().length >= 2) go(`/search?q=${encodeURIComponent(q.trim())}`);
+        }}
       />
       {open && q.trim().length >= 2 && (
         <div className="absolute left-0 right-0 mt-1 bg-white rounded-lg border border-[#eaeaea] max-h-80 overflow-y-auto z-50"

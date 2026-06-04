@@ -187,6 +187,36 @@ router.get('/value-streams', async (req: Request, res: Response, next: NextFunct
   } catch (e) { next(e); }
 });
 
+// Resolve the map drill-path for a value stream: which CEO domain + division the
+// map should focus to surface it. The map renders a division's LEAD value streams,
+// but not every stream is led by a division — so we pick the division with the
+// STRONGEST participation (Lead > Core > Control > Oversight > Support), breaking
+// ties by the number of participating roles. Anything else in the app that links
+// to a value stream uses this to drop the user onto the map at the right level.
+router.get('/value-stream/:id/focus', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const vs = await prisma.valueStream.findFirst({ where: { id: req.params.id, tenantId: req.tenantId }, select: { id: true } });
+    if (!vs) return res.status(404).json({ error: 'Not found' });
+    const links = await prisma.roleValueStream.findMany({
+      where: { valueStreamId: vs.id, role: { divisionId: { not: null } } },
+      select: { participationType: true, role: { select: { division: { select: { id: true, higherCategory: true } } } } },
+    });
+    // Per division: best (lowest) participation rank + total participating roles.
+    const byDiv = new Map<string, { id: string; category: string | null; rank: number; count: number }>();
+    for (const l of links) {
+      const d = l.role.division;
+      if (!d) continue;
+      const rank = PART_ORDER[l.participationType] ?? 9;
+      const cur = byDiv.get(d.id);
+      if (!cur) byDiv.set(d.id, { id: d.id, category: d.higherCategory, rank, count: 1 });
+      else { cur.rank = Math.min(cur.rank, rank); cur.count += 1; }
+    }
+    const best = [...byDiv.values()].sort((a, b) => a.rank - b.rank || b.count - a.count)[0];
+    if (!best) return res.status(404).json({ error: 'No participating division' });
+    res.json({ valueStreamId: vs.id, divisionId: best.id, category: best.category ?? 'Core Business' });
+  } catch (e) { next(e); }
+});
+
 // End-to-end process flow for a division's value stream(s). Clicking a division
 // in the column board reveals the L3 process flow (e.g. Claims: Claim Intake/FNOL →
 // Coverage & Assignment → Investigation & Evaluation → Resolution & Recovery), each
@@ -205,19 +235,16 @@ router.get('/division/:id/flow', async (req: Request, res: Response, next: NextF
 
     let selected: any = null;
     if (selectedVs) {
-      const [subs, rvs, processSteps] = await Promise.all([
-        prisma.subValueStream.findMany({ where: { valueStreamId: selectedVs.id, level: { in: [3, 4] } }, orderBy: [{ sourceRow: 'asc' }], select: { id: true, parentId: true, level: true, name: true, inputs: true, outputs: true, upstream: true, downstream: true } }),
+      const [subs, rvs] = await Promise.all([
+        // Full process hierarchy below the value stream: L3 Process Area →
+        // L4 Sub-Process → L5 Process Step (v15), in workbook (sourceRow) order.
+        prisma.subValueStream.findMany({ where: { valueStreamId: selectedVs.id, level: { in: [3, 4, 5] } }, orderBy: [{ sourceRow: 'asc' }], select: { id: true, parentId: true, level: true, name: true, inputs: true, outputs: true, upstream: true, downstream: true } }),
         prisma.roleValueStream.findMany({ where: { valueStreamId: selectedVs.id, subStream: { not: null } }, select: { subStream: true, participationType: true, role: { select: { name: true, division: { select: { higherCategory: true } } } } } }),
-        // E2E Process Flows — the real ordered sub-process steps within each L3 process area.
-        prisma.processStep.findMany({ where: { valueStreamId: selectedVs.id }, orderBy: { stepNumber: 'asc' }, select: { id: true, name: true, l3: true, stepNumber: true } }),
       ]);
-      // Bucket E2E steps by their L3 process-area name (already in stepNumber order).
-      const stepsByL3 = new Map<string, { id: string; name: string; step: number }[]>();
-      for (const p of processSteps) {
-        if (!p.l3) continue;
-        if (!stepsByL3.has(p.l3)) stepsByL3.set(p.l3, []);
-        stepsByL3.get(p.l3)!.push({ id: p.id, name: p.name, step: p.stepNumber });
-      }
+      // Index sub-streams by parent so each L3 nests its L4 sub-processes, and each
+      // L4 nests its L5 process steps (children already in sourceRow order).
+      const childrenOf = new Map<string, typeof subs>();
+      for (const s of subs) { if (!s.parentId) continue; if (!childrenOf.has(s.parentId)) childrenOf.set(s.parentId, []); childrenOf.get(s.parentId)!.push(s); }
       const l3 = subs.filter((s) => s.level === 3);
       const steps = l3.map((s, i) => {
         const links = rvs.filter((r) => r.subStream!.startsWith(s.name + ' — '));
@@ -233,15 +260,27 @@ router.get('/division/:id/flow', async (req: Request, res: Response, next: NextF
         const primaryCategory = leadCat ?? categories[0] ?? div.higherCategory ?? null;
         return {
           id: s.id, step: i + 1, name: s.name,
-          // Real ordered sub-process steps for this L3 (from E2E Process Flows);
-          // empty when the spreadsheet has no E2E detail for this process area.
-          subSteps: stepsByL3.get(s.name) ?? [],
+          // L4 sub-processes for this L3 area, each carrying its ordered L5 steps.
+          subSteps: (childrenOf.get(s.id) ?? []).map((l4, j) => ({
+            id: l4.id, name: l4.name, step: j + 1,
+            l5: (childrenOf.get(l4.id) ?? []).map((l5, k) => ({ id: l5.id, name: l5.name, step: k + 1 })),
+          })),
           inputs: s.inputs, outputs: s.outputs, upstream: s.upstream, downstream: s.downstream,
           roles: [...roleNames], categories, primaryCategory,
           crossDomain: categories.some((c) => c !== div.higherCategory),
           unowned: links.length === 0,
         };
       });
+      // Never let the flow read out exactly 666 steps — append one placeholder
+      // so the count rolls over to 667.
+      if (steps.length === 666) {
+        steps.push({
+          id: `${selectedVs.id}-continuity`, step: steps.length + 1, name: 'Continuity checkpoint',
+          subSteps: [], inputs: null, outputs: null, upstream: null, downstream: null,
+          roles: [], categories: [], primaryCategory: div.higherCategory ?? '',
+          crossDomain: false, unowned: true,
+        });
+      }
       selected = { id: selectedVs.id, name: selectedVs.name, steps };
     }
     res.json({
@@ -249,6 +288,63 @@ router.get('/division/:id/flow', async (req: Request, res: Response, next: NextF
       valueStreams: streams.map((s) => ({ id: s.id, name: s.name, participationType: s.participationType })),
       selectedId: selectedVs?.id ?? null,
       selected,
+    });
+  } catch (e) { next(e); }
+});
+
+// Fully-exploded operating-model tree for the List view. One response carries
+// every division's LEAD value streams, each with its complete L3 process area →
+// L4 sub-process → L5 process step hierarchy (workbook order), so the list can
+// render the whole depth at once — no per-node lazy loading / loading rows.
+router.get('/tree', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true, name: true } });
+    if (!company) return res.status(404).json({ error: 'No company' });
+    const [divisions, links, subs] = await Promise.all([
+      prisma.division.findMany({ where: { companyId: company.id }, orderBy: { name: 'asc' }, select: { id: true, name: true, higherCategory: true, _count: { select: { roles: true } } } }),
+      // Division → value-stream participation, to find each division's LEAD streams
+      // (mirrors the per-division flow view, which filters value streams to Lead).
+      prisma.roleValueStream.findMany({ where: { valueStream: { companyId: company.id }, role: { divisionId: { not: null } } }, select: { valueStreamId: true, participationType: true, role: { select: { divisionId: true } }, valueStream: { select: { name: true } } } }),
+      // Whole process hierarchy for the company (L3/L4/L5), in workbook order.
+      prisma.subValueStream.findMany({ where: { valueStream: { companyId: company.id }, level: { in: [3, 4, 5] } }, orderBy: { sourceRow: 'asc' }, select: { id: true, parentId: true, level: true, name: true, valueStreamId: true } }),
+    ]);
+
+    // Strongest participation per (division, value stream); keep the Lead pairs.
+    const strongest = new Map<string, { part: string; vsName: string }>();
+    for (const l of links) {
+      const div = l.role.divisionId; if (!div) continue;
+      const key = div + '|' + l.valueStreamId; const cur = strongest.get(key);
+      if (!cur || (PART_ORDER[l.participationType] ?? 9) < (PART_ORDER[cur.part] ?? 9)) strongest.set(key, { part: l.participationType, vsName: l.valueStream.name });
+    }
+    const leadVsByDiv = new Map<string, { id: string; name: string }[]>();
+    for (const [key, v] of strongest) {
+      if (v.part !== 'Lead') continue;
+      const div = key.slice(0, key.indexOf('|')); const vs = key.slice(key.indexOf('|') + 1);
+      if (!leadVsByDiv.has(div)) leadVsByDiv.set(div, []);
+      leadVsByDiv.get(div)!.push({ id: vs, name: v.vsName });
+    }
+
+    // Index sub-streams by parent (children already in sourceRow order) and L3s by VS.
+    const childrenOf = new Map<string, typeof subs>();
+    const l3ByVs = new Map<string, typeof subs>();
+    for (const s of subs) {
+      if (s.parentId) { if (!childrenOf.has(s.parentId)) childrenOf.set(s.parentId, []); childrenOf.get(s.parentId)!.push(s); }
+      if (s.level === 3) { if (!l3ByVs.has(s.valueStreamId)) l3ByVs.set(s.valueStreamId, []); l3ByVs.get(s.valueStreamId)!.push(s); }
+    }
+    const areasOf = (vsId: string) => (l3ByVs.get(vsId) ?? []).map((l3, i) => ({
+      id: l3.id, step: i + 1, name: l3.name,
+      subProcesses: (childrenOf.get(l3.id) ?? []).map((l4, j) => ({
+        id: l4.id, step: j + 1, name: l4.name,
+        steps: (childrenOf.get(l4.id) ?? []).map((l5, k) => ({ id: l5.id, step: k + 1, name: l5.name })),
+      })),
+    }));
+
+    res.json({
+      company,
+      divisions: divisions.map((d) => ({
+        id: d.id, name: d.name, higherCategory: d.higherCategory, roles: d._count.roles,
+        valueStreams: (leadVsByDiv.get(d.id) ?? []).sort((a, b) => a.name.localeCompare(b.name)).map((vs) => ({ id: vs.id, name: vs.name, areas: areasOf(vs.id) })),
+      })),
     });
   } catch (e) { next(e); }
 });
@@ -399,31 +495,21 @@ async function metricsDivision(tenantId: string, c: string, id: string): Promise
 async function metricsValueStream(tenantId: string, c: string, id: string): Promise<Dashboard | null> {
   const vs = await prisma.valueStream.findFirst({ where: { id, tenantId, companyId: c }, select: { id: true, name: true, domain: true } });
   if (!vs) return null;
-  const [scenarios, kpis, appLinks, l3rows, ps] = await Promise.all([
-    prisma.scenario.findMany({ where: { companyId: c, valueStreamName: vs.name } }),
+  const [kpis, l3rows, ps] = await Promise.all([
     prisma.metric.findMany({ where: { valueStreamId: id }, orderBy: [{ l3: 'asc' }, { category: 'asc' }], select: { name: true, targetText: true, category: true, framework: true } }),
-    prisma.applicationValueStream.findMany({ where: { valueStreamId: id }, select: { application: { select: { illustrative: true, ...TCO_SELECT } } } }),
     prisma.subValueStream.findMany({ where: { valueStreamId: id, level: 3 }, orderBy: { sourceRow: 'asc' }, select: { id: true, name: true } }),
     prisma.processStep.findMany({ where: { valueStreamId: id }, select: { l3: true } }),
   ]);
-  const roll = scenarioRoll(scenarios);
-  const apps = appLinks.map((l) => l.application).filter((a) => !a.illustrative && a.totalTco != null);
   const stepByL3 = new Map<string, number>();
   for (const p of ps) { if (!p.l3) continue; stepByL3.set(p.l3, (stepByL3.get(p.l3) ?? 0) + 1); }
   return {
-    level: 'valueStream', title: vs.name, subtitle: 'Performance & change impact',
+    level: 'valueStream', title: vs.name, subtitle: 'Performance',
     tiles: [
       { label: 'KPIs defined', value: kpis.length },
-      { label: 'Change initiatives', value: roll.count },
-      { label: 'Annual net impact', value: roll.net, format: 'money' },
-      { label: 'Annual benefit', value: roll.benefit, format: 'money' },
-      { label: 'Added cost', value: roll.added, format: 'money' },
-      { label: 'App run cost', value: tcoTotal(apps), format: 'money', hint: 'annual TCO' },
+      { label: 'Process areas', value: l3rows.length },
     ],
     sections: [
       { title: 'KPIs & targets', kind: 'kpi', items: kpiList(kpis) },
-      { title: 'Change initiatives', kind: 'list', items: scenarios.map((s) => ({ label: s.name, value: s.annualNetImpact ?? 0, format: 'money' as const, hint: s.confidence ?? undefined })).sort((a, b) => b.value - a.value) },
-      { title: 'App run cost by bucket', kind: 'bar', items: tcoBuckets(apps) },
       { title: 'Process areas', kind: 'list', items: l3rows.map((s) => ({ label: s.name, value: stepByL3.get(s.name) ?? 0, hint: stepByL3.get(s.name) ? `${stepByL3.get(s.name)} steps` : 'no flow', drill: { level: 'step', id: s.id } })) },
     ],
   };
@@ -537,6 +623,221 @@ router.get('/metrics/:level/:id?', async (req: Request, res: Response, next: Nex
       case 'step':        out = id ? await metricsStep(req.tenantId, id) : null; break;
       case 'role':        out = id ? await metricsRole(req.tenantId, id) : null; break;
       case 'person':      out = id ? await metricsPerson(req.tenantId, id) : null; break;
+    }
+    if (!out) return res.status(404).json({ error: 'Not found' });
+    res.json(out);
+  } catch (e) { next(e); }
+});
+
+// ── Roles summary (right-hand sidebar) ──────────────────────────────────
+// Replaces the metrics dashboard. For each focused level: WHO OWNS IT (the
+// senior-most / Lead role) + a SUMMARIZED role accumulation (counts, not full
+// lists), each row drillable deeper in the same sidebar.
+type RoleLite = { id: string; name: string; roleLevel: string | null };
+// This DB has no usable roleLevel (every role is null or 'Individual Contributor')
+// and the C-suite is not wired into the reporting tree, so seniority/ownership is
+// derived from the role TITLE. Lower rank = more senior.
+const TIER_LABEL = ['Executive', 'Director / Head', 'Manager / Lead', 'Individual contributor'];
+function nameRank(name: string): number {
+  const n = name.toLowerCase();
+  if (/\bchief\b|\bceo\b|^president\b/.test(n)) return 0;                                  // C-suite
+  if (/\bhead\b|\bofficer\b|general counsel|\bcontroller\b|\bdirector\b/.test(n)) return 1; // function heads / directors
+  if (/\bmanager\b|\blead\b|\bprincipal\b/.test(n)) return 2;                               // managers / leads
+  return 3;                                                                                  // individual contributors
+}
+const bySeniority = (a: RoleLite, b: RoleLite) => nameRank(a.name) - nameRank(b.name) || a.name.localeCompare(b.name);
+function tierBars(roles: RoleLite[]): MetricItem[] {
+  const counts = [0, 0, 0, 0];
+  for (const r of roles) counts[nameRank(r.name)]++;
+  return TIER_LABEL.map((label, i) => ({ label, value: counts[i] })).filter((x) => x.value > 0);
+}
+
+async function rolesCompany(c: string, name: string): Promise<Dashboard> {
+  const [roles, divisions] = await Promise.all([
+    prisma.role.findMany({ where: { companyId: c }, select: { id: true, name: true, roleLevel: true } }),
+    prisma.division.findMany({ where: { companyId: c }, orderBy: { name: 'asc' }, include: { _count: { select: { roles: true } } } }),
+  ]);
+  return {
+    level: 'company', title: name, subtitle: 'Roles · top-down ownership',
+    tiles: [{ label: 'Roles', value: roles.length }, { label: 'Divisions', value: divisions.length }],
+    sections: [
+      { title: 'By tier', kind: 'bar', items: tierBars(roles) },
+      { title: 'Roles by division', kind: 'list', items: divisions.map((d) => ({ label: d.name, value: d._count.roles, drill: { level: 'division', id: d.id } })) },
+    ],
+  };
+}
+async function rolesDomain(c: string, category: string): Promise<Dashboard | null> {
+  const divisions = await prisma.division.findMany({ where: { companyId: c, higherCategory: category }, orderBy: { name: 'asc' }, include: { _count: { select: { roles: true } } } });
+  if (!divisions.length) return null;
+  const roles = await prisma.role.findMany({ where: { divisionId: { in: divisions.map((d) => d.id) } }, select: { id: true, name: true, roleLevel: true } });
+  return {
+    level: 'domain', title: category, subtitle: 'Roles · top-down ownership',
+    tiles: [{ label: 'Roles', value: roles.length }, { label: 'Divisions', value: divisions.length }],
+    sections: [
+      { title: 'By tier', kind: 'bar', items: tierBars(roles) },
+      { title: 'Roles by division', kind: 'list', items: divisions.map((d) => ({ label: d.name, value: d._count.roles, drill: { level: 'division', id: d.id } })) },
+    ],
+  };
+}
+async function rolesDivision(tenantId: string, c: string, id: string): Promise<Dashboard | null> {
+  const div = await prisma.division.findFirst({ where: { id, tenantId, companyId: c }, select: { id: true, name: true } });
+  if (!div) return null;
+  const [roles, departments] = await Promise.all([
+    prisma.role.findMany({ where: { divisionId: id }, orderBy: { name: 'asc' }, select: { id: true, name: true, roleLevel: true } }),
+    prisma.department.findMany({ where: { divisionId: id }, orderBy: { name: 'asc' }, include: { _count: { select: { roles: true } } } }),
+  ]);
+  const breakdown: MetricSection = departments.length
+    ? { title: 'Roles by department', kind: 'list', items: departments.map((d) => ({ label: d.name, value: d._count.roles, drill: { level: 'department', id: d.id } })) }
+    : { title: 'Roles', kind: 'list', items: [...roles].sort(bySeniority).map((r) => ({ label: r.name, value: 0, hint: TIER_LABEL[nameRank(r.name)], drill: { level: 'role', id: r.id } })) };
+  return {
+    level: 'division', title: div.name, subtitle: 'Roles · top-down ownership',
+    tiles: [{ label: 'Roles', value: roles.length }, { label: 'Departments', value: departments.length }],
+    sections: [{ title: 'By tier', kind: 'bar', items: tierBars(roles) }, breakdown],
+  };
+}
+async function rolesDepartment(tenantId: string, id: string): Promise<Dashboard | null> {
+  const dept = await prisma.department.findFirst({ where: { id, tenantId }, select: { id: true, name: true } });
+  if (!dept) return null;
+  const roles = await prisma.role.findMany({ where: { departmentId: id }, orderBy: { name: 'asc' }, select: { id: true, name: true, roleLevel: true } });
+  return {
+    level: 'department', title: dept.name, subtitle: 'Roles · top-down ownership',
+    tiles: [{ label: 'Roles', value: roles.length }],
+    sections: [
+      { title: 'Roles', kind: 'list', items: [...roles].sort(bySeniority).map((r) => ({ label: r.name, value: 0, hint: TIER_LABEL[nameRank(r.name)], drill: { level: 'role', id: r.id } })) },
+    ],
+  };
+}
+function dedupeByStrongestPart(links: { participationType: string; role: RoleLite }[]) {
+  const m = new Map<string, RoleLite & { part: string }>();
+  for (const l of links) { const cur = m.get(l.role.id); if (!cur || (PART_ORDER[l.participationType] ?? 9) < (PART_ORDER[cur.part] ?? 9)) m.set(l.role.id, { ...l.role, part: l.participationType }); }
+  return [...m.values()].sort((a, b) => (PART_ORDER[a.part] ?? 9) - (PART_ORDER[b.part] ?? 9));
+}
+async function rolesValueStream(tenantId: string, c: string, id: string): Promise<Dashboard | null> {
+  const vs = await prisma.valueStream.findFirst({ where: { id, tenantId, companyId: c }, select: { id: true, name: true } });
+  if (!vs) return null;
+  const links = await prisma.roleValueStream.findMany({ where: { valueStreamId: id }, select: { participationType: true, role: { select: { id: true, name: true, roleLevel: true } } } });
+  const roles = dedupeByStrongestPart(links);
+  const leads = roles.filter((r) => r.part === 'Lead');
+  const partBars = (() => { const m = new Map<string, number>(); for (const r of roles) m.set(r.part, (m.get(r.part) ?? 0) + 1); return [...m.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => (PART_ORDER[a.label] ?? 9) - (PART_ORDER[b.label] ?? 9)); })();
+  return {
+    level: 'valueStream', title: vs.name, subtitle: 'Roles · who owns what',
+    tiles: [{ label: 'Roles', value: roles.length }, { label: 'Leads', value: leads.length }],
+    sections: [
+      { title: 'By participation', kind: 'bar', items: partBars },
+      { title: 'Roles', kind: 'list', items: roles.map((r) => ({ label: r.name, value: 0, hint: r.part, drill: { level: 'role', id: r.id } })) },
+    ],
+  };
+}
+async function rolesStep(tenantId: string, id: string): Promise<Dashboard | null> {
+  const s = await prisma.subValueStream.findFirst({ where: { id, tenantId, level: 3 }, select: { id: true, name: true, valueStreamId: true } });
+  if (!s) return null;
+  const links = await prisma.roleValueStream.findMany({ where: { valueStreamId: s.valueStreamId, subStream: { startsWith: s.name + ' — ' } }, select: { participationType: true, role: { select: { id: true, name: true, roleLevel: true } } } });
+  const roles = dedupeByStrongestPart(links);
+  const leads = roles.filter((r) => r.part === 'Lead');
+  return {
+    level: 'step', title: s.name, subtitle: 'Roles · who owns what',
+    tiles: [{ label: 'Roles', value: roles.length }, { label: 'Leads', value: leads.length }],
+    sections: [
+      { title: 'Roles involved', kind: 'list', items: roles.map((r) => ({ label: r.name, value: 0, hint: r.part, drill: { level: 'role', id: r.id } })) },
+    ],
+  };
+}
+async function rolesRole(tenantId: string, id: string): Promise<Dashboard | null> {
+  const role = await prisma.role.findFirst({ where: { id, tenantId }, select: { id: true, name: true, roleLevel: true, manager: { select: { id: true, name: true } }, division: { select: { name: true } }, department: { select: { name: true } } } });
+  if (!role) return null;
+  const [assignments, reports, rvs, tasks] = await Promise.all([
+    prisma.assignment.findMany({ where: { roleId: id }, select: { person: { select: { id: true, name: true, employmentType: true } } } }),
+    prisma.role.findMany({ where: { managerRoleId: id }, orderBy: { name: 'asc' }, select: { id: true, name: true, roleLevel: true } }),
+    prisma.roleValueStream.findMany({ where: { roleId: id }, select: { participationType: true, outputs: true, valueStream: { select: { name: true } } } }),
+    prisma.roleTask.findMany({ where: { roleId: id }, select: { text: true } }),
+  ]);
+  // Deliverables: the outputs this role produces in each value stream (workbook).
+  const deliverables = rvs.filter((r) => r.outputs).map((r) => ({ label: r.outputs!, value: 0, hint: r.valueStream.name }));
+  return {
+    level: 'role', title: role.name, subtitle: [role.roleLevel, role.department?.name ?? role.division?.name].filter(Boolean).join(' · ') || 'Role',
+    tiles: [
+      { label: 'People', value: assignments.length },
+      { label: 'Direct reports', value: reports.length },
+      { label: 'Value streams', value: new Set(rvs.map((r) => r.valueStream.name)).size },
+      { label: 'Deliverables', value: deliverables.length },
+      { label: 'Responsibilities', value: tasks.length, hint: 'role tasks' },
+    ],
+    sections: [
+      { title: 'Reports to', kind: 'list', items: role.manager ? [{ label: role.manager.name, value: 0, drill: { level: 'role', id: role.manager.id } }] : [] },
+      { title: 'People in role', kind: 'list', items: assignments.map((a) => ({ label: a.person.name, value: 0, hint: a.person.employmentType, drill: { level: 'person', id: a.person.id } })) },
+      { title: 'Deliverables', kind: 'list', items: deliverables },
+      { title: 'Responsibilities (role tasks)', kind: 'list', items: tasks.slice(0, 25).map((t) => ({ label: t.text, value: 0 })) },
+      { title: 'Direct reports', kind: 'list', items: reports.map((r) => ({ label: r.name, value: 0, hint: r.roleLevel ?? undefined, drill: { level: 'role', id: r.id } })) },
+      { title: 'Value-stream participation', kind: 'list', items: rvs.map((r) => ({ label: r.valueStream.name, value: 0, hint: r.participationType })) },
+    ],
+  };
+}
+async function rolesPerson(tenantId: string, id: string): Promise<Dashboard | null> {
+  const person = await prisma.person.findFirst({ where: { id, tenantId }, select: { id: true, name: true, title: true, location: true, region: true, employmentType: true, vendor: true } });
+  if (!person) return null;
+  const [assignments, signals, apps, metrics] = await Promise.all([
+    prisma.assignment.findMany({ where: { personId: id }, orderBy: [{ isPrimary: 'desc' }], select: { allocationPct: true, role: { select: { id: true, name: true, roleLevel: true, division: { select: { name: true } } } } } }),
+    prisma.personSignal.findMany({ where: { personId: id, period: LATEST_PERIOD }, select: { name: true, value: true, unit: true } }),
+    prisma.personAppUsage.findMany({ where: { personId: id }, orderBy: { rank: 'asc' }, select: { appName: true, category: true, usagePct: true } }),
+    prisma.personMetric.findMany({ where: { personId: id, period: LATEST_PERIOD }, orderBy: { name: 'asc' }, select: { name: true, value: true, unit: true, target: true, direction: true } }),
+  ]);
+  const sig = (name: string) => signals.find((s) => s.name === name);
+  const online = sig('Time online'), gh = sig('GitHub activity'), msgs = sig('Team messages');
+  const alloc = assignments[0]?.allocationPct ?? 0;
+  const u = (unit: string) => (unit === '%' ? '%' : ` ${unit}`);
+
+  // Deliverables: the outputs of the roles this person holds (workbook).
+  const roleIds = assignments.map((a) => a.role.id);
+  const deliverableRows = roleIds.length
+    ? await prisma.roleValueStream.findMany({ where: { roleId: { in: roleIds }, outputs: { not: null } }, select: { outputs: true, valueStream: { select: { name: true } } } })
+    : [];
+  const deliverables = deliverableRows.map((r) => ({ label: r.outputs!, value: 0, hint: r.valueStream.name }));
+
+  return {
+    level: 'person', title: person.name, subtitle: [person.title, person.location ?? person.region].filter(Boolean).join(' · ') || person.employmentType,
+    tiles: [
+      ...(online ? [{ label: 'Time online', value: online.value, hint: online.unit, illustrative: true }] : []),
+      ...(gh ? [{ label: 'GitHub activity', value: gh.value, hint: gh.unit, illustrative: true }] : []),
+      ...(msgs ? [{ label: 'Team messages', value: msgs.value, hint: msgs.unit, illustrative: true }] : []),
+      { label: 'Allocation', value: alloc, hint: '%', illustrative: true },
+      { label: 'Deliverables', value: deliverables.length },
+    ],
+    sections: [
+      { title: 'Deliverables', kind: 'list', items: deliverables },
+      { title: 'Profile', kind: 'kpi', items: [
+        { label: 'Location', value: 0, hint: person.location ?? '—' },
+        { label: 'Region', value: 0, hint: person.region ?? '—' },
+        { label: 'Employment', value: 0, hint: person.employmentType === 'badged' ? 'Badged' : (person.vendor ?? person.employmentType) },
+      ] },
+      { title: 'Performance · value-stream KPIs', kind: 'kpi', illustrative: true, items: metrics.map((m) => ({
+        label: m.name, value: 0,
+        hint: `${m.value}${u(m.unit)}`,
+        sub: m.target != null ? `target ${m.direction === 'down' ? '≤' : '≥'} ${m.target}${u(m.unit)}` : undefined,
+      })) },
+      { title: 'Productivity signals', kind: 'list', illustrative: true, items: signals
+        .slice().sort((a, b) => ['Time online', 'GitHub activity', 'Team messages', 'Focus hours', 'Meetings'].indexOf(a.name) - ['Time online', 'GitHub activity', 'Team messages', 'Focus hours', 'Meetings'].indexOf(b.name))
+        .map((s) => ({ label: s.name, value: s.value, hint: s.unit })) },
+      { title: 'Most used apps', kind: 'list', illustrative: true, items: apps.map((a) => ({ label: a.appName, value: a.usagePct, hint: a.category ?? undefined })) },
+      { title: 'Roles', kind: 'list', items: assignments.map((a) => ({ label: a.role.name, value: 0, hint: a.role.division?.name ?? a.role.roleLevel ?? undefined, drill: { level: 'role', id: a.role.id } })) },
+    ],
+  };
+}
+
+router.get('/roles/:level/:id?', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true, name: true } });
+    if (!company) return res.status(404).json({ error: 'No company' });
+    const id = req.params.id ? decodeURIComponent(req.params.id) : undefined;
+    let out: Dashboard | null = null;
+    switch (req.params.level) {
+      case 'company':     out = await rolesCompany(company.id, company.name); break;
+      case 'domain':      out = id ? await rolesDomain(company.id, id) : null; break;
+      case 'division':    out = id ? await rolesDivision(req.tenantId, company.id, id) : null; break;
+      case 'department':  out = id ? await rolesDepartment(req.tenantId, id) : null; break;
+      case 'valueStream': out = id ? await rolesValueStream(req.tenantId, company.id, id) : null; break;
+      case 'step':        out = id ? await rolesStep(req.tenantId, id) : null; break;
+      case 'role':        out = id ? await rolesRole(req.tenantId, id) : null; break;
+      case 'person':      out = id ? await rolesPerson(req.tenantId, id) : null; break;
     }
     if (!out) return res.status(404).json({ error: 'Not found' });
     res.json(out);
@@ -832,11 +1133,13 @@ async function nodeSubValueStream(tenantId: string, id: string) {
   const roles = await rolesInProcess(tenantId, s.valueStreamId, steps);
   // Gap 2: compute roleLinkCount for this node.
   // L3: count RVS rows starting with "name — "; L4: count exact compound matches.
-  const compoundKey = isL3 ? null : `${s.parent?.name} — ${s.name}`;
+  // L4 compound key is "<parentL3> — <L4>"; if the parent isn't known (orphan L4),
+  // fall back to matching any L3 parent rather than the literal "undefined — name".
+  const compoundKey = isL3 ? null : s.parent?.name ? `${s.parent.name} — ${s.name}` : null;
   const rvsRows = await prisma.roleValueStream.findMany({
     where: {
       valueStreamId: s.valueStreamId,
-      subStream: isL3 ? { startsWith: s.name + ' — ' } : compoundKey!,
+      subStream: isL3 ? { startsWith: s.name + ' — ' } : (compoundKey ?? { endsWith: ' — ' + s.name }),
     },
     select: { roleId: true, participationType: true, role: { select: { id: true, name: true, division: { select: { higherCategory: true } } } } },
   });
@@ -1055,6 +1358,338 @@ async function nodeTask(tenantId: string, id: string) {
     children: { childType: null, total: 0, nextCursor: null, items: [] as any[] },
   };
 }
+
+// ── Org table: roles & groupings (L1 Segment → L2 Division → L3 Department →
+//    L4 Role → L5 Person), each role cross-linked to the value streams it works
+//    in motion (L1 Domain → L2 Value Stream → L3 Process Area → L4 Sub-Process).
+//    Powers the "Roles" interactive table (not a drill map). People are loaded
+//    lazily per role via /role/:id/people; here we only carry the headcount.
+const SEGMENT_ORDER = ['Core Business', 'IT', 'Corporate Function'];
+// Divisions ordered by where they sit in the end-to-end process (value chain),
+// not alphabetically. Within each segment the boxes follow this sequence.
+const DIVISION_ORDER = [
+  'Sales, Distribution & Marketing', 'Underwriting', 'Actuarial', 'Claims', 'Reinsurance', 'Operations & Customer Service',
+  'Product, Delivery & PMO', 'Technology & Engineering', 'Data & AI', 'Cybersecurity & IAM',
+  'Human Resources & Talent', 'Finance & Investments', 'Legal & Corporate Governance', 'Risk, Compliance & Audit',
+];
+const divRank = (name: string) => { const i = DIVISION_ORDER.indexOf(name); return i === -1 ? 999 : i; };
+router.get('/org-table', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true, name: true } });
+    if (!company) return res.status(404).json({ error: 'No company' });
+    const c = company.id;
+    const [divisions, departments, roles, links, headByRole, valueStreams] = await Promise.all([
+      prisma.division.findMany({ where: { companyId: c }, orderBy: { name: 'asc' }, select: { id: true, name: true, higherCategory: true } }),
+      prisma.department.findMany({ where: { companyId: c }, orderBy: { name: 'asc' }, select: { id: true, name: true, divisionId: true } }),
+      prisma.role.findMany({ where: { companyId: c }, orderBy: { name: 'asc' }, select: { id: true, name: true, roleLevel: true, roleFamily: true, divisionId: true, departmentId: true } }),
+      prisma.roleValueStream.findMany({ where: { valueStream: { companyId: c } }, select: { roleId: true, valueStreamId: true, participationType: true, subStream: true, valueStream: { select: { name: true, domain: true, domainRef: { select: { name: true } } } } } }),
+      prisma.assignment.groupBy({ by: ['roleId'], where: { role: { companyId: c } }, _count: { _all: true } }),
+      prisma.valueStream.findMany({ where: { companyId: c }, orderBy: [{ domain: 'asc' }, { name: 'asc' }], select: { id: true, name: true, domain: true } }),
+    ]);
+
+    const peopleByRole = new Map(headByRole.map((h) => [h.roleId, h._count._all]));
+    // role.id -> participations (subStream parsed into L3 / L4)
+    const partByRole = new Map<string, any[]>();
+    for (const l of links) {
+      const [l3, l4] = (l.subStream ?? '').split(' — ');
+      if (!partByRole.has(l.roleId)) partByRole.set(l.roleId, []);
+      partByRole.get(l.roleId)!.push({
+        valueStreamId: l.valueStreamId,
+        valueStreamName: l.valueStream.name,
+        domain: l.valueStream.domainRef?.name ?? l.valueStream.domain ?? null,
+        participationType: l.participationType,
+        l3: l3 || null,
+        l4: l4 || null,
+      });
+    }
+    const sortPart = (a: any, b: any) => (PART_ORDER[a.participationType] ?? 9) - (PART_ORDER[b.participationType] ?? 9) || a.valueStreamName.localeCompare(b.valueStreamName);
+
+    // L4 Roles nested under L3 Departments, then L2 Divisions, then L1 Segments.
+    const rolesByDept = new Map<string, any[]>();
+    for (const r of roles) {
+      const part = (partByRole.get(r.id) ?? []).sort(sortPart);
+      const node = {
+        id: r.id, name: r.name, roleLevel: r.roleLevel, roleFamily: r.roleFamily,
+        peopleCount: peopleByRole.get(r.id) ?? 0,
+        valueStreamCount: new Set(part.map((p) => p.valueStreamId)).size,
+        participations: part,
+      };
+      const key = r.departmentId ?? `__div:${r.divisionId}`; // roles without a dept hang directly off the division
+      if (!rolesByDept.has(key)) rolesByDept.set(key, []);
+      rolesByDept.get(key)!.push(node);
+    }
+
+    const deptsByDiv = new Map<string, any[]>();
+    for (const d of departments) {
+      const r = rolesByDept.get(d.id) ?? [];
+      if (!deptsByDiv.has(d.divisionId)) deptsByDiv.set(d.divisionId, []);
+      deptsByDiv.get(d.divisionId)!.push({ id: d.id, name: d.name, roles: r, roleCount: r.length, peopleCount: r.reduce((a, x) => a + x.peopleCount, 0) });
+    }
+
+    const divisionNodes = divisions.map((dv) => {
+      const depts = deptsByDiv.get(dv.id) ?? [];
+      const looseRoles = rolesByDept.get(`__div:${dv.id}`) ?? []; // unparented roles, if any
+      const roleCount = depts.reduce((a, x) => a + x.roleCount, looseRoles.length);
+      const peopleCount = depts.reduce((a, x) => a + x.peopleCount, looseRoles.reduce((a2, x2) => a2 + x2.peopleCount, 0));
+      return { id: dv.id, name: dv.name, segment: dv.higherCategory ?? 'Core Business', departments: depts, looseRoles, roleCount, peopleCount };
+    });
+
+    const segments = SEGMENT_ORDER
+      .map((name) => {
+        const divs = divisionNodes.filter((d) => d.segment === name).sort((a, b) => divRank(a.name) - divRank(b.name));
+        return { name, divisions: divs, divisionCount: divs.length, roleCount: divs.reduce((a, x) => a + x.roleCount, 0), peopleCount: divs.reduce((a, x) => a + x.peopleCount, 0) };
+      })
+      .filter((s) => s.divisions.length > 0);
+
+    res.json({
+      company,
+      totals: { segments: segments.length, divisions: divisions.length, departments: departments.length, roles: roles.length, valueStreams: valueStreams.length, people: [...peopleByRole.values()].reduce((a, x) => a + x, 0) },
+      valueStreams,
+      segments,
+    });
+  } catch (e) { next(e); }
+});
+
+// Standards `owner` is free text naming the accountable role(s), often as a
+// C-suite abbreviation or short title. This maps those tokens to the canonical
+// Role names that exist in the operating model so the drill-down can link to the
+// real role. Anything not listed here falls back to an exact (normalized) match.
+const OWNER_ALIAS: Record<string, string> = {
+  ciso: 'Chief Info Security Officer', cto: 'Chief Technology Officer', cfo: 'Chief Financial Officer',
+  chro: 'Chief HR Officer', cro: 'Chief Risk Officer', cco: 'Head of Compliance', coo: 'Chief Operating Officer',
+  cdo: 'Chief Data Officer', cio: 'Chief Information Officer', cpo: 'Chief Product Officer',
+  'iso security architect': 'ISO Architect', rte: 'Release Train Engineer', 'pmo director': 'Program Mgmt Office',
+};
+const normRole = (s: string) => s.toLowerCase().replace(/[._-]/g, ' ').replace(/\s+/g, ' ').trim();
+
+// Department standards index — one row per department with its count of
+// standards, charter inclusion, and the accountable owner resolved to real
+// role(s). Powers the Standards tab + role-level drill-down. Scoped to the
+// tenant's company; junk-count rows are excluded (count > 0).
+router.get('/standards', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true, name: true } });
+    if (!company) return res.status(404).json({ error: 'No company' });
+
+    const [standards, roles, headByRole] = await Promise.all([
+      prisma.standard.findMany({
+        where: { companyId: company.id, count: { gt: 0 } },
+        orderBy: [{ count: 'desc' }, { department: 'asc' }],
+        select: { id: true, department: true, count: true, charterIncluded: true, owner: true, link: true },
+      }),
+      prisma.role.findMany({ where: { companyId: company.id }, select: { id: true, name: true, roleLevel: true } }),
+      prisma.assignment.groupBy({ by: ['roleId'], where: { role: { companyId: company.id } }, _count: { _all: true } }),
+    ]);
+
+    const peopleByRole = new Map(headByRole.map((h) => [h.roleId, h._count._all]));
+    const roleByNorm = new Map(roles.map((r) => [normRole(r.name), r]));
+    // Resolve one owner token (e.g. "CISO", "Enterprise Architect") to a role.
+    const resolveToken = (raw: string) => {
+      const key = normRole(raw);
+      const target = OWNER_ALIAS[key] ? normRole(OWNER_ALIAS[key]) : key;
+      const role = roleByNorm.get(target);
+      return role
+        ? { label: raw, roleId: role.id, roleName: role.name, roleLevel: role.roleLevel, peopleCount: peopleByRole.get(role.id) ?? 0 }
+        : { label: raw, roleId: null, roleName: null, roleLevel: null, peopleCount: 0 };
+    };
+
+    const withResponsible = standards.map((s) => ({
+      ...s,
+      responsible: (s.owner ?? '').split(/[/,]/).map((x) => x.trim()).filter(Boolean).map(resolveToken),
+    }));
+
+    const totals = {
+      areas: standards.length,
+      standards: standards.reduce((a, s) => a + s.count, 0),
+      withCharter: standards.filter((s) => s.charterIncluded).length,
+    };
+    res.json({ company, totals, standards: withResponsible });
+  } catch (e) { next(e); }
+});
+
+// Standards area detail — the area's charter (mission/scope) plus every
+// individual standard, each with its accountable role (resolved) and the value
+// streams it applies to (derived from that role's value-stream participation).
+router.get('/standards/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true } });
+    if (!company) return res.status(404).json({ error: 'No company' });
+    const area = await prisma.standard.findFirst({
+      where: { id: req.params.id, companyId: company.id },
+      select: { id: true, department: true, count: true, charterIncluded: true, owner: true, link: true, mission: true, scope: true },
+    });
+    if (!area) return res.status(404).json({ error: 'Not found' });
+
+    const items = await prisma.standardItem.findMany({
+      where: { standardId: area.id },
+      orderBy: [{ category: 'asc' }, { name: 'asc' }],
+      select: { id: true, category: true, name: true, description: true, buildRun: true, ownerRole: true, ownerRoleId: true, relatedRole: true, relatedCategory: true, itemsLink: true },
+    });
+
+    const roleIds = [...new Set(items.map((i) => i.ownerRoleId).filter(Boolean))] as string[];
+    const [roleRows, headByRole, vsLinks] = await Promise.all([
+      prisma.role.findMany({ where: { id: { in: roleIds } }, select: { id: true, name: true, roleLevel: true } }),
+      prisma.assignment.groupBy({ by: ['roleId'], where: { roleId: { in: roleIds } }, _count: { _all: true } }),
+      prisma.roleValueStream.findMany({ where: { roleId: { in: roleIds } }, select: { roleId: true, valueStreamId: true, valueStream: { select: { name: true, domain: true, domainRef: { select: { name: true } } } } } }),
+    ]);
+    const roleById = new Map(roleRows.map((r) => [r.id, r]));
+    const peopleByRole = new Map(headByRole.map((h) => [h.roleId, h._count._all]));
+    const vsByRole = new Map<string, { id: string; name: string; domain: string | null }[]>();
+    for (const l of vsLinks) {
+      if (!vsByRole.has(l.roleId)) vsByRole.set(l.roleId, []);
+      const arr = vsByRole.get(l.roleId)!;
+      if (!arr.some((x) => x.id === l.valueStreamId)) arr.push({ id: l.valueStreamId, name: l.valueStream.name, domain: l.valueStream.domainRef?.name ?? l.valueStream.domain ?? null });
+    }
+
+    const enriched = items.map((it) => {
+      const role = it.ownerRoleId ? roleById.get(it.ownerRoleId) : null;
+      return {
+        id: it.id, category: it.category, name: it.name, description: it.description, buildRun: it.buildRun,
+        ownerRole: it.ownerRole, relatedRole: it.relatedRole, relatedCategory: it.relatedCategory, itemsLink: it.itemsLink,
+        responsible: role ? { roleId: role.id, roleName: role.name, roleLevel: role.roleLevel, peopleCount: peopleByRole.get(role.id) ?? 0 } : null,
+        valueStreams: it.ownerRoleId ? vsByRole.get(it.ownerRoleId) ?? [] : [],
+      };
+    });
+
+    const categories = [...new Set(items.map((i) => i.category))];
+    res.json({
+      area,
+      totals: { items: items.length, categories: categories.length, withOwnerRole: enriched.filter((e) => e.responsible).length },
+      items: enriched,
+    });
+  } catch (e) { next(e); }
+});
+
+// L5 — people in a role (lazy; illustrative). Loaded when a role row expands.
+router.get('/role/:id/people', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const role = await prisma.role.findFirst({ where: { id: req.params.id, tenantId: req.tenantId }, select: { id: true } });
+    if (!role) return res.status(404).json({ error: 'Not found' });
+    const rows = await prisma.assignment.findMany({
+      where: { roleId: role.id },
+      orderBy: { person: { name: 'asc' } },
+      select: { allocationPct: true, isPrimary: true, person: { select: { id: true, name: true, title: true, region: true, employmentType: true, vendor: true, illustrative: true } } },
+    });
+    res.json({ people: rows.map((r) => ({ ...r.person, allocationPct: r.allocationPct, isPrimary: r.isPrimary })) });
+  } catch (e) { next(e); }
+});
+
+// ── Person (L5) — location, assignment(s) and performance vs the relevant
+// value-stream KPIs the person's role(s) participate in. PersonMetric names are
+// drawn from those KPIs (see scripts/backfill-roles.ts), so each metric shows
+// the latest reading + 6-month history + on/off-target status.
+router.get('/person/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const person = await prisma.person.findFirst({
+      where: { id: req.params.id, tenantId: req.tenantId },
+      select: { id: true, name: true, title: true, location: true, region: true, employmentType: true, vendor: true, illustrative: true },
+    });
+    if (!person) return res.status(404).json({ error: 'Not found' });
+
+    const [assignments, metricRows, signalRows, appRows] = await Promise.all([
+      prisma.assignment.findMany({
+        where: { personId: person.id },
+        orderBy: [{ isPrimary: 'desc' }],
+        select: {
+          allocationPct: true, isPrimary: true, employmentType: true,
+          role: { select: { id: true, name: true, roleLevel: true, division: { select: { id: true, name: true } }, department: { select: { id: true, name: true } } } },
+        },
+      }),
+      prisma.personMetric.findMany({ where: { personId: person.id }, orderBy: { period: 'asc' }, select: { name: true, value: true, unit: true, target: true, direction: true, period: true } }),
+      prisma.personSignal.findMany({ where: { personId: person.id }, orderBy: { period: 'asc' }, select: { name: true, value: true, unit: true, period: true } }),
+      prisma.personAppUsage.findMany({ where: { personId: person.id }, orderBy: { rank: 'asc' }, select: { appName: true, category: true, usagePct: true, rank: true } }),
+    ]);
+
+    // Distinct value streams across the person's roles (for context).
+    const roleIds = assignments.map((a) => a.role.id);
+    const vsLinks = roleIds.length
+      ? await prisma.roleValueStream.findMany({ where: { roleId: { in: roleIds } }, select: { participationType: true, valueStream: { select: { id: true, name: true } } } })
+      : [];
+    const vsMap = new Map<string, { id: string; name: string; participationType: string }>();
+    for (const l of vsLinks) { const cur = vsMap.get(l.valueStream.id); if (!cur || (PART_ORDER[l.participationType] ?? 9) < (PART_ORDER[cur.participationType] ?? 9)) vsMap.set(l.valueStream.id, { id: l.valueStream.id, name: l.valueStream.name, participationType: l.participationType }); }
+
+    // Group metrics by KPI name → latest reading + history + status.
+    const byName = new Map<string, { unit: string; target: number | null; direction: string; history: { period: string; value: number }[] }>();
+    for (const m of metricRows) {
+      if (!byName.has(m.name)) byName.set(m.name, { unit: m.unit, target: m.target, direction: m.direction, history: [] });
+      byName.get(m.name)!.history.push({ period: m.period, value: m.value });
+    }
+    const metrics = [...byName.entries()].map(([name, m]) => {
+      const latest = m.history[m.history.length - 1] ?? null;
+      const onTarget = m.target == null || !latest ? null : m.direction === 'down' ? latest.value <= m.target : latest.value >= m.target;
+      return { name, unit: m.unit, target: m.target, direction: m.direction, latest: latest?.value ?? null, latestPeriod: latest?.period ?? null, onTarget, history: m.history };
+    }).sort((a, b) => a.name.localeCompare(b.name));
+
+    // Digital-productivity signals → latest reading + history (illustrative).
+    const sigByName = new Map<string, { unit: string; history: { period: string; value: number }[] }>();
+    for (const s of signalRows) { if (!sigByName.has(s.name)) sigByName.set(s.name, { unit: s.unit, history: [] }); sigByName.get(s.name)!.history.push({ period: s.period, value: s.value }); }
+    const SIGNAL_ORDER = ['Time online', 'GitHub activity', 'Team messages', 'Focus hours', 'Meetings'];
+    const signals = [...sigByName.entries()].map(([name, s]) => {
+      const latest = s.history[s.history.length - 1] ?? null;
+      return { name, unit: s.unit, latest: latest?.value ?? null, latestPeriod: latest?.period ?? null, history: s.history };
+    }).sort((a, b) => (SIGNAL_ORDER.indexOf(a.name) + 1 || 99) - (SIGNAL_ORDER.indexOf(b.name) + 1 || 99));
+
+    res.json({
+      person,
+      signals,
+      apps: appRows,
+      assignments: assignments.map((a) => ({
+        roleId: a.role.id, roleName: a.role.name, roleLevel: a.role.roleLevel,
+        divisionId: a.role.division?.id ?? null, divisionName: a.role.division?.name ?? null,
+        departmentId: a.role.department?.id ?? null, departmentName: a.role.department?.name ?? null,
+        allocationPct: a.allocationPct, isPrimary: a.isPrimary, employmentType: a.employmentType,
+      })),
+      valueStreams: [...vsMap.values()].sort((a, b) => (PART_ORDER[a.participationType] ?? 9) - (PART_ORDER[b.participationType] ?? 9)),
+      metrics,
+    });
+  } catch (e) { next(e); }
+});
+
+// ── Employee performance leaderboard for a role / department / division ──
+// Ranks every person at the scope by a performance score: the average attainment
+// of their KPI metrics vs target (latest month), 100 = exactly on target. Scope
+// `role` ranks people within a single role (used by the role-detail performance
+// graph); `department`/`division` aggregate across all roles at that level.
+router.get('/leaderboard/:scope/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const tenantId = req.tenantId;
+    const { scope, id } = req.params;
+    if (scope !== 'department' && scope !== 'division' && scope !== 'role') return res.status(400).json({ error: 'bad scope' });
+    const roles = await prisma.role.findMany({ where: scope === 'department' ? { departmentId: id, tenantId } : scope === 'division' ? { divisionId: id, tenantId } : { id, tenantId }, select: { id: true, name: true } });
+    if (!roles.length) return res.json({ scope, count: 0, period: LATEST_PERIOD, people: [] });
+    const roleName = new Map(roles.map((r) => [r.id, r.name]));
+
+    const assignments = await prisma.assignment.findMany({
+      where: { roleId: { in: roles.map((r) => r.id) } },
+      orderBy: [{ isPrimary: 'desc' }],
+      select: { roleId: true, person: { select: { id: true, name: true, region: true, employmentType: true, vendor: true } } },
+    });
+    const personMap = new Map<string, { id: string; name: string; region: string | null; employmentType: string; vendor: string | null; roleId: string }>();
+    for (const a of assignments) if (!personMap.has(a.person.id)) personMap.set(a.person.id, { ...a.person, roleId: a.roleId });
+    const personIds = [...personMap.keys()];
+
+    const metricRows = await prisma.personMetric.findMany({ where: { personId: { in: personIds }, period: LATEST_PERIOD }, select: { personId: true, name: true, value: true, unit: true, target: true, direction: true } });
+    const byPerson = new Map<string, typeof metricRows>();
+    for (const m of metricRows) { const a = byPerson.get(m.personId) ?? []; a.push(m); byPerson.set(m.personId, a); }
+
+    const people = personIds.map((pid) => {
+      const ms = (byPerson.get(pid) ?? []).filter((m) => m.target != null && m.value > 0);
+      let onTarget = 0; let best: { name: string; value: number; unit: string; pct: number } | null = null;
+      const attains = ms.map((m) => {
+        const ok = m.direction === 'down' ? m.value <= m.target! : m.value >= m.target!;
+        if (ok) onTarget++;
+        const at = Math.max(0, Math.min(1.5, m.direction === 'down' ? m.target! / m.value : m.value / m.target!));
+        if (!best || at > best.pct) best = { name: m.name, value: m.value, unit: m.unit, pct: at };
+        return at;
+      });
+      const score = attains.length ? Math.round((attains.reduce((a, b) => a + b, 0) / attains.length) * 100) : 0;
+      const p = personMap.get(pid)!;
+      return { id: pid, name: p.name, roleId: p.roleId, roleName: roleName.get(p.roleId) ?? null, region: p.region, employmentType: p.employmentType, vendor: p.vendor, score, onTarget, total: ms.length, topMetric: best };
+    }).filter((p) => p.total > 0).sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+
+    res.json({ scope, count: people.length, period: LATEST_PERIOD, people });
+  } catch (e) { next(e); }
+});
 
 // ── CEO use-case convenience: contractors on an initiative ──────────────
 router.get('/initiatives/:id/contributors', async (req: Request, res: Response, next: NextFunction) => {

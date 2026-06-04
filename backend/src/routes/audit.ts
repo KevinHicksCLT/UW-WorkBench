@@ -14,7 +14,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const entries = await prisma.auditEntry.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      take: Number(req.query.limit) || 100,
+      take: Math.min(Number(req.query.limit) || 100, 500),
     });
     res.json(entries);
   } catch (e) { next(e); }
