@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import AssistantMarkdown from './AssistantMarkdown';
-import { skillLabel } from '../lib/skills';
+import { skillLabel, describeSkillFile, SKILL_FILE_GROUP_ORDER } from '../lib/skills';
 
 // Modal that views an SDLC compliance agent skill: its SKILL.md plus the phase
 // guides, references, and datasets that ship with it. Markdown renders inline;
@@ -10,7 +10,6 @@ import { skillLabel } from '../lib/skills';
 type FileRef = { path: string; bytes: number };
 type Manifest = { name: string; files: FileRef[]; primary: string; skillMd: string | null };
 
-const fmtBytes = (n: number) => (n < 1024 ? `${n} B` : `${(n / 1024).toFixed(1)} KB`);
 const baseName = (p: string) => p.split('/').pop() ?? p;
 const isMd = (p: string) => /\.md$/i.test(p);
 
@@ -61,6 +60,14 @@ export default function SkillViewer({ skill, onClose }: { skill: string; onClose
   }, [onClose]);
 
   const content = cache[active];
+  const activeInfo = describeSkillFile(active);
+
+  // Show only files that are part of the agent skill (hide README / integration
+  // notes), grouped and clearly labelled.
+  const visibleFiles = (manifest?.files ?? []).filter((f) => !describeSkillFile(f.path).hidden);
+  const groups = SKILL_FILE_GROUP_ORDER
+    .map((group) => ({ group, files: visibleFiles.filter((f) => describeSkillFile(f.path).group === group) }))
+    .filter((g) => g.files.length > 0);
 
   // Download with a skill-scoped filename so it's unambiguous outside the app
   // (e.g. gdpr-sdlc-compliance__design-phase.md instead of a bare design-phase.md).
@@ -96,22 +103,30 @@ export default function SkillViewer({ skill, onClose }: { skill: string; onClose
         {error && <div className="px-5 py-2 text-sm text-[#be123c]">{error}</div>}
 
         <div className="flex-1 min-h-0 flex">
-          {/* File nav */}
-          <aside className="w-56 flex-shrink-0 border-r border-[#eaeaea] overflow-y-auto p-2">
-            <nav className="space-y-0.5">
-              {(manifest?.files ?? []).map((f) => (
-                <button
-                  key={f.path}
-                  onClick={() => setActive(f.path)}
-                  className={
-                    'w-full text-left px-2.5 py-1.5 rounded-md text-xs transition-colors ' +
-                    (active === f.path ? 'bg-[#eef6fb] text-[#0070AD] font-medium' : 'text-[#525252] hover:bg-[#fafafa] hover:text-[#171717]')
-                  }
-                  title={f.path}
-                >
-                  <div className="truncate">{f.path}</div>
-                  <div className={'text-[10px] ' + (active === f.path ? 'text-[#0070AD]/60' : 'text-[#a3a3a3]')}>{fmtBytes(f.bytes)}</div>
-                </button>
+          {/* File nav — grouped, with clear names + how the agent uses each. */}
+          <aside className="w-64 flex-shrink-0 border-r border-[#eaeaea] overflow-y-auto p-2">
+            <nav className="space-y-3">
+              {groups.map((grp) => (
+                <div key={grp.group}>
+                  <div className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{grp.group}</div>
+                  <div className="space-y-0.5">
+                    {grp.files.map((f) => {
+                      const info = describeSkillFile(f.path);
+                      const on = active === f.path;
+                      return (
+                        <button
+                          key={f.path}
+                          onClick={() => setActive(f.path)}
+                          className={'w-full text-left px-2.5 py-1.5 rounded-md transition-colors ' + (on ? 'bg-[#eef6fb]' : 'hover:bg-[#fafafa]')}
+                          title={f.path}
+                        >
+                          <div className={'text-xs font-medium ' + (on ? 'text-[#0070AD]' : 'text-[#171717]')}>{info.label}</div>
+                          {info.description && <div className="text-[10px] text-[#a3a3a3] leading-snug mt-0.5">{info.description}</div>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               ))}
               {!manifest && !error && <div className="px-2.5 py-2 text-xs text-[#a3a3a3]">Loading…</div>}
             </nav>
@@ -119,6 +134,11 @@ export default function SkillViewer({ skill, onClose }: { skill: string; onClose
 
           {/* Content */}
           <section className="flex-1 min-w-0 overflow-y-auto px-6 py-5">
+            <div className="mb-3 pb-3 border-b border-[#f0f0f0]">
+              <div className="text-sm font-semibold text-[#171717]">{activeInfo.label}</div>
+              {activeInfo.description && <div className="text-xs text-[#737373] mt-0.5">{activeInfo.description}</div>}
+              <div className="text-[10px] text-[#bdbdbd] font-mono mt-0.5">{active}</div>
+            </div>
             {content == null ? (
               <div className="text-sm text-[#a3a3a3]">{loadingFile ? 'Loading…' : 'Select a file.'}</div>
             ) : isMd(active) ? (
