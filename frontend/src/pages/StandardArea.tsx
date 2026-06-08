@@ -129,6 +129,7 @@ export default function StandardArea() {
                     title={`Enforced by the ${g.skill} agent skill — view & download`}
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.9 5.6L19.5 9l-4.6 3.3 1.8 5.7L12 14.7 7.3 18l1.8-5.7L4.5 9l5.6-.4z" /></svg>
+                    <span className="text-[#0070AD]/60">Agent skill:</span>
                     {skillLabel(g.skill)}
                     <span className="text-[#0070AD]/50">· view &amp; download</span>
                   </button>
