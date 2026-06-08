@@ -38,6 +38,7 @@ async function request(path: string, { method = 'GET', body, headers = {} }: Req
 export const api = {
   get:    (p: string)                => request(p),
   post:   (p: string, body?: unknown) => request(p, { method: 'POST', body }),
+  put:    (p: string, body?: unknown) => request(p, { method: 'PUT', body }),
   patch:  (p: string, body?: unknown) => request(p, { method: 'PATCH', body }),
   delete: (p: string)                => request(p, { method: 'DELETE' }),
 };

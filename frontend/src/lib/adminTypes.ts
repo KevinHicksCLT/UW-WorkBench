@@ -7,6 +7,7 @@ export type AdminField = {
   name: string;
   kind: FieldKind;
   required: boolean;
+  nullable?: boolean; // false = non-null column with a default (omit when empty)
   multiline: boolean;
   readonly?: boolean; // derived — shown in the list, not editable in the form
   createOnly?: boolean; // editable only when creating

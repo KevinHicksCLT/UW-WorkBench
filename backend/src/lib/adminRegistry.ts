@@ -13,6 +13,9 @@ export type AdminField = {
   name: string;
   kind: FieldKind;
   required: boolean; // must be supplied on create (no default, not nullable)
+  nullable?: boolean; // the DB column accepts NULL. When false, an empty value is
+                      // OMITTED on write (so a non-null column's default applies)
+                      // rather than sent as null — which Prisma would reject.
   multiline: boolean; // render as a textarea (long-form text)
   readonly?: boolean; // derived value — shown in the list, not editable in the form
   createOnly?: boolean; // editable only when creating (e.g. structural parent link)
@@ -41,14 +44,26 @@ export type AdminEntity = {
 
 // Tables excluded from the editable console:
 //   • Identity / immutable-log (password hashing, append-only audit), and Tenant.
-//   • The retired Cascade SPM/portfolio domain (Program → Workstream →
-//     PortfolioInitiative). Its line items (BenefitLine, CostLine, MetricValue,
-//     Milestone, RaidItem) have no tenantId and are already excluded below.
-// This keeps the admin scoped to the operating-model tables only.
+// The Initiatives tab's SPM hierarchy (Program → Workstream → PortfolioInitiative)
+// IS surfaced — those carry tenantId + companyId and back a live tab, so they must
+// be configurable. Their time-phased line items (BenefitLine, CostLine,
+// MetricValue, Milestone, RaidItem) have no tenantId and stay excluded (they're
+// edited through the specialized in-app financial/RAID grids).
 const DENY = new Set([
   'User', 'AuditEntry', 'Tenant',
-  'Program', 'Workstream', 'PortfolioInitiative',
 ]);
+
+// Label-field overrides for tables whose identifying column isn't name/title/text.
+// Without these the list would fall back to showing the raw id.
+const LABEL_OVERRIDES: Record<string, string> = {
+  standard: 'department',
+  personAppUsage: 'appName',
+  roleValueStream: 'participationType',
+  applicationValueStream: 'systemRole',
+  initiativeValueStream: 'impactType',
+  initiativeDivision: 'role',
+  assignment: 'employmentType',
+};
 
 // The raw value-stream tables back FK pickers elsewhere, so they stay resolvable
 // but are hidden from the sidebar — the unified "Value Streams" entity (below)
@@ -67,6 +82,7 @@ const GROUPS: { group: string; slugs: string[] }[] = [
   { group: 'People', slugs: ['person', 'assignment', 'personTask', 'personMetric', 'personAppUsage', 'personSignal'] },
   { group: 'Change & Risk', slugs: ['initiative', 'initiativeValueStream', 'initiativeDivision', 'risk', 'scenario'] },
   { group: 'Deliverables & Tasks', slugs: ['deliverable', 'task'] },
+  { group: 'Initiative Tracker (SPM)', slugs: ['program', 'workstream', 'portfolioInitiative'] },
   { group: 'Application Rationalization', slugs: ['rationalizationWorkspace', 'rationalizationApp', 'rationalizationComponent', 'rationalizationCapability', 'rationalizationMicroservice', 'rationalizationPlanStep'] },
   { group: 'External', slugs: ['externalInteraction'] },
 ];
@@ -144,12 +160,19 @@ function buildEntity(model: Prisma.DMMF.Model, companyModels: Set<string>): Admi
     if (f.name === 'companyId') continue;
     // Provenance / legacy columns are noise in the admin sheets — never surface.
     if (f.name === 'sourceSheet' || f.name === 'sourceRow' || f.name === 'code') continue;
+    // dashboardConfig is structured JSON edited by the Home dashboard configurator
+    // (its own route), not a generic scalar field — keep it out of the CRUD forms.
+    if (f.name === 'dashboardConfig') continue;
 
     const target = fkTarget[f.name];
     fields.push({
       name: f.name,
       kind: target ? 'string' : scalarKind(f.type),
       required: Boolean(f.isRequired && !f.hasDefaultValue),
+      // DMMF isRequired === true means the column is NOT NULL. Such a field is
+      // "optional to supply" only because it has a default — so when left empty we
+      // must omit it (let the default apply), never send null.
+      nullable: !f.isRequired,
       multiline: !target && f.type === 'String' && MULTILINE.has(f.name),
       ...(target ? { relation: { entity: camel(target), labelField: '' } } : {}),
     });
@@ -159,7 +182,7 @@ function buildEntity(model: Prisma.DMMF.Model, companyModels: Set<string>): Admi
     slug: camel(model.name),
     model: camel(model.name),
     label: humanize(model.name),
-    labelField: pickLabelField(model),
+    labelField: LABEL_OVERRIDES[camel(model.name)] ?? pickLabelField(model),
     companyVia,
     fields,
   };
@@ -202,12 +225,6 @@ for (const e of Object.values(ENTITIES)) {
   e.group = SLUG_POS.get(e.slug)?.group ?? OTHER_GROUP;
 }
 
-// The top operating-model tiers are presented as Process 0 / 1 / 2 tabs:
-// Company (Process 0) → Domain (Process 1) → Division (Process 2).
-if (ENTITIES['company']) ENTITIES['company'].label = 'Process 0';
-if (ENTITIES['valueStreamDomain']) ENTITIES['valueStreamDomain'].label = 'Process 1';
-if (ENTITIES['division']) ENTITIES['division'].label = 'Process 2';
-
 // Ordered list for the sidebar / _meta response: by group order, then by the
 // order declared within the group. Hidden entities stay in ENTITIES for FK
 // resolution but are dropped from the list. The frontend renders a section
@@ -245,7 +262,10 @@ export function coerceValue(field: AdminField, raw: unknown): unknown {
   if (raw === undefined) return undefined;
   if (raw === null || raw === '') {
     if (field.required) throw new Error(`${field.name} is required`);
-    return null;
+    // Non-nullable columns (with a default) must be omitted when empty so the
+    // default applies — sending null would violate NOT NULL. Nullable columns
+    // accept null.
+    return field.nullable === false ? undefined : null;
   }
   switch (field.kind) {
     case 'boolean':

@@ -1,0 +1,258 @@
+{
+  "$schema": "transformation-bridge/standards-import.v1",
+  "generatedFor": "Meridian Insurance Group",
+  "sourceRegulation": "California Consumer Privacy Act (CCPA), Cal. Civ. Code 1798.100-1798.199, as amended by CPRA, plus CPPA regulations 11 CCR 7000 et seq. (incl. 2025 ADMT / risk-assessment / cybersecurity-audit rules effective 2026-01-01)",
+  "note": "Field names inferred from the Transformation Bridge UI. Confirm against the real import schema before load. 'ccpaCitations', 'complianceDate', and 'sdlcGates' are extension fields for traceability. Several standards are conditional on the GLBA-exemption analysis (ccpa-001) and on business thresholds — see INTEGRATION-NOTES.",
+  "area": "Cybersecurity & ISO",
+  "category": "Data Privacy (CCPA/CPRA)",
+  "accountableOwner": "Privacy Officer / ISO Security Architect",
+  "valueStreamVocabulary": [
+    "Technology Delivery & Change",
+    "Technology Strategy, Architecture & Delivery",
+    "Cybersecurity, Identity & Resilience"
+  ],
+  "standards": [
+    {
+      "id": "ccpa-001",
+      "standard": "Business Applicability & GLBA-Exemption Analysis",
+      "whatItMeans": "Determine whether Meridian is a 'business' under any threshold, and analyze which personal information is exempt as GLBA-covered versus in-scope. The GLBA exemption is information-level, not entity-level, so non-GLBA PI (web visitors, prospects, marketing, employees/applicants, B2B contacts) remains subject to the CCPA.",
+      "phase": "Run",
+      "responsibleRole": "Privacy Officer / General Counsel",
+      "appliesToValueStreams": ["Cybersecurity, Identity & Resilience", "Technology Strategy, Architecture & Delivery"],
+      "ccpaCitations": ["1798.140(d)", "1798.145(e)"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Requirements"]
+    },
+    {
+      "id": "ccpa-002",
+      "standard": "Personal & Sensitive PI Classification",
+      "whatItMeans": "Inventory and classify personal information and the specific sensitive-PI categories (SSN/IDs, financial credentials, precise geolocation, health, biometric, sexual orientation, etc.) so notice, opt-out, limit-use, security, and retention controls can be scoped.",
+      "phase": "Build",
+      "responsibleRole": "ISO Architect / Data Owner",
+      "appliesToValueStreams": ["Technology Delivery & Change", "Technology Strategy, Architecture & Delivery"],
+      "ccpaCitations": ["1798.140(v)", "1798.140(ae)"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Requirements", "Design"]
+    },
+    {
+      "id": "ccpa-003",
+      "standard": "Notice at Collection",
+      "whatItMeans": "At or before collection, disclose the categories of PI and SPI collected, the purposes, retention periods, and whether the information is sold or shared.",
+      "phase": "Build",
+      "responsibleRole": "Privacy Officer / Product Owner",
+      "appliesToValueStreams": ["Technology Delivery & Change"],
+      "ccpaCitations": ["1798.100(a)"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Requirements", "Design"]
+    },
+    {
+      "id": "ccpa-004",
+      "standard": "Privacy Policy",
+      "whatItMeans": "Maintain a comprehensive privacy policy describing rights, categories, purposes, and disclosures, updated at least every 12 months.",
+      "phase": "Run",
+      "responsibleRole": "Privacy Officer",
+      "appliesToValueStreams": ["Cybersecurity, Identity & Resilience"],
+      "ccpaCitations": ["1798.130", "1798.135"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Run"]
+    },
+    {
+      "id": "ccpa-005",
+      "standard": "Right to Know / Access",
+      "whatItMeans": "Provide categories and specific pieces of PI, sources, purposes, and recipients on a verifiable request; look-back of at least 12 months; respond within 45 days.",
+      "phase": "Build/Run",
+      "responsibleRole": "Privacy Officer / Application Security Lead",
+      "appliesToValueStreams": ["Technology Delivery & Change"],
+      "ccpaCitations": ["1798.100", "1798.110", "1798.115"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Design", "Development", "Testing"]
+    },
+    {
+      "id": "ccpa-006",
+      "standard": "Right to Delete",
+      "whatItMeans": "Delete a consumer's PI on a verifiable request and direct service providers and contractors to delete it, subject to statutory exceptions.",
+      "phase": "Build/Run",
+      "responsibleRole": "Application Security Lead / ISO Architect",
+      "appliesToValueStreams": ["Technology Delivery & Change", "Cybersecurity, Identity & Resilience"],
+      "ccpaCitations": ["1798.105"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Design", "Development", "Testing"]
+    },
+    {
+      "id": "ccpa-007",
+      "standard": "Right to Correct",
+      "whatItMeans": "Correct inaccurate personal information on a verifiable request, using commercially reasonable efforts.",
+      "phase": "Build/Run",
+      "responsibleRole": "Application Security Lead",
+      "appliesToValueStreams": ["Technology Delivery & Change"],
+      "ccpaCitations": ["1798.106"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Design", "Development", "Testing"]
+    },
+    {
+      "id": "ccpa-008",
+      "standard": "Right to Opt-Out of Sale/Sharing",
+      "whatItMeans": "Provide a clear 'Do Not Sell or Share My Personal Information' mechanism and stop selling or sharing on request. 'Sharing' specifically covers disclosure for cross-context behavioral advertising.",
+      "phase": "Build/Run",
+      "responsibleRole": "Application Security Lead / Privacy Officer",
+      "appliesToValueStreams": ["Technology Delivery & Change"],
+      "ccpaCitations": ["1798.120", "1798.135"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Design", "Development", "Testing"]
+    },
+    {
+      "id": "ccpa-009",
+      "standard": "Opt-Out Preference Signals (Global Privacy Control)",
+      "whatItMeans": "Detect and honor browser/device opt-out preference signals such as Global Privacy Control as a valid request to opt out of sale/sharing.",
+      "phase": "Build/Run",
+      "responsibleRole": "Application Security Lead",
+      "appliesToValueStreams": ["Technology Delivery & Change"],
+      "ccpaCitations": ["11 CCR 7025"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Design", "Development", "Testing"]
+    },
+    {
+      "id": "ccpa-010",
+      "standard": "Right to Limit Use of Sensitive PI",
+      "whatItMeans": "Provide a 'Limit the Use of My Sensitive Personal Information' mechanism and restrict SPI use to what is necessary to provide the requested goods/services.",
+      "phase": "Build/Run",
+      "responsibleRole": "Application Security Lead / Privacy Officer",
+      "appliesToValueStreams": ["Technology Delivery & Change"],
+      "ccpaCitations": ["1798.121"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Design", "Development", "Testing"]
+    },
+    {
+      "id": "ccpa-011",
+      "standard": "Automated Decision-Making Technology (ADMT) Rights",
+      "whatItMeans": "Where ADMT substantially replaces human decision-making in a significant decision (e.g., automated underwriting, pricing, claims), provide a pre-use notice, an opt-out, access to information about the logic and outcome, and an appeal path. Crosswalk to GDPR Art. 22 and the EU AI Act.",
+      "phase": "Build/Run",
+      "responsibleRole": "Privacy Officer / Chief Actuary / Enterprise Architect",
+      "appliesToValueStreams": ["Technology Strategy, Architecture & Delivery", "Technology Delivery & Change"],
+      "ccpaCitations": ["11 CCR ADMT regs", "1798.185"],
+      "complianceDate": "2027-01-01",
+      "sdlcGates": ["Requirements", "Design", "Development", "Testing"]
+    },
+    {
+      "id": "ccpa-012",
+      "standard": "Non-Discrimination & Financial Incentives",
+      "whatItMeans": "Do not discriminate against consumers for exercising rights; any financial incentive or price/service difference must be permitted, disclosed, and reasonably related to the value of the data.",
+      "phase": "Build/Run",
+      "responsibleRole": "Privacy Officer",
+      "appliesToValueStreams": ["Technology Delivery & Change"],
+      "ccpaCitations": ["1798.125"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Design", "Testing"]
+    },
+    {
+      "id": "ccpa-013",
+      "standard": "Verifiable Consumer Requests & Timelines",
+      "whatItMeans": "Offer at least two request methods, verify the requester's identity, acknowledge within 10 business days, and respond within 45 calendar days (extendable once by 45) with required disclosures.",
+      "phase": "Build/Run",
+      "responsibleRole": "Privacy Officer / Application Security Lead",
+      "appliesToValueStreams": ["Technology Delivery & Change"],
+      "ccpaCitations": ["1798.130", "11 CCR 7020-7022"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Design", "Development", "Testing"]
+    },
+    {
+      "id": "ccpa-014",
+      "standard": "Data Minimization & Purpose Limitation",
+      "whatItMeans": "Collection, use, retention, and sharing of PI must be reasonably necessary and proportionate to the purposes disclosed to the consumer; no use for incompatible purposes without notice.",
+      "phase": "Build",
+      "responsibleRole": "Enterprise Architect / Privacy Officer",
+      "appliesToValueStreams": ["Technology Strategy, Architecture & Delivery", "Technology Delivery & Change"],
+      "ccpaCitations": ["1798.100(c)"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Requirements", "Design", "Testing"]
+    },
+    {
+      "id": "ccpa-015",
+      "standard": "Storage Limitation & Retention Disclosure",
+      "whatItMeans": "Disclose and enforce retention periods for each category of PI and SPI; do not retain longer than reasonably necessary for the disclosed purpose.",
+      "phase": "Build/Run",
+      "responsibleRole": "ISO Architect / Data Owner",
+      "appliesToValueStreams": ["Cybersecurity, Identity & Resilience", "Technology Delivery & Change"],
+      "ccpaCitations": ["1798.100(a)(3)"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Design", "Development", "Testing"]
+    },
+    {
+      "id": "ccpa-016",
+      "standard": "Reasonable Security & Breach Liability",
+      "whatItMeans": "Implement reasonable security procedures and practices appropriate to the PI. Note the private right of action for breaches of nonencrypted/nonredacted PI caused by failure to maintain reasonable security (statutory damages $100-$750 per consumer per incident).",
+      "phase": "Build/Run",
+      "responsibleRole": "ISO Architect / CISO",
+      "appliesToValueStreams": ["Cybersecurity, Identity & Resilience", "Technology Delivery & Change"],
+      "ccpaCitations": ["1798.100(e)", "1798.150"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Design", "Development", "Testing", "Run"]
+    },
+    {
+      "id": "ccpa-017",
+      "standard": "Sensitive PI Handling",
+      "whatItMeans": "Identify SPI, honor limit-use requests, and restrict secondary uses; apply heightened safeguards to health, biometric, financial, and precise-geolocation data common in insurance.",
+      "phase": "Build/Run",
+      "responsibleRole": "ISO Architect / Privacy Officer",
+      "appliesToValueStreams": ["Cybersecurity, Identity & Resilience", "Technology Delivery & Change"],
+      "ccpaCitations": ["1798.140(ae)", "1798.121"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Requirements", "Design", "Development", "Testing"]
+    },
+    {
+      "id": "ccpa-018",
+      "standard": "Service Provider / Contractor / Third-Party Contracts",
+      "whatItMeans": "Bind service providers, contractors, and third parties with the required contractual terms limiting use to specified purposes, prohibiting unauthorized sale, requiring deletion/flow-down, and permitting compliance verification.",
+      "phase": "Run",
+      "responsibleRole": "Vendor Security / Legal",
+      "appliesToValueStreams": ["Cybersecurity, Identity & Resilience"],
+      "ccpaCitations": ["1798.100(d)", "1798.140"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Design", "Run"]
+    },
+    {
+      "id": "ccpa-019",
+      "standard": "Privacy Risk Assessments",
+      "whatItMeans": "Conduct and document a written risk assessment before high-risk processing (selling/sharing PI, processing SPI, ADMT for significant decisions, training ADMT, or automated inference of sensitive traits); submit documentation to the CPPA from April 1, 2028.",
+      "phase": "Build/Run",
+      "responsibleRole": "Privacy Officer / ISO Architect",
+      "appliesToValueStreams": ["Technology Strategy, Architecture & Delivery", "Technology Delivery & Change"],
+      "ccpaCitations": ["11 CCR risk-assessment regs"],
+      "complianceDate": "2026-01-01 (submit by 2028-04-01)",
+      "sdlcGates": ["Requirements", "Design"]
+    },
+    {
+      "id": "ccpa-020",
+      "standard": "Annual Cybersecurity Audit",
+      "whatItMeans": "Complete an annual independent cybersecurity audit and submit a certification to the CPPA on the revenue-phased schedule (over $100M: first certification by April 1, 2028 covering 2027), annually thereafter.",
+      "phase": "Run",
+      "responsibleRole": "CISO / Privacy Officer",
+      "appliesToValueStreams": ["Cybersecurity, Identity & Resilience"],
+      "ccpaCitations": ["11 CCR cybersecurity-audit regs"],
+      "complianceDate": "2028-04-01 (first certification, >$100M)",
+      "sdlcGates": ["Testing", "Run"]
+    },
+    {
+      "id": "ccpa-021",
+      "standard": "Minors' Data Opt-In",
+      "whatItMeans": "Obtain opt-in consent to sell or share PI of consumers under 16 (the consumer for ages 13-15; a parent/guardian for under 13).",
+      "phase": "Build/Run",
+      "responsibleRole": "Privacy Officer / Application Security Lead",
+      "appliesToValueStreams": ["Technology Delivery & Change"],
+      "ccpaCitations": ["1798.120(c)"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Design", "Development", "Testing"]
+    },
+    {
+      "id": "ccpa-022",
+      "standard": "Consumer Request Recordkeeping",
+      "whatItMeans": "Maintain records of consumer requests and how they were handled for at least 24 months; large processors must compile and disclose request metrics.",
+      "phase": "Run",
+      "responsibleRole": "Privacy Officer",
+      "appliesToValueStreams": ["Cybersecurity, Identity & Resilience"],
+      "ccpaCitations": ["11 CCR 7101", "11 CCR 7102"],
+      "complianceDate": "in force",
+      "sdlcGates": ["Development", "Run"]
+    }
+  ]
+}

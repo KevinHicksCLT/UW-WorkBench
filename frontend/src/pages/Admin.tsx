@@ -3,122 +3,63 @@ import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
 import PageHeader from '../components/PageHeader';
-import EntityForm from '../components/EntityForm';
-import ValueStreamLevels from '../components/ValueStreamLevels';
 import DataDictionary from './DataDictionary';
-import type { AdminEntity, ListResponse } from '../lib/adminTypes';
+import AdminSection from '../components/admin/AdminSection';
+import AdminAssistant from '../components/admin/AdminAssistant';
+import { ADMIN_TABS } from '../lib/adminConfig';
+import type { AdminEntity } from '../lib/adminTypes';
 
-// Append the active companyId to an admin path (the backend isolates every
-// company-scoped entity by it). The Company table ignores the param server-side.
-function withCompany(path: string, companyId: string | null) {
-  if (!companyId) return path;
-  return path + (path.includes('?') ? '&' : '?') + `companyId=${companyId}`;
-}
+// Two-letter abbreviations shown in the left nav when it's collapsed.
+const TAB_SHORT: Record<string, string> = {
+  company: 'CO', home: 'HM', valueStreams: 'VS', organization: 'OR', standards: 'ST',
+  telemetry: 'TE', initiatives: 'IN', work: 'DT', people: 'PE', external: 'EX', catalog: 'DC',
+};
 
-// Generic admin console. One screen drives create/read/update/delete over every
-// tenant-scoped table. Entity list + per-entity fields come from /admin/_meta.
-
-// Turn a camelCase field name into a human-readable header: valueStreamId → "Value Stream".
-function humanize(name: string): string {
-  return name
-    .replace(/Id$/, '')
-    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-    .replace(/^./, (c) => c.toUpperCase())
-    .trim();
-}
-
-function cellText(field: { kind: string }, v: any): string {
-  if (v === null || v === undefined || v === '') return '—';
-  if (field.kind === 'boolean') return v ? '✓' : '–';
-  if (field.kind === 'datetime') {
-    const d = new Date(v);
-    return Number.isNaN(d.getTime()) ? String(v) : d.toLocaleDateString();
-  }
-  const s = String(v);
-  return s.length > 48 ? s.slice(0, 47) + '…' : s;
-}
+// ─── Data Admin Studio ───────────────────────────────────────────────────────
+// One console to configure every tab of the product. The top nav mirrors the
+// app's own navigation (Company onboarding, Home, Value Streams, Organization,
+// Standards, Telemetry, Initiatives, Deliverables & Tasks, People, External) plus
+// a power-user Data Catalog. Each tab renders a tailored editor for its data
+// shape (drill-down trees, master-detail, or flat lists) — defined in
+// lib/adminConfig.ts. An AI assistant can draft and apply changes on request.
+// Everything is company-scoped and every write is audited.
 
 export default function Admin() {
   const { companyId, company } = useCompany();
-  const [view, setView] = useState<'records' | 'dictionary'>('records');
   const [entities, setEntities] = useState<AdminEntity[]>([]);
-  const [slug, setSlug] = useState<string>('');
-  const [list, setList] = useState<ListResponse | null>(null);
-  const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [editing, setEditing] = useState<Record<string, any> | null | 'new'>(null);
-  const [catalogOpen, setCatalogOpen] = useState(false);
-  // Set when an unwired tab leaf is selected — shows a "coming soon" panel.
-  const [placeholder, setPlaceholder] = useState<string | null>(null);
-
-  const entity = useMemo(() => entities.find((e) => e.slug === slug) ?? null, [entities, slug]);
-
-  // The sidebar mirrors the app's main navigation: each tab is a section header
-  // with a single config leaf beneath it. Only Value Streams → Levels is wired up
-  // today (the existing level editor); the rest are placeholders. Everything else
-  // lives in the collapsible "Data Catalog" below.
-  const TAB_TREE: { tab: string; leaf: string; slug?: string }[] = [
-    { tab: 'Home', leaf: 'Config' },
-    { tab: 'Value Streams', leaf: 'Levels', slug: 'valueStreams' },
-    { tab: 'Organization', leaf: 'Levels', slug: 'organization' },
-    { tab: 'Standards', leaf: 'Config' },
-    { tab: 'Telemetry', leaf: 'Config' },
-    { tab: 'Initiatives', leaf: 'Config' },
-    { tab: 'Deliverables & Tasks', leaf: 'Config' },
-  ];
-  // valueStreams is surfaced under Value Streams → Levels above, so keep it out of
-  // the catalog to avoid listing it twice.
-  const catalogEntities = useMemo(() => entities.filter((e) => e.slug !== 'valueStreams'), [entities]);
-
-  // Columns shown in the table: label field first, then a few short scalars.
-  const columns = useMemo(() => {
-    if (!entity) return [];
-    const label = entity.fields.find((f) => f.name === entity.labelField);
-    const rest = entity.fields
-      .filter((f) => f.name !== entity.labelField && !f.relation && !f.multiline)
-      .slice(0, 4);
-    return [label, ...rest].filter(Boolean) as AdminEntity['fields'];
-  }, [entity]);
+  const [tabKey, setTabKey] = useState<string>(ADMIN_TABS[0].key);
+  const [sectionKey, setSectionKey] = useState<string>(ADMIN_TABS[0].sections[0].key);
+  const [view, setView] = useState<'studio' | 'dictionary'>('studio');
+  const [navCollapsed, setNavCollapsed] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0); // bumped after AI applies changes
 
   useEffect(() => {
     api.get('/admin/_meta')
-      .then((m) => {
-        setEntities(m.entities);
-        if (m.entities.length) setSlug((s) => s || 'valueStreams');
-      })
+      .then((m) => setEntities(m.entities))
       .catch((e) => setError(e.message));
   }, []);
 
-  const load = (s: string, q: string) => {
-    if (!s) return;
-    setLoading(true);
-    setError('');
-    api.get(withCompany(`/admin/${s}?limit=100${q ? `&search=${encodeURIComponent(q)}` : ''}`, companyId))
-      .then(setList)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+  const bySlug = useMemo(() => new Map(entities.map((e) => [e.slug, e])), [entities]);
+
+  const tab = useMemo(() => ADMIN_TABS.find((t) => t.key === tabKey) ?? ADMIN_TABS[0], [tabKey]);
+  const section = useMemo(() => tab.sections.find((s) => s.key === sectionKey) ?? tab.sections[0], [tab, sectionKey]);
+
+  const selectTab = (key: string) => {
+    const t = ADMIN_TABS.find((x) => x.key === key);
+    if (!t) return;
+    setTabKey(key);
+    setSectionKey(t.sections[0].key);
   };
 
-  // Reload when entity or active company changes; debounce search.
-  useEffect(() => { setSearch(''); load(slug, ''); /* eslint-disable-next-line */ }, [slug, companyId]);
-  useEffect(() => {
-    const t = setTimeout(() => load(slug, search), 250);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line
-  }, [search]);
-
-  const onSaved = () => { setEditing(null); load(slug, search); };
-
-  const remove = async (row: Record<string, any>) => {
-    const name = entity ? row[entity.labelField] ?? row.id : row.id;
-    if (!confirm(`Delete this ${entity?.label}?\n\n${name}\n\nThis cannot be undone.`)) return;
-    try {
-      await api.delete(withCompany(`/admin/${slug}/${row.id}`, companyId));
-      load(slug, search);
-    } catch (e) {
-      alert((e as Error).message);
-    }
+  // Jump to a specific tab (and optional section) — used by the Home/Dashboard
+  // editor's "edit this widget's source" shortcuts.
+  const goTo = (tabK: string, sectionK?: string) => {
+    const t = ADMIN_TABS.find((x) => x.key === tabK);
+    if (!t) return;
+    setTabKey(tabK);
+    setSectionKey(sectionK && t.sections.some((s) => s.key === sectionK) ? sectionK : t.sections[0].key);
   };
 
   return (
@@ -126,164 +67,141 @@ export default function Admin() {
       <PageHeader
         title="Data Admin"
         subtitle={
-          view === 'records'
-            ? `Create, edit, and delete records for ${company?.name ?? 'the active company'}. All changes are audited.`
-            : 'Plain-language definitions of the terms used across the platform — what each one means in our operating model.'
+          view === 'dictionary'
+            ? 'Plain-language definitions of the terms used across the platform.'
+            : `Configure every screen of the platform for ${company?.name ?? 'the active company'}. The tabs below mirror the app; pick one to edit what it shows. All changes are audited.`
         }
         eyebrow={company ? 'Editing company' : undefined}
-        actions={<Link to="/audit" className="btn-secondary">View audit trail</Link>}
+        actions={
+          <div className="flex items-center gap-2">
+            <button onClick={() => setAiOpen(true)} className="btn-primary inline-flex items-center gap-1.5" disabled={!companyId}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.9 5.6L19.5 9l-4.6 3.3 1.8 5.7L12 14.7 7.3 18l1.8-5.7L4.5 9l5.6-.4z" /></svg>
+              AI assist
+            </button>
+            <Link to="/audit" className="btn-secondary">Audit trail</Link>
+          </div>
+        }
       />
 
-      {/* View switch: the CRUD console vs. the read-only data dictionary. */}
+      {/* View switch */}
       <div className="inline-flex rounded-lg border border-[#eaeaea] p-0.5 mb-5">
-        {([['records', 'Records'], ['dictionary', 'Data Dictionary']] as const).map(([v, label]) => (
+        {([['studio', 'Configure'], ['dictionary', 'Data Dictionary']] as const).map(([v, label]) => (
           <button
             key={v}
             onClick={() => setView(v)}
-            className={'px-3 py-1 text-sm font-medium rounded-md transition-colors duration-150 '
-              + (view === v ? 'bg-[#171717] text-white' : 'text-[#525252] hover:text-[#171717]')}
+            className={'px-3 py-1 text-sm font-medium rounded-md transition-colors ' + (view === v ? 'bg-[#171717] text-white' : 'text-[#525252] hover:text-[#171717]')}
           >
             {label}
           </button>
         ))}
       </div>
 
+      {error && <div className="text-sm text-[#be123c] mb-3">{error}</div>}
+
       {view === 'dictionary' ? (
         <DataDictionary embedded />
       ) : (
-      <div className="flex flex-col lg:flex-row gap-5">
-        {/* Entity sidebar — the levels we edit are pinned at the top; the rest of
-            the operating-model data lives in a collapsed "Data Catalog". */}
-        <aside className="lg:w-56 flex-shrink-0">
-          <div className="card-elevated p-2 max-h-[70vh] overflow-y-auto">
-            <nav className="space-y-0.5">
-              {TAB_TREE.map(({ tab, leaf, slug: leafSlug }, i) => {
-                const active = leafSlug ? (leafSlug === slug && !placeholder) : placeholder === tab;
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left sidebar — collapsible primary navigation (mirrors the product nav). */}
+          <aside className={'flex-shrink-0 transition-[width] duration-150 ' + (navCollapsed ? 'lg:w-14' : 'lg:w-56')}>
+            {/* Collapse toggle (desktop only) */}
+            <button
+              onClick={() => setNavCollapsed((v) => !v)}
+              aria-label={navCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              aria-expanded={!navCollapsed}
+              className={
+                'hidden lg:flex items-center gap-2 w-full rounded-md px-3 py-2 mb-1 text-[#666666] hover:text-[#171717] hover:bg-[#fafafa] transition-colors duration-150 ' +
+                (navCollapsed ? 'justify-center' : '')
+              }
+            >
+              <svg
+                width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+                className={'transition-transform duration-150 ' + (navCollapsed ? 'rotate-180' : '')}
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+              {!navCollapsed && <span className="text-xs font-medium">Collapse</span>}
+            </button>
+
+            <nav className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible -mx-1 px-1 lg:mx-0 lg:px-0" aria-label="Data Admin sections">
+              {ADMIN_TABS.map((t) => {
+                const active = t.key === tabKey;
                 return (
-                  <div key={tab}>
-                    <div className={'px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] ' + (i === 0 ? 'pt-1' : 'pt-3')}>
-                      {tab}
-                    </div>
-                    <button
-                      onClick={() => {
-                        if (leafSlug) { setSlug(leafSlug); setPlaceholder(null); }
-                        else setPlaceholder(tab);
-                      }}
-                      className={
-                        'w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors duration-150 ' +
-                        (active ? 'bg-[#f5f5f5] text-[#171717] font-medium' : 'text-[#525252] hover:bg-[#fafafa] hover:text-[#171717]')
-                      }
-                    >
-                      {leaf}
-                    </button>
-                  </div>
+                  <button
+                    key={t.key}
+                    onClick={() => selectTab(t.key)}
+                    aria-current={active ? 'page' : undefined}
+                    title={navCollapsed ? t.label : undefined}
+                    className={
+                      'whitespace-nowrap lg:whitespace-normal rounded-md px-3 py-2 text-sm transition-colors duration-150 lg:border-l-2 ' +
+                      (navCollapsed ? 'lg:text-center lg:px-0 lg:font-semibold' : 'text-left') + ' ' +
+                      (active
+                        ? 'bg-[#f5f5f5] text-[#171717] font-semibold lg:border-[#171717]'
+                        : 'text-[#666666] font-medium hover:text-[#171717] hover:bg-[#fafafa] lg:border-transparent')
+                    }
+                  >
+                    {/* Mobile always shows the full label; desktop collapses to an abbreviation */}
+                    <span className={navCollapsed ? 'lg:hidden' : ''}>{t.label}</span>
+                    {navCollapsed && <span className="hidden lg:inline">{TAB_SHORT[t.key] ?? t.label.slice(0, 2).toUpperCase()}</span>}
+                  </button>
                 );
               })}
+            </nav>
+          </aside>
 
-              {/* Data Catalog — all importable data; collapsed to start. */}
-              <div className="pt-3">
-                <button
-                  onClick={() => setCatalogOpen((o) => !o)}
-                  className="w-full flex items-center gap-1.5 px-3 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] hover:text-[#525252]"
-                >
-                  <span className="text-[8px] leading-none">{catalogOpen ? '▼' : '▶'}</span>
-                  Data Catalog
-                </button>
-                {catalogOpen && catalogEntities.map((e, i) => (
-                  <div key={e.slug}>
-                    {(e.group && e.group !== catalogEntities[i - 1]?.group) && (
-                      <div className="px-3 pt-2 pb-1 text-[10px] font-medium uppercase tracking-[0.08em] text-[#c4c4c4]">{e.group}</div>
-                    )}
-                    <button
-                      onClick={() => { setSlug(e.slug); setPlaceholder(null); }}
-                      className={
-                        'w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors duration-150 ' +
-                        (e.slug === slug && !placeholder ? 'bg-[#f5f5f5] text-[#171717] font-medium' : 'text-[#525252] hover:bg-[#fafafa] hover:text-[#171717]')
-                      }
-                    >
-                      {e.label}
-                    </button>
-                  </div>
+          {/* Content area */}
+          <div className="flex-1 min-w-0">
+            {/* Tab description */}
+            <p className="text-sm text-[#666666] mb-4 max-w-3xl">{tab.description}</p>
+
+            {/* Secondary section selector (only when a tab has multiple sections). */}
+            {tab.sections.length > 1 && (
+              <div className="flex flex-wrap gap-1.5 mb-5">
+                {tab.sections.map((s) => (
+                  <button
+                    key={s.key}
+                    onClick={() => setSectionKey(s.key)}
+                    className={
+                      'px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ' +
+                      (s.key === sectionKey
+                        ? 'bg-[#171717] text-white border-[#171717]'
+                        : 'bg-white text-[#525252] border-[#eaeaea] hover:border-[#d4d4d4] hover:text-[#171717]')
+                    }
+                  >
+                    {s.label}
+                    {s.hint && <span className={'ml-1.5 text-[11px] ' + (s.key === sectionKey ? 'text-white/60' : 'text-[#a3a3a3]')}>{s.hint}</span>}
+                  </button>
                 ))}
               </div>
-            </nav>
-          </div>
-        </aside>
+            )}
 
-        {/* Records */}
-        <section className="flex-1 min-w-0">
-          {placeholder ? (
-            <div className="card-elevated p-10 text-center">
-              <div className="text-sm font-medium text-[#525252] mb-1">{placeholder} configuration</div>
-              <div className="text-sm text-[#a3a3a3]">This screen is coming soon.</div>
-            </div>
-          ) : (slug === 'valueStreams' || slug === 'organization') ? (
-            <ValueStreamLevels companyId={companyId} entity={slug} />
-          ) : (
-          <>
-          <div className="flex items-center gap-3 mb-3">
-            <input
-              className="input max-w-xs"
-              placeholder={entity ? `Search ${entity.label}…` : 'Search…'}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <div className="flex-1" />
-            <button className="btn-primary" disabled={!entity} onClick={() => setEditing('new')}>
-              + New {entity?.label}
-            </button>
-          </div>
-
-          {error && <div className="text-sm text-[#be123c] mb-3">{error}</div>}
-
-          <div className="card-elevated overflow-hidden">
-            <div className="table-scroll">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[#eaeaea] text-left">
-                    {columns.map((c) => (
-                      <th key={c.name} className="px-3 py-2 font-medium text-[#666666] whitespace-nowrap">{humanize(c.name)}</th>
-                    ))}
-                    <th className="px-3 py-2 w-24"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading ? (
-                    <tr><td colSpan={columns.length + 1} className="px-3 py-8 text-center text-[#a3a3a3]">Loading…</td></tr>
-                  ) : !list || list.rows.length === 0 ? (
-                    <tr><td colSpan={columns.length + 1} className="px-3 py-8 text-center text-[#a3a3a3] italic">No records.</td></tr>
-                  ) : (
-                    list.rows.map((row) => (
-                      <tr key={row.id} className="border-b border-[#f5f5f5] hover:bg-[#fafafa]">
-                        {columns.map((c) => (
-                          <td key={c.name} className="px-3 py-2 text-[#171717] align-top">{cellText(c, row[c.name])}</td>
-                        ))}
-                        <td className="px-3 py-2 text-right whitespace-nowrap">
-                          <button onClick={() => setEditing(row)} className="text-[#525252] hover:text-[#171717] text-xs font-medium">Edit</button>
-                          <button onClick={() => remove(row)} className="ml-3 text-[#be123c] hover:text-[#9f1239] text-xs font-medium">Delete</button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+            {/* The active editor. refreshKey forces a remount after AI applies edits. */}
+            <div key={`${tab.key}:${section.key}:${refreshKey}`}>
+              {entities.length === 0 ? (
+                <div className="card-elevated p-10 text-center text-sm text-[#a3a3a3]">Loading tables…</div>
+              ) : (
+                <AdminSection
+                  spec={section.editor}
+                  companyId={companyId}
+                  companyName={company?.name}
+                  bySlug={bySlug}
+                  onRequestAi={() => setAiOpen(true)}
+                  onNavigate={goTo}
+                />
+              )}
             </div>
           </div>
-          </>
-          )}
-        </section>
-      </div>
+        </div>
       )}
 
-      {entity && editing !== null && (
-        <EntityForm
-          entity={entity}
-          companyId={companyId}
-          record={editing === 'new' ? null : editing}
-          onClose={() => setEditing(null)}
-          onSaved={onSaved}
-        />
-      )}
+      <AdminAssistant
+        open={aiOpen}
+        onClose={() => setAiOpen(false)}
+        companyId={companyId}
+        companyName={company?.name}
+        onApplied={() => setRefreshKey((n) => n + 1)}
+      />
     </div>
   );
 }

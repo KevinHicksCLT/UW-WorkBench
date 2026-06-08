@@ -99,15 +99,9 @@ function ServiceNode({ data }: NodeProps) {
 
 function HeaderNode({ data }: NodeProps) {
   const d = data as { title: string; sub?: string; tone?: 'brown' | 'indigo' | 'teal' };
-  const tone =
-    d.tone === 'brown'
-      ? { text: 'text-[#8a5a1a]', box: 'border-[#e7d3b5] bg-[#fdf8f0]' }
-      : d.tone === 'teal'
-      ? { text: 'text-[#0f766e]', box: 'border-[#a7f3d0] bg-[#ecfdf5]' }
-      : { text: 'text-[#4f46e5]', box: 'border-[#c7d2fe] bg-[#f5f7ff]' };
   return (
-    <div className={`rounded-lg border-2 shadow-sm px-3 py-2 ${tone.box}`} style={{ width: 236 }}>
-      <div className={`text-[13px] font-semibold uppercase tracking-[0.10em] ${tone.text}`}>{d.title}</div>
+    <div style={{ width: 236 }}>
+      <div className="text-[19px] font-bold text-[#171717] leading-tight">{d.title}</div>
       {d.sub && <div className="text-[19px] font-bold text-[#171717] leading-tight truncate">{d.sub}</div>}
     </div>
   );
@@ -116,7 +110,7 @@ function HeaderNode({ data }: NodeProps) {
 function LayerLabelNode({ data }: NodeProps) {
   const d = data as { layer: string };
   return (
-    <div className="rounded-lg border border-[#e5e5e5] bg-white shadow-sm px-3 py-2 text-[15px] font-bold text-[#171717] text-right" style={{ width: 120 }}>
+    <div className="text-[19px] font-bold text-[#171717] text-right leading-tight" style={{ width: 120 }}>
       {d.layer}
     </div>
   );

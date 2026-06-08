@@ -222,17 +222,21 @@ router.get('/overview', async (req: Request, res: Response, next: NextFunction) 
     // the org's divisions), so the canvas can be operating-model-led while the
     // org stays one click away.
     // Value-stream map now renders from the configurable Level tree (Data Admin):
-    // L1 Domain = higherCategory bucket, L2 = Division, L3 = Value Stream.
+    // L0 Enterprise = the map ROOT label, L1 Domain = higherCategory bucket,
+    // L2 = Division, L3 = Value Stream. Editing any node in the Data Admin tree —
+    // including the L0 root — therefore reflects on the map.
     const levels = await prisma.level.findMany({
-      where: { companyId: company.id, levelNumber: { in: [1, 2, 3] } },
+      where: { companyId: company.id, levelNumber: { in: [0, 1, 2, 3] } },
       orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, levelNumber: true, parentId: true },
     });
+    const root = levels.find((l) => l.levelNumber === 0);
     const domains = levels.filter((l) => l.levelNumber === 1);
     const domainName = new Map(domains.map((d) => [d.id, d.name] as const));
     const divisions = levels.filter((l) => l.levelNumber === 2);
     const vsCount = levels.filter((l) => l.levelNumber === 3).length;
     res.json({
-      company,
+      // Root label comes from the L0 tree node when present, else the company name.
+      company: { id: company.id, name: root?.name ?? company.name },
       counts: { domains: domains.length, divisions: divisions.length, valueStreams: vsCount },
       domains: domains.map((d) => ({ id: d.id, name: d.name, valueStreams: 0 })),
       // higherCategory = the L1 domain bucket ("Core Business" | "IT" | "Corporate Function").
@@ -500,18 +504,20 @@ router.get('/tree', async (req: Request, res: Response, next: NextFunction) => {
     const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true, name: true } });
     if (!company) return res.status(404).json({ error: 'No company' });
     // List view renders from the SAME configurable Level tree as the map:
-    // L1 Domain → L2 Division → L3 Value Stream → L4 Sub-Process → L5 Step.
+    // L0 Enterprise = root label, L1 Domain → L2 Division → L3 Value Stream →
+    // L4 Sub-Process → L5 Step.
     const levels = await prisma.level.findMany({
-      where: { companyId: company.id, levelNumber: { in: [1, 2, 3, 4, 5] } },
+      where: { companyId: company.id, levelNumber: { in: [0, 1, 2, 3, 4, 5] } },
       orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, levelNumber: true, parentId: true },
     });
+    const root = levels.find((l) => l.levelNumber === 0);
     const childrenOf = new Map<string, typeof levels>();
     for (const l of levels) { if (!l.parentId) continue; if (!childrenOf.has(l.parentId)) childrenOf.set(l.parentId, []); childrenOf.get(l.parentId)!.push(l); }
     const domainName = new Map(levels.filter((l) => l.levelNumber === 1).map((d) => [d.id, d.name] as const));
     const divisions = levels.filter((l) => l.levelNumber === 2);
 
     res.json({
-      company,
+      company: { id: company.id, name: root?.name ?? company.name },
       divisions: divisions.map((d) => ({
         id: d.id, name: d.name, higherCategory: d.parentId ? domainName.get(d.parentId) ?? null : null, roles: 0,
         // VS → Sub-Process (L4) as "areas" → Step (L5) as "subProcesses" (leaf).
@@ -1716,7 +1722,7 @@ router.get('/standards/:id', async (req: Request, res: Response, next: NextFunct
     const items = await prisma.standardItem.findMany({
       where: { standardId: area.id },
       orderBy: [{ category: 'asc' }, { name: 'asc' }],
-      select: { id: true, category: true, name: true, description: true, buildRun: true, ownerRole: true, ownerRoleId: true, relatedRole: true, relatedCategory: true, itemsLink: true },
+      select: { id: true, category: true, name: true, description: true, buildRun: true, ownerRole: true, ownerRoleId: true, relatedRole: true, relatedCategory: true, itemsLink: true, agentSkill: true, sdlcGates: true, regCitation: true },
     });
 
     const roleIds = [...new Set(items.map((i) => i.ownerRoleId).filter(Boolean))] as string[];
@@ -1739,6 +1745,7 @@ router.get('/standards/:id', async (req: Request, res: Response, next: NextFunct
       return {
         id: it.id, category: it.category, name: it.name, description: it.description, buildRun: it.buildRun,
         ownerRole: it.ownerRole, relatedRole: it.relatedRole, relatedCategory: it.relatedCategory, itemsLink: it.itemsLink,
+        agentSkill: it.agentSkill, sdlcGates: it.sdlcGates, regCitation: it.regCitation,
         responsible: role ? { roleId: role.id, roleName: role.name, roleLevel: role.roleLevel, peopleCount: peopleByRole.get(role.id) ?? 0 } : null,
         valueStreams: it.ownerRoleId ? vsByRole.get(it.ownerRoleId) ?? [] : [],
       };
