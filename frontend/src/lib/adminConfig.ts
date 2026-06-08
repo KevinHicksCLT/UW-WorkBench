@@ -16,6 +16,7 @@ export type EditorSpec =
   | { kind: 'list'; slug: string; intro?: string }
   | { kind: 'group'; intro?: string; lists: { slug: string; title?: string }[] }
   | { kind: 'roleStudio' }
+  | { kind: 'skills' }
   | { kind: 'catalog' };
 
 export type Section = { key: string; label: string; hint?: string; editor: EditorSpec };
@@ -75,6 +76,7 @@ export const ADMIN_TABS: TabConfig[] = [
         key: 'standards', label: 'Standards areas',
         editor: { kind: 'masterDetail', parent: 'standard', parentTitle: 'Standards areas', intro: 'Select a standards area to edit it and manage its guidelines.', children: [{ slug: 'standardItem', fk: 'standardId', title: 'Guidelines & standards' }] },
       },
+      { key: 'skills', label: 'Agent skills', hint: 'edit SKILL.md & files', editor: { kind: 'skills' } },
     ],
   },
   {

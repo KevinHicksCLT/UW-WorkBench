@@ -6,6 +6,7 @@ import LevelTreeEditor from './LevelTreeEditor';
 import MasterDetailEditor, { type ChildSpec } from './MasterDetailEditor';
 import CompanyOnboard from './CompanyOnboard';
 import RoleStudio from './RoleStudio';
+import SkillAdmin from './SkillAdmin';
 
 // Resolves one section's EditorSpec to the right editor component, wiring entity
 // metadata in from the registry. Keeps Admin.tsx declarative — the page just maps
@@ -89,6 +90,9 @@ export default function AdminSection({
 
     case 'roleStudio':
       return <RoleStudio companyId={companyId} bySlug={bySlug} />;
+
+    case 'skills':
+      return <SkillAdmin />;
 
     case 'catalog':
       return <CatalogEditor companyId={companyId} bySlug={bySlug} />;
