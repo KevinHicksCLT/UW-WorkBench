@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useApi } from '../lib/useApi';
 import PageHeader from '../components/PageHeader';
+import SkillViewer from '../components/SkillViewer';
 
 // Standards area detail — drill target from the Standards tab. Shows the area's
 // charter (mission/scope) and every individual standard grouped by category.
@@ -36,6 +37,7 @@ export default function StandardArea() {
   const { id } = useParams();
   const { data, error, loading } = useApi<Data>(id ? `/explorer/standards/${id}` : null);
   const [q, setQ] = useState('');
+  const [viewSkill, setViewSkill] = useState<string | null>(null);
   const [open, setOpen] = useState<Set<string>>(new Set());
   const toggle = (k: string) => setOpen((p) => { const n = new Set(p); n.has(k) ? n.delete(k) : n.add(k); return n; });
 
@@ -166,7 +168,18 @@ export default function StandardArea() {
                                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.9 5.6L19.5 9l-4.6 3.3 1.8 5.7L12 14.7 7.3 18l1.8-5.7L4.5 9l5.6-.4z" /></svg>
                                   Enforced by SDLC agent skill
                                 </div>
-                                {it.agentSkill && <div className="text-sm font-medium text-[#171717]">{it.agentSkill}</div>}
+                                {it.agentSkill && (
+                                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                                    <div className="text-sm font-medium text-[#171717]">{it.agentSkill}</div>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); setViewSkill(it.agentSkill); }}
+                                      className="inline-flex items-center gap-1 text-xs font-medium text-[#0070AD] hover:text-[#005a8c]"
+                                    >
+                                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></svg>
+                                      View &amp; download
+                                    </button>
+                                  </div>
+                                )}
                                 <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-[#525252]">
                                   {it.regCitation && <span><span className="text-[#a3a3a3]">Citation:</span> {it.regCitation}</span>}
                                   {it.sdlcGates && <span><span className="text-[#a3a3a3]">SDLC gates:</span> {it.sdlcGates}</span>}
@@ -211,6 +224,8 @@ export default function StandardArea() {
           ))}
         </div>
       )}
+
+      {viewSkill && <SkillViewer skill={viewSkill} onClose={() => setViewSkill(null)} />}
     </div>
   );
 }

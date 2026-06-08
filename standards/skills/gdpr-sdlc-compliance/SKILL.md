@@ -23,7 +23,7 @@ leave a defensible trail so the capability **stands up to a regulator's audit**.
 accountability principle makes evidence mandatory, not optional: you must be able to *demonstrate*
 compliance, not merely assert it.
 
-Source obligations are summarised in `../source/gdpr-reference.md`. A one-line-per-article cheat
+Source obligations are summarised in `references/gdpr-reference.md`. A one-line-per-article cheat
 sheet is in `references/gdpr-article-quick-reference.md`.
 
 ## Operating principle (read once, apply always)

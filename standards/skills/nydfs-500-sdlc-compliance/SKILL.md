@@ -34,7 +34,7 @@ handoff**:
 > lives in the app's standards set (`../app-integration/`). This skill secures the engineering slice
 > and feeds the evidence engine.
 
-Source obligations are in `../source/nydfs-500-reference.md`; a one-line-per-section cheat sheet is in
+Source obligations are in `references/nydfs-500-reference.md`; a one-line-per-section cheat sheet is in
 `references/nydfs-500-section-quick-reference.md`.
 
 ## Operating principle (read once, apply always)

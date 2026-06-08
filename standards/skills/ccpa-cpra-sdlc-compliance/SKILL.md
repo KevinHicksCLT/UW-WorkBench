@@ -25,7 +25,7 @@ audit**. This skill turns those obligations into **SDLC gates** and, for each ga
 **evidence artifact** to produce — so the capability backs the CPPA risk-assessment documentation and
 the cybersecurity-audit certification, and survives an examiner's review.
 
-Source obligations are in `../source/ccpa-cpra-reference.md`; a quick cheat sheet is in
+Source obligations are in `references/ccpa-cpra-reference.md`; a quick cheat sheet is in
 `references/ccpa-cpra-quick-reference.md`.
 
 ## Operating principle (read once, apply always)
