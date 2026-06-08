@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import AssistantMarkdown from './AssistantMarkdown';
+import { skillLabel } from '../lib/skills';
 
 // Modal that views an SDLC compliance agent skill: its SKILL.md plus the phase
 // guides, references, and datasets that ship with it. Markdown renders inline;
@@ -77,7 +78,8 @@ export default function SkillViewer({ skill, onClose }: { skill: string; onClose
             </span>
             <div className="min-w-0">
               <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">SDLC agent skill</div>
-              <div className="text-sm font-semibold text-[#171717] truncate">{skill}</div>
+              <div className="text-sm font-semibold text-[#171717] truncate">{skillLabel(skill)}</div>
+              <div className="text-[11px] text-[#a3a3a3] truncate font-mono">{skill}</div>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
