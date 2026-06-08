@@ -36,7 +36,7 @@ export const ADMIN_TABS: TabConfig[] = [
   {
     key: 'home',
     label: 'Home',
-    description: 'The Home dashboard is a live summary of the company — it has no layout to configure. Set the dashboard title here, and jump to the data that feeds each part of it.',
+    description: 'Configure the Home dashboard — set its title and choose which areas appear, in what order. Each area is a live rollup that updates as you edit the underlying data.',
     sections: [
       { key: 'dashboard', label: 'Dashboard', editor: { kind: 'dashboard' } },
     ],

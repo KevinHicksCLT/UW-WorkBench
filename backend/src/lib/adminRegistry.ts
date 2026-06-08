@@ -160,6 +160,9 @@ function buildEntity(model: Prisma.DMMF.Model, companyModels: Set<string>): Admi
     if (f.name === 'companyId') continue;
     // Provenance / legacy columns are noise in the admin sheets — never surface.
     if (f.name === 'sourceSheet' || f.name === 'sourceRow' || f.name === 'code') continue;
+    // dashboardConfig is structured JSON edited by the Home dashboard configurator
+    // (its own route), not a generic scalar field — keep it out of the CRUD forms.
+    if (f.name === 'dashboardConfig') continue;
 
     const target = fkTarget[f.name];
     fields.push({

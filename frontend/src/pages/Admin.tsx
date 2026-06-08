@@ -9,6 +9,12 @@ import AdminAssistant from '../components/admin/AdminAssistant';
 import { ADMIN_TABS } from '../lib/adminConfig';
 import type { AdminEntity } from '../lib/adminTypes';
 
+// Two-letter abbreviations shown in the left nav when it's collapsed.
+const TAB_SHORT: Record<string, string> = {
+  company: 'CO', home: 'HM', valueStreams: 'VS', organization: 'OR', standards: 'ST',
+  telemetry: 'TE', initiatives: 'IN', work: 'DT', people: 'PE', external: 'EX', catalog: 'DC',
+};
+
 // ─── Data Admin Studio ───────────────────────────────────────────────────────
 // One console to configure every tab of the product. The top nav mirrors the
 // app's own navigation (Company onboarding, Home, Value Streams, Organization,
@@ -25,6 +31,7 @@ export default function Admin() {
   const [tabKey, setTabKey] = useState<string>(ADMIN_TABS[0].key);
   const [sectionKey, setSectionKey] = useState<string>(ADMIN_TABS[0].sections[0].key);
   const [view, setView] = useState<'studio' | 'dictionary'>('studio');
+  const [navCollapsed, setNavCollapsed] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0); // bumped after AI applies changes
 
@@ -94,63 +101,98 @@ export default function Admin() {
       {view === 'dictionary' ? (
         <DataDictionary embedded />
       ) : (
-        <>
-          {/* Primary tab bar — mirrors the product navigation. */}
-          <div className="flex flex-wrap gap-1 border-b border-[#eaeaea] mb-4">
-            {ADMIN_TABS.map((t) => (
-              <button
-                key={t.key}
-                onClick={() => selectTab(t.key)}
-                className={
-                  'px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ' +
-                  (t.key === tabKey ? 'text-[#171717] border-[#0070AD]' : 'text-[#737373] border-transparent hover:text-[#171717] hover:border-[#d4d4d4]')
-                }
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left sidebar — collapsible primary navigation (mirrors the product nav). */}
+          <aside className={'flex-shrink-0 transition-[width] duration-150 ' + (navCollapsed ? 'lg:w-14' : 'lg:w-56')}>
+            {/* Collapse toggle (desktop only) */}
+            <button
+              onClick={() => setNavCollapsed((v) => !v)}
+              aria-label={navCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              aria-expanded={!navCollapsed}
+              className={
+                'hidden lg:flex items-center gap-2 w-full rounded-md px-3 py-2 mb-1 text-[#666666] hover:text-[#171717] hover:bg-[#fafafa] transition-colors duration-150 ' +
+                (navCollapsed ? 'justify-center' : '')
+              }
+            >
+              <svg
+                width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+                className={'transition-transform duration-150 ' + (navCollapsed ? 'rotate-180' : '')}
               >
-                {t.label}
-              </button>
-            ))}
-          </div>
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+              {!navCollapsed && <span className="text-xs font-medium">Collapse</span>}
+            </button>
 
-          {/* Tab description */}
-          <p className="text-sm text-[#666666] mb-4 max-w-3xl">{tab.description}</p>
+            <nav className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible -mx-1 px-1 lg:mx-0 lg:px-0" aria-label="Data Admin sections">
+              {ADMIN_TABS.map((t) => {
+                const active = t.key === tabKey;
+                return (
+                  <button
+                    key={t.key}
+                    onClick={() => selectTab(t.key)}
+                    aria-current={active ? 'page' : undefined}
+                    title={navCollapsed ? t.label : undefined}
+                    className={
+                      'whitespace-nowrap lg:whitespace-normal rounded-md px-3 py-2 text-sm transition-colors duration-150 lg:border-l-2 ' +
+                      (navCollapsed ? 'lg:text-center lg:px-0 lg:font-semibold' : 'text-left') + ' ' +
+                      (active
+                        ? 'bg-[#f5f5f5] text-[#171717] font-semibold lg:border-[#171717]'
+                        : 'text-[#666666] font-medium hover:text-[#171717] hover:bg-[#fafafa] lg:border-transparent')
+                    }
+                  >
+                    {/* Mobile always shows the full label; desktop collapses to an abbreviation */}
+                    <span className={navCollapsed ? 'lg:hidden' : ''}>{t.label}</span>
+                    {navCollapsed && <span className="hidden lg:inline">{TAB_SHORT[t.key] ?? t.label.slice(0, 2).toUpperCase()}</span>}
+                  </button>
+                );
+              })}
+            </nav>
+          </aside>
 
-          {/* Secondary section selector (only when a tab has multiple sections). */}
-          {tab.sections.length > 1 && (
-            <div className="flex flex-wrap gap-1.5 mb-5">
-              {tab.sections.map((s) => (
-                <button
-                  key={s.key}
-                  onClick={() => setSectionKey(s.key)}
-                  className={
-                    'px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ' +
-                    (s.key === sectionKey
-                      ? 'bg-[#171717] text-white border-[#171717]'
-                      : 'bg-white text-[#525252] border-[#eaeaea] hover:border-[#d4d4d4] hover:text-[#171717]')
-                  }
-                >
-                  {s.label}
-                  {s.hint && <span className={'ml-1.5 text-[11px] ' + (s.key === sectionKey ? 'text-white/60' : 'text-[#a3a3a3]')}>{s.hint}</span>}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Content area */}
+          <div className="flex-1 min-w-0">
+            {/* Tab description */}
+            <p className="text-sm text-[#666666] mb-4 max-w-3xl">{tab.description}</p>
 
-          {/* The active editor. refreshKey forces a remount after AI applies edits. */}
-          <div key={`${tab.key}:${section.key}:${refreshKey}`}>
-            {entities.length === 0 ? (
-              <div className="card-elevated p-10 text-center text-sm text-[#a3a3a3]">Loading tables…</div>
-            ) : (
-              <AdminSection
-                spec={section.editor}
-                companyId={companyId}
-                companyName={company?.name}
-                bySlug={bySlug}
-                onRequestAi={() => setAiOpen(true)}
-                onNavigate={goTo}
-              />
+            {/* Secondary section selector (only when a tab has multiple sections). */}
+            {tab.sections.length > 1 && (
+              <div className="flex flex-wrap gap-1.5 mb-5">
+                {tab.sections.map((s) => (
+                  <button
+                    key={s.key}
+                    onClick={() => setSectionKey(s.key)}
+                    className={
+                      'px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ' +
+                      (s.key === sectionKey
+                        ? 'bg-[#171717] text-white border-[#171717]'
+                        : 'bg-white text-[#525252] border-[#eaeaea] hover:border-[#d4d4d4] hover:text-[#171717]')
+                    }
+                  >
+                    {s.label}
+                    {s.hint && <span className={'ml-1.5 text-[11px] ' + (s.key === sectionKey ? 'text-white/60' : 'text-[#a3a3a3]')}>{s.hint}</span>}
+                  </button>
+                ))}
+              </div>
             )}
+
+            {/* The active editor. refreshKey forces a remount after AI applies edits. */}
+            <div key={`${tab.key}:${section.key}:${refreshKey}`}>
+              {entities.length === 0 ? (
+                <div className="card-elevated p-10 text-center text-sm text-[#a3a3a3]">Loading tables…</div>
+              ) : (
+                <AdminSection
+                  spec={section.editor}
+                  companyId={companyId}
+                  companyName={company?.name}
+                  bySlug={bySlug}
+                  onRequestAi={() => setAiOpen(true)}
+                  onNavigate={goTo}
+                />
+              )}
+            </div>
           </div>
-        </>
+        </div>
       )}
 
       <AdminAssistant

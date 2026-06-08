@@ -176,9 +176,7 @@ const CoreNodeImpl = memo(function CoreNodeImpl({ data }: NodeProps) {
 const DivisionNodeImpl = memo(function DivisionNodeImpl({ data }: NodeProps) {
   const d = data as DivisionNodeData;
   const hex    = DOMAIN_HEX[d.category]    ?? '#94a3b8';
-  const bg     = DOMAIN_BG[d.category]     ?? '#f8fafc';
   const border = DOMAIN_BORDER[d.category] ?? '#e2e8f0';
-  const text   = DOMAIN_TEXT[d.category]   ?? '#475569';
   const fc     = focusClass(d.focusState);
   const animStyle = d.pieceIndex != null ? { animationDelay: `${d.pieceIndex * 40}ms` } : undefined;
 
@@ -205,27 +203,9 @@ const DivisionNodeImpl = memo(function DivisionNodeImpl({ data }: NodeProps) {
       }}
     >
       {/* Name */}
-      <div style={{ fontSize: 13, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.3, marginBottom: 6 }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.3 }}>
         {d.name}
       </div>
-      {/* Domain tag */}
-      <span
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          alignSelf: 'flex-start',
-          borderRadius: 5,
-          padding: '2px 8px',
-          fontSize: 10,
-          fontWeight: 600,
-          letterSpacing: '0.01em',
-          background: bg,
-          color: text,
-          border: `1px solid ${border}`,
-        }}
-      >
-        {d.category === 'Corporate Function' ? 'Corp Func' : d.category}
-      </span>
       {/* Arrow affordance */}
       <svg
         width="13"
@@ -294,18 +274,10 @@ const ValueStreamNodeImpl = memo(function ValueStreamNodeImpl({ data }: NodeProp
 
 // ── stepNode ──────────────────────────────────────────────────────────────────
 
-function domainTagClass(cat: string): string {
-  if (cat === 'Core Business') return 'tag-core';
-  if (cat === 'Corporate Function') return 'tag-corp';
-  if (cat === 'IT') return 'tag-it';
-  return 'chip-soft';
-}
-
 const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
   const d = data as StepNodeData;
   const fc = focusClass(d.focusState);
   const accent = d.primaryCategory ? (DOMAIN_HEX[d.primaryCategory] ?? '#a3a3a3') : '#a3a3a3';
-  const secondary = d.categories.filter((c) => c !== d.primaryCategory);
   const animStyle = d.pieceIndex != null ? { animationDelay: `${d.pieceIndex * 40}ms` } : undefined;
 
   return (
@@ -350,19 +322,6 @@ const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
         <span style={{ fontSize: 12.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35 }}>
           {d.name}
         </span>
-      </div>
-      {/* Domain tags */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-        {d.primaryCategory && (
-          <span className={domainTagClass(d.primaryCategory)} style={{ fontSize: 9, padding: '2px 6px' }}>
-            {d.primaryCategory === 'Corporate Function' ? 'Corp' : d.primaryCategory === 'Core Business' ? 'Core' : 'IT'}
-          </span>
-        )}
-        {secondary.map((cat) => (
-          <span key={cat} className={domainTagClass(cat)} style={{ fontSize: 9, padding: '2px 6px' }}>
-            {cat === 'Corporate Function' ? 'Corp' : cat === 'Core Business' ? 'Core' : 'IT'}
-          </span>
-        ))}
       </div>
       <AllHandles />
     </div>
