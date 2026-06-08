@@ -11,6 +11,7 @@ export type ChildRef = { slug: string; fk: string; title?: string; newLabel?: st
 
 export type EditorSpec =
   | { kind: 'company' }
+  | { kind: 'dashboard' }
   | { kind: 'tree'; entity: 'valueStreams' | 'organization'; rootLabel: string; levelNames: string[] }
   | { kind: 'masterDetail'; parent: string; parentTitle?: string; intro?: string; children: ChildRef[] }
   | { kind: 'list'; slug: string; intro?: string }
@@ -35,10 +36,9 @@ export const ADMIN_TABS: TabConfig[] = [
   {
     key: 'home',
     label: 'Home',
-    description: 'The executive dashboard is assembled from the company profile, its value-stream domains, and how divisions roll up for the CEO. Configure those framing elements here.',
+    description: 'The Home dashboard is a live summary of the company — it has no layout to configure. Set the dashboard title here, and jump to the data that feeds each part of it.',
     sections: [
-      { key: 'domains', label: 'Value-stream domains', editor: { kind: 'list', slug: 'valueStreamDomain', intro: 'Domains are the top grouping of value streams on the dashboard (e.g. Core Insurance, Technology, Finance).' } },
-      { key: 'divisions', label: 'CEO groupings', editor: { kind: 'list', slug: 'division', intro: 'The "Higher category" on each division (Core Business / IT / Corporate Function) is how the executive dashboard groups the organization.' } },
+      { key: 'dashboard', label: 'Dashboard', editor: { kind: 'dashboard' } },
     ],
   },
   {

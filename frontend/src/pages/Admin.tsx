@@ -46,6 +46,15 @@ export default function Admin() {
     setSectionKey(t.sections[0].key);
   };
 
+  // Jump to a specific tab (and optional section) — used by the Home/Dashboard
+  // editor's "edit this widget's source" shortcuts.
+  const goTo = (tabK: string, sectionK?: string) => {
+    const t = ADMIN_TABS.find((x) => x.key === tabK);
+    if (!t) return;
+    setTabKey(tabK);
+    setSectionKey(sectionK && t.sections.some((s) => s.key === sectionK) ? sectionK : t.sections[0].key);
+  };
+
   return (
     <div>
       <PageHeader
@@ -137,6 +146,7 @@ export default function Admin() {
                 companyName={company?.name}
                 bySlug={bySlug}
                 onRequestAi={() => setAiOpen(true)}
+                onNavigate={goTo}
               />
             )}
           </div>

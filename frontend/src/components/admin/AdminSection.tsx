@@ -7,6 +7,7 @@ import MasterDetailEditor, { type ChildSpec } from './MasterDetailEditor';
 import CompanyOnboard from './CompanyOnboard';
 import RoleStudio from './RoleStudio';
 import SkillAdmin from './SkillAdmin';
+import DashboardAdmin from './DashboardAdmin';
 
 // Resolves one section's EditorSpec to the right editor component, wiring entity
 // metadata in from the registry. Keeps Admin.tsx declarative — the page just maps
@@ -26,17 +27,21 @@ function Intro({ text }: { text?: string }) {
 }
 
 export default function AdminSection({
-  spec, companyId, companyName, bySlug, onRequestAi,
+  spec, companyId, companyName, bySlug, onRequestAi, onNavigate,
 }: {
   spec: EditorSpec;
   companyId: string | null;
   companyName?: string;
   bySlug: Map<string, AdminEntity>;
   onRequestAi: () => void;
+  onNavigate?: (tab: string, section?: string) => void;
 }) {
   switch (spec.kind) {
     case 'company':
       return <CompanyOnboard companyEntity={bySlug.get('company') ?? null} onRequestAi={onRequestAi} />;
+
+    case 'dashboard':
+      return <DashboardAdmin onNavigate={onNavigate} />;
 
     case 'tree':
       return (
