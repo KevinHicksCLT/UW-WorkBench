@@ -41,14 +41,26 @@ export type AdminEntity = {
 
 // Tables excluded from the editable console:
 //   • Identity / immutable-log (password hashing, append-only audit), and Tenant.
-//   • The retired Cascade SPM/portfolio domain (Program → Workstream →
-//     PortfolioInitiative). Its line items (BenefitLine, CostLine, MetricValue,
-//     Milestone, RaidItem) have no tenantId and are already excluded below.
-// This keeps the admin scoped to the operating-model tables only.
+// The Initiatives tab's SPM hierarchy (Program → Workstream → PortfolioInitiative)
+// IS surfaced — those carry tenantId + companyId and back a live tab, so they must
+// be configurable. Their time-phased line items (BenefitLine, CostLine,
+// MetricValue, Milestone, RaidItem) have no tenantId and stay excluded (they're
+// edited through the specialized in-app financial/RAID grids).
 const DENY = new Set([
   'User', 'AuditEntry', 'Tenant',
-  'Program', 'Workstream', 'PortfolioInitiative',
 ]);
+
+// Label-field overrides for tables whose identifying column isn't name/title/text.
+// Without these the list would fall back to showing the raw id.
+const LABEL_OVERRIDES: Record<string, string> = {
+  standard: 'department',
+  personAppUsage: 'appName',
+  roleValueStream: 'participationType',
+  applicationValueStream: 'systemRole',
+  initiativeValueStream: 'impactType',
+  initiativeDivision: 'role',
+  assignment: 'employmentType',
+};
 
 // The raw value-stream tables back FK pickers elsewhere, so they stay resolvable
 // but are hidden from the sidebar — the unified "Value Streams" entity (below)
@@ -67,6 +79,7 @@ const GROUPS: { group: string; slugs: string[] }[] = [
   { group: 'People', slugs: ['person', 'assignment', 'personTask', 'personMetric', 'personAppUsage', 'personSignal'] },
   { group: 'Change & Risk', slugs: ['initiative', 'initiativeValueStream', 'initiativeDivision', 'risk', 'scenario'] },
   { group: 'Deliverables & Tasks', slugs: ['deliverable', 'task'] },
+  { group: 'Initiative Tracker (SPM)', slugs: ['program', 'workstream', 'portfolioInitiative'] },
   { group: 'Application Rationalization', slugs: ['rationalizationWorkspace', 'rationalizationApp', 'rationalizationComponent', 'rationalizationCapability', 'rationalizationMicroservice', 'rationalizationPlanStep'] },
   { group: 'External', slugs: ['externalInteraction'] },
 ];
@@ -159,7 +172,7 @@ function buildEntity(model: Prisma.DMMF.Model, companyModels: Set<string>): Admi
     slug: camel(model.name),
     model: camel(model.name),
     label: humanize(model.name),
-    labelField: pickLabelField(model),
+    labelField: LABEL_OVERRIDES[camel(model.name)] ?? pickLabelField(model),
     companyVia,
     fields,
   };
@@ -201,12 +214,6 @@ for (const e of LEVEL_ENTITIES) ENTITIES[e.slug] = e;
 for (const e of Object.values(ENTITIES)) {
   e.group = SLUG_POS.get(e.slug)?.group ?? OTHER_GROUP;
 }
-
-// The top operating-model tiers are presented as Process 0 / 1 / 2 tabs:
-// Company (Process 0) → Domain (Process 1) → Division (Process 2).
-if (ENTITIES['company']) ENTITIES['company'].label = 'Process 0';
-if (ENTITIES['valueStreamDomain']) ENTITIES['valueStreamDomain'].label = 'Process 1';
-if (ENTITIES['division']) ENTITIES['division'].label = 'Process 2';
 
 // Ordered list for the sidebar / _meta response: by group order, then by the
 // order declared within the group. Hidden entities stay in ENTITIES for FK

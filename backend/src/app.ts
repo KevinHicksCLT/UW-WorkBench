@@ -18,6 +18,8 @@ import externalInteractionRoutes from './routes/externalInteractions.js';
 import explorerRoutes from './routes/explorer.js';
 import searchRoutes from './routes/search.js';
 import adminRoutes from './routes/admin.js';
+import adminAiRoutes from './routes/adminAi.js';
+import adminRoleRoutes from './routes/adminRole.js';
 import dashboardRoutes from './routes/dashboard.js';
 import rationalizationRoutes from './routes/rationalization.js';
 import portfolioRoutes from './routes/portfolio.js';
@@ -58,6 +60,10 @@ app.use('/levels', levelRoutes);
 app.use('/external-interactions', externalInteractionRoutes);
 app.use('/explorer', explorerRoutes);
 app.use('/search', searchRoutes);
+// Mount the AI overlay + role-context before the generic admin router so their
+// paths aren't captured by the /:entity catch-all in adminRoutes.
+app.use('/admin/ai', adminAiRoutes);
+app.use('/admin/role-context', adminRoleRoutes);
 app.use('/admin', adminRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/rationalization', rationalizationRoutes);
