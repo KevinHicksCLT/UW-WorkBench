@@ -13,6 +13,9 @@ export type AdminField = {
   name: string;
   kind: FieldKind;
   required: boolean; // must be supplied on create (no default, not nullable)
+  nullable?: boolean; // the DB column accepts NULL. When false, an empty value is
+                      // OMITTED on write (so a non-null column's default applies)
+                      // rather than sent as null — which Prisma would reject.
   multiline: boolean; // render as a textarea (long-form text)
   readonly?: boolean; // derived value — shown in the list, not editable in the form
   createOnly?: boolean; // editable only when creating (e.g. structural parent link)
@@ -163,6 +166,10 @@ function buildEntity(model: Prisma.DMMF.Model, companyModels: Set<string>): Admi
       name: f.name,
       kind: target ? 'string' : scalarKind(f.type),
       required: Boolean(f.isRequired && !f.hasDefaultValue),
+      // DMMF isRequired === true means the column is NOT NULL. Such a field is
+      // "optional to supply" only because it has a default — so when left empty we
+      // must omit it (let the default apply), never send null.
+      nullable: !f.isRequired,
       multiline: !target && f.type === 'String' && MULTILINE.has(f.name),
       ...(target ? { relation: { entity: camel(target), labelField: '' } } : {}),
     });
@@ -252,7 +259,10 @@ export function coerceValue(field: AdminField, raw: unknown): unknown {
   if (raw === undefined) return undefined;
   if (raw === null || raw === '') {
     if (field.required) throw new Error(`${field.name} is required`);
-    return null;
+    // Non-nullable columns (with a default) must be omitted when empty so the
+    // default applies — sending null would violate NOT NULL. Nullable columns
+    // accept null.
+    return field.nullable === false ? undefined : null;
   }
   switch (field.kind) {
     case 'boolean':
