@@ -20,6 +20,9 @@ type Item = {
   relatedRole: string | null;
   relatedCategory: string | null;
   itemsLink: string | null;
+  agentSkill: string | null;
+  sdlcGates: string | null;
+  regCitation: string | null;
   responsible: Responsible | null;
   valueStreams: ValueStream[];
 };
@@ -45,7 +48,9 @@ export default function StandardArea() {
           i.name.toLowerCase().includes(needle) ||
           i.description.toLowerCase().includes(needle) ||
           i.category.toLowerCase().includes(needle) ||
-          (i.ownerRole ?? '').toLowerCase().includes(needle))
+          (i.ownerRole ?? '').toLowerCase().includes(needle) ||
+          (i.agentSkill ?? '').toLowerCase().includes(needle) ||
+          (i.regCitation ?? '').toLowerCase().includes(needle))
       : data.items;
     const byCat = new Map<string, Item[]>();
     for (const it of items) { if (!byCat.has(it.category)) byCat.set(it.category, []); byCat.get(it.category)!.push(it); }
@@ -119,9 +124,18 @@ export default function StandardArea() {
                       <div className="flex items-start gap-2 px-4 py-2.5 hover:bg-[#fafafa] transition-colors duration-150 cursor-pointer" onClick={() => toggle(it.id)}>
                         <Chevron open={isOpen} />
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm text-[#171717]">{it.name}</div>
+                          <div className="text-sm text-[#171717] flex items-center gap-1.5">
+                            {it.name}
+                            {it.regCitation && <span className="text-[10px] text-[#a3a3a3] font-normal tnum flex-shrink-0">{it.regCitation.split(';')[0]}</span>}
+                          </div>
                           {!isOpen && <div className="text-xs text-[#a3a3a3] truncate">{it.description}</div>}
                         </div>
+                        {it.agentSkill && (
+                          <span className="hidden sm:inline-flex items-center gap-1 flex-shrink-0 text-[11px] font-medium text-[#0070AD] bg-[#eef6fb] px-1.5 py-0.5 rounded" title={`Enforced by the ${it.agentSkill} agent skill`}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.9 5.6L19.5 9l-4.6 3.3 1.8 5.7L12 14.7 7.3 18l1.8-5.7L4.5 9l5.6-.4z" /></svg>
+                            skill
+                          </span>
+                        )}
                         {it.buildRun && <span className="chip-soft flex-shrink-0">{it.buildRun}</span>}
                         <div className="hidden sm:block w-44 flex-shrink-0 text-right text-xs text-[#525252] truncate">
                           {it.responsible ? it.responsible.roleName : it.ownerRole ?? '—'}
@@ -143,6 +157,19 @@ export default function StandardArea() {
                                       {vs.name}
                                     </Link>
                                   ))}
+                                </div>
+                              </div>
+                            )}
+                            {(it.agentSkill || it.regCitation || it.sdlcGates) && (
+                              <div className="mt-3 rounded-lg border border-[#dbeafe] bg-[#f5faff] px-3 py-2">
+                                <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#0070AD] mb-1 flex items-center gap-1">
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.9 5.6L19.5 9l-4.6 3.3 1.8 5.7L12 14.7 7.3 18l1.8-5.7L4.5 9l5.6-.4z" /></svg>
+                                  Enforced by SDLC agent skill
+                                </div>
+                                {it.agentSkill && <div className="text-sm font-medium text-[#171717]">{it.agentSkill}</div>}
+                                <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-[#525252]">
+                                  {it.regCitation && <span><span className="text-[#a3a3a3]">Citation:</span> {it.regCitation}</span>}
+                                  {it.sdlcGates && <span><span className="text-[#a3a3a3]">SDLC gates:</span> {it.sdlcGates}</span>}
                                 </div>
                               </div>
                             )}

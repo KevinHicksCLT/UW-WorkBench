@@ -1722,7 +1722,7 @@ router.get('/standards/:id', async (req: Request, res: Response, next: NextFunct
     const items = await prisma.standardItem.findMany({
       where: { standardId: area.id },
       orderBy: [{ category: 'asc' }, { name: 'asc' }],
-      select: { id: true, category: true, name: true, description: true, buildRun: true, ownerRole: true, ownerRoleId: true, relatedRole: true, relatedCategory: true, itemsLink: true },
+      select: { id: true, category: true, name: true, description: true, buildRun: true, ownerRole: true, ownerRoleId: true, relatedRole: true, relatedCategory: true, itemsLink: true, agentSkill: true, sdlcGates: true, regCitation: true },
     });
 
     const roleIds = [...new Set(items.map((i) => i.ownerRoleId).filter(Boolean))] as string[];
@@ -1745,6 +1745,7 @@ router.get('/standards/:id', async (req: Request, res: Response, next: NextFunct
       return {
         id: it.id, category: it.category, name: it.name, description: it.description, buildRun: it.buildRun,
         ownerRole: it.ownerRole, relatedRole: it.relatedRole, relatedCategory: it.relatedCategory, itemsLink: it.itemsLink,
+        agentSkill: it.agentSkill, sdlcGates: it.sdlcGates, regCitation: it.regCitation,
         responsible: role ? { roleId: role.id, roleName: role.name, roleLevel: role.roleLevel, peopleCount: peopleByRole.get(role.id) ?? 0 } : null,
         valueStreams: it.ownerRoleId ? vsByRole.get(it.ownerRoleId) ?? [] : [],
       };
