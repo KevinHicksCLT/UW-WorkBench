@@ -18,11 +18,14 @@ import externalInteractionRoutes from './routes/externalInteractions.js';
 import explorerRoutes from './routes/explorer.js';
 import searchRoutes from './routes/search.js';
 import adminRoutes from './routes/admin.js';
+import adminAiRoutes from './routes/adminAi.js';
+import adminRoleRoutes from './routes/adminRole.js';
 import dashboardRoutes from './routes/dashboard.js';
 import rationalizationRoutes from './routes/rationalization.js';
 import portfolioRoutes from './routes/portfolio.js';
 import workRoutes from './routes/work.js';
 import chatRoutes from './routes/chat.js';
+import standardsSkillsRoutes from './routes/standardsSkills.js';
 
 const app = express();
 app.use(cors());
@@ -58,12 +61,17 @@ app.use('/levels', levelRoutes);
 app.use('/external-interactions', externalInteractionRoutes);
 app.use('/explorer', explorerRoutes);
 app.use('/search', searchRoutes);
+// Mount the AI overlay + role-context before the generic admin router so their
+// paths aren't captured by the /:entity catch-all in adminRoutes.
+app.use('/admin/ai', adminAiRoutes);
+app.use('/admin/role-context', adminRoleRoutes);
 app.use('/admin', adminRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/rationalization', rationalizationRoutes);
 app.use('/portfolio', portfolioRoutes);
 app.use('/work', workRoutes);
 app.use('/chat', chatRoutes);
+app.use('/standards-skills', standardsSkillsRoutes);
 
 const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   console.error(err);

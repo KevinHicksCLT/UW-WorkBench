@@ -10,6 +10,8 @@ type Props = {
   entity: AdminEntity;
   companyId: string | null; // active company — scopes writes + FK option lists
   record: Record<string, any> | null; // null = create
+  fixed?: Record<string, any>; // values injected + hidden (e.g. a parent FK in master-detail)
+  defaults?: Record<string, any>; // prefilled-but-editable values on create (e.g. role name in keyRoles)
   onClose: () => void;
   onSaved: () => void;
 };
@@ -35,14 +37,20 @@ function initialValue(field: AdminField, record: Record<string, any> | null) {
   return String(v);
 }
 
-export default function EntityForm({ entity, companyId, record, onClose, onSaved }: Props) {
-  // Fields actually shown in the form: skip derived (readonly) fields, and
-  // skip create-only fields (e.g. a structural parent link) when editing.
-  const formFields = entity.fields.filter((f) => !f.readonly && !(f.createOnly && record));
+export default function EntityForm({ entity, companyId, record, fixed, defaults, onClose, onSaved }: Props) {
+  // Fields actually shown in the form: skip derived (readonly) fields, skip
+  // create-only fields when editing, and hide any field supplied via `fixed`
+  // (e.g. the parent FK in a master-detail child form — preset, not chosen).
+  const fixedKeys = fixed ? new Set(Object.keys(fixed)) : new Set<string>();
+  const formFields = entity.fields.filter(
+    (f) => !f.readonly && !(f.createOnly && record) && !fixedKeys.has(f.name),
+  );
 
   const [values, setValues] = useState<Record<string, any>>(() => {
     const init: Record<string, any> = {};
     for (const f of formFields) init[f.name] = initialValue(f, record);
+    // On create, apply editable defaults for any field the caller prefilled.
+    if (!record && defaults) for (const k of Object.keys(defaults)) if (k in init) init[k] = defaults[k];
     return init;
   });
   const [fkOptions, setFkOptions] = useState<Record<string, Option[]>>({});
@@ -75,8 +83,9 @@ export default function EntityForm({ entity, companyId, record, onClose, onSaved
     setSaving(true);
     setError('');
     try {
-      if (record) await api.patch(withCompany(`/admin/${entity.slug}/${record.id}`, companyId), values);
-      else await api.post(withCompany(`/admin/${entity.slug}`, companyId), values);
+      const payload = { ...values, ...(fixed ?? {}) };
+      if (record) await api.patch(withCompany(`/admin/${entity.slug}/${record.id}`, companyId), payload);
+      else await api.post(withCompany(`/admin/${entity.slug}`, companyId), payload);
       onSaved();
     } catch (err) {
       setError((err as Error).message);
@@ -85,7 +94,7 @@ export default function EntityForm({ entity, companyId, record, onClose, onSaved
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex justify-end">
+    <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/20" onClick={onClose} aria-hidden="true" />
       <div className="relative w-full max-w-md h-full bg-white border-l border-[#eaeaea] shadow-xl flex flex-col">
         <div className="flex items-center justify-between px-5 h-14 border-b border-[#eaeaea] flex-shrink-0">

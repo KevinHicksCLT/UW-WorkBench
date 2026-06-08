@@ -52,6 +52,10 @@ model Company {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Home-dashboard layout chosen in Data Admin → Home. Shape: { widgets: string[] }
+  // (ordered widget ids from the frontend catalog). Null = the default layout.
+  dashboardConfig Json?
+
   divisions            Division[]
   departments          Department[]
   roles                Role[]
@@ -632,6 +636,11 @@ model StandardItem {
   relatedRole     String? // "Related Items (Role)" cross-reference
   relatedCategory String? // "Related Items (Category)" cross-reference
   itemsLink       String? // pointer back into the workbook Items sheet
+  // Regulatory-compliance traceability (e.g. the GDPR/CCPA/NYDFS packs):
+  agentSkill           String? // the SDLC agent skill that enforces this standard (e.g. "gdpr-sdlc-compliance")
+  sdlcGates            String? // SDLC phases the standard applies at, e.g. "Requirements; Design"
+  regCitation          String? // regulatory article/section reference, e.g. "Art. 6; Art. 5(1)(a)"
+  appliesToValueStreams String? // value streams the standard applies to (raw, "; "-joined)
   sourceRow       Int?
   createdAt       DateTime @default(now())
 

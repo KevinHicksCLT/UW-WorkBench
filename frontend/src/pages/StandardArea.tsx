@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useApi } from '../lib/useApi';
 import PageHeader from '../components/PageHeader';
+import SkillViewer from '../components/SkillViewer';
+import { skillLabel } from '../lib/skills';
 
 // Standards area detail — drill target from the Standards tab. Shows the area's
 // charter (mission/scope) and every individual standard grouped by category.
@@ -20,6 +22,9 @@ type Item = {
   relatedRole: string | null;
   relatedCategory: string | null;
   itemsLink: string | null;
+  agentSkill: string | null;
+  sdlcGates: string | null;
+  regCitation: string | null;
   responsible: Responsible | null;
   valueStreams: ValueStream[];
 };
@@ -33,6 +38,7 @@ export default function StandardArea() {
   const { id } = useParams();
   const { data, error, loading } = useApi<Data>(id ? `/explorer/standards/${id}` : null);
   const [q, setQ] = useState('');
+  const [viewSkill, setViewSkill] = useState<string | null>(null);
   const [open, setOpen] = useState<Set<string>>(new Set());
   const toggle = (k: string) => setOpen((p) => { const n = new Set(p); n.has(k) ? n.delete(k) : n.add(k); return n; });
 
@@ -45,11 +51,15 @@ export default function StandardArea() {
           i.name.toLowerCase().includes(needle) ||
           i.description.toLowerCase().includes(needle) ||
           i.category.toLowerCase().includes(needle) ||
-          (i.ownerRole ?? '').toLowerCase().includes(needle))
+          (i.ownerRole ?? '').toLowerCase().includes(needle) ||
+          (i.agentSkill ?? '').toLowerCase().includes(needle) ||
+          (i.regCitation ?? '').toLowerCase().includes(needle))
       : data.items;
     const byCat = new Map<string, Item[]>();
     for (const it of items) { if (!byCat.has(it.category)) byCat.set(it.category, []); byCat.get(it.category)!.push(it); }
-    return [...byCat.entries()].map(([category, rows]) => ({ category, rows }));
+    // All standards in a regulatory category share one enforcing skill, so
+    // surface it once at the category level (not repeated per standard).
+    return [...byCat.entries()].map(([category, rows]) => ({ category, rows, skill: rows.find((r) => r.agentSkill)?.agentSkill ?? null }));
   }, [data, q]);
 
   if (loading) return <div className="text-slate-500">Loading standards…</div>;
@@ -107,10 +117,24 @@ export default function StandardArea() {
         <div className="space-y-5">
           {groups.map((g) => (
             <div key={g.category}>
-              <h3 className="text-sm font-semibold text-[#171717] mb-2 flex items-center gap-2">
-                {g.category}
-                <span className="text-xs font-normal text-[#a3a3a3] tnum">{g.rows.length}</span>
-              </h3>
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <h3 className="text-sm font-semibold text-[#171717] flex items-center gap-2">
+                  {g.category}
+                  <span className="text-xs font-normal text-[#a3a3a3] tnum">{g.rows.length}</span>
+                </h3>
+                {g.skill && (
+                  <button
+                    onClick={() => setViewSkill(g.skill)}
+                    className="inline-flex items-center gap-1.5 flex-shrink-0 text-xs font-medium text-[#0070AD] bg-[#eef6fb] hover:bg-[#e0f0fb] px-2.5 py-1 rounded-md transition-colors"
+                    title={`Enforced by the ${g.skill} agent skill — view & download`}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.9 5.6L19.5 9l-4.6 3.3 1.8 5.7L12 14.7 7.3 18l1.8-5.7L4.5 9l5.6-.4z" /></svg>
+                    <span className="text-[#0070AD]/60">Agent skill:</span>
+                    {skillLabel(g.skill)}
+                    <span className="text-[#0070AD]/50">· view &amp; download</span>
+                  </button>
+                )}
+              </div>
               <div className="card overflow-hidden p-0">
                 {g.rows.map((it) => {
                   const isOpen = open.has(it.id);
@@ -184,6 +208,8 @@ export default function StandardArea() {
           ))}
         </div>
       )}
+
+      {viewSkill && <SkillViewer skill={viewSkill} onClose={() => setViewSkill(null)} />}
     </div>
   );
 }

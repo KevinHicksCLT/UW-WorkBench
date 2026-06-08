@@ -90,6 +90,47 @@ router.get('/_meta', (_req: Request, res: Response) => {
   res.json({ entities: ENTITY_LIST });
 });
 
+// PATCH /admin/company/:id/dashboard — save the Home-dashboard layout (the
+// ordered list of widget ids chosen in Data Admin → Home). dashboardConfig is
+// structured JSON, so it bypasses the generic scalar CRUD and is handled here.
+// Registered before the generic routes; tenant-scoped, audited.
+router.patch('/company/:id/dashboard', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const company = await prisma.company.findFirst({
+      where: { id: req.params.id, tenantId: req.tenantId },
+      select: { id: true, dashboardConfig: true },
+    });
+    if (!company) return res.status(404).json({ error: 'Not found' });
+
+    const raw = (req.body ?? {}).widgets;
+    if (!Array.isArray(raw) || !raw.every((w) => typeof w === 'string' && w.trim())) {
+      return res.status(400).json({ error: 'widgets must be an array of widget id strings' });
+    }
+    // Order-preserving de-dupe; cap to a sane number of widgets.
+    const widgets = [...new Set(raw.map((w) => w.trim()))].slice(0, 40);
+    const config = { widgets };
+
+    const updated = await prisma.company.update({
+      where: { id: company.id },
+      data: { dashboardConfig: config },
+      select: { id: true, dashboardConfig: true },
+    });
+
+    logAudit({
+      tenantId: req.tenantId,
+      actorEmail: req.user.email,
+      entityType: 'company',
+      entityId: company.id,
+      action: 'UPDATE',
+      diff: { dashboardConfig: { from: company.dashboardConfig ?? null, to: config } },
+    });
+
+    res.json(updated);
+  } catch (e) {
+    next(e);
+  }
+});
+
 // GET /admin/:entity — paginated, tenant-scoped list with optional search on
 // the entity's label field.
 router.get('/:entity', async (req: Request, res: Response, next: NextFunction) => {
