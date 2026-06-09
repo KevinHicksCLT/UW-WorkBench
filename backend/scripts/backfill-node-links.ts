@@ -4,7 +4,7 @@
 // this company's NodeLinks + external_party nodes. Run AFTER backfill-nodes.ts.
 // See docs/operating-model-architecture.md.
 import { prisma } from '../src/db/prisma.js';
-import { canonicalVs } from './vs-mapping.js';
+import { canonicalVs } from '../src/lib/vsMapping.js';
 
 // Split a free-text role field into candidate role names.
 function parseRoles(s: string | null | undefined): string[] {

@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { buildRoleResolver } from '../lib/roleMatch.js';
+import { canonicalVs } from '../lib/vsMapping.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -1590,39 +1591,47 @@ async function nodeTask(tenantId: string, id: string) {
 //    in motion (L1 Domain → L2 Value Stream → L3 Process Area → L4 Sub-Process).
 //    Powers the "Roles" interactive table (not a drill map). People are loaded
 //    lazily per role via /role/:id/people; here we only carry the headcount.
-const SEGMENT_ORDER = ['Core Business', 'IT', 'Corporate Function'];
-// Divisions ordered by where they sit in the end-to-end process (value chain),
-// not alphabetically. Within each segment the boxes follow this sequence.
-const DIVISION_ORDER = [
-  'Sales, Distribution & Marketing', 'Underwriting', 'Actuarial', 'Claims', 'Reinsurance', 'Operations & Customer Service',
-  'Product, Delivery & PMO', 'Technology & Engineering', 'Data & AI', 'Cybersecurity & IAM',
-  'Human Resources & Talent', 'Finance & Investments', 'Legal & Corporate Governance', 'Risk, Compliance & Audit',
-];
-const divRank = (name: string) => { const i = DIVISION_ORDER.indexOf(name); return i === -1 ? 999 : i; };
 router.get('/org-table', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true, name: true } });
     if (!company) return res.status(404).json({ error: 'No company' });
     const c = company.id;
-    const [divisions, departments, roles, links, headByRole, valueStreams] = await Promise.all([
-      prisma.division.findMany({ where: { companyId: c }, orderBy: { name: 'asc' }, select: { id: true, name: true, higherCategory: true } }),
-      prisma.department.findMany({ where: { companyId: c }, orderBy: { name: 'asc' }, select: { id: true, name: true, divisionId: true } }),
-      prisma.role.findMany({ where: { companyId: c }, orderBy: { name: 'asc' }, select: { id: true, name: true, roleLevel: true, roleFamily: true, divisionId: true, departmentId: true } }),
-      prisma.roleValueStream.findMany({ where: { valueStream: { companyId: c } }, select: { roleId: true, valueStreamId: true, participationType: true, subStream: true, valueStream: { select: { name: true, domain: true, domainRef: { select: { name: true } } } } } }),
+    // Structure + names + ordering come from the unified Node tree (renames and
+    // reorders in the builder propagate here). Detail rows keep their LEGACY ids
+    // (node.code) so the role/division/department detail routes still resolve.
+    // Participation detail stays on the typed RoleValueStream junction (hybrid),
+    // re-mapped onto the canonical value streams.
+    const [nodes, links, headByRole] = await Promise.all([
+      prisma.node.findMany({
+        where: { companyId: c, typeKey: { in: ['segment', 'division', 'department', 'role', 'value_stream'] } },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+        select: { id: true, name: true, typeKey: true, parentId: true, code: true, attributes: true },
+      }),
+      prisma.roleValueStream.findMany({ where: { valueStream: { companyId: c } }, select: { roleId: true, participationType: true, subStream: true, valueStream: { select: { name: true } } } }),
       prisma.assignment.groupBy({ by: ['roleId'], where: { role: { companyId: c } }, _count: { _all: true } }),
-      prisma.valueStream.findMany({ where: { companyId: c }, orderBy: [{ domain: 'asc' }, { name: 'asc' }], select: { id: true, name: true, domain: true } }),
     ]);
+    const byId = new Map(nodes.map((n) => [n.id, n]));
+    const ofType = (t: string) => nodes.filter((n) => n.typeKey === t);
+    const segNodes = ofType('segment');
+    const divNodes = ofType('division');
+    const deptNodes = ofType('department');
+    const roleNodes = ofType('role');
+    const vsNodes = ofType('value_stream');
+    const vsByName = new Map(vsNodes.map((v) => [v.name, v]));
 
-    const peopleByRole = new Map(headByRole.map((h) => [h.roleId, h._count._all]));
-    // role.id -> participations (subStream parsed into L3 / L4)
+    const peopleByRole = new Map(headByRole.map((h) => [h.roleId, h._count._all])); // keyed by legacy Role.id (= role node code)
+
+    // legacy role id -> participations, resolved onto the canonical streams.
     const partByRole = new Map<string, any[]>();
     for (const l of links) {
+      const cname = canonicalVs(l.valueStream.name);
+      const vn = vsByName.get(cname);
       const [l3, l4] = (l.subStream ?? '').split(' — ');
       if (!partByRole.has(l.roleId)) partByRole.set(l.roleId, []);
       partByRole.get(l.roleId)!.push({
-        valueStreamId: l.valueStreamId,
-        valueStreamName: l.valueStream.name,
-        domain: l.valueStream.domainRef?.name ?? l.valueStream.domain ?? null,
+        valueStreamId: vn?.id ?? null,
+        valueStreamName: cname,
+        domain: vn?.parentId ? byId.get(vn.parentId)?.name ?? null : null,
         participationType: l.participationType,
         l3: l3 || null,
         l4: l4 || null,
@@ -1630,47 +1639,60 @@ router.get('/org-table', async (req: Request, res: Response, next: NextFunction)
     }
     const sortPart = (a: any, b: any) => (PART_ORDER[a.participationType] ?? 9) - (PART_ORDER[b.participationType] ?? 9) || a.valueStreamName.localeCompare(b.valueStreamName);
 
-    // L4 Roles nested under L3 Departments, then L2 Divisions, then L1 Segments.
-    const rolesByDept = new Map<string, any[]>();
-    for (const r of roles) {
-      const part = (partByRole.get(r.id) ?? []).sort(sortPart);
-      const node = {
-        id: r.id, name: r.name, roleLevel: r.roleLevel, roleFamily: r.roleFamily,
-        peopleCount: peopleByRole.get(r.id) ?? 0,
+    // Roles nested under departments, then divisions, then segments — plus an
+    // explicit Unassigned bucket so no role is silently dropped (audit D1).
+    const rolesByParent = new Map<string, any[]>();
+    const unassignedRoles: any[] = [];
+    for (const r of roleNodes) {
+      const legacyId = r.code ?? r.id;
+      const a = (r.attributes as any) ?? {};
+      const part = (partByRole.get(legacyId) ?? []).sort(sortPart);
+      const entry = {
+        id: legacyId, name: r.name, roleLevel: a.roleLevel ?? null, roleFamily: a.roleFamily ?? null,
+        peopleCount: peopleByRole.get(legacyId) ?? 0,
         valueStreamCount: new Set(part.map((p) => p.valueStreamId)).size,
         participations: part,
       };
-      const key = r.departmentId ?? `__div:${r.divisionId}`; // roles without a dept hang directly off the division
-      if (!rolesByDept.has(key)) rolesByDept.set(key, []);
-      rolesByDept.get(key)!.push(node);
+      if (!r.parentId) { unassignedRoles.push(entry); continue; }
+      if (!rolesByParent.has(r.parentId)) rolesByParent.set(r.parentId, []);
+      rolesByParent.get(r.parentId)!.push(entry);
     }
 
-    const deptsByDiv = new Map<string, any[]>();
-    for (const d of departments) {
-      const r = rolesByDept.get(d.id) ?? [];
-      if (!deptsByDiv.has(d.divisionId)) deptsByDiv.set(d.divisionId, []);
-      deptsByDiv.get(d.divisionId)!.push({ id: d.id, name: d.name, roles: r, roleCount: r.length, peopleCount: r.reduce((a, x) => a + x.peopleCount, 0) });
-    }
-
-    const divisionNodes = divisions.map((dv) => {
-      const depts = deptsByDiv.get(dv.id) ?? [];
-      const looseRoles = rolesByDept.get(`__div:${dv.id}`) ?? []; // unparented roles, if any
+    const divisionRows = divNodes.map((dv) => {
+      const depts = deptNodes.filter((d) => d.parentId === dv.id).map((d) => {
+        const r = rolesByParent.get(d.id) ?? [];
+        return { id: d.code ?? d.id, name: d.name, roles: r, roleCount: r.length, peopleCount: r.reduce((a, x) => a + x.peopleCount, 0) };
+      });
+      const looseRoles = rolesByParent.get(dv.id) ?? []; // roles hanging directly off the division
       const roleCount = depts.reduce((a, x) => a + x.roleCount, looseRoles.length);
       const peopleCount = depts.reduce((a, x) => a + x.peopleCount, looseRoles.reduce((a2, x2) => a2 + x2.peopleCount, 0));
-      return { id: dv.id, name: dv.name, segment: dv.higherCategory ?? 'Core Business', departments: depts, looseRoles, roleCount, peopleCount };
+      const segment = dv.parentId ? byId.get(dv.parentId)?.name ?? 'Core Business' : 'Core Business';
+      return { id: dv.code ?? dv.id, name: dv.name, segment, departments: depts, looseRoles, roleCount, peopleCount, _segId: dv.parentId };
     });
 
-    const segments = SEGMENT_ORDER
-      .map((name) => {
-        const divs = divisionNodes.filter((d) => d.segment === name).sort((a, b) => divRank(a.name) - divRank(b.name));
-        return { name, divisions: divs, divisionCount: divs.length, roleCount: divs.reduce((a, x) => a + x.roleCount, 0), peopleCount: divs.reduce((a, x) => a + x.peopleCount, 0) };
+    const segments: any[] = segNodes
+      .map((s) => {
+        const divs = divisionRows.filter((d) => d._segId === s.id).map(({ _segId, ...d }) => d);
+        return { name: s.name, divisions: divs, divisionCount: divs.length, roleCount: divs.reduce((a, x) => a + x.roleCount, 0), peopleCount: divs.reduce((a, x) => a + x.peopleCount, 0) };
       })
       .filter((s) => s.divisions.length > 0);
+    if (unassignedRoles.length) {
+      const peopleCount = unassignedRoles.reduce((a, x) => a + x.peopleCount, 0);
+      segments.push({
+        name: 'Unassigned',
+        divisions: [{ id: '__unassigned', name: 'Unassigned roles', segment: 'Unassigned', departments: [], looseRoles: unassignedRoles, roleCount: unassignedRoles.length, peopleCount }],
+        divisionCount: 0, roleCount: unassignedRoles.length, peopleCount,
+      });
+    }
 
     res.json({
       company,
-      totals: { segments: segments.length, divisions: divisions.length, departments: departments.length, roles: roles.length, valueStreams: valueStreams.length, people: [...peopleByRole.values()].reduce((a, x) => a + x, 0) },
-      valueStreams,
+      totals: {
+        segments: segNodes.length, divisions: divNodes.length, departments: deptNodes.length,
+        roles: roleNodes.length, valueStreams: vsNodes.length,
+        people: [...peopleByRole.values()].reduce((a, x) => a + x, 0),
+      },
+      valueStreams: vsNodes.map((v) => ({ id: v.id, name: v.name, domain: v.parentId ? byId.get(v.parentId)?.name ?? null : null })),
       segments,
     });
   } catch (e) { next(e); }

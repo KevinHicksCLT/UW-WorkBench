@@ -5,9 +5,19 @@
 // The WORK branch (value_stream → sub_process → step → io_item) is added next.
 // See docs/operating-model-architecture.md.
 import { prisma } from '../src/db/prisma.js';
-import { canonicalVs, NEW_STREAMS } from './vs-mapping.js';
+import { canonicalVs, NEW_STREAMS } from '../src/lib/vsMapping.js';
 
 const prov = (illustrative: boolean | null | undefined) => (illustrative === false ? 'real' : 'illustrative');
+
+// Display order lives in the DATA (Node.sortOrder), not in route constants:
+// segments in the canonical order, divisions by their place in the value chain.
+const SEG_ORDER = ['Core Business', 'IT', 'Corporate Function'];
+const DIV_ORDER = [
+  'Sales, Distribution & Marketing', 'Underwriting', 'Actuarial', 'Claims', 'Reinsurance', 'Operations & Customer Service',
+  'Product, Delivery & PMO', 'Technology & Engineering', 'Data & AI', 'Cybersecurity & IAM',
+  'Human Resources & Talent', 'Finance & Investments', 'Legal & Corporate Governance', 'Risk, Compliance & Audit',
+];
+const rank = (list: string[], name: string, fallback: number) => { const i = list.indexOf(name); return i === -1 ? fallback : i; };
 
 async function main() {
   const companies = await prisma.company.findMany({ select: { id: true, name: true } });
@@ -18,7 +28,7 @@ async function main() {
     const [divisions, departments, roles] = await Promise.all([
       prisma.division.findMany({ where: { companyId }, select: { id: true, name: true, higherCategory: true } }),
       prisma.department.findMany({ where: { companyId }, select: { id: true, name: true, divisionId: true } }),
-      prisma.role.findMany({ where: { companyId }, select: { id: true, name: true, divisionId: true, departmentId: true, roleLevel: true, status: true } }),
+      prisma.role.findMany({ where: { companyId }, select: { id: true, name: true, divisionId: true, departmentId: true, roleLevel: true, roleFamily: true, status: true } }),
     ]);
     const segments = [...new Set(divisions.map((d) => d.higherCategory).filter((s): s is string => !!s))];
 
@@ -31,7 +41,7 @@ async function main() {
     // L1 Segments (the ONE shared grouping) from distinct Division.higherCategory
     const segByName = new Map<string, string>();
     for (const [i, name] of segments.entries()) {
-      const n = await prisma.node.create({ data: { companyId, typeKey: 'segment', name, parentId: enterprise.id, provenance: 'real', sortOrder: i } });
+      const n = await prisma.node.create({ data: { companyId, typeKey: 'segment', name, parentId: enterprise.id, provenance: 'real', sortOrder: rank(SEG_ORDER, name, 90 + i) } });
       segByName.set(name, n.id);
     }
 
@@ -40,7 +50,7 @@ async function main() {
     const divByName = new Map<string, string>();
     for (const [i, d] of divisions.entries()) {
       const parentId = d.higherCategory ? segByName.get(d.higherCategory) ?? enterprise.id : enterprise.id;
-      const n = await prisma.node.create({ data: { companyId, typeKey: 'division', name: d.name, code: d.id, parentId, provenance: 'real', sortOrder: i } });
+      const n = await prisma.node.create({ data: { companyId, typeKey: 'division', name: d.name, code: d.id, parentId, provenance: 'real', sortOrder: rank(DIV_ORDER, d.name, 900 + i) } });
       divByLegacyId.set(d.id, n.id);
       divByName.set(d.name, n.id);
     }
@@ -62,7 +72,7 @@ async function main() {
       if (!parentId) orphanRoles.push(r.name);
       await prisma.node.create({
         data: { companyId, typeKey: 'role', name: r.name, code: r.id, parentId, provenance: prov(undefined), sortOrder: i,
-          attributes: { roleLevel: r.roleLevel ?? null, status: r.status ?? null } },
+          attributes: { roleLevel: r.roleLevel ?? null, roleFamily: r.roleFamily ?? null, status: r.status ?? null } },
       });
     }
 
