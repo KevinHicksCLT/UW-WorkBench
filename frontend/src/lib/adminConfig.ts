@@ -20,6 +20,7 @@ export type EditorSpec =
   | { kind: 'skills' }
   | { kind: 'validations' }
   | { kind: 'aiAdoption' }
+  | { kind: 'builder' }
   | { kind: 'catalog' };
 
 export type Section = { key: string; label: string; hint?: string; editor: EditorSpec };
@@ -34,6 +35,12 @@ export const ADMIN_TABS: TabConfig[] = [
     label: 'Company',
     description: 'Onboard a new company or edit an existing one. Everything else in Data Admin is scoped to the company selected in the top bar.',
     sections: [{ key: 'company', label: 'Companies', editor: { kind: 'company' } }],
+  },
+  {
+    key: 'builder',
+    label: 'Builder',
+    description: 'The operating model itself — one tree of segments, divisions, departments, roles, value streams, processes and I/O, plus the connections between them. Every screen renders from this model: build or rename here and it shows everywhere, instantly.',
+    sections: [{ key: 'builder', label: 'Model builder', editor: { kind: 'builder' } }],
   },
   {
     key: 'home',
