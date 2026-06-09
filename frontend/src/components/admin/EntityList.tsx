@@ -31,6 +31,10 @@ function withCompany(path: string, companyId: string | null) {
   return path + (path.includes('?') ? '&' : '?') + `companyId=${companyId}`;
 }
 
+// Entities whose delete cascades a large subtree — require typed-name confirmation
+// instead of a one-click confirm() (audit A4: company delete wipes its whole tree).
+const TYPED_CONFIRM_DELETE = new Set(['company']);
+
 export default function EntityList({
   entity, companyId, title, newLabel, fixed, filter, selectable, selectedId, onSelect, onChanged, emptyHint, dense, bodyMaxHeight,
 }: Props) {
@@ -39,6 +43,8 @@ export default function EntityList({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [editing, setEditing] = useState<Record<string, any> | null | 'new'>(null);
+  const [confirmRow, setConfirmRow] = useState<Record<string, any> | null>(null);
+  const [confirmText, setConfirmText] = useState('');
 
   const columns = useMemo(() => pickColumns(entity), [entity]);
 
@@ -58,11 +64,15 @@ export default function EntityList({
   }, [list, filter]);
 
   const onSaved = () => { setEditing(null); load(search); onChanged?.(); };
-  const remove = async (row: Record<string, any>) => {
-    const name = row[entity.labelField] ?? row.id;
-    if (!confirm(`Delete this ${entity.label}?\n\n${name}\n\nThis cannot be undone.`)) return;
+  const doDelete = async (row: Record<string, any>) => {
     try { await api.delete(withCompany(`/admin/${entity.slug}/${row.id}`, companyId)); load(search); onChanged?.(); }
     catch (e) { alert((e as Error).message); }
+  };
+  const remove = (row: Record<string, any>) => {
+    if (TYPED_CONFIRM_DELETE.has(entity.slug)) { setConfirmText(''); setConfirmRow(row); return; }
+    const name = row[entity.labelField] ?? row.id;
+    if (!confirm(`Delete this ${entity.label}?\n\n${name}\n\nThis cannot be undone.`)) return;
+    void doDelete(row);
   };
 
   return (
@@ -133,6 +143,48 @@ export default function EntityList({
           onSaved={onSaved}
         />
       )}
+
+      {confirmRow && (() => {
+        const label = String(confirmRow[entity.labelField] ?? confirmRow.id);
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setConfirmRow(null)}>
+            <div className="card-elevated bg-white max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-base font-semibold text-[#9f1239] mb-2">Delete {entity.label} permanently?</h3>
+              <p className="text-sm text-[#525252] mb-3">
+                This permanently deletes <span className="font-medium text-[#171717]">{label}</span> and{' '}
+                <span className="font-medium">all of its data</span> — divisions, departments, roles, people, value
+                streams, applications, initiatives, deliverables, tasks, and everything else scoped to it. This cascades
+                and <span className="font-medium">cannot be undone</span>.
+              </p>
+              <label className="label">
+                Type <span className="font-mono text-[#171717]">{label}</span> to confirm
+              </label>
+              <input
+                className="input"
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+                autoFocus
+                onKeyDown={(e) => { if (e.key === 'Enter' && confirmText === label) { const r = confirmRow; setConfirmRow(null); void doDelete(r); } }}
+              />
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  className="text-sm px-3 py-1.5 rounded-md border border-[#e5e5e5] text-[#525252] hover:bg-[#fafafa]"
+                  onClick={() => setConfirmRow(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={confirmText !== label}
+                  onClick={() => { const r = confirmRow; setConfirmRow(null); void doDelete(r); }}
+                  className="text-sm px-3 py-1.5 rounded-md bg-[#be123c] text-white hover:bg-[#9f1239] disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Delete permanently
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
