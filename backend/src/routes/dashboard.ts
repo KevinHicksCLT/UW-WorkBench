@@ -38,42 +38,29 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     // Most tables carry companyId directly.
     const w = { tenantId, companyId };
 
+    // Structural counts/groupings read the unified Node tree (operating-model
+    // rework): segments/divisions/departments/roles + value streams/steps are all
+    // typed nodes; the segment grouping comes from the tree, not a string column.
     const [
-      divisions, departments, roles, valueStreams, domains, people,
-      initiatives, risks, applications, metrics, scenarios, processSteps,
+      nodes, partLinks, people,
+      initiatives, risks, applications, metrics, scenarios,
       deliverables, tasks,
-      divisionGroups, empGroups, regionGroups, statusGroups,
+      empGroups, regionGroups, statusGroups,
       severityGroups, kindGroups,
-      scenarioSum, tcoSum,
-      topVsRaw, topDivRaw, companies,
+      scenarioSum, tcoSum, companies,
     ] = await Promise.all([
-      prisma.division.count({ where: w }),
-      prisma.department.count({ where: w }),
-      prisma.role.count({ where: w }),
-      // Value streams rendered by the value-stream view = the L3 nodes of the Level
-      // tree (Data Admin), not the legacy ValueStream table.
-      prisma.level.count({ where: { ...w, levelNumber: 3 } }),
-      // Domains rendered by the value-stream view = the L1 nodes of the Level tree
-      // (Data Admin), not the legacy ValueStreamDomain table.
-      prisma.level.count({ where: { ...w, levelNumber: 1 } }),
+      prisma.node.findMany({ where: { companyId, typeKey: { not: 'io_item' } }, select: { id: true, typeKey: true, name: true, parentId: true, sortOrder: true } }),
+      prisma.nodeLink.groupBy({ by: ['toId'], where: { companyId, relationType: 'PARTICIPATES_IN' }, _count: { _all: true } }),
       prisma.person.count({ where: w }),
       // Initiatives = the strategic-portfolio model the /portfolio (Initiatives)
-      // screen renders and Data Admin edits (PortfolioInitiative), NOT the
-      // operating-model Initiative table.
+      // screen renders and Data Admin edits (PortfolioInitiative).
       prisma.portfolioInitiative.count({ where: w }),
-      // Risks = the operating-model Risk register (Data Admin → Change & Risk).
-      // The portfolio screen's RAID items are a separate per-initiative log edited
-      // via in-app grids (RaidItem has no tenantId, so it isn't a Data Admin entity).
       prisma.risk.count({ where: w }),
       prisma.application.count({ where: w }),
       prisma.metric.count({ where: w }),
       prisma.scenario.count({ where: w }),
-      // Process steps rendered by the value-stream view = the L5 nodes of the Level
-      // tree (Data Admin), not the legacy ProcessStep table.
-      prisma.level.count({ where: { ...w, levelNumber: 5 } }),
       prisma.deliverable.count({ where: w }),
       prisma.task.count({ where: w }),
-      prisma.division.groupBy({ by: ['higherCategory'], where: w, _count: { _all: true } }),
       prisma.person.groupBy({ by: ['employmentType'], where: w, _count: { _all: true } }),
       prisma.person.groupBy({ by: ['region'], where: w, _count: { _all: true } }),
       prisma.portfolioInitiative.groupBy({ by: ['status'], where: w, _count: { _all: true } }),
@@ -81,18 +68,46 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       prisma.application.groupBy({ by: ['kind'], where: w, _count: { _all: true } }),
       prisma.scenario.aggregate({ where: w, _sum: { annualNetImpact: true, annualBenefit: true, annualAddedCost: true, oneTimeCost: true } }),
       prisma.application.aggregate({ where: { tenantId, companyId, illustrative: false, totalTco: { not: null } }, _sum: { totalTco: true } }),
-      prisma.valueStream.findMany({ where: w, select: { id: true, name: true, domain: true, _count: { select: { roleLinks: true } } } }),
-      prisma.division.findMany({ where: w, select: { id: true, name: true, higherCategory: true, _count: { select: { roles: true } } } }),
       prisma.company.count({ where: { tenantId } }),
     ]);
 
-    const topValueStreams = topVsRaw
-      .map((v) => ({ id: v.id, name: v.name, domain: v.domain, roles: v._count.roleLinks }))
+    const byType = (k: string) => nodes.filter((n) => n.typeKey === k);
+    const nodeById = new Map(nodes.map((n) => [n.id, n]));
+    const segments = byType('segment').sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+    const divisionNodes = byType('division');
+    const departmentNodes = byType('department');
+    const roleNodes = byType('role');
+    const vsNodes = byType('value_stream');
+    const ioCount = await prisma.node.count({ where: { companyId, typeKey: 'io_item' } });
+    void ioCount; // reserved for a future tile
+
+    const [divisions, departments, roles, valueStreams, domains, processSteps] = [
+      divisionNodes.length, departmentNodes.length, roleNodes.length, vsNodes.length, segments.length, byType('step').length,
+    ];
+
+    // Divisions grouped by their parent Segment node (the ONE shared grouping).
+    const segName = (n: { parentId: string | null }) => (n.parentId ? nodeById.get(n.parentId)?.name ?? '—' : '—');
+    const divisionsByCategory = segments.map((s) => ({
+      key: s.name,
+      count: divisionNodes.filter((d) => d.parentId === s.id).length,
+    }));
+
+    // Role count per division: role → department → division, or role → division.
+    const rolesPerDivision = new Map<string, number>();
+    for (const r of roleNodes) {
+      const p = r.parentId ? nodeById.get(r.parentId) : null;
+      const divId = p?.typeKey === 'division' ? p.id : p?.parentId && nodeById.get(p.parentId)?.typeKey === 'division' ? p.parentId : null;
+      if (divId) rolesPerDivision.set(divId, (rolesPerDivision.get(divId) ?? 0) + 1);
+    }
+
+    const partCount = new Map(partLinks.map((l) => [l.toId, l._count._all]));
+    const topValueStreams = vsNodes
+      .map((v) => ({ id: v.id, name: v.name, domain: v.parentId ? nodeById.get(v.parentId)?.name ?? null : null, roles: partCount.get(v.id) ?? 0 }))
       .sort((a, b) => b.roles - a.roles)
       .slice(0, 8);
 
-    const topDivisions = topDivRaw
-      .map((d) => ({ id: d.id, name: d.name, higherCategory: d.higherCategory, roles: d._count.roles }))
+    const topDivisions = divisionNodes
+      .map((d) => ({ id: d.id, name: d.name, higherCategory: segName(d), roles: rolesPerDivision.get(d.id) ?? 0 }))
       .sort((a, b) => b.roles - a.roles)
       .slice(0, 8);
 
@@ -112,7 +127,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         initiatives, risks, applications, metrics, scenarios, processSteps,
         deliverables, tasks,
       },
-      divisionsByCategory: ordered(divisionGroups, 'higherCategory', ['Core Business', 'IT', 'Corporate Function']),
+      divisionsByCategory,
       workforce: {
         byType: ordered(empGroups, 'employmentType', ['badged', 'contractor', 'si_partner']),
         byRegion: ordered(regionGroups, 'region', ['Onshore', 'Nearshore', 'Offshore']),
