@@ -7,6 +7,7 @@ import { ENTITY_LIST, getEntity, buildData, companyWhere, type AdminEntity } fro
 import { LEVEL_HANDLERS } from '../lib/valueStreamAdmin.js';
 import { logAudit, computeDiff } from '../services/audit.js';
 import { recomputeInitiative } from '../services/portfolioRollup.js';
+import { runValidations } from '../services/validations.js';
 
 // Line items whose writes change an initiative's denormalized money rollup, so the
 // admin recomputes the parent after create/update/delete (audit A3/ARCH-8).
@@ -140,6 +141,20 @@ router.patch('/company/:id/dashboard', async (req: Request, res: Response, next:
     });
 
     res.json(updated);
+  } catch (e) {
+    next(e);
+  }
+});
+
+// GET /admin/validations — read-only data-health checks for the active company
+// (audit A2). Registered before the generic /:entity route. ADMIN-only.
+router.get('/validations', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const cid = typeof req.query.companyId === 'string' ? req.query.companyId : '';
+    if (!cid) return res.status(400).json({ error: 'companyId query parameter is required' });
+    const company = await prisma.company.findFirst({ where: { id: cid, tenantId: req.tenantId }, select: { id: true } });
+    if (!company) return res.status(404).json({ error: 'Unknown company for this tenant' });
+    res.json(await runValidations(cid));
   } catch (e) {
     next(e);
   }

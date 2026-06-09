@@ -18,6 +18,7 @@ export type EditorSpec =
   | { kind: 'group'; intro?: string; lists: { slug: string; title?: string }[] }
   | { kind: 'roleStudio' }
   | { kind: 'skills' }
+  | { kind: 'validations' }
   | { kind: 'catalog' };
 
 export type Section = { key: string; label: string; hint?: string; editor: EditorSpec };
@@ -157,6 +158,12 @@ export const ADMIN_TABS: TabConfig[] = [
     sections: [
       { key: 'external', label: 'External interactions', editor: { kind: 'list', slug: 'externalInteraction' } },
     ],
+  },
+  {
+    key: 'health',
+    label: 'Data Health',
+    description: 'Read-only integrity checks across the operating model — count reconciliation, singular-role over-fill, region/employment plausibility, and financial-rollup staleness. Use this to spot what the next data pass needs to fix.',
+    sections: [{ key: 'validations', label: 'Validation checks', editor: { kind: 'validations' } }],
   },
   {
     key: 'catalog',
