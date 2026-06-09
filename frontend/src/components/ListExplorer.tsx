@@ -18,22 +18,13 @@ type VS = { id: string; name: string; areas: Area[] };
 type Div = { id: string; name: string; higherCategory: string | null; roles: number; valueStreams: VS[] };
 type Tree = { company: { id: string; name: string }; divisions: Div[] };
 
-// ── Mirror of the map's structural constants (MapCanvas.tsx) ──────────────────
-const CATEGORIES = ['Core Business', 'IT', 'Corporate Function'] as const;
-type Category = (typeof CATEGORIES)[number];
-function catFor(higherCategory: string | null): Category {
-  if (higherCategory === 'Corporate Function') return 'Corporate Function';
-  if (higherCategory === 'IT') return 'IT';
-  return 'Core Business';
-}
-const DIVISION_SEQUENCE: string[] = [
-  'Sales, Distribution & Marketing', 'Underwriting', 'Actuarial',
-  'Claims', 'Reinsurance', 'Operations & Customer Service',
-  'Product, Delivery & PMO', 'Technology & Engineering', 'Data & AI', 'Cybersecurity & IAM',
-  'Human Resources & Talent', 'Finance & Investments',
-  'Legal & Corporate Governance', 'Risk, Compliance & Audit',
-];
-const divSeq = (name: string) => { const i = DIVISION_SEQUENCE.indexOf(name); return i === -1 ? Number.MAX_SAFE_INTEGER : i; };
+// ── Mirror of the map's segment handling (MapCanvas.tsx) ─────────────────────
+// Segments + division order are DATA: the API returns divisions already ordered
+// by Node.sortOrder and labeled with their parent segment node's name. Renaming
+// or reordering a segment in the builder reflects here.
+type Category = string;
+const catFor = (higherCategory: string | null): Category => higherCategory ?? 'Unassigned';
+const hexFor = (c: string) => DOMAIN_HEX[c] ?? '#64748b';
 
 // Context lets any node open the right-hand metrics panel without prop-drilling.
 type MetricsCtxValue = { open: (level: string, id: string) => void; activeKey: string | null };
@@ -288,15 +279,18 @@ export default function ListExplorer({ companyName }: { companyName: string; div
   // Changing the focused entity makes the drawer's snapshot stale — close it.
   useEffect(() => { setDrawerSection(null); }, [target?.level, target?.id]);
 
-  // ── Group divisions by CEO domain (sorted), and resolve the facet filters. ──
+  // ── Group divisions by segment (API order = Node.sortOrder); resolve filters. ──
   const divsByCat = useMemo(() => {
-    const out = { 'Core Business': [], IT: [], 'Corporate Function': [] } as Record<Category, Div[]>;
-    for (const d of tree?.divisions ?? []) out[catFor(d.higherCategory)].push(d);
-    for (const c of CATEGORIES) out[c].sort((a, b) => divSeq(a.name) - divSeq(b.name));
+    const out: Record<Category, Div[]> = {};
+    for (const d of tree?.divisions ?? []) (out[catFor(d.higherCategory)] ??= []).push(d);
     return out;
   }, [tree]);
 
-  const domainsPresent = CATEGORIES.filter((c) => divsByCat[c].length > 0);
+  const domainsPresent = useMemo(() => {
+    const seen: Category[] = [];
+    for (const d of tree?.divisions ?? []) { const c = catFor(d.higherCategory); if (!seen.includes(c)) seen.push(c); }
+    return seen;
+  }, [tree]);
 
   // Visible domains/divisions after applying the facet filters.
   const visibleDomains = domainsPresent
