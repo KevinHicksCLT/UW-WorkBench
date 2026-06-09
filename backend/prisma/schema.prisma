@@ -74,6 +74,11 @@ model Company {
   rationalizationWorkspaces RationalizationWorkspace[]
   levels               Level[]
   orgLevels            OrgLevel[]
+  programs             Program[]
+  workstreams          Workstream[]
+  portfolioInitiatives PortfolioInitiative[]
+  deliverables         Deliverable[]
+  tasks                Task[]
 
   @@unique([tenantId, slug])
 }
@@ -1076,6 +1081,7 @@ model Program {
   id          String   @id @default(cuid())
   tenantId    String
   companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   name        String
   description String?
   startDate   DateTime
@@ -1094,6 +1100,7 @@ model Workstream {
   id          String   @id @default(cuid())
   tenantId    String
   companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   programId   String
   program     Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
   name        String
@@ -1113,6 +1120,7 @@ model PortfolioInitiative {
   id             String     @id @default(cuid())
   tenantId       String
   companyId      String
+  company        Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
   workstreamId   String
   workstream     Workstream @relation(fields: [workstreamId], references: [id], onDelete: Cascade)
   name           String
@@ -1239,6 +1247,7 @@ model Deliverable {
   id            String   @id @default(cuid())
   tenantId      String
   companyId     String
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   title         String
   description   String?
   owner         String? // free-text owner / accountable role
@@ -1259,6 +1268,7 @@ model Task {
   id            String       @id @default(cuid())
   tenantId      String
   companyId     String
+  company       Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   deliverableId String?
   deliverable   Deliverable? @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
   title         String
