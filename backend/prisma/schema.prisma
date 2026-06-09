@@ -118,11 +118,31 @@ model Level {
   sourceType  String?
   sourceRefId String?
 
+  // AI-adoption (Telemetry) for value-stream nodes (levelNumber = 3). Optional 1:1.
+  aiAdoption LevelAiAdoption?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([companyId, levelNumber])
   @@index([parentId])
+}
+
+// AI-adoption levels for a value-stream Level node (audit D3/D7/U2/A1). One row per
+// value-stream node; columns are the four AI autonomy modes. Values:
+// not_used | pilot | emerging | scaling | embedded. `useCases` holds the authored
+// per-mode use-case detail (JSON) shown on the value-stream detail / Telemetry.
+model LevelAiAdoption {
+  id           String   @id @default(cuid())
+  levelId      String   @unique
+  level        Level    @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  aiAssist     String   @default("not_used")
+  aiAugment    String   @default("not_used")
+  aiWorkflow   String   @default("not_used")
+  aiAutonomous String   @default("not_used")
+  useCases     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 // Organization level tree — the SEPARATE configurable hierarchy for the org side
