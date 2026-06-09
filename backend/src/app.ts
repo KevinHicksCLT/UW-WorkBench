@@ -19,6 +19,7 @@ import explorerRoutes from './routes/explorer.js';
 import searchRoutes from './routes/search.js';
 import adminRoutes from './routes/admin.js';
 import adminAiRoutes from './routes/adminAi.js';
+import builderRoutes from './routes/builder.js';
 import adminRoleRoutes from './routes/adminRole.js';
 import dashboardRoutes from './routes/dashboard.js';
 import rationalizationRoutes from './routes/rationalization.js';
@@ -64,6 +65,7 @@ app.use('/search', searchRoutes);
 // Mount the AI overlay + role-context before the generic admin router so their
 // paths aren't captured by the /:entity catch-all in adminRoutes.
 app.use('/admin/ai', adminAiRoutes);
+app.use('/builder', builderRoutes);
 app.use('/admin/role-context', adminRoleRoutes);
 app.use('/admin', adminRoutes);
 app.use('/dashboard', dashboardRoutes);
