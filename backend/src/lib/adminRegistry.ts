@@ -54,6 +54,8 @@ export type AdminEntity = {
 // edited through the specialized in-app financial/RAID grids).
 const DENY = new Set([
   'User', 'AuditEntry', 'Tenant',
+  // Unified graph (rework) — edited via the bespoke interactive builder, not generic CRUD.
+  'NodeType', 'Node', 'NodeLink',
 ]);
 
 // Tenant-less line-item tables that scope to a company TRANSITIVELY through a

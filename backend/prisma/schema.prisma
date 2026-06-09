@@ -79,6 +79,7 @@ model Company {
   portfolioInitiatives PortfolioInitiative[]
   deliverables         Deliverable[]
   tasks                Task[]
+  nodes                Node[]
 
   @@unique([tenantId, slug])
 }
@@ -1303,4 +1304,71 @@ model Task {
   @@index([companyId])
   @@index([deliverableId])
   @@index([status])
+}
+
+// ─── Unified operating-model graph (rework) ──────────────────────────────────
+// See docs/operating-model-architecture.md. One typed-node tree + a link layer
+// replaces Level/OrgLevel/Division/Department/Role/ValueStream/SubValueStream/
+// ValueStreamDomain. Built additively alongside the legacy tables during migration.
+
+// Taxonomy: what the levels are CALLED + their branching rules — data, not code.
+model NodeType {
+  id          String   @id @default(cuid())
+  tenantId    String
+  dimension   String   @default("STRUCTURE")
+  key         String // segment | division | department | role | value_stream | sub_process | step | io_item | external_party
+  label       String
+  pluralLabel String
+  level       Int
+  parentKeys  String[] @default([]) // node-type keys allowed as parent (branching)
+  icon        String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, key])
+}
+
+// One row per structural concept. "Core Business" is ONE Node; everything points
+// at it by id. provenance: real | illustrative | imported.
+model Node {
+  id          String     @id @default(cuid())
+  companyId   String
+  company     Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  typeKey     String // → NodeType.key (the level + label)
+  parentId    String?
+  parent      Node?      @relation("NodeTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Node[]     @relation("NodeTree")
+  name        String
+  code        String? // original legacy id / external code (backfill provenance)
+  description String?
+  sortOrder   Int        @default(0)
+  provenance  String     @default("illustrative")
+  attributes  Json?
+  outLinks    NodeLink[] @relation("NodeLinkFrom")
+  inLinks     NodeLink[] @relation("NodeLinkTo")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([companyId, typeKey])
+  @@index([parentId])
+}
+
+// Cross-cutting typed edges (the "web"): role↔value-stream, app↔value-stream,
+// step→deliverable, owned-by, etc. The default + extension point; rich, hot-path
+// links also keep their typed junctions (hybrid).
+model NodeLink {
+  id           String   @id @default(cuid())
+  companyId    String
+  fromId       String
+  from         Node     @relation("NodeLinkFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  toId         String
+  to           Node     @relation("NodeLinkTo", fields: [toId], references: [id], onDelete: Cascade)
+  relationType String // PARTICIPATES_IN | SUPPORTS | OWNS | LEADS | PRODUCES | CONSUMES | IMPACTS | REPORTS_TO | ...
+  attributes   Json?
+  createdAt    DateTime @default(now())
+
+  @@unique([fromId, toId, relationType])
+  @@index([toId, relationType])
+  @@index([companyId, relationType])
 }
