@@ -9,6 +9,7 @@ import RoleStudio from './RoleStudio';
 import SkillAdmin from './SkillAdmin';
 import DashboardAdmin from './DashboardAdmin';
 import ValidationPanel from './ValidationPanel';
+import AiAdoptionEditor from './AiAdoptionEditor';
 
 // Resolves one section's EditorSpec to the right editor component, wiring entity
 // metadata in from the registry. Keeps Admin.tsx declarative — the page just maps
@@ -102,6 +103,9 @@ export default function AdminSection({
 
     case 'validations':
       return <ValidationPanel companyId={companyId} onNavigate={onNavigate} />;
+
+    case 'aiAdoption':
+      return <AiAdoptionEditor companyId={companyId} />;
 
     case 'catalog':
       return <CatalogEditor companyId={companyId} bySlug={bySlug} />;

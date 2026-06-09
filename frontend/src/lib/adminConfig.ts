@@ -19,6 +19,7 @@ export type EditorSpec =
   | { kind: 'roleStudio' }
   | { kind: 'skills' }
   | { kind: 'validations' }
+  | { kind: 'aiAdoption' }
   | { kind: 'catalog' };
 
 export type Section = { key: string; label: string; hint?: string; editor: EditorSpec };
@@ -91,6 +92,7 @@ export const ADMIN_TABS: TabConfig[] = [
         editor: { kind: 'masterDetail', parent: 'application', parentTitle: 'Applications', intro: 'Select an application to edit it and manage which value streams it supports.', children: [{ slug: 'applicationValueStream', fk: 'applicationId', title: 'Value-stream links' }] },
       },
       { key: 'signals', label: 'People signals', editor: { kind: 'group', intro: 'Per-person digital-productivity signals, performance metrics, and app-usage mix.', lists: [{ slug: 'personSignal', title: 'Signals' }, { slug: 'personMetric', title: 'Performance metrics' }, { slug: 'personAppUsage', title: 'App usage' }] } },
+      { key: 'aiAdoption', label: 'AI adoption', hint: 'per value stream', editor: { kind: 'aiAdoption' } },
     ],
   },
   {

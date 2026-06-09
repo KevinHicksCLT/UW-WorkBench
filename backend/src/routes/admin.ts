@@ -160,6 +160,78 @@ router.get('/validations', async (req: Request, res: Response, next: NextFunctio
   }
 });
 
+// ─── AI-adoption (Telemetry) per value-stream Level node ───────────────────
+// Flat editor surface (audit D3/A1): one row per canonical value-stream node
+// (levelNumber = 3) with the four AI autonomy modes. Registered before /:entity.
+const AI_LEVELS = new Set(['not_used', 'pilot', 'emerging', 'scaling', 'embedded']);
+const AI_FIELDS = ['aiAssist', 'aiAugment', 'aiWorkflow', 'aiAutonomous'] as const;
+
+async function companyForReq(req: Request): Promise<string | null> {
+  const cid = typeof req.query.companyId === 'string' ? req.query.companyId : '';
+  if (!cid) return null;
+  const company = await prisma.company.findFirst({ where: { id: cid, tenantId: req.tenantId }, select: { id: true } });
+  return company ? cid : null;
+}
+
+router.get('/ai-adoption', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const cid = await companyForReq(req);
+    if (!cid) return res.status(400).json({ error: 'Valid companyId query parameter is required' });
+    const nodes = await prisma.level.findMany({
+      where: { companyId: cid, levelNumber: 3 },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, parent: { select: { name: true } }, aiAdoption: true },
+    });
+    res.json({
+      levels: [...AI_LEVELS],
+      rows: nodes.map((n) => ({
+        levelId: n.id,
+        name: n.name,
+        domain: n.parent?.name ?? null,
+        aiAssist: n.aiAdoption?.aiAssist ?? 'not_used',
+        aiAugment: n.aiAdoption?.aiAugment ?? 'not_used',
+        aiWorkflow: n.aiAdoption?.aiWorkflow ?? 'not_used',
+        aiAutonomous: n.aiAdoption?.aiAutonomous ?? 'not_used',
+      })),
+    });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.patch('/ai-adoption/:levelId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const cid = await companyForReq(req);
+    if (!cid) return res.status(400).json({ error: 'Valid companyId query parameter is required' });
+    const node = await prisma.level.findFirst({ where: { id: req.params.levelId, companyId: cid, levelNumber: 3 }, select: { id: true } });
+    if (!node) return res.status(404).json({ error: 'Not found' });
+
+    const data: Record<string, string> = {};
+    for (const f of AI_FIELDS) {
+      const v = (req.body ?? {})[f];
+      if (v === undefined) continue;
+      if (typeof v !== 'string' || !AI_LEVELS.has(v)) return res.status(400).json({ error: `${f} must be one of ${[...AI_LEVELS].join(' | ')}` });
+      data[f] = v;
+    }
+    if (Object.keys(data).length === 0) return res.status(400).json({ error: 'No AI-adoption fields to update' });
+
+    const before = await prisma.levelAiAdoption.findUnique({ where: { levelId: node.id } });
+    const updated = await prisma.levelAiAdoption.upsert({
+      where: { levelId: node.id },
+      create: { levelId: node.id, ...data },
+      update: data,
+    });
+    logAudit({
+      tenantId: req.tenantId, actorEmail: req.user.email,
+      entityType: 'LevelAiAdoption', entityId: node.id,
+      action: before ? 'UPDATE' : 'CREATE', diff: data,
+    });
+    res.json(updated);
+  } catch (e) {
+    next(e);
+  }
+});
+
 // GET /admin/:entity — paginated, tenant-scoped list with optional search on
 // the entity's label field.
 router.get('/:entity', async (req: Request, res: Response, next: NextFunction) => {
