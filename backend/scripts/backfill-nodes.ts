@@ -88,7 +88,10 @@ async function main() {
     const l4 = levels.filter((l) => l.levelNumber === 4);
     for (const [i, l] of l4.entries()) {
       const parentId = l.parentId ? levelToNode.get(l.parentId) ?? null : null;
-      const n = await prisma.node.create({ data: { companyId, typeKey: 'sub_process', name: l.name, code: l.id, parentId, description: l.description, provenance: 'illustrative', sortOrder: l.sortOrder || i } });
+      const n = await prisma.node.create({
+        data: { companyId, typeKey: 'sub_process', name: l.name, code: l.id, parentId, description: l.description, provenance: 'illustrative', sortOrder: l.sortOrder || i,
+          attributes: { leads: l.leads, supporting: l.supporting, inputs: l.inputs, outputs: l.outputs, notes: l.notes } },
+      });
       levelToNode.set(l.id, n.id);
     }
     const l5 = levels.filter((l) => l.levelNumber === 5);
