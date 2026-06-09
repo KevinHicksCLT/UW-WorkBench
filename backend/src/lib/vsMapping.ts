@@ -40,3 +40,10 @@ export const NEW_STREAMS: { name: string; division: string }[] = [
 
 // Resolve a legacy value-stream name to its canonical node name.
 export const canonicalVs = (legacyName: string): string => VS_MAPPING[legacyName] ?? legacyName;
+
+// Inverse view: canonical stream name → the legacy ValueStream names folded into
+// it (plus itself). Used to aggregate legacy-keyed data (Metric.valueStreamId,
+// RoleValueStream, ProcessStep, IoItem) under a canonical value-stream node.
+const LEGACY_FOR: Record<string, string[]> = {};
+for (const [legacy, canon] of Object.entries(VS_MAPPING)) (LEGACY_FOR[canon] ??= []).push(legacy);
+export const legacyNamesFor = (canonical: string): string[] => [...new Set([...(LEGACY_FOR[canonical] ?? []), canonical])];

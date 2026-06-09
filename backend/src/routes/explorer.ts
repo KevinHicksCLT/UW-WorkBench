@@ -6,7 +6,21 @@ import { fileURLToPath } from 'node:url';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { buildRoleResolver } from '../lib/roleMatch.js';
-import { canonicalVs } from '../lib/vsMapping.js';
+import { canonicalVs, legacyNamesFor } from '../lib/vsMapping.js';
+
+// A sidebar / drill :id may arrive as a unified-node id (the map's namespace
+// since the rework) or a legacy table id (old links). Resolve the node when
+// present; callers translate to the legacy id (node.code) or branch on the node.
+type ResolvedNode = { id: string; typeKey: string; name: string; code: string | null; parentId: string | null; companyId: string };
+async function resolveNode(id: string | undefined): Promise<ResolvedNode | null> {
+  if (!id) return null;
+  return prisma.node.findUnique({ where: { id }, select: { id: true, typeKey: true, name: true, code: true, parentId: true, companyId: true } });
+}
+// Legacy ValueStream ids whose data folds into one canonical stream name.
+async function legacyVsIds(companyId: string, canonicalName: string): Promise<string[]> {
+  const rows = await prisma.valueStream.findMany({ where: { companyId, name: { in: legacyNamesFor(canonicalName) } }, select: { id: true } });
+  return rows.map((r) => r.id);
+}
 
 const router = Router();
 router.use(requireAuth);
@@ -704,7 +718,30 @@ async function metricsDivision(tenantId: string, c: string, id: string): Promise
   };
 }
 
-async function metricsValueStream(tenantId: string, c: string, id: string): Promise<Dashboard | null> {
+async function metricsValueStream(tenantId: string, c: string, id: string, node?: ResolvedNode | null): Promise<Dashboard | null> {
+  // Unified value_stream node (preferred): aggregate all legacy streams that fold
+  // into it (vs-mapping) and drill into its sub_process child nodes.
+  if (node && node.typeKey === 'value_stream') {
+    const ids = await legacyVsIds(c, node.name);
+    const [kpis, areas, ps] = await Promise.all([
+      prisma.metric.findMany({ where: { valueStreamId: { in: ids.length ? ids : ['_'] } }, orderBy: [{ l3: 'asc' }, { category: 'asc' }], select: { name: true, targetText: true, category: true, framework: true } }),
+      prisma.node.findMany({ where: { parentId: node.id, typeKey: 'sub_process' }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true } }),
+      prisma.processStep.findMany({ where: { valueStreamId: { in: ids.length ? ids : ['_'] } }, select: { l3: true } }),
+    ]);
+    const stepByL3 = new Map<string, number>();
+    for (const p of ps) { if (!p.l3) continue; stepByL3.set(p.l3, (stepByL3.get(p.l3) ?? 0) + 1); }
+    return {
+      level: 'valueStream', title: node.name, subtitle: 'Performance',
+      tiles: [
+        { label: 'KPIs defined', value: kpis.length },
+        { label: 'Process Level 4', value: areas.length },
+      ],
+      sections: [
+        { title: 'KPIs & targets', kind: 'kpi', items: kpiList(kpis) },
+        { title: 'Process Level 4', kind: 'list', items: areas.map((s) => ({ label: s.name, value: stepByL3.get(s.name) ?? 0, hint: stepByL3.get(s.name) ? `${stepByL3.get(s.name)} steps` : 'no flow', drill: { level: 'step', id: s.id } })) },
+      ],
+    };
+  }
   const vs = await prisma.valueStream.findFirst({ where: { id, tenantId, companyId: c }, select: { id: true, name: true, domain: true } });
   if (!vs) return null;
   const [kpis, l3rows, ps] = await Promise.all([
@@ -727,14 +764,26 @@ async function metricsValueStream(tenantId: string, c: string, id: string): Prom
   };
 }
 
-async function metricsStep(tenantId: string, id: string): Promise<Dashboard | null> {
-  const s = await prisma.subValueStream.findFirst({ where: { id, tenantId, level: 3 }, select: { id: true, name: true, valueStreamId: true } });
-  if (!s) return null;
+async function metricsStep(tenantId: string, id: string, node?: ResolvedNode | null): Promise<Dashboard | null> {
+  // Unified sub_process node (preferred): key the legacy lookups by NAME within
+  // the parent value stream's folded legacy ids.
+  let s: { id: string; name: string; valueStreamId: string } | null = null;
+  let vsIds: string[] | null = null;
+  if (node && node.typeKey === 'sub_process') {
+    const parent = node.parentId ? await resolveNode(node.parentId) : null;
+    vsIds = parent ? await legacyVsIds(node.companyId, parent.name) : [];
+    s = { id: node.id, name: node.name, valueStreamId: vsIds[0] ?? '_' };
+  } else {
+    const row = await prisma.subValueStream.findFirst({ where: { id, tenantId, level: 3 }, select: { id: true, name: true, valueStreamId: true } });
+    if (row) { s = row; vsIds = [row.valueStreamId]; }
+  }
+  if (!s || !vsIds) return null;
+  const vsFilter = { in: vsIds.length ? vsIds : ['_'] };
   const [kpis, steps, io, rvs] = await Promise.all([
-    prisma.metric.findMany({ where: { valueStreamId: s.valueStreamId, l3: s.name }, orderBy: { category: 'asc' }, select: { name: true, targetText: true, category: true, framework: true } }),
-    prisma.processStep.count({ where: { valueStreamId: s.valueStreamId, l3: s.name } }),
-    prisma.ioItem.groupBy({ by: ['type'], where: { valueStreamId: s.valueStreamId, l3: s.name }, _count: { _all: true } }),
-    prisma.roleValueStream.findMany({ where: { valueStreamId: s.valueStreamId, subStream: { startsWith: s.name + ' — ' } }, select: { roleId: true, participationType: true, role: { select: { id: true, name: true } } } }),
+    prisma.metric.findMany({ where: { valueStreamId: vsFilter, l3: s.name }, orderBy: { category: 'asc' }, select: { name: true, targetText: true, category: true, framework: true } }),
+    prisma.processStep.count({ where: { valueStreamId: vsFilter, l3: s.name } }),
+    prisma.ioItem.groupBy({ by: ['type'], where: { valueStreamId: vsFilter, l3: s.name }, _count: { _all: true } }),
+    prisma.roleValueStream.findMany({ where: { valueStreamId: vsFilter, subStream: { startsWith: s.name + ' — ' } }, select: { roleId: true, participationType: true, role: { select: { id: true, name: true } } } }),
   ]);
   const ioTotal = io.reduce((a, x) => a + x._count._all, 0);
   const inputs = io.find((x) => x.type === 'Input')?._count._all ?? 0;
@@ -826,14 +875,16 @@ router.get('/metrics/:level/:id?', async (req: Request, res: Response, next: Nex
     const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true, name: true } });
     if (!company) return res.status(404).json({ error: 'No company' });
     const id = req.params.id ? decodeURIComponent(req.params.id) : undefined;
+    const node = await resolveNode(id);
+    const lid = node?.code ?? id; // legacy id when a unified-node id was passed
     let out: Dashboard | null = null;
     switch (req.params.level) {
       case 'company':     out = await metricsCompany(company.id, company.name); break;
-      case 'domain':      out = id ? await metricsDomain(company.id, id) : null; break;
-      case 'division':    out = id ? await metricsDivision(req.tenantId, company.id, id) : null; break;
-      case 'valueStream': out = id ? await metricsValueStream(req.tenantId, company.id, id) : null; break;
-      case 'step':        out = id ? await metricsStep(req.tenantId, id) : null; break;
-      case 'role':        out = id ? await metricsRole(req.tenantId, id) : null; break;
+      case 'domain':      out = id ? await metricsDomain(company.id, node?.name ?? id) : null; break;
+      case 'division':    out = lid ? await metricsDivision(req.tenantId, company.id, lid) : null; break;
+      case 'valueStream': out = id ? await metricsValueStream(req.tenantId, company.id, id, node) : null; break;
+      case 'step':        out = id ? await metricsStep(req.tenantId, id, node) : null; break;
+      case 'role':        out = lid ? await metricsRole(req.tenantId, lid) : null; break;
       case 'person':      out = id ? await metricsPerson(req.tenantId, id) : null; break;
     }
     if (!out) return res.status(404).json({ error: 'Not found' });
@@ -917,23 +968,41 @@ function dedupeByStrongestPart(links: { participationType: string; role: RoleLit
   for (const l of links) { const cur = m.get(l.role.id); if (!cur || (PART_ORDER[l.participationType] ?? 9) < (PART_ORDER[cur.part] ?? 9)) m.set(l.role.id, { ...l.role, part: l.participationType }); }
   return [...m.values()].sort((a, b) => (PART_ORDER[a.part] ?? 9) - (PART_ORDER[b.part] ?? 9));
 }
-async function rolesValueStream(tenantId: string, c: string, id: string): Promise<Dashboard | null> {
-  const vs = await prisma.valueStream.findFirst({ where: { id, tenantId, companyId: c }, select: { id: true, name: true } });
-  if (!vs) return null;
-  const links = await prisma.roleValueStream.findMany({ where: { valueStreamId: id }, select: { participationType: true, role: { select: { id: true, name: true, roleLevel: true } } } });
+async function rolesValueStream(tenantId: string, c: string, id: string, node?: ResolvedNode | null): Promise<Dashboard | null> {
+  // Unified value_stream node (preferred): aggregate the folded legacy streams.
+  let name: string | null = null;
+  let vsIds: string[] | null = null;
+  if (node && node.typeKey === 'value_stream') {
+    name = node.name;
+    vsIds = await legacyVsIds(c, node.name);
+  } else {
+    const vs = await prisma.valueStream.findFirst({ where: { id, tenantId, companyId: c }, select: { id: true, name: true } });
+    if (vs) { name = vs.name; vsIds = [vs.id]; }
+  }
+  if (!name || !vsIds) return null;
+  const links = await prisma.roleValueStream.findMany({ where: { valueStreamId: { in: vsIds.length ? vsIds : ['_'] } }, select: { participationType: true, role: { select: { id: true, name: true, roleLevel: true } } } });
   const roles = dedupeByStrongestPart(links);
   return {
-    level: 'valueStream', title: vs.name, subtitle: 'Roles · who owns what',
+    level: 'valueStream', title: name, subtitle: 'Roles · who owns what',
     tiles: [{ label: 'Roles', value: roles.length }],
     sections: [
       { title: 'Participating Roles', kind: 'list', items: roles.map((r) => ({ label: r.name, value: 0, hint: r.part, drill: { level: 'role', id: r.id } })) },
     ],
   };
 }
-async function rolesStep(tenantId: string, id: string): Promise<Dashboard | null> {
-  const s = await prisma.subValueStream.findFirst({ where: { id, tenantId, level: 3 }, select: { id: true, name: true, valueStreamId: true } });
-  if (!s) return null;
-  const links = await prisma.roleValueStream.findMany({ where: { valueStreamId: s.valueStreamId, subStream: { startsWith: s.name + ' — ' } }, select: { participationType: true, role: { select: { id: true, name: true, roleLevel: true } } } });
+async function rolesStep(tenantId: string, id: string, node?: ResolvedNode | null): Promise<Dashboard | null> {
+  let s: { id: string; name: string; valueStreamId: string } | null = null;
+  let vsIds: string[] | null = null;
+  if (node && node.typeKey === 'sub_process') {
+    const parent = node.parentId ? await resolveNode(node.parentId) : null;
+    vsIds = parent ? await legacyVsIds(node.companyId, parent.name) : [];
+    s = { id: node.id, name: node.name, valueStreamId: vsIds[0] ?? '_' };
+  } else {
+    const row = await prisma.subValueStream.findFirst({ where: { id, tenantId, level: 3 }, select: { id: true, name: true, valueStreamId: true } });
+    if (row) { s = row; vsIds = [row.valueStreamId]; }
+  }
+  if (!s || !vsIds) return null;
+  const links = await prisma.roleValueStream.findMany({ where: { valueStreamId: { in: vsIds.length ? vsIds : ['_'] }, subStream: { startsWith: s.name + ' — ' } }, select: { participationType: true, role: { select: { id: true, name: true, roleLevel: true } } } });
   const roles = dedupeByStrongestPart(links);
   return {
     level: 'step', title: s.name, subtitle: 'Roles · who owns what',
@@ -1050,20 +1119,37 @@ router.get('/roles/:level/:id?', async (req: Request, res: Response, next: NextF
     const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true, name: true } });
     if (!company) return res.status(404).json({ error: 'No company' });
     const id = req.params.id ? decodeURIComponent(req.params.id) : undefined;
-    // Configurable-Level node → serve its detail (value-stream map drill-down).
-    if (id) {
+    const node = await resolveNode(id);
+    // Unified work-branch node → serve its step/process detail (map drill-down).
+    // valueStream level gets the richer participating-roles dashboard below; the
+    // deeper process nodes serve their authored detail (leads/supporting/I-O).
+    if (node && ['value_stream', 'sub_process', 'step', 'io_item'].includes(node.typeKey) && req.params.level !== 'valueStream') {
+      const full = await prisma.node.findUnique({ where: { id: node.id }, select: { description: true, attributes: true } });
+      const at = (full?.attributes as any) ?? {};
+      return res.json(levelDashboard({
+        name: node.name,
+        levelNumber: node.typeKey === 'value_stream' ? 3 : node.typeKey === 'sub_process' ? 4 : 5,
+        description: full?.description ?? null,
+        leads: at.leads ?? null, supporting: at.supporting ?? null,
+        inputs: at.inputs ?? null, outputs: at.outputs ?? null,
+        externalParticipants: at.externalParticipants ?? null,
+      }));
+    }
+    // Legacy Level node → serve its detail (old links keep working).
+    if (id && !node) {
       const lvl = await prisma.level.findFirst({ where: { id, tenantId: req.tenantId }, select: { name: true, levelNumber: true, description: true, leads: true, supporting: true, inputs: true, outputs: true, externalParticipants: true } });
       if (lvl) return res.json(levelDashboard(lvl));
     }
+    const lid = node?.code ?? id; // legacy id when a unified-node id was passed
     let out: Dashboard | null = null;
     switch (req.params.level) {
       case 'company':     out = await rolesCompany(company.id, company.name); break;
-      case 'domain':      out = id ? await rolesDomain(company.id, id) : null; break;
-      case 'division':    out = id ? await rolesDivision(req.tenantId, company.id, id) : null; break;
-      case 'department':  out = id ? await rolesDepartment(req.tenantId, id) : null; break;
-      case 'valueStream': out = id ? await rolesValueStream(req.tenantId, company.id, id) : null; break;
-      case 'step':        out = id ? await rolesStep(req.tenantId, id) : null; break;
-      case 'role':        out = id ? await rolesRole(req.tenantId, id) : null; break;
+      case 'domain':      out = id ? await rolesDomain(company.id, node?.name ?? id) : null; break;
+      case 'division':    out = lid ? await rolesDivision(req.tenantId, company.id, lid) : null; break;
+      case 'department':  out = lid ? await rolesDepartment(req.tenantId, lid) : null; break;
+      case 'valueStream': out = id ? await rolesValueStream(req.tenantId, company.id, id, node) : null; break;
+      case 'step':        out = id ? await rolesStep(req.tenantId, id, node) : null; break;
+      case 'role':        out = lid ? await rolesRole(req.tenantId, lid) : null; break;
       case 'person':      out = id ? await rolesPerson(req.tenantId, id) : null; break;
     }
     if (!out) return res.status(404).json({ error: 'Not found' });
@@ -1088,6 +1174,10 @@ router.get('/node/:type/:id/children', async (req: Request, res: Response, next:
 });
 
 async function buildNode(tenantId: string, type: string, id: string, cursor?: string) {
+  // Accept unified-node ids (the rework's namespace): translate to the legacy id
+  // the per-type builders expect. Falls through unchanged for legacy ids.
+  const unified = await resolveNode(id);
+  if (unified?.code) id = unified.code;
   switch (type) {
     case 'company': return nodeCompany(tenantId, id);
     case 'domain': return nodeDomain(tenantId, id);
