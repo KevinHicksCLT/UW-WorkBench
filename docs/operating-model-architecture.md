@@ -309,3 +309,42 @@ legacy. Each step keeps the app working via adapters.
    type + one `provenance` field (`real | illustrative | imported`), replacing the 7+ status
    vocabularies and 22 scattered `illustrative` booleans. ✅
 5. **Slice scope:** _pending_ — recommended: Segment+Division vertical slice first.
+
+---
+
+## 8. STATUS — BUILT (2026-06-09, dev branch defect-fixes_01 / Neon br-autumn-star)
+
+All phases delivered as working, committed increments; prod untouched:
+
+| Phase | Commits |
+|---|---|
+| P1 graph schema (NodeType/Node/NodeLink) | c8260a5 |
+| P2 taxonomy seed + P3 backfill (1,546 nodes + 27 external, 1:1 reconciled) | 9a70fb8 · 74a7443 |
+| P4 link layer (free-text refs → typed edges, unresolved logged) | 0daa73c |
+| 29→21(+1) value-stream mapping (ESPM promoted; ALL connections resolve) | 4a0beee |
+| P5 API repoints (Home, map cluster, org-table, sidebar, VS detail, AI-adoption) | 521f86e · 0643404 · 238b299 · 99b672a · 0720afa |
+| P6 frontend de-hardcode + rename-propagates PROOF | 38f551d (proof-*.png) |
+| P7 interactive Builder (Data Admin tab + /builder API) | 5f68d5a · 24b8123 |
+| P8 cross-tab pass (9 routes, 0 console errors; Home==Org==VS list on every count) | (this commit) |
+
+**Proven:** renaming the Core Business segment — via SQL *and* via the Builder —
+propagates to Home, the map, and Organization instantly, audited. Organization now
+shows 249 roles / 743 people (was 240/717; audit D1/D2), with an explicit Unassigned
+bucket. Canonical value streams: 22 everywhere (was 21-vs-29 split).
+
+**Deferred tails (next passes):**
+1. **Storage migration:** move LevelAiAdoption → node-keyed NodeAiAdoption and the
+   ProcessStep/IoItem/SubValueStream detail into node attributes/companions, then
+   retire Level/OrgLevel/SubValueStream/ValueStreamDomain reads + the legacy Data
+   Admin tree editors (kept alongside the Builder for now). ESPM's AI-adoption is
+   read-only not_used until then. DO NOT rerun scripts/backfill-*.ts (would wipe
+   builder edits).
+2. **ActiveAIDetail** (/active-ai/:id) still reads the legacy stream list.
+3. **io_item view in the Builder** (835 leaves excluded from the tree by default).
+4. **29→21 data reconciliation pass** (unmatched free-text role names: 293
+   leads/supporting + 842 keyRoles, logged) — the planned data-correction list.
+5. **Prod promotion runbook:** apply the three raw-SQL migrations in order via
+   `prisma db execute --url $PROD_DIRECT_URL --file prisma/migrations/<m>/migration.sql`
+   (20260609000000_add_company_cascade_fks → 20260609010000_add_level_ai_adoption →
+   20260609020000_add_node_graph), run the two backfill scripts ONCE against prod,
+   seed NodeTypes, then deploy the code. Never `migrate dev/deploy` (history drift).
