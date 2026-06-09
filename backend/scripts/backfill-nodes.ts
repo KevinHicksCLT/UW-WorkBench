@@ -5,6 +5,7 @@
 // The WORK branch (value_stream → sub_process → step → io_item) is added next.
 // See docs/operating-model-architecture.md.
 import { prisma } from '../src/db/prisma.js';
+import { canonicalVs, NEW_STREAMS } from './vs-mapping.js';
 
 const prov = (illustrative: boolean | null | undefined) => (illustrative === false ? 'real' : 'illustrative');
 
@@ -100,15 +101,23 @@ async function main() {
       levelToNode.set(l.id, n.id);
     }
 
-    // io_item ← IoItem (preserve ALL; map legacy-VS NAME → canonical VS node; log unmatched)
+    // NEW canonical value streams promoted from the legacy set (vs-mapping.ts)
+    const vsNodeByName = new Map(l3.map((l) => [l.name, levelToNode.get(l.id)!]));
+    for (const ns of NEW_STREAMS) {
+      if (vsNodeByName.has(ns.name)) continue;
+      const n = await prisma.node.create({ data: { companyId, typeKey: 'value_stream', name: ns.name, parentId: divByName.get(ns.division) ?? null, provenance: 'illustrative', sortOrder: 99 } });
+      vsNodeByName.set(ns.name, n.id);
+    }
+
+    // io_item ← IoItem (preserve ALL; legacy-VS NAME → canonical VS node via the
+    // 29→21 mapping; log unmatched)
     const vsLegacy = await prisma.valueStream.findMany({ where: { companyId }, select: { id: true, name: true } });
     const vsLegacyName = new Map(vsLegacy.map((v) => [v.id, v.name]));
-    const vsNodeByName = new Map(l3.map((l) => [l.name, levelToNode.get(l.id)!]));
     const ioItems = await prisma.ioItem.findMany({ where: { valueStream: { companyId } }, select: { id: true, name: true, type: true, valueStreamId: true, keyRoles: true, dataElements: true, l3: true, l4: true } });
     const unmatchedIo: string[] = [];
     for (const io of ioItems) {
       const vsName = vsLegacyName.get(io.valueStreamId);
-      const parentId = vsName ? vsNodeByName.get(vsName) ?? null : null;
+      const parentId = vsName ? vsNodeByName.get(canonicalVs(vsName)) ?? null : null;
       if (!parentId) unmatchedIo.push(io.name);
       await prisma.node.create({
         data: { companyId, typeKey: 'io_item', name: io.name, code: io.id, parentId, provenance: 'illustrative',
@@ -121,7 +130,8 @@ async function main() {
     const got = Object.fromEntries(counts.map((c) => [c.typeKey, c._count._all]));
     const expect = {
       enterprise: 1, segment: segments.length, division: divisions.length, department: departments.length, role: roles.length,
-      value_stream: l3.length, sub_process: l4.length, step: l5.length, io_item: ioItems.length,
+      value_stream: l3.length + NEW_STREAMS.filter((ns) => !l3.some((l) => l.name === ns.name)).length,
+      sub_process: l4.length, step: l5.length, io_item: ioItems.length,
     };
     console.log(`\n=== ${company.name} (${companyId}) ===`);
     for (const [k, v] of Object.entries(expect)) {
