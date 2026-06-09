@@ -177,22 +177,31 @@ router.get('/ai-adoption', async (req: Request, res: Response, next: NextFunctio
   try {
     const cid = await companyForReq(req);
     if (!cid) return res.status(400).json({ error: 'Valid companyId query parameter is required' });
-    const nodes = await prisma.level.findMany({
-      where: { companyId: cid, levelNumber: 3 },
+    // One row per canonical value_stream NODE (the id namespace the map/Telemetry
+    // use). Adoption still stores on LevelAiAdoption, joined through node.code
+    // (= the legacy Level id) until the legacy tables retire.
+    const nodes = await prisma.node.findMany({
+      where: { companyId: cid, typeKey: 'value_stream' },
       orderBy: { name: 'asc' },
-      select: { id: true, name: true, parent: { select: { name: true } }, aiAdoption: true },
+      select: { id: true, name: true, code: true, parent: { select: { name: true } } },
     });
+    const codes = nodes.map((n) => n.code).filter((c): c is string => !!c);
+    const adoption = await prisma.levelAiAdoption.findMany({ where: { levelId: { in: codes } } });
+    const byLevel = new Map(adoption.map((a) => [a.levelId, a]));
     res.json({
       levels: [...AI_LEVELS],
-      rows: nodes.map((n) => ({
-        levelId: n.id,
-        name: n.name,
-        domain: n.parent?.name ?? null,
-        aiAssist: n.aiAdoption?.aiAssist ?? 'not_used',
-        aiAugment: n.aiAdoption?.aiAugment ?? 'not_used',
-        aiWorkflow: n.aiAdoption?.aiWorkflow ?? 'not_used',
-        aiAutonomous: n.aiAdoption?.aiAutonomous ?? 'not_used',
-      })),
+      rows: nodes.map((n) => {
+        const a = n.code ? byLevel.get(n.code) : undefined;
+        return {
+          levelId: n.id, // canonical node id (PATCH accepts it)
+          name: n.name,
+          domain: n.parent?.name ?? null,
+          aiAssist: a?.aiAssist ?? 'not_used',
+          aiAugment: a?.aiAugment ?? 'not_used',
+          aiWorkflow: a?.aiWorkflow ?? 'not_used',
+          aiAutonomous: a?.aiAutonomous ?? 'not_used',
+        };
+      }),
     });
   } catch (e) {
     next(e);
@@ -203,8 +212,13 @@ router.patch('/ai-adoption/:levelId', async (req: Request, res: Response, next: 
   try {
     const cid = await companyForReq(req);
     if (!cid) return res.status(400).json({ error: 'Valid companyId query parameter is required' });
-    const node = await prisma.level.findFirst({ where: { id: req.params.levelId, companyId: cid, levelNumber: 3 }, select: { id: true } });
-    if (!node) return res.status(404).json({ error: 'Not found' });
+    // Accept the value_stream node id (preferred) or a legacy Level id.
+    const vsNode = await prisma.node.findFirst({ where: { id: req.params.levelId, companyId: cid, typeKey: 'value_stream' }, select: { id: true, code: true, name: true } });
+    const levelId = vsNode ? vsNode.code : (await prisma.level.findFirst({ where: { id: req.params.levelId, companyId: cid, levelNumber: 3 }, select: { id: true } }))?.id ?? null;
+    if (!levelId) {
+      return res.status(vsNode ? 400 : 404).json({ error: vsNode ? `"${vsNode.name}" has no legacy storage row yet — editable after the storage migration` : 'Not found' });
+    }
+    const node = { id: levelId };
 
     const data: Record<string, string> = {};
     for (const f of AI_FIELDS) {

@@ -299,19 +299,27 @@ router.get('/value-stream-adoption', async (req: Request, res: Response, next: N
   try {
     const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true } });
     if (!company) return res.status(404).json({ error: 'No company' });
-    const nodes = await prisma.level.findMany({
-      where: { companyId: company.id, levelNumber: 3 },
+    // Canonical value_stream NODES (ids match the map focus + admin editor);
+    // adoption joins through node.code (= legacy Level id) until retirement.
+    const nodes = await prisma.node.findMany({
+      where: { companyId: company.id, typeKey: 'value_stream' },
       orderBy: { name: 'asc' },
-      select: { id: true, name: true, parent: { select: { name: true } }, aiAdoption: true },
+      select: { id: true, name: true, code: true, parent: { select: { name: true } } },
     });
+    const codes = nodes.map((n) => n.code).filter((c): c is string => !!c);
+    const adoption = await prisma.levelAiAdoption.findMany({ where: { levelId: { in: codes } } });
+    const byLevel = new Map(adoption.map((a) => [a.levelId, a]));
     const idx = (v: string | undefined) => AI_LEVEL_INDEX[v ?? 'not_used'] ?? 0;
     res.json({
-      valueStreams: nodes.map((n) => ({
-        id: n.id,
-        name: n.name,
-        domain: n.parent?.name ?? null,
-        cells: [idx(n.aiAdoption?.aiAssist), idx(n.aiAdoption?.aiAugment), idx(n.aiAdoption?.aiWorkflow), idx(n.aiAdoption?.aiAutonomous)],
-      })),
+      valueStreams: nodes.map((n) => {
+        const a = n.code ? byLevel.get(n.code) : undefined;
+        return {
+          id: n.id,
+          name: n.name,
+          domain: n.parent?.name ?? null,
+          cells: [idx(a?.aiAssist), idx(a?.aiAugment), idx(a?.aiWorkflow), idx(a?.aiAutonomous)],
+        };
+      }),
     });
   } catch (e) { next(e); }
 });
