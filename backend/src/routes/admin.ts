@@ -6,6 +6,20 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 import { ENTITY_LIST, getEntity, buildData, companyWhere, type AdminEntity } from '../lib/adminRegistry.js';
 import { LEVEL_HANDLERS } from '../lib/valueStreamAdmin.js';
 import { logAudit, computeDiff } from '../services/audit.js';
+import { recomputeInitiative } from '../services/portfolioRollup.js';
+
+// Line items whose writes change an initiative's denormalized money rollup, so the
+// admin recomputes the parent after create/update/delete (audit A3/ARCH-8).
+const RECOMPUTE_MODELS = new Set(['benefitLine', 'costLine']);
+function maybeRecompute(entity: AdminEntity, row: { initiativeId?: string } | null) {
+  if (row?.initiativeId && RECOMPUTE_MODELS.has(entity.model)) void recomputeInitiative(row.initiativeId);
+}
+
+// tenantId filter fragment — empty for tenant-less line items (isolation comes from
+// the company/parent scope instead).
+function tenantWhere(req: Request, entity: AdminEntity): Record<string, unknown> {
+  return entity.hasTenantId === false ? {} : { tenantId: req.tenantId };
+}
 
 // Generic, schema-driven CRUD over every tenant-scoped operating-model table.
 // One router serves all ~25 entities: the registry (derived from Prisma DMMF)
@@ -44,7 +58,7 @@ function readScope(req: Request, res: Response, entity: AdminEntity): Record<str
     res.status(400).json({ error: 'companyId query parameter is required' });
     return null;
   }
-  return companyWhere(entity, cid);
+  return companyWhere(entity, cid, req.tenantId);
 }
 
 // The active companyId, or null after sending a 400 (used by the unified
@@ -154,7 +168,7 @@ router.get('/:entity', async (req: Request, res: Response, next: NextFunction) =
     const scope = readScope(req, res, entity);
     if (scope === null) return;
 
-    const where: Record<string, unknown> = { tenantId: req.tenantId, ...scope };
+    const where: Record<string, unknown> = { ...tenantWhere(req, entity), ...scope };
     if (search && entity.labelField !== 'id') {
       where[entity.labelField] = { contains: search, mode: 'insensitive' };
     }
@@ -187,7 +201,7 @@ router.get('/:entity/:id', async (req: Request, res: Response, next: NextFunctio
     }
     const scope = readScope(req, res, entity);
     if (scope === null) return;
-    const row = await delegate(entity).findFirst({ where: { id: req.params.id, tenantId: req.tenantId, ...scope } });
+    const row = await delegate(entity).findFirst({ where: { id: req.params.id, ...tenantWhere(req, entity), ...scope } });
     if (!row) return res.status(404).json({ error: 'Not found' });
     res.json(row);
   } catch (e) {
@@ -216,10 +230,11 @@ router.post('/:entity', async (req: Request, res: Response, next: NextFunction) 
     } catch (e) {
       return res.status(400).json({ error: (e as Error).message });
     }
-    data.tenantId = req.tenantId;
+    if (entity.hasTenantId !== false) data.tenantId = req.tenantId;
     if (!(await applyWriteScope(req, res, entity, data))) return;
 
     const created = await delegate(entity).create({ data });
+    maybeRecompute(entity, created);
     logAudit({
       tenantId: req.tenantId,
       actorEmail: req.user.email,
@@ -252,7 +267,7 @@ router.patch('/:entity/:id', async (req: Request, res: Response, next: NextFunct
 
     const scope = readScope(req, res, entity);
     if (scope === null) return;
-    const before = await delegate(entity).findFirst({ where: { id: req.params.id, tenantId: req.tenantId, ...scope } });
+    const before = await delegate(entity).findFirst({ where: { id: req.params.id, ...tenantWhere(req, entity), ...scope } });
     if (!before) return res.status(404).json({ error: 'Not found' });
 
     let data: Record<string, unknown>;
@@ -264,6 +279,7 @@ router.patch('/:entity/:id', async (req: Request, res: Response, next: NextFunct
     if (!(await applyWriteScope(req, res, entity, data))) return;
 
     const updated = await delegate(entity).update({ where: { id: req.params.id }, data });
+    maybeRecompute(entity, updated);
     const diff = computeDiff(before, updated, entity.fields.map((f) => f.name));
     if (Object.keys(diff).length) {
       logAudit({
@@ -299,10 +315,11 @@ router.delete('/:entity/:id', async (req: Request, res: Response, next: NextFunc
 
     const scope = readScope(req, res, entity);
     if (scope === null) return;
-    const before = await delegate(entity).findFirst({ where: { id: req.params.id, tenantId: req.tenantId, ...scope } });
+    const before = await delegate(entity).findFirst({ where: { id: req.params.id, ...tenantWhere(req, entity), ...scope } });
     if (!before) return res.status(404).json({ error: 'Not found' });
 
     await delegate(entity).delete({ where: { id: req.params.id } });
+    maybeRecompute(entity, before);
     logAudit({
       tenantId: req.tenantId,
       actorEmail: req.user.email,

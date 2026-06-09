@@ -38,6 +38,9 @@ export type AdminEntity = {
   labelField: string; // field used for display + search
   companyVia: CompanyVia; // how records scope to a company
   fields: AdminField[]; // editable fields (excludes id, tenantId, companyId, createdAt, updatedAt)
+  hasTenantId?: boolean; // false for transitively-scoped line items (no tenantId column).
+                         // When false, tenant isolation comes from the parent FK, not a
+                         // tenantId filter. Undefined/true ⇒ tenant-scoped directly.
   hidden?: boolean; // kept resolvable (FK target) but not listed in the sidebar
   group?: string; // sidebar section this entity belongs to (assigned from GROUPS)
 };
@@ -52,6 +55,15 @@ export type AdminEntity = {
 const DENY = new Set([
   'User', 'AuditEntry', 'Tenant',
 ]);
+
+// Tenant-less line-item tables that scope to a company TRANSITIVELY through a
+// parent FK (e.g. BenefitLine → initiative → company). Opted in explicitly so the
+// admin can edit the time-phased financial / delivery line items (audit A3). Their
+// parent (PortfolioInitiative) carries tenantId + companyId, so tenant isolation is
+// enforced through the relation. MetricValue is intentionally excluded — its sparse
+// benefit/cost FK needs a two-level scope and it is edited as a time series in the
+// portfolio values grid (which already recomputes rollups).
+const TRANSITIVE = new Set(['BenefitLine', 'CostLine', 'Milestone', 'RaidItem']);
 
 // Label-field overrides for tables whose identifying column isn't name/title/text.
 // Without these the list would fall back to showing the raw id.
@@ -82,7 +94,7 @@ const GROUPS: { group: string; slugs: string[] }[] = [
   { group: 'People', slugs: ['person', 'assignment', 'personTask', 'personMetric', 'personAppUsage', 'personSignal'] },
   { group: 'Change & Risk', slugs: ['initiative', 'initiativeValueStream', 'initiativeDivision', 'risk', 'scenario'] },
   { group: 'Deliverables & Tasks', slugs: ['deliverable', 'task'] },
-  { group: 'Initiative Tracker (SPM)', slugs: ['program', 'workstream', 'portfolioInitiative'] },
+  { group: 'Initiative Tracker (SPM)', slugs: ['program', 'workstream', 'portfolioInitiative', 'benefitLine', 'costLine', 'milestone', 'raidItem'] },
   { group: 'Application Rationalization', slugs: ['rationalizationWorkspace', 'rationalizationApp', 'rationalizationComponent', 'rationalizationCapability', 'rationalizationMicroservice', 'rationalizationPlanStep'] },
   { group: 'External', slugs: ['externalInteraction'] },
 ];
@@ -184,13 +196,14 @@ function buildEntity(model: Prisma.DMMF.Model, companyModels: Set<string>): Admi
     label: humanize(model.name),
     labelField: LABEL_OVERRIDES[camel(model.name)] ?? pickLabelField(model),
     companyVia,
+    hasTenantId: model.fields.some((f) => f.name === 'tenantId'),
     fields,
   };
 }
 
 function build(): Record<string, AdminEntity> {
   const models = Prisma.dmmf.datamodel.models.filter(
-    (m) => !DENY.has(m.name) && m.fields.some((f) => f.name === 'tenantId'),
+    (m) => !DENY.has(m.name) && (m.fields.some((f) => f.name === 'tenantId') || TRANSITIVE.has(m.name)),
   );
   // Tables that carry their own companyId — used to resolve transitive scoping.
   const companyModels = new Set(
@@ -247,12 +260,14 @@ export function getEntity(slug: string): AdminEntity | undefined {
 }
 
 // Prisma `where` fragment that scopes an entity's rows to one company. Empty for
-// the Company table (tenant-scoped only).
-export function companyWhere(entity: AdminEntity, companyId: string): Record<string, unknown> {
+// the Company table (tenant-scoped only). For relation-scoped entities the parent
+// filter also pins tenantId (the parent always carries it) — this is what enforces
+// tenant isolation for tenant-less line items, which have no tenantId of their own.
+export function companyWhere(entity: AdminEntity, companyId: string, tenantId?: string): Record<string, unknown> {
   const v = entity.companyVia;
   if (!v) return {};
   if (v.kind === 'direct') return { companyId };
-  return { [v.objectField]: { companyId } };
+  return { [v.objectField]: { companyId, ...(tenantId ? { tenantId } : {}) } };
 }
 
 // Coerce a raw JSON value from the request body into the type Prisma expects for

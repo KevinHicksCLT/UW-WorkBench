@@ -20,6 +20,8 @@ const CENSUS = {
   organization: 364, valueStreams: 338, rationalizationWorkspace: 6,
   rationalizationApp: 12, rationalizationComponent: 30, rationalizationCapability: 128,
   rationalizationMicroservice: 30, rationalizationPlanStep: 0,
+  // Transitively-scoped line items now editable in admin (A3), scoped via initiative→company.
+  benefitLine: 9, costLine: 10, milestone: 15, raidItem: 11,
 };
 
 const login = async () => {
