@@ -276,6 +276,33 @@ router.get('/value-streams', async (req: Request, res: Response, next: NextFunct
   } catch (e) { next(e); }
 });
 
+// AI-adoption heat-map source for Telemetry. Canonical value streams (Level nodes,
+// levelNumber = 3) with their LevelAiAdoption mapped to a 0-4 level per AI mode
+// (not_used=0 … embedded=4) and the parent node as the domain. This is the same
+// model Value Streams / Home render, so Telemetry now agrees with the rest of the
+// app (audit D3/D7). Streams with no AI yet return all-zero (a real <100% ratio).
+const AI_LEVEL_INDEX: Record<string, number> = { not_used: 0, pilot: 1, emerging: 2, scaling: 3, embedded: 4 };
+router.get('/value-stream-adoption', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true } });
+    if (!company) return res.status(404).json({ error: 'No company' });
+    const nodes = await prisma.level.findMany({
+      where: { companyId: company.id, levelNumber: 3 },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, parent: { select: { name: true } }, aiAdoption: true },
+    });
+    const idx = (v: string | undefined) => AI_LEVEL_INDEX[v ?? 'not_used'] ?? 0;
+    res.json({
+      valueStreams: nodes.map((n) => ({
+        id: n.id,
+        name: n.name,
+        domain: n.parent?.name ?? null,
+        cells: [idx(n.aiAdoption?.aiAssist), idx(n.aiAdoption?.aiAugment), idx(n.aiAdoption?.aiWorkflow), idx(n.aiAdoption?.aiAutonomous)],
+      })),
+    });
+  } catch (e) { next(e); }
+});
+
 // Telemetry catalog — the full inventory of trackable signals/metrics defined for
 // the company (the "what can we measure" reference, akin to a Viva Insights metric
 // catalog). Read straight from the Metric table, which is sourced from the

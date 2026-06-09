@@ -4,9 +4,7 @@ import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
 import PageHeader from '../components/PageHeader';
 import SignalCatalog from '../components/SignalCatalog';
-import {
-  MODES, HEAT, levelsFor,
-} from '../lib/aiAdoption';
+import { MODES, HEAT } from '../lib/aiAdoption';
 
 // Active AI — where AI is being applied across the company, and how far up the
 // autonomy spectrum (AI assistant → fully autonomous agent). A heat map crosses
@@ -15,9 +13,10 @@ import {
 // at a glance. Use cases + levels are authored per value stream in
 // lib/aiAdoption.ts, grounded in each stream's real work.
 
+// Canonical value stream (Level node) + its AI-adoption levels (0-4 per mode),
+// from /explorer/value-stream-adoption. Edited in Data Admin → Telemetry → AI adoption.
 type ValueStream = {
-  id: string; name: string; domain: string | null; domainId: string | null;
-  divisionIds: string[]; categories: string[]; roleIds: string[];
+  id: string; name: string; domain: string | null; cells: number[];
 };
 
 function Tile({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
@@ -41,15 +40,16 @@ export default function ActiveAI() {
     if (companyLoading) return;
     setLoading(true);
     setError('');
-    api.get('/explorer/value-streams')
+    api.get('/explorer/value-stream-adoption')
       .then((d) => setStreams(d.valueStreams ?? []))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [companyId, companyLoading]);
 
   // Build the heat matrix: one row per value stream, one cell (level) per mode.
+  // Levels come straight from the DB (LevelAiAdoption), edited in Data Admin.
   const rows = useMemo(() =>
-    streams.map((vs) => ({ vs, cells: levelsFor(vs.name) })), [streams]);
+    streams.map((vs) => ({ vs, cells: vs.cells ?? [0, 0, 0, 0] })), [streams]);
 
   // Group rows by value-stream domain for readable section headers.
   const groups = useMemo(() => {
@@ -166,7 +166,8 @@ export default function ActiveAI() {
       </div>
 
       <p className="text-[11px] text-[#a3a3a3] mt-3 italic">
-        Adoption levels and use cases are illustrative — authored per value stream from its real work until live adoption telemetry is wired in.
+        Adoption levels are read from the operating model (the same value streams as Value Streams and Home) and edited in
+        Data Admin → Telemetry → AI adoption. Streams with no AI yet show “Not used”. Illustrative until live adoption telemetry is wired in.
       </p>
       </>
       )}
@@ -193,7 +194,7 @@ function DomainGroup({ domain, rows }: { domain: string; rows: { vs: ValueStream
       {open && rows.map(({ vs, cells }) => (
         <tr key={vs.id} className="border-b border-[#f5f5f5] hover:bg-[#fafafa] group">
           <td className="px-5 py-2 sticky left-0 bg-white group-hover:bg-[#fafafa] z-10">
-            <Link to={`/active-ai/${vs.id}`} className="text-sm text-[#171717] group-hover:text-[#4338ca] truncate block max-w-[260px]">
+            <Link to={`/overview?focus=${vs.id}`} className="text-sm text-[#171717] group-hover:text-[#4338ca] truncate block max-w-[260px]">
               {vs.name}
             </Link>
           </td>
