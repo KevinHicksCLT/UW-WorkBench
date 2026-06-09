@@ -36,10 +36,12 @@ async function main() {
 
     // L2 Divisions → parent = its segment node (by higherCategory)
     const divByLegacyId = new Map<string, string>();
+    const divByName = new Map<string, string>();
     for (const [i, d] of divisions.entries()) {
       const parentId = d.higherCategory ? segByName.get(d.higherCategory) ?? enterprise.id : enterprise.id;
       const n = await prisma.node.create({ data: { companyId, typeKey: 'division', name: d.name, code: d.id, parentId, provenance: 'real', sortOrder: i } });
       divByLegacyId.set(d.id, n.id);
+      divByName.set(d.name, n.id);
     }
 
     // L3 Departments → parent = its division node (Department.divisionId)
@@ -63,16 +65,72 @@ async function main() {
       });
     }
 
+    // ── WORK branch: value_stream / sub_process / step from the canonical Level
+    // tree (levelNumber 3/4/5); io_item from IoItem (legacy-VS name → VS node). ──
+    const levels = await prisma.level.findMany({
+      where: { companyId, levelNumber: { in: [2, 3, 4, 5] } },
+      orderBy: [{ levelNumber: 'asc' }, { sortOrder: 'asc' }],
+      select: { id: true, name: true, parentId: true, levelNumber: true, sortOrder: true, description: true, leads: true, supporting: true, inputs: true, outputs: true, notes: true },
+    });
+    const l2NameById = new Map(levels.filter((l) => l.levelNumber === 2).map((l) => [l.id, l.name]));
+    const levelToNode = new Map<string, string>(); // Level.id → Node.id (L3/L4/L5)
+    const unmatchedVs: string[] = [];
+
+    const l3 = levels.filter((l) => l.levelNumber === 3);
+    for (const [i, l] of l3.entries()) {
+      const divName = l.parentId ? l2NameById.get(l.parentId) : null;
+      const parentId = divName ? divByName.get(divName) ?? null : null;
+      if (!parentId) unmatchedVs.push(l.name);
+      const n = await prisma.node.create({ data: { companyId, typeKey: 'value_stream', name: l.name, code: l.id, parentId, description: l.description, provenance: 'illustrative', sortOrder: l.sortOrder || i } });
+      levelToNode.set(l.id, n.id);
+    }
+    const l4 = levels.filter((l) => l.levelNumber === 4);
+    for (const [i, l] of l4.entries()) {
+      const parentId = l.parentId ? levelToNode.get(l.parentId) ?? null : null;
+      const n = await prisma.node.create({ data: { companyId, typeKey: 'sub_process', name: l.name, code: l.id, parentId, description: l.description, provenance: 'illustrative', sortOrder: l.sortOrder || i } });
+      levelToNode.set(l.id, n.id);
+    }
+    const l5 = levels.filter((l) => l.levelNumber === 5);
+    for (const [i, l] of l5.entries()) {
+      const parentId = l.parentId ? levelToNode.get(l.parentId) ?? null : null;
+      const n = await prisma.node.create({
+        data: { companyId, typeKey: 'step', name: l.name, code: l.id, parentId, description: l.description, provenance: 'illustrative', sortOrder: l.sortOrder || i,
+          attributes: { leads: l.leads, supporting: l.supporting, inputs: l.inputs, outputs: l.outputs, notes: l.notes } },
+      });
+      levelToNode.set(l.id, n.id);
+    }
+
+    // io_item ← IoItem (preserve ALL; map legacy-VS NAME → canonical VS node; log unmatched)
+    const vsLegacy = await prisma.valueStream.findMany({ where: { companyId }, select: { id: true, name: true } });
+    const vsLegacyName = new Map(vsLegacy.map((v) => [v.id, v.name]));
+    const vsNodeByName = new Map(l3.map((l) => [l.name, levelToNode.get(l.id)!]));
+    const ioItems = await prisma.ioItem.findMany({ where: { valueStream: { companyId } }, select: { id: true, name: true, type: true, valueStreamId: true, keyRoles: true, dataElements: true, l3: true, l4: true } });
+    const unmatchedIo: string[] = [];
+    for (const io of ioItems) {
+      const vsName = vsLegacyName.get(io.valueStreamId);
+      const parentId = vsName ? vsNodeByName.get(vsName) ?? null : null;
+      if (!parentId) unmatchedIo.push(io.name);
+      await prisma.node.create({
+        data: { companyId, typeKey: 'io_item', name: io.name, code: io.id, parentId, provenance: 'illustrative',
+          attributes: { type: io.type, keyRoles: io.keyRoles, dataElements: io.dataElements, l3: io.l3, l4: io.l4, legacyValueStream: vsName ?? null } },
+      });
+    }
+
     // ── reconcile ──
     const counts = await prisma.node.groupBy({ by: ['typeKey'], where: { companyId }, _count: { _all: true } });
     const got = Object.fromEntries(counts.map((c) => [c.typeKey, c._count._all]));
-    const expect = { enterprise: 1, segment: segments.length, division: divisions.length, department: departments.length, role: roles.length };
+    const expect = {
+      enterprise: 1, segment: segments.length, division: divisions.length, department: departments.length, role: roles.length,
+      value_stream: l3.length, sub_process: l4.length, step: l5.length, io_item: ioItems.length,
+    };
     console.log(`\n=== ${company.name} (${companyId}) ===`);
     for (const [k, v] of Object.entries(expect)) {
       const g = got[k] ?? 0;
       console.log(`  ${k.padEnd(11)} expect ${String(v).padStart(4)}  got ${String(g).padStart(4)}  ${g === v ? 'OK' : 'MISMATCH'}`);
     }
     if (orphanRoles.length) console.log(`  ⚠ ${orphanRoles.length} roles with no department/division parent (logged): ${orphanRoles.slice(0, 8).join(', ')}${orphanRoles.length > 8 ? '…' : ''}`);
+    if (unmatchedVs.length) console.log(`  ⚠ ${unmatchedVs.length} value streams with no division parent (logged): ${unmatchedVs.slice(0, 8).join(', ')}${unmatchedVs.length > 8 ? '…' : ''}`);
+    console.log(`  io_item: ${ioItems.length - unmatchedIo.length}/${ioItems.length} attached to a canonical value stream (${unmatchedIo.length} logged — deferred 29→21 reconciliation)`);
   }
 }
 
