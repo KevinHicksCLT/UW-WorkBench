@@ -134,7 +134,7 @@ function TreeRow({ item, depth, wide, defaultOpen, trail = [], onDrill, onNaviga
           {kids.length > 0 && <span className="text-[#a3a3a3] font-normal"> ({kids.length})</span>}
         </span>
         <span className="flex items-center gap-1 flex-wrap mt-0.5 empty:hidden">
-          {tag && !isRole && !isPerson && !isCheck && (
+          {tag && !isPerson && (
             <span className={`text-[8.5px] font-semibold uppercase tracking-wide rounded px-1.5 py-px ${tag.chip}`}>{tag.label}</span>
           )}
           {item.hint && !isRole && (
