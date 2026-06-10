@@ -63,6 +63,8 @@ model Company {
   valueStreams         ValueStream[]
   externalInteractions ExternalInteraction[]
   applications         Application[]
+  stepAppUsages        StepAppUsage[]
+  stepDeliverables     StepDeliverable[]
   metrics              Metric[]
   initiatives          Initiative[]
   people               Person[]
@@ -297,6 +299,7 @@ model Role {
   sponsoredInitiatives Initiative[]          @relation("InitiativeSponsor")
   ownedRisks           Risk[]               @relation("RiskOwner")
   ownedStandardItems   StandardItem[]       @relation("StandardItemOwner")
+  approvedDeliverables StepDeliverable[]
 
   @@unique([tenantId, companyId, name])
   @@index([companyId])
@@ -378,6 +381,8 @@ model SubValueStream {
   children      SubValueStream[] @relation("SubStreamTree")
   level         Int // 3 = Process Area, 4 = Sub-Process, 5 = Process Step
   name          String
+  // Bridge Input L4 Process ID (CI-01-01) on level-4 rows.
+  code          String?
   inputs        String?
   outputs       String?
   upstream      String?
@@ -554,10 +559,16 @@ model Application {
   depreciationCost    Float?  // Depreciation / Amortization
   overheadCost        Float?  // Allocated Overhead
   totalTco            Float?  // Total Annual TCO
+  // Bridge Input "Cap – Application Catalog" stable key (APP-001) + SoR flag.
+  code           String?
+  systemOfRecord Boolean?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  valueStreamLinks ApplicationValueStream[]
+  valueStreamLinks     ApplicationValueStream[]
+  stepUsages           StepAppUsage[]
+  sorDeliverables      StepDeliverable[] @relation("DeliverableSorApp")
+  approvalDeliverables StepDeliverable[] @relation("DeliverableApprovalApp")
 
   @@unique([tenantId, companyId, name])
   @@index([companyId])
@@ -631,10 +642,74 @@ model ProcessStep {
   notes                String?
   externalParticipants String?
   illustrative         Boolean     @default(false)
+  // Bridge Input workbook stable keys: L5 Step ID (CI-01-01-S03) and its L4
+  // Parent Process ID (CI-01-01) — join keys for the step-lens bridges.
+  code                 String?
+  parentProcessId      String?
   createdAt            DateTime    @default(now())
+
+  appUsages    StepAppUsage[]
+  deliverables StepDeliverable[]
 
   @@index([valueStreamId])
   @@index([valueStreamId, stepNumber])
+  @@index([code])
+}
+
+// Step lens (Bridge Input "Cap – App Usage by Step"): which application is used
+// at which L4/L5 step, and how. activityCode is the workbook Activity ID
+// (CI-01-01 for an L4, CI-01-01-S03 for an L5 step); processStepId is resolved
+// for L5 codes. Real workbook rows carry illustrative=false.
+model StepAppUsage {
+  id            String       @id @default(cuid())
+  tenantId      String
+  companyId     String
+  company       Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  activityCode  String
+  processStepId String?
+  processStep   ProcessStep? @relation(fields: [processStepId], references: [id], onDelete: Cascade)
+  applicationId String
+  application   Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  usageType     String // Execution | System of Record | Approval | Reporting | Support
+  isPrimary     Boolean      @default(false)
+  notes         String?
+  illustrative  Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+
+  @@index([companyId])
+  @@index([activityCode])
+  @@index([processStepId])
+  @@index([applicationId])
+}
+
+// Step lens (Bridge Input "Cap – Deliverables & Approvals"): the deliverable a
+// step produces, where it is memorialized (system of record) and how/by whom
+// it is approved.
+model StepDeliverable {
+  id                    String       @id @default(cuid())
+  tenantId              String
+  companyId             String
+  company               Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  code                  String? // D-nnnn for real workbook rows
+  activityCode          String
+  processStepId         String?
+  processStep           ProcessStep? @relation(fields: [processStepId], references: [id], onDelete: Cascade)
+  name                  String
+  sorApplicationId      String?
+  sorApplication        Application? @relation("DeliverableSorApp", fields: [sorApplicationId], references: [id], onDelete: SetNull)
+  approverRoleId        String?
+  approverRole          Role?        @relation(fields: [approverRoleId], references: [id], onDelete: SetNull)
+  approverRoleRaw       String? // workbook cell as written (kept when unresolved)
+  approvalApplicationId String?
+  approvalApplication   Application? @relation("DeliverableApprovalApp", fields: [approvalApplicationId], references: [id], onDelete: SetNull)
+  approvalType          String? // System Workflow | Manual Sign-off | E-Signature | …
+  notes                 String?
+  illustrative          Boolean      @default(true)
+  createdAt             DateTime     @default(now())
+
+  @@index([companyId])
+  @@index([activityCode])
+  @@index([processStepId])
 }
 
 // v13 Inputs/Outputs/Deliverables inventory + their data elements.
@@ -793,6 +868,9 @@ model Person {
   location       String?
   region         String? // Onshore | Nearshore | Offshore
   title          String?
+  // Bridge Input "Cap – People" capacity fields (per-role defaults applied).
+  fte             Float?
+  netAvailableHrs Float? // per period (month): Std×FTE − leave/holiday
   illustrative   Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
