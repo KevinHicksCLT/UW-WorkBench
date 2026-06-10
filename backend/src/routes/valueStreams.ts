@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { tenantValueStream } from '../lib/tenant.js';
+import { legacyNamesFor } from '../lib/vsMapping.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -20,15 +22,16 @@ type SubRow = {
   depth: number;
 };
 
-// GET /value-streams — list streams in the tenant.
+// GET /value-streams — the canonical streams (value_stream nodes), with the
+// parent division as the domain grouping.
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const streams = await prisma.valueStream.findMany({
-      where: { tenantId: req.tenantId },
+    const nodes = await prisma.node.findMany({
+      where: { typeKey: 'value_stream', company: { tenantId: req.tenantId } },
       orderBy: { name: 'asc' },
-      select: { id: true, name: true, domain: true },
+      select: { id: true, name: true, parent: { select: { name: true } } },
     });
-    res.json(streams);
+    res.json(nodes.map((n) => ({ id: n.id, name: n.name, domain: n.parent?.name ?? null })));
   } catch (e) { next(e); }
 });
 
@@ -36,17 +39,34 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 // participating roles with their participation type.
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const vs = await tenantValueStream(req.params.id, req.tenantId);
-    if (!vs) return res.status(404).json({ error: 'Not found' });
+    // Accept the canonical value_stream node id (the map / Telemetry namespace)
+    // or a legacy ValueStream id. A node aggregates every legacy stream folded
+    // into it by the 29→21 mapping.
+    const node = await prisma.node.findFirst({
+      where: { id: req.params.id, typeKey: 'value_stream', company: { tenantId: req.tenantId } },
+      select: { id: true, name: true, companyId: true, parent: { select: { name: true } } },
+    });
+    let vsIds: string[];
+    let header: { id: string; name: string; domain: string | null };
+    if (node) {
+      const rows = await prisma.valueStream.findMany({ where: { companyId: node.companyId, name: { in: legacyNamesFor(node.name) } }, select: { id: true } });
+      vsIds = rows.map((r) => r.id);
+      header = { id: node.id, name: node.name, domain: node.parent?.name ?? null };
+    } else {
+      const vs = await tenantValueStream(req.params.id, req.tenantId);
+      if (!vs) return res.status(404).json({ error: 'Not found' });
+      vsIds = [vs.id];
+      header = { id: vs.id, name: vs.name, domain: vs.domain };
+    }
+    const vsIdsSafe = vsIds.length ? vsIds : ['_'];
 
     // Prisma can't express WITH RECURSIVE through the query builder, so the
-    // L3→L4 sub-stream tree is a typed raw query (architectural call: $queryRaw
-    // recursive CTE for deep drill-downs). ${vs.id} is parameterized.
+    // L3→L4 sub-stream tree is a typed raw query. The id list is parameterized.
     const subStreams = await prisma.$queryRaw<SubRow[]>`
       WITH RECURSIVE tree AS (
         SELECT id, "parentId", level, name, inputs, outputs, upstream, downstream, notes, 0 AS depth
         FROM "SubValueStream"
-        WHERE "valueStreamId" = ${vs.id} AND "parentId" IS NULL
+        WHERE "valueStreamId" IN (${Prisma.join(vsIdsSafe)}) AND "parentId" IS NULL
         UNION ALL
         SELECT s.id, s."parentId", s.level, s.name, s.inputs, s.outputs, s.upstream, s.downstream, s.notes, tree.depth + 1
         FROM "SubValueStream" s
@@ -57,7 +77,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     `;
 
     const roleLinks = await prisma.roleValueStream.findMany({
-      where: { valueStreamId: vs.id },
+      where: { valueStreamId: { in: vsIdsSafe } },
       orderBy: [{ participationType: 'asc' }, { subStream: 'asc' }],
       include: { role: { select: { id: true, name: true, roleFamily: true } } },
     });
@@ -66,20 +86,29 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     // SubValueStream in workbook (sourceRow) order, but the step list and the
     // inputs/outputs are pulled from the newer ProcessStep / IoItem model (the
     // SubValueStream L5 rows order alphabetically and lack lead/role detail).
-    const [backbone, processSteps, ioItems] = await Promise.all([
+    const [backbone, processSteps, ioItems, metrics] = await Promise.all([
       prisma.subValueStream.findMany({
-        where: { valueStreamId: vs.id, level: { in: [3, 4] } },
+        where: { valueStreamId: { in: vsIdsSafe }, level: { in: [3, 4] } },
         orderBy: { sourceRow: 'asc' },
         select: { id: true, parentId: true, level: true, name: true, notes: true },
       }),
       prisma.processStep.findMany({
-        where: { valueStreamId: vs.id },
+        where: { valueStreamId: { in: vsIdsSafe } },
         orderBy: { stepNumber: 'asc' },
         select: { l3: true, l4: true, stepNumber: true, name: true, leads: true },
       }),
       prisma.ioItem.findMany({
-        where: { valueStreamId: vs.id },
+        where: { valueStreamId: { in: vsIdsSafe } },
         select: { l3: true, l4: true, type: true, name: true },
+      }),
+      // Per-stream KPI definitions from the workbook metric catalog.
+      prisma.metric.findMany({
+        where: { valueStreamId: { in: vsIdsSafe } },
+        orderBy: [{ category: 'asc' }, { name: 'asc' }],
+        select: {
+          id: true, name: true, category: true, description: true, formula: true,
+          frequency: true, unit: true, targetText: true, ownerRole: true, measurementLevel: true,
+        },
       }),
     ]);
 
@@ -122,11 +151,12 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     const processAreas = l3s.map((area) => ({ id: area.id, name: area.name, subProcesses: subOf(area) }));
 
     res.json({
-      id: vs.id,
-      name: vs.name,
-      domain: vs.domain,
+      id: header.id,
+      name: header.name,
+      domain: header.domain,
       subStreams, // retained for the Flow Map tab
       processAreas,
+      metrics,
       roles: roleLinks.map((l) => ({
         roleId: l.roleId,
         roleName: l.role.name,

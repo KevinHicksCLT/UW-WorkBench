@@ -14,6 +14,8 @@ export type Group = { key: string; count: number };
 export type Dashboard = {
   company: { id: string; name: string; count: number };
   layout: string[] | null; // chosen widget ids, in order; null → DEFAULT_LAYOUT
+  footprintStats: string[] | null; // Model-footprint stat keys; null → FOOTPRINT_DEFAULT
+  widgetTitles: Record<string, string> | null; // per-widget custom display titles
   totals: Record<string, number>;
   divisionsByCategory: Group[];
   workforce: { byType: Group[]; byRegion: Group[] };
@@ -121,6 +123,9 @@ const SRC = {
   scenarios: { tab: 'initiatives', section: 'scenarios', label: 'Initiatives' },
 } as const;
 
+// Per-widget custom display title (Data Admin → Home → Edit on a widget row).
+const wt = (d: Dashboard, id: string, def: string) => d.widgetTitles?.[id]?.trim() || def;
+
 // Count-tile factory — every operating-model total is an addable headline tile.
 const tile = (
   id: string,
@@ -133,10 +138,28 @@ const tile = (
   desc: `Headline count of ${label.toLowerCase()}`,
   kind: 'tile',
   source: opts.source,
-  render: (d) => <Tile label={label} value={d.totals[totalKey] ?? 0} hint={opts.hint?.(d.totals)} to={opts.to} />,
+  render: (d) => <Tile label={wt(d, id, label)} value={d.totals[totalKey] ?? 0} hint={opts.hint?.(d.totals)} to={opts.to} />,
 });
 
 // ── The catalog ──
+// The stats the "Model footprint" card can list — configurable per company in
+// Data Admin → Home (saved to Company.dashboardConfig.footprintStats). These
+// are deliberately NOT the headline-tile counts: the card surfaces the model's
+// deeper connective tissue instead of repeating the tiles above it.
+export const FOOTPRINT_STATS: Record<string, { key: string; label: string; to: string }> = {
+  subProcesses: { key: 'subProcesses', label: 'Sub-processes', to: '/overview?view=list' },
+  ioItems: { key: 'ioItems', label: 'Inputs & outputs', to: '/work' },
+  externalParties: { key: 'externalParties', label: 'External parties', to: '/external' },
+  externalInteractions: { key: 'externalInteractions', label: 'External interactions', to: '/external' },
+  standards: { key: 'standards', label: 'Standards', to: '/standards' },
+  programs: { key: 'programs', label: 'Programs', to: '/portfolio' },
+  objectives: { key: 'objectives', label: 'Strategic objectives', to: '/portfolio' },
+  openRaid: { key: 'openRaid', label: 'Open RAID items', to: '/portfolio' },
+  connections: { key: 'connections', label: 'Model connections', to: '/overview' },
+  signals: { key: 'signals', label: 'Trackable signals', to: '/active-ai' },
+};
+export const FOOTPRINT_DEFAULT: string[] = ['subProcesses', 'ioItems', 'externalParties', 'standards'];
+
 export const WIDGET_CATALOG: Widget[] = [
   // Headline count tiles
   tile('tile:divisions', 'Divisions', 'divisions', { hint: (t) => `${t.departments} departments`, to: '/roles', source: SRC.org }),
@@ -160,7 +183,7 @@ export const WIDGET_CATALOG: Widget[] = [
     render: (d) => {
       const total = d.workforce.byType.reduce((a, g) => a + g.count, 0);
       return (
-        <Card title="Workforce mix" to="/roles" toLabel="Roles">
+        <Card title={wt(d, 'card:workforce', 'Workforce mix')} to="/roles" toLabel="Roles">
           <div className="text-xs text-[#a3a3a3] mb-2 tnum">{fmt.number(total)} people</div>
           <BarList groups={workforceBuckets(d.workforce.byType)} color="#4f46e5" />
           <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mt-4 mb-2">By region</div>
@@ -170,20 +193,19 @@ export const WIDGET_CATALOG: Widget[] = [
     },
   },
   {
-    id: 'card:modelFootprint', title: 'Model footprint', desc: 'Process steps, applications, departments, domains', kind: 'card', source: SRC.vs,
+    id: 'card:modelFootprint', title: 'Model footprint', desc: 'Deeper model counts (sub-processes, I/O, standards…) — pick via its Edit', kind: 'card', source: SRC.vs,
     render: (d) => {
       const t = d.totals;
+      // Saved keys from a retired catalog fall away; an empty pick = the default.
+      const chosen = (d.footprintStats ?? FOOTPRINT_DEFAULT).filter((k) => FOOTPRINT_STATS[k]);
+      const rows = (chosen.length ? chosen : FOOTPRINT_DEFAULT).map((k) => FOOTPRINT_STATS[k]);
       return (
-        <Card title="Model footprint">
+        <Card title={wt(d, 'card:modelFootprint', 'Model footprint')}>
           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-            {([
-              ['Process steps', t.processSteps, '/overview?view=list'],
-              ['Applications', t.applications, '/portfolio'],
-              ['Departments', t.departments, '/roles?view=departments'], ['Domains', t.domains, '/overview'],
-            ] as [string, number, string][]).map(([label, val, to]) => (
-              <Link key={label} to={to} className="flex items-center justify-between border-b border-[#f5f5f5] pb-1 group">
-                <span className="text-[#525252] group-hover:text-[#4f46e5]">{label}</span>
-                <span className="text-[#171717] tnum">{val}</span>
+            {rows.map((s) => (
+              <Link key={s.label} to={s.to} className="flex items-center justify-between border-b border-[#f5f5f5] pb-1 group">
+                <span className="text-[#525252] group-hover:text-[#4f46e5]">{s.label}</span>
+                <span className="text-[#171717] tnum">{t[s.key] ?? 0}</span>
               </Link>
             ))}
           </div>
@@ -193,23 +215,23 @@ export const WIDGET_CATALOG: Widget[] = [
   },
   {
     id: 'card:divisionsByCategory', title: 'Divisions by segment', desc: 'Division counts by CEO segment (Core Business / IT / Corporate)', kind: 'card', source: SRC.org,
-    render: (d) => <Card title="Divisions by segment" to="/roles" toLabel="Roles"><BarList groups={d.divisionsByCategory} color="#4f46e5" /></Card>,
+    render: (d) => <Card title={wt(d, 'card:divisionsByCategory', 'Divisions by segment')} to="/roles" toLabel="Roles"><BarList groups={d.divisionsByCategory} color="#4f46e5" /></Card>,
   },
   {
     id: 'card:initiativesByStatus', title: 'Initiatives by status', desc: 'Portfolio initiatives grouped by status', kind: 'card', source: SRC.initiatives,
-    render: (d) => <Card title="Initiatives by status" to="/portfolio"><BarList groups={d.initiativesByStatus} color="#4f46e5" /></Card>,
+    render: (d) => <Card title={wt(d, 'card:initiativesByStatus', 'Initiatives by status')} to="/portfolio"><BarList groups={d.initiativesByStatus} color="#4f46e5" /></Card>,
   },
   {
     id: 'card:initiativesByHealth', title: 'Initiatives by health', desc: 'Initiatives RAG health (Green / Amber / Red)', kind: 'card', source: SRC.initiatives,
-    render: (d) => <Card title="Initiatives by health" to="/portfolio"><BarList groups={d.initiativesByHealth} color={HEALTH_COLOR} /></Card>,
+    render: (d) => <Card title={wt(d, 'card:initiativesByHealth', 'Initiatives by health')} to="/portfolio"><BarList groups={d.initiativesByHealth} color={HEALTH_COLOR} /></Card>,
   },
   {
     id: 'card:risksBySeverity', title: 'Risks by severity', desc: 'Open risks grouped by severity', kind: 'card', source: SRC.risks,
-    render: (d) => <Card title="Risks by severity" to="/portfolio"><BarList groups={d.risksBySeverity} color={SEVERITY_COLOR} /></Card>,
+    render: (d) => <Card title={wt(d, 'card:risksBySeverity', 'Risks by severity')} to="/portfolio"><BarList groups={d.risksBySeverity} color={SEVERITY_COLOR} /></Card>,
   },
   {
     id: 'card:applicationsByKind', title: 'Applications by kind', desc: 'The application landscape grouped by kind', kind: 'card', source: SRC.apps,
-    render: (d) => <Card title="Applications by kind" to="/portfolio"><BarList groups={d.applicationsByKind} color="#0d9488" /></Card>,
+    render: (d) => <Card title={wt(d, 'card:applicationsByKind', 'Applications by kind')} to="/portfolio"><BarList groups={d.applicationsByKind} color="#0d9488" /></Card>,
   },
   {
     id: 'card:financials', title: 'Financial impact', desc: 'Scenario economics — net impact, benefit, cost', kind: 'card', source: SRC.scenarios,
@@ -220,7 +242,7 @@ export const WIDGET_CATALOG: Widget[] = [
         ['Annual added cost', f.annualAddedCost], ['One-time cost', f.oneTimeCost], ['App run cost (TCO)', f.appRunCost],
       ];
       return (
-        <Card title="Financial impact" to="/portfolio">
+        <Card title={wt(d, 'card:financials', 'Financial impact')} to="/portfolio">
           <div className="space-y-2 text-sm">
             {rows.map(([label, val]) => (
               <div key={label} className="flex items-center justify-between border-b border-[#f5f5f5] pb-1">
@@ -236,7 +258,7 @@ export const WIDGET_CATALOG: Widget[] = [
   {
     id: 'card:topValueStreams', title: 'Top value streams', desc: 'Value streams ranked by participating roles', kind: 'card', source: SRC.vs,
     render: (d) => (
-      <Card title="Top value streams" to="/overview">
+      <Card title={wt(d, 'card:topValueStreams', 'Top value streams')} to="/overview">
         <div className="space-y-2 text-sm">
           {d.topValueStreams.map((v) => (
             <div key={v.id} className="flex items-center justify-between border-b border-[#f5f5f5] pb-1">
@@ -251,7 +273,7 @@ export const WIDGET_CATALOG: Widget[] = [
   {
     id: 'card:topDivisions', title: 'Top divisions', desc: 'Divisions ranked by number of roles', kind: 'card', source: SRC.org,
     render: (d) => (
-      <Card title="Top divisions" to="/roles">
+      <Card title={wt(d, 'card:topDivisions', 'Top divisions')} to="/roles">
         <div className="space-y-2 text-sm">
           {d.topDivisions.map((v) => (
             <div key={v.id} className="flex items-center justify-between border-b border-[#f5f5f5] pb-1">

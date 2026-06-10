@@ -29,6 +29,7 @@ type DeliverableDetail = {
   kind: 'deliverable'; id: string; title: string; description: string | null; type: string; owner: string | null;
   valueStream: { id: string; name: string; domain: string } | null;
   subProcesses: string[]; dataElements: string[];
+  inputs: { name: string; dataElements: string[]; roles: RoleSet }[];
   assignedRoles: RoleRef[]; assignedExtra: string[];
   tasks: { id: string; title: string; owner: string | null; priority: string }[];
   downstream: { valueStreamId: string; valueStreamName: string; subProcess: string | null; roles: RoleSet }[];
@@ -63,13 +64,13 @@ function SourceTag({ source }: { source: string }) {
 // Matrix column header that doubles as a filter: the column name sits above a
 // compact native <select>. A value other than 'All' narrows the rows to that
 // column value. Styled to match the app's company picker.
-function HeaderFilter({ label, value, onChange, options }: {
-  label: string; value: string; onChange: (v: string) => void; options: string[];
+function HeaderFilter({ label, value, onChange, options, extra }: {
+  label: string; value: string; onChange: (v: string) => void; options: string[]; extra?: React.ReactNode;
 }) {
   const active = value !== 'All';
   return (
     <th className="text-left align-top px-3 py-2.5 border-b border-[#eaeaea]">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1.5">{label}</div>
+      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1.5">{label}{extra}</div>
       <div className="relative">
         <select
           value={value}
@@ -90,8 +91,8 @@ function HeaderFilter({ label, value, onChange, options }: {
 // Like HeaderFilter but with a search box inside the dropdown — used for the
 // Deliverable column, whose option list is long enough to want type-ahead. A
 // custom combobox (native <select> can't host an input); closes on outside click.
-function HeaderComboFilter({ label, value, onChange, options }: {
-  label: string; value: string; onChange: (v: string) => void; options: string[];
+function HeaderComboFilter({ label, value, onChange, options, extra }: {
+  label: string; value: string; onChange: (v: string) => void; options: string[]; extra?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -112,7 +113,7 @@ function HeaderComboFilter({ label, value, onChange, options }: {
 
   return (
     <th ref={ref} className="text-left align-top px-3 py-2.5 border-b border-[#eaeaea] relative">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1.5">{label}</div>
+      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1.5">{label}{extra}</div>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -158,12 +159,12 @@ function HeaderComboFilter({ label, value, onChange, options }: {
 
 // Like HeaderFilter but free-text — used for the Task column, whose values are
 // too many/unique for a dropdown.
-function HeaderSearch({ label, value, onChange }: {
-  label: string; value: string; onChange: (v: string) => void;
+function HeaderSearch({ label, value, onChange, extra }: {
+  label: string; value: string; onChange: (v: string) => void; extra?: React.ReactNode;
 }) {
   return (
     <th className="text-left align-top px-3 py-2.5 border-b border-[#eaeaea]">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1.5">{label}</div>
+      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1.5">{label}{extra}</div>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -277,6 +278,30 @@ function DetailBody({ detail }: { detail: Detail }) {
         detail.deliverable && <Field label="Feeds deliverable">{detail.deliverable.title}</Field>
       )}
 
+      {/* Upstream inputs consumed by the producing sub-process (DT2) */}
+      {detail.kind === 'deliverable' && (detail.inputs?.length ?? 0) > 0 && (
+        <div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-2">
+            Inputs consumed ({detail.inputs.length})
+          </div>
+          <div className="space-y-2">
+            {detail.inputs.map((inp) => (
+              <div key={inp.name} className="rounded-lg border border-[#eaeaea] p-3">
+                <div className="text-sm font-medium text-[#171717]">{inp.name}</div>
+                {inp.dataElements.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    {inp.dataElements.map((e) => <span key={e} className="pill-slate text-xs">{e}</span>)}
+                  </div>
+                )}
+                {(inp.roles.roles.length > 0 || inp.roles.unresolved.length > 0) && (
+                  <div className="mt-2"><RoleChips roles={inp.roles.roles} extra={inp.roles.unresolved} /></div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Data elements / outputs produced */}
       {detail.kind === 'deliverable' && detail.dataElements.length > 0 && (
         <Field label="Data elements">
@@ -335,6 +360,36 @@ const PRIORITY_ORDER: Record<string, number> = { High: 0, Medium: 1, Low: 2 };
 const byPriority = (a: string, b: string) =>
   (PRIORITY_ORDER[a] ?? 9) - (PRIORITY_ORDER[b] ?? 9) || a.localeCompare(b);
 
+// Column ordering: each filterable column also sorts (▲/▼ toggle in the header).
+type SortCol = 'deliverable' | 'task' | 'type' | 'valueStream' | 'role' | 'priority';
+type Sort = { col: SortCol; dir: 1 | -1 } | null;
+function compareRows(a: Row, b: Row, sort: Sort): number {
+  if (!sort) return 0;
+  const va = a[sort.col], vb = b[sort.col];
+  // Dashes (empty cells) always trail, regardless of direction.
+  if (va === DASH && vb !== DASH) return 1;
+  if (vb === DASH && va !== DASH) return -1;
+  const cmp = sort.col === 'priority' ? byPriority(va, vb) : va.localeCompare(vb);
+  return cmp * sort.dir;
+}
+
+// Small ▲/▼ toggle rendered beside each column label.
+function SortToggle({ col, sort, onSort }: { col: SortCol; sort: Sort; onSort: (c: SortCol) => void }) {
+  const active = sort?.col === col;
+  return (
+    <button
+      type="button"
+      onClick={() => onSort(col)}
+      title={active ? (sort!.dir === 1 ? 'Sorted ascending — click to reverse' : 'Sorted descending — click to clear') : 'Sort by this column'}
+      className={'ml-1 align-middle text-[10px] leading-none ' + (active ? 'text-[#171717]' : 'text-[#c4c4c4] hover:text-[#737373]')}
+    >
+      {active ? (sort!.dir === 1 ? '▲' : '▼') : '⇅'}
+    </button>
+  );
+}
+
+const PAGE_SIZE = 100;
+
 export default function Work() {
   const { companyId, loading: companyLoading } = useCompany();
   const [data, setData] = useState<WorkData>({ deliverables: [], tasks: [], valueStreams: [] });
@@ -347,6 +402,14 @@ export default function Work() {
   const [valueStream, setValueStream] = useState('All');
   const [role, setRole] = useState('All');
   const [priority, setPriority] = useState('All');
+  const [sort, setSort] = useState<Sort>(null);
+  const [page, setPage] = useState(0);
+
+  // Cycle a column's sort: none -> asc -> desc -> none. Any change resets paging.
+  function toggleSort(col: SortCol) {
+    setSort((s) => (!s || s.col !== col ? { col, dir: 1 } : s.dir === 1 ? { col, dir: -1 } : null));
+    setPage(0);
+  }
 
   useEffect(() => {
     if (companyLoading) return;
@@ -415,7 +478,7 @@ export default function Work() {
   // A row survives every active column filter.
   const filteredRows = useMemo(() => {
     const q = taskSearch.trim().toLowerCase();
-    return rows.filter((r) =>
+    const base = rows.filter((r) =>
       (deliverable === 'All' || r.deliverable === deliverable)
       && (type === 'All' || r.type === type)
       && (valueStream === 'All' || r.valueStream === valueStream)
@@ -423,7 +486,17 @@ export default function Work() {
       && (priority === 'All' || r.priority === priority)
       && (!q || r.task.toLowerCase().includes(q))
     );
-  }, [rows, deliverable, type, valueStream, role, priority, taskSearch]);
+    return sort ? [...base].sort((a, b) => compareRows(a, b, sort)) : base;
+  }, [rows, deliverable, type, valueStream, role, priority, taskSearch, sort]);
+
+  // Render at most a page of rows at a time — the full 5k+ row table is what
+  // made this screen slow, not the query.
+  const pageCount = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount - 1);
+  const pagedRows = useMemo(
+    () => filteredRows.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE),
+    [filteredRows, safePage],
+  );
 
   // Tiles count distinct deliverables and task rows among the visible rows.
   const visibleDeliverables = useMemo(
@@ -436,7 +509,7 @@ export default function Work() {
     || role !== 'All' || priority !== 'All' || taskSearch.trim() !== '';
   function clearFilters() {
     setDeliverable('All'); setType('All'); setValueStream('All');
-    setRole('All'); setPriority('All'); setTaskSearch('');
+    setRole('All'); setPriority('All'); setTaskSearch(''); setPage(0);
   }
 
   return (
@@ -452,25 +525,55 @@ export default function Work() {
       {/* ── Matrix: one row per task, filterable column headers ────────────── */}
       <SectionCard
         title="Work matrix"
-        actions={anyFilter ? (
-          <button
-            onClick={clearFilters}
-            className="text-xs font-medium text-[#525252] hover:text-[#171717] transition-colors duration-150"
-          >
-            Clear filters
-          </button>
-        ) : undefined}
+        actions={
+          <span className="flex items-center gap-3">
+            {/* Explicit ordering control (the column headers' ⇅ toggles set the same sort) */}
+            <label className="flex items-center gap-1.5 text-xs text-[#525252]">
+              Sort by
+              <select
+                className="input py-1 text-xs"
+                value={sort ? sort.col : ''}
+                onChange={(e) => { const col = e.target.value as SortCol | ''; setSort(col ? { col, dir: sort?.col === col ? sort.dir : 1 } : null); setPage(0); }}
+              >
+                <option value="">Default order</option>
+                <option value="deliverable">Deliverable (alphabetical)</option>
+                <option value="task">Task (alphabetical)</option>
+                <option value="type">Type</option>
+                <option value="valueStream">Value stream</option>
+                <option value="role">Role</option>
+                <option value="priority">Priority</option>
+              </select>
+            </label>
+            {sort && (
+              <button
+                onClick={() => { setSort((s) => (s ? { col: s.col, dir: s.dir === 1 ? -1 : 1 } : s)); setPage(0); }}
+                className="text-xs font-medium text-[#525252] hover:text-[#171717]"
+                title="Flip sort direction"
+              >
+                {sort.dir === 1 ? 'A → Z' : 'Z → A'}
+              </button>
+            )}
+            {anyFilter && (
+              <button
+                onClick={clearFilters}
+                className="text-xs font-medium text-[#525252] hover:text-[#171717] transition-colors duration-150"
+              >
+                Clear filters
+              </button>
+            )}
+          </span>
+        }
       >
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr>
-                <HeaderComboFilter label="Deliverable" value={deliverable} onChange={setDeliverable} options={deliverableOptions} />
-                <HeaderSearch label="Task" value={taskSearch} onChange={setTaskSearch} />
-                <HeaderFilter label="Type" value={type} onChange={setType} options={typeOptions} />
-                <HeaderComboFilter label="Value Stream" value={valueStream} onChange={setValueStream} options={valueStreamOptions} />
-                <HeaderComboFilter label="Role" value={role} onChange={setRole} options={roleOptions} />
-                <HeaderFilter label="Priority" value={priority} onChange={setPriority} options={priorityOptions} />
+                <HeaderComboFilter label="Deliverable" value={deliverable} onChange={(v) => { setDeliverable(v); setPage(0); }} options={deliverableOptions} extra={<SortToggle col="deliverable" sort={sort} onSort={toggleSort} />} />
+                <HeaderSearch label="Task" value={taskSearch} onChange={(v) => { setTaskSearch(v); setPage(0); }} extra={<SortToggle col="task" sort={sort} onSort={toggleSort} />} />
+                <HeaderFilter label="Type" value={type} onChange={(v) => { setType(v); setPage(0); }} options={typeOptions} extra={<SortToggle col="type" sort={sort} onSort={toggleSort} />} />
+                <HeaderComboFilter label="Value Stream" value={valueStream} onChange={(v) => { setValueStream(v); setPage(0); }} options={valueStreamOptions} extra={<SortToggle col="valueStream" sort={sort} onSort={toggleSort} />} />
+                <HeaderComboFilter label="Role" value={role} onChange={(v) => { setRole(v); setPage(0); }} options={roleOptions} extra={<SortToggle col="role" sort={sort} onSort={toggleSort} />} />
+                <HeaderFilter label="Priority" value={priority} onChange={(v) => { setPriority(v); setPage(0); }} options={priorityOptions} extra={<SortToggle col="priority" sort={sort} onSort={toggleSort} />} />
               </tr>
             </thead>
             <tbody>
@@ -478,7 +581,7 @@ export default function Work() {
                 <tr>
                   <td colSpan={6} className="text-sm text-[#a3a3a3] py-8 text-center">No work items match the filters.</td>
                 </tr>
-              ) : filteredRows.map((r) => (
+              ) : pagedRows.map((r) => (
                 <tr key={r.key} className="border-t border-[#f5f5f5] hover:bg-[#fafafa]">
                   {/* Deliverable — clickable when present; drills the deliverable */}
                   <td className="px-3 py-2.5 align-top">
@@ -515,6 +618,20 @@ export default function Work() {
               ))}
             </tbody>
           </table>
+          {pageCount > 1 && (
+            <div className="flex items-center justify-between gap-3 px-3 py-2.5 border-t border-[#eaeaea] text-xs text-[#525252]">
+              <span className="tnum">
+                {safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, filteredRows.length)} of {filteredRows.length} rows
+              </span>
+              <span className="flex items-center gap-1">
+                <button onClick={() => setPage(0)} disabled={safePage === 0} className="px-2 py-1 rounded border border-[#eaeaea] disabled:opacity-40 hover:bg-[#fafafa]">«</button>
+                <button onClick={() => setPage(safePage - 1)} disabled={safePage === 0} className="px-2 py-1 rounded border border-[#eaeaea] disabled:opacity-40 hover:bg-[#fafafa]">‹ Prev</button>
+                <span className="px-2 tnum">Page {safePage + 1} / {pageCount}</span>
+                <button onClick={() => setPage(safePage + 1)} disabled={safePage >= pageCount - 1} className="px-2 py-1 rounded border border-[#eaeaea] disabled:opacity-40 hover:bg-[#fafafa]">Next ›</button>
+                <button onClick={() => setPage(pageCount - 1)} disabled={safePage >= pageCount - 1} className="px-2 py-1 rounded border border-[#eaeaea] disabled:opacity-40 hover:bg-[#fafafa]">»</button>
+              </span>
+            </div>
+          )}
         </div>
       </SectionCard>
 

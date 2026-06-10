@@ -2,12 +2,14 @@ import { useState } from 'react';
 import type { AdminEntity } from '../../lib/adminTypes';
 import type { EditorSpec } from '../../lib/adminConfig';
 import EntityList from './EntityList';
-import LevelTreeEditor from './LevelTreeEditor';
 import MasterDetailEditor, { type ChildSpec } from './MasterDetailEditor';
 import CompanyOnboard from './CompanyOnboard';
 import RoleStudio from './RoleStudio';
 import SkillAdmin from './SkillAdmin';
 import DashboardAdmin from './DashboardAdmin';
+import ValidationPanel from './ValidationPanel';
+import AiAdoptionEditor from './AiAdoptionEditor';
+import ModelBuilder from './ModelBuilder';
 
 // Resolves one section's EditorSpec to the right editor component, wiring entity
 // metadata in from the registry. Keeps Admin.tsx declarative — the page just maps
@@ -43,23 +45,13 @@ export default function AdminSection({
     case 'dashboard':
       return <DashboardAdmin onNavigate={onNavigate} />;
 
-    case 'tree':
-      return (
-        <LevelTreeEditor
-          companyId={companyId}
-          entity={spec.entity}
-          rootLabel={spec.rootLabel}
-          levelNames={spec.levelNames}
-        />
-      );
-
     case 'list': {
       const e = bySlug.get(spec.slug);
       if (!e) return <Missing slug={spec.slug} />;
       return (
         <div>
           <Intro text={spec.intro} />
-          <EntityList entity={e} companyId={companyId} />
+          <EntityList entity={e} companyId={companyId} fixed={spec.fixed} />
         </div>
       );
     }
@@ -98,6 +90,15 @@ export default function AdminSection({
 
     case 'skills':
       return <SkillAdmin />;
+
+    case 'validations':
+      return <ValidationPanel companyId={companyId} onNavigate={onNavigate} />;
+
+    case 'aiAdoption':
+      return <AiAdoptionEditor companyId={companyId} />;
+
+    case 'builder':
+      return <ModelBuilder companyId={companyId} scope={spec.scope ?? 'all'} />;
 
     case 'catalog':
       return <CatalogEditor companyId={companyId} bySlug={bySlug} />;

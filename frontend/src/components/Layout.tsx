@@ -179,6 +179,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           <NavLink to="/active-ai">Telemetry</NavLink>
           <NavLink to="/portfolio">Initiatives</NavLink>
           <NavLink to="/work">Deliverables &amp; Tasks</NavLink>
+          <NavLink to="/external">External</NavLink>
           {user?.role === 'ADMIN' && <NavLink to="/admin">Data Admin</NavLink>}
         </nav>
       </header>
@@ -257,6 +258,12 @@ export default function Layout({ children }: { children: ReactNode }) {
                 className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/work') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
               >
                 Deliverables & Tasks
+              </button>
+              <button
+                onClick={() => go('/external')}
+                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/external') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
+              >
+                External
               </button>
               {user?.role === 'ADMIN' && (
                 <button

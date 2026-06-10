@@ -23,6 +23,7 @@ import type {
 import { CARD_W, CARD_H, DOMAIN_HEX } from './model';
 import type { NodeFocusState, DivisionSummary, DivisionFlow, FlowStep, FlowValueStream } from './model';
 import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from '../components/MetricsSidebar';
+import ValueStreamDrawer from '../components/ValueStreamDrawer';
 import { api } from '../lib/api';
 
 // ── Layout constants ─────────────────────────────────────────────────────────
@@ -52,34 +53,19 @@ const SUBSTEP_TOP_OFFSET = 24; // gap between focused-step bottom and sub-proces
 const LEAF_GAP_X        = 12;
 const LEAF_TOP_OFFSET   = 24;  // gap between focused-sub-process bottom and L5 step row top
 
-// Left-to-right order = logical exploded view of the enterprise: value-producing
-// (Core Business) → enabling (IT) → governing (Corporate Function).
-const CATEGORIES = ['Core Business', 'IT', 'Corporate Function'] as const;
-type Category = (typeof CATEGORIES)[number];
+// Segments (the column list), their left-to-right order, and the top-to-bottom
+// division order within each column are DATA: the API returns divisions already
+// ordered by Node.sortOrder (value-chain order), grouped by their parent segment
+// node's name. Renaming or reordering a segment in the builder reflects here.
+type Category = string;
 
 function catFor(div: DivisionSummary): Category {
-  if (div.higherCategory === 'Corporate Function') return 'Corporate Function';
-  if (div.higherCategory === 'IT') return 'IT';
-  return 'Core Business';
+  return div.higherCategory ?? 'Unassigned';
 }
-
-// Top-to-bottom order within each column = the order the work happens (the
-// business value chain), not alphabetical. e.g. Core Business starts at Sales.
-// Names match Division.name exactly; anything unlisted falls to the bottom in
-// its incoming (alphabetical) order.
-const DIVISION_SEQUENCE: string[] = [
-  // Core Business — sell → underwrite → pay claims → cede risk → service
-  'Sales, Distribution & Marketing', 'Underwriting', 'Actuarial',
-  'Claims', 'Reinsurance', 'Operations & Customer Service',
-  // IT — plan → build → data → secure
-  'Product, Delivery & PMO', 'Technology & Engineering', 'Data & AI', 'Cybersecurity & IAM',
-  // Corporate Function — staff → fund → govern → assure
-  'Human Resources & Talent', 'Finance & Investments',
-  'Legal & Corporate Governance', 'Risk, Compliance & Audit',
-];
-function divSeq(name: string): number {
-  const i = DIVISION_SEQUENCE.indexOf(name);
-  return i === -1 ? Number.MAX_SAFE_INTEGER : i;
+function categoriesOf(divisions: DivisionSummary[]): Category[] {
+  const seen: Category[] = [];
+  for (const d of divisions) { const c = catFor(d); if (!seen.includes(c)) seen.push(c); }
+  return seen;
 }
 
 // ── Inner canvas ─────────────────────────────────────────────────────────────
@@ -112,6 +98,9 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
   const [dashLoading, setDashLoading] = useState(false);
   // Comprehensive "view all" drawer (a snapshot of one sidebar section).
   const [drawerSection, setDrawerSection] = useState<MetricSection | null>(null);
+  // Value-stream full detail, shown as an in-place drawer (the standalone page
+  // was retired — the map is the only home for this content now).
+  const [vsDetailId, setVsDetailId] = useState<string | null>(null);
 
   // Fetch helpers
   const fetchFlow = useCallback(async (divId: string) => {
@@ -270,11 +259,14 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
   // The metrics/roles dashboards bottom out at the process-area (L3) level, so
   // drilling into L4 sub-processes / L5 steps keeps the L3 dashboard in view.
   const metricTarget = useMemo<{ level: string; id: string } | null>(() => {
-    // The metrics sidebar only renders at the very last step (L5) — the only level
-    // carrying actual detail (description / roles / inputs / outputs / external).
+    // The metrics sidebar follows the deepest focused node: L5 step, then the
+    // L4 sub-process (its authored inputs/outputs/leads detail), then the value
+    // stream, whose sidebar offers the "View full details" drawer.
     if (level >= 4 && focusedSubStep) return { level: 'step', id: focusedSubStep.id };
+    if (focusedStep) return { level: 'step', id: focusedStep.id };
+    if (focusedVs) return { level: 'valueStream', id: focusedVs.id };
     return null;
-  }, [level, focusedSubStep]);
+  }, [level, focusedSubStep, focusedStep?.id, focusedVs?.id]);
 
   // Sidebar-internal drill stack for role → person (these aren't map nodes, so
   // they navigate inside the dashboard rather than the canvas).
@@ -318,23 +310,17 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
     const LINE   = '#9ca3af';                                   // visible neutral line
     const accent = selectedDomain ? (DOMAIN_HEX[selectedDomain] ?? LINE) : LINE;
 
-    // Partition divisions by category, then order each column top→bottom by the
-    // value-chain sequence (the order the work happens).
-    const bySeq = (a: DivisionSummary, b: DivisionSummary) => divSeq(a.name) - divSeq(b.name);
-    const cols: Record<Category, DivisionSummary[]> = {
-      'Core Business':      divisions.filter((d) => catFor(d) === 'Core Business').sort(bySeq),
-      'Corporate Function': divisions.filter((d) => catFor(d) === 'Corporate Function').sort(bySeq),
-      'IT':                 divisions.filter((d) => catFor(d) === 'IT').sort(bySeq),
-    };
+    // Partition divisions by their segment; the API already delivers them in
+    // value-chain order (Node.sortOrder), so each column keeps incoming order.
+    const categories = categoriesOf(divisions);
+    const cols: Record<Category, DivisionSummary[]> = {};
+    for (const d of divisions) (cols[catFor(d)] ??= []).push(d);
 
-    // Column center-x values, left→right: Core Business · IT · Corporate Function.
+    // Column center-x values, left→right in segment order.
     const colWidth = DIV_W + COL_GAP_X;
-    const colCenterX: Record<Category, number> = {
-      'Core Business':      colWidth * 0,
-      'IT':                 colWidth * 1,
-      'Corporate Function': colWidth * 2,
-    };
-    const middleX = colWidth * 1; // geometric centre of the 3 columns
+    const colCenterX: Record<Category, number> = {};
+    categories.forEach((c, i) => { colCenterX[c] = colWidth * i; });
+    const middleX = (colWidth * Math.max(categories.length - 1, 0)) / 2; // geometric centre of the columns
 
     // ── Company root (always present) ─────────────────────────────────────────
     const companyFs: NodeFocusState = !companyOpen ? 'neutral' : 'expanded';
@@ -353,7 +339,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
     const domainRowY = COMPANY_H + DOMAIN_TOP_OFFSET;
 
     // ── Process each domain column ─────────────────────────────────────────────
-    CATEGORIES.forEach((cat, ci) => {
+    categories.forEach((cat, ci) => {
       const cx = colCenterX[cat];
       const coreLeft = cx - CORE_W / 2;
       const isDomainSelected = selectedDomain === cat;
@@ -873,6 +859,9 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
             onDrill={onDrill}
           />
         )}
+
+        {/* Value-stream full detail — slides over the canvas in place. */}
+        {vsDetailId && <ValueStreamDrawer valueStreamId={vsDetailId} onClose={() => setVsDetailId(null)} />}
       </div>
 
       {/* Right metrics dashboard — appears once the company is opened. */}
@@ -883,7 +872,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
           onDrill={onDrill}
           onBack={ovStack.length ? onDashBack : undefined}
           onViewAll={setDrawerSection}
-          onViewDetail={dashTarget?.level === 'valueStream' && dashTarget.id ? () => navigate(`/value-streams/${dashTarget.id}`) : undefined}
+          onViewDetail={dashTarget?.level === 'valueStream' && dashTarget.id ? () => setVsDetailId(dashTarget.id) : undefined}
         />
       )}
     </div>

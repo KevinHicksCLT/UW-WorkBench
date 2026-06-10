@@ -19,21 +19,24 @@ type Dashboard = {
   counts: { programs: number; initiatives: number };
   byStage: Record<string, number>;
   byStatus: Record<string, number>;
+  raidOpen: Record<string, number>;
   monthlyBenefits: { period: string; ACTUAL: number; TARGET: number; FORECAST: number }[];
   topRisks: { id: string; title: string; severity: number; status: string; initiative: { id: string; name: string } }[];
 };
 
 type ProgramRow = {
   id: string; name: string; description: string | null; status: string; statusNote: string | null;
+  computedStatus: string; statusOverridden: boolean;
   endDate: string;
   workstreams: { id: string; initiatives: { id: string }[] }[];
 };
 
-const TABS = ['Application Rationalization Workspace', 'Programs', 'Risks', 'RAID Log'] as const;
+const TABS = ['Portfolio', 'Application Rationalization Workspace', 'Programs', 'Risks', 'RAID Log'] as const;
 type Tab = (typeof TABS)[number];
 
 // Two-letter abbreviations shown when the sidebar is collapsed.
 const TAB_SHORT: Record<Tab, string> = {
+  Portfolio: 'PF',
   'Application Rationalization Workspace': 'AR',
   Programs: 'PR',
   Risks: 'RK',
@@ -47,7 +50,7 @@ export default function Portfolio() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
-  const [tab, setTab] = useState<Tab>('Application Rationalization Workspace');
+  const [tab, setTab] = useState<Tab>('Portfolio');
   const [collapsed, setCollapsed] = useState(false);
 
   function load() {
@@ -126,6 +129,10 @@ export default function Portfolio() {
 
         {/* Content area */}
         <div className="flex-1 min-w-0">
+          {tab === 'Portfolio' && (
+            <PortfolioSummaryTab data={data} programs={programs} onViewPrograms={() => setTab('Programs')} />
+          )}
+
           {tab === 'Application Rationalization Workspace' && (
             <div className="card-elevated p-5 border-l-[3px] border-l-[#4f46e5]">
               <ApplicationRationalization embedded />
@@ -143,6 +150,112 @@ export default function Portfolio() {
       </div>
 
       {showCreate && <CreateProgramModal companyId={companyId} onClose={() => setShowCreate(false)} onCreated={() => { setShowCreate(false); load(); }} />}
+    </div>
+  );
+}
+
+// ── PORTFOLIO (EPMO aggregation across all programs, I2) ───────────────────
+const STAGE_ORDER = ['IDEA', 'PLAN', 'EXECUTE', 'REALIZE', 'COMPLETE'];
+const STATUS_ORDER: [string, string, string][] = [
+  ['ON_TRACK', 'On track', '#15803d'], ['AT_RISK', 'At risk', '#b45309'], ['OFF_TRACK', 'Off track', '#be123c'],
+];
+
+function PortfolioSummaryTab({ data, programs, onViewPrograms }: { data: Dashboard; programs: ProgramRow[]; onViewPrograms: () => void }) {
+  const raidTotal = Object.values(data.raidOpen ?? {}).reduce((a, n) => a + n, 0);
+  const statusTotal = Object.values(data.byStatus).reduce((a, n) => a + n, 0) || 1;
+  return (
+    <div className="space-y-6">
+      {/* One portfolio number across all programs */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <Tile label="Total benefit" value={fmt.currency(data.totals.benefit, { compact: true })} />
+        <Tile label="Total cost" value={fmt.currency(data.totals.cost, { compact: true })} />
+        <Tile label="Net benefit" value={fmt.currency(data.totals.net, { compact: true })} />
+        <Tile label="At-risk / off-track" value={(data.byStatus.AT_RISK ?? 0) + (data.byStatus.OFF_TRACK ?? 0)} />
+        <Tile label="Open RAID items" value={raidTotal} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Status mix */}
+        <SectionCard title="Initiative health mix">
+          <div className="space-y-2">
+            {STATUS_ORDER.map(([key, label, color]) => {
+              const n = data.byStatus[key] ?? 0;
+              return (
+                <div key={key} className="flex items-center gap-3 text-sm">
+                  <span className="w-20 text-[#525252]">{label}</span>
+                  <div className="flex-1 h-2.5 rounded bg-[#f5f5f5] overflow-hidden">
+                    <div className="h-full rounded" style={{ width: `${(n / statusTotal) * 100}%`, background: color }} />
+                  </div>
+                  <span className="w-8 text-right tnum text-[#171717] font-medium">{n}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mt-5 mb-2">By stage</div>
+          <div className="flex flex-wrap gap-2">
+            {STAGE_ORDER.map((s) => (
+              <span key={s} className="text-xs px-2 py-1 rounded-md bg-[#fafafa] border border-[#eeeeee] text-[#525252]">
+                {s.charAt(0) + s.slice(1).toLowerCase()} <span className="font-semibold text-[#171717] tnum">{data.byStage[s] ?? 0}</span>
+              </span>
+            ))}
+          </div>
+        </SectionCard>
+
+        {/* Open RAID heatmap */}
+        <SectionCard title="Open RAID">
+          <div className="grid grid-cols-2 gap-3">
+            {(['RISK', 'ISSUE', 'ASSUMPTION', 'DECISION'] as const).map((t) => {
+              const n = data.raidOpen?.[t] ?? 0;
+              return (
+                <div key={t} className={'rounded-md border p-3 ' + (n > 0 && t === 'RISK' ? 'border-[#fecaca] bg-[#fef2f2]' : 'border-[#eeeeee] bg-[#fafafa]')}>
+                  <div className="text-[10px] uppercase tracking-[0.08em] text-[#a3a3a3]">{t.charAt(0) + t.slice(1).toLowerCase()}s</div>
+                  <div className="text-xl font-semibold tnum text-[#171717]">{n}</div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mt-5 mb-2">Top open risks</div>
+          {data.topRisks.length === 0 ? <div className="text-sm text-[#a3a3a3]">No open risks.</div> : (
+            <div className="space-y-1.5">
+              {data.topRisks.slice(0, 4).map((r) => (
+                <div key={r.id} className="flex items-center gap-2 text-sm">
+                  <SeverityCell value={r.severity} />
+                  <Link to={`/portfolio/initiatives/${r.initiative.id}`} className="flex-1 min-w-0 truncate text-[#171717] hover:text-[#4f46e5]">{r.title}</Link>
+                </div>
+              ))}
+            </div>
+          )}
+        </SectionCard>
+      </div>
+
+      {/* Program rollup — ties the portfolio number to its programs */}
+      <SectionCard title="Programs" actions={<button onClick={onViewPrograms} className="text-xs text-[#525252] hover:text-[#171717]">All programs →</button>}>
+        <div className="table-scroll">
+          <table className="w-full text-sm">
+            <thead className="text-xs text-[#a3a3a3] border-b border-[#eaeaea]">
+              <tr>
+                <th className="text-left py-2 font-semibold">Program</th>
+                <th className="text-left py-2 font-semibold w-32">Health (rolled up)</th>
+                <th className="text-right py-2 font-semibold w-28">Workstreams</th>
+                <th className="text-right py-2 font-semibold w-24">Initiatives</th>
+              </tr>
+            </thead>
+            <tbody>
+              {programs.map((p) => (
+                <tr key={p.id} className="border-b border-[#f5f5f5]">
+                  <td className="py-2.5"><Link to={`/portfolio/programs/${p.id}`} className="font-medium text-[#171717] hover:text-[#4f46e5]">{p.name}</Link></td>
+                  <td className="py-2.5">
+                    <StatusPill status={p.computedStatus ?? p.status} />
+                    {p.statusOverridden && <span className="ml-1.5 text-[10px] text-[#b45309]" title={`Manually set to ${p.status.replaceAll('_', ' ').toLowerCase()} — rolled-up health differs`}>override</span>}
+                  </td>
+                  <td className="py-2.5 text-right tnum">{p.workstreams.length}</td>
+                  <td className="py-2.5 text-right tnum">{p.workstreams.reduce((a, w) => a + w.initiatives.length, 0)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionCard>
     </div>
   );
 }
@@ -174,7 +287,10 @@ function ProgramsTab({ programs, counts, onNew }: { programs: ProgramRow[]; coun
                     <div className="font-semibold text-[#171717]">{p.name}</div>
                     {p.description && <div className="text-sm text-[#666666] mt-0.5 line-clamp-2">{p.description}</div>}
                   </div>
-                  <StatusPill status={p.status} />
+                  <span className="flex items-center gap-1.5 flex-shrink-0">
+                    <StatusPill status={p.computedStatus ?? p.status} />
+                    {p.statusOverridden && <span className="text-[10px] text-[#b45309]" title={`Manually set to ${p.status.replaceAll('_', ' ').toLowerCase()} — rolled-up health differs`}>override</span>}
+                  </span>
                 </div>
                 <div className="grid grid-cols-3 gap-3 pt-3 border-t border-[#f5f5f5]">
                   <Stat label="Workstreams" value={p.workstreams.length} />

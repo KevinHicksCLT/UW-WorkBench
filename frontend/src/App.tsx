@@ -1,6 +1,6 @@
 // App.tsx
 
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { useAuth } from './lib/auth';
 import { CompanyProvider } from './lib/company';
 import { BreadcrumbProvider } from './lib/breadcrumbs';
@@ -10,9 +10,7 @@ import Overview from './pages/Overview';
 import Explorer from './pages/Explorer';
 import DivisionDetail from './pages/DivisionDetail';
 import DepartmentDetail from './pages/DepartmentDetail';
-import RoleDetail from './pages/RoleDetail';
 import Organization from './pages/Organization';
-import ValueStreamDetail from './pages/ValueStreamDetail';
 import SearchResults from './pages/SearchResults';
 import Admin from './pages/Admin';
 import AuditTrail from './pages/AuditTrail';
@@ -25,6 +23,21 @@ import PortfolioProgram from './pages/PortfolioProgram';
 import PortfolioInitiative from './pages/PortfolioInitiative';
 import PortfolioRaid from './pages/PortfolioRaid';
 import Work from './pages/Work';
+import External from './pages/External';
+
+// The standalone role page was retired (it repeated the Organization role
+// panel) — old /roles/:id links open that panel instead.
+function RoleRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/roles?role=${encodeURIComponent(id ?? '')}`} replace />;
+}
+
+// The standalone value-stream page was retired too — its detail renders as an
+// in-place drawer on the map/list view. Old links land on the focused map.
+function ValueStreamRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/overview?focus=${encodeURIComponent(id ?? '')}`} replace />;
+}
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -63,8 +76,8 @@ export default function App() {
         {/* Detail pages remain as deep-link targets from inspector + search. */}
         <Route path="/divisions/:id" element={<DivisionDetail />} />
         <Route path="/departments/:id" element={<DepartmentDetail />} />
-        <Route path="/roles/:id" element={<RoleDetail />} />
-        <Route path="/value-streams/:id" element={<ValueStreamDetail />} />
+        <Route path="/roles/:id" element={<RoleRedirect />} />
+        <Route path="/value-streams/:id" element={<ValueStreamRedirect />} />
         <Route path="/search" element={<SearchResults />} />
         {/* Standards & Greenfield Migration — placeholder tabs. */}
         <Route path="/standards" element={<Standards />} />
@@ -84,6 +97,8 @@ export default function App() {
         <Route path="/portfolio/raid" element={<PortfolioRaid />} />
         {/* Deliverables & Tasks — standalone work tracker (banner + filters + table). */}
         <Route path="/work" element={<Work />} />
+        {/* External Interactions — read-only external-party dependency view. */}
+        <Route path="/external" element={<External />} />
         {/* ADMIN-only data administration + audit trail. The Data Dictionary now
             lives inside the Data Admin tab as a view. The backend also gates
             every /admin and write endpoint behind requireRole('ADMIN'). */}

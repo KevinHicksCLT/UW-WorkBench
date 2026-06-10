@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { api } from './api';
 import { STAGE_ORDER, STAGE_LABELS, STATUS_PILL_CLASS, STATUS_LABEL } from './format';
 
 // Shared types + themed UI primitives for the Initiative Tracker tab. Kept
@@ -13,18 +14,25 @@ export type Line = { id: string; name: string; category: string | null; startDat
 export type Milestone = { id: string; name: string; dueDate: string; completedAt: string | null; isGate: boolean; status: string };
 export type Raid = { id: string; type: string; title: string; description: string | null; probability: number; impact: number; severity: number; mitigation: string | null; status: string };
 
+export type Objective = { id: string; name: string; description: string | null; weight: number; _count?: { links: number } };
+export type ObjectiveLink = { id: string; objectiveId: string; impact: number; objective: { id: string; name: string; weight: number } };
+export type Resource = { id: string; personId: string | null; roleName: string | null; name: string; allocationPct: number; startDate: string; endDate: string };
+export type Activity = { id: string; name: string; startDate: string; endDate: string; status: string; dependsOnId: string | null; sortOrder: number };
+
 export type InitiativeLinks = {
   valueStreamId: string | null; divisionId: string | null; ownerRoleId: string | null; sponsorRoleId: string | null;
   valueStreamName: string | null; divisionName: string | null; ownerRoleName: string | null; sponsorRoleName: string | null;
 };
 
 export type Initiative = InitiativeLinks & {
-  id: string; name: string; description: string | null;
+  id: string; companyId: string; name: string; description: string | null;
   stage: string; workflowAction: string | null; state: string;
   status: string; statusNote: string | null; startDate: string; dueDate: string;
   cumulativeBenefit: number; cumulativeCost: number; cumulativeNetBenefit: number;
+  complexityScore: number; valueScore: number;
   workstream: { id: string; name: string; program: { id: string; name: string } };
   benefits: Line[]; costs: Line[]; milestones: Milestone[]; raidItems: Raid[];
+  objectives: ObjectiveLink[]; resources: Resource[]; activities: Activity[];
   _count?: { raidItems: number; milestones: number };
 };
 
@@ -58,14 +66,63 @@ export function StageChip({ stage }: { stage: string }) {
   return <span className="pill-blue tnum">{idx + 1}. {STAGE_LABELS[stage] ?? stage}</span>;
 }
 
-export function severityClass(v: number): string {
-  return v >= 16 ? 'bg-[#be123c]' : v >= 9 ? 'bg-[#b45309]' : 'bg-[#047857]';
+// ── Risk scoring bands (DB-driven) ──────────────────────────────────────────
+// Severity = probability × impact on the standard 5×5 matrix (1–25). The bands
+// that turn that number into a rating (Low/Moderate/High/Critical + color) are
+// company data — Data Admin → Initiatives → Risk scoring bands — fetched once
+// and cached for the session.
+export type RiskBand = { id: string; label: string; minScore: number; maxScore: number; color: string; description: string | null };
+
+let bandsCache: RiskBand[] | null = null;
+let bandsPromise: Promise<RiskBand[]> | null = null;
+const bandsListeners = new Set<(b: RiskBand[]) => void>();
+
+function loadBands(): Promise<RiskBand[]> {
+  if (bandsCache) return Promise.resolve(bandsCache);
+  bandsPromise ??= api.get('/portfolio/risk-bands')
+    .then((r: { bands: RiskBand[] }) => {
+      bandsCache = r.bands ?? [];
+      bandsListeners.forEach((fn) => fn(bandsCache!));
+      return bandsCache!;
+    })
+    .catch(() => (bandsCache = []));
+  return bandsPromise;
 }
 
+export function useRiskBands(): RiskBand[] {
+  const [bands, setBands] = useState<RiskBand[]>(bandsCache ?? []);
+  useEffect(() => {
+    if (bandsCache) return;
+    bandsListeners.add(setBands);
+    void loadBands();
+    return () => { bandsListeners.delete(setBands); };
+  }, []);
+  return bands;
+}
+
+export function bandFor(bands: RiskBand[], score: number): RiskBand | null {
+  return bands.find((b) => score >= b.minScore && score <= b.maxScore) ?? null;
+}
+
+// Fallback when bands haven't loaded yet (matches the seeded defaults).
+function fallback(v: number): { label: string; color: string } {
+  return v >= 17 ? { label: 'High', color: '#be123c' } : v >= 9 ? { label: 'Medium', color: '#b45309' } : { label: 'Low', color: '#047857' };
+}
+
+// Shows only the RATING (Low/Medium/High …); the raw 5×5 score stays in the
+// tooltip so the number never reads as an unanchored magnitude.
 export function SeverityCell({ value }: { value: number }) {
+  const bands = useRiskBands();
+  const band = bandFor(bands, value);
+  const label = band?.label ?? fallback(value).label;
+  const color = band?.color ?? fallback(value).color;
   return (
-    <span className={`inline-flex items-center justify-center w-9 h-6 rounded text-white font-semibold text-xs tnum ${severityClass(value)}`}>
-      {value}
+    <span
+      title={`Probability × impact on the 5×5 risk matrix: ${value} of 25${band?.description ? ` — ${band.description}` : ''}`}
+      className="inline-flex items-center rounded px-2 h-6 text-white font-semibold text-xs"
+      style={{ background: color }}
+    >
+      {label}
     </span>
   );
 }
@@ -188,6 +245,61 @@ export function SvgLineChart({
           />
         ))}
       </svg>
+    </div>
+  );
+}
+
+// ─── Lightweight CSS timeline (Gantt) ────────────────────────────────────────
+// Maps dates onto a 0–100% horizontal axis padded two weeks either side, with
+// month tick marks. Shared by the initiative Workplan and the program Roadmap.
+export type TimelineScale = { min: number; max: number; pct: (d: string | Date) => number; ticks: { pct: number; label: string }[] };
+
+export const ACTIVITY_STATUS_COLOR: Record<string, string> = { PLANNED: '#a3a3a3', IN_PROGRESS: '#4f46e5', DONE: '#047857' };
+export const ACTIVITY_STATUS_LABEL: Record<string, string> = { PLANNED: 'Planned', IN_PROGRESS: 'In progress', DONE: 'Done' };
+
+export function makeTimelineScale(dates: (string | Date)[]): TimelineScale | null {
+  const ts = dates.map((d) => new Date(d).getTime()).filter((n) => !Number.isNaN(n));
+  if (ts.length === 0) return null;
+  const TWO_WEEKS = 14 * 86400000;
+  const min = Math.min(...ts) - TWO_WEEKS;
+  const max = Math.max(...ts) + TWO_WEEKS;
+  const span = Math.max(1, max - min);
+  const pct = (d: string | Date) => Math.min(100, Math.max(0, ((new Date(d).getTime() - min) / span) * 100));
+  // Month-start ticks, thinned so we render at most ~12 labels.
+  const monthCount = Math.ceil(span / (30 * 86400000));
+  const step = Math.max(1, Math.ceil(monthCount / 12));
+  const ticks: { pct: number; label: string }[] = [];
+  const first = new Date(min);
+  let cur = new Date(first.getFullYear(), first.getMonth() + 1, 1);
+  let i = 0;
+  while (cur.getTime() <= max) {
+    if (i % step === 0) ticks.push({ pct: ((cur.getTime() - min) / span) * 100, label: cur.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }) });
+    cur = new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
+    i++;
+  }
+  return { min, max, pct, ticks };
+}
+
+// Month tick labels + hairline gridlines for a timeline block. Rendered inside
+// a `relative` container; the gridlines stretch the full height behind rows.
+export function TimelineGrid({ scale }: { scale: TimelineScale }) {
+  return (
+    <div className="absolute inset-0 pointer-events-none">
+      {scale.ticks.map((t, i) => (
+        <div key={i} className="absolute top-0 bottom-0 border-l border-[#f5f5f5]" style={{ left: `${t.pct}%` }} />
+      ))}
+    </div>
+  );
+}
+
+export function TimelineAxis({ scale }: { scale: TimelineScale }) {
+  return (
+    <div className="relative h-5">
+      {scale.ticks.map((t, i) => (
+        <span key={i} className="absolute top-0 text-[10px] text-[#a3a3a3] whitespace-nowrap" style={{ left: `${t.pct}%` }}>
+          {t.label}
+        </span>
+      ))}
     </div>
   );
 }

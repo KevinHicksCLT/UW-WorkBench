@@ -3,9 +3,30 @@ import type { Request, Response, NextFunction } from 'express';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
-import { ENTITY_LIST, getEntity, buildData, companyWhere, type AdminEntity } from '../lib/adminRegistry.js';
-import { LEVEL_HANDLERS } from '../lib/valueStreamAdmin.js';
+import { ENTITY_LIST, getEntity, buildData, companyWhere, coerceValue, type AdminEntity } from '../lib/adminRegistry.js';
 import { logAudit, computeDiff } from '../services/audit.js';
+import { recomputeInitiative } from '../services/portfolioRollup.js';
+import { runValidations } from '../services/validations.js';
+import { syncSubProcessNode } from '../services/nodeSync.js';
+
+// Line items whose writes change an initiative's denormalized money rollup, so the
+// admin recomputes the parent after create/update/delete (audit A3/ARCH-8).
+const RECOMPUTE_MODELS = new Set(['benefitLine', 'costLine']);
+function maybeRecompute(entity: AdminEntity, row: { initiativeId?: string } | null) {
+  if (row?.initiativeId && RECOMPUTE_MODELS.has(entity.model)) void recomputeInitiative(row.initiativeId);
+}
+
+// Entities whose rows have a DERIVED copy in the unified Node graph — refresh it
+// after any admin write so the map/builder never render stale detail.
+function maybeSyncNode(entity: AdminEntity, action: 'CREATE' | 'UPDATE' | 'DELETE', row: Record<string, any> | null) {
+  if (row && entity.slug === 'subValueStream') void syncSubProcessNode(action, row as any);
+}
+
+// tenantId filter fragment — empty for tenant-less line items (isolation comes from
+// the company/parent scope instead).
+function tenantWhere(req: Request, entity: AdminEntity): Record<string, unknown> {
+  return entity.hasTenantId === false ? {} : { tenantId: req.tenantId };
+}
 
 // Generic, schema-driven CRUD over every tenant-scoped operating-model table.
 // One router serves all ~25 entities: the registry (derived from Prisma DMMF)
@@ -44,7 +65,7 @@ function readScope(req: Request, res: Response, entity: AdminEntity): Record<str
     res.status(400).json({ error: 'companyId query parameter is required' });
     return null;
   }
-  return companyWhere(entity, cid);
+  return companyWhere(entity, cid, req.tenantId);
 }
 
 // The active companyId, or null after sending a 400 (used by the unified
@@ -108,7 +129,40 @@ router.patch('/company/:id/dashboard', async (req: Request, res: Response, next:
     }
     // Order-preserving de-dupe; cap to a sane number of widgets.
     const widgets = [...new Set(raw.map((w) => w.trim()))].slice(0, 40);
-    const config = { widgets };
+    // Which stats the "Model footprint" card lists (Data Admin → Home). The
+    // valid keys are the dashboard totals the frontend catalog exposes.
+    const FOOTPRINT_KEYS = new Set(['subProcesses', 'ioItems', 'externalParties', 'externalInteractions', 'standards', 'programs', 'objectives', 'openRaid', 'connections', 'signals']);
+    const fpRaw = (req.body ?? {}).footprintStats;
+    let footprintStats: string[] | undefined;
+    if (fpRaw !== undefined) {
+      if (!Array.isArray(fpRaw) || !fpRaw.every((k) => typeof k === 'string' && FOOTPRINT_KEYS.has(k))) {
+        return res.status(400).json({ error: `footprintStats must be an array of ${[...FOOTPRINT_KEYS].join(' | ')}` });
+      }
+      footprintStats = [...new Set(fpRaw as string[])];
+    } else {
+      footprintStats = (company.dashboardConfig as { footprintStats?: string[] } | null)?.footprintStats;
+    }
+    // Per-widget custom display titles ({ widgetId: title }); empty titles drop
+    // back to the catalog default.
+    const wtRaw = (req.body ?? {}).widgetTitles;
+    let widgetTitles: Record<string, string> | undefined;
+    if (wtRaw !== undefined) {
+      if (typeof wtRaw !== 'object' || wtRaw === null || Array.isArray(wtRaw)) {
+        return res.status(400).json({ error: 'widgetTitles must be an object of widgetId → title' });
+      }
+      widgetTitles = {};
+      for (const [k, v] of Object.entries(wtRaw)) {
+        if (typeof v !== 'string') return res.status(400).json({ error: 'widgetTitles values must be strings' });
+        const t = v.trim().slice(0, 60);
+        if (t) widgetTitles[k] = t;
+      }
+      if (Object.keys(widgetTitles).length === 0) widgetTitles = undefined;
+    } else {
+      widgetTitles = (company.dashboardConfig as { widgetTitles?: Record<string, string> } | null)?.widgetTitles;
+    }
+    const config: { widgets: string[]; footprintStats?: string[]; widgetTitles?: Record<string, string> } = { widgets };
+    if (footprintStats) config.footprintStats = footprintStats;
+    if (widgetTitles) config.widgetTitles = widgetTitles;
 
     const updated = await prisma.company.update({
       where: { id: company.id },
@@ -131,6 +185,150 @@ router.patch('/company/:id/dashboard', async (req: Request, res: Response, next:
   }
 });
 
+// GET /admin/validations — read-only data-health checks for the active company
+// (audit A2). Registered before the generic /:entity route. ADMIN-only.
+router.get('/validations', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const cid = typeof req.query.companyId === 'string' ? req.query.companyId : '';
+    if (!cid) return res.status(400).json({ error: 'companyId query parameter is required' });
+    const company = await prisma.company.findFirst({ where: { id: cid, tenantId: req.tenantId }, select: { id: true } });
+    if (!company) return res.status(404).json({ error: 'Unknown company for this tenant' });
+    res.json(await runValidations(cid));
+  } catch (e) {
+    next(e);
+  }
+});
+
+// ─── AI-adoption (Telemetry) per value-stream Level node ───────────────────
+// Flat editor surface (audit D3/A1): one row per canonical value-stream node
+// (levelNumber = 3) with the four AI autonomy modes. Registered before /:entity.
+const AI_LEVELS = new Set(['not_used', 'pilot', 'emerging', 'scaling', 'embedded']);
+const AI_FIELDS = ['aiAssist', 'aiAugment', 'aiWorkflow', 'aiAutonomous'] as const;
+const AI_MODES = ['assistant', 'augmented', 'workflow', 'agent'] as const;
+
+// Validate + normalize a NodeAiAdoption.useCases payload: an object keyed by AI
+// mode, each an array of { title, persona, detail } strings. Returns the
+// normalized shape (all four modes present), or null when malformed.
+type AiUseCase = { title: string; persona: string; detail: string };
+type AiUseCasesByMode = Record<(typeof AI_MODES)[number], AiUseCase[]>;
+function parseUseCases(raw: unknown): AiUseCasesByMode | null {
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return null;
+  const out: AiUseCasesByMode = { assistant: [], augmented: [], workflow: [], agent: [] };
+  for (const mode of AI_MODES) {
+    const list = (raw as Record<string, unknown>)[mode] ?? [];
+    if (!Array.isArray(list)) return null;
+    for (const uc of list) {
+      if (typeof uc !== 'object' || uc === null) return null;
+      const { title, persona, detail } = uc as Record<string, unknown>;
+      if (typeof title !== 'string' || !title.trim()) return null;
+      if (typeof persona !== 'string' || typeof detail !== 'string') return null;
+      out[mode].push({ title: title.trim(), persona, detail });
+    }
+  }
+  return out;
+}
+
+// Per-mode adoption statistics: { <mode>: { rolesUsingPct, efficiencyGainPct } }, 0–100.
+type AiStatsByMode = Record<(typeof AI_MODES)[number], { rolesUsingPct: number; efficiencyGainPct: number }>;
+function parseStats(raw: unknown): AiStatsByMode | null {
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return null;
+  const pct = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 100 ? Math.round(v) : null);
+  const out = {} as AiStatsByMode;
+  for (const mode of AI_MODES) {
+    const s = (raw as Record<string, unknown>)[mode] ?? {};
+    if (typeof s !== 'object' || s === null) return null;
+    const roles = pct((s as Record<string, unknown>).rolesUsingPct ?? 0);
+    const eff = pct((s as Record<string, unknown>).efficiencyGainPct ?? 0);
+    if (roles === null || eff === null) return null;
+    out[mode] = { rolesUsingPct: roles, efficiencyGainPct: eff };
+  }
+  return out;
+}
+
+async function companyForReq(req: Request): Promise<string | null> {
+  const cid = typeof req.query.companyId === 'string' ? req.query.companyId : '';
+  if (!cid) return null;
+  const company = await prisma.company.findFirst({ where: { id: cid, tenantId: req.tenantId }, select: { id: true } });
+  return company ? cid : null;
+}
+
+router.get('/ai-adoption', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const cid = await companyForReq(req);
+    if (!cid) return res.status(400).json({ error: 'Valid companyId query parameter is required' });
+    // One row per canonical value_stream NODE; adoption stores on the node-keyed
+    // NodeAiAdoption table (the legacy Level-keyed copy is retired).
+    const nodes = await prisma.node.findMany({
+      where: { companyId: cid, typeKey: 'value_stream' },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, parent: { select: { name: true } }, aiAdoption: true },
+    });
+    res.json({
+      levels: [...AI_LEVELS],
+      rows: nodes.map((n) => ({
+        levelId: n.id, // canonical node id (PATCH accepts it)
+        name: n.name,
+        domain: n.parent?.name ?? null,
+        aiAssist: n.aiAdoption?.aiAssist ?? 'not_used',
+        aiAugment: n.aiAdoption?.aiAugment ?? 'not_used',
+        aiWorkflow: n.aiAdoption?.aiWorkflow ?? 'not_used',
+        aiAutonomous: n.aiAdoption?.aiAutonomous ?? 'not_used',
+        useCases: n.aiAdoption?.useCases ?? null,
+        stats: n.aiAdoption?.stats ?? null,
+      })),
+    });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.patch('/ai-adoption/:levelId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const cid = await companyForReq(req);
+    if (!cid) return res.status(400).json({ error: 'Valid companyId query parameter is required' });
+    // The value_stream node id — adoption stores directly on NodeAiAdoption.
+    const vsNode = await prisma.node.findFirst({ where: { id: req.params.levelId, companyId: cid, typeKey: 'value_stream' }, select: { id: true } });
+    if (!vsNode) return res.status(404).json({ error: 'Not found' });
+    const node = { id: vsNode.id };
+
+    const data: Record<string, any> = {};
+    for (const f of AI_FIELDS) {
+      const v = (req.body ?? {})[f];
+      if (v === undefined) continue;
+      if (typeof v !== 'string' || !AI_LEVELS.has(v)) return res.status(400).json({ error: `${f} must be one of ${[...AI_LEVELS].join(' | ')}` });
+      data[f] = v;
+    }
+    // Per-mode use cases (the content the Active AI drill-in renders).
+    if ((req.body ?? {}).useCases !== undefined) {
+      const parsed = parseUseCases(req.body.useCases);
+      if (!parsed) return res.status(400).json({ error: 'useCases must be { assistant|augmented|workflow|agent: [{ title, persona, detail }] } with non-empty titles' });
+      data.useCases = parsed;
+    }
+    // Per-mode adoption statistics ({ <mode>: { rolesUsingPct, efficiencyGainPct } }, 0–100).
+    if ((req.body ?? {}).stats !== undefined) {
+      const parsed = parseStats(req.body.stats);
+      if (!parsed) return res.status(400).json({ error: 'stats must be { assistant|augmented|workflow|agent: { rolesUsingPct, efficiencyGainPct } } with values 0–100' });
+      data.stats = parsed;
+    }
+    if (Object.keys(data).length === 0) return res.status(400).json({ error: 'No AI-adoption fields to update' });
+
+    const before = await prisma.nodeAiAdoption.findUnique({ where: { nodeId: node.id } });
+    const updated = await prisma.nodeAiAdoption.upsert({
+      where: { nodeId: node.id },
+      create: { nodeId: node.id, ...data },
+      update: data,
+    });
+    logAudit({
+      tenantId: req.tenantId, actorEmail: req.user.email,
+      entityType: 'LevelAiAdoption', entityId: node.id,
+      action: before ? 'UPDATE' : 'CREATE', diff: data,
+    });
+    res.json(updated);
+  } catch (e) {
+    next(e);
+  }
+});
+
 // GET /admin/:entity — paginated, tenant-scoped list with optional search on
 // the entity's label field.
 router.get('/:entity', async (req: Request, res: Response, next: NextFunction) => {
@@ -142,21 +340,25 @@ router.get('/:entity', async (req: Request, res: Response, next: NextFunction) =
     const skip = Number(req.query.offset) || 0;
     const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
 
-    const lhList = LEVEL_HANDLERS[entity.model];
-    if (lhList) {
-      const cid = requireCompanyId(req, res);
-      if (!cid) return;
-      // The level editor renders the whole tree, so allow a much larger page here.
-      const lvlTake = Math.min(Number(req.query.limit) || 2000, 5000);
-      return res.json(await lhList.list(req.tenantId, cid, search, lvlTake, skip));
-    }
 
     const scope = readScope(req, res, entity);
     if (scope === null) return;
 
-    const where: Record<string, unknown> = { tenantId: req.tenantId, ...scope };
+    const where: Record<string, unknown> = { ...tenantWhere(req, entity), ...scope };
     if (search && entity.labelField !== 'id') {
       where[entity.labelField] = { contains: search, mode: 'insensitive' };
+    }
+    // Optional exact-match field filters: ?f_<field>=<value> for any registered
+    // field (e.g. the Sub-processes section lists SubValueStream with f_level=4).
+    for (const f of entity.fields) {
+      const raw = req.query[`f_${f.name}`];
+      if (typeof raw !== 'string' || raw === '') continue;
+      try {
+        const v = coerceValue(f, raw);
+        if (v !== undefined) where[f.name] = v;
+      } catch {
+        return res.status(400).json({ error: `Invalid filter value for ${f.name}` });
+      }
     }
 
     const orderBy = entity.labelField === 'id' ? { createdAt: 'desc' } : { [entity.labelField]: 'asc' };
@@ -177,17 +379,9 @@ router.get('/:entity/:id', async (req: Request, res: Response, next: NextFunctio
   try {
     const entity = resolve(req, res);
     if (!entity) return;
-    const lhGet = LEVEL_HANDLERS[entity.model];
-    if (lhGet) {
-      const cid = requireCompanyId(req, res);
-      if (!cid) return;
-      const row = await lhGet.getOne(req.tenantId, cid, req.params.id);
-      if (!row) return res.status(404).json({ error: 'Not found' });
-      return res.json(row);
-    }
     const scope = readScope(req, res, entity);
     if (scope === null) return;
-    const row = await delegate(entity).findFirst({ where: { id: req.params.id, tenantId: req.tenantId, ...scope } });
+    const row = await delegate(entity).findFirst({ where: { id: req.params.id, ...tenantWhere(req, entity), ...scope } });
     if (!row) return res.status(404).json({ error: 'Not found' });
     res.json(row);
   } catch (e) {
@@ -202,13 +396,6 @@ router.post('/:entity', async (req: Request, res: Response, next: NextFunction) 
     const entity = resolve(req, res);
     if (!entity) return;
 
-    const lhCreate = LEVEL_HANDLERS[entity.model];
-    if (lhCreate) {
-      const cid = requireCompanyId(req, res);
-      if (!cid) return;
-      const created = await lhCreate.create(req.tenantId, cid, req.user.email, req.body ?? {});
-      return res.status(201).json(created);
-    }
 
     let data: Record<string, unknown>;
     try {
@@ -216,10 +403,12 @@ router.post('/:entity', async (req: Request, res: Response, next: NextFunction) 
     } catch (e) {
       return res.status(400).json({ error: (e as Error).message });
     }
-    data.tenantId = req.tenantId;
+    if (entity.hasTenantId !== false) data.tenantId = req.tenantId;
     if (!(await applyWriteScope(req, res, entity, data))) return;
 
     const created = await delegate(entity).create({ data });
+    maybeRecompute(entity, created);
+    maybeSyncNode(entity, 'CREATE', created);
     logAudit({
       tenantId: req.tenantId,
       actorEmail: req.user.email,
@@ -241,18 +430,10 @@ router.patch('/:entity/:id', async (req: Request, res: Response, next: NextFunct
     const entity = resolve(req, res);
     if (!entity) return;
 
-    const lhUpdate = LEVEL_HANDLERS[entity.model];
-    if (lhUpdate) {
-      const cid = requireCompanyId(req, res);
-      if (!cid) return;
-      const updated = await lhUpdate.update(req.tenantId, cid, req.user.email, req.params.id, req.body ?? {});
-      if (!updated) return res.status(404).json({ error: 'Not found' });
-      return res.json(updated);
-    }
 
     const scope = readScope(req, res, entity);
     if (scope === null) return;
-    const before = await delegate(entity).findFirst({ where: { id: req.params.id, tenantId: req.tenantId, ...scope } });
+    const before = await delegate(entity).findFirst({ where: { id: req.params.id, ...tenantWhere(req, entity), ...scope } });
     if (!before) return res.status(404).json({ error: 'Not found' });
 
     let data: Record<string, unknown>;
@@ -264,6 +445,8 @@ router.patch('/:entity/:id', async (req: Request, res: Response, next: NextFunct
     if (!(await applyWriteScope(req, res, entity, data))) return;
 
     const updated = await delegate(entity).update({ where: { id: req.params.id }, data });
+    maybeRecompute(entity, updated);
+    maybeSyncNode(entity, 'UPDATE', updated);
     const diff = computeDiff(before, updated, entity.fields.map((f) => f.name));
     if (Object.keys(diff).length) {
       logAudit({
@@ -288,21 +471,15 @@ router.delete('/:entity/:id', async (req: Request, res: Response, next: NextFunc
     const entity = resolve(req, res);
     if (!entity) return;
 
-    const lhDelete = LEVEL_HANDLERS[entity.model];
-    if (lhDelete) {
-      const cid = requireCompanyId(req, res);
-      if (!cid) return;
-      const ok = await lhDelete.remove(req.tenantId, cid, req.user.email, req.params.id);
-      if (!ok) return res.status(404).json({ error: 'Not found' });
-      return res.status(204).end();
-    }
 
     const scope = readScope(req, res, entity);
     if (scope === null) return;
-    const before = await delegate(entity).findFirst({ where: { id: req.params.id, tenantId: req.tenantId, ...scope } });
+    const before = await delegate(entity).findFirst({ where: { id: req.params.id, ...tenantWhere(req, entity), ...scope } });
     if (!before) return res.status(404).json({ error: 'Not found' });
 
     await delegate(entity).delete({ where: { id: req.params.id } });
+    maybeRecompute(entity, before);
+    maybeSyncNode(entity, 'DELETE', before);
     logAudit({
       tenantId: req.tenantId,
       actorEmail: req.user.email,
