@@ -915,7 +915,7 @@ async function metricsValueStream(tenantId: string, c: string, id: string, node?
         { label: 'Deliverables', value: lens.deliverables.length, drawer: 'Deliverables' },
       ],
       sections: [
-        { title: 'Process Level 4', kind: 'list', items: areas.map((s) => ({ label: s.name, value: stepByL4.get(s.name) ?? 0, hint: stepByL4.get(s.name) ? `${stepByL4.get(s.name)} steps` : 'no flow', drill: { level: 'step', id: s.id } })) },
+        { title: 'Process Level 4', kind: 'list', items: areas.map((s) => ({ label: s.name, value: 0, hint: stepByL4.get(s.name) ? `${stepByL4.get(s.name)} steps` : 'no flow', drill: { level: 'step', id: s.id } })) },
         { title: 'Supporting roles', kind: 'tree', items: lens.rolesTree },
         { title: 'Applications & systems', kind: 'list', items: lens.applications },
         { title: 'Supporting employees', kind: 'list', illustrative: true, hidden: true, items: lens.people },
@@ -945,7 +945,7 @@ async function metricsValueStream(tenantId: string, c: string, id: string, node?
       { label: 'Deliverables', value: lens.deliverables.length, drawer: 'Deliverables' },
     ],
     sections: [
-      { title: 'Process Level 4', kind: 'list', items: l3rows.map((s) => ({ label: s.name, value: stepByL3.get(s.name) ?? 0, hint: stepByL3.get(s.name) ? `${stepByL3.get(s.name)} steps` : 'no flow', drill: { level: 'step', id: s.id } })) },
+      { title: 'Process Level 4', kind: 'list', items: l3rows.map((s) => ({ label: s.name, value: 0, hint: stepByL3.get(s.name) ? `${stepByL3.get(s.name)} steps` : 'no flow', drill: { level: 'step', id: s.id } })) },
       { title: 'Supporting roles', kind: 'tree', items: lens.rolesTree },
       { title: 'Applications & systems', kind: 'list', items: lens.applications },
       { title: 'Supporting employees', kind: 'list', illustrative: true, hidden: true, items: lens.people },
