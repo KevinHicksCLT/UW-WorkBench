@@ -4,9 +4,10 @@
 // → L5 Sub-Process → L6 Process Step (the workbook's L5 steps) — each level
 // rendering left-to-right as you drill in.
 // A right-hand MetricsSidebar shows a spreadsheet-derived dashboard for whatever
-// level is currently focused (company / domain / division / value stream / area).
+// level is currently focused (company / domain / division / value stream / area)
+// — currently gated off behind SHOW_METRICS_SIDEBAR (see below).
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -16,11 +17,11 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { mapNodeTypes } from './nodes/MapNode';
+import { mapNodeTypes, MAP_CARD_W, MAP_CARD_H, sentenceCase } from './nodes/MapNode';
 import type {
   CompanyNodeData, CoreNodeData, DivisionNodeData, ValueStreamNodeData, StepNodeData, SubStepNodeData, LeafStepNodeData,
 } from './nodes/MapNode';
-import { CARD_W, CARD_H, DOMAIN_HEX } from './model';
+import { DOMAIN_HEX } from './model';
 import type { NodeFocusState, DivisionSummary, DivisionFlow, FlowStep, FlowValueStream } from './model';
 import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from '../components/MetricsSidebar';
 import ValueStreamDrawer from '../components/ValueStreamDrawer';
@@ -28,30 +29,41 @@ import { api } from '../lib/api';
 
 // ── Layout constants ─────────────────────────────────────────────────────────
 
-// Every card is the same size (CARD_W × CARD_H, from model.ts) so the whole map
-// reads as one consistent grid. The per-level aliases below keep the layout math
-// readable but all resolve to the same dimensions.
-const COMPANY_H        = CARD_H;
-const DOMAIN_TOP_OFFSET = 72;  // y offset from company bottom to the domain row
-const CORE_W          = CARD_W;
-const CORE_H          = CARD_H;
-const DIV_W           = CARD_W;
-const DIV_H           = CARD_H;
+// Defect backlog 02, D3.3 — right-side metrics sidebar disabled until we feel
+// good about the data. Flip back to true to restore it (the fetch + render are
+// both gated). Node clicks still drill the canvas; they just don't open a panel.
+const SHOW_METRICS_SIDEBAR: boolean = false;
+
+// Every card is the same size (MAP_CARD_W × MAP_CARD_H, from MapNode.tsx) so the
+// whole map reads as one consistent grid. The per-level aliases below keep the
+// layout math readable but all resolve to the same dimensions.
+const COMPANY_H        = MAP_CARD_H;
+const DOMAIN_TOP_OFFSET = 40;  // y offset from company bottom to the domain row
+const CORE_W          = MAP_CARD_W;
+const CORE_H          = MAP_CARD_H;
+const DIV_W           = MAP_CARD_W;
+const DIV_H           = MAP_CARD_H;
 const DIV_GAP_X       = 16;    // horizontal gap between divisions in the L2 row
-const COL_GAP_X       = 160;   // horizontal gap between column centers
-const DIV_TOP_OFFSET  = 60;    // y offset from domain bottom to first division top
-const VS_W            = CARD_W;
-const VS_H            = CARD_H;
+const COL_GAP_X       = 120;   // horizontal gap between column centers
+const DIV_TOP_OFFSET  = 36;    // y offset from domain bottom to first division top
+const VS_W            = MAP_CARD_W;
+const VS_H            = MAP_CARD_H;
 const VS_GAP_X        = 12;
-const VS_TOP_OFFSET   = 28;    // gap between focused-division bottom and VS row top
-const STEP_W          = CARD_W;
-const STEP_H          = CARD_H;
+const VS_TOP_OFFSET   = 24;    // gap between focused-division bottom and VS row top
+const STEP_W          = MAP_CARD_W;
+const STEP_H          = MAP_CARD_H;
 const STEP_GAP_X      = 12;
 const STEP_TOP_OFFSET = 24;    // gap between focused-VS bottom and step row top
 const SUBSTEP_GAP_X     = 12;
 const SUBSTEP_TOP_OFFSET = 24; // gap between focused-step bottom and sub-process row top
 const LEAF_GAP_X        = 12;
 const LEAF_TOP_OFFSET   = 24;  // gap between focused-sub-process bottom and L5 step row top
+
+// Compact map breadcrumb (defect backlog 02, D3.5) — the shared .focus-crumb-*
+// chips render at 14px; the map path runs five levels deep, so override down
+// to ~11px with tighter padding and separators.
+const CRUMB: CSSProperties     = { fontSize: 11, padding: '2px 7px' };
+const CRUMB_SEP: CSSProperties = { color: '#d4d4d4', margin: '0 2px', fontSize: 10 };
 
 // Segments (the column list), their left-to-right order, and the top-to-bottom
 // division order within each column are DATA: the API returns divisions already
@@ -280,7 +292,8 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
   useEffect(() => { setDrawerSection(null); }, [dashTarget?.level, dashTarget?.id]);
 
   useEffect(() => {
-    if (!dashTarget) { setDash(null); return; }
+    // Sidebar disabled (D3.3) → skip the fetch entirely, not just the render.
+    if (!SHOW_METRICS_SIDEBAR || !dashTarget) { setDash(null); return; }
     let cancelled = false;
     setDashLoading(true); setDash(null);
     const path = dashTarget.id
@@ -327,7 +340,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
     ns.push({
       id: 'company',
       type: 'companyNode',
-      position: { x: middleX - CARD_W / 2, y: 0 },
+      position: { x: middleX - MAP_CARD_W / 2, y: 0 },
       data: { name: companyName, focusState: companyFs } satisfies CompanyNodeData,
       draggable: false,
       selectable: false,
@@ -514,7 +527,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
                   const stepCenterX = subStepX + STEP_W / 2;
                   const subTop = stepsTop + STEP_H + SUBSTEP_TOP_OFFSET;
                   const subs = step.subSteps;
-                  const totalSubWidth = subs.length * CARD_W + (subs.length - 1) * SUBSTEP_GAP_X;
+                  const totalSubWidth = subs.length * MAP_CARD_W + (subs.length - 1) * SUBSTEP_GAP_X;
                   const subLeft = stepCenterX - totalSubWidth / 2;
 
                   subs.forEach((sub, sj) => {
@@ -523,7 +536,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
                     const subFs: NodeFocusState = level < 4 ? 'neutral'
                       : isSubFocused ? 'focused'
                       : 'dimmed';
-                    const subX = subLeft + sj * (CARD_W + SUBSTEP_GAP_X);
+                    const subX = subLeft + sj * (MAP_CARD_W + SUBSTEP_GAP_X);
 
                     ns.push({
                       id: subNodeId,
@@ -548,10 +561,10 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
 
                     // ── If this sub-process is focused, insert its L5 step row ──
                     if (isSubFocused && sub.l5.length > 0) {
-                      const subCenterX = subX + CARD_W / 2;
-                      const leafTop = subTop + CARD_H + LEAF_TOP_OFFSET;
+                      const subCenterX = subX + MAP_CARD_W / 2;
+                      const leafTop = subTop + MAP_CARD_H + LEAF_TOP_OFFSET;
                       const l5 = sub.l5;
-                      const totalLeafWidth = l5.length * CARD_W + (l5.length - 1) * LEAF_GAP_X;
+                      const totalLeafWidth = l5.length * MAP_CARD_W + (l5.length - 1) * LEAF_GAP_X;
                       const leafLeft = subCenterX - totalLeafWidth / 2;
 
                       l5.forEach((leaf, lk) => {
@@ -559,7 +572,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
                         ns.push({
                           id: leafNodeId,
                           type: 'leafStepNode',
-                          position: { x: leafLeft + lk * (CARD_W + LEAF_GAP_X), y: leafTop },
+                          position: { x: leafLeft + lk * (MAP_CARD_W + LEAF_GAP_X), y: leafTop },
                           data: { step: leaf.step, name: leaf.name, focusState: 'neutral', pieceIndex: lk } satisfies LeafStepNodeData,
                           draggable: false,
                           selectable: false,
@@ -636,6 +649,22 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
     }, 130));
   }, [rf]);
 
+  // Fit the whole visible graph, then pin its top edge near the top of the
+  // container — fitView alone centers vertically, which left a large empty band
+  // above the map (defect backlog 02, D3.1). The company root sits at world
+  // y=0, so viewport.y is exactly the on-screen offset of the content top.
+  // NB: in xyflow v12 fitView() is queued until nodes are measured and returns
+  // a promise — the viewport must be read AFTER it resolves. Reading it
+  // synchronously (the old code) grabbed the stale pre-fit viewport, and the
+  // queued fit then re-centered the graph over our y=16 pin.
+  const fitTopView = useCallback(() => {
+    void rf.fitView({ duration: 0, padding: 0.08, maxZoom: 0.95 }).then((applied) => {
+      if (!applied) return;
+      const { x, zoom } = rf.getViewport();
+      rf.setViewport({ x, y: 16, zoom }, { duration: 400 });
+    });
+  }, [rf]);
+
   const moveCameraToNode = useCallback((nodeId: string, yBias = 0.5) => {
     setTimeout(() => {
       const node = rf.getNode(nodeId);
@@ -649,15 +678,15 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
     }, 60);
   }, [rf]);
 
-  // Camera: company open/close → fit the visible graph
+  // Camera: company open/close → fit the visible graph (pinned to the top)
   useEffect(() => {
-    setTimeout(() => rf.fitView({ duration: 400, padding: 0.12, maxZoom: 0.95 }), 70);
+    fitTopView();
   }, [companyOpen]); // eslint-disable-line
 
   // Camera: domain selected → center on it (divisions appear below); deselected → fit
   useEffect(() => {
     if (selectedDomain && !focusedDivisionId) moveCameraToNode(`core:${selectedDomain}`, 1.4);
-    else if (!selectedDomain && companyOpen) setTimeout(() => rf.fitView({ duration: 400, padding: 0.12, maxZoom: 0.95 }), 70);
+    else if (!selectedDomain && companyOpen) fitTopView();
   }, [selectedDomain]); // eslint-disable-line
 
   // Camera: division focused → center on it; collapsed back → re-center on its domain
@@ -759,48 +788,48 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
       {breadcrumbSlot && createPortal(
         selectedDomain ? (
           <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', whiteSpace: 'nowrap' }}>
-            <button onClick={crumbToDomains} className="focus-crumb-ancestor">{companyName}</button>
-            <span style={{ color: '#d4d4d4', margin: '0 4px' }}>›</span>
+            <button onClick={crumbToDomains} className="focus-crumb-ancestor" style={CRUMB}>{sentenceCase(companyName)}</button>
+            <span style={CRUMB_SEP}>›</span>
             {!focusedDivision
-              ? <span className="focus-crumb-active">{selectedDomain}</span>
-              : <button onClick={crumbToL0} className="focus-crumb-ancestor">{selectedDomain}</button>}
+              ? <span className="focus-crumb-active" style={CRUMB}>{selectedDomain}</span>
+              : <button onClick={crumbToL0} className="focus-crumb-ancestor" style={CRUMB}>{selectedDomain}</button>}
             {focusedDivision && (
               <>
-                <span style={{ color: '#d4d4d4', margin: '0 4px' }}>›</span>
+                <span style={CRUMB_SEP}>›</span>
                 {level === 1
-                  ? <span className="focus-crumb-active">{focusedDivision.name}</span>
-                  : <button onClick={crumbToL1} className="focus-crumb-ancestor">{focusedDivision.name}</button>}
+                  ? <span className="focus-crumb-active" style={CRUMB}>{sentenceCase(focusedDivision.name)}</span>
+                  : <button onClick={crumbToL1} className="focus-crumb-ancestor" style={CRUMB}>{sentenceCase(focusedDivision.name)}</button>}
               </>
             )}
             {level >= 2 && focusedVs && (
               <>
-                <span style={{ color: '#d4d4d4', margin: '0 4px' }}>›</span>
+                <span style={CRUMB_SEP}>›</span>
                 {level === 2
-                  ? <span className="focus-crumb-active">{focusedVs.name}</span>
-                  : <button onClick={crumbToL2} className="focus-crumb-ancestor">{focusedVs.name}</button>}
+                  ? <span className="focus-crumb-active" style={CRUMB}>{sentenceCase(focusedVs.name)}</span>
+                  : <button onClick={crumbToL2} className="focus-crumb-ancestor" style={CRUMB}>{sentenceCase(focusedVs.name)}</button>}
               </>
             )}
             {level >= 3 && focusedStep && (
               <>
-                <span style={{ color: '#d4d4d4', margin: '0 4px' }}>›</span>
+                <span style={CRUMB_SEP}>›</span>
                 {level === 3
-                  ? <span className="focus-crumb-active">{focusedStep.name}</span>
-                  : <button onClick={crumbToL3} className="focus-crumb-ancestor">{focusedStep.name}</button>}
+                  ? <span className="focus-crumb-active" style={CRUMB}>{sentenceCase(focusedStep.name)}</span>
+                  : <button onClick={crumbToL3} className="focus-crumb-ancestor" style={CRUMB}>{sentenceCase(focusedStep.name)}</button>}
               </>
             )}
             {level === 4 && focusedSubStep && (
               <>
-                <span style={{ color: '#d4d4d4', margin: '0 4px' }}>›</span>
-                <span className="focus-crumb-active">{focusedSubStep.name}</span>
+                <span style={CRUMB_SEP}>›</span>
+                <span className="focus-crumb-active" style={CRUMB}>{sentenceCase(focusedSubStep.name)}</span>
               </>
             )}
             <button
               onClick={crumbToDomains}
               aria-label="Clear focus"
               style={{
-                marginLeft: 6, width: 22, height: 22, borderRadius: 6,
+                marginLeft: 6, width: 18, height: 18, borderRadius: 5,
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 12, color: '#a3a3a3',
+                fontSize: 10, color: '#a3a3a3',
                 background: 'transparent', border: '1px solid #eaeaea', cursor: 'pointer',
               }}
             >
@@ -808,7 +837,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
             </button>
           </div>
         ) : (
-          <span className="text-[13px] text-[#666666]">
+          <span className="text-[11px] text-[#666666]">
             Click a domain to drill into the end-to-end process.
           </span>
         ),
@@ -830,15 +859,16 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
         </div>
       )}
 
-      {/* React Flow canvas */}
+      {/* React Flow canvas. No `fitView` prop on purpose: it queues a
+          vertically-CENTERED fit on init that lands after (and overrides) the
+          top-pinned fit from fitTopView — the companyOpen mount effect handles
+          the initial camera instead. */}
       <div className="rf-stage rf-stage--map" style={{ flex: 1, position: 'relative' }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
           nodeTypes={mapNodeTypes}
           onNodeClick={onNodeClick}
-          fitView
-          fitViewOptions={{ padding: 0.1, maxZoom: 1 }}
           nodesDraggable={false}
           nodesConnectable={false}
           minZoom={0.05}
@@ -864,8 +894,9 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
         {vsDetailId && <ValueStreamDrawer valueStreamId={vsDetailId} onClose={() => setVsDetailId(null)} />}
       </div>
 
-      {/* Right metrics dashboard — appears once the company is opened. */}
-      {dashTarget && (
+      {/* Right metrics dashboard — defect backlog 02, D3.3: disabled until the
+          data is trusted (SHOW_METRICS_SIDEBAR). Node clicks still drill. */}
+      {SHOW_METRICS_SIDEBAR && dashTarget && (
         <MetricsSidebar
           dash={dash}
           loading={dashLoading}

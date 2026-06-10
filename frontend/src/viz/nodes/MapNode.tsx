@@ -1,10 +1,35 @@
-import { memo } from 'react';
+import { memo, type CSSProperties } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import {
   DOMAIN_HEX, DOMAIN_BG, DOMAIN_BORDER, DOMAIN_TEXT,
-  CARD_W, CARD_H,
   type NodeFocusState,
 } from '../model';
+
+// ── Map card dimensions ───────────────────────────────────────────────────────
+// Deliberately smaller than the shared CARD_W/CARD_H in model.ts (220×96), per
+// defect backlog 02, D3.2 — the map was mostly blank space. Long names wrap
+// (and clamp) inside the fixed box instead of widening it. MapCanvas imports
+// these for its layout math so geometry and rendering stay in lockstep.
+export const MAP_CARD_W = 150;
+export const MAP_CARD_H = 68;
+
+// Wrap-then-clamp for labels inside the fixed-size cards: wrap to multiple
+// lines, then ellipsize past the line budget so text never spills the box.
+const CLAMP3: CSSProperties = {
+  display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+};
+const CLAMP2: CSSProperties = {
+  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+};
+
+// ── Display-time casing normalizer (defect backlog 02, D3.4) ─────────────────
+// Node names come from the DB with mixed casing. We normalize at render time
+// only — never in the database — because the role/step joins match on the raw
+// names (see roleMatch.ts). Sentence case = uppercase the first letter and
+// leave the rest untouched, so acronyms (AIOps, KPI) survive.
+export function sentenceCase(s: string): string {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
 
 // ── Focus class helper ────────────────────────────────────────────────────────
 
@@ -95,11 +120,11 @@ const CompanyNodeImpl = memo(function CompanyNodeImpl({ data }: NodeProps) {
     <div
       className={fc}
       style={{
-        width: CARD_W,
-        height: CARD_H,
+        width: MAP_CARD_W,
+        height: MAP_CARD_H,
         boxSizing: 'border-box',
         overflow: 'hidden',
-        padding: '12px 16px',
+        padding: '10px 12px',
         borderRadius: 12,
         background: '#171717',
         border: '1px solid #171717',
@@ -112,8 +137,8 @@ const CompanyNodeImpl = memo(function CompanyNodeImpl({ data }: NodeProps) {
         justifyContent: 'center',
       }}
     >
-      <div style={{ fontSize: 15, fontWeight: 700, color: '#ffffff', lineHeight: 1.25 }}>
-        {d.name}
+      <div style={{ fontSize: 13, fontWeight: 700, color: '#ffffff', lineHeight: 1.25, ...CLAMP3 }}>
+        {sentenceCase(d.name)}
       </div>
       <AllHandles />
     </div>
@@ -136,11 +161,11 @@ const CoreNodeImpl = memo(function CoreNodeImpl({ data }: NodeProps) {
     <div
       className={fc}
       style={{
-        width: CARD_W,
-        height: CARD_H,
+        width: MAP_CARD_W,
+        height: MAP_CARD_H,
         boxSizing: 'border-box',
         overflow: 'hidden',
-        padding: '10px 14px',
+        padding: '8px 12px',
         borderRadius: 10,
         background: bg,
         border: `1.5px solid ${border}`,
@@ -157,14 +182,15 @@ const CoreNodeImpl = memo(function CoreNodeImpl({ data }: NodeProps) {
     >
       <div
         style={{
-          fontSize: 14,
+          fontSize: 12.5,
           fontWeight: 600,
           color: text,
           letterSpacing: '-0.011em',
           lineHeight: 1.25,
+          ...CLAMP3,
         }}
       >
-        {d.label}
+        {sentenceCase(d.label)}
       </div>
       <AllHandles />
     </div>
@@ -184,11 +210,11 @@ const DivisionNodeImpl = memo(function DivisionNodeImpl({ data }: NodeProps) {
     <div
       className={`group ${fc}`}
       style={{
-        width: CARD_W,
-        height: CARD_H,
+        width: MAP_CARD_W,
+        height: MAP_CARD_H,
         boxSizing: 'border-box',
         overflow: 'hidden',
-        padding: '12px 30px 12px 14px',
+        padding: '10px 26px 10px 12px',
         borderRadius: 10,
         background: '#ffffff',
         border: `1px solid ${border}`,
@@ -203,8 +229,8 @@ const DivisionNodeImpl = memo(function DivisionNodeImpl({ data }: NodeProps) {
       }}
     >
       {/* Name */}
-      <div style={{ fontSize: 13, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.3 }}>
-        {d.name}
+      <div style={{ fontSize: 12, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.3, ...CLAMP3 }}>
+        {sentenceCase(d.name)}
       </div>
       {/* Arrow affordance */}
       <svg
@@ -248,11 +274,11 @@ const ValueStreamNodeImpl = memo(function ValueStreamNodeImpl({ data }: NodeProp
     <div
       className={`animate-piece-arrive ${fc}`}
       style={{
-        width: CARD_W,
-        height: CARD_H,
+        width: MAP_CARD_W,
+        height: MAP_CARD_H,
         boxSizing: 'border-box',
         overflow: 'hidden',
-        padding: '10px 12px',
+        padding: '8px 10px',
         borderRadius: 10,
         background: '#ffffff',
         border: '1px solid #eaeaea',
@@ -264,8 +290,8 @@ const ValueStreamNodeImpl = memo(function ValueStreamNodeImpl({ data }: NodeProp
       }}
     >
       {/* Name */}
-      <div style={{ fontSize: 12.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35 }}>
-        {d.name}
+      <div style={{ fontSize: 11.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35, ...CLAMP3 }}>
+        {sentenceCase(d.name)}
       </div>
       <AllHandles />
     </div>
@@ -284,11 +310,11 @@ const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
     <div
       className={`animate-piece-arrive ${fc}`}
       style={{
-        width: CARD_W,
-        height: CARD_H,
+        width: MAP_CARD_W,
+        height: MAP_CARD_H,
         boxSizing: 'border-box',
         overflow: 'hidden',
-        padding: '11px 12px',
+        padding: '9px 10px',
         borderRadius: 10,
         background: '#ffffff',
         border: `1px solid #eaeaea`,
@@ -319,8 +345,8 @@ const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
         >
           {d.step}
         </span>
-        <span style={{ fontSize: 12.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35 }}>
-          {d.name}
+        <span style={{ fontSize: 11.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35, ...CLAMP3 }}>
+          {sentenceCase(d.name)}
         </span>
       </div>
       <AllHandles />
@@ -341,11 +367,11 @@ const SubStepNodeImpl = memo(function SubStepNodeImpl({ data }: NodeProps) {
     <div
       className={`animate-piece-arrive ${fc}`}
       style={{
-        width: CARD_W,
-        height: CARD_H,
+        width: MAP_CARD_W,
+        height: MAP_CARD_H,
         boxSizing: 'border-box',
         overflow: 'hidden',
-        padding: '11px 12px',
+        padding: '9px 10px',
         borderRadius: 10,
         background: '#ffffff',
         border: '1px solid #eaeaea',
@@ -376,8 +402,9 @@ const SubStepNodeImpl = memo(function SubStepNodeImpl({ data }: NodeProps) {
         >
           {d.step}
         </span>
-        <span style={{ fontSize: 12.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35 }}>
-          {d.name}
+        {/* 2-line clamp (not 3): leaves room for the count chip below */}
+        <span style={{ fontSize: 11.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35, ...CLAMP2 }}>
+          {sentenceCase(d.name)}
         </span>
       </div>
       {/* L5 drill affordance */}
@@ -403,11 +430,11 @@ const LeafStepNodeImpl = memo(function LeafStepNodeImpl({ data }: NodeProps) {
     <div
       className={`animate-piece-arrive ${fc}`}
       style={{
-        width: CARD_W,
-        height: CARD_H,
+        width: MAP_CARD_W,
+        height: MAP_CARD_H,
         boxSizing: 'border-box',
         overflow: 'hidden',
-        padding: '11px 12px',
+        padding: '9px 10px',
         borderRadius: 10,
         background: '#ffffff',
         border: '1px solid #eaeaea',
@@ -438,8 +465,8 @@ const LeafStepNodeImpl = memo(function LeafStepNodeImpl({ data }: NodeProps) {
         >
           {d.step}
         </span>
-        <span style={{ fontSize: 12.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35 }}>
-          {d.name}
+        <span style={{ fontSize: 11.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35, ...CLAMP3 }}>
+          {sentenceCase(d.name)}
         </span>
       </div>
       <AllHandles />

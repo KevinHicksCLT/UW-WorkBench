@@ -4,13 +4,14 @@ import OrgListExplorer from '../components/OrgListExplorer';
 import OrgTable from './OrgTable';
 
 // Organization tab — mirrors the Value Streams tab: a floating segmented control
-// toggles between three views of the SAME org spine:
-//   List  — fully-exploded drill-down outline (Company › Segment › Division ›
-//           Department › Role › Person) with the shared metrics sidebar.
-//   Table — the original box-grid drill-down (OrgTable), kept intact.
-type View = 'list' | 'table';
+// toggles between two views of the SAME org spine (D4.3 — the old "Table"
+// sub-tab is gone; Map is the second tab, like Value Streams):
+//   List — Excel-like drill-down grid (Domain › Division › Department › Role)
+//          with the shared metrics sidebar.
+//   Map  — the box-grid spatial drill-down (OrgTable), kept intact.
+type View = 'list' | 'map';
 
-// Floating segmented control — hovers over the content; List ↔ Table.
+// Floating segmented control — hovers over the content; List ↔ Map.
 function ViewToggle({ view, onChange }: { view: View; onChange: (v: View) => void }) {
   const btn = (active: boolean) =>
     'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors duration-150 ' +
@@ -24,11 +25,11 @@ function ViewToggle({ view, onChange }: { view: View; onChange: (v: View) => voi
           </svg>
           List
         </button>
-        <button type="button" role="tab" aria-selected={view === 'table'} className={btn(view === 'table')} onClick={() => onChange('table')}>
+        <button type="button" role="tab" aria-selected={view === 'map'} className={btn(view === 'map')} onClick={() => onChange('map')}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M3 15h18M9 3v18" />
+            <path d="M9 3L3 6v15l6-3 6 3 6-3V3l-6 3-6-3zM9 3v15M15 6v15" />
           </svg>
-          Table
+          Map
         </button>
       </div>
     </div>
@@ -38,10 +39,10 @@ function ViewToggle({ view, onChange }: { view: View; onChange: (v: View) => voi
 export default function Organization() {
   // `?view=departments` (home "Departments" tile) and `?role=<id>` (links from
   // Work / External / Standards / the map) deep-link into the box-grid
-  // drill-down — land on the Table view so OrgTable handles the param.
+  // drill-down — land on the Map view so OrgTable handles the param.
   const [searchParams] = useSearchParams();
   const [view, setView] = useState<View>(
-    searchParams.get('view') === 'departments' || searchParams.get('role') ? 'table' : 'list',
+    searchParams.get('view') === 'departments' || searchParams.get('role') ? 'map' : 'list',
   );
 
   return (
@@ -52,9 +53,9 @@ export default function Organization() {
         {view === 'list' ? (
           <OrgListExplorer />
         ) : (
-          // Table view: the original OrgTable, in a scrollable centered container
-          // (matching the app's standard detail-page shell). Top padding clears
-          // the floating toggle.
+          // Map view: the original OrgTable box drill-down, in a scrollable
+          // centered container (matching the app's standard detail-page shell).
+          // Top padding clears the floating toggle.
           <div className="h-full overflow-auto">
             <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-6">
               <OrgTable />

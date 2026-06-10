@@ -44,6 +44,18 @@ hydrated with a representative baseline plan for the transformation itself.
 5. Breadcrumb font is much smaller than today.
 6. Parallel-vs-sequential: steps that can run in parallel are not misrepresented as strictly sequential — documented approach + at minimum a visual treatment/note distinguishing sequence-independent steps. (Analysis written up; full auto-detection is future work.)
 
+> **D3.6 analysis (2026-06-10):** the map's left-to-right chevron layout implies strict
+> sequence, but the workbook orders steps by Activity ID, not by dependency. The data
+> needed to detect true parallelism already exists: `ProcessStep.parentProcessId` groups
+> steps under one L4, and `IoItem` inputs/outputs define which step consumes another's
+> output. Two steps under the same parent with **no input/output edge between them** are
+> sequence-independent and could run in parallel. Proposed treatment (next phase):
+> compute that consumes-relation per L4 in the explorer API, lay independent steps in the
+> same column (stacked vertically) instead of chained, and badge them "parallel-capable".
+> This is also a good Bridge Assistant prompt ("which steps in <stream> could run in
+> parallel?") since the SQL is a self-join on IoItem. Not auto-applied yet — needs the
+> I/O data quality pass first.
+
 ## D4 — Organization: List + tabs
 
 **AC**
@@ -137,8 +149,8 @@ Each AC is checked off by exercising the running app (Playwright) + querying the
 | --- | --- |
 | D1 Home rework | pending |
 | D2 VS list | DONE (grid + sort + expand/collapse-all, 27px rows, no Domain/Division rows, flush top). NOTE: list dedupes to 29 streams vs Home tile's 36 — reconcile in final pass |
-| D3 VS map | pending |
-| D4 Organization | pending |
+| D3 VS map | DONE (top-pinned camera, 143×65 boxes w/ wrapped labels, sidebar gated off, sentence-case labels, 11px breadcrumb; parallelism analysis documented) |
+| D4 Organization | DONE (grid + sort, people removed, List & Map tabs) |
 | D5 Standards | pending |
 | D6 Metrics | rename + redirects DONE; AI-adoption refactor pending |
 | D7 Workspace | rename DONE; restructure pending |
