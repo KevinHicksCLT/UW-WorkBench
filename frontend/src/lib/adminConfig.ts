@@ -47,8 +47,10 @@ export const ADMIN_TABS: TabConfig[] = [
     sections: [
       { key: 'builder', label: 'Model builder', hint: 'the map structure', editor: { kind: 'builder', scope: 'map' } },
       { key: 'subProcesses', label: 'Sub-processes', editor: { kind: 'list', slug: 'subValueStream', fixed: { level: 4 }, intro: 'The L4 sub-process details — inputs, outputs, upstream/downstream hand-offs, and notes — rendered in the map sidebar and the value-stream drawer. Edits here also refresh the sub-process node on the map.' } },
-      { key: 'steps', label: 'Process steps', editor: { kind: 'list', slug: 'processStep', intro: 'Sequenced E2E process steps attached to a value stream (the "how the work flows" detail).' } },
+      { key: 'steps', label: 'Process steps', editor: { kind: 'list', slug: 'processStep', intro: 'Sequenced E2E process steps attached to a value stream (the "how the work flows" detail). The `code` / `parentProcessId` columns are the workbook Activity IDs (CI-01-01-S03 / CI-01-01) the step lens joins on.' } },
       { key: 'io', label: 'Inputs / outputs', editor: { kind: 'list', slug: 'ioItem', intro: 'Inputs, outputs, and deliverables inventoried per value stream.' } },
+      { key: 'stepApps', label: 'Step applications', editor: { kind: 'list', slug: 'stepAppUsage', intro: 'Which application a process step runs on, and how (Execution / System of Record / Approval / Reporting / Support) — the "Applications & systems" section of the map sidebar. Rows match a step by its id or by Activity ID. Illustrative rows came from the deterministic seed; replace them with real ones as they are confirmed.' } },
+      { key: 'stepDeliverables', label: 'Step deliverables', editor: { kind: 'list', slug: 'stepDeliverable', intro: 'The deliverable each step produces, where it is memorialized (system of record) and who approves it in which system — the "Deliverables" chain of the map sidebar.' } },
     ],
   },
   {
@@ -88,7 +90,7 @@ export const ADMIN_TABS: TabConfig[] = [
       { key: 'trackable', label: 'Trackable signals', editor: { kind: 'list', slug: 'telemetrySignal', intro: 'The Trackable Metrics inventory — live workforce signals (isLive on; per-person readings drill by role) and the workbook reference catalog of everything the company could measure.' } },
       {
         key: 'apps', label: 'Applications',
-        editor: { kind: 'masterDetail', parent: 'application', parentTitle: 'Applications', intro: 'Select an application to edit it and manage which value streams it supports.', children: [{ slug: 'applicationValueStream', fk: 'applicationId', title: 'Value-stream links' }] },
+        editor: { kind: 'masterDetail', parent: 'application', parentTitle: 'Applications', intro: 'Select an application to edit it (including its APP-nnn code and System-of-Record flag from the Bridge Input catalog) and manage which value streams and process steps it supports.', children: [{ slug: 'applicationValueStream', fk: 'applicationId', title: 'Value-stream links' }, { slug: 'stepAppUsage', fk: 'applicationId', title: 'Step usage' }] },
       },
       { key: 'signals', label: 'People signals', editor: { kind: 'group', intro: 'Per-person digital-productivity signals, performance metrics, and app-usage mix.', lists: [{ slug: 'personSignal', title: 'Signals' }, { slug: 'personMetric', title: 'Performance metrics' }, { slug: 'personAppUsage', title: 'App usage' }] } },
       { key: 'aiAdoption', label: 'AI adoption', hint: 'per value stream', editor: { kind: 'aiAdoption' } },

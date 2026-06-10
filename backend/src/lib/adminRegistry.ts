@@ -78,6 +78,7 @@ const LABEL_OVERRIDES: Record<string, string> = {
   initiativeValueStream: 'impactType',
   initiativeDivision: 'role',
   assignment: 'employmentType',
+  stepAppUsage: 'activityCode',
   complianceRule: 'ruleCode',
   jurisdictionIntegration: 'usage',
   requirementValueStream: 'relationship',
@@ -97,7 +98,7 @@ const HIDDEN = new Set(['valueStream', 'level', 'orgLevel']);
 // these group names and order. Entities not listed fall into "Other" at the end.
 const GROUPS: { group: string; slugs: string[] }[] = [
   { group: 'Organization', slugs: ['organization', 'company', 'valueStreamDomain', 'division', 'department', 'role'] },
-  { group: 'Value Streams', slugs: ['valueStreams', 'subValueStream', 'processStep', 'ioItem'] },
+  { group: 'Value Streams', slugs: ['valueStreams', 'subValueStream', 'processStep', 'ioItem', 'stepAppUsage', 'stepDeliverable'] },
   { group: 'Role Work', slugs: ['category', 'checklistItem', 'roleTask', 'roleValueStream'] },
   { group: 'Applications & Metrics', slugs: ['application', 'applicationValueStream', 'metric', 'telemetrySignal', 'standard', 'standardItem'] },
   { group: 'People', slugs: ['person', 'assignment', 'personTask', 'personMetric', 'personAppUsage', 'personSignal'] },
