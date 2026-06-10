@@ -44,7 +44,9 @@ export default function Explorer() {
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<View>('list');
   // Deep-link arrives when the user clicks through from elsewhere in the app:
-  //   `?focus=<valueStreamId>` → map view focused on that value stream;
+  //   `?focus=<valueStreamId>` → LIST view focused on that value stream (its
+  //                              detail opens in the right sidebar); add
+  //                              `view=map` to focus the map instead.
   //   `?view=list|map`         → force that view (list is fully exploded to the
   //                              process-step level, e.g. the home "Process steps" tile).
   // Lift it into state and clear the param so it doesn't linger or re-fire.
@@ -55,7 +57,7 @@ export default function Explorer() {
     const f = searchParams.get('focus');
     const v = searchParams.get('view');
     if (!f && v !== 'list' && v !== 'map') return;
-    if (f) { setFocusVsId(f); setView('map'); }
+    if (f) { setFocusVsId(f); setView(v === 'map' ? 'map' : 'list'); }
     else if (v === 'list' || v === 'map') setView(v);
     const next = new URLSearchParams(searchParams);
     next.delete('focus');
@@ -103,7 +105,7 @@ export default function Explorer() {
         <ViewToggle view={view} onChange={setView} />
 
         {view === 'list' ? (
-          <ListExplorer divisions={divisions} companyName={companyName} streams={streams} />
+          <ListExplorer divisions={divisions} companyName={companyName} streams={streams} focusVsId={focusVsId} />
         ) : loading ? (
           <div className="h-full grid place-items-center">
             <div className="text-sm text-[#a3a3a3] animate-pulse">Loading operating model…</div>

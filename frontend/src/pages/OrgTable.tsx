@@ -578,22 +578,6 @@ function PersonDetailView({ personId, crumbs }: { personId: string; crumbs: { la
                 </div>
               )}
 
-              <div className="card">
-                <h3 className="font-semibold text-slate-900 mb-3">Assignment{d.assignments.length === 1 ? '' : 's'} ({d.assignments.length})</h3>
-                <div className="space-y-3">
-                  {d.assignments.map((a) => (
-                    <div key={a.roleId} className="text-sm border-b border-slate-100 last:border-0 pb-3 last:pb-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <Link to={`/roles/${a.roleId}`} className="font-medium text-brand-700 hover:underline">{a.roleName}</Link>
-                        <span className="tnum text-xs text-[#a3a3a3] flex-shrink-0">{a.allocationPct}%</span>
-                      </div>
-                      <div className="text-xs text-[#a3a3a3]">{[a.departmentName, a.divisionName].filter(Boolean).join(' · ')}</div>
-                      {a.isPrimary && <span className="chip-soft mt-1 inline-block">Primary</span>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               {d.valueStreams.length > 0 && (
                 <div className="card">
                   <h3 className="font-semibold text-slate-900 mb-3">Value Streams</h3>

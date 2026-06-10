@@ -28,8 +28,8 @@ const catFor = (higherCategory: string | null): Category => higherCategory ?? 'U
 const hexFor = (c: string) => DOMAIN_HEX[c] ?? '#64748b';
 
 // Context lets any node open the right-hand metrics panel without prop-drilling.
-type MetricsCtxValue = { open: (level: string, id: string) => void; openVsDetail: (id: string) => void; activeKey: string | null };
-const MetricsCtx = createContext<MetricsCtxValue>({ open: () => {}, openVsDetail: () => {}, activeKey: null });
+type MetricsCtxValue = { open: (level: string, id: string) => void; activeKey: string | null; focusVsId: string | null };
+const MetricsCtx = createContext<MetricsCtxValue>({ open: () => {}, activeKey: null, focusVsId: null });
 const useMetrics = () => useContext(MetricsCtx);
 
 // ── Row chrome (shared by every node) ─────────────────────────────────────────
@@ -90,11 +90,15 @@ function SubProcessNode({ sub, depth }: { sub: SubProc; depth: number }) {
 
 function AreaNode({ area, depth }: { area: Area; depth: number }) {
   const [open, setOpen] = useState(true);
+  // L4 sub-processes carry their own authored detail (inputs/outputs/leads) —
+  // clicking opens it in the sidebar; the caret still expands/collapses.
+  const { open: openMetrics, activeKey } = useMetrics();
   const subs = area.subProcesses;
   return (
     <>
-      <Row depth={depth} leaf={subs.length === 0} open={open}
-        onClick={subs.length ? () => setOpen((o) => !o) : undefined}
+      <Row depth={depth} leaf={subs.length === 0} open={open} selected={activeKey === `step:${area.id}`}
+        onClick={() => openMetrics('step', area.id)}
+        onToggle={subs.length ? () => setOpen((o) => !o) : undefined}
         num={area.step} label={area.name} meta={<Meta>{subs.length} steps</Meta>} />
       {open && subs.map((ss) => <SubProcessNode key={ss.id} sub={ss} depth={depth + 1} />)}
     </>
@@ -102,16 +106,24 @@ function AreaNode({ area, depth }: { area: Area; depth: number }) {
 }
 
 function ValueStreamNode({ vs, depth }: { vs: VS; depth: number }) {
+  // Clicking the stream opens its detail in the right sidebar (the full-detail
+  // drawer stays one click away via the sidebar's "View full details"); the
+  // caret still expands/collapses the branch. A deep-linked focus stream
+  // scrolls itself into view.
+  const { open: openMetrics, activeKey, focusVsId } = useMetrics();
   const [open, setOpen] = useState(true);
-  // Clicking the stream opens its full detail drawer (the retired standalone
-  // page's content, in place); the caret still expands/collapses the branch.
-  const { openVsDetail } = useMetrics();
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (focusVsId === vs.id) ref.current?.scrollIntoView({ block: 'center' });
+  }, [focusVsId, vs.id]);
   return (
     <>
-      <Row depth={depth} leaf={vs.areas.length === 0} open={open}
-        onClick={() => openVsDetail(vs.id)}
-        onToggle={vs.areas.length ? () => setOpen((o) => !o) : undefined}
-        label={vs.name} meta={<Meta>{vs.areas.length} sub-processes · details →</Meta>} />
+      <div ref={ref}>
+        <Row depth={depth} leaf={vs.areas.length === 0} open={open} selected={activeKey === `valueStream:${vs.id}`}
+          onClick={() => openMetrics('valueStream', vs.id)}
+          onToggle={vs.areas.length ? () => setOpen((o) => !o) : undefined}
+          label={vs.name} meta={<Meta>{vs.areas.length} sub-processes</Meta>} />
+      </div>
       {open && (vs.areas.length > 0
         ? vs.areas.map((a) => <AreaNode key={a.id} area={a} depth={depth + 1} />)
         : <InfoRow depth={depth + 1} text="No process areas mapped." />)}
@@ -245,7 +257,7 @@ function FilterBar({
   );
 }
 
-export default function ListExplorer({ companyName }: { companyName: string; divisions?: DivisionSummary[]; streams?: number }) {
+export default function ListExplorer({ companyName, focusVsId = null }: { companyName: string; divisions?: DivisionSummary[]; streams?: number; focusVsId?: string | null }) {
   const [tree, setTree] = useState<Tree | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -269,6 +281,12 @@ export default function ListExplorer({ companyName }: { companyName: string; div
   const onDrill = (level: string, id: string) => setOvStack((s) => [...s, { level, id }]);
   const onBack = () => setOvStack((s) => s.slice(0, -1));
   const closeMetrics = () => { setBase(null); setOvStack([]); };
+
+  // Deep-linked focus (value-stream links across the app land here): open the
+  // stream's detail in the sidebar; the row scrolls itself into view.
+  useEffect(() => {
+    if (focusVsId) openMetrics('valueStream', focusVsId);
+  }, [focusVsId]); // eslint-disable-line
 
   useEffect(() => {
     let cancelled = false; setLoading(true);
@@ -341,7 +359,7 @@ export default function ListExplorer({ companyName }: { companyName: string; div
   const name = tree?.company.name ?? companyName;
 
   return (
-    <MetricsCtx.Provider value={{ open: openMetrics, openVsDetail: setVsDetailId, activeKey }}>
+    <MetricsCtx.Provider value={{ open: openMetrics, activeKey, focusVsId }}>
       {/* Side-by-side: tree scrolls, metrics panel sits beside it (no overlay). */}
       <div className="h-full flex relative">
         <div className="flex-1 min-w-0 overflow-auto">
@@ -378,6 +396,7 @@ export default function ListExplorer({ companyName }: { companyName: string; div
             dash={dash} loading={dashLoading} onDrill={onDrill}
             onBack={ovStack.length ? onBack : undefined} onClose={closeMetrics} onViewAll={setDrawerSection}
             onViewDetail={target?.level === 'valueStream' && target.id ? () => setVsDetailId(target.id) : undefined}
+            expandKey={base ? `${base.level}:${base.id}` : null}
           />
         )}
 

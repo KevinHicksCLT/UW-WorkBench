@@ -4,7 +4,7 @@
 // straight from the workbook tables. Items carrying a `drill` target render as
 // buttons that navigate one level deeper in the map.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export type Fmt = 'money' | 'years' | 'number';
 export type MetricItem = { label: string; value: number; hint?: string; sub?: string; format?: Fmt; illustrative?: boolean; drill?: { level: string; id: string } };
@@ -41,7 +41,7 @@ function fmt(n: number, f?: Fmt) {
 }
 
 export default function MetricsSidebar({
-  dash, loading, onDrill, onBack, onClose, onViewAll, onViewDetail,
+  dash, loading, onDrill, onBack, onClose, onViewAll, onViewDetail, expandKey,
 }: {
   dash: Dashboard | null;
   loading: boolean;
@@ -51,14 +51,21 @@ export default function MetricsSidebar({
   onClose?: () => void;
   // Opens a section's comprehensive (uncapped) view in a wide drawer.
   onViewAll?: (section: MetricSection) => void;
-  // When provided (value-stream level), renders a link to the full detail page.
+  // When provided (value-stream level), renders the full-detail drawer button.
   onViewDetail?: () => void;
+  // When this key changes (the user clicked a row), the panel auto-expands —
+  // a click is an explicit ask to see the data, not just the rail.
+  expandKey?: string | null;
 }) {
   // Minimizable: collapse the panel to a thin rail to give the map full width.
-  // Always starts collapsed by default; the user can expand it per session.
-  const [collapsed, setCollapsed] = useState<boolean>(true);
+  // Starts collapsed by default; expands on row selection (expandKey) or by hand.
+  const [collapsed, setCollapsed] = useState<boolean>(!expandKey);
   const toggleCollapsed = () => setCollapsed((c) => !c);
+  useEffect(() => { if (expandKey) setCollapsed(false); }, [expandKey]);
   const levelLabel = dash ? (LEVEL_LABEL[dash.level] ?? 'Roles') : 'Roles';
+  // The rail labels itself with the clicked node's NAME (the level alone reads
+  // as noise — "Process Level 3" says nothing about WHAT is selected).
+  const railLabel = dash?.title ?? levelLabel;
 
   // ── Collapsed rail ──────────────────────────────────────────────────────────
   if (collapsed) {
@@ -72,9 +79,9 @@ export default function MetricsSidebar({
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
         </button>
-        {levelLabel && (
-          <div className="mt-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0070AD] [writing-mode:vertical-rl] rotate-180 select-none">
-            {levelLabel}
+        {railLabel && (
+          <div className="mt-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0070AD] [writing-mode:vertical-rl] rotate-180 select-none max-h-[60vh] overflow-hidden text-ellipsis" title={railLabel}>
+            {railLabel}
           </div>
         )}
       </aside>
