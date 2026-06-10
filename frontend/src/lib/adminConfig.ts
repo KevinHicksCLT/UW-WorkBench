@@ -19,7 +19,7 @@ export type EditorSpec =
   | { kind: 'skills' }
   | { kind: 'validations' }
   | { kind: 'aiAdoption' }
-  | { kind: 'builder'; scope?: 'all' | 'work' | 'external' }
+  | { kind: 'builder'; scope?: 'all' | 'map' | 'external' }
   | { kind: 'catalog' };
 
 export type Section = { key: string; label: string; hint?: string; editor: EditorSpec };
@@ -31,12 +31,6 @@ export const ADMIN_TABS: TabConfig[] = [
     label: 'Company',
     description: 'Onboard a new company or edit an existing one. Everything else in Data Admin is scoped to the company selected in the top bar.',
     sections: [{ key: 'company', label: 'Companies', editor: { kind: 'company' } }],
-  },
-  {
-    key: 'builder',
-    label: 'Builder',
-    description: 'The operating model itself — one tree of segments, divisions, departments, roles, value streams, processes and I/O, plus the connections between them. Every screen renders from this model: build or rename here and it shows everywhere, instantly.',
-    sections: [{ key: 'builder', label: 'Model builder', editor: { kind: 'builder' } }],
   },
   {
     key: 'home',
@@ -51,7 +45,7 @@ export const ADMIN_TABS: TabConfig[] = [
     label: 'Value Streams',
     description: 'The operating-model map is driven by a single configurable level hierarchy (Enterprise → Domain → Division → Value Stream → Sub-Process → Process Step). Drill in to edit any node and its detail.',
     sections: [
-      { key: 'builder', label: 'Model builder', hint: 'the map structure', editor: { kind: 'builder', scope: 'work' } },
+      { key: 'builder', label: 'Model builder', hint: 'the map structure', editor: { kind: 'builder', scope: 'map' } },
       { key: 'steps', label: 'Process steps', editor: { kind: 'list', slug: 'processStep', intro: 'Sequenced E2E process steps attached to a value stream (the "how the work flows" detail).' } },
       { key: 'io', label: 'Inputs / outputs', editor: { kind: 'list', slug: 'ioItem', intro: 'Inputs, outputs, and deliverables inventoried per value stream.' } },
     ],

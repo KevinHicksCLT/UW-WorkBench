@@ -11,14 +11,17 @@ type LinkRow = { id: string; relationType: string; attributes: any; peer: { id: 
 
 // Optional scope narrows the builder to one branch of the model so each Data
 // Admin tab only shows ITS nodes (gap fix: roles/external parties no longer
-// appear under Value Streams). 'work' = value-stream branch, 'external' = the
+// appear under Value Streams). 'map' = the operating-model map hierarchy,
+// starting at the company root and drilling Enterprise → Segment → Division →
+// Value Stream → Sub-Process → Step (org-only nodes — departments/roles — and
+// external parties are edited on their own tabs). 'external' = the
 // external-party catalog, 'all' (default) = the whole model.
 const SCOPES: Record<string, { types: string[]; rootType: string } | undefined> = {
-  work: { types: ['value_stream', 'sub_process', 'step', 'io_item'], rootType: 'value_stream' },
+  map: { types: ['enterprise', 'segment', 'division', 'value_stream', 'sub_process', 'step', 'io_item'], rootType: 'enterprise' },
   external: { types: ['external_party'], rootType: 'external_party' },
 };
 
-export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: string | null; scope?: 'all' | 'work' | 'external' }) {
+export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: string | null; scope?: 'all' | 'map' | 'external' }) {
   const [types, setTypes] = useState<NodeType[]>([]);
   const [relationTypes, setRelationTypes] = useState<string[]>([]);
   const [nodes, setNodes] = useState<TreeNode[]>([]);
@@ -60,7 +63,9 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
   // limited to the scope's types when scoped).
   const childTypes = types
     .filter((t) => (scopeDef ? scopeDef.types.includes(t.key) : true))
-    .filter((t) => (current ? t.parentKeys.includes(current.typeKey) : scopeDef ? t.key === scopeDef.rootType && t.parentKeys.length === 0 : t.parentKeys.length === 0));
+    .filter((t) => (current ? t.parentKeys.includes(current.typeKey) : scopeDef ? t.key === scopeDef.rootType && t.parentKeys.length === 0 : t.parentKeys.length === 0))
+    // The company root is singular — no "+ Enterprise" once it exists.
+    .filter((t) => !(t.key === 'enterprise' && scoped.some((n) => n.typeKey === 'enterprise')));
 
   const patchNode = async (n: TreeNode, data: Record<string, unknown>) => {
     try {
@@ -148,7 +153,8 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
           <div className="card-elevated divide-y divide-[#f5f5f5]">
             {children.length === 0 && <div className="px-4 py-6 text-sm text-[#a3a3a3] italic">No nodes yet at this level.</div>}
             {children.map((n) => {
-              const kidCount = nodes.filter((x) => x.parentId === n.id).length;
+              // Count only in-scope children — what drilling in will actually show.
+              const kidCount = scoped.filter((x) => x.parentId === n.id).length;
               return (
                 <div key={n.id} className={'flex items-center gap-2 px-4 py-2 hover:bg-[#fafafa] ' + (selected?.id === n.id ? 'bg-[#eef6fb]' : '')}>
                   <button
