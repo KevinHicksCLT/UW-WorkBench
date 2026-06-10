@@ -36,6 +36,22 @@ function ownInitiative(id: string, tenantId: string) {
   return prisma.portfolioInitiative.findFirst({ where: { id, tenantId } });
 }
 
+// ── Health rollup (I13): a parent's effective health is its WORST child's.
+// The stored status stays editable (manual override) — the API returns both,
+// plus a flag so the UI can show the override visibly.
+const STATUS_SEV: Record<string, number> = { ON_TRACK: 0, AT_RISK: 1, OFF_TRACK: 2 };
+const worstStatus = (statuses: string[], fallback: string) =>
+  statuses.length ? statuses.reduce((a, s) => ((STATUS_SEV[s] ?? 0) > (STATUS_SEV[a] ?? 0) ? s : a), 'ON_TRACK') : fallback;
+
+function withHealthRollup<P extends { status: string; workstreams: (W & { initiatives: { status: string }[] })[] }, W extends { status: string }>(program: P) {
+  const workstreams = program.workstreams.map((w) => {
+    const computedStatus = worstStatus(w.initiatives.map((i) => i.status), w.status);
+    return { ...w, computedStatus, statusOverridden: computedStatus !== w.status };
+  });
+  const computedStatus = worstStatus(workstreams.map((w) => w.computedStatus), program.status);
+  return { ...program, workstreams, computedStatus, statusOverridden: computedStatus !== program.status };
+}
+
 // Resolve the operating-model links (value stream / division / owner+sponsor
 // role) on a set of initiatives into display names, in one batched pass.
 async function resolveLinks(inits: { valueStreamId: string | null; divisionId: string | null; ownerRoleId: string | null; sponsorRoleId: string | null }[]) {
@@ -130,13 +146,18 @@ router.get('/dashboard', async (req: Request, res: Response, next: NextFunction)
       take: 5,
     });
 
-    const programCount = await prisma.program.count({ where: { tenantId, companyId } });
+    const [programCount, raidOpenGroups] = await Promise.all([
+      prisma.program.count({ where: { tenantId, companyId } }),
+      prisma.raidItem.groupBy({ by: ['type'], where: { status: 'OPEN', initiative: { companyId } }, _count: { _all: true } }),
+    ]);
+    const raidOpen = Object.fromEntries(raidOpenGroups.map((g) => [g.type, g._count._all]));
 
     res.json({
       totals,
       counts: { programs: programCount, initiatives: initiatives.length },
       byStage: tally('stage'),
       byStatus: tally('status'),
+      raidOpen,
       monthlyBenefits,
       topRisks: topRisksRaw,
     });
@@ -155,7 +176,7 @@ router.get('/programs', async (req: Request, res: Response, next: NextFunction) 
       },
       orderBy: { createdAt: 'desc' },
     });
-    res.json(programs);
+    res.json(programs.map((p) => withHealthRollup(p)));
   } catch (e) { next(e); }
 });
 
@@ -168,9 +189,10 @@ router.get('/programs/:id', async (req: Request, res: Response, next: NextFuncti
     if (!program) return res.status(404).json({ error: 'Not found' });
     const allInits = program.workstreams.flatMap((w) => w.initiatives);
     const maps = await resolveLinks(allInits);
+    const rolled = withHealthRollup(program);
     res.json({
-      ...program,
-      workstreams: program.workstreams.map((w) => ({
+      ...rolled,
+      workstreams: rolled.workstreams.map((w) => ({
         ...w,
         initiatives: w.initiatives.map((i) => withLinkNames(i, maps)),
       })),

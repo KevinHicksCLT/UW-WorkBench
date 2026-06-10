@@ -19,7 +19,8 @@ type InitRow = {
 };
 type Program = {
   id: string; name: string; description: string | null; status: string;
-  workstreams: { id: string; name: string; status: string; initiatives: InitRow[] }[];
+  computedStatus?: string; statusOverridden?: boolean;
+  workstreams: { id: string; name: string; status: string; computedStatus?: string; statusOverridden?: boolean; initiatives: InitRow[] }[];
 };
 type Summary = { initiativeCount: number; totalBenefit: number; totalCost: number; netBenefit: number };
 
@@ -65,7 +66,8 @@ export default function PortfolioProgram() {
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3 pb-3 border-b border-[#f5f5f5]">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
                 <h3 className="font-semibold text-[#171717]">{ws.name}</h3>
-                <StatusPill status={ws.status} />
+                <StatusPill status={ws.computedStatus ?? ws.status} />
+                {ws.statusOverridden && <span className="text-[10px] text-[#b45309]" title={`Manually set to ${ws.status.replaceAll('_', ' ').toLowerCase()} — rolled-up health from its initiatives differs`}>override</span>}
                 <span className="text-xs text-[#a3a3a3]">{ws.initiatives.length} initiative{ws.initiatives.length !== 1 && 's'}</span>
               </div>
               <button className="btn-secondary text-xs" onClick={() => setCreateInitWs({ id: ws.id, name: ws.name })}>+ Initiative</button>
