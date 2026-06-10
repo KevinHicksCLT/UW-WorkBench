@@ -11,7 +11,7 @@ export type Fmt = 'money' | 'years' | 'number';
 // `href` links out to an app page (e.g. /applications); `children` nests items
 // for `tree` sections (deliverable → task → role → checklist/people); `tag`
 // names what the row IS so it renders with a consistent color + chip.
-export type MetricItem = { label: string; value: number; hint?: string; sub?: string; format?: Fmt; illustrative?: boolean; drill?: { level: string; id: string }; href?: string; children?: MetricItem[]; tag?: string };
+export type MetricItem = { label: string; value: number; hint?: string; sub?: string; format?: Fmt; illustrative?: boolean; drill?: { level: string; id: string }; href?: string; children?: MetricItem[]; tag?: string; trail?: string };
 // A `hidden` section never renders inline — it backs a tile's consolidated
 // drawer (tile.drawer names the section). An `expanded` tree opens every level
 // on load (the L5 deliverable chain).
@@ -65,23 +65,38 @@ const TAGS: Record<string, { accent: string; chip: string; label: string }> = {
 
 const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
 
-function TreeRow({ item, depth, wide, defaultOpen, onDrill, onNavigate }: {
-  item: MetricItem; depth: number; wide?: boolean; defaultOpen?: boolean;
+// Container-level identity: deliverables, tasks, roles and apps render as
+// tinted PANELS (boxes inside boxes), so each level of the chain is visibly
+// contained by its parent rather than flowing together.
+const PANEL: Record<string, { bg: string; border: string; rail: string }> = {
+  deliverable: { bg: '#f4f9ff', border: '#d3e4f6', rail: '#0070AD' },
+  task:        { bg: '#fffaf0', border: '#f0e0b8', rail: '#d97706' },
+  role:        { bg: '#f2fbf8', border: '#c8e9df', rail: '#0f766e' },
+  app:         { bg: '#f4f9ff', border: '#d3e4f6', rail: '#1d4ed8' },
+};
+
+function TreeRow({ item, depth, wide, defaultOpen, trail = [], onDrill, onNavigate, onInspect }: {
+  item: MetricItem; depth: number; wide?: boolean; defaultOpen?: boolean; trail?: string[];
   onDrill: (level: string, id: string) => void;
   onNavigate: (href: string) => void;
+  // Opens the clicked node in the wide drawer as a detail view (any level,
+  // down to a single checklist item). Omitted inside the drawer itself.
+  onInspect?: (item: MetricItem, trail: string[]) => void;
 }) {
   const [open, setOpen] = useState(!!defaultOpen || (depth === 0 && !!wide));
   const kids = item.children ?? [];
-  const go = item.drill ? () => onDrill(item.drill!.level, item.drill!.id) : item.href ? () => onNavigate(item.href!) : undefined;
+  const jump = item.drill ? () => onDrill(item.drill!.level, item.drill!.id) : item.href ? () => onNavigate(item.href!) : undefined;
+  // Row body click: inspect in the drawer when available; else jump; else toggle.
+  const body = onInspect ? () => onInspect(item, trail) : jump ?? (kids.length ? () => setOpen((o) => !o) : undefined);
   const tag = item.tag ? TAGS[item.tag] : undefined;
+  const panel = item.tag ? PANEL[item.tag] : undefined;
   const text = wide ? 'text-[13.5px]' : 'text-[12px]';
-  const isCard = depth === 0 && (item.tag === 'deliverable' || item.tag === 'app');
 
-  // Lead marker: role rows show participation as a colored dot, not a tag chip.
   const isRole = item.tag === 'role';
   const isPerson = item.tag === 'person';
   const isCheck = item.tag === 'checklist';
 
+  // Lead marker: role rows show participation as a colored dot, not a tag chip.
   const marker = isPerson ? (
     <span className="mt-[1px] w-[18px] h-[18px] rounded-full bg-[#eef2ff] border border-[#e0e7ff] text-[#4f46e5] text-[8px] font-bold flex items-center justify-center flex-shrink-0" aria-hidden>
       {initials(item.label)}
@@ -98,20 +113,21 @@ function TreeRow({ item, depth, wide, defaultOpen, onDrill, onNavigate }: {
   ) : null;
 
   const row = (
-    <div className={`flex items-start gap-1.5 ${isCard ? '' : 'rounded-md px-1.5 py-1 hover:bg-[#f5f8ff] transition-colors duration-150'}`}>
-      {kids.length ? (
+    <div className={`flex items-start gap-1.5 ${panel ? '' : 'rounded-md px-1 py-1 hover:bg-black/[0.03] transition-colors duration-150'}`}>
+      {kids.length > 0 && (
         <button onClick={() => setOpen((o) => !o)} aria-label={open ? 'Collapse' : 'Expand'} className="mt-[4px] flex-shrink-0 text-[#737373] hover:text-[#171717]">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? 'rotate(90deg)' : undefined, transition: 'transform 120ms' }}><path d="M9 6l6 6-6 6" /></svg>
         </button>
-      ) : marker ?? (
-        <span className="mt-[8px] w-[11px] flex-shrink-0 flex justify-center"><span className="w-1 h-1 rounded-full bg-[#d4d4d4]" /></span>
       )}
-      {kids.length > 0 && marker}
+      {marker ?? (kids.length === 0 && !panel ? (
+        <span className="mt-[8px] w-[11px] flex-shrink-0 flex justify-center"><span className="w-1 h-1 rounded-full bg-[#d4d4d4]" /></span>
+      ) : null)}
       <button
-        onClick={kids.length ? () => setOpen((o) => !o) : go}
-        className={`flex-1 min-w-0 text-left ${kids.length || go ? 'cursor-pointer' : 'cursor-default'}`}
+        onClick={body}
+        title={onInspect ? 'Open details' : undefined}
+        className={`flex-1 min-w-0 text-left ${body ? 'cursor-pointer hover:underline decoration-[#c8d6ea] underline-offset-2' : 'cursor-default'}`}
       >
-        <span className={`${text} ${depth === 0 || isRole ? 'font-semibold text-[#171717]' : 'text-[#383838]'} leading-snug block`}>
+        <span className={`${text} ${panel || isRole ? 'font-semibold text-[#171717]' : 'text-[#383838]'} leading-snug block`}>
           {item.label}
           {kids.length > 0 && <span className="text-[#a3a3a3] font-normal"> ({kids.length})</span>}
         </span>
@@ -125,8 +141,8 @@ function TreeRow({ item, depth, wide, defaultOpen, onDrill, onNavigate }: {
         </span>
         {item.sub && <span className="text-[10px] text-[#8a8a8a] block mt-0.5 leading-snug">{item.sub}</span>}
       </button>
-      {go && kids.length > 0 && (
-        <button onClick={go} aria-label="Open" className="mt-[4px] flex-shrink-0 text-[#a3a3a3] hover:text-[#1d4ed8]">
+      {jump && (
+        <button onClick={jump} aria-label="Open" title="Go to" className="mt-[4px] flex-shrink-0 text-[#a3a3a3] hover:text-[#1d4ed8]">
           <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M6.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </button>
       )}
@@ -134,18 +150,20 @@ function TreeRow({ item, depth, wide, defaultOpen, onDrill, onNavigate }: {
   );
 
   const kidsBlock = open && kids.length > 0 && (
-    <div className={`mt-0.5 ${depth === 0 && isCard ? 'ml-1' : 'ml-[5px]'} pl-2.5 border-l-2 border-[#e8edf5] flex flex-col gap-0.5`}>
+    <div className="mt-1.5 flex flex-col gap-1.5">
       {kids.map((c, i) => (
-        <TreeRow key={`${c.label}-${i}`} item={c} depth={depth + 1} wide={wide} defaultOpen={defaultOpen} onDrill={onDrill} onNavigate={onNavigate} />
+        <TreeRow key={`${c.label}-${i}`} item={c} depth={depth + 1} wide={wide} defaultOpen={defaultOpen} trail={[...trail, item.label]} onDrill={onDrill} onNavigate={onNavigate} onInspect={onInspect} />
       ))}
     </div>
   );
 
-  if (isCard) {
+  // Panel levels are boxes inside boxes — tinted background + colored left
+  // rail per kind; plain rows (checklist/person/step) sit inside them.
+  if (panel) {
     return (
       <div
-        className="rounded-lg border border-[#e3ebf7] bg-[#fbfdff] px-2.5 py-2 shadow-[0_1px_2px_rgba(16,42,83,0.05)]"
-        style={{ borderLeft: `3px solid ${tag?.accent ?? '#0070AD'}` }}
+        className="rounded-lg px-2.5 py-2"
+        style={{ background: panel.bg, border: `1px solid ${panel.border}`, borderLeft: `3px solid ${panel.rail}` }}
       >
         {row}
         {kidsBlock}
@@ -355,7 +373,21 @@ export default function MetricsSidebar({
                 ) : section.kind === 'tree' ? (
                   <div className="flex flex-col gap-1.5">
                     {shown.map((item, i) => (
-                      <TreeRow key={`${item.label}-${i}`} item={item} depth={0} defaultOpen={section.expanded} onDrill={onDrill} onNavigate={(href) => navigate(href)} />
+                      <TreeRow
+                        key={`${item.label}-${i}`}
+                        item={item}
+                        depth={0}
+                        defaultOpen={section.expanded}
+                        trail={[dash.title]}
+                        onDrill={onDrill}
+                        onNavigate={(href) => navigate(href)}
+                        // Clicking any node opens it in the wide drawer as a
+                        // detail view of that thing (deliverable → checklist item).
+                        onInspect={onViewAll ? (it, trail) => onViewAll({
+                          title: it.label, kind: 'tree', expanded: true,
+                          items: [{ ...it, trail: trail.join(' › ') }],
+                        }) : undefined}
+                      />
                     ))}
                   </div>
                 ) : (
@@ -447,7 +479,9 @@ export function MetricsDrawer({
             <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3] truncate">{contextTitle}</div>
             <div className="text-[15px] font-bold text-[#171717] leading-snug flex items-center gap-1.5">
               {section.title}
-              <span className="text-[#a3a3a3] font-normal tabular-nums">({section.items.length})</span>
+              {!(section.items.length === 1 && section.items[0].tag) && (
+                <span className="text-[#a3a3a3] font-normal tabular-nums">({section.items.length})</span>
+              )}
             </div>
           </div>
           <button onClick={onClose} aria-label="Close" className="-mr-1 flex-shrink-0 text-[#a3a3a3] hover:text-[#171717] w-7 h-7 rounded-md hover:bg-[#fafafa] flex items-center justify-center">
@@ -457,7 +491,45 @@ export function MetricsDrawer({
 
         {/* Body — full list, nothing truncated */}
         <div className="flex-1 overflow-y-auto p-4">
-          {section.kind === 'bar' ? (
+          {section.kind === 'tree' && section.items.length === 1 && section.items[0].tag ? (
+            // Single-node detail view (a clicked deliverable / task / role /
+            // checklist item): full text, identity chip, context trail, and
+            // its subtree fully expanded beneath.
+            (() => {
+              const it = section.items[0];
+              const t = TAGS[it.tag!];
+              return (
+                <div>
+                  {it.trail && (
+                    <div className="text-[10.5px] text-[#a3a3a3] mb-2 leading-snug">{it.trail}</div>
+                  )}
+                  <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                    {t && <span className={`text-[9.5px] font-semibold uppercase tracking-wide rounded px-2 py-0.5 ${t.chip}`}>{t.label}</span>}
+                    {it.hint && <span className="text-[10.5px] font-medium text-[#525252] bg-[#f4f4f5] border border-[#e4e4e7] rounded px-2 py-0.5">{it.hint}</span>}
+                    {it.illustrative && <span className="text-[9.5px] font-medium uppercase tracking-wide text-[#a3a3a3] bg-[#fafafa] border border-[#eaeaea] rounded px-2 py-0.5">Illustrative</span>}
+                  </div>
+                  <div className="text-[16px] font-bold text-[#171717] leading-snug">{it.label}</div>
+                  {it.sub && <div className="text-[12px] text-[#737373] mt-1">{it.sub}</div>}
+                  {it.drill && (
+                    <button
+                      onClick={() => drill(it.drill!)}
+                      className="mt-2.5 inline-flex items-center gap-1 rounded-md border border-[#dbe7ff] bg-[#f5f8ff] px-2.5 py-1.5 text-[11.5px] font-semibold text-[#1d4ed8] hover:bg-[#eaf1ff] transition-colors duration-150"
+                    >
+                      Open full profile
+                      <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M6.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    </button>
+                  )}
+                  {(it.children?.length ?? 0) > 0 && (
+                    <div className="mt-4 pt-3 border-t border-[#eaeaea] flex flex-col gap-2">
+                      {it.children!.map((c, i) => (
+                        <TreeRow key={`${c.label}-${i}`} item={c} depth={0} wide defaultOpen onDrill={(l, id) => drill({ level: l, id })} onNavigate={(href) => { navigate(href); onClose(); }} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()
+          ) : section.kind === 'bar' ? (
             <div className="flex flex-col gap-3">
               {section.items.map((item) => (
                 <div key={item.label}>
