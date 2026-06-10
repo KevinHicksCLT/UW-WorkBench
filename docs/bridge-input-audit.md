@@ -1,7 +1,7 @@
 # Bridge Input ↔ Database Audit
 
-Workbook: `AI Transformation Bridge Input.xlsx` · Spine: `backend/data/seed/spine.json` · Generated: 2026-06-10T19:15Z
-Company: Meridian Insurance Group · Result: **2/13 sections FAIL**
+Workbook: `AI Transformation Bridge Input.xlsx` · Spine: `backend/data/seed/spine.json` · Generated: 2026-06-10T19:23Z
+Company: Meridian Insurance Group · Result: **all 13 sections PASS**
 
 | # | Section | Status | Summary |
 |---|---------|--------|---------|
@@ -15,33 +15,27 @@ Company: Meridian Insurance Group · Result: **2/13 sections FAIL**
 | 8 | Items (ChecklistItem) | ✅ PASS | workbook 4743 vs db 4743 — roles off: 0 |
 | 9 | Aligned Role Tasks (RoleTask) | ✅ PASS | workbook 4743 vs db 4743 — roles off: 0 |
 | 10 | Level tree (L3/L4/L5) | ✅ PASS | db L3=36 L4=131 L5=711 vs workbook streams=36 L4=131 L5=711 |
-| 11 | Cap – Application Catalog (Application) | ❌ FAIL | workbook 30 vs db 35 — missing 26, db-only 31 (db-only rows are pre-existing illustrative apps; kept) |
+| 11 | Cap – Application Catalog (Application) | ✅ PASS | workbook 30 vs db 61 — missing 0, db-only 31 (db-only rows are pre-existing illustrative apps; kept) |
 | 12 | Cap – People (role coverage) | ✅ PASS | cap rows 159 across 159 roles — unknown roles 0, roles with no assigned person 0 |
-| 13 | Cap – App Usage / Deliverables bridges | ❌ FAIL | workbook real rows: usage 4, deliverables 3; db: StepAppUsage table MISSING, StepDeliverable table MISSING |
+| 13 | Cap – App Usage / Deliverables bridges | ✅ PASS | workbook real rows: usage 4, deliverables 3; db: StepAppUsage 1010, StepDeliverable 696 |
 
-## Cap – Application Catalog (Application) — FAIL
+## Cap – Application Catalog (Application) — PASS
 
-workbook 30 vs db 35 — missing 26, db-only 31 (db-only rows are pre-existing illustrative apps; kept)
+workbook 30 vs db 61 — missing 0, db-only 31 (db-only rows are pre-existing illustrative apps; kept)
 
-- MISSING in db: Billing & Receivables System
-- MISSING in db: Underwriting Workbench
-- MISSING in db: Rating & Pricing Engine
-- MISSING in db: CRM
-- MISSING in db: Document & Forms Management
-- MISSING in db: Actuarial Reserving Platform
-- MISSING in db: Catastrophe Modeling
-- MISSING in db: Finance ERP / General Ledger
-- MISSING in db: FP&A Planning Tool
-- MISSING in db: HCM / HR System
-- MISSING in db: Procurement / Vendor Mgmt
-- MISSING in db: Treasury Management
-- MISSING in db: Legal / Contract Lifecycle
-- MISSING in db: E-Signature
-- MISSING in db: GRC / Risk & Compliance
-- … and 42 more
-
-## Cap – App Usage / Deliverables bridges — FAIL
-
-workbook real rows: usage 4, deliverables 3; db: StepAppUsage table MISSING, StepDeliverable table MISSING
-
-- Step-lens tables/import pending (plan phases 2–3).
+- db-only: Customer Self-Service Portal
+- db-only: BlackRock Aladdin
+- db-only: Guidewire PolicyCenter
+- db-only: Guidewire ClaimCenter
+- db-only: Guidewire BillingCenter
+- db-only: Earnix Rating & Pricing
+- db-only: Salesforce FSC
+- db-only: Duck Creek Distribution
+- db-only: SAP S/4HANA (GL)
+- db-only: Moody’s RMS (Cat Model)
+- db-only: SAS Actuarial Platform
+- db-only: Snowflake Data Cloud
+- db-only: Databricks Lakehouse
+- db-only: OpenText Document Mgmt
+- db-only: ServiceNow ITSM
+- … and 16 more
