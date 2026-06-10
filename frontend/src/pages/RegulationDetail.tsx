@@ -7,7 +7,7 @@ import { withCompany, SectionCard } from '../lib/portfolio';
 import PageHeader from '../components/PageHeader';
 import AssistantMarkdown from '../components/AssistantMarkdown';
 import { LinkChips, LinksEditor, type VsLink, type VsOption } from '../components/RequirementLinks';
-import { FlagPill, FreshnessBadge, catLabel } from './Regulations';
+import { FlagPill, catLabel } from './Regulations';
 
 // State detail — /regulations/:code. Regulator identity + taxonomy flags in the
 // header; sections for the compliance profile (FULL_PROFILE states), the
@@ -110,7 +110,6 @@ export default function RegulationDetail() {
         <span className="flex items-center gap-1.5">Workers' comp <FlagPill value={detail.workersCompModel} detail={detail.workersCompDetail} /></span>
         <span className="flex items-center gap-1.5">APCD <FlagPill value={detail.apcd} /></span>
         <span className="flex items-center gap-1.5">SBS <FlagPill value={detail.sbs} /></span>
-        <span className="flex items-center gap-1.5">Last verified <FreshnessBadge verifiedAt={detail.lastVerifiedAt} /></span>
       </div>
 
       <div className="space-y-5">
@@ -214,7 +213,6 @@ export default function RegulationDetail() {
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-[#171717]">{b.url ? <a className="hover:underline" href={b.url} target="_blank" rel="noreferrer">{b.reference} ↗</a> : b.reference}</span>
                   {b.issuedDate && <span className="text-xs text-[#a3a3a3] tnum">{new Date(b.issuedDate).toLocaleDateString()}</span>}
-                  <span className="pill-slate">{label(b.discoveredVia)}</span>
                 </div>
                 {b.summary && <p className="text-xs text-[#525252] mt-0.5">{b.summary}</p>}
               </div>
@@ -225,15 +223,13 @@ export default function RegulationDetail() {
         <SectionCard title={`Compliance rules (${detail.rules.length})`}>
           <p className="text-xs text-[#a3a3a3] mb-3">
             Machine-readable controls from the per-state rules artifact. Stored and displayed in Phase 1 — execution against
-            operational signals is a future phase. {detail.rules.some((r) => r.origin === 'TEMPLATE_DERIVED') && 'Rules marked "Template derived" were generated from the master template, not the state artifact.'}
+            operational signals is a future phase.
           </p>
           <div className="divide-y divide-[#f5f5f5]">
             {detail.rules.map((r) => (
               <div key={r.id} className="py-2">
                 <button className="flex items-center gap-2 w-full text-left" onClick={() => setOpenRule(openRule === r.id ? null : r.id)} aria-expanded={openRule === r.id}>
                   <span className="text-sm font-medium tnum text-[#171717]">{r.ruleCode}</span>
-                  <span className="pill-slate">{label(r.category)}</span>
-                  <span className={r.origin === 'DOCUMENT' ? 'pill-green' : 'pill-amber'}>{r.origin === 'DOCUMENT' ? 'From document' : 'Template derived'}</span>
                   <span className="flex-1" />
                   <span className="text-[#a3a3a3] text-xs">{openRule === r.id ? '▾' : '▸'}</span>
                 </button>

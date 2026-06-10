@@ -138,7 +138,24 @@ type Narrative = {
 // narrative text — URLs and citations otherwise keep literal `\_` etc.
 const unescapeInline = (s: string) => s.replace(/\\([_\[\]#'"&<>$%~^])/g, '$1');
 
+// A few regulator URLs in the source doc have since moved or never resolved
+// (verified 2026-06) — patch them to the current official pages at extraction
+// time, in both the structured fields and the narrative markdown.
+const URL_FIXES: Record<string, string> = {
+  'https://difi.az.gov/insurance': 'https://difi.az.gov/',
+  'https://www.nj.gov/dobi/insurance': 'https://www.nj.gov/dobi/division_insurance/index.htm',
+  'https://www.dfs.ny.gov/industry_guidance/insurance': 'https://www.dfs.ny.gov/apps_and_licensing/insurance_companies',
+  'https://dfr.oregon.gov/business/insurance': 'https://dfr.oregon.gov/',
+};
+function fixUrls(s: string): string {
+  for (const [bad, good] of Object.entries(URL_FIXES)) {
+    s = s.split(bad).join(good).split(bad.replace(/_/g, '\\_')).join(good);
+  }
+  return s;
+}
+
 function parseNarrative(text: string, stateName?: string): Narrative {
+  text = fixUrls(text);
   const idx = (marker: RegExp) => {
     const m = text.match(marker);
     return m ? text.indexOf(m[0]) : -1;
@@ -287,7 +304,7 @@ const integrationSystems = [
   { name: 'NIPR', kind: 'LICENSING', operator: 'NAIC', website: 'https://nipr.com/', apiAvailability: 'API', description: 'National Insurance Producer Registry — agent/producer licensing, renewals, and appointments for all states, with APIs and batch processing.' },
   { name: 'SBS', kind: 'LICENSING', operator: 'NAIC', website: 'https://sbs.naic.org/', apiAvailability: 'PORTAL_ONLY', description: 'NAIC State Based Systems — licensing (producers and companies), regulatory actions, and consumer services platform used by 30+ states.' },
   { name: 'IIPRC Compact Portal', kind: 'FILING', operator: 'COMPACT', website: 'https://www.insurancecompact.org/', apiAvailability: 'PORTAL_ONLY', description: 'Interstate Insurance Product Regulation Commission — single-point SERFF filings for eligible life, annuity, LTC, and disability products covering all member states.' },
-  { name: 'MCAS / iSite+', kind: 'DATA_REPORTING', operator: 'NAIC', website: 'https://content.naic.org/mcas.htm', apiAvailability: 'PORTAL_ONLY', description: "NAIC Market Conduct Annual Statement and financial data repositories — standardized multi-state submission of annual financial statements and market conduct data via NAIC's secure iSite+ environment." },
+  { name: 'MCAS / iSite+', kind: 'DATA_REPORTING', operator: 'NAIC', website: 'https://content.naic.org/insurance-topics/market-conduct-annual-statement', apiAvailability: 'PORTAL_ONLY', description: "NAIC Market Conduct Annual Statement and financial data repositories — standardized multi-state submission of annual financial statements and market conduct data via NAIC's secure iSite+ environment." },
   { name: 'NAIC EFT', kind: 'PAYMENT', operator: 'NAIC', website: 'https://www.serff.com/', apiAvailability: 'PORTAL_ONLY', description: "NAIC Electronic Funds Transfer — electronic payment of filing fees, integrated into SERFF." },
   { name: 'OPTins', kind: 'TAX', operator: 'NAIC', website: 'https://www.optins.org/', apiAvailability: 'PORTAL_ONLY', description: 'Online Premium Tax for Insurance — NAIC system for electronic premium tax payments and surplus lines tax filings.' },
   { name: 'SLIP+ for States', kind: 'TAX', operator: 'VENDOR', website: null, apiAvailability: 'PORTAL_ONLY', description: 'Surplus lines data and tax reporting platform adopted by several states (e.g. Alabama, effective Jan 1 2026) as an OPTins replacement for surplus lines transactions.' },

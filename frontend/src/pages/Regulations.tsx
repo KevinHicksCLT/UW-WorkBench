@@ -21,7 +21,7 @@ type JurisdictionRow = {
   compactStatus: string; autoVerification: string; autoVerificationDetail: string | null;
   workersCompModel: string; workersCompDetail: string | null; apcd: string; sbs: string;
   priorityTier: string; profileDepth: string;
-  lastReviewedAt: string | null; lastVerifiedAt: string | null;
+  lastReviewedAt: string | null; lastVerifiedAt: string | null; updatedAt: string;
   _count: { requirements: number; bulletins: number; rules: number; integrations: number; sources: number };
 };
 
@@ -71,9 +71,11 @@ const CATEGORY_LABEL: Record<string, string> = {
 };
 export const catLabel = (c: string) => CATEGORY_LABEL[c] ?? flagLabel(c);
 
-export function FreshnessBadge({ verifiedAt }: { verifiedAt: string | null }) {
-  if (!verifiedAt) return <span className="pill-slate" title="From the point-in-time baseline document; not yet re-verified against live sources.">Baseline</span>;
-  return <span className="pill-green">{new Date(verifiedAt).toLocaleDateString()}</span>;
+// "Last updated" cell — the stored lastVerifiedAt, else the stored updatedAt.
+// Date only, never the live clock: the value must not change between renders.
+function lastUpdated(r: JurisdictionRow) {
+  const d = new Date(r.lastVerifiedAt ?? r.updatedAt);
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString();
 }
 
 // Compact select for the filter bar — "All" clears the filter.
@@ -126,15 +128,9 @@ export default function Regulations() {
 
       {/* Headline tiles */}
       {overview && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
           <Tile label="Jurisdictions" value={overview.jurisdictionCount} hint={`${overview.flags.priorityTier?.PRIORITY ?? 0} priority states`} />
           <Tile label="Active requirements" value={overview.requirements.total} hint={`${overview.flags.profileDepth?.FULL_PROFILE ?? 0} states with full profiles`} />
-          <Tile
-            label="Mapped to value streams"
-            value={overview.requirements.mapped}
-            tone={overview.requirements.unmapped > 0 ? 'neutral' : 'positive'}
-            hint={overview.requirements.unmapped > 0 ? `${overview.requirements.unmapped} unmapped` : 'all requirements mapped'}
-          />
           <Tile label="Compliance rules" value={overview.ruleCount} hint="machine-readable, per state" />
           <Tile label="Monitored sources" value={overview.sourceCount} hint={`${overview.bulletinCount} bulletins on file`} />
         </div>
@@ -184,7 +180,7 @@ function StatesLens({ rows, loading, onOpen }: { rows: JurisdictionRow[]; loadin
   const set = (k: string) => (v: string) => setF((prev) => ({ ...prev, [k]: v }));
 
   const filtered = useMemo(() => rows.filter((r) => {
-    for (const k of ['filingPortal', 'compactStatus', 'autoVerification', 'workersCompModel', 'apcd', 'sbs', 'priorityTier'])
+    for (const k of ['filingPortal', 'compactStatus', 'workersCompModel', 'apcd', 'sbs', 'priorityTier'])
       if (f[k] && (r as unknown as Record<string, string>)[k] !== f[k]) return false;
     if (search) {
       const q = search.toLowerCase();
@@ -205,7 +201,6 @@ function StatesLens({ rows, loading, onOpen }: { rows: JurisdictionRow[]; loadin
         />
         <FilterSelect label="Filing portal" value={f.filingPortal ?? ''} options={uniqVals(rows, (r) => r.filingPortal)} onChange={set('filingPortal')} />
         <FilterSelect label="Compact" value={f.compactStatus ?? ''} options={uniqVals(rows, (r) => r.compactStatus)} onChange={set('compactStatus')} />
-        <FilterSelect label="Auto verify" value={f.autoVerification ?? ''} options={uniqVals(rows, (r) => r.autoVerification)} onChange={set('autoVerification')} />
         <FilterSelect label="Workers' comp" value={f.workersCompModel ?? ''} options={uniqVals(rows, (r) => r.workersCompModel)} onChange={set('workersCompModel')} />
         <FilterSelect label="APCD" value={f.apcd ?? ''} options={uniqVals(rows, (r) => r.apcd)} onChange={set('apcd')} />
         <FilterSelect label="SBS" value={f.sbs ?? ''} options={uniqVals(rows, (r) => r.sbs)} onChange={set('sbs')} />
@@ -219,16 +214,15 @@ function StatesLens({ rows, loading, onOpen }: { rows: JurisdictionRow[]; loadin
               <th className="py-2 pr-3">State</th>
               <th className="py-2 pr-3">Filing portal</th>
               <th className="py-2 pr-3">Compact</th>
-              <th className="py-2 pr-3">Auto verify</th>
               <th className="py-2 pr-3">Workers' comp</th>
               <th className="py-2 pr-3">APCD</th>
               <th className="py-2 pr-3">SBS</th>
               <th className="py-2 pr-3 text-right">Reqs</th>
-              <th className="py-2">Freshness</th>
+              <th className="py-2">Last updated</th>
             </tr>
           </thead>
           <tbody>
-            {loading && <tr><td colSpan={9} className="py-6 text-center text-[#a3a3a3]">Loading…</td></tr>}
+            {loading && <tr><td colSpan={8} className="py-6 text-center text-[#a3a3a3]">Loading…</td></tr>}
             {!loading && filtered.map((r) => (
               <tr
                 key={r.id}
@@ -243,16 +237,15 @@ function StatesLens({ rows, loading, onOpen }: { rows: JurisdictionRow[]; loadin
                 </td>
                 <td className="py-2 pr-3"><FlagPill value={r.filingPortal} detail={r.filingPortalDetail} /></td>
                 <td className="py-2 pr-3"><FlagPill value={r.compactStatus} /></td>
-                <td className="py-2 pr-3"><FlagPill value={r.autoVerification} detail={r.autoVerificationDetail} /></td>
                 <td className="py-2 pr-3"><FlagPill value={r.workersCompModel} detail={r.workersCompDetail} /></td>
                 <td className="py-2 pr-3"><FlagPill value={r.apcd} /></td>
                 <td className="py-2 pr-3"><FlagPill value={r.sbs} /></td>
                 <td className="py-2 pr-3 text-right tnum text-[#525252]">{r._count.requirements}</td>
-                <td className="py-2"><FreshnessBadge verifiedAt={r.lastVerifiedAt} /></td>
+                <td className="py-2 whitespace-nowrap text-[#525252]">{lastUpdated(r)}</td>
               </tr>
             ))}
             {!loading && filtered.length === 0 && (
-              <tr><td colSpan={9} className="py-6 text-center text-[#a3a3a3]">No states match the current filters.</td></tr>
+              <tr><td colSpan={8} className="py-6 text-center text-[#a3a3a3]">No states match the current filters.</td></tr>
             )}
           </tbody>
         </table>

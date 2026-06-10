@@ -109,7 +109,7 @@ router.get('/jurisdictions', async (req: Request, res: Response, next: NextFunct
         filingPortal: true, filingPortalDetail: true, compactStatus: true,
         autoVerification: true, autoVerificationDetail: true,
         workersCompModel: true, workersCompDetail: true, apcd: true, sbs: true,
-        priorityTier: true, profileDepth: true, lastReviewedAt: true, lastVerifiedAt: true,
+        priorityTier: true, profileDepth: true, lastReviewedAt: true, lastVerifiedAt: true, updatedAt: true,
         _count: { select: { requirements: true, bulletins: true, rules: true, integrations: true, sources: true } },
       },
     });
