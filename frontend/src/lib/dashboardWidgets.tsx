@@ -14,6 +14,7 @@ export type Group = { key: string; count: number };
 export type Dashboard = {
   company: { id: string; name: string; count: number };
   layout: string[] | null; // chosen widget ids, in order; null → DEFAULT_LAYOUT
+  footprintStats: string[] | null; // Model-footprint stat keys; null → FOOTPRINT_DEFAULT
   totals: Record<string, number>;
   divisionsByCategory: Group[];
   workforce: { byType: Group[]; byRegion: Group[] };
@@ -137,6 +138,21 @@ const tile = (
 });
 
 // ── The catalog ──
+// The stats the "Model footprint" card can list — configurable per company in
+// Data Admin → Home (saved to Company.dashboardConfig.footprintStats).
+export const FOOTPRINT_STATS: Record<string, { key: string; label: string; to: string }> = {
+  processSteps: { key: 'processSteps', label: 'Process steps', to: '/overview?view=list' },
+  applications: { key: 'applications', label: 'Applications', to: '/portfolio' },
+  departments: { key: 'departments', label: 'Departments', to: '/roles?view=departments' },
+  domains: { key: 'domains', label: 'Domains', to: '/overview' },
+  valueStreams: { key: 'valueStreams', label: 'Value streams', to: '/overview' },
+  deliverables: { key: 'deliverables', label: 'Deliverables', to: '/work' },
+  tasks: { key: 'tasks', label: 'Tasks', to: '/work' },
+  metrics: { key: 'metrics', label: 'Metrics', to: '/active-ai' },
+};
+// Applications intentionally not in the default (removable/re-addable in admin).
+export const FOOTPRINT_DEFAULT: string[] = ['processSteps', 'departments', 'domains', 'valueStreams'];
+
 export const WIDGET_CATALOG: Widget[] = [
   // Headline count tiles
   tile('tile:divisions', 'Divisions', 'divisions', { hint: (t) => `${t.departments} departments`, to: '/roles', source: SRC.org }),
@@ -170,20 +186,18 @@ export const WIDGET_CATALOG: Widget[] = [
     },
   },
   {
-    id: 'card:modelFootprint', title: 'Model footprint', desc: 'Process steps, applications, departments, domains', kind: 'card', source: SRC.vs,
+    id: 'card:modelFootprint', title: 'Model footprint', desc: 'Pick which model counts it lists in Data Admin → Home', kind: 'card', source: SRC.vs,
     render: (d) => {
       const t = d.totals;
+      const chosen = d.footprintStats ?? FOOTPRINT_DEFAULT;
+      const rows = chosen.map((k) => FOOTPRINT_STATS[k]).filter(Boolean);
       return (
         <Card title="Model footprint">
           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-            {([
-              ['Process steps', t.processSteps, '/overview?view=list'],
-              ['Applications', t.applications, '/portfolio'],
-              ['Departments', t.departments, '/roles?view=departments'], ['Domains', t.domains, '/overview'],
-            ] as [string, number, string][]).map(([label, val, to]) => (
-              <Link key={label} to={to} className="flex items-center justify-between border-b border-[#f5f5f5] pb-1 group">
-                <span className="text-[#525252] group-hover:text-[#4f46e5]">{label}</span>
-                <span className="text-[#171717] tnum">{val}</span>
+            {rows.map((s) => (
+              <Link key={s.label} to={s.to} className="flex items-center justify-between border-b border-[#f5f5f5] pb-1 group">
+                <span className="text-[#525252] group-hover:text-[#4f46e5]">{s.label}</span>
+                <span className="text-[#171717] tnum">{t[s.key] ?? 0}</span>
               </Link>
             ))}
           </div>

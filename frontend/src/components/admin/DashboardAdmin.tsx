@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { useCompany } from '../../lib/company';
-import { WIDGET_CATALOG, WIDGET_MAP, DEFAULT_LAYOUT, type Widget } from '../../lib/dashboardWidgets';
+import { WIDGET_CATALOG, WIDGET_MAP, DEFAULT_LAYOUT, FOOTPRINT_STATS, FOOTPRINT_DEFAULT, type Widget } from '../../lib/dashboardWidgets';
 
 // ─── Home dashboard configurator (Data Admin → Home) ─────────────────────────
 // The Home screen is a per-company layout of widgets drawn from a fixed catalog
@@ -41,6 +41,9 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
   // Layout (ordered widget ids).
   const [layout, setLayout] = useState<string[]>([]);
   const [savedLayout, setSavedLayout] = useState<string[]>([]);
+  // Which stats the Model footprint card lists.
+  const [footprint, setFootprint] = useState<string[]>(FOOTPRINT_DEFAULT);
+  const [savedFootprint, setSavedFootprint] = useState<string[]>(FOOTPRINT_DEFAULT);
   const [savingLayout, setSavingLayout] = useState(false);
   const [layoutSavedAt, setLayoutSavedAt] = useState<string | null>(null);
 
@@ -50,18 +53,20 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
     if (!companyId) return;
     setError(''); setNameSavedAt(null); setLayoutSavedAt(null);
     api.get(`/admin/company/${companyId}`)
-      .then((c: { id: string; name: string; dashboardConfig?: { widgets?: string[] } | null }) => {
+      .then((c: { id: string; name: string; dashboardConfig?: { widgets?: string[]; footprintStats?: string[] } | null }) => {
         setCompanyDbId(c.id);
         setName(c.name); setOrigName(c.name);
         // Keep only ids still in the catalog; fall back to the default layout.
         const saved = (c.dashboardConfig?.widgets ?? DEFAULT_LAYOUT).filter((id) => WIDGET_MAP.has(id));
         setLayout(saved); setSavedLayout(saved);
+        const fp = (c.dashboardConfig?.footprintStats ?? FOOTPRINT_DEFAULT).filter((k) => FOOTPRINT_STATS[k]);
+        setFootprint(fp); setSavedFootprint(fp);
       })
       .catch((e) => setError(e.message));
   }, [companyId]);
 
   const nameDirty = name.trim() !== origName && name.trim().length > 0;
-  const layoutDirty = !same(layout, savedLayout);
+  const layoutDirty = !same(layout, savedLayout) || !same(footprint, savedFootprint);
 
   const saveName = async () => {
     if (!companyDbId) return;
@@ -82,8 +87,8 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
     if (!companyDbId) return;
     setSavingLayout(true); setError('');
     try {
-      await api.patch(`/admin/company/${companyDbId}/dashboard`, { widgets: layout });
-      setSavedLayout(layout);
+      await api.patch(`/admin/company/${companyDbId}/dashboard`, { widgets: layout, footprintStats: footprint });
+      setSavedLayout(layout); setSavedFootprint(footprint);
       setLayoutSavedAt(new Date().toLocaleTimeString());
     } catch (e) {
       setError((e as Error).message);
@@ -101,6 +106,9 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
   };
   const remove = (id: string) => setLayout((l) => l.filter((x) => x !== id));
   const add = (id: string) => setLayout((l) => (l.includes(id) ? l : [...l, id]));
+
+  const toggleFootprint = (k: string) =>
+    setFootprint((f) => (f.includes(k) ? f.filter((x) => x !== k) : [...f, k]));
 
   const available = WIDGET_CATALOG.filter((w) => !layout.includes(w.id));
   const availTiles = available.filter((w) => w.kind === 'tile');
@@ -148,6 +156,22 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
           </div>
         </div>
         <p className="text-xs text-[#a3a3a3] mb-3">Reorder with the arrows, remove with ×. Changes apply once you save.</p>
+
+        {/* Model footprint card contents — which model counts it lists. */}
+        {layout.includes('card:modelFootprint') && (
+          <div className="card-elevated p-4 mb-4">
+            <h4 className="text-xs font-semibold text-[#171717] mb-1">Model footprint card — stats shown</h4>
+            <p className="text-[11px] text-[#a3a3a3] mb-2.5">Pick which model counts the card lists. Saved with the layout.</p>
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+              {Object.values(FOOTPRINT_STATS).map((st) => (
+                <label key={st.key} className="flex items-center gap-1.5 text-sm text-[#525252]">
+                  <input type="checkbox" checked={footprint.includes(st.key)} onChange={() => toggleFootprint(st.key)} />
+                  {st.label}
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="card-elevated overflow-hidden">
           {layout.length === 0 && (

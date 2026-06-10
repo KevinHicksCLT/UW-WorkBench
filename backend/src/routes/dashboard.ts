@@ -123,6 +123,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       company: { id: active.id, name: active.name, count: companies },
       // The chosen Home layout (ordered widget ids); null → the frontend default.
       layout: (active.dashboardConfig as { widgets?: string[] } | null)?.widgets ?? null,
+      // Which stats the Model footprint card lists; null → the frontend default.
+      footprintStats: (active.dashboardConfig as { footprintStats?: string[] } | null)?.footprintStats ?? null,
       totals: {
         divisions, departments, roles, valueStreams, domains, people,
         initiatives, risks, applications, metrics, scenarios, processSteps,

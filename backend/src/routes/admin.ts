@@ -129,7 +129,20 @@ router.patch('/company/:id/dashboard', async (req: Request, res: Response, next:
     }
     // Order-preserving de-dupe; cap to a sane number of widgets.
     const widgets = [...new Set(raw.map((w) => w.trim()))].slice(0, 40);
-    const config = { widgets };
+    // Which stats the "Model footprint" card lists (Data Admin → Home). The
+    // valid keys are the dashboard totals the frontend catalog exposes.
+    const FOOTPRINT_KEYS = new Set(['processSteps', 'applications', 'departments', 'domains', 'valueStreams', 'deliverables', 'tasks', 'metrics']);
+    const fpRaw = (req.body ?? {}).footprintStats;
+    let footprintStats: string[] | undefined;
+    if (fpRaw !== undefined) {
+      if (!Array.isArray(fpRaw) || !fpRaw.every((k) => typeof k === 'string' && FOOTPRINT_KEYS.has(k))) {
+        return res.status(400).json({ error: `footprintStats must be an array of ${[...FOOTPRINT_KEYS].join(' | ')}` });
+      }
+      footprintStats = [...new Set(fpRaw as string[])];
+    } else {
+      footprintStats = (company.dashboardConfig as { footprintStats?: string[] } | null)?.footprintStats;
+    }
+    const config = footprintStats ? { widgets, footprintStats } : { widgets };
 
     const updated = await prisma.company.update({
       where: { id: company.id },

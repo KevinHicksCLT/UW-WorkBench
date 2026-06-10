@@ -525,14 +525,44 @@ export default function Work() {
       {/* ── Matrix: one row per task, filterable column headers ────────────── */}
       <SectionCard
         title="Work matrix"
-        actions={anyFilter ? (
-          <button
-            onClick={clearFilters}
-            className="text-xs font-medium text-[#525252] hover:text-[#171717] transition-colors duration-150"
-          >
-            Clear filters
-          </button>
-        ) : undefined}
+        actions={
+          <span className="flex items-center gap-3">
+            {/* Explicit ordering control (the column headers' ⇅ toggles set the same sort) */}
+            <label className="flex items-center gap-1.5 text-xs text-[#525252]">
+              Sort by
+              <select
+                className="input py-1 text-xs"
+                value={sort ? sort.col : ''}
+                onChange={(e) => { const col = e.target.value as SortCol | ''; setSort(col ? { col, dir: sort?.col === col ? sort.dir : 1 } : null); setPage(0); }}
+              >
+                <option value="">Default order</option>
+                <option value="deliverable">Deliverable (alphabetical)</option>
+                <option value="task">Task (alphabetical)</option>
+                <option value="type">Type</option>
+                <option value="valueStream">Value stream</option>
+                <option value="role">Role</option>
+                <option value="priority">Priority</option>
+              </select>
+            </label>
+            {sort && (
+              <button
+                onClick={() => { setSort((s) => (s ? { col: s.col, dir: s.dir === 1 ? -1 : 1 } : s)); setPage(0); }}
+                className="text-xs font-medium text-[#525252] hover:text-[#171717]"
+                title="Flip sort direction"
+              >
+                {sort.dir === 1 ? 'A → Z' : 'Z → A'}
+              </button>
+            )}
+            {anyFilter && (
+              <button
+                onClick={clearFilters}
+                className="text-xs font-medium text-[#525252] hover:text-[#171717] transition-colors duration-150"
+              >
+                Clear filters
+              </button>
+            )}
+          </span>
+        }
       >
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-sm">
