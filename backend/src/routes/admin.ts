@@ -131,7 +131,7 @@ router.patch('/company/:id/dashboard', async (req: Request, res: Response, next:
     const widgets = [...new Set(raw.map((w) => w.trim()))].slice(0, 40);
     // Which stats the "Model footprint" card lists (Data Admin → Home). The
     // valid keys are the dashboard totals the frontend catalog exposes.
-    const FOOTPRINT_KEYS = new Set(['processSteps', 'applications', 'departments', 'domains', 'valueStreams', 'deliverables', 'tasks', 'metrics']);
+    const FOOTPRINT_KEYS = new Set(['subProcesses', 'ioItems', 'externalParties', 'externalInteractions', 'standards', 'programs', 'objectives', 'openRaid', 'connections', 'signals']);
     const fpRaw = (req.body ?? {}).footprintStats;
     let footprintStats: string[] | undefined;
     if (fpRaw !== undefined) {

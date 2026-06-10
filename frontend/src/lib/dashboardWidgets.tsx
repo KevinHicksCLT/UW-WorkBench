@@ -143,19 +143,22 @@ const tile = (
 
 // ── The catalog ──
 // The stats the "Model footprint" card can list — configurable per company in
-// Data Admin → Home (saved to Company.dashboardConfig.footprintStats).
+// Data Admin → Home (saved to Company.dashboardConfig.footprintStats). These
+// are deliberately NOT the headline-tile counts: the card surfaces the model's
+// deeper connective tissue instead of repeating the tiles above it.
 export const FOOTPRINT_STATS: Record<string, { key: string; label: string; to: string }> = {
-  processSteps: { key: 'processSteps', label: 'Process steps', to: '/overview?view=list' },
-  applications: { key: 'applications', label: 'Applications', to: '/portfolio' },
-  departments: { key: 'departments', label: 'Departments', to: '/roles?view=departments' },
-  domains: { key: 'domains', label: 'Domains', to: '/overview' },
-  valueStreams: { key: 'valueStreams', label: 'Value streams', to: '/overview' },
-  deliverables: { key: 'deliverables', label: 'Deliverables', to: '/work' },
-  tasks: { key: 'tasks', label: 'Tasks', to: '/work' },
-  metrics: { key: 'metrics', label: 'Metrics', to: '/active-ai' },
+  subProcesses: { key: 'subProcesses', label: 'Sub-processes', to: '/overview?view=list' },
+  ioItems: { key: 'ioItems', label: 'Inputs & outputs', to: '/work' },
+  externalParties: { key: 'externalParties', label: 'External parties', to: '/external' },
+  externalInteractions: { key: 'externalInteractions', label: 'External interactions', to: '/external' },
+  standards: { key: 'standards', label: 'Standards', to: '/standards' },
+  programs: { key: 'programs', label: 'Programs', to: '/portfolio' },
+  objectives: { key: 'objectives', label: 'Strategic objectives', to: '/portfolio' },
+  openRaid: { key: 'openRaid', label: 'Open RAID items', to: '/portfolio' },
+  connections: { key: 'connections', label: 'Model connections', to: '/overview' },
+  signals: { key: 'signals', label: 'Trackable signals', to: '/active-ai' },
 };
-// Applications intentionally not in the default (removable/re-addable in admin).
-export const FOOTPRINT_DEFAULT: string[] = ['processSteps', 'departments', 'domains', 'valueStreams'];
+export const FOOTPRINT_DEFAULT: string[] = ['subProcesses', 'ioItems', 'externalParties', 'standards'];
 
 export const WIDGET_CATALOG: Widget[] = [
   // Headline count tiles
@@ -190,11 +193,12 @@ export const WIDGET_CATALOG: Widget[] = [
     },
   },
   {
-    id: 'card:modelFootprint', title: 'Model footprint', desc: 'Pick which model counts it lists in Data Admin → Home', kind: 'card', source: SRC.vs,
+    id: 'card:modelFootprint', title: 'Model footprint', desc: 'Deeper model counts (sub-processes, I/O, standards…) — pick via its Edit', kind: 'card', source: SRC.vs,
     render: (d) => {
       const t = d.totals;
-      const chosen = d.footprintStats ?? FOOTPRINT_DEFAULT;
-      const rows = chosen.map((k) => FOOTPRINT_STATS[k]).filter(Boolean);
+      // Saved keys from a retired catalog fall away; an empty pick = the default.
+      const chosen = (d.footprintStats ?? FOOTPRINT_DEFAULT).filter((k) => FOOTPRINT_STATS[k]);
+      const rows = (chosen.length ? chosen : FOOTPRINT_DEFAULT).map((k) => FOOTPRINT_STATS[k]);
       return (
         <Card title={wt(d, 'card:modelFootprint', 'Model footprint')}>
           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">

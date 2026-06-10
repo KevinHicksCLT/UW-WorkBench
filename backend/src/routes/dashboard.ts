@@ -72,6 +72,18 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       prisma.company.count({ where: { tenantId } }),
     ]);
 
+    // Deeper-model counts for the (configurable) Model footprint card — data
+    // that is NOT already a headline tile: the model's connective tissue.
+    const [standardsCount, programsCount, objectivesCount, openRaidCount, connectionsCount, signalsCount, externalInteractionsCount] = await Promise.all([
+      prisma.standardItem.count({ where: w }),
+      prisma.program.count({ where: w }),
+      prisma.strategicObjective.count({ where: { tenantId, companyId } }),
+      prisma.raidItem.count({ where: { status: 'OPEN', initiative: { companyId } } }),
+      prisma.nodeLink.count({ where: { companyId } }),
+      prisma.telemetrySignal.count({ where: { companyId } }),
+      prisma.externalInteraction.count({ where: w }),
+    ]);
+
     const byType = (k: string) => nodes.filter((n) => n.typeKey === k);
     const nodeById = new Map(nodes.map((n) => [n.id, n]));
     const segments = byType('segment').sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
@@ -131,6 +143,11 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         divisions, departments, roles, valueStreams, domains, people,
         initiatives, risks, applications, metrics, scenarios, processSteps,
         deliverables, tasks,
+        // Footprint-card extras (not headline tiles)
+        subProcesses: counts.subProcesses, ioItems: counts.ioItems, externalParties: counts.externalParties,
+        standards: standardsCount, programs: programsCount, objectives: objectivesCount,
+        openRaid: openRaidCount, connections: connectionsCount, signals: signalsCount,
+        externalInteractions: externalInteractionsCount,
       },
       divisionsByCategory,
       workforce: {

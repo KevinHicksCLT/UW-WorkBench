@@ -199,15 +199,6 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
                   >
                     {editing ? 'Close' : 'Edit'}
                   </button>
-                  {w.source && (
-                    <button
-                      onClick={() => onNavigate?.(w.source!.tab, w.source!.section)}
-                      className="btn-secondary text-xs flex-shrink-0 inline-flex items-center gap-1"
-                    >
-                      Edit data
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
-                    </button>
-                  )}
                   <button onClick={() => remove(id)} className="text-[#a3a3a3] hover:text-[#be123c] flex-shrink-0 p-1" aria-label="Remove">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
                   </button>
