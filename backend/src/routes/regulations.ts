@@ -54,7 +54,9 @@ router.get('/overview', async (req: Request, res: Response, next: NextFunction) 
       for (const j of jurisdictions) { const v = String(j[key] ?? ''); out[v] = (out[v] ?? 0) + 1; }
       return out;
     };
-    const valueStreams = await prisma.valueStream.findMany({ where: { id: { in: coverage.map((c) => c.valueStreamId) } }, select: { id: true, name: true } });
+    // All company streams (not just linked ones) — the UI's filter dropdown,
+    // link editor, and Coverage lens need the full option list.
+    const valueStreams = await prisma.valueStream.findMany({ where: { companyId }, select: { id: true, name: true }, orderBy: { name: 'asc' } });
     const vsName = new Map(valueStreams.map((v) => [v.id, v.name]));
     res.json({
       jurisdictionCount: jurisdictions.length,
@@ -75,6 +77,7 @@ router.get('/overview', async (req: Request, res: Response, next: NextFunction) 
         .sort((a, b) => b.requirementCount - a.requirementCount),
       bulletinCount, ruleCount, sourceCount,
       verifiedJurisdictions: jurisdictions.filter((j) => j.lastVerifiedAt).length,
+      valueStreams,
     });
   } catch (e) { next(e); }
 });
