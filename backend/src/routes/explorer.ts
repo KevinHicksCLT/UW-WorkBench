@@ -2,7 +2,7 @@ import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
-import { buildRoleResolver } from '../lib/roleMatch.js';
+import { buildRoleResolver, resolveRoleCell } from '../lib/roleMatch.js';
 import { canonicalVs, legacyNamesFor } from '../lib/vsMapping.js';
 import { structureCounts } from '../lib/orgCounts.js';
 
@@ -605,6 +605,116 @@ function kpiBars(metrics: { framework: string | null }[]): MetricItem[] {
   for (const k of metrics) m.set(k.framework ?? 'Other', (m.get(k.framework ?? 'Other') ?? 0) + 1);
   return [...m.entries()].map(([label, value]) => ({ label, value })).sort((a, c) => c.value - a.value);
 }
+// ── Step lens ────────────────────────────────────────────────────────────────
+// Consolidated who/what/how for a set of process steps (the focused point in a
+// value stream): the PEOPLE assigned to the roles named on the steps' own
+// leads/supporting cells (deliberately NOT everyone tied to the stream), those
+// roles' tasks and readiness-checklist items, the deliverables the steps
+// produce (where memorialized, who approves, how), and the applications the
+// work runs on. The same builder serves every drill depth — the caller passes
+// a wider or narrower step set, so the sidebar refines as the user drills.
+type LensStep = { id: string; name: string; stepNumber: number; code: string | null; parentProcessId: string | null; leads: string | null; supporting: string | null; inputs: string | null; outputs: string | null };
+const LENS_STEP_SELECT = { id: true, name: true, stepNumber: true, code: true, parentProcessId: true, leads: true, supporting: true, inputs: true, outputs: true } as const;
+type Lens = {
+  people: MetricItem[]; tasks: MetricItem[]; checklist: MetricItem[];
+  deliverables: MetricItem[]; applications: MetricItem[];
+  roleCount: number; unresolvedRoles: string[];
+};
+
+async function stepLens(companyId: string, steps: LensStep[]): Promise<Lens> {
+  const stepIds = steps.map((s) => s.id);
+  // Bridge rows attach by ProcessStep id (L5 codes) OR by the L4 activity code
+  // alone (the real workbook rows are keyed CI-nn-nn with no step id).
+  const activityCodes = [...new Set(steps.flatMap((s) => [s.code, s.parentProcessId]).filter((x): x is string => !!x))];
+  const bridgeWhere = { companyId, OR: [{ processStepId: { in: stepIds } }, { activityCode: { in: activityCodes.length ? activityCodes : ['_'] } }] };
+  const roles = await prisma.role.findMany({ where: { companyId }, select: { id: true, name: true, itemRole: true } });
+  const resolve = buildRoleResolver(roles);
+
+  // Roles doing the work, from the steps' own lead/support cells. Free-text
+  // names that aren't in the role inventory (e.g. "Billing Coordinator") are
+  // kept visible as unresolved rather than silently dropped.
+  const lead = new Map<string, string>(), support = new Map<string, string>();
+  const unresolved = new Set<string>();
+  for (const s of steps) {
+    const l = resolveRoleCell(s.leads, resolve), u = resolveRoleCell(s.supporting, resolve);
+    for (const r of l.roles) { lead.set(r.id, r.name); support.delete(r.id); }
+    for (const r of u.roles) if (!lead.has(r.id)) support.set(r.id, r.name);
+    for (const raw of [...l.unresolved, ...u.unresolved]) unresolved.add(raw);
+  }
+  const partOf = (roleId: string) => (lead.has(roleId) ? 'Lead' : 'Support');
+  const roleName = (roleId: string) => lead.get(roleId) ?? support.get(roleId) ?? '';
+  const roleIds = [...lead.keys(), ...support.keys()];
+
+  const [assignments, tasks, checklist, usages, delivs] = await Promise.all([
+    roleIds.length ? prisma.assignment.findMany({
+      where: { roleId: { in: roleIds } },
+      select: { roleId: true, person: { select: { id: true, name: true, employmentType: true } } },
+    }) : [],
+    roleIds.length ? prisma.roleTask.findMany({
+      where: { roleId: { in: roleIds } }, orderBy: { id: 'asc' }, take: 150,
+      select: { roleId: true, text: true, category: { select: { name: true } } },
+    }) : [],
+    roleIds.length ? prisma.checklistItem.findMany({
+      where: { roleId: { in: roleIds } }, orderBy: { id: 'asc' }, take: 150,
+      select: { roleId: true, text: true, category: { select: { name: true } } },
+    }) : [],
+    stepIds.length ? prisma.stepAppUsage.findMany({
+      where: bridgeWhere,
+      select: { usageType: true, isPrimary: true, illustrative: true, application: { select: { id: true, name: true, systemOfRecord: true } } },
+    }) : [],
+    stepIds.length ? prisma.stepDeliverable.findMany({
+      where: bridgeWhere, orderBy: { activityCode: 'asc' },
+      select: {
+        name: true, approvalType: true, approverRoleRaw: true, illustrative: true,
+        approverRole: { select: { name: true } },
+        sorApplication: { select: { name: true } },
+        approvalApplication: { select: { name: true } },
+      },
+    }) : [],
+  ]);
+
+  // People doing the work — one row per person, strongest participation first.
+  const personMap = new Map<string, { id: string; name: string; role: string; part: string; emp: string | null }>();
+  for (const a of assignments) {
+    const part = partOf(a.roleId);
+    const cur = personMap.get(a.person.id);
+    if (cur && (cur.part === 'Lead' || part !== 'Lead')) continue;
+    personMap.set(a.person.id, { id: a.person.id, name: a.person.name, role: roleName(a.roleId), part, emp: a.person.employmentType });
+  }
+  const people: MetricItem[] = [...personMap.values()]
+    .sort((a, b) => (a.part === b.part ? a.name.localeCompare(b.name) : a.part === 'Lead' ? -1 : 1))
+    .map((p) => ({ label: p.name, value: 0, hint: `${p.role} · ${p.part}`, illustrative: true, drill: { level: 'person', id: p.id } }));
+
+  const itemize = (rows: { roleId: string; text: string; category: { name: string } | null }[]): MetricItem[] =>
+    [...rows].sort((a, b) => Number(lead.has(b.roleId)) - Number(lead.has(a.roleId)))
+      .map((r) => ({ label: r.text, value: 0, hint: roleName(r.roleId), sub: r.category?.name ?? undefined }));
+
+  // Applications — one row per app; real rows beat illustrative, primary beats not.
+  const appMap = new Map<string, { name: string; types: Set<string>; primary: boolean; sor: boolean | null; illustrative: boolean }>();
+  for (const u of usages) {
+    let a = appMap.get(u.application.id);
+    if (!a) { a = { name: u.application.name, types: new Set(), primary: false, sor: u.application.systemOfRecord, illustrative: true }; appMap.set(u.application.id, a); }
+    a.types.add(u.usageType);
+    a.primary ||= u.isPrimary;
+    a.illustrative &&= u.illustrative;
+  }
+  const applications: MetricItem[] = [...appMap.values()]
+    .sort((a, b) => Number(b.primary) - Number(a.primary) || a.name.localeCompare(b.name))
+    .map((a) => ({ label: a.name, value: 0, hint: [...a.types].join(' · '), sub: a.sor ? 'System of record' : undefined, illustrative: a.illustrative }));
+
+  const deliverables: MetricItem[] = delivs.map((d) => ({
+    label: d.name, value: 0,
+    hint: d.sorApplication ? `in ${d.sorApplication.name}` : undefined,
+    sub: [
+      d.approverRole?.name ?? d.approverRoleRaw ? `Approver: ${d.approverRole?.name ?? d.approverRoleRaw}` : null,
+      d.approvalType ? `${d.approvalType}${d.approvalApplication && d.approvalApplication.name !== d.sorApplication?.name ? ` via ${d.approvalApplication.name}` : ''}` : null,
+    ].filter(Boolean).join(' · ') || undefined,
+    illustrative: d.illustrative,
+  }));
+
+  return { people, tasks: itemize(tasks), checklist: itemize(checklist), deliverables, applications, roleCount: roleIds.length, unresolvedRoles: [...unresolved] };
+}
+
 async function participatedVsIds(divIds: string[]): Promise<string[]> {
   if (!divIds.length) return [];
   const links = await prisma.roleValueStream.findMany({ where: { role: { divisionId: { in: divIds } } }, select: { valueStreamId: true } });
@@ -713,83 +823,166 @@ async function metricsValueStream(tenantId: string, c: string, id: string, node?
   // into it (vs-mapping) and drill into its sub_process child nodes.
   if (node && node.typeKey === 'value_stream') {
     const ids = await legacyVsIds(c, node.name);
-    const [kpis, areas, ps] = await Promise.all([
-      prisma.metric.findMany({ where: { valueStreamId: { in: ids.length ? ids : ['_'] } }, orderBy: [{ l3: 'asc' }, { category: 'asc' }], select: { name: true, targetText: true, category: true, framework: true } }),
+    const vsFilter = { in: ids.length ? ids : ['_'] };
+    const [kpis, areas, ps, lensSteps, rvsLinks] = await Promise.all([
+      prisma.metric.findMany({ where: { valueStreamId: vsFilter }, orderBy: [{ l3: 'asc' }, { category: 'asc' }], select: { name: true, targetText: true, category: true, framework: true } }),
       prisma.node.findMany({ where: { parentId: node.id, typeKey: 'sub_process' }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true } }),
-      prisma.processStep.findMany({ where: { valueStreamId: { in: ids.length ? ids : ['_'] } }, select: { l3: true } }),
+      prisma.processStep.findMany({ where: { valueStreamId: vsFilter }, select: { l4: true } }),
+      prisma.processStep.findMany({ where: { valueStreamId: vsFilter }, select: LENS_STEP_SELECT }),
+      prisma.roleValueStream.findMany({ where: { valueStreamId: vsFilter }, select: { participationType: true, role: { select: { id: true, name: true, roleLevel: true } } } }),
     ]);
-    const stepByL3 = new Map<string, number>();
-    for (const p of ps) { if (!p.l3) continue; stepByL3.set(p.l3, (stepByL3.get(p.l3) ?? 0) + 1); }
+    const stepByL4 = new Map<string, number>();
+    for (const p of ps) { if (!p.l4) continue; stepByL4.set(p.l4, (stepByL4.get(p.l4) ?? 0) + 1); }
+    // Stream level shows the coarse lens: who works the stream and on what
+    // systems — the per-step tasks/checklists/deliverables appear as you drill.
+    const lens = await stepLens(c, lensSteps);
     return {
       level: 'valueStream', title: node.name, subtitle: 'Performance',
       tiles: [
         { label: 'KPIs defined', value: kpis.length },
         { label: 'Process Level 4', value: areas.length },
+        { label: 'People doing the work', value: lens.people.length, illustrative: true },
+        { label: 'Working roles', value: lens.roleCount, hint: 'lead/support on steps' },
+        { label: 'Applications', value: lens.applications.length },
+        { label: 'Deliverables', value: lens.deliverables.length },
       ],
       sections: [
         { title: 'KPIs & targets', kind: 'kpi', items: kpiList(kpis) },
-        { title: 'Process Level 4', kind: 'list', items: areas.map((s) => ({ label: s.name, value: stepByL3.get(s.name) ?? 0, hint: stepByL3.get(s.name) ? `${stepByL3.get(s.name)} steps` : 'no flow', drill: { level: 'step', id: s.id } })) },
+        { title: 'Process Level 4', kind: 'list', items: areas.map((s) => ({ label: s.name, value: stepByL4.get(s.name) ?? 0, hint: stepByL4.get(s.name) ? `${stepByL4.get(s.name)} steps` : 'no flow', drill: { level: 'step', id: s.id } })) },
+        { title: 'Applications & systems', kind: 'list', items: lens.applications },
+        { title: 'People doing the work', kind: 'list', illustrative: true, items: lens.people },
+        { title: 'Participating roles', kind: 'list', items: dedupeByStrongestPart(rvsLinks).map((r) => ({ label: r.name, value: 0, hint: r.part, drill: { level: 'role', id: r.id } })) },
       ],
     };
   }
   const vs = await prisma.valueStream.findFirst({ where: { id, tenantId, companyId: c }, select: { id: true, name: true, domain: true } });
   if (!vs) return null;
-  const [kpis, l3rows, ps] = await Promise.all([
+  const [kpis, l3rows, ps, lensSteps, rvsLinks] = await Promise.all([
     prisma.metric.findMany({ where: { valueStreamId: id }, orderBy: [{ l3: 'asc' }, { category: 'asc' }], select: { name: true, targetText: true, category: true, framework: true } }),
     prisma.subValueStream.findMany({ where: { valueStreamId: id, level: 3 }, orderBy: { sourceRow: 'asc' }, select: { id: true, name: true } }),
     prisma.processStep.findMany({ where: { valueStreamId: id }, select: { l3: true } }),
+    prisma.processStep.findMany({ where: { valueStreamId: id }, select: LENS_STEP_SELECT }),
+    prisma.roleValueStream.findMany({ where: { valueStreamId: id }, select: { participationType: true, role: { select: { id: true, name: true, roleLevel: true } } } }),
   ]);
   const stepByL3 = new Map<string, number>();
   for (const p of ps) { if (!p.l3) continue; stepByL3.set(p.l3, (stepByL3.get(p.l3) ?? 0) + 1); }
+  const lens = await stepLens(c, lensSteps);
   return {
     level: 'valueStream', title: vs.name, subtitle: 'Performance',
     tiles: [
       { label: 'KPIs defined', value: kpis.length },
       { label: 'Process Level 4', value: l3rows.length },
+      { label: 'People doing the work', value: lens.people.length, illustrative: true },
+      { label: 'Working roles', value: lens.roleCount, hint: 'lead/support on steps' },
+      { label: 'Applications', value: lens.applications.length },
+      { label: 'Deliverables', value: lens.deliverables.length },
     ],
     sections: [
       { title: 'KPIs & targets', kind: 'kpi', items: kpiList(kpis) },
       { title: 'Process Level 4', kind: 'list', items: l3rows.map((s) => ({ label: s.name, value: stepByL3.get(s.name) ?? 0, hint: stepByL3.get(s.name) ? `${stepByL3.get(s.name)} steps` : 'no flow', drill: { level: 'step', id: s.id } })) },
+      { title: 'Applications & systems', kind: 'list', items: lens.applications },
+      { title: 'People doing the work', kind: 'list', illustrative: true, items: lens.people },
+      { title: 'Participating roles', kind: 'list', items: dedupeByStrongestPart(rvsLinks).map((r) => ({ label: r.name, value: 0, hint: r.part, drill: { level: 'role', id: r.id } })) },
     ],
   };
 }
 
 async function metricsStep(tenantId: string, id: string, node?: ResolvedNode | null): Promise<Dashboard | null> {
-  // Unified sub_process node (preferred): key the legacy lookups by NAME within
-  // the parent value stream's folded legacy ids.
-  let s: { id: string; name: string; valueStreamId: string } | null = null;
-  let vsIds: string[] | null = null;
-  if (node && node.typeKey === 'sub_process') {
-    const parent = node.parentId ? await resolveNode(node.parentId) : null;
-    vsIds = parent ? await legacyVsIds(node.companyId, parent.name) : [];
-    s = { id: node.id, name: node.name, valueStreamId: vsIds[0] ?? '_' };
-  } else {
-    const row = await prisma.subValueStream.findFirst({ where: { id, tenantId, level: 3 }, select: { id: true, name: true, valueStreamId: true } });
-    if (row) { s = row; vsIds = [row.valueStreamId]; }
+  // ── L5 leaf: a single process step (unified `step` node; code = ProcessStep.id).
+  // The most refined view — this step's own people, I/O, deliverable + approval
+  // chain, and the application(s) the step runs on.
+  if (node && node.typeKey === 'step') {
+    const step = await prisma.processStep.findFirst({
+      where: { id: node.code ?? '_', tenantId },
+      select: { ...LENS_STEP_SELECT, l4: true, description: true, externalParticipants: true },
+    });
+    if (!step) return null;
+    const lens = await stepLens(node.companyId, [step]);
+    // Step leads are often named-only roles ("Billing Coordinator") with no
+    // workbook task/checklist items — fall back to the parent sub-process's
+    // working roles so the quality lens never goes dark at the deepest level.
+    let { tasks, checklist } = lens;
+    let qualityScope = 'working roles';
+    if ((!tasks.length || !checklist.length) && step.l4) {
+      const sibs = await prisma.processStep.findMany({ where: { tenantId, l4: step.l4 }, select: LENS_STEP_SELECT });
+      const wider = await stepLens(node.companyId, sibs);
+      if (!tasks.length) tasks = wider.tasks;
+      if (!checklist.length) checklist = wider.checklist;
+      qualityScope = 'sub-process roles';
+    }
+    const splitIo = (v: string | null) => (v ? v.split(/[,;]/).map((x) => x.trim()).filter(Boolean) : []);
+    const inputs = splitIo(step.inputs), outputs = splitIo(step.outputs);
+    return {
+      level: 'step', title: step.name, subtitle: `Process step ${step.stepNumber}${step.l4 ? ` · ${step.l4}` : ''} (L5)`,
+      tiles: [
+        { label: 'People doing the work', value: lens.people.length, illustrative: true },
+        { label: 'Working roles', value: lens.roleCount, hint: lens.unresolvedRoles.length ? `+${lens.unresolvedRoles.length} named only` : undefined },
+        { label: 'Applications', value: lens.applications.length },
+        { label: 'Deliverables', value: lens.deliverables.length },
+        { label: 'Inputs', value: inputs.length },
+        { label: 'Outputs', value: outputs.length },
+      ],
+      sections: [
+        { title: 'People doing the work', kind: 'list', illustrative: true, items: lens.people.length ? lens.people : lens.unresolvedRoles.map((r) => ({ label: r, value: 0, hint: 'named role — not in role inventory' })) },
+        { title: 'Deliverable & approval', kind: 'list', items: lens.deliverables },
+        { title: 'Applications & systems', kind: 'list', items: lens.applications },
+        { title: 'Inputs → outputs', kind: 'list', items: [
+          ...inputs.map((x) => ({ label: x, value: 0, hint: 'input' })),
+          ...outputs.map((x) => ({ label: x, value: 0, hint: 'output' })),
+        ] },
+        { title: `Tasks (${qualityScope})`, kind: 'list', items: tasks },
+        { title: `Checklist (${qualityScope})`, kind: 'list', items: checklist },
+      ],
+    };
   }
-  if (!s || !vsIds) return null;
-  const vsFilter = { in: vsIds.length ? vsIds : ['_'] };
-  const [kpis, steps, io, rvs] = await Promise.all([
-    prisma.metric.findMany({ where: { valueStreamId: vsFilter, l3: s.name }, orderBy: { category: 'asc' }, select: { name: true, targetText: true, category: true, framework: true } }),
-    prisma.processStep.count({ where: { valueStreamId: vsFilter, l3: s.name } }),
-    prisma.ioItem.groupBy({ by: ['type'], where: { valueStreamId: vsFilter, l3: s.name }, _count: { _all: true } }),
-    prisma.roleValueStream.findMany({ where: { valueStreamId: vsFilter, subStream: { startsWith: s.name + ' — ' } }, select: { roleId: true, participationType: true, role: { select: { id: true, name: true } } } }),
+
+  // ── L4 sub-process (unified node; code = SubValueStream.id) or legacy L3
+  // process area — the lens scoped to that slice of the stream's steps.
+  let s: { name: string; subtitle: string } | null = null;
+  let stepWhere: any = null;
+  let kpiWhere: any = null;
+  if (node && node.typeKey === 'sub_process') {
+    const svs = await prisma.subValueStream.findFirst({ where: { id: node.code ?? '_' }, select: { name: true, valueStreamId: true, parent: { select: { name: true } } } });
+    const parent = node.parentId ? await resolveNode(node.parentId) : null;
+    const vsIds = parent ? await legacyVsIds(node.companyId, parent.name) : (svs ? [svs.valueStreamId] : []);
+    const vsFilter = { in: vsIds.length ? vsIds : ['_'] };
+    s = { name: node.name, subtitle: `Sub-process${svs?.parent?.name ? ` · ${svs.parent.name}` : ''} (L4)` };
+    stepWhere = { valueStreamId: vsFilter, l4: node.name };
+    kpiWhere = svs?.parent?.name ? { valueStreamId: vsFilter, l3: svs.parent.name } : { valueStreamId: vsFilter, l3: node.name };
+  } else {
+    const row = await prisma.subValueStream.findFirst({ where: { id, tenantId, level: { in: [3, 4] } }, select: { name: true, level: true, valueStreamId: true } });
+    if (row) {
+      s = { name: row.name, subtitle: row.level === 4 ? 'Sub-process (L4)' : 'Process area (L3)' };
+      stepWhere = { valueStreamId: row.valueStreamId, [row.level === 4 ? 'l4' : 'l3']: row.name };
+      kpiWhere = { valueStreamId: row.valueStreamId, l3: row.name };
+    }
+  }
+  if (!s) return null;
+  const companyId = node?.companyId ?? (await prisma.company.findFirst({ where: { tenantId }, select: { id: true } }))!.id;
+  const [kpis, steps, io] = await Promise.all([
+    prisma.metric.findMany({ where: kpiWhere, orderBy: { category: 'asc' }, select: { name: true, targetText: true, category: true, framework: true } }),
+    prisma.processStep.findMany({ where: stepWhere, orderBy: { stepNumber: 'asc' }, select: LENS_STEP_SELECT }),
+    prisma.ioItem.groupBy({ by: ['type'], where: stepWhere, _count: { _all: true } }),
   ]);
+  const lens = await stepLens(companyId, steps);
   const ioTotal = io.reduce((a, x) => a + x._count._all, 0);
-  const inputs = io.find((x) => x.type === 'Input')?._count._all ?? 0;
-  const outputs = io.find((x) => x.type === 'Output')?._count._all ?? 0;
-  const roleMap = new Map<string, { id: string; name: string; part: string }>();
-  for (const l of rvs) { const cur = roleMap.get(l.roleId); if (!cur || (PART_ORDER[l.participationType] ?? 9) < (PART_ORDER[cur.part] ?? 9)) roleMap.set(l.roleId, { id: l.role.id, name: l.role.name, part: l.participationType }); }
   return {
-    level: 'step', title: s.name, subtitle: 'Performance (Process Level 4)',
+    level: 'step', title: s.name, subtitle: s.subtitle,
     tiles: [
-      { label: 'KPIs defined', value: kpis.length }, { label: 'Process steps', value: steps },
-      { label: 'Roles', value: roleMap.size }, { label: 'I/O items', value: ioTotal },
-      { label: 'Inputs', value: inputs }, { label: 'Outputs', value: outputs },
+      { label: 'Process steps', value: steps.length },
+      { label: 'People doing the work', value: lens.people.length, illustrative: true },
+      { label: 'Working roles', value: lens.roleCount, hint: lens.unresolvedRoles.length ? `+${lens.unresolvedRoles.length} named only` : undefined },
+      { label: 'Applications', value: lens.applications.length },
+      { label: 'Deliverables', value: lens.deliverables.length },
+      { label: 'I/O items', value: ioTotal },
     ],
     sections: [
       { title: 'KPIs & targets', kind: 'kpi', items: kpiList(kpis) },
-      { title: 'Roles involved', kind: 'list', items: [...roleMap.values()].sort((a, b) => (PART_ORDER[a.part] ?? 9) - (PART_ORDER[b.part] ?? 9)).map((r) => ({ label: r.name, value: 0, hint: r.part, drill: { level: 'role', id: r.id } })) },
+      { title: 'People doing the work', kind: 'list', illustrative: true, items: lens.people },
+      { title: 'Deliverables & approvals', kind: 'list', items: lens.deliverables },
+      { title: 'Applications & systems', kind: 'list', items: lens.applications },
+      { title: 'Tasks (working roles)', kind: 'list', items: lens.tasks },
+      { title: 'Checklist (working roles)', kind: 'list', items: lens.checklist },
     ],
   };
 }
@@ -1110,9 +1303,15 @@ router.get('/roles/:level/:id?', async (req: Request, res: Response, next: NextF
     if (!company) return res.status(404).json({ error: 'No company' });
     const id = req.params.id ? decodeURIComponent(req.params.id) : undefined;
     const node = await resolveNode(id);
-    // Unified work-branch node → serve its step/process detail (map drill-down).
-    // valueStream level gets the richer participating-roles dashboard below; the
-    // deeper process nodes serve their authored detail (leads/supporting/I-O).
+    // Unified work-branch node → the step-lens dashboard (map drill-down): the
+    // PEOPLE assigned to the roles doing this slice of work, their tasks and
+    // checklists, the deliverables (+ where memorialized / who approves), and
+    // the applications the steps run on — refined to the focused depth
+    // (sub_process = its steps; step = that one step).
+    if (node && ['sub_process', 'step'].includes(node.typeKey) && req.params.level !== 'valueStream') {
+      const lensDash = await metricsStep(req.tenantId, id!, node);
+      if (lensDash) return res.json(lensDash);
+    }
     if (node && ['value_stream', 'sub_process', 'step', 'io_item'].includes(node.typeKey) && req.params.level !== 'valueStream') {
       const full = await prisma.node.findUnique({ where: { id: node.id }, select: { description: true, attributes: true } });
       const at = (full?.attributes as any) ?? {};
@@ -1137,8 +1336,11 @@ router.get('/roles/:level/:id?', async (req: Request, res: Response, next: NextF
       case 'domain':      out = id ? await rolesDomain(company.id, node?.name ?? id) : null; break;
       case 'division':    out = lid ? await rolesDivision(req.tenantId, company.id, lid) : null; break;
       case 'department':  out = lid ? await rolesDepartment(req.tenantId, lid) : null; break;
-      case 'valueStream': out = id ? await rolesValueStream(req.tenantId, company.id, id, node) : null; break;
-      case 'step':        out = id ? await rolesStep(req.tenantId, id, node) : null; break;
+      // Value stream: the step-lens dashboard (people doing the work, apps,
+      // deliverable counts) plus the participating-roles roster appended by
+      // metricsValueStream — the lens narrows in rolesStep/metricsStep below.
+      case 'valueStream': out = id ? (await metricsValueStream(req.tenantId, company.id, id, node)) ?? (await rolesValueStream(req.tenantId, company.id, id, node)) : null; break;
+      case 'step':        out = id ? (await metricsStep(req.tenantId, id, node)) ?? (await rolesStep(req.tenantId, id, node)) : null; break;
       case 'role':        out = lid ? await rolesRole(req.tenantId, lid) : null; break;
       case 'person':      out = id ? await rolesPerson(req.tenantId, id) : null; break;
     }
