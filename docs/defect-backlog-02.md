@@ -144,6 +144,6 @@ Each AC is checked off by exercising the running app (Playwright) + querying the
 | D7 Workspace | rename DONE; restructure pending |
 | D8 Deliverables & Tasks | DONE (tabs split, declutter, 305 titles recased, dupes audited) |
 | D9 Third-Parties | rename + frequency column DONE; owner review pending |
-| D10 Bridge Assistant | rename DONE; formatting verification pending |
+| D10 Bridge Assistant | DONE (renamed; live reply verified — tables/lists render as HTML, no raw markdown) |
 | D11 Dictionary | pending |
 | D12 Admin Configure | DONE except blank-space (in global UI pass) |
