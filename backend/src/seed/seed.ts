@@ -14,6 +14,7 @@ import { seedIllustrative, seedDeepLevels, seedRealApplications, metricReading }
 import { seedRationalization } from './rationalization.js';
 import { seedPortfolio } from './portfolio.js';
 import { seedWork } from './work.js';
+import { seedRegulations } from './seedRegulations.js';
 
 const prisma = new PrismaClient();
 const SPINE = resolve(dirname(fileURLToPath(import.meta.url)), '../../data/seed/spine.json');
@@ -290,6 +291,7 @@ async function main() {
   await seedRationalization(prisma, { tenantId: t, companyId: c });
   await seedPortfolio(prisma, { tenantId: t, companyId: c });
   await seedWork(prisma, { tenantId: t, companyId: c });
+  await seedRegulations(prisma, { tenantId: t, companyId: c });
 
   console.log('✅ Seeded company:', company.name);
   console.log('   Login: kevin.hicks@capgemini.com / demo1234');
