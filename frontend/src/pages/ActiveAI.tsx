@@ -100,9 +100,8 @@ export default function ActiveAI() {
       ) : (
       <>
       {/* Coverage headline */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
         <Tile label="Value streams with AI" value={`${stats.anyAi}/${stats.total}`} hint="at least one active mode" />
-        <Tile label="AI fully embedded" value={`${stats.embedded}/${stats.total}`} hint="streams where at least one AI mode has reached Embedded" />
         <Tile label="Running autonomous agents" value={stats.autonomous} hint="beyond pilot" />
       </div>
 
