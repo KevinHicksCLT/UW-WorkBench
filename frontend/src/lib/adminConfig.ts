@@ -154,6 +154,44 @@ export const ADMIN_TABS: TabConfig[] = [
     ],
   },
   {
+    key: 'regulations',
+    label: 'Regulations',
+    description: 'The 50-state regulatory baseline behind the Regulations tab — jurisdictions (taxonomy flags + narratives), their obligations and where they apply, bulletins, machine-readable compliance rules, the shared filing-system catalog, and the monitored source registry.',
+    sections: [
+      {
+        key: 'jurisdictions', label: 'Jurisdictions', hint: 'states + their data',
+        editor: {
+          kind: 'masterDetail', parent: 'jurisdiction', parentTitle: 'Jurisdictions',
+          intro: 'One row per state + DC. Select a jurisdiction to edit its regulator, taxonomy flags, and narratives, and to manage its requirements, bulletins, rules, system links, and monitored sources.',
+          children: [
+            { slug: 'regulatoryRequirement', fk: 'jurisdictionId', title: 'Requirements' },
+            { slug: 'regulatoryBulletin', fk: 'jurisdictionId', title: 'Bulletins' },
+            { slug: 'complianceRule', fk: 'jurisdictionId', title: 'Compliance rules' },
+            { slug: 'jurisdictionIntegration', fk: 'jurisdictionId', title: 'System links' },
+            { slug: 'regulatorySource', fk: 'jurisdictionId', title: 'Monitored sources' },
+          ],
+        },
+      },
+      {
+        key: 'requirements', label: 'Requirements',
+        editor: {
+          kind: 'masterDetail', parent: 'regulatoryRequirement', parentTitle: 'Requirements',
+          intro: 'Every discrete obligation across states. Select a requirement to edit it and manage which value streams it applies to (the Regulations tab also offers an inline link editor).',
+          children: [{ slug: 'requirementValueStream', fk: 'requirementId', title: 'Value-stream links' }],
+        },
+      },
+      {
+        key: 'systems', label: 'Integration systems',
+        editor: {
+          kind: 'masterDetail', parent: 'integrationSystem', parentTitle: 'Systems',
+          intro: 'The shared catalog of regulatory filing/reporting systems (SERFF, NIPR, OPTins…). Select a system to manage which states use it.',
+          children: [{ slug: 'jurisdictionIntegration', fk: 'systemId', title: 'State usage' }],
+        },
+      },
+      { key: 'sources', label: 'All sources', editor: { kind: 'list', slug: 'regulatorySource', intro: 'The full monitoring registry, including national sources (NAIC, Insurance Compact) not tied to a state. The Phase 2 update pipeline sweeps the rows with Monitor enabled.' } },
+    ],
+  },
+  {
     key: 'external',
     label: 'External',
     description: 'External parties the organization interacts with — the party catalog (model nodes) and the interaction inventory.',

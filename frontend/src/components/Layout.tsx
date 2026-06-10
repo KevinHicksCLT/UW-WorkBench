@@ -176,6 +176,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           <NavLink to="/overview">Value Streams</NavLink>
           <NavLink to="/roles">Organization</NavLink>
           <NavLink to="/standards">Standards</NavLink>
+          <NavLink to="/regulations">Regulations</NavLink>
           <NavLink to="/active-ai">Telemetry</NavLink>
           <NavLink to="/portfolio">Initiatives</NavLink>
           <NavLink to="/work">Deliverables &amp; Tasks</NavLink>
@@ -240,6 +241,12 @@ export default function Layout({ children }: { children: ReactNode }) {
                 className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/standards') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
               >
                 Standards
+              </button>
+              <button
+                onClick={() => go('/regulations')}
+                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/regulations') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
+              >
+                Regulations
               </button>
               <button
                 onClick={() => go('/active-ai')}

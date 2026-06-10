@@ -64,7 +64,9 @@ const DENY = new Set([
 // enforced through the relation. MetricValue is intentionally excluded — its sparse
 // benefit/cost FK needs a two-level scope and it is edited as a time series in the
 // portfolio values grid (which already recomputes rollups).
-const TRANSITIVE = new Set(['BenefitLine', 'CostLine', 'Milestone', 'RaidItem']);
+const TRANSITIVE = new Set(['BenefitLine', 'CostLine', 'Milestone', 'RaidItem',
+  // Regulations junctions — scoped through Jurisdiction / RegulatoryRequirement.
+  'JurisdictionIntegration', 'RequirementValueStream']);
 
 // Label-field overrides for tables whose identifying column isn't name/title/text.
 // Without these the list would fall back to showing the raw id.
@@ -76,6 +78,9 @@ const LABEL_OVERRIDES: Record<string, string> = {
   initiativeValueStream: 'impactType',
   initiativeDivision: 'role',
   assignment: 'employmentType',
+  complianceRule: 'ruleCode',
+  jurisdictionIntegration: 'usage',
+  requirementValueStream: 'relationship',
 };
 
 // The raw value-stream tables back FK pickers elsewhere, so they stay resolvable
@@ -100,6 +105,7 @@ const GROUPS: { group: string; slugs: string[] }[] = [
   { group: 'Deliverables & Tasks', slugs: ['deliverable', 'task'] },
   { group: 'Initiative Tracker (SPM)', slugs: ['program', 'workstream', 'portfolioInitiative', 'benefitLine', 'costLine', 'milestone', 'raidItem'] },
   { group: 'Application Rationalization', slugs: ['rationalizationWorkspace', 'rationalizationApp', 'rationalizationComponent', 'rationalizationCapability', 'rationalizationMicroservice', 'rationalizationPlanStep'] },
+  { group: 'Regulations', slugs: ['jurisdiction', 'regulatoryRequirement', 'requirementValueStream', 'regulatoryBulletin', 'integrationSystem', 'jurisdictionIntegration', 'regulatorySource', 'complianceRule'] },
   { group: 'External', slugs: ['externalInteraction'] },
 ];
 const OTHER_GROUP = 'Other';
@@ -133,6 +139,9 @@ const MULTILINE = new Set([
   'inputs', 'outputs', 'upstream', 'downstream', 'dataElements', 'formula',
   // Standards-area charter block: mission paragraph + newline-joined scope bullets.
   'mission', 'scope',
+  // Regulations narrative blocks (markdown from the 50-state baseline doc).
+  'requirement', 'summary', 'summaryRegulator', 'summaryStatutes', 'summaryIntegration',
+  'executiveSummary', 'operatingModel', 'statutoryAuthority',
 ]);
 
 function pickLabelField(model: Prisma.DMMF.Model): string {
@@ -177,7 +186,10 @@ function buildEntity(model: Prisma.DMMF.Model, companyModels: Set<string>): Admi
     // companyId is auto-set from the active company, never edited in the form.
     if (f.name === 'companyId') continue;
     // Provenance / legacy columns are noise in the admin sheets — never surface.
-    if (f.name === 'sourceSheet' || f.name === 'sourceRow' || f.name === 'code') continue;
+    // (Jurisdiction.code is the exception: its USPS state code is a real,
+    // required business field, not workbook provenance.)
+    if (f.name === 'sourceSheet' || f.name === 'sourceRow') continue;
+    if (f.name === 'code' && model.name !== 'Jurisdiction') continue;
     // dashboardConfig is structured JSON edited by the Home dashboard configurator
     // (its own route), not a generic scalar field — keep it out of the CRUD forms.
     if (f.name === 'dashboardConfig') continue;

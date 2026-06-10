@@ -24,6 +24,8 @@ import PortfolioInitiative from './pages/PortfolioInitiative';
 import PortfolioRaid from './pages/PortfolioRaid';
 import Work from './pages/Work';
 import External from './pages/External';
+import Regulations from './pages/Regulations';
+import RegulationDetail from './pages/RegulationDetail';
 
 // The standalone role page was retired (it repeated the Organization role
 // panel) — old /roles/:id links open that panel instead.
@@ -97,6 +99,10 @@ export default function App() {
         <Route path="/portfolio/raid" element={<PortfolioRaid />} />
         {/* Deliverables & Tasks — standalone work tracker (banner + filters + table). */}
         <Route path="/work" element={<Work />} />
+        {/* Regulations — 50-state insurance regulatory baseline (states /
+            requirements / coverage lenses) + per-state detail by USPS code. */}
+        <Route path="/regulations" element={<Regulations />} />
+        <Route path="/regulations/:code" element={<RegulationDetail />} />
         {/* External Interactions — read-only external-party dependency view. */}
         <Route path="/external" element={<External />} />
         {/* ADMIN-only data administration + audit trail. The Data Dictionary now

@@ -27,6 +27,7 @@ import portfolioRoutes from './routes/portfolio.js';
 import workRoutes from './routes/work.js';
 import chatRoutes from './routes/chat.js';
 import standardsSkillsRoutes from './routes/standardsSkills.js';
+import regulationsRoutes from './routes/regulations.js';
 
 const app = express();
 app.use(cors());
@@ -76,6 +77,7 @@ app.use('/portfolio', portfolioRoutes);
 app.use('/work', workRoutes);
 app.use('/chat', chatRoutes);
 app.use('/standards-skills', standardsSkillsRoutes);
+app.use('/regulations', regulationsRoutes);
 
 const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   console.error(err);
