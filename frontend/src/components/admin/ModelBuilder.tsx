@@ -9,7 +9,16 @@ type NodeType = { key: string; label: string; pluralLabel: string; level: number
 type TreeNode = { id: string; typeKey: string; parentId: string | null; name: string; description: string | null; sortOrder: number; provenance: string; inboundLinks: number };
 type LinkRow = { id: string; relationType: string; attributes: any; peer: { id: string; name: string; typeKey: string } };
 
-export default function ModelBuilder({ companyId }: { companyId: string | null }) {
+// Optional scope narrows the builder to one branch of the model so each Data
+// Admin tab only shows ITS nodes (gap fix: roles/external parties no longer
+// appear under Value Streams). 'work' = value-stream branch, 'external' = the
+// external-party catalog, 'all' (default) = the whole model.
+const SCOPES: Record<string, { types: string[]; rootType: string } | undefined> = {
+  work: { types: ['value_stream', 'sub_process', 'step', 'io_item'], rootType: 'value_stream' },
+  external: { types: ['external_party'], rootType: 'external_party' },
+};
+
+export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: string | null; scope?: 'all' | 'work' | 'external' }) {
   const [types, setTypes] = useState<NodeType[]>([]);
   const [relationTypes, setRelationTypes] = useState<string[]>([]);
   const [nodes, setNodes] = useState<TreeNode[]>([]);
@@ -38,14 +47,20 @@ export default function ModelBuilder({ companyId }: { companyId: string | null }
   if (!companyId) return <p className="text-sm text-[#a3a3a3]">Select a company to build its operating model.</p>;
 
   const current = stack[stack.length - 1] ?? null;
+  const scopeDef = SCOPES[scope];
+  const scoped = scopeDef ? nodes.filter((n) => scopeDef.types.includes(n.typeKey)) : nodes;
   // Root view: the Enterprise tree first, external parties last (they're a flat
-  // catalog, not part of the hierarchy).
+  // catalog, not part of the hierarchy). In a scoped view the root is the
+  // scope's own top type (value streams / external parties).
   const typeRank = (k: string) => (k === 'enterprise' ? 0 : k === 'external_party' ? 9 : 1);
-  const children = nodes
-    .filter((n) => (current ? n.parentId === current.id : n.parentId === null))
+  const children = scoped
+    .filter((n) => (current ? n.parentId === current.id : scopeDef ? n.typeKey === scopeDef.rootType : n.parentId === null))
     .sort((a, b) => typeRank(a.typeKey) - typeRank(b.typeKey) || a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
-  // Which node types may be created under the current node (taxonomy-driven).
-  const childTypes = types.filter((t) => (current ? t.parentKeys.includes(current.typeKey) : t.parentKeys.length === 0));
+  // Which node types may be created under the current node (taxonomy-driven,
+  // limited to the scope's types when scoped).
+  const childTypes = types
+    .filter((t) => (scopeDef ? scopeDef.types.includes(t.key) : true))
+    .filter((t) => (current ? t.parentKeys.includes(current.typeKey) : scopeDef ? t.key === scopeDef.rootType && t.parentKeys.length === 0 : t.parentKeys.length === 0));
 
   const patchNode = async (n: TreeNode, data: Record<string, unknown>) => {
     try {

@@ -5,7 +5,6 @@
 // The WORK branch (value_stream → sub_process → step → io_item) is added next.
 // See docs/operating-model-architecture.md.
 import { prisma } from '../src/db/prisma.js';
-import { canonicalVs, NEW_STREAMS } from '../src/lib/vsMapping.js';
 
 const prov = (illustrative: boolean | null | undefined) => (illustrative === false ? 'real' : 'illustrative');
 
@@ -19,6 +18,66 @@ const DIV_ORDER = [
 ];
 const rank = (list: string[], name: string, fallback: number) => { const i = list.indexOf(name); return i === -1 ? fallback : i; };
 
+// Canonical 29 workbook streams → org division that hosts them (the stream's
+// "domain" column is the workbook taxonomy; the division is the org home used
+// for the map/list grouping). Every ValueStream row must appear here.
+const VS_DIVISION: Record<string, string> = {
+  // Core Insurance
+  'Billing, Collections & Receivables': 'Finance & Investments',
+  'Claims Intake-to-Settlement': 'Claims',
+  'Claims Recoveries & Subrogation': 'Claims',
+  'Delegated Authority Management': 'Underwriting',
+  'Policy Administration & Servicing': 'Operations & Customer Service',
+  'Reinsurance & Retrocession Management': 'Reinsurance',
+  'Submission-to-Bind / Underwriting': 'Underwriting',
+  // Distribution & Customer
+  'Customer Service, Complaints & Experience': 'Operations & Customer Service',
+  'Distribution & Channel Management': 'Sales, Distribution & Marketing',
+  'Marketing, Growth & Customer Insights': 'Sales, Distribution & Marketing',
+  'Product & Proposition Management': 'Product, Delivery & PMO',
+  // Finance & Actuarial
+  'Actuarial Pricing, Reserving & Capital Modeling': 'Actuarial',
+  'Finance, Treasury & Capital Management': 'Finance & Investments',
+  'Investment & Asset Management': 'Finance & Investments',
+  // Technology & Data
+  'AIOps & Intelligent Operations': 'Technology & Engineering',
+  'Cybersecurity, Identity & Resilience': 'Cybersecurity & IAM',
+  'Data, Analytics & AI Management': 'Data & AI',
+  'FinOps / Cloud Financial Management': 'Technology & Engineering',
+  'MLOps / ML Lifecycle Management': 'Data & AI',
+  'Service Operations, Incident & Production Support': 'Technology & Engineering',
+  'Technology Delivery & Change': 'Technology & Engineering',
+  'Technology Strategy, Architecture & Delivery': 'Technology & Engineering',
+  // Risk, Compliance & Audit
+  'Audit & Assurance': 'Risk, Compliance & Audit',
+  'Risk, Compliance & Regulatory Management': 'Risk, Compliance & Audit',
+  'Third-Party & Vendor Management': 'Risk, Compliance & Audit',
+  // Corporate & Enterprise
+  'Change Management & Adoption': 'Human Resources & Talent',
+  'Enterprise Strategy & Portfolio Management': 'Product, Delivery & PMO',
+  'Legal, Governance & Privacy Management': 'Legal & Corporate Governance',
+  'Talent & Workforce Management': 'Human Resources & Talent',
+};
+const DOMAIN_ORDER = ['Core Insurance', 'Distribution & Customer', 'Finance & Actuarial', 'Technology & Data', 'Risk, Compliance & Audit', 'Corporate & Enterprise'];
+
+// Pre-canonicalization node names → canonical workbook names, used ONLY to carry
+// hand-edited NodeAiAdoption rows across the rebuild.
+const OLD_VS_NAME: Record<string, string> = {
+  'Actuarial & Reserving': 'Actuarial Pricing, Reserving & Capital Modeling',
+  'Submission-to-Bind': 'Submission-to-Bind / Underwriting',
+  'Distribution Management': 'Distribution & Channel Management',
+  'Data & Analytics': 'Data, Analytics & AI Management',
+  'Investment Management': 'Investment & Asset Management',
+  'Legal & Compliance': 'Legal, Governance & Privacy Management',
+  'Product Design & Management': 'Product & Proposition Management',
+  'Reinsurance Management': 'Reinsurance & Retrocession Management',
+  'Human Capital Management': 'Talent & Workforce Management',
+  'Vendor & Third-Party Management': 'Third-Party & Vendor Management',
+  'Customer Service & Experience': 'Customer Service, Complaints & Experience',
+  'Capital & Treasury Management': 'Finance, Treasury & Capital Management',
+  'Risk & Compliance Management': 'Risk, Compliance & Regulatory Management',
+};
+
 async function main() {
   const companies = await prisma.company.findMany({ select: { id: true, name: true } });
   for (const company of companies) {
@@ -31,6 +90,13 @@ async function main() {
       prisma.role.findMany({ where: { companyId }, select: { id: true, name: true, divisionId: true, departmentId: true, roleLevel: true, roleFamily: true, status: true } }),
     ]);
     const segments = [...new Set(divisions.map((d) => d.higherCategory).filter((s): s is string => !!s))];
+
+    // Carry AI-adoption edits across the rebuild (NodeAiAdoption cascades away
+    // with its node): snapshot by stream NAME, restore onto the canonical names.
+    const adoptionSnap = await prisma.nodeAiAdoption.findMany({
+      where: { node: { companyId, typeKey: 'value_stream' } },
+      include: { node: { select: { name: true } } },
+    });
 
     // Rebuild this company's nodes from scratch (derived table).
     await prisma.node.deleteMany({ where: { companyId } });
@@ -76,66 +142,89 @@ async function main() {
       });
     }
 
-    // ── WORK branch: value_stream / sub_process / step from the canonical Level
-    // tree (levelNumber 3/4/5); io_item from IoItem (legacy-VS name → VS node). ──
-    const levels = await prisma.level.findMany({
-      where: { companyId, levelNumber: { in: [2, 3, 4, 5] } },
-      orderBy: [{ levelNumber: 'asc' }, { sortOrder: 'asc' }],
-      select: { id: true, name: true, parentId: true, levelNumber: true, sortOrder: true, description: true, leads: true, supporting: true, inputs: true, outputs: true, notes: true },
-    });
-    const l2NameById = new Map(levels.filter((l) => l.levelNumber === 2).map((l) => [l.id, l.name]));
-    const levelToNode = new Map<string, string>(); // Level.id → Node.id (L3/L4/L5)
+    // ── WORK branch (29-stream canonicalization, gap backlog X3/S1/S2/S3):
+    // value_stream ← ValueStream (29, names verbatim), sub_process ← SubValueStream
+    // level=4 (131), step ← ProcessStep (711), io_item ← IoItem (835, keyed to its
+    // L4 sub-process). The curated Level tree is no longer the source. ──
+    const vsRows = await prisma.valueStream.findMany({ where: { companyId }, select: { id: true, name: true, domain: true } });
+    vsRows.sort((a, b) => rank(DOMAIN_ORDER, a.domain ?? '', 99) - rank(DOMAIN_ORDER, b.domain ?? '', 99) || a.name.localeCompare(b.name));
+    const vsNodeByName = new Map<string, string>();
+    const vsNodeByLegacyId = new Map<string, string>();
     const unmatchedVs: string[] = [];
-
-    const l3 = levels.filter((l) => l.levelNumber === 3);
-    for (const [i, l] of l3.entries()) {
-      const divName = l.parentId ? l2NameById.get(l.parentId) : null;
+    for (const [i, vs] of vsRows.entries()) {
+      const divName = VS_DIVISION[vs.name];
       const parentId = divName ? divByName.get(divName) ?? null : null;
-      if (!parentId) unmatchedVs.push(l.name);
-      const n = await prisma.node.create({ data: { companyId, typeKey: 'value_stream', name: l.name, code: l.id, parentId, description: l.description, provenance: 'illustrative', sortOrder: l.sortOrder || i } });
-      levelToNode.set(l.id, n.id);
-    }
-    const l4 = levels.filter((l) => l.levelNumber === 4);
-    for (const [i, l] of l4.entries()) {
-      const parentId = l.parentId ? levelToNode.get(l.parentId) ?? null : null;
+      if (!parentId) unmatchedVs.push(vs.name);
       const n = await prisma.node.create({
-        data: { companyId, typeKey: 'sub_process', name: l.name, code: l.id, parentId, description: l.description, provenance: 'illustrative', sortOrder: l.sortOrder || i,
-          attributes: { leads: l.leads, supporting: l.supporting, inputs: l.inputs, outputs: l.outputs, notes: l.notes } },
+        data: { companyId, typeKey: 'value_stream', name: vs.name, code: vs.id, parentId, provenance: 'real', sortOrder: i,
+          attributes: { domain: vs.domain ?? null } },
       });
-      levelToNode.set(l.id, n.id);
-    }
-    const l5 = levels.filter((l) => l.levelNumber === 5);
-    for (const [i, l] of l5.entries()) {
-      const parentId = l.parentId ? levelToNode.get(l.parentId) ?? null : null;
-      const n = await prisma.node.create({
-        data: { companyId, typeKey: 'step', name: l.name, code: l.id, parentId, description: l.description, provenance: 'illustrative', sortOrder: l.sortOrder || i,
-          attributes: { leads: l.leads, supporting: l.supporting, inputs: l.inputs, outputs: l.outputs, notes: l.notes } },
-      });
-      levelToNode.set(l.id, n.id);
+      vsNodeByName.set(vs.name, n.id);
+      vsNodeByLegacyId.set(vs.id, n.id);
     }
 
-    // NEW canonical value streams promoted from the legacy set (vs-mapping.ts)
-    const vsNodeByName = new Map(l3.map((l) => [l.name, levelToNode.get(l.id)!]));
-    for (const ns of NEW_STREAMS) {
-      if (vsNodeByName.has(ns.name)) continue;
-      const n = await prisma.node.create({ data: { companyId, typeKey: 'value_stream', name: ns.name, parentId: divByName.get(ns.division) ?? null, provenance: 'illustrative', sortOrder: 99 } });
-      vsNodeByName.set(ns.name, n.id);
+    // sub_process ← SubValueStream level=4 (parent = its stream node; the L3
+    // process area is carried as an attribute, not a tree level)
+    const svsAll = await prisma.subValueStream.findMany({
+      where: { valueStream: { companyId } },
+      orderBy: { sourceRow: 'asc' },
+      select: { id: true, name: true, level: true, parentId: true, valueStreamId: true, inputs: true, outputs: true, upstream: true, downstream: true, notes: true },
+    });
+    const l3NameById = new Map(svsAll.filter((s) => s.level === 3).map((s) => [s.id, s.name]));
+    const l4Rows = svsAll.filter((s) => s.level === 4);
+    const spByVsAndName = new Map<string, string>(); // `${valueStreamId}|${l4 name}` → node id
+    for (const [i, s] of l4Rows.entries()) {
+      const processArea = s.parentId ? l3NameById.get(s.parentId) ?? null : null;
+      const n = await prisma.node.create({
+        data: { companyId, typeKey: 'sub_process', name: s.name, code: s.id, parentId: vsNodeByLegacyId.get(s.valueStreamId) ?? null, provenance: 'real', sortOrder: i,
+          attributes: { processArea, inputs: s.inputs, outputs: s.outputs, upstream: s.upstream, downstream: s.downstream, notes: s.notes } },
+      });
+      spByVsAndName.set(`${s.valueStreamId}|${s.name}`, n.id);
     }
 
-    // io_item ← IoItem (preserve ALL; legacy-VS NAME → canonical VS node via the
-    // 29→21 mapping; log unmatched)
-    const vsLegacy = await prisma.valueStream.findMany({ where: { companyId }, select: { id: true, name: true } });
-    const vsLegacyName = new Map(vsLegacy.map((v) => [v.id, v.name]));
-    const ioItems = await prisma.ioItem.findMany({ where: { valueStream: { companyId } }, select: { id: true, name: true, type: true, valueStreamId: true, keyRoles: true, dataElements: true, l3: true, l4: true } });
+    // step ← ProcessStep (parent = its L4 sub-process node; falls back to the
+    // stream node when the l4 label doesn't match a SubValueStream row — logged)
+    const stepRows = await prisma.processStep.findMany({
+      where: { valueStream: { companyId } },
+      orderBy: [{ l4: 'asc' }, { stepNumber: 'asc' }],
+      select: { id: true, name: true, valueStreamId: true, l3: true, l4: true, stepNumber: true, description: true, leads: true, supporting: true, inputs: true, outputs: true, notes: true, externalParticipants: true, illustrative: true },
+    });
+    let stepFallback = 0;
+    for (const [i, ps] of stepRows.entries()) {
+      let parentId = ps.l4 ? spByVsAndName.get(`${ps.valueStreamId}|${ps.l4}`) ?? null : null;
+      if (!parentId) { parentId = vsNodeByLegacyId.get(ps.valueStreamId) ?? null; stepFallback++; }
+      await prisma.node.create({
+        data: { companyId, typeKey: 'step', name: ps.name, code: ps.id, parentId, description: ps.description, provenance: prov(ps.illustrative), sortOrder: ps.stepNumber ?? i,
+          attributes: { stepNumber: ps.stepNumber, l3: ps.l3, l4: ps.l4, leads: ps.leads, supporting: ps.supporting, inputs: ps.inputs, outputs: ps.outputs, notes: ps.notes, externalParticipants: ps.externalParticipants } },
+      });
+    }
+
+    // io_item ← IoItem (parent = its L4 sub-process node, else its stream node)
+    const ioItems = await prisma.ioItem.findMany({ where: { valueStream: { companyId } }, select: { id: true, name: true, type: true, valueStreamId: true, keyRoles: true, dataElements: true, l3: true, l4: true, illustrative: true } });
+    let ioToSubProcess = 0;
     const unmatchedIo: string[] = [];
     for (const io of ioItems) {
-      const vsName = vsLegacyName.get(io.valueStreamId);
-      const parentId = vsName ? vsNodeByName.get(canonicalVs(vsName)) ?? null : null;
+      let parentId = io.l4 ? spByVsAndName.get(`${io.valueStreamId}|${io.l4}`) ?? null : null;
+      if (parentId) ioToSubProcess++;
+      else parentId = vsNodeByLegacyId.get(io.valueStreamId) ?? null;
       if (!parentId) unmatchedIo.push(io.name);
       await prisma.node.create({
-        data: { companyId, typeKey: 'io_item', name: io.name, code: io.id, parentId, provenance: 'illustrative',
-          attributes: { type: io.type, keyRoles: io.keyRoles, dataElements: io.dataElements, l3: io.l3, l4: io.l4, legacyValueStream: vsName ?? null } },
+        data: { companyId, typeKey: 'io_item', name: io.name, code: io.id, parentId, provenance: prov(io.illustrative),
+          attributes: { type: io.type, keyRoles: io.keyRoles, dataElements: io.dataElements, l3: io.l3, l4: io.l4 } },
       });
+    }
+
+    // Restore AI-adoption edits onto the canonical stream names.
+    let adoptionRestored = 0;
+    for (const snap of adoptionSnap) {
+      const target = vsNodeByName.get(snap.node.name) ?? vsNodeByName.get(OLD_VS_NAME[snap.node.name] ?? '');
+      if (!target) continue;
+      await prisma.nodeAiAdoption.upsert({
+        where: { nodeId: target },
+        create: { nodeId: target, aiAssist: snap.aiAssist, aiAugment: snap.aiAugment, aiWorkflow: snap.aiWorkflow, aiAutonomous: snap.aiAutonomous, useCases: snap.useCases ?? undefined },
+        update: { aiAssist: snap.aiAssist, aiAugment: snap.aiAugment, aiWorkflow: snap.aiWorkflow, aiAutonomous: snap.aiAutonomous, useCases: snap.useCases ?? undefined },
+      });
+      adoptionRestored++;
     }
 
     // ── reconcile ──
@@ -143,8 +232,7 @@ async function main() {
     const got = Object.fromEntries(counts.map((c) => [c.typeKey, c._count._all]));
     const expect = {
       enterprise: 1, segment: segments.length, division: divisions.length, department: departments.length, role: roles.length,
-      value_stream: l3.length + NEW_STREAMS.filter((ns) => !l3.some((l) => l.name === ns.name)).length,
-      sub_process: l4.length, step: l5.length, io_item: ioItems.length,
+      value_stream: vsRows.length, sub_process: l4Rows.length, step: stepRows.length, io_item: ioItems.length,
     };
     console.log(`\n=== ${company.name} (${companyId}) ===`);
     for (const [k, v] of Object.entries(expect)) {
@@ -152,8 +240,10 @@ async function main() {
       console.log(`  ${k.padEnd(11)} expect ${String(v).padStart(4)}  got ${String(g).padStart(4)}  ${g === v ? 'OK' : 'MISMATCH'}`);
     }
     if (orphanRoles.length) console.log(`  ⚠ ${orphanRoles.length} roles with no department/division parent (logged): ${orphanRoles.slice(0, 8).join(', ')}${orphanRoles.length > 8 ? '…' : ''}`);
-    if (unmatchedVs.length) console.log(`  ⚠ ${unmatchedVs.length} value streams with no division parent (logged): ${unmatchedVs.slice(0, 8).join(', ')}${unmatchedVs.length > 8 ? '…' : ''}`);
-    console.log(`  io_item: ${ioItems.length - unmatchedIo.length}/${ioItems.length} attached to a canonical value stream (${unmatchedIo.length} logged — deferred 29→21 reconciliation)`);
+    if (unmatchedVs.length) console.log(`  ⚠ ${unmatchedVs.length} value streams with no division parent (logged): ${unmatchedVs.join(', ')}`);
+    console.log(`  steps: ${stepRows.length - stepFallback}/${stepRows.length} under their L4 sub-process (${stepFallback} fell back to the stream node)`);
+    console.log(`  io_item: ${ioToSubProcess}/${ioItems.length} under their L4 sub-process; ${unmatchedIo.length} unattached`);
+    console.log(`  ai-adoption: ${adoptionRestored}/${adoptionSnap.length} stream profiles carried across the rebuild`);
   }
 }
 

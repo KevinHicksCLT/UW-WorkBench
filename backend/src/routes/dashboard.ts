@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
+import { structureCounts } from '../lib/orgCounts.js';
 
 // Executive overview — one tenant-wide rollup across every part of the operating
 // model. Read-only; the landing page consumes this single endpoint. Every table
@@ -42,7 +43,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     // rework): segments/divisions/departments/roles + value streams/steps are all
     // typed nodes; the segment grouping comes from the tree, not a string column.
     const [
-      nodes, partLinks, people,
+      nodes, partLinks, counts,
       initiatives, risks, applications, metrics, scenarios,
       deliverables, tasks,
       empGroups, regionGroups, statusGroups,
@@ -51,7 +52,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     ] = await Promise.all([
       prisma.node.findMany({ where: { companyId, typeKey: { not: 'io_item' } }, select: { id: true, typeKey: true, name: true, parentId: true, sortOrder: true } }),
       prisma.nodeLink.groupBy({ by: ['toId'], where: { companyId, relationType: 'PARTICIPATES_IN' }, _count: { _all: true } }),
-      prisma.person.count({ where: w }),
+      structureCounts(tenantId, companyId),
       // Initiatives = the strategic-portfolio model the /portfolio (Initiatives)
       // screen renders and Data Admin edits (PortfolioInitiative).
       prisma.portfolioInitiative.count({ where: w }),
@@ -81,9 +82,9 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const ioCount = await prisma.node.count({ where: { companyId, typeKey: 'io_item' } });
     void ioCount; // reserved for a future tile
 
-    const [divisions, departments, roles, valueStreams, domains, processSteps] = [
-      divisionNodes.length, departmentNodes.length, roleNodes.length, vsNodes.length, segments.length, byType('step').length,
-    ];
+    // Headline counts come from the ONE shared canonical function (X1/X2).
+    const { divisions, departments, roles, valueStreams, steps: processSteps, people } = counts;
+    const domains = counts.segments;
 
     // Divisions grouped by their parent Segment node (the ONE shared grouping).
     const segName = (n: { parentId: string | null }) => (n.parentId ? nodeById.get(n.parentId)?.name ?? '—' : '—');

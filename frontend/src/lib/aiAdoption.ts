@@ -389,6 +389,36 @@ export const STREAM_PROFILES: Record<string, StreamProfile> = {
     agent: m(2,
       uc('Auto-remediation', 'Incident Restoration', 'Agent executes known-good remediations for recurring incidents; humans approve risky actions.')),
   },
+  'AIOps & Intelligent Operations': {
+    assistant: m(3,
+      uc('Telemetry Q&A', 'AIOps Engineers', 'Ask cross-platform questions over metrics, traces and events in plain language.')),
+    augmented: m(3,
+      uc('Anomaly investigation drafting', 'Operations Analysts', 'AI drafts anomaly investigations with correlated signals and suspected causes for an engineer to confirm.')),
+    workflow: m(3,
+      uc('Noise reduction & event correlation', 'Event Management', 'Agent clusters and suppresses duplicate alerts, opening one enriched incident at a human gate.')),
+    agent: m(2,
+      uc('Predictive capacity actions', 'Capacity stakeholders', 'Agent forecasts saturation and applies pre-approved scaling actions, escalating exceptions.')),
+  },
+  'MLOps / ML Lifecycle Management': {
+    assistant: m(3,
+      uc('Experiment & model lookup', 'ML Engineers · Data Scientists', 'Query model registries, lineage and experiment history in plain language.')),
+    augmented: m(3,
+      uc('Model card & validation drafting', 'Model Risk · ML Engineers', 'AI drafts model cards, validation reports and drift analyses for human sign-off.')),
+    workflow: m(2,
+      uc('Pipeline health & retrain gating', 'MLOps Platform', 'Agent monitors data/model drift and assembles the retrain package, pausing at an approval gate.')),
+    agent: m(1,
+      uc('Automated rollback', 'MLOps Platform', 'Agent rolls back a degraded model to the last good version under pre-approved guardrails.')),
+  },
+  'FinOps / Cloud Financial Management': {
+    assistant: m(3,
+      uc('Spend Q&A', 'FinOps Leads · Engineering Managers', 'Ask cost-allocation, unit-economics and budget questions over cloud billing data.')),
+    augmented: m(3,
+      uc('Optimization recommendations', 'FinOps Analysts', 'AI drafts rightsizing, commitment and storage-tier recommendations with projected savings for review.')),
+    workflow: m(2,
+      uc('Anomaly & budget alerts', 'Cost Governance', 'Agent detects spend anomalies, attributes them to teams/services and opens an action at a human gate.')),
+    agent: m(1,
+      uc('Scheduled hygiene actions', 'Platform Engineering', 'Agent executes pre-approved cleanup (orphaned volumes, idle instances) on a schedule.')),
+  },
 };
 
 // Fallback for any value stream not yet authored — modest, non-coding posture.

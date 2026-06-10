@@ -161,7 +161,10 @@ export const WIDGET_CATALOG: Widget[] = [
       const total = d.workforce.byType.reduce((a, g) => a + g.count, 0);
       return (
         <Card title="Workforce mix" to="/roles" toLabel="Roles">
-          <div className="text-xs text-[#a3a3a3] mb-2 tnum">{fmt.number(total)} people</div>
+          <div className="text-xs text-[#a3a3a3] mb-2 tnum">
+            {fmt.number(total)} people
+            <span className="ml-2 inline-block px-1.5 py-0.5 rounded bg-[#fef3c7] text-[#92400e] text-[10px] font-medium align-middle" title="Region and employment-type splits are illustrative — the source workbook carries 159 FTE with no region/type dimensions.">Illustrative</span>
+          </div>
           <BarList groups={workforceBuckets(d.workforce.byType)} color="#4f46e5" />
           <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mt-4 mb-2">By region</div>
           <BarList groups={d.workforce.byRegion} color="#0d9488" />

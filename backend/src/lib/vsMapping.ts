@@ -1,49 +1,22 @@
-// 29→21(+1) value-stream mapping (operating-model rework, decided 2026-06-09).
-// Maps each LEGACY ValueStream name onto its CANONICAL value-stream node name so
-// every connection (roles, I/O, apps, metrics) re-links to the canonical set.
-// One legacy stream is promoted to a NEW canonical stream (too much real data to
-// force into a wrong bucket). Worksheet/rationale: audit/value-stream-mapping.md.
+// Value-stream name mapping. IDENTITY since the 29-stream canonicalization
+// (gap backlog X3/S1/S2, 2026-06-10): the canonical value-stream set IS the 29
+// workbook L4-Master streams, names verbatim from the ValueStream table — no
+// renames, no folds. The earlier 29→21 consolidation (audit/value-stream-mapping.md)
+// was reversed because the accepted backlog requires 1:1 source parity across
+// Value Streams / Telemetry / Home / Work.
+//
+// The helpers are kept so call sites (explorer.ts, valueStreams.ts, backfill
+// scripts) stay stable should a future mapping ever be needed.
 
-export const VS_MAPPING: Record<string, string> = {
-  // ── B. renames ──
-  'Actuarial Pricing, Reserving & Capital Modeling': 'Actuarial & Reserving',
-  'Submission-to-Bind / Underwriting': 'Submission-to-Bind',
-  'Distribution & Channel Management': 'Distribution Management',
-  'Data, Analytics & AI Management': 'Data & Analytics',
-  'Investment & Asset Management': 'Investment Management',
-  'Legal, Governance & Privacy Management': 'Legal & Compliance',
-  'Product & Proposition Management': 'Product Design & Management',
-  'Reinsurance & Retrocession Management': 'Reinsurance Management',
-  'Talent & Workforce Management': 'Human Capital Management',
-  'Third-Party & Vendor Management': 'Vendor & Third-Party Management',
-  'Customer Service, Complaints & Experience': 'Customer Service & Experience',
-  'Technology Strategy, Architecture & Delivery': 'Technology Delivery & Change',
-  'Finance, Treasury & Capital Management': 'Capital & Treasury Management',
-  'Risk, Compliance & Regulatory Management': 'Risk & Compliance Management',
-  // ── C. extras folded into their closest canonical stream ──
-  'Claims Recoveries & Subrogation': 'Claims Intake-to-Settlement',
-  'Service Operations, Incident & Production Support': 'Technology Delivery & Change',
-  'MLOps / ML Lifecycle Management': 'Data & Analytics',
-  'AIOps & Intelligent Operations': 'Technology Delivery & Change',
-  'FinOps / Cloud Financial Management': 'Financial Planning & Reporting',
-  'Audit & Assurance': 'Enterprise Risk Management',
-  'Change Management & Adoption': 'Human Capital Management',
-  'Marketing, Growth & Customer Insights': 'Distribution Management',
-  // ── C. promoted to NEW canonical stream (see NEW_STREAMS) ──
-  'Enterprise Strategy & Portfolio Management': 'Enterprise Strategy & Portfolio Management',
-};
+export const VS_MAPPING: Record<string, string> = {};
 
-// New canonical value-stream nodes to create (name + parent division node name).
-export const NEW_STREAMS: { name: string; division: string }[] = [
-  { name: 'Enterprise Strategy & Portfolio Management', division: 'Product, Delivery & PMO' },
-];
+// No synthesized streams: all 29 canonical streams exist as ValueStream rows.
+export const NEW_STREAMS: { name: string; division: string }[] = [];
 
-// Resolve a legacy value-stream name to its canonical node name.
+// Resolve a legacy value-stream name to its canonical node name (identity).
 export const canonicalVs = (legacyName: string): string => VS_MAPPING[legacyName] ?? legacyName;
 
-// Inverse view: canonical stream name → the legacy ValueStream names folded into
-// it (plus itself). Used to aggregate legacy-keyed data (Metric.valueStreamId,
-// RoleValueStream, ProcessStep, IoItem) under a canonical value-stream node.
+// Canonical stream name → legacy ValueStream names that feed it (itself only).
 const LEGACY_FOR: Record<string, string[]> = {};
 for (const [legacy, canon] of Object.entries(VS_MAPPING)) (LEGACY_FOR[canon] ??= []).push(legacy);
 export const legacyNamesFor = (canonical: string): string[] => [...new Set([...(LEGACY_FOR[canonical] ?? []), canonical])];

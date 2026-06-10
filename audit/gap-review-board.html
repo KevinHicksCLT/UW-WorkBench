@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Spreadsheet-vs-App Gap — Review Board</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1d212a; --line:#2a2f3a; --txt:#e7eaf0; --mut:#9aa3b2;
+    --acc:#4f8cff; --ok:#2faf6b; --no:#e0556b; --def:#c9a227;
+    --hi:#e0556b; --med:#c9a227; --low:#7a869a; --res:#2faf6b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  header{padding:20px 24px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(15,17,21,.96);backdrop-filter:blur(6px);z-index:5}
+  h1{margin:0 0 4px;font-size:18px}
+  .sub{color:var(--mut);font-size:13px}
+  .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+  select,button{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:7px 11px;font-size:13px;cursor:pointer}
+  button:hover{border-color:var(--acc)}
+  .counts{margin-left:auto;color:var(--mut);font-size:12px;display:flex;gap:14px;flex-wrap:wrap}
+  .counts b{color:var(--txt)}
+  main{padding:20px 24px;max-width:1080px;margin:0 auto}
+  .group{margin:26px 0 10px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:12px 0;transition:.15s}
+  .card.accepted{border-color:var(--ok);box-shadow:inset 3px 0 0 var(--ok)}
+  .card.declined{border-color:var(--no);opacity:.55;box-shadow:inset 3px 0 0 var(--no)}
+  .card.deferred{border-color:var(--def);box-shadow:inset 3px 0 0 var(--def)}
+  .card.resolved{border-color:var(--res);background:#13201a}
+  .chead{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .id{font-weight:700;color:var(--acc)}
+  .title{font-weight:600;flex:1;min-width:200px}
+  .pill{font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid var(--line);color:var(--mut);white-space:nowrap}
+  .sev-hi{color:#fff;background:var(--hi);border-color:var(--hi)}
+  .sev-med{color:#1a1400;background:var(--med);border-color:var(--med)}
+  .sev-low{color:#fff;background:var(--low);border-color:var(--low)}
+  .sev-res{color:#fff;background:var(--res);border-color:var(--res)}
+  .meta{color:var(--mut);font-size:12px;margin:6px 0 10px}
+  .row{margin:7px 0}
+  .lab{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+  .acbox{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+  .acbox ol{margin:6px 0 0;padding-left:20px}
+  .actions{display:flex;gap:8px;margin-top:12px}
+  .actions button{flex:0 0 auto}
+  .b-acc.on{background:var(--ok);border-color:var(--ok);color:#fff}
+  .b-no.on{background:var(--no);border-color:var(--no);color:#fff}
+  .b-def.on{background:var(--def);border-color:var(--def);color:#1a1400}
+  .hidden{display:none}
+  dialog{background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:12px;max-width:820px;width:92%}
+  textarea{width:100%;height:50vh;background:var(--bg);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:10px;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace}
+  .note{color:var(--mut);font-size:12px;margin-top:8px}
+  code{background:var(--panel2);padding:1px 5px;border-radius:5px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Spreadsheet-vs-App Gap — Review Board</h1>
+  <div class="sub">Source of truth: <code>IT_Roles_Analytics_v16.xlsx</code> + <code>standards_extended/</code> · Initiatives benchmarked to the Shibumi blueprint · 2026-06-09</div>
+  <div class="sub" style="color:#c9a227;margin-top:4px">⚠ Separate from yesterday's application-defect backlog (<code>review-board.html</code>, 43 findings) — another agent owns that. These are spreadsheet/document-based findings only.</div>
+  <div class="bar">
+    <label>Area <select id="fArea"></select></label>
+    <label>Severity <select id="fSev"></select></label>
+    <label>Status <select id="fStat"></select></label>
+    <button id="expand">Expand all</button>
+    <button id="build">Build accepted backlog ▸</button>
+    <div class="counts" id="counts"></div>
+  </div>
+</header>
+<main id="list"></main>
+
+<dialog id="dlg">
+  <div style="padding:16px 18px">
+    <h3 style="margin:0 0 8px">Accepted backlog (markdown)</h3>
+    <textarea id="out" readonly></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button id="copy">Copy</button>
+      <button onclick="document.getElementById('dlg').close()">Close</button>
+      <span class="note" id="copynote"></span>
+    </div>
+  </div>
+</dialog>
+
+<script>
+const F = [
+ {id:"X1",area:"Cross-tab",sev:"hi",title:"Role count: Home 249 vs Organization 240",
+  proof:"Home stat ROLES 249; Organization header 240. Same tenant/session.",
+  why:"One entity must return one count everywhere; a 9-role gap means two different queries feed the screens.",
+  fix:"Both screens read role count from one shared tenant-scoped query; document the canonical definition.",
+  ac:["Home == Organization role count for Meridian.","Count comes from one shared function.","Test asserts equality."]},
+ {id:"X2",area:"Cross-tab",sev:"hi",title:"Headcount: Home 743 vs Organization 717",
+  proof:"Home 743 (541+202; 235+80+428 — both self-consistent); Organization 717. Gap 26.",
+  why:"Two totals for one population; Org likely drops people not attached to a team/role.",
+  fix:"Reconcile to one source; surface an explicit Unassigned bucket if needed.",
+  ac:["Home == Organization people total.","Unassigned people shown in a labeled bucket.","Test asserts totals equal."]},
+ {id:"X3",area:"Cross-tab",sev:"hi",title:"Value streams: Value Streams tab 21 vs Telemetry 29",
+  proof:"/overview header 21; /active-ai 29/29. Against the source the 29 is correct.",
+  why:"The core object reads from two different lists across tabs.",
+  fix:"Drive both tabs from one canonical list (the 29 that matches the L4 source).",
+  ac:["One value-stream count app-wide.","Every Value Streams row maps to a canonical stream.","Telemetry and Value Streams list the same names 1:1."]},
+
+ {id:"S1",area:"Source parity",sev:"hi",title:"Value Streams tab incomplete vs workbook (21 vs 26/29)",
+  proof:"Workbook Value Streams=26, L4 Master=29, Telemetry shows 29; Value Streams tab shows 21. Missing: Audit & Assurance, Change Mgmt & Adoption, Claims Recoveries & Subrogation, Marketing Growth & Customer Insights, Service Operations, Technology Strategy & Delivery, Enterprise Strategy & Portfolio, Third-Party & Vendor, AIOps, MLOps, FinOps.",
+  why:"The canonical map omits ~8–11 streams present in the source and in the app's own Telemetry.",
+  fix:"Load the full canonical value-stream set from the workbook; decide if AIOps/MLOps/FinOps are streams or tags.",
+  ac:["Value Streams tab count == source canonical count.","Each source stream appears once.","Telemetry and Value Streams agree."]},
+ {id:"S2",area:"Source parity",sev:"hi",title:"Value-stream names renamed/shortened vs source",
+  proof:"'Distribution Management' vs 'Distribution & Channel Management'; 'Actuarial & Reserving' vs 'Actuarial Pricing, Reserving & Capital Modeling'; etc. Telemetry uses the correct names.",
+  why:"A stream has two names depending on screen — breaks filtering, joins, cross-tab navigation.",
+  fix:"Adopt the workbook's canonical names everywhere (Value Streams tab + /work filter).",
+  ac:["Each stream has one name app-wide.","/work filter == Value Streams == Telemetry == workbook."]},
+ {id:"S3",area:"Source parity",sev:"med",title:"Process taxonomy coverage ~⅓ of source (43/256 vs 131/711)",
+  proof:"App 43 sub-processes / 256 steps; workbook L4=131 sub-processes, L5=711 steps.",
+  why:"App shows ~33% of sub-processes / ~36% of steps — incomplete import or undocumented subset.",
+  fix:"Confirm intent: import full L4/L5, or label the view as a curated subset with X-of-Y coverage.",
+  ac:["Decision recorded (full vs subset).","If full: counts == 131 / 711.","If subset: UI states coverage."]},
+ {id:"S4",area:"Source parity",sev:"med",title:"Role inventory diverges (240 vs 159)",
+  proof:"App 240 roles; workbook 159 distinct roles. Divisions (14) and departments (97) match exactly.",
+  why:"+81 roles with no recorded provenance — may be enrichment or unsourced; the ambiguity is the defect.",
+  fix:"Reconcile to the workbook or document the enrichment source (as standards_extended documents extra standards).",
+  ac:["Every app role maps to a workbook role or a documented extension.","Reconciliation report shows 0 unexplained roles."]},
+ {id:"S5",area:"Source parity",sev:"med",title:"Headcount & workforce dimensions not grounded in source",
+  proof:"App 717/743 people; workbook Cap–People = 159 rows, ΣFTE 159; NO region or employment-type fields anywhere in the workbook. App shows 235/80/428 and 541/202.",
+  why:"The headline workforce and its 58%-offshore / 27%-contingent splits have no basis in the source.",
+  fix:"Source these dimensions (documented dataset) or relabel the figures as illustrative until wired in.",
+  ac:["Each workforce figure traces to a documented source.","If illustrative, the UI says so.","Region/type totals reconcile to people total."]},
+ {id:"S6",area:"Source parity",sev:"low",title:"Application count diverges (35 vs 30)",
+  proof:"App 35 applications; workbook Cap–Application Catalog = 30.",
+  why:"Minor (+5) but unexplained vs the catalog.",
+  fix:"Reconcile to the catalog or document the 5 extras.",
+  ac:["App count == catalog or documented superset.","Each extra app has a provenance note."]},
+ {id:"S7",area:"Source parity",sev:"res",title:"Standards 408 / Cyber 113 reconcile to source + extension — NO ACTION",
+  proof:"Workbook Standards Index 343 (detail sheets also 343); standards_extended adds GDPR 21 + CCPA/CPRA 22 + NYDFS-500 22 = 65, all 'Cybersecurity & ISO'. 48+65=113; 343+65=408; other 12 areas match exactly.",
+  why:"A counts-only review would wrongly flag +65 inflation. With standards_extended accounted for, the app is exactly correct.",
+  fix:"No action. If a counts test is added, include the standards_extended packs in the expected total.",
+  ac:["Recorded as resolved so a correct figure is not 'fixed'."]},
+
+ {id:"O1",area:"Org credibility",sev:"hi",title:"Singular executive roles show 2–4 incumbents",
+  proof:"Chief Actuary 4, CIO 4, CDO 4, CHRO 4, CMO 4, CUO 4, CCO 4, CPO 4, CRO 4, General Counsel 4, Head of Reinsurance 4; CFO 2, COO 2, CISO 2. Workbook maps 1 person per role (ΣFTE 159 / 159 roles).",
+  why:"An enterprise has one CFO/Chief Actuary/General Counsel; 2–4 incumbents is the most visible 'fake data' signal and contradicts the source.",
+  fix:"Constrain singleton roles to 1 incumbent; reassign surplus; add a validation flag.",
+  ac:["Each C-level/'Head of'/'Chief'/'General Counsel' shows 1 person.","Validation flags >1 on a singleton.","Reassigned people still reconcile to headcount."]},
+
+ {id:"I1",area:"Initiatives",sev:"hi",title:"Default landing is Application Rationalization, not a portfolio roll-up",
+  proof:"/portfolio opens on Application Rationalization Workspace (CAPDAN board); Programs is 2nd rail item.",
+  why:"Blueprint entry point is an executive portfolio/EPMO roll-up; App Rationalization is a narrow sub-tool.",
+  fix:"Make Programs / a portfolio summary the default; demote App Rationalization.",
+  ac:["/portfolio lands on a portfolio/Programs summary.","App Rationalization still reachable."]},
+ {id:"I2",area:"Initiatives",sev:"hi",title:"No EPMO / portfolio-level aggregation across programs",
+  proof:"App rolls up at program level only; no cross-program portfolio view.",
+  why:"Executives need one portfolio number (benefit/cost/net, at-risk count) across all programs.",
+  fix:"Add a portfolio summary aggregating all programs (totals, status mix, RAID heatmap, top risks).",
+  ac:["Portfolio view shows total benefit/cost/net across programs.","Status and open-RAID counts roll up.","Numbers tie to sum of program details."]},
+ {id:"I3",area:"Initiatives",sev:"hi",title:"Initiative detail missing Strategic Alignment tab (OKR link / Value Score)",
+  proof:"Initiative tabs = Summary, Financials, Workplan, RAID, Audit. No Strategic Alignment. Backend has InitiativeObjective (impact) + Kpi/StrategicObjective.",
+  why:"Blueprint ties initiatives to objectives via a Level-of-Impact M2M driving Value Score — modeled but not surfaced.",
+  fix:"Add a Strategic Alignment tab (objectives + impact picklist); compute/show Value Score.",
+  ac:["Tab lists linked objectives with impact.","Adding/removing a link updates Value Score.","Value Score appears on the initiative."]},
+ {id:"I4",area:"Initiatives",sev:"med",title:"Initiative detail missing Charter tab (Complexity / Value Score)",
+  proof:"No Charter tab; Summary shows description + details only.",
+  why:"No home for prioritization inputs (complexity vs value) the Program Prioritization view needs.",
+  fix:"Add a Charter tab with Complexity Score and Value Score.",
+  ac:["Charter tab renders both scores.","Scores feed Program prioritization (I11)."]},
+ {id:"I5",area:"Initiatives",sev:"med",title:"Initiative detail missing Initiative KPIs tab",
+  proof:"No Initiative KPIs tab. Backend has InitiativeKpi.",
+  why:"Initiative-level KPI tracking (Actual/Target) is a standard tab and is modeled but not surfaced.",
+  fix:"Add an Initiative KPIs tab listing linked KPIs with Actual/Target.",
+  ac:["Tab lists linked KPIs with achievement.","Add/remove KPI persists."]},
+ {id:"I6",area:"Initiatives",sev:"hi",title:"No Resource module / Resources tab",
+  proof:"No Resources tab; no capacity/demand anywhere. Blueprint: resource pool + individual + initiative resource with over-utilization.",
+  why:"Transformation portfolios are resource-constrained; no demand-vs-capacity = no over-allocation view.",
+  fix:"Add a Resource module + Resources tab with over-utilization calc.",
+  ac:["Initiative shows assigned resources with effort.","Over-utilization computed and flagged.","Program Resources tab aggregates demand vs capacity."]},
+ {id:"I7",area:"Initiatives",sev:"hi",title:"No Scenario module (S1–S3 overlays)",
+  proof:"No scenarios anywhere. Blueprint: 3 scenarios overlaying alternate dates + Include/Exclude, with Approve-to-Baseline.",
+  why:"What-if portfolio modeling without mutating real dates is a headline differentiator.",
+  fix:"Add S1–S3 overlays, scenario roll-ups, and a promote-to-baseline action.",
+  ac:["Model a scenario without changing real dates.","Scenario net benefit vs baseline shown.","Approve-to-Baseline promotes it."]},
+ {id:"I8",area:"Initiatives",sev:"med",title:"Financials missing Forecast/Variance datasets & Funding Requests",
+  proof:"Financials shows monthly Benefit/Cost Actual vs Target only. Backend MetricValue supports FORECAST.",
+  why:"Benefits realization (the #1 differentiator) needs Forecast + Variance; Funding Requests belong here.",
+  fix:"Add Forecast and Variance series; add a Funding Requests section.",
+  ac:["Chart/table show Actual/Target/Forecast/Variance.","Funding Requests can be added and roll into cost."]},
+ {id:"I9",area:"Initiatives",sev:"med",title:"Workplan is a flat milestone list, not a Gantt",
+  proof:"Workplan = Milestones list with Due dates and GATE flags; no activities, dependencies, or timeline.",
+  why:"No schedule or dependencies means no critical-path/roadmap; 'Workplan' overstates it.",
+  fix:"Add an interactive Gantt (licensed component) with activities + dependencies.",
+  ac:["Gantt renders milestones/activities on a timeline.","Dependencies can be created.","Reschedule persists and updates dates."]},
+ {id:"I10",area:"Initiatives",sev:"hi",title:"No Presentations / auto-refreshing executive pack → PDF",
+  proof:"No presentation/slide-deck/PDF export. Blueprint calls auto-refreshing Presentations the #1 executive deliverable.",
+  why:"Without live → PDF/slide export, value-tracking data can't leave the app as a board pack.",
+  fix:"Add a Presentation builder (dashboard-derived slides) with Publish (point-in-time) + PDF/PPTX export.",
+  ac:["Compose a deck from live data.","Publish produces an immutable PDF.","Re-open reflects refreshed data."]},
+ {id:"I11",area:"Initiatives",sev:"med",title:"Program detail missing Pipeline/Prioritization/Roadmap/Resources/Scenarios tabs",
+  proof:"Program detail is a single flat workstream→initiative table. Blueprint Program has 7 tabs.",
+  why:"No pipeline, prioritization, or roadmap at program level — the core PM lenses.",
+  fix:"Add Pipeline, Prioritization (I4 scores), Roadmap (I9 dates), Resources (I6), Scenarios (I7).",
+  ac:["Program shows Pipeline, Prioritization, Roadmap at minimum.","Resources/Scenarios appear once those modules land."]},
+ {id:"I12",area:"Initiatives",sev:"low",title:"Initiative Summary has 3 achievement cards, blueprint has 4",
+  proof:"Cards = Cumulative Benefit, Cumulative Cost, Net Benefit. Blueprint adds Estimated Annual Benefit.",
+  why:"Missing Estimated Annual Benefit — the run-rate figure executives anchor on.",
+  fix:"Add an Estimated Annual Benefit card.",
+  ac:["Four cards render.","Estimated Annual Benefit matches the annualized series."]},
+ {id:"I13",area:"Initiatives",sev:"hi",title:"Parent/child health does not roll up",
+  proof:"Program 'Claims Modernization' At Risk; both workstreams On Track; child 'Unified Claims Data Platform' Off Track (−$185.7K).",
+  why:"A workstream whose only initiative is Off Track cannot be On Track; health is unsynced or rollup missing.",
+  fix:"Deterministic health rollup (worst-child/weighted) or a visible manual override.",
+  ac:["No parent healthier than its worst child without a visible override.","Status change updates parents.","Test covers the Claims Modernization case."]},
+ {id:"I14",area:"Initiatives",sev:"med",title:"Value-capture roll-ups can go stale (no write-path recompute)",
+  proof:"Per CLAUDE.md, cumulative* recompute only via explicit recompute call; no write path triggers it.",
+  why:"Editing a benefit/cost line won't update cumulative figures — stale money on the #1 differentiator.",
+  fix:"Recompute roll-ups on any benefit/cost/objective-link write.",
+  ac:["Editing a line updates cumulative figures without manual recompute.","Test asserts recompute fires on write."]},
+
+ {id:"DT1",area:"Deliverables/Metrics/Financials",sev:"hi",title:"App tasks are generic templates; workbook's 4,743 role-tasks unused",
+  proof:"Workbook Items=4,743 role-specific responsibilities (categorized) + Aligned Role Tasks=4,743. App /work shows 5,454 tasks that are 5–6 repeating templates (Validate & Review, Approve & Publish, Develop Approach, Define Requirements, Build & Configure).",
+  why:"Source carries rich role-specific work; app clones boilerplate across deliverables, so role-level analytics are meaningless and no real responsibilities surface.",
+  fix:"Seed tasks from the workbook role-task Items (per role, categorized); keep templates only where the source repeats.",
+  ac:["Task text reflects workbook responsibilities, not 5–6 templates.","Each task traces to an Items row or documented template.","Tasks-per-role distribution matches source."]},
+ {id:"DT2",area:"Deliverables/Metrics/Financials",sev:"med",title:"Deliverables not tied to source I/O inventory; inputs absent",
+  proof:"Workbook Inputs & Outputs Inventory=835 (421 inputs, 414 outputs/deliverables) keyed to L4 with data elements + roles. App shows 441 deliverables, no inputs, not keyed to the 414 outputs.",
+  why:"Half the source I/O model (inputs) is missing and deliverables can't reconcile to documented outputs — breaks upstream/downstream traceability.",
+  fix:"Import outputs as deliverables keyed to sub-process; add inputs with data elements + roles.",
+  ac:["Inputs exist and are linked to sub-processes.","Deliverables reconcile to source outputs.","Each deliverable shows inputs, data elements, roles."]},
+ {id:"MET1",area:"Deliverables/Metrics/Financials",sev:"med",title:"Value-stream KPI catalog (267) not represented in Trackable Metrics",
+  proof:"Workbook Value Stream Metrics=267 KPIs (formula, target/benchmark, owner, frequency) keyed to streams. App Trackable Metrics shows 429 signals weighted to workforce telemetry (Viva/M365/GitHub); the 267 stream KPIs aren't tied to their streams.",
+  why:"App metrics skew to generic workforce telemetry; the operating-model KPIs aren't surfaced or linked to streams.",
+  fix:"Load the 267 value-stream metrics and attach to streams; show per-stream and in Trackable Metrics.",
+  ac:["Each stream shows its source KPIs with target + owner.","Trackable Metrics composition documented.","The 267 value-stream metrics present."]},
+ {id:"MET2",area:"Deliverables/Metrics/Financials",sev:"low",title:"Trackable-metrics provenance vs workbook metric catalogs",
+  proof:"Workbook Metric_Catalog_Expanded=151 (+102 subset) with SourceSystem/FactTable, External_Metric_Catalog=52 with calculation patterns. App shows 429 signals of unclear provenance.",
+  why:"Unclear whether the 429 signals derive from these catalogs or a separate hard-coded list — risks unsourced/uncomputable metrics.",
+  fix:"Map each signal to a catalog entry (source system + calculation); flag any with no source.",
+  ac:["Every signal maps to a catalog entry or is flagged.","Source system + calculation shown per signal."]},
+ {id:"FIN1",area:"Deliverables/Metrics/Financials",sev:"med",title:"Application TCO & 30-app catalog not surfaced for rationalization",
+  proof:"Workbook Application TCO=8 apps with full cost breakdown ($5.335M total); Cap–Application Catalog=30 apps. App Application Rationalization shows 2 apps on a CAPDAN board with no TCO.",
+  why:"Rationalization needs TCO + the full app portfolio; app shows 2 of 30 and no cost data.",
+  fix:"Load the 30-app catalog + TCO; show per-app TCO in the workspace.",
+  ac:["App catalog count == 30 (ties to S6).","Each app shows TCO components + total.","Portfolio TCO reconciles to $5.335M (or documented)."]},
+ {id:"FIN2",area:"Deliverables/Metrics/Financials",sev:"med",title:"Scenario / Financial-Impact model not represented in portfolio",
+  proof:"Workbook Scenario Inputs=6 operating-model scenarios + Financial Impact Overview (annual net $1.22M, one-time $1.365M, app TCO $5.335M, payback 1.12 yrs). App portfolio money is initiative-based and unrelated.",
+  why:"The source's directional change-impact model has no home in the app; portfolio shows different, unreconciled figures.",
+  fix:"Represent the 6 scenarios + impact summary (ties to Scenario module I7); separate change-impact from initiative benefits.",
+  ac:["The 6 scenarios viewable with financial fields.","Impact summary matches workbook.","Initiative benefits vs change-impact clearly distinguished."]},
+ {id:"EXT1",area:"Deliverables/Metrics/Financials",sev:"low",title:"External interactions inventory (27) not surfaced in the app",
+  proof:"Workbook External Interactions=27 (brokers, reinsurers, regulators, vendors) with owner, inputs/deliverables, value stream, dependency, frequency, risks. App has no External view in main nav (only a Data Admin config tab).",
+  why:"A material part of the operating model (external dependencies + risks, keyed to streams) is invisible to users.",
+  fix:"Surface external interactions (read view) keyed to value streams with dependency/frequency/risk.",
+  ac:["External interactions viewable outside Data Admin.","Each linked to its value stream + owner.","Count == 27 (or documented)."]},
+];
+
+const SEVN={hi:"High",med:"Medium",low:"Low",res:"Resolved"};
+const KEY="gapboard.decisions.v1";
+let dec=JSON.parse(localStorage.getItem(KEY)||"{}");
+const save=()=>localStorage.setItem(KEY,JSON.stringify(dec));
+
+const list=document.getElementById("list");
+const fArea=document.getElementById("fArea"),fSev=document.getElementById("fSev"),fStat=document.getElementById("fStat");
+function opts(sel,vals,all){sel.innerHTML="";const o=document.createElement("option");o.value="";o.textContent=all;sel.appendChild(o);vals.forEach(v=>{const e=document.createElement("option");e.value=v;e.textContent=v;sel.appendChild(e)})}
+opts(fArea,[...new Set(F.map(f=>f.area))],"All areas");
+opts(fSev,["hi","med","low","res"].map(s=>SEVN[s]),"All severities");
+opts(fStat,["accepted","declined","deferred","undecided"],"All statuses");
+
+function render(){
+  list.innerHTML="";
+  const groups={};
+  F.forEach(f=>{(groups[f.area]=groups[f.area]||[]).push(f)});
+  let shown=0;
+  Object.keys(groups).forEach(area=>{
+    const items=groups[area].filter(f=>{
+      if(fArea.value&&f.area!==fArea.value)return false;
+      if(fSev.value&&SEVN[f.sev]!==fSev.value)return false;
+      const st=dec[f.id]||"undecided";
+      if(fStat.value&&st!==fStat.value)return false;
+      return true;
+    });
+    if(!items.length)return;
+    const g=document.createElement("div");g.className="group";g.textContent=area;list.appendChild(g);
+    items.forEach(f=>{shown++;list.appendChild(card(f))});
+  });
+  document.getElementById("counts").innerHTML=summary()+` · showing <b>${shown}</b>`;
+}
+function summary(){
+  let a=0,n=0,d=0,u=0;
+  F.forEach(f=>{const s=dec[f.id]||"undecided";if(f.sev==="res")return;a+=s==="accepted";n+=s==="declined";d+=s==="deferred";u+=s==="undecided"});
+  return `<span>Accepted <b style="color:var(--ok)">${a}</b></span><span>Declined <b style="color:var(--no)">${n}</b></span><span>Deferred <b style="color:var(--def)">${d}</b></span><span>Undecided <b>${u}</b></span>`;
+}
+function card(f){
+  const st=dec[f.id]||"undecided";
+  const c=document.createElement("div");
+  c.className="card "+(f.sev==="res"?"resolved":st);
+  c.innerHTML=`
+   <div class="chead">
+     <span class="id">${f.id}</span>
+     <span class="title">${f.title}</span>
+     <span class="pill sev-${f.sev}">${SEVN[f.sev]}</span>
+     <span class="pill">${f.area}</span>
+   </div>
+   <div class="row"><span class="lab">Proof</span><br>${f.proof}</div>
+   <div class="row"><span class="lab">Why</span><br>${f.why}</div>
+   <div class="row"><span class="lab">Suggested fix</span><br>${f.fix}</div>
+   <div class="acbox"><span class="lab">Acceptance criteria</span><ol>${f.ac.map(x=>`<li>${x}</li>`).join("")}</ol></div>
+   ${f.sev==="res"?'<div class="note">Resolved — recorded for awareness; no decision needed.</div>':`
+   <div class="actions">
+     <button class="b-acc ${st==='accepted'?'on':''}" data-a="accepted">Accept</button>
+     <button class="b-no ${st==='declined'?'on':''}" data-a="declined">Decline</button>
+     <button class="b-def ${st==='deferred'?'on':''}" data-a="deferred">Defer</button>
+   </div>`}`;
+  c.querySelectorAll("button[data-a]").forEach(b=>b.onclick=()=>{
+    dec[f.id]=dec[f.id]===b.dataset.a?"undecided":b.dataset.a;save();render();
+  });
+  return c;
+}
+[fArea,fSev,fStat].forEach(s=>s.onchange=render);
+let expanded=false;
+document.getElementById("expand").onclick=()=>{expanded=!expanded;document.getElementById("expand").textContent=expanded?"Collapse all":"Expand all";document.querySelectorAll(".acbox").forEach(e=>e.style.display=expanded?"block":"")};
+document.getElementById("build").onclick=()=>{
+  const acc=F.filter(f=>dec[f.id]==="accepted");
+  let md=`# Accepted Gap Backlog (${acc.length} stories)\n\nGenerated from gap-review-board.html on ${new Date().toISOString().slice(0,10)}.\n\n`;
+  acc.forEach(f=>{md+=`## ${f.id} — ${f.title} [${SEVN[f.sev]}]\n- **Area:** ${f.area}\n- **Proof:** ${f.proof}\n- **Why:** ${f.why}\n- **Fix:** ${f.fix}\n- **Acceptance:**\n${f.ac.map((x,i)=>`  ${i+1}. ${x}`).join("\n")}\n\n`});
+  if(!acc.length)md+="_No stories accepted yet._\n";
+  document.getElementById("out").value=md;document.getElementById("dlg").showModal();
+};
+document.getElementById("copy").onclick=async()=>{await navigator.clipboard.writeText(document.getElementById("out").value);document.getElementById("copynote").textContent="Copied ✓";setTimeout(()=>document.getElementById("copynote").textContent="",1500)};
+render();
+</script>
+</body>
+</html>

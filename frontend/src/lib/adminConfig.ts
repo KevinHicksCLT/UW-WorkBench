@@ -19,7 +19,7 @@ export type EditorSpec =
   | { kind: 'skills' }
   | { kind: 'validations' }
   | { kind: 'aiAdoption' }
-  | { kind: 'builder' }
+  | { kind: 'builder'; scope?: 'all' | 'work' | 'external' }
   | { kind: 'catalog' };
 
 export type Section = { key: string; label: string; hint?: string; editor: EditorSpec };
@@ -51,7 +51,7 @@ export const ADMIN_TABS: TabConfig[] = [
     label: 'Value Streams',
     description: 'The operating-model map is driven by a single configurable level hierarchy (Enterprise → Domain → Division → Value Stream → Sub-Process → Process Step). Drill in to edit any node and its detail.',
     sections: [
-      { key: 'builder', label: 'Model builder', hint: 'the map structure', editor: { kind: 'builder' } },
+      { key: 'builder', label: 'Model builder', hint: 'the map structure', editor: { kind: 'builder', scope: 'work' } },
       { key: 'steps', label: 'Process steps', editor: { kind: 'list', slug: 'processStep', intro: 'Sequenced E2E process steps attached to a value stream (the "how the work flows" detail).' } },
       { key: 'io', label: 'Inputs / outputs', editor: { kind: 'list', slug: 'ioItem', intro: 'Inputs, outputs, and deliverables inventoried per value stream.' } },
     ],
@@ -159,8 +159,9 @@ export const ADMIN_TABS: TabConfig[] = [
   {
     key: 'external',
     label: 'External',
-    description: 'External parties the organization interacts with.',
+    description: 'External parties the organization interacts with — the party catalog (model nodes) and the interaction inventory.',
     sections: [
+      { key: 'parties', label: 'External parties', hint: 'model nodes + connections', editor: { kind: 'builder', scope: 'external' } },
       { key: 'external', label: 'External interactions', editor: { kind: 'list', slug: 'externalInteraction' } },
     ],
   },

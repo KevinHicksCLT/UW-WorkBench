@@ -7,6 +7,7 @@ import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { buildRoleResolver } from '../lib/roleMatch.js';
 import { canonicalVs, legacyNamesFor } from '../lib/vsMapping.js';
+import { structureCounts } from '../lib/orgCounts.js';
 
 // A sidebar / drill :id may arrive as a unified-node id (the map's namespace
 // since the rework) or a legacy table id (old links). Resolve the node when
@@ -1777,12 +1778,14 @@ router.get('/org-table', async (req: Request, res: Response, next: NextFunction)
       });
     }
 
+    // Headline totals come from the ONE shared canonical function (X1/X2) so the
+    // Organization header always equals the Home tiles.
+    const totals = await structureCounts(req.tenantId!, c);
     res.json({
       company,
       totals: {
-        segments: segNodes.length, divisions: divNodes.length, departments: deptNodes.length,
-        roles: roleNodes.length, valueStreams: vsNodes.length,
-        people: [...peopleByRole.values()].reduce((a, x) => a + x, 0),
+        segments: totals.segments, divisions: totals.divisions, departments: totals.departments,
+        roles: totals.roles, valueStreams: totals.valueStreams, people: totals.people,
       },
       valueStreams: vsNodes.map((v) => ({ id: v.id, name: v.name, domain: v.parentId ? byId.get(v.parentId)?.name ?? null : null })),
       segments,

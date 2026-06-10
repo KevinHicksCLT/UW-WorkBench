@@ -98,7 +98,7 @@ export default function AdminSection({
       return <AiAdoptionEditor companyId={companyId} />;
 
     case 'builder':
-      return <ModelBuilder companyId={companyId} />;
+      return <ModelBuilder companyId={companyId} scope={spec.scope ?? 'all'} />;
 
     case 'catalog':
       return <CatalogEditor companyId={companyId} bySlug={bySlug} />;
