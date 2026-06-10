@@ -2,6 +2,7 @@ import './types/express.js'; // loads the Express.Request augmentation into the 
 import express from 'express';
 import type { Request, Response, ErrorRequestHandler } from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import morgan from 'morgan';
 import type { HealthResponse } from '@cascade/shared';
 
@@ -29,6 +30,9 @@ import standardsSkillsRoutes from './routes/standardsSkills.js';
 
 const app = express();
 app.use(cors());
+// Gzip every response — the /work and /explorer payloads are MB-scale JSON
+// that compresses ~10×, which is most of the tab-load latency.
+app.use(compression());
 app.use(express.json({ limit: '5mb' }));
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));

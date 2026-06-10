@@ -13,18 +13,25 @@ export type Line = { id: string; name: string; category: string | null; startDat
 export type Milestone = { id: string; name: string; dueDate: string; completedAt: string | null; isGate: boolean; status: string };
 export type Raid = { id: string; type: string; title: string; description: string | null; probability: number; impact: number; severity: number; mitigation: string | null; status: string };
 
+export type Objective = { id: string; name: string; description: string | null; weight: number; _count?: { links: number } };
+export type ObjectiveLink = { id: string; objectiveId: string; impact: number; objective: { id: string; name: string; weight: number } };
+export type Resource = { id: string; personId: string | null; roleName: string | null; name: string; allocationPct: number; startDate: string; endDate: string };
+export type Activity = { id: string; name: string; startDate: string; endDate: string; status: string; dependsOnId: string | null; sortOrder: number };
+
 export type InitiativeLinks = {
   valueStreamId: string | null; divisionId: string | null; ownerRoleId: string | null; sponsorRoleId: string | null;
   valueStreamName: string | null; divisionName: string | null; ownerRoleName: string | null; sponsorRoleName: string | null;
 };
 
 export type Initiative = InitiativeLinks & {
-  id: string; name: string; description: string | null;
+  id: string; companyId: string; name: string; description: string | null;
   stage: string; workflowAction: string | null; state: string;
   status: string; statusNote: string | null; startDate: string; dueDate: string;
   cumulativeBenefit: number; cumulativeCost: number; cumulativeNetBenefit: number;
+  complexityScore: number; valueScore: number;
   workstream: { id: string; name: string; program: { id: string; name: string } };
   benefits: Line[]; costs: Line[]; milestones: Milestone[]; raidItems: Raid[];
+  objectives: ObjectiveLink[]; resources: Resource[]; activities: Activity[];
   _count?: { raidItems: number; milestones: number };
 };
 
@@ -188,6 +195,61 @@ export function SvgLineChart({
           />
         ))}
       </svg>
+    </div>
+  );
+}
+
+// ─── Lightweight CSS timeline (Gantt) ────────────────────────────────────────
+// Maps dates onto a 0–100% horizontal axis padded two weeks either side, with
+// month tick marks. Shared by the initiative Workplan and the program Roadmap.
+export type TimelineScale = { min: number; max: number; pct: (d: string | Date) => number; ticks: { pct: number; label: string }[] };
+
+export const ACTIVITY_STATUS_COLOR: Record<string, string> = { PLANNED: '#a3a3a3', IN_PROGRESS: '#4f46e5', DONE: '#047857' };
+export const ACTIVITY_STATUS_LABEL: Record<string, string> = { PLANNED: 'Planned', IN_PROGRESS: 'In progress', DONE: 'Done' };
+
+export function makeTimelineScale(dates: (string | Date)[]): TimelineScale | null {
+  const ts = dates.map((d) => new Date(d).getTime()).filter((n) => !Number.isNaN(n));
+  if (ts.length === 0) return null;
+  const TWO_WEEKS = 14 * 86400000;
+  const min = Math.min(...ts) - TWO_WEEKS;
+  const max = Math.max(...ts) + TWO_WEEKS;
+  const span = Math.max(1, max - min);
+  const pct = (d: string | Date) => Math.min(100, Math.max(0, ((new Date(d).getTime() - min) / span) * 100));
+  // Month-start ticks, thinned so we render at most ~12 labels.
+  const monthCount = Math.ceil(span / (30 * 86400000));
+  const step = Math.max(1, Math.ceil(monthCount / 12));
+  const ticks: { pct: number; label: string }[] = [];
+  const first = new Date(min);
+  let cur = new Date(first.getFullYear(), first.getMonth() + 1, 1);
+  let i = 0;
+  while (cur.getTime() <= max) {
+    if (i % step === 0) ticks.push({ pct: ((cur.getTime() - min) / span) * 100, label: cur.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }) });
+    cur = new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
+    i++;
+  }
+  return { min, max, pct, ticks };
+}
+
+// Month tick labels + hairline gridlines for a timeline block. Rendered inside
+// a `relative` container; the gridlines stretch the full height behind rows.
+export function TimelineGrid({ scale }: { scale: TimelineScale }) {
+  return (
+    <div className="absolute inset-0 pointer-events-none">
+      {scale.ticks.map((t, i) => (
+        <div key={i} className="absolute top-0 bottom-0 border-l border-[#f5f5f5]" style={{ left: `${t.pct}%` }} />
+      ))}
+    </div>
+  );
+}
+
+export function TimelineAxis({ scale }: { scale: TimelineScale }) {
+  return (
+    <div className="relative h-5">
+      {scale.ticks.map((t, i) => (
+        <span key={i} className="absolute top-0 text-[10px] text-[#a3a3a3] whitespace-nowrap" style={{ left: `${t.pct}%` }}>
+          {t.label}
+        </span>
+      ))}
     </div>
   );
 }

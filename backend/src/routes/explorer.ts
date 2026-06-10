@@ -340,7 +340,7 @@ router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextF
         select: {
           id: true, name: true, description: true, category: true, framework: true,
           frequency: true, measurementLevel: true, ownerRole: true, targetText: true,
-          unit: true, direction: true, l3: true,
+          unit: true, direction: true, l3: true, formula: true,
           valueStream: { select: { id: true, name: true, domain: true } },
         },
       }),
@@ -357,6 +357,7 @@ router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextF
       levels: string[]; store?: string; roleDrill: boolean;
       valueStreamName: string | null; domain: string | null; l3: string | null;
       ownerRole: string | null; ownerRoleId: string | null;
+      provenance: string | null; calculation: string | null; unsourced: boolean;
     };
 
     // Workforce/Viva signals first — tracked at the individual level, rolled up to role.
@@ -365,6 +366,7 @@ router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextF
       source: s.source, category: s.category, framework: null, frequency: s.frequency,
       unit: s.unit, direction: s.direction, target: null, levels: WORKFORCE_LEVELS, store: s.store,
       roleDrill: true, valueStreamName: null, domain: null, l3: null, ownerRole: null, ownerRoleId: null,
+      provenance: 'Live signal — seeded per-person readings', calculation: null, unsourced: false,
     }));
 
     // Operating-model KPIs from the workbook.
@@ -377,6 +379,7 @@ router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextF
         levels: m.measurementLevel ? [m.measurementLevel] : [], roleDrill: !!owner,
         valueStreamName: m.valueStream?.name ?? null, domain: m.valueStream?.domain ?? null, l3: m.l3,
         ownerRole: m.ownerRole, ownerRoleId: owner?.id ?? null,
+        provenance: 'Workbook: Value Stream Metrics catalog', calculation: m.formula, unsourced: false,
       };
     });
 
@@ -396,6 +399,9 @@ router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextF
           source: m.source, category: m.category, framework: null, frequency: null,
           unit: m.dataType, direction: 'up', target: null, levels: ['Individual', 'Role'], roleDrill: false,
           valueStreamName: null, domain: null, l3: null, ownerRole: null, ownerRoleId: null,
+          // Provenance = the workbook sheet the row was extracted from (`origin`).
+          provenance: m.origin ?? 'Workbook metric catalog', calculation: m.queryType,
+          unsourced: !m.source && !m.origin,
         };
       });
 

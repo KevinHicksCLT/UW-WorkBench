@@ -17,6 +17,7 @@ export default function ValueStreamDetail() {
 
   const subs: any[] = vs.subStreams ?? [];
   const processAreas: any[] = vs.processAreas ?? [];
+  const metrics: any[] = vs.metrics ?? [];
 
   return (
     <div>
@@ -43,6 +44,7 @@ export default function ValueStreamDetail() {
       {view === 'flow' ? (
         <ValueStreamFlow name={vs.name} subStreams={subs} />
       ) : (
+        <>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 card">
             <div className="flex items-center gap-2 mb-4 pb-2.5 border-b border-[#eaeaea]">
@@ -121,6 +123,47 @@ export default function ValueStreamDetail() {
             )}
           </div>
         </div>
+
+        {/* Per-stream KPI definitions from the workbook metric catalog. */}
+        {metrics.length > 0 && (
+          <div className="card mt-6">
+            <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-[#eaeaea]">
+              <span className="w-1 h-3.5 rounded-full bg-[#171717]" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.10em] text-[#525252]">KPIs</span>
+              <span className="ml-auto rounded-md bg-[#171717] text-white text-[10px] font-semibold tnum px-1.5 py-0.5">{metrics.length}</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[720px]">
+                <thead>
+                  <tr className="border-b border-[#eaeaea] text-left">
+                    <th className="px-3 py-2 font-medium text-[#666666]">Name</th>
+                    <th className="px-3 py-2 font-medium text-[#666666] whitespace-nowrap">Category</th>
+                    <th className="px-3 py-2 font-medium text-[#666666] whitespace-nowrap">Target</th>
+                    <th className="px-3 py-2 font-medium text-[#666666]">Owner</th>
+                    <th className="px-3 py-2 font-medium text-[#666666] whitespace-nowrap">Frequency</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {metrics.map((m: any) => (
+                    <tr key={m.id} className="border-b border-[#f5f5f5] align-top">
+                      <td className="px-3 py-2 max-w-[320px]">
+                        <div className="text-[#171717] font-medium leading-tight">{m.name}</div>
+                        {m.description && <div className="text-[11px] text-[#a3a3a3] mt-0.5 leading-snug">{m.description}</div>}
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        {m.category ? <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#f5f5f5] text-[11px] text-[#525252]">{m.category}</span> : <span className="text-[#a3a3a3]">—</span>}
+                      </td>
+                      <td className="px-3 py-2 text-[#525252] whitespace-nowrap">{m.targetText ?? '—'}</td>
+                      <td className="px-3 py-2 text-[#525252]">{m.ownerRole ?? '—'}</td>
+                      <td className="px-3 py-2 text-[#525252] whitespace-nowrap">{m.frequency ?? '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+        </>
       )}
     </div>
   );

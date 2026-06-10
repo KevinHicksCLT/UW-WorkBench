@@ -22,10 +22,14 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         externalRole: e.externalRole,
         internalRoleId: e.internalRoleId,
         internalRoleName: e.internalRole?.name ?? e.internalRoleOwner,
+        divisionFunction: e.divisionFunction,
         interactionType: e.interactionType,
+        inputs: e.inputs,
+        outputs: e.outputs,
         relatedValueStream: e.relatedValueStream,
         dependencyType: e.dependencyType,
         frequency: e.frequency,
+        notes: e.notes,
       }))
     );
   } catch (e) { next(e); }

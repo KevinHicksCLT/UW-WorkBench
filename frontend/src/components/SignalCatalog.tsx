@@ -16,6 +16,7 @@ type Signal = {
   levels: string[]; store?: string; roleDrill: boolean;
   valueStreamName: string | null; domain: string | null; l3: string | null;
   ownerRole: string | null; ownerRoleId: string | null;
+  provenance: string | null; calculation: string | null; unsourced: boolean;
 };
 type Filters = { types: string[]; sources: string[]; categories: string[] };
 type Catalog = { signals: Signal[]; filters: Filters };
@@ -130,6 +131,7 @@ export default function SignalCatalog({ companyId }: { companyId: string | null 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [drill, setDrill] = useState<Signal | null>(null);
+  const [infoId, setInfoId] = useState<string | null>(null);
 
   const [search, setSearch] = useState('');
   const [type, setType] = useState('All');
@@ -218,8 +220,25 @@ export default function SignalCatalog({ companyId }: { companyId: string | null 
                     <div className="flex items-center gap-1.5">
                       <span className="text-sm text-[#171717] font-medium leading-tight">{s.name}</span>
                       {s.kind === 'workforce' && <span className="inline-flex items-center px-1 py-0.5 rounded bg-[#eef2ff] text-[9px] font-semibold text-[#4338ca] uppercase tracking-wide flex-shrink-0">Viva</span>}
+                      {s.unsourced && <span className="inline-flex items-center px-1 py-0.5 rounded bg-[#fef3c7] text-[9px] font-semibold text-[#92400e] uppercase tracking-wide flex-shrink-0">No source</span>}
+                      {(s.provenance || s.calculation) && (
+                        <button
+                          onClick={() => setInfoId(infoId === s.id ? null : s.id)}
+                          aria-label="Show provenance"
+                          aria-expanded={infoId === s.id}
+                          className={'flex-shrink-0 w-4 h-4 rounded-full border text-[9px] font-semibold grid place-items-center transition-colors duration-150 ' + (infoId === s.id ? 'border-[#171717] bg-[#171717] text-white' : 'border-[#d4d4d4] text-[#a3a3a3] hover:border-[#737373] hover:text-[#525252]')}
+                        >
+                          i
+                        </button>
+                      )}
                     </div>
                     {s.description && <div className="text-[11px] text-[#a3a3a3] mt-0.5 leading-snug">{s.description}</div>}
+                    {infoId === s.id && (
+                      <div className="mt-1.5 rounded-md bg-[#fafafa] border border-[#eaeaea] px-2 py-1.5 space-y-0.5">
+                        {s.provenance && <div className="text-[11px] text-[#525252] leading-snug"><span className="font-semibold text-[#171717]">Source:</span> {s.provenance}</div>}
+                        {s.calculation && <div className="text-[11px] text-[#525252] leading-snug"><span className="font-semibold text-[#171717]">Calculation:</span> {s.calculation}</div>}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-2.5 text-[12px] text-[#525252] whitespace-nowrap">{s.source ?? '—'}</td>
                   <td className="px-4 py-2.5 whitespace-nowrap">

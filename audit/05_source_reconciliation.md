@@ -61,3 +61,32 @@ Aladdin.
 
 **Acceptance:** documented superset; every extra app carries a provenance note
 in its description (visible in Data Admin → Telemetry → Applications).
+
+## DT1 — Tasks: workbook role-tasks ARE the task list
+
+The /work task list is seeded from the source, not templates:
+
+- `Task.source = 'role'` → **4,743** rows = the workbook *Items / Aligned Role
+  Tasks* inventory 1:1 (RoleTask table also carries the same 4,743, keyed to
+  roles + categories).
+- `Task.source = 'process'` → **711** rows = one per L5 process step.
+- 4,607 distinct titles — real role-specific responsibilities (e.g. *"Lead
+  security operations center processes, detection coverage, and response
+  coordination"*), not the 5–6 templates the deployed audit observed.
+
+**Acceptance:** task text reflects workbook responsibilities; every task traces
+via `source` ('role' → Items row, 'process' → L5 step); per-role distribution
+is the source distribution (4,743 = 4,743).
+
+## DT2 — Deliverables ↔ I/O inventory
+
+- All **414** workbook outputs/deliverables have a Deliverable row keyed to
+  their value stream (0 unmatched outputs).
+- **27 extra** deliverables are the FinOps / Cloud Financial Management
+  stream's work products (synthesized from its L4 sub-processes — the source
+  I/O inventory has no rows for that stream); documented extension.
+- All **421** inputs exist as IoItem rows AND as io_item nodes parented to
+  their L4 sub-process node in the unified graph.
+- The /work deliverable drill-down now shows **Inputs consumed** (the producing
+  sub-process's upstream inputs with data elements + roles) alongside the data
+  elements, assigned roles, and downstream consumers it already had.

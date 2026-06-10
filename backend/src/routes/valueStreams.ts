@@ -86,7 +86,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     // SubValueStream in workbook (sourceRow) order, but the step list and the
     // inputs/outputs are pulled from the newer ProcessStep / IoItem model (the
     // SubValueStream L5 rows order alphabetically and lack lead/role detail).
-    const [backbone, processSteps, ioItems] = await Promise.all([
+    const [backbone, processSteps, ioItems, metrics] = await Promise.all([
       prisma.subValueStream.findMany({
         where: { valueStreamId: { in: vsIdsSafe }, level: { in: [3, 4] } },
         orderBy: { sourceRow: 'asc' },
@@ -100,6 +100,15 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       prisma.ioItem.findMany({
         where: { valueStreamId: { in: vsIdsSafe } },
         select: { l3: true, l4: true, type: true, name: true },
+      }),
+      // Per-stream KPI definitions from the workbook metric catalog.
+      prisma.metric.findMany({
+        where: { valueStreamId: { in: vsIdsSafe } },
+        orderBy: [{ category: 'asc' }, { name: 'asc' }],
+        select: {
+          id: true, name: true, category: true, description: true, formula: true,
+          frequency: true, unit: true, targetText: true, ownerRole: true, measurementLevel: true,
+        },
       }),
     ]);
 
@@ -147,6 +156,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       domain: header.domain,
       subStreams, // retained for the Flow Map tab
       processAreas,
+      metrics,
       roles: roleLinks.map((l) => ({
         roleId: l.roleId,
         roleName: l.role.name,

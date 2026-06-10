@@ -1163,9 +1163,16 @@ model PortfolioInitiative {
   cumulativeBenefit    Float @default(0)
   cumulativeCost       Float @default(0)
   cumulativeNetBenefit Float @default(0)
+  // Charter / prioritization inputs (I3/I4): complexity is authored, value
+  // score is recomputed from the objective links' impact levels.
+  complexityScore Float @default(5)
+  valueScore      Float @default(0)
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
+  objectives InitiativeObjective[]
+  resources  InitiativeResource[]
+  activities WorkplanActivity[]
   benefits   BenefitLine[]
   costs      CostLine[]
   milestones Milestone[]
@@ -1220,6 +1227,72 @@ model MetricValue {
 
   @@index([benefitLineId, dataset, periodStart])
   @@index([costLineId, dataset, periodStart])
+}
+
+// ── Initiative-tracker extensions (gap backlog I3/I4/I6/I9) ─────────────────
+
+// Strategic objectives the portfolio aligns to (I3). Company-scoped via scalar.
+model StrategicObjective {
+  id          String   @id @default(cuid())
+  tenantId    String
+  companyId   String
+  name        String
+  description String?
+  weight      Float    @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  links InitiativeObjective[]
+
+  @@index([companyId])
+}
+
+// Level-of-impact M2M between initiatives and objectives — drives valueScore.
+model InitiativeObjective {
+  id           String              @id @default(cuid())
+  initiativeId String
+  initiative   PortfolioInitiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  objectiveId  String
+  objective    StrategicObjective  @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+  impact       Int                 @default(3) // 1–5 level of impact
+  createdAt    DateTime            @default(now())
+
+  @@unique([initiativeId, objectiveId])
+}
+
+// Resource demand on an initiative (I6): a named person or an unnamed role.
+model InitiativeResource {
+  id            String              @id @default(cuid())
+  initiativeId  String
+  initiative    PortfolioInitiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  personId      String?
+  roleName      String?
+  name          String
+  allocationPct Int                 @default(50)
+  startDate     DateTime
+  endDate       DateTime
+  createdAt     DateTime            @default(now())
+
+  @@index([initiativeId])
+}
+
+// Workplan activity (I9): a dated bar on the initiative timeline; optional
+// finish-to-start dependency on another activity.
+model WorkplanActivity {
+  id           String              @id @default(cuid())
+  initiativeId String
+  initiative   PortfolioInitiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  name         String
+  startDate    DateTime
+  endDate      DateTime
+  status       String              @default("PLANNED") // PLANNED | IN_PROGRESS | DONE
+  dependsOnId  String?
+  dependsOn    WorkplanActivity?   @relation("ActivityDep", fields: [dependsOnId], references: [id], onDelete: SetNull)
+  dependents   WorkplanActivity[]  @relation("ActivityDep")
+  sortOrder    Int                 @default(0)
+  createdAt    DateTime            @default(now())
+
+  @@index([initiativeId])
 }
 
 model Milestone {

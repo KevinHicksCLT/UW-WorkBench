@@ -25,6 +25,7 @@ import PortfolioProgram from './pages/PortfolioProgram';
 import PortfolioInitiative from './pages/PortfolioInitiative';
 import PortfolioRaid from './pages/PortfolioRaid';
 import Work from './pages/Work';
+import External from './pages/External';
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -84,6 +85,8 @@ export default function App() {
         <Route path="/portfolio/raid" element={<PortfolioRaid />} />
         {/* Deliverables & Tasks — standalone work tracker (banner + filters + table). */}
         <Route path="/work" element={<Work />} />
+        {/* External Interactions — read-only external-party dependency view. */}
+        <Route path="/external" element={<External />} />
         {/* ADMIN-only data administration + audit trail. The Data Dictionary now
             lives inside the Data Admin tab as a view. The backend also gates
             every /admin and write endpoint behind requireRole('ADMIN'). */}
