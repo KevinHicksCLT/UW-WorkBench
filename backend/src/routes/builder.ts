@@ -128,18 +128,38 @@ router.patch('/nodes/:id', async (req: Request, res: Response, next: NextFunctio
       if (!Number.isInteger(n)) return res.status(400).json({ error: 'sortOrder must be an integer' });
       data.sortOrder = n;
     }
-    if (body.parentId !== undefined) {
-      if (body.parentId === node.id) return res.status(400).json({ error: 'A node cannot be its own parent' });
-      const problem = await validateParent(req.tenantId, cid, node.typeKey, body.parentId ?? null);
+    // Level move (e.g. demote a division to a department): change the node's
+    // type, usually together with a new parent. The hierarchy stays valid —
+    // the new type must accept the (new) parent, and every existing child's
+    // type must accept the new type as ITS parent.
+    const effectiveTypeKey = typeof body.typeKey === 'string' && body.typeKey !== node.typeKey ? body.typeKey : node.typeKey;
+    if (effectiveTypeKey !== node.typeKey) {
+      const childTypes = await prisma.node.findMany({
+        where: { parentId: node.id }, select: { typeKey: true }, distinct: ['typeKey'],
+      });
+      for (const c of childTypes) {
+        const ct = await prisma.nodeType.findUnique({ where: { tenantId_key: { tenantId: req.tenantId, key: c.typeKey } } });
+        if (!ct?.parentKeys.includes(effectiveTypeKey)) {
+          return res.status(400).json({ error: `Cannot change level: this node has ${ct?.label ?? c.typeKey} children, which cannot sit under a ${effectiveTypeKey}. Move or re-level the children first.` });
+        }
+      }
+      // When the type changes and no new parent was supplied, the current parent
+      // must still be legal for the new type (validated below).
+      data.typeKey = effectiveTypeKey;
+    }
+    if (body.parentId !== undefined || effectiveTypeKey !== node.typeKey) {
+      const newParentId: string | null = body.parentId !== undefined ? (body.parentId ?? null) : node.parentId;
+      if (newParentId === node.id) return res.status(400).json({ error: 'A node cannot be its own parent' });
+      const problem = await validateParent(req.tenantId, cid, effectiveTypeKey, newParentId);
       if (problem) return res.status(400).json({ error: problem });
       // Guard against cycles: the new parent must not be a descendant of this node.
-      let cursor: string | null = body.parentId ?? null;
+      let cursor: string | null = newParentId;
       while (cursor) {
         if (cursor === node.id) return res.status(400).json({ error: 'Cannot move a node under its own descendant' });
         const up: { parentId: string | null } | null = await prisma.node.findUnique({ where: { id: cursor }, select: { parentId: true } });
         cursor = up?.parentId ?? null;
       }
-      data.parentId = body.parentId ?? null;
+      if (body.parentId !== undefined) data.parentId = body.parentId ?? null;
     }
     if (!Object.keys(data).length) return res.status(400).json({ error: 'Nothing to update' });
 

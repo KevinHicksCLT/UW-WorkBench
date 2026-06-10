@@ -74,7 +74,7 @@ export default function ActiveAI() {
   return (
     <div>
       <PageHeader
-        title="Telemetry"
+        title="Metrics"
         subtitle="Where AI is applied across the company — and how far up the autonomy spectrum, from in-the-moment assistant to fully autonomous agent."
         eyebrow={company?.name}
       />
@@ -166,7 +166,7 @@ export default function ActiveAI() {
 
       <p className="text-[11px] text-[#a3a3a3] mt-3 italic">
         Adoption levels are read from the operating model (the same value streams as Value Streams and Home) and edited in
-        Data Admin → Telemetry → AI adoption. Streams with no AI yet show “Not used”.
+        Data Admin → Metrics → AI adoption. Streams with no AI yet show “Not used”.
       </p>
       </>
       )}
@@ -196,7 +196,7 @@ function DomainGroup({ domain, rows }: { domain: string; rows: { vs: ValueStream
             {/* Drill one level DEEPER into the stream's AI profile (use cases,
                 role utilization, efficiency) — not across to the value-stream
                 page; that stays reachable from the drill-in's header. */}
-            <Link to={`/active-ai/${vs.id}`} className="text-sm text-[#171717] group-hover:text-[#4338ca] truncate block max-w-[260px]">
+            <Link to={`/metrics/${vs.id}`} className="text-sm text-[#171717] group-hover:text-[#4338ca] truncate block max-w-[260px]">
               {vs.name}
             </Link>
           </td>

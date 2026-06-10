@@ -177,11 +177,11 @@ export default function Layout({ children }: { children: ReactNode }) {
           <NavLink to="/roles">Organization</NavLink>
           <NavLink to="/standards">Standards</NavLink>
           <NavLink to="/regulations">Regulations</NavLink>
-          <NavLink to="/active-ai">Telemetry</NavLink>
-          <NavLink to="/portfolio">Initiatives</NavLink>
+          <NavLink to="/metrics">Metrics</NavLink>
+          <NavLink to="/portfolio">Workspace</NavLink>
           <NavLink to="/work">Deliverables &amp; Tasks</NavLink>
           <NavLink to="/applications">Applications</NavLink>
-          <NavLink to="/external">External</NavLink>
+          <NavLink to="/external">Third-Parties</NavLink>
           {user?.role === 'ADMIN' && <NavLink to="/admin">Data Admin</NavLink>}
         </nav>
       </header>
@@ -250,16 +250,16 @@ export default function Layout({ children }: { children: ReactNode }) {
                 Regulations
               </button>
               <button
-                onClick={() => go('/active-ai')}
-                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/active-ai') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
+                onClick={() => go('/metrics')}
+                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/metrics') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
               >
-                Telemetry
+                Metrics
               </button>
               <button
                 onClick={() => go('/portfolio')}
                 className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/portfolio') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
               >
-                Initiatives
+                Workspace
               </button>
               <button
                 onClick={() => go('/work')}
@@ -277,7 +277,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                 onClick={() => go('/external')}
                 className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/external') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
               >
-                External
+                Third-Parties
               </button>
               {user?.role === 'ADMIN' && (
                 <button

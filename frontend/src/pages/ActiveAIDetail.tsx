@@ -105,7 +105,7 @@ export default function ActiveAIDetail() {
     return (
       <div>
         <PageHeader title="Value stream not found" />
-        <Link to="/active-ai" className="text-sm text-[#4338ca] hover:underline">← Back to the AI heat map</Link>
+        <Link to="/metrics" className="text-sm text-[#4338ca] hover:underline">← Back to the AI heat map</Link>
       </div>
     );
   }
@@ -171,7 +171,7 @@ export default function ActiveAIDetail() {
               {inactive ? (
                 <div className="px-5 py-3 text-[13px] text-[#a3a3a3] italic">Not yet adopted in this value stream.</div>
               ) : r.useCases.length === 0 ? (
-                <div className="px-5 py-3 text-[13px] text-[#a3a3a3] italic">No use cases recorded yet — add them in Data Admin → Telemetry → AI adoption.</div>
+                <div className="px-5 py-3 text-[13px] text-[#a3a3a3] italic">No use cases recorded yet — add them in Data Admin → Metrics → AI adoption.</div>
               ) : (
                 <ul className="divide-y divide-[#f5f5f5]">
                   {r.useCases.map((u) => (
@@ -191,7 +191,7 @@ export default function ActiveAIDetail() {
       </div>
 
       <p className="text-[11px] text-[#a3a3a3] mt-4 italic">
-        Adoption levels and use cases are read from the operating model and edited in Data Admin → Telemetry → AI adoption.
+        Adoption levels and use cases are read from the operating model and edited in Data Admin → Metrics → AI adoption.
       </p>
     </div>
   );

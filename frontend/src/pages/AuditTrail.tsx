@@ -53,7 +53,7 @@ function DiffView({ raw }: { raw: string | null }) {
   );
 }
 
-export default function AuditTrail() {
+export default function AuditTrail({ embedded }: { embedded?: boolean } = {}) {
   const [entities, setEntities] = useState<AdminEntity[]>([]);
   const [filter, setFilter] = useState('');
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -73,20 +73,26 @@ export default function AuditTrail() {
       .finally(() => setLoading(false));
   }, [filter]);
 
+  const filterSelect = (
+    <select className="input max-w-[200px]" value={filter} onChange={(e) => setFilter(e.target.value)}>
+      <option value="">All entity types</option>
+      {entities.map((e) => (
+        <option key={e.slug} value={e.model}>{e.label}</option>
+      ))}
+    </select>
+  );
+
   return (
     <div>
-      <PageHeader
-        title="Audit Trail"
-        subtitle="Every create, update, and delete across the platform."
-        actions={
-          <select className="input max-w-[200px]" value={filter} onChange={(e) => setFilter(e.target.value)}>
-            <option value="">All entity types</option>
-            {entities.map((e) => (
-              <option key={e.slug} value={e.model}>{e.label}</option>
-            ))}
-          </select>
-        }
-      />
+      {embedded ? (
+        <div className="flex justify-end mb-3">{filterSelect}</div>
+      ) : (
+        <PageHeader
+          title="Audit Trail"
+          subtitle="Every create, update, and delete across the platform."
+          actions={filterSelect}
+        />
+      )}
 
       {error && <div className="text-sm text-[#be123c] mb-3">{error}</div>}
 
@@ -124,8 +130,13 @@ export default function AuditTrail() {
       </div>
 
       <p className="text-xs text-[#a3a3a3] mt-3">
-        Showing the most recent {entries.length} entries.{' '}
-        <Link to="/admin" className="underline hover:text-[#171717]">Back to Data Admin</Link>
+        Showing the most recent {entries.length} entries.
+        {!embedded && (
+          <>
+            {' '}
+            <Link to="/admin" className="underline hover:text-[#171717]">Back to Data Admin</Link>
+          </>
+        )}
       </p>
     </div>
   );

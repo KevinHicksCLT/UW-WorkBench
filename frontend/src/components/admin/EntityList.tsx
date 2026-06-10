@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from '../../lib/api';
 import EntityForm from '../EntityForm';
 import type { AdminEntity, ListResponse } from '../../lib/adminTypes';
-import { humanize, cellText, pickColumns } from '../../lib/adminFormat';
+import { fieldLabel, cellText, pickColumns } from '../../lib/adminFormat';
 
 // Reusable record table for one admin entity: search + table + create/edit/delete
 // through the shared EntityForm drawer. Used directly for generic catalog tabs,
@@ -48,8 +48,12 @@ export default function EntityList({
   const [editing, setEditing] = useState<Record<string, any> | null | 'new'>(null);
   const [confirmRow, setConfirmRow] = useState<Record<string, any> | null>(null);
   const [confirmText, setConfirmText] = useState('');
+  const [sort, setSort] = useState<{ col: string; dir: 1 | -1 } | null>(null);
 
   const columns = useMemo(() => pickColumns(entity), [entity]);
+
+  const toggleSort = (col: string) =>
+    setSort((s) => (s?.col === col ? (s.dir === 1 ? { col, dir: -1 } : null) : { col, dir: 1 }));
 
   // `fixed` values double as server-side exact-match filters.
   const fixedQs = fixed
@@ -68,8 +72,18 @@ export default function EntityList({
 
   const rows = useMemo(() => {
     const all = list?.rows ?? [];
-    return filter ? all.filter(filter) : all;
-  }, [list, filter]);
+    const filtered = filter ? all.filter(filter) : all;
+    if (!sort) return filtered;
+    const { col, dir } = sort;
+    return [...filtered].sort((a, b) => {
+      const av = a[col], bv = b[col];
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir;
+      return String(av).localeCompare(String(bv), undefined, { numeric: true, sensitivity: 'base' }) * dir;
+    });
+  }, [list, filter, sort]);
 
   const onSaved = () => { setEditing(null); load(search); onChanged?.(); };
   const doDelete = async (row: Record<string, any>) => {
@@ -105,7 +119,18 @@ export default function EntityList({
             <thead>
               <tr className="border-b border-[#eaeaea] text-left">
                 {columns.map((c) => (
-                  <th key={c.name} className={`px-3 ${dense ? 'py-1.5' : 'py-2'} font-medium text-[#666666] whitespace-nowrap`}>{humanize(c.name)}</th>
+                  <th key={c.name} className={`px-3 ${dense ? 'py-1.5' : 'py-2'} font-medium text-[#666666] whitespace-nowrap`}>
+                    <button
+                      onClick={() => toggleSort(c.name)}
+                      className="inline-flex items-center gap-1 hover:text-[#171717]"
+                      title={`Sort by ${fieldLabel(entity.slug, c.name)}`}
+                    >
+                      {fieldLabel(entity.slug, c.name)}
+                      <span className={'text-[10px] ' + (sort?.col === c.name ? 'text-[#171717]' : 'text-[#d4d4d4]')}>
+                        {sort?.col === c.name ? (sort.dir === 1 ? '▲' : '▼') : '↕'}
+                      </span>
+                    </button>
+                  </th>
                 ))}
                 <th className="px-3 py-2 w-24"></th>
               </tr>

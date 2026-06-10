@@ -114,13 +114,13 @@ const SEVERITY_COLOR = (k: string) => ({ Critical: '#dc2626', High: '#ea580c', M
 const SRC = {
   org: { tab: 'organization', section: 'divisions', label: 'Organization' },
   vs: { tab: 'valueStreams', section: 'levels', label: 'Value Streams' },
-  initiatives: { tab: 'initiatives', section: 'workstreams', label: 'Initiatives' },
+  initiatives: { tab: 'initiatives', section: 'workstreams', label: 'Workspace' },
   work: { tab: 'work', section: 'deliverables', label: 'Deliverables & Tasks' },
   people: { tab: 'people', section: 'people', label: 'People' },
-  apps: { tab: 'telemetry', section: 'apps', label: 'Telemetry' },
-  metrics: { tab: 'telemetry', section: 'metrics', label: 'Telemetry' },
-  risks: { tab: 'initiatives', section: 'risks', label: 'Initiatives' },
-  scenarios: { tab: 'initiatives', section: 'scenarios', label: 'Initiatives' },
+  apps: { tab: 'telemetry', section: 'apps', label: 'Metrics' },
+  metrics: { tab: 'telemetry', section: 'metrics', label: 'Metrics' },
+  risks: { tab: 'initiatives', section: 'risks', label: 'Workspace' },
+  scenarios: { tab: 'initiatives', section: 'scenarios', label: 'Workspace' },
 } as const;
 
 // Per-widget custom display title (Data Admin → Home → Edit on a widget row).
@@ -156,7 +156,7 @@ export const FOOTPRINT_STATS: Record<string, { key: string; label: string; to: s
   objectives: { key: 'objectives', label: 'Strategic objectives', to: '/portfolio' },
   openRaid: { key: 'openRaid', label: 'Open RAID items', to: '/portfolio' },
   connections: { key: 'connections', label: 'Model connections', to: '/overview' },
-  signals: { key: 'signals', label: 'Trackable signals', to: '/active-ai' },
+  signals: { key: 'signals', label: 'Trackable signals', to: '/metrics' },
 };
 export const FOOTPRINT_DEFAULT: string[] = ['subProcesses', 'ioItems', 'externalParties', 'standards'];
 

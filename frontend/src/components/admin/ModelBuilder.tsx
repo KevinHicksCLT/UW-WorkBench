@@ -222,6 +222,14 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
                     .filter((p) => typeByKey.get(selected.typeKey)?.parentKeys.includes(p.typeKey) && p.id !== selected.id)
                     .map((p) => <option key={p.id} value={p.id}>{p.name} ({label(p.typeKey)})</option>)}
                 </select>
+                <LevelMover
+                  key={selected.id + ':level'}
+                  node={selected}
+                  nodes={nodes}
+                  types={types.filter((t) => (scopeDef ? scopeDef.types.includes(t.key) : true))}
+                  typeLabel={label}
+                  onApply={(typeKey, parentId) => void patchNode(selected, { typeKey, parentId })}
+                />
               </div>
 
               <div>
@@ -251,6 +259,57 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
           )}
         </aside>
       </div>
+    </div>
+  );
+}
+
+// "Move level": change a node's type (e.g. demote a division to a department)
+// together with a parent valid for the new level. Persists through
+// PATCH /builder/nodes — the DB hierarchy is restructured, not just the view
+// (defect backlog 02, D12.5).
+function LevelMover({ node, nodes, types, typeLabel, onApply }: {
+  node: TreeNode; nodes: TreeNode[]; types: NodeType[];
+  typeLabel: (k: string) => string; onApply: (typeKey: string, parentId: string | null) => void;
+}) {
+  const [newType, setNewType] = useState('');
+  const [newParent, setNewParent] = useState('');
+  const target = types.find((t) => t.key === newType);
+  const parentOptions = target
+    ? nodes.filter((p) => target.parentKeys.includes(p.typeKey) && p.id !== node.id)
+    : [];
+  const needsParent = Boolean(target && target.parentKeys.length > 0);
+  const ready = Boolean(target) && (!needsParent || Boolean(newParent));
+  return (
+    <div className="mt-2 border-t border-[#f5f5f5] pt-2">
+      <label className="label">Move to level</label>
+      <div className="flex items-center gap-2">
+        <select
+          className="input py-1 text-xs"
+          value={newType}
+          onChange={(e) => { setNewType(e.target.value); setNewParent(''); }}
+        >
+          <option value="">Keep: {typeLabel(node.typeKey)}</option>
+          {types.filter((t) => t.key !== node.typeKey).map((t) => (
+            <option key={t.key} value={t.key}>{t.label}</option>
+          ))}
+        </select>
+        {needsParent && (
+          <select className="input py-1 text-xs" value={newParent} onChange={(e) => setNewParent(e.target.value)}>
+            <option value="">Pick new parent…</option>
+            {parentOptions.map((p) => <option key={p.id} value={p.id}>{p.name} ({typeLabel(p.typeKey)})</option>)}
+          </select>
+        )}
+        <button
+          disabled={!ready}
+          onClick={() => { if (target) onApply(target.key, needsParent ? newParent : null); }}
+          className="flex-shrink-0 text-xs px-2.5 py-1 rounded-md border border-[#e5e5e5] text-[#525252] hover:bg-[#fafafa] disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          Move
+        </button>
+      </div>
+      <p className="text-[10px] text-[#a3a3a3] mt-1">
+        Restructures the database hierarchy — children must be valid under the new level.
+      </p>
     </div>
   );
 }

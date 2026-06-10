@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { fieldLabel } from '../lib/adminFormat';
 import type { AdminEntity, AdminField } from '../lib/adminTypes';
 
 // Auto-generated create/edit form for a single admin entity. Renders one input
@@ -112,7 +113,7 @@ export default function EntityForm({ entity, companyId, record, fixed, defaults,
           {formFields.map((f) => (
             <div key={f.name}>
               <label className="label" htmlFor={`f-${f.name}`}>
-                {f.name}{f.required && <span className="text-[#be123c]"> *</span>}
+                {fieldLabel(entity.slug, f.name)}{f.required && <span className="text-[#be123c]"> *</span>}
                 {f.relation && <span className="text-[#a3a3a3] font-normal normal-case tracking-normal"> → {f.relation.entity}</span>}
               </label>
 

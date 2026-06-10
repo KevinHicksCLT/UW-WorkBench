@@ -42,6 +42,12 @@ function ValueStreamRedirect() {
   return <Navigate to={`/overview?focus=${encodeURIComponent(id ?? '')}`} replace />;
 }
 
+// Telemetry became Metrics (defect backlog 02, D6) — old drill-in links follow.
+function ActiveAIRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/metrics/${encodeURIComponent(id ?? '')}`} replace />;
+}
+
 export default function App() {
   const { user, loading } = useAuth();
 
@@ -85,9 +91,12 @@ export default function App() {
         {/* Standards & Greenfield Migration — placeholder tabs. */}
         <Route path="/standards" element={<Standards />} />
         <Route path="/standards/:id" element={<StandardArea />} />
-        {/* Active AI — heat map of AI adoption across value streams + drill-in. */}
-        <Route path="/active-ai" element={<ActiveAI />} />
-        <Route path="/active-ai/:id" element={<ActiveAIDetail />} />
+        {/* Metrics (formerly Telemetry) — AI adoption heat map + drill-in.
+            Old /active-ai links redirect. */}
+        <Route path="/metrics" element={<ActiveAI />} />
+        <Route path="/metrics/:id" element={<ActiveAIDetail />} />
+        <Route path="/active-ai" element={<Navigate to="/metrics" replace />} />
+        <Route path="/active-ai/:id" element={<ActiveAIRedirect />} />
         {/* Application Rationalization now lives inside the Initiatives tab.
             Keep a redirect so old /greenfield links still resolve. */}
         <Route path="/greenfield" element={<Navigate to="/portfolio" replace />} />

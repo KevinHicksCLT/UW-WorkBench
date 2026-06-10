@@ -66,7 +66,7 @@ export default function External() {
   return (
     <div>
       <PageHeader
-        title="External Interactions"
+        title="Third-Parties"
         subtitle="External parties the operating model depends on — who they touch internally, across which value streams."
       />
 
@@ -85,14 +85,14 @@ export default function External() {
           <table className="w-full text-sm min-w-[960px]">
             <thead>
               <tr className="border-b border-[#eaeaea] bg-[#fafafa] text-left">
-                {['External party', 'Party type', 'Value stream', 'Internal owner', 'Interaction', 'Dependency', 'Frequency'].map((h) => (
+                {['External party', 'Party type', 'Value stream', 'Internal owner', 'Interaction', 'Dependency'].map((h) => (
                   <th key={h} className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={7} className="px-3 py-8 text-center text-[#a3a3a3] italic">No interactions match the filters.</td></tr>
+                <tr><td colSpan={6} className="px-3 py-8 text-center text-[#a3a3a3] italic">No interactions match the filters.</td></tr>
               ) : (
                 filtered.map((i) => (
                   <Fragment key={i.id}>
@@ -121,11 +121,10 @@ export default function External() {
                       </td>
                       <td className="px-3 py-2.5 text-[#525252] max-w-[200px] truncate" title={i.interactionType ?? ''}>{i.interactionType ?? '—'}</td>
                       <td className="px-3 py-2.5 text-[#525252] whitespace-nowrap">{i.dependencyType ?? '—'}</td>
-                      <td className="px-3 py-2.5 text-[#525252] whitespace-nowrap">{i.frequency ?? '—'}</td>
                     </tr>
                     {expanded === i.id && (
                       <tr className="border-b border-[#f5f5f5] bg-[#fafafa]">
-                        <td colSpan={7} className="px-3 py-3">
+                        <td colSpan={6} className="px-3 py-3">
                           <div className="ml-4 space-y-1.5 text-xs text-[#525252]">
                             {i.divisionFunction && (
                               <div className="flex gap-1.5">

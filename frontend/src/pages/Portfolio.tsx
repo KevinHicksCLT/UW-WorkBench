@@ -74,7 +74,7 @@ export default function Portfolio() {
   return (
     <div>
       <PageHeader
-        title="Initiatives"
+        title="Workspace"
         subtitle="Strategic portfolio — programs, initiatives, benefits and risks"
       />
 

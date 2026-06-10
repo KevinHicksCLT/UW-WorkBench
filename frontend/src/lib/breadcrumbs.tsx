@@ -23,8 +23,8 @@ const TABS: Crumb[] = [
   { to: '/overview', label: 'Value Streams' },
   { to: '/roles', label: 'Organization' },
   { to: '/standards', label: 'Standards' },
-  { to: '/active-ai', label: 'Telemetry' },
-  { to: '/portfolio', label: 'Initiatives' },
+  { to: '/metrics', label: 'Metrics' },
+  { to: '/portfolio', label: 'Workspace' },
   { to: '/work', label: 'Deliverables & Tasks' },
   { to: '/admin', label: 'Data Admin' },
 ];
@@ -37,7 +37,7 @@ const baseTab = (pathname: string): Crumb | undefined =>
 function owningTab(pathname: string): Crumb {
   if (pathname.startsWith('/roles') || pathname.startsWith('/divisions') || pathname.startsWith('/departments')) return TABS[1];
   if (pathname.startsWith('/value-streams') || pathname.startsWith('/overview') || pathname.startsWith('/n/')) return TABS[0];
-  if (pathname.startsWith('/active-ai')) return TABS[3];
+  if (pathname.startsWith('/metrics')) return TABS[3];
   if (pathname.startsWith('/standards')) return TABS[2];
   if (pathname.startsWith('/portfolio')) return TABS[4];
   if (pathname.startsWith('/work')) return TABS[5];

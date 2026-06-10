@@ -85,8 +85,8 @@ export const ADMIN_TABS: TabConfig[] = [
   },
   {
     key: 'telemetry',
-    label: 'Telemetry',
-    description: 'Telemetry is built from KPI/metric definitions, the application landscape, and per-person digital signals.',
+    label: 'Metrics',
+    description: 'The Metrics tab is built from KPI/metric definitions, the application landscape, and per-person digital signals.',
     sections: [
       { key: 'metrics', label: 'Metrics (KPIs)', editor: { kind: 'list', slug: 'metric', intro: 'Value-stream KPIs — definition, target, unit, and current reading.' } },
       { key: 'trackable', label: 'Trackable signals', editor: { kind: 'list', slug: 'telemetrySignal', intro: 'The Trackable Metrics inventory — live workforce signals (isLive on; per-person readings drill by role) and the workbook reference catalog of everything the company could measure.' } },
@@ -100,8 +100,8 @@ export const ADMIN_TABS: TabConfig[] = [
   },
   {
     key: 'initiatives',
-    label: 'Initiatives',
-    description: 'The Initiatives screen renders the portfolio tracker: Program → Workstream → Initiative. Edit that here, plus the operating-model initiatives (which power the dashboard and map), risks, scenarios, and application-rationalization workspaces.',
+    label: 'Workspace',
+    description: 'The Workspace screen renders the portfolio tracker: Program → Workstream → Initiative. Edit that here, plus the operating-model initiatives (which power the dashboard and map), risks, scenarios, and application-rationalization workspaces.',
     sections: [
       {
         key: 'portfolio', label: 'Portfolio (programs)', hint: 'what the screen shows',
@@ -119,7 +119,7 @@ export const ADMIN_TABS: TabConfig[] = [
       { key: 'riskBands', label: 'Risk scoring bands', editor: { kind: 'list', slug: 'riskScoringBand', intro: 'How a 5×5 probability × impact score (1–25) reads as a rating — the standard enterprise risk matrix (ISO 31000-style). Every severity cell in the tracker colors itself from these bands.' } },
       { key: 'scenarios', label: 'Scenarios', editor: { kind: 'list', slug: 'scenario', intro: 'Change-impact economics — one-time cost, recurring benefit, net impact, confidence.' } },
       {
-        key: 'rationalization', label: 'App rationalization',
+        key: 'rationalization', label: 'App Rationalization Workspace',
         editor: {
           kind: 'masterDetail', parent: 'rationalizationWorkspace', parentTitle: 'Workspaces',
           intro: 'Each workspace rationalizes a business process. Select one to manage its legacy apps, target services, components, capabilities, and plan.',
@@ -197,7 +197,7 @@ export const ADMIN_TABS: TabConfig[] = [
   },
   {
     key: 'external',
-    label: 'External',
+    label: 'Third-Parties',
     description: 'External parties the organization interacts with — the party catalog (model nodes) and the interaction inventory.',
     sections: [
       { key: 'parties', label: 'External parties', hint: 'model nodes + connections', editor: { kind: 'builder', scope: 'external' } },
