@@ -81,6 +81,12 @@ model Company {
   tasks                Task[]
   nodes                Node[]
   telemetrySignals     TelemetrySignal[]
+  jurisdictions          Jurisdiction[]
+  integrationSystems     IntegrationSystem[]
+  regulatoryRequirements RegulatoryRequirement[]
+  regulatoryBulletins    RegulatoryBulletin[]
+  complianceRules        ComplianceRule[]
+  regulatorySources      RegulatorySource[]
 
   @@unique([tenantId, slug])
 }
@@ -336,6 +342,7 @@ model ValueStream {
   risks            Risk[]
   processSteps     ProcessStep[]
   ioItems          IoItem[]
+  requirementLinks RequirementValueStream[]
 
   @@unique([tenantId, companyId, name])
   @@index([companyId])
@@ -1512,4 +1519,237 @@ model NodeAiAdoption {
   stats        Json?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+// ─── Regulations module (50-state insurance regulatory baseline) ─────────────
+// Seeded from docs/regulations/50-state-regulations-baseline.md via
+// scripts/extract-regulations-baseline.ts → seed/regulations-baseline.json →
+// src/seed/seedRegulations.ts. Design: docs/regulations (design doc §4).
+// Accuracy metadata (confidence / lastVerifiedAt) is load-bearing: rows start
+// as BASELINE (point-in-time source doc) and are only promoted to VERIFIED by
+// a human-reviewed pipeline change (Phase 2).
+
+// One row per state + DC (51). Carries the regulator identity, the cross-state
+// taxonomy flags (normalized enum + raw doc text — the doc's values are fuzzy),
+// the narrative blocks, and pipeline governance fields.
+model Jurisdiction {
+  id        String  @id @default(cuid())
+  tenantId  String
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  code      String // USPS code: "AL" … "DC"
+  name      String // "Alabama"
+  // Regulator
+  regulatorName    String
+  regulatorWebsite String?
+  regulatorType    String  @default("STATE_INSURANCE_REGULATOR")
+  // Taxonomy flags — normalized token + raw doc text
+  filingPortal           String // SERFF | PROPRIETARY | MIXED
+  filingPortalDetail     String?
+  compactStatus          String // MEMBER | NON_MEMBER
+  autoVerification       String // YES | NO | PARTIAL
+  autoVerificationDetail String?
+  workersCompModel       String // EDI | NON_EDI | MIXED | MONOPOLISTIC_FUND | STATE_SPECIFIC
+  workersCompDetail      String?
+  apcd                   String // YES | NO | EMERGING
+  sbs                    String // YES | NO | PARTIAL | TRANSITIONING
+  // Narrative blocks (markdown, from the source doc)
+  statutoryAuthority String?
+  summaryRegulator   String?
+  summaryStatutes    String?
+  summaryIntegration String?
+  executiveSummary   String? // compliance profile (12 FULL_PROFILE states; null otherwise)
+  operatingModel     String? // "State-Specific Operating Model" block (12 states)
+  signalsJson        Json? // that state's signal definitions from the rules YAML (stored once here, not per rule)
+  // Governance / pipeline
+  priorityTier    String    @default("STANDARD") // PRIORITY (FL,TX,NY,CA,NC) | STANDARD
+  profileDepth    String    @default("NARRATIVE") // FULL_PROFILE (12) | NARRATIVE (39)
+  lastReviewedAt  DateTime? // human attestation of the whole jurisdiction
+  lastVerifiedAt  DateTime? // last pipeline verification pass
+  baselineVersion Int       @default(1)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  requirements RegulatoryRequirement[]
+  sources      RegulatorySource[]
+  bulletins    RegulatoryBulletin[]
+  rules        ComplianceRule[]
+  integrations JurisdictionIntegration[]
+
+  @@unique([companyId, code])
+  @@index([companyId])
+}
+
+// Shared catalog of regulatory filing/reporting systems (SERFF, NIPR, OPTins,
+// IRFS, IAIABC EDI …) — one row per system per company (~15 rows).
+model IntegrationSystem {
+  id              String   @id @default(cuid())
+  tenantId        String
+  companyId       String
+  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name            String // "SERFF", "NIPR", "OPTins" …
+  kind            String // FILING | LICENSING | TAX | DATA_REPORTING | CLAIMS_EDI | VERIFICATION | PAYMENT
+  operator        String // NAIC | STATE | VENDOR | COMPACT
+  website         String?
+  description     String?
+  apiAvailability String   @default("PORTAL_ONLY") // API | WEB_SERVICES | PORTAL_ONLY | SFTP_BATCH
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  jurisdictionLinks JurisdictionIntegration[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+}
+
+// Per-state usage of a shared system (junction; tenant-less — scoped through
+// the jurisdiction, TRANSITIVE set in the admin registry). Answers "every state
+// where we must integrate with something other than SERFF" in one query.
+model JurisdictionIntegration {
+  id             String            @id @default(cuid())
+  jurisdictionId String
+  jurisdiction   Jurisdiction      @relation(fields: [jurisdictionId], references: [id], onDelete: Cascade)
+  systemId       String
+  system         IntegrationSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  usage          String            @default("REQUIRED") // REQUIRED | ACCEPTED | NOT_USED | TRANSITIONING
+  scope          String            @default("all lines") // "all lines", "P&C only", "surplus lines tax" …
+  notes          String?
+  effectiveDate  DateTime?
+  createdAt      DateTime          @default(now())
+
+  @@unique([jurisdictionId, systemId, scope])
+  @@index([jurisdictionId])
+  @@index([systemId])
+}
+
+// The core obligation rows — one row per discrete regulatory obligation per
+// state ("what most users mean by a regulation").
+model RegulatoryRequirement {
+  id             String       @id @default(cuid())
+  tenantId       String
+  companyId      String
+  company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  jurisdictionId String
+  jurisdiction   Jurisdiction @relation(fields: [jurisdictionId], references: [id], onDelete: Cascade)
+  category       String // PRODUCT_FILING | LICENSING | PREMIUM_TAX | SURPLUS_LINES | WORKERS_COMP_REPORTING |
+  //                AUTO_VERIFICATION | APCD_REPORTING | FINANCIAL_REPORTING | MARKET_CONDUCT |
+  //                DATA_CALL | CYBERSECURITY | OTHER
+  title          String // "Product filings must be submitted via SERFF"
+  requirement    String // full obligation text (markdown)
+  lineOfBusiness String  @default("ALL") // ALL | P_AND_C | LIFE_ANNUITY | HEALTH | AUTO | WORKERS_COMP | SURPLUS_LINES
+  citation       String? // "Title 27, Code of Alabama"; "TAC §124.107"
+  citationUrl    String?
+  obligationType String  @default("ONGOING") // FILING_GATE | ONGOING | EVENT_DRIVEN | INFORMATIONAL
+  frequency      String? // "monthly", "per filing", "annual"
+  status         String    @default("ACTIVE") // ACTIVE | SUPERSEDED | PENDING (announced, not yet effective)
+  effectiveDate  DateTime?
+  supersededById String? // self-FK: requirement that replaced this one (history chain)
+  // Accuracy metadata (critical given the stakes)
+  confidence     String    @default("BASELINE") // BASELINE | VERIFIED | DERIVED | STALE
+  sourceNote     String? // provenance: where in the doc / which bulletin
+  lastVerifiedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  valueStreamLinks RequirementValueStream[]
+  bulletins        RegulatoryBulletin[]
+
+  @@index([companyId])
+  @@index([jurisdictionId])
+  @@index([companyId, category])
+  @@index([companyId, status])
+}
+
+// Where a requirement applies in the company (junction to the operating-model
+// value streams; tenant-less — TRANSITIVE set, scoped through the requirement).
+model RequirementValueStream {
+  id            String                @id @default(cuid())
+  requirementId String
+  requirement   RegulatoryRequirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  valueStreamId String
+  valueStream   ValueStream           @relation(fields: [valueStreamId], references: [id], onDelete: Cascade)
+  relationship  String                @default("GOVERNS") // GOVERNS | REQUIRES_INTEGRATION | INFORMS
+  notes         String?
+  createdAt     DateTime              @default(now())
+
+  @@unique([requirementId, valueStreamId])
+  @@index([requirementId])
+  @@index([valueStreamId])
+}
+
+// Individual bulletins/notices per state. The Phase 2 pipeline appends here
+// continuously — this is its most active output.
+model RegulatoryBulletin {
+  id             String       @id @default(cuid())
+  tenantId       String
+  companyId      String
+  company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  jurisdictionId String
+  jurisdiction   Jurisdiction @relation(fields: [jurisdictionId], references: [id], onDelete: Cascade)
+  reference      String // "Bulletin 2026-01"
+  title          String
+  summary        String?
+  url            String?
+  issuedDate     DateTime?
+  discoveredVia  String       @default("BASELINE") // BASELINE | PIPELINE | MANUAL
+  requirementId  String? // optional: the requirement this bulletin modified
+  requirement    RegulatoryRequirement? @relation(fields: [requirementId], references: [id], onDelete: SetNull)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([companyId])
+  @@index([jurisdictionId])
+}
+
+// Machine-readable rules layer from the per-state compliance_rules.yaml
+// artifacts. Stored + displayed in Phase 1; EXECUTING them against operational
+// signals is out of scope (future rules-engine phase).
+model ComplianceRule {
+  id             String       @id @default(cuid())
+  tenantId       String
+  companyId      String
+  company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  jurisdictionId String
+  jurisdiction   Jurisdiction @relation(fields: [jurisdictionId], references: [id], onDelete: Cascade)
+  ruleCode       String // "GA-FILING-001"
+  category       String // filing_channel | filing_status_control | operational_reporting | bulletin_exception_management | legal_review
+  description    String?
+  ruleJson       Json // the parsed if/require/then structure, verbatim
+  origin         String       @default("DOCUMENT") // DOCUMENT | TEMPLATE_DERIVED | PIPELINE
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([companyId, ruleCode])
+  @@index([companyId])
+  @@index([jurisdictionId])
+}
+
+// The monitoring registry — one row per URL the business trusts per state
+// (null jurisdiction = national source: NAIC, SERFF, IIPRC). Owned by Data
+// Admin; the Phase 2 pipeline reads `monitor` rows and writes the health fields.
+model RegulatorySource {
+  id             String        @id @default(cuid())
+  tenantId       String
+  companyId      String
+  company        Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  jurisdictionId String?
+  jurisdiction   Jurisdiction? @relation(fields: [jurisdictionId], references: [id], onDelete: Cascade)
+  name           String
+  url            String
+  sourceType     String // BULLETINS_PAGE | REGULATIONS_PAGE | STATUTES_PAGE | SERFF_PARTICIPATION | NAIC_DIRECTORY | COMPACT_MEMBERSHIP | NEWS | OTHER
+  authority      String        @default("OFFICIAL_REGULATOR") // OFFICIAL_REGULATOR | NAIC | COMPACT | SECONDARY
+  monitor        Boolean       @default(true) // include in pipeline sweeps
+  checkTier      String        @default("WEEKLY") // PRIORITY_DAILY | WEEKLY
+  // Pipeline state (Phase 2 writes these)
+  lastCheckedAt       DateTime?
+  lastContentHash     String?
+  lastChangedAt       DateTime?
+  consecutiveFailures Int       @default(0)
+  healthStatus        String    @default("OK") // OK | UNREACHABLE | PARSE_ERROR
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([companyId])
+  @@index([jurisdictionId])
 }
