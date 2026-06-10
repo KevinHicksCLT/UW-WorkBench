@@ -142,7 +142,27 @@ router.patch('/company/:id/dashboard', async (req: Request, res: Response, next:
     } else {
       footprintStats = (company.dashboardConfig as { footprintStats?: string[] } | null)?.footprintStats;
     }
-    const config = footprintStats ? { widgets, footprintStats } : { widgets };
+    // Per-widget custom display titles ({ widgetId: title }); empty titles drop
+    // back to the catalog default.
+    const wtRaw = (req.body ?? {}).widgetTitles;
+    let widgetTitles: Record<string, string> | undefined;
+    if (wtRaw !== undefined) {
+      if (typeof wtRaw !== 'object' || wtRaw === null || Array.isArray(wtRaw)) {
+        return res.status(400).json({ error: 'widgetTitles must be an object of widgetId → title' });
+      }
+      widgetTitles = {};
+      for (const [k, v] of Object.entries(wtRaw)) {
+        if (typeof v !== 'string') return res.status(400).json({ error: 'widgetTitles values must be strings' });
+        const t = v.trim().slice(0, 60);
+        if (t) widgetTitles[k] = t;
+      }
+      if (Object.keys(widgetTitles).length === 0) widgetTitles = undefined;
+    } else {
+      widgetTitles = (company.dashboardConfig as { widgetTitles?: Record<string, string> } | null)?.widgetTitles;
+    }
+    const config: { widgets: string[]; footprintStats?: string[]; widgetTitles?: Record<string, string> } = { widgets };
+    if (footprintStats) config.footprintStats = footprintStats;
+    if (widgetTitles) config.widgetTitles = widgetTitles;
 
     const updated = await prisma.company.update({
       where: { id: company.id },

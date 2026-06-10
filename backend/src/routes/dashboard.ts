@@ -125,6 +125,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       layout: (active.dashboardConfig as { widgets?: string[] } | null)?.widgets ?? null,
       // Which stats the Model footprint card lists; null → the frontend default.
       footprintStats: (active.dashboardConfig as { footprintStats?: string[] } | null)?.footprintStats ?? null,
+      // Per-widget custom display titles; missing ids use the catalog default.
+      widgetTitles: (active.dashboardConfig as { widgetTitles?: Record<string, string> } | null)?.widgetTitles ?? null,
       totals: {
         divisions, departments, roles, valueStreams, domains, people,
         initiatives, risks, applications, metrics, scenarios, processSteps,

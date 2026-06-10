@@ -44,6 +44,11 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
   // Which stats the Model footprint card lists.
   const [footprint, setFootprint] = useState<string[]>(FOOTPRINT_DEFAULT);
   const [savedFootprint, setSavedFootprint] = useState<string[]>(FOOTPRINT_DEFAULT);
+  // Per-widget custom display titles (empty/missing -> catalog default).
+  const [titles, setTitles] = useState<Record<string, string>>({});
+  const [savedTitles, setSavedTitles] = useState<Record<string, string>>({});
+  // Which widget row's settings editor is expanded.
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [savingLayout, setSavingLayout] = useState(false);
   const [layoutSavedAt, setLayoutSavedAt] = useState<string | null>(null);
 
@@ -53,7 +58,7 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
     if (!companyId) return;
     setError(''); setNameSavedAt(null); setLayoutSavedAt(null);
     api.get(`/admin/company/${companyId}`)
-      .then((c: { id: string; name: string; dashboardConfig?: { widgets?: string[]; footprintStats?: string[] } | null }) => {
+      .then((c: { id: string; name: string; dashboardConfig?: { widgets?: string[]; footprintStats?: string[]; widgetTitles?: Record<string, string> } | null }) => {
         setCompanyDbId(c.id);
         setName(c.name); setOrigName(c.name);
         // Keep only ids still in the catalog; fall back to the default layout.
@@ -61,12 +66,15 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
         setLayout(saved); setSavedLayout(saved);
         const fp = (c.dashboardConfig?.footprintStats ?? FOOTPRINT_DEFAULT).filter((k) => FOOTPRINT_STATS[k]);
         setFootprint(fp); setSavedFootprint(fp);
+        const wt = c.dashboardConfig?.widgetTitles ?? {};
+        setTitles(wt); setSavedTitles(wt);
       })
       .catch((e) => setError(e.message));
   }, [companyId]);
 
   const nameDirty = name.trim() !== origName && name.trim().length > 0;
-  const layoutDirty = !same(layout, savedLayout) || !same(footprint, savedFootprint);
+  const sameTitles = (a: Record<string, string>, b: Record<string, string>) => JSON.stringify(a) === JSON.stringify(b);
+  const layoutDirty = !same(layout, savedLayout) || !same(footprint, savedFootprint) || !sameTitles(titles, savedTitles);
 
   const saveName = async () => {
     if (!companyDbId) return;
@@ -87,8 +95,10 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
     if (!companyDbId) return;
     setSavingLayout(true); setError('');
     try {
-      await api.patch(`/admin/company/${companyDbId}/dashboard`, { widgets: layout, footprintStats: footprint });
+      const cleanTitles = Object.fromEntries(Object.entries(titles).filter(([, v]) => v.trim()));
+      await api.patch(`/admin/company/${companyDbId}/dashboard`, { widgets: layout, footprintStats: footprint, widgetTitles: cleanTitles });
       setSavedLayout(layout); setSavedFootprint(footprint);
+      setTitles(cleanTitles); setSavedTitles(cleanTitles);
       setLayoutSavedAt(new Date().toLocaleTimeString());
     } catch (e) {
       setError((e as Error).message);
@@ -157,22 +167,6 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
         </div>
         <p className="text-xs text-[#a3a3a3] mb-3">Reorder with the arrows, remove with ×. Changes apply once you save.</p>
 
-        {/* Model footprint card contents — which model counts it lists. */}
-        {layout.includes('card:modelFootprint') && (
-          <div className="card-elevated p-4 mb-4">
-            <h4 className="text-xs font-semibold text-[#171717] mb-1">Model footprint card — stats shown</h4>
-            <p className="text-[11px] text-[#a3a3a3] mb-2.5">Pick which model counts the card lists. Saved with the layout.</p>
-            <div className="flex flex-wrap gap-x-4 gap-y-1.5">
-              {Object.values(FOOTPRINT_STATS).map((st) => (
-                <label key={st.key} className="flex items-center gap-1.5 text-sm text-[#525252]">
-                  <input type="checkbox" checked={footprint.includes(st.key)} onChange={() => toggleFootprint(st.key)} />
-                  {st.label}
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
-
         <div className="card-elevated overflow-hidden">
           {layout.length === 0 && (
             <div className="px-4 py-6 text-center text-sm text-[#a3a3a3]">No areas yet — add some below.</div>
@@ -180,31 +174,72 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
           {layout.map((id, i) => {
             const w = WIDGET_MAP.get(id);
             if (!w) return null;
+            const editing = editingId === id;
+            const customTitle = titles[id] ?? '';
             return (
-              <div key={id} className="flex items-center gap-3 px-4 py-3 border-b border-[#f5f5f5] last:border-0 hover:bg-[#fafafa]">
-                <div className="flex flex-col">
-                  <button className="text-[#a3a3a3] hover:text-[#171717] disabled:opacity-25" disabled={i === 0} onClick={() => move(i, -1)} aria-label="Move up"><Chevron dir="up" /></button>
-                  <button className="text-[#a3a3a3] hover:text-[#171717] disabled:opacity-25" disabled={i === layout.length - 1} onClick={() => move(i, 1)} aria-label="Move down"><Chevron dir="down" /></button>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-[#171717] truncate">{w.title}</span>
-                    <KindBadge kind={w.kind} />
+              <div key={id} className="border-b border-[#f5f5f5] last:border-0">
+                <div className="flex items-center gap-3 px-4 py-3 hover:bg-[#fafafa]">
+                  <div className="flex flex-col">
+                    <button className="text-[#a3a3a3] hover:text-[#171717] disabled:opacity-25" disabled={i === 0} onClick={() => move(i, -1)} aria-label="Move up"><Chevron dir="up" /></button>
+                    <button className="text-[#a3a3a3] hover:text-[#171717] disabled:opacity-25" disabled={i === layout.length - 1} onClick={() => move(i, 1)} aria-label="Move down"><Chevron dir="down" /></button>
                   </div>
-                  <div className="text-xs text-[#a3a3a3]">{w.desc}</div>
-                </div>
-                {w.source && (
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-[#171717] truncate">{customTitle.trim() || w.title}</span>
+                      <KindBadge kind={w.kind} />
+                      {customTitle.trim() !== '' && <span className="text-[10px] text-[#a3a3a3]">renamed</span>}
+                    </div>
+                    <div className="text-xs text-[#a3a3a3]">{w.desc}</div>
+                  </div>
+                  {/* Per-widget settings: title (+ the footprint card's stat list) */}
                   <button
-                    onClick={() => onNavigate?.(w.source!.tab, w.source!.section)}
-                    className="btn-secondary text-xs flex-shrink-0 inline-flex items-center gap-1"
+                    onClick={() => setEditingId(editing ? null : id)}
+                    aria-expanded={editing}
+                    className={'text-xs flex-shrink-0 inline-flex items-center gap-1 ' + (editing ? 'btn-primary' : 'btn-secondary')}
                   >
-                    Edit data
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+                    {editing ? 'Close' : 'Edit'}
                   </button>
+                  {w.source && (
+                    <button
+                      onClick={() => onNavigate?.(w.source!.tab, w.source!.section)}
+                      className="btn-secondary text-xs flex-shrink-0 inline-flex items-center gap-1"
+                    >
+                      Edit data
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+                    </button>
+                  )}
+                  <button onClick={() => remove(id)} className="text-[#a3a3a3] hover:text-[#be123c] flex-shrink-0 p-1" aria-label="Remove">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                  </button>
+                </div>
+                {editing && (
+                  <div className="px-4 pb-4 pt-2 bg-[#fafafa] border-t border-[#f0f0f0] space-y-3">
+                    <div className="max-w-sm">
+                      <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-1">Display title</label>
+                      <input
+                        className="input text-sm"
+                        placeholder={w.title}
+                        value={customTitle}
+                        onChange={(e) => setTitles((t) => ({ ...t, [id]: e.target.value }))}
+                      />
+                      <p className="text-[10px] text-[#a3a3a3] mt-1">Leave empty to use the default name.</p>
+                    </div>
+                    {id === 'card:modelFootprint' && (
+                      <div>
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-1.5">Stats shown</div>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                          {Object.values(FOOTPRINT_STATS).map((st) => (
+                            <label key={st.key} className="flex items-center gap-1.5 text-sm text-[#525252]">
+                              <input type="checkbox" checked={footprint.includes(st.key)} onChange={() => toggleFootprint(st.key)} />
+                              {st.label}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <p className="text-[10px] text-[#a3a3a3]">Changes apply when you save the layout.</p>
+                  </div>
                 )}
-                <button onClick={() => remove(id)} className="text-[#a3a3a3] hover:text-[#be123c] flex-shrink-0 p-1" aria-label="Remove">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
-                </button>
               </div>
             );
           })}
