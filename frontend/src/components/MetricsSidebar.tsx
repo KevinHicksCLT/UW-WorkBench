@@ -5,15 +5,20 @@
 // buttons that navigate one level deeper in the map.
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export type Fmt = 'money' | 'years' | 'number';
-export type MetricItem = { label: string; value: number; hint?: string; sub?: string; format?: Fmt; illustrative?: boolean; drill?: { level: string; id: string } };
-export type MetricSection = { title: string; kind: 'bar' | 'list' | 'kpi'; items: MetricItem[]; illustrative?: boolean };
+// `href` links out to an app page (e.g. /applications); `children` nests items
+// for `tree` sections (deliverable → task → role → checklist/people).
+export type MetricItem = { label: string; value: number; hint?: string; sub?: string; format?: Fmt; illustrative?: boolean; drill?: { level: string; id: string }; href?: string; children?: MetricItem[] };
+// A `hidden` section never renders inline — it backs a tile's consolidated
+// drawer (tile.drawer names the section).
+export type MetricSection = { title: string; kind: 'bar' | 'list' | 'kpi' | 'tree'; items: MetricItem[]; illustrative?: boolean; hidden?: boolean };
 export type Dashboard = {
   level: string;
   title: string;
   subtitle?: string;
-  tiles: { label: string; value: number; hint?: string; format?: Fmt; illustrative?: boolean }[];
+  tiles: { label: string; value: number; hint?: string; format?: Fmt; illustrative?: boolean; drawer?: string }[];
   sections: MetricSection[];
 };
 
@@ -40,6 +45,55 @@ function fmt(n: number, f?: Fmt) {
   return n >= 1000 ? n.toLocaleString() : String(n);
 }
 
+// ── Nested tree rows (kind: 'tree') ─────────────────────────────────────────
+// Deliverable → task → responsible role → checklist + people. Rows with
+// children expand in place; rows with a drill/href also carry a jump arrow.
+function TreeRow({ item, depth, wide, onDrill, onNavigate }: {
+  item: MetricItem; depth: number; wide?: boolean;
+  onDrill: (level: string, id: string) => void;
+  onNavigate: (href: string) => void;
+}) {
+  const [open, setOpen] = useState(depth === 0 && !!wide);
+  const kids = item.children ?? [];
+  const go = item.drill ? () => onDrill(item.drill!.level, item.drill!.id) : item.href ? () => onNavigate(item.href!) : undefined;
+  const text = wide ? 'text-[13px]' : 'text-[11.5px]';
+  return (
+    <div>
+      <div
+        className="flex items-start gap-1.5 rounded-md px-1.5 py-1 hover:bg-[#f5f8ff] transition-colors duration-150"
+        style={{ marginLeft: depth * (wide ? 14 : 10) }}
+      >
+        {kids.length ? (
+          <button onClick={() => setOpen((o) => !o)} aria-label={open ? 'Collapse' : 'Expand'} className="mt-[3px] flex-shrink-0 text-[#a3a3a3] hover:text-[#171717]">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? 'rotate(90deg)' : undefined, transition: 'transform 120ms' }}><path d="M9 6l6 6-6 6" /></svg>
+          </button>
+        ) : (
+          <span className="mt-[7px] w-[10px] flex-shrink-0 flex justify-center"><span className="w-1 h-1 rounded-full bg-[#d4d4d4]" /></span>
+        )}
+        <button
+          onClick={kids.length ? () => setOpen((o) => !o) : go}
+          className={`flex-1 min-w-0 text-left ${kids.length || go ? 'cursor-pointer' : 'cursor-default'}`}
+        >
+          <span className={`${text} ${depth === 0 ? 'font-semibold text-[#171717]' : 'text-[#383838]'} leading-snug block`}>
+            {item.label}
+            {kids.length > 0 && <span className="text-[#a3a3a3] font-normal"> ({kids.length})</span>}
+          </span>
+          {item.hint && <span className="text-[9px] font-medium text-[#525252] bg-[#f0f0f0] rounded px-1.5 py-0.5 inline-block mt-0.5">{item.hint}</span>}
+          {item.sub && <span className="text-[9.5px] text-[#a3a3a3] block mt-0.5">{item.sub}</span>}
+        </button>
+        {go && kids.length > 0 && (
+          <button onClick={go} aria-label="Open" className="mt-[3px] flex-shrink-0 text-[#a3a3a3] hover:text-[#1d4ed8]">
+            <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M6.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
+        )}
+      </div>
+      {open && kids.map((c, i) => (
+        <TreeRow key={`${c.label}-${i}`} item={c} depth={depth + 1} wide={wide} onDrill={onDrill} onNavigate={onNavigate} />
+      ))}
+    </div>
+  );
+}
+
 export default function MetricsSidebar({
   dash, loading, onDrill, onBack, onClose, onViewAll, onViewDetail,
 }: {
@@ -54,6 +108,7 @@ export default function MetricsSidebar({
   // When provided (value-stream level), renders the full-detail drawer button.
   onViewDetail?: () => void;
 }) {
+  const navigate = useNavigate();
   // Minimizable: collapse the panel to a thin rail to give the map full width.
   // Always starts collapsed (a thin rail labelled with the selection's name);
   // the user expands it explicitly.
@@ -145,19 +200,30 @@ export default function MetricsSidebar({
         </div>
       ) : (
         <>
-          {/* Stat tiles */}
+          {/* Stat tiles — tiles naming a drawer section open its consolidated list. */}
           <div className="p-3 grid grid-cols-2 gap-2 border-b border-[#eaeaea]">
-            {dash.tiles.map((t) => (
-              <div key={t.label} className="rounded-lg border border-[#eaeaea] bg-[#fafafa] px-3 py-2.5">
-                <div className="text-[19px] font-bold text-[#171717] leading-none tabular-nums">{t.value === 0 && t.hint ? '—' : fmt(t.value, t.format)}</div>
-                <div className="text-[10.5px] text-[#525252] mt-1 leading-tight flex items-center gap-1">{t.label}</div>
-                {t.hint && <div className="text-[9px] text-[#a3a3a3] mt-0.5 leading-tight">{t.hint}</div>}
-              </div>
-            ))}
+            {dash.tiles.map((t) => {
+              const target = t.drawer ? dash.sections.find((s) => s.title === t.drawer) : undefined;
+              const clickable = !!target && !!onViewAll;
+              const body = (
+                <>
+                  <div className="text-[19px] font-bold text-[#171717] leading-none tabular-nums">{t.value === 0 && t.hint ? '—' : fmt(t.value, t.format)}</div>
+                  <div className="text-[10.5px] text-[#525252] mt-1 leading-tight flex items-center gap-1">{t.label}</div>
+                  {t.hint && <div className="text-[9px] text-[#a3a3a3] mt-0.5 leading-tight">{t.hint}</div>}
+                </>
+              );
+              return clickable ? (
+                <button key={t.label} onClick={() => onViewAll!(target!)} className="text-left rounded-lg border border-[#eaeaea] bg-[#fafafa] px-3 py-2.5 hover:bg-[#f5f8ff] hover:border-[#dbe7ff] transition-colors duration-150">
+                  {body}
+                </button>
+              ) : (
+                <div key={t.label} className="rounded-lg border border-[#eaeaea] bg-[#fafafa] px-3 py-2.5">{body}</div>
+              );
+            })}
           </div>
 
-          {/* Sections */}
-          {dash.sections.filter((s) => s.items.length > 0).map((section) => {
+          {/* Sections (hidden ones back the tile drawers only) */}
+          {dash.sections.filter((s) => s.items.length > 0 && !s.hidden).map((section) => {
             const max = Math.max(1, ...section.items.map((i) => i.value));
             const shown = section.items.slice(0, SECTION_LIMIT);
             const hidden = section.items.length - shown.length;
@@ -218,30 +284,43 @@ export default function MetricsSidebar({
                       </div>
                     ))}
                   </div>
+                ) : section.kind === 'tree' ? (
+                  <div className="flex flex-col gap-0.5">
+                    {shown.map((item, i) => (
+                      <TreeRow key={`${item.label}-${i}`} item={item} depth={0} onDrill={onDrill} onNavigate={(href) => navigate(href)} />
+                    ))}
+                  </div>
                 ) : (
                   <div className="flex flex-col gap-0.5">
-                    {shown.map((item) =>
-                      item.drill ? (
+                    {shown.map((item) => {
+                      const go = item.drill ? () => onDrill(item.drill!.level, item.drill!.id) : item.href ? () => navigate(item.href!) : undefined;
+                      return go ? (
                         <button
                           key={item.label}
-                          onClick={() => onDrill(item.drill!.level, item.drill!.id)}
-                          className="w-full flex items-center gap-2 text-left rounded-md px-2 py-1.5 -mx-1 hover:bg-[#f5f8ff] border border-transparent hover:border-[#dbe7ff] transition-colors duration-150"
+                          onClick={go}
+                          className="w-full text-left rounded-md px-2 py-1.5 -mx-1 hover:bg-[#f5f8ff] border border-transparent hover:border-[#dbe7ff] transition-colors duration-150"
                         >
-                          <span className="text-[11.5px] text-[#171717] truncate flex-1">{item.label}</span>
-                          {item.value !== 0 && <span className="text-[11px] font-semibold text-[#171717] tabular-nums flex-shrink-0">{fmt(item.value, item.format)}</span>}
-                          {item.hint && <span className="text-[9px] font-medium text-[#525252] bg-[#f0f0f0] rounded px-1.5 py-0.5 flex-shrink-0">{item.hint}</span>}
-                          <svg width="11" height="11" viewBox="0 0 13 13" fill="none" className="text-[#a3a3a3] flex-shrink-0">
-                            <path d="M2 6.5h9M6.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
+                          <span className="flex items-center gap-2">
+                            <span className="text-[11.5px] text-[#171717] truncate flex-1">{item.label}</span>
+                            {item.value !== 0 && <span className="text-[11px] font-semibold text-[#171717] tabular-nums flex-shrink-0">{fmt(item.value, item.format)}</span>}
+                            {item.hint && <span className="text-[9px] font-medium text-[#525252] bg-[#f0f0f0] rounded px-1.5 py-0.5 flex-shrink-0">{item.hint}</span>}
+                            <svg width="11" height="11" viewBox="0 0 13 13" fill="none" className="text-[#a3a3a3] flex-shrink-0">
+                              <path d="M2 6.5h9M6.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </span>
+                          {item.sub && <span className="text-[9.5px] text-[#a3a3a3] block mt-0.5">{item.sub}</span>}
                         </button>
                       ) : (
-                        <div key={item.label} className="flex items-center gap-2 px-2 py-1.5">
-                          <span className="text-[11.5px] text-[#525252] truncate flex-1">{item.label}</span>
-                          {item.value !== 0 && <span className="text-[11px] font-semibold text-[#171717] tabular-nums flex-shrink-0">{fmt(item.value, item.format)}</span>}
-                          {item.hint && <span className="text-[9px] text-[#a3a3a3] flex-shrink-0">{item.hint}</span>}
+                        <div key={item.label} className="px-2 py-1.5">
+                          <span className="flex items-center gap-2">
+                            <span className="text-[11.5px] text-[#525252] truncate flex-1">{item.label}</span>
+                            {item.value !== 0 && <span className="text-[11px] font-semibold text-[#171717] tabular-nums flex-shrink-0">{fmt(item.value, item.format)}</span>}
+                            {item.hint && <span className="text-[9px] text-[#a3a3a3] flex-shrink-0">{item.hint}</span>}
+                          </span>
+                          {item.sub && <span className="text-[9.5px] text-[#a3a3a3] block mt-0.5">{item.sub}</span>}
                         </div>
-                      )
-                    )}
+                      );
+                    })}
                   </div>
                 )}
 
@@ -281,6 +360,7 @@ export function MetricsDrawer({
   onClose: () => void;
   onDrill: (level: string, id: string) => void;
 }) {
+  const navigate = useNavigate();
   const max = Math.max(1, ...section.items.map((i) => i.value));
   const drill = (d: { level: string; id: string }) => { onDrill(d.level, d.id); onClose(); };
 
@@ -337,30 +417,43 @@ export function MetricsDrawer({
                 </div>
               ))}
             </div>
+          ) : section.kind === 'tree' ? (
+            <div className="flex flex-col gap-0.5">
+              {section.items.map((item, i) => (
+                <TreeRow key={`${item.label}-${i}`} item={item} depth={0} wide onDrill={(l, id) => drill({ level: l, id })} onNavigate={(href) => { navigate(href); onClose(); }} />
+              ))}
+            </div>
           ) : (
             <div className="flex flex-col gap-0.5">
-              {section.items.map((item) =>
-                item.drill ? (
+              {section.items.map((item) => {
+                const go = item.drill ? () => drill(item.drill!) : item.href ? () => { navigate(item.href!); onClose(); } : undefined;
+                return go ? (
                   <button
                     key={item.label}
-                    onClick={() => drill(item.drill!)}
-                    className="w-full flex items-center gap-2.5 text-left rounded-md px-2.5 py-2 hover:bg-[#f5f8ff] border border-transparent hover:border-[#dbe7ff] transition-colors duration-150"
+                    onClick={go}
+                    className="w-full text-left rounded-md px-2.5 py-2 hover:bg-[#f5f8ff] border border-transparent hover:border-[#dbe7ff] transition-colors duration-150"
                   >
-                    <span className="text-[13px] text-[#171717] flex-1">{item.label}</span>
-                    {item.value !== 0 && <span className="text-[13px] font-semibold text-[#171717] tabular-nums flex-shrink-0">{fmt(item.value, item.format)}</span>}
-                    {item.hint && <span className="text-[10px] font-medium text-[#525252] bg-[#f0f0f0] rounded px-1.5 py-0.5 flex-shrink-0">{item.hint}</span>}
-                    <svg width="12" height="12" viewBox="0 0 13 13" fill="none" className="text-[#a3a3a3] flex-shrink-0">
-                      <path d="M2 6.5h9M6.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <span className="flex items-center gap-2.5">
+                      <span className="text-[13px] text-[#171717] flex-1">{item.label}</span>
+                      {item.value !== 0 && <span className="text-[13px] font-semibold text-[#171717] tabular-nums flex-shrink-0">{fmt(item.value, item.format)}</span>}
+                      {item.hint && <span className="text-[10px] font-medium text-[#525252] bg-[#f0f0f0] rounded px-1.5 py-0.5 flex-shrink-0">{item.hint}</span>}
+                      <svg width="12" height="12" viewBox="0 0 13 13" fill="none" className="text-[#a3a3a3] flex-shrink-0">
+                        <path d="M2 6.5h9M6.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                    {item.sub && <span className="text-[11px] text-[#a3a3a3] block mt-0.5">{item.sub}</span>}
                   </button>
                 ) : (
-                  <div key={item.label} className="flex items-center gap-2.5 px-2.5 py-2">
-                    <span className="text-[13px] text-[#525252] flex-1">{item.label}</span>
-                    {item.value !== 0 && <span className="text-[13px] font-semibold text-[#171717] tabular-nums flex-shrink-0">{fmt(item.value, item.format)}</span>}
-                    {item.hint && <span className="text-[10px] text-[#a3a3a3] flex-shrink-0">{item.hint}</span>}
+                  <div key={item.label} className="px-2.5 py-2">
+                    <span className="flex items-center gap-2.5">
+                      <span className="text-[13px] text-[#525252] flex-1">{item.label}</span>
+                      {item.value !== 0 && <span className="text-[13px] font-semibold text-[#171717] tabular-nums flex-shrink-0">{fmt(item.value, item.format)}</span>}
+                      {item.hint && <span className="text-[10px] text-[#a3a3a3] flex-shrink-0">{item.hint}</span>}
+                    </span>
+                    {item.sub && <span className="text-[11px] text-[#a3a3a3] block mt-0.5">{item.sub}</span>}
                   </div>
-                )
-              )}
+                );
+              })}
             </div>
           )}
         </div>

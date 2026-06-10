@@ -23,6 +23,7 @@ import PortfolioProgram from './pages/PortfolioProgram';
 import PortfolioInitiative from './pages/PortfolioInitiative';
 import PortfolioRaid from './pages/PortfolioRaid';
 import Work from './pages/Work';
+import Applications from './pages/Applications';
 import External from './pages/External';
 import Regulations from './pages/Regulations';
 import RegulationDetail from './pages/RegulationDetail';
@@ -104,6 +105,7 @@ export default function App() {
         <Route path="/regulations" element={<Regulations />} />
         <Route path="/regulations/:code" element={<RegulationDetail />} />
         {/* External Interactions — read-only external-party dependency view. */}
+        <Route path="/applications" element={<Applications />} />
         <Route path="/external" element={<External />} />
         {/* ADMIN-only data administration + audit trail. The Data Dictionary now
             lives inside the Data Admin tab as a view. The backend also gates
