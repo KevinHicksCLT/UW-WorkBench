@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState } from 
 import { DOMAIN_HEX, type DivisionSummary } from '../viz/model';
 import { api } from '../lib/api';
 import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from './MetricsSidebar';
+import ValueStreamDrawer from './ValueStreamDrawer';
 
 // List view = the WHOLE operating model, fully exploded on load — every level
 // visible at once so the depth of the company reads immediately:
@@ -27,8 +28,8 @@ const catFor = (higherCategory: string | null): Category => higherCategory ?? 'U
 const hexFor = (c: string) => DOMAIN_HEX[c] ?? '#64748b';
 
 // Context lets any node open the right-hand metrics panel without prop-drilling.
-type MetricsCtxValue = { open: (level: string, id: string) => void; activeKey: string | null };
-const MetricsCtx = createContext<MetricsCtxValue>({ open: () => {}, activeKey: null });
+type MetricsCtxValue = { open: (level: string, id: string) => void; openVsDetail: (id: string) => void; activeKey: string | null };
+const MetricsCtx = createContext<MetricsCtxValue>({ open: () => {}, openVsDetail: () => {}, activeKey: null });
 const useMetrics = () => useContext(MetricsCtx);
 
 // ── Row chrome (shared by every node) ─────────────────────────────────────────
@@ -43,9 +44,12 @@ const Meta = ({ children }: { children: React.ReactNode }) => (
 );
 
 function Row({
-  depth, leaf, open, onClick, accent, num, label, meta, muted, strong, selected,
+  depth, leaf, open, onClick, onToggle, accent, num, label, meta, muted, strong, selected,
 }: {
   depth: number; leaf?: boolean; open?: boolean; onClick?: () => void;
+  // When provided, the caret toggles expansion independently of the row click
+  // (so a row can open its detail while the chevron still collapses the branch).
+  onToggle?: () => void;
   accent?: string; num?: number; label: string; meta?: React.ReactNode; muted?: boolean; strong?: boolean; selected?: boolean;
 }) {
   const clickable = !!onClick;
@@ -56,7 +60,10 @@ function Row({
       className={'flex items-center gap-2 py-2 pr-3 border-b border-[#f5f5f5] last:border-0 transition-colors duration-150 '
         + (selected ? 'bg-[#f5f8ff] ' : '') + (clickable ? 'cursor-pointer hover:bg-[#fafafa]' : '')}
     >
-      <span className="w-3.5 flex-shrink-0 flex items-center">{!leaf && <Caret open={!!open} />}</span>
+      <span
+        className={'w-3.5 flex-shrink-0 flex items-center' + (onToggle ? ' cursor-pointer' : '')}
+        onClick={onToggle ? (e) => { e.stopPropagation(); onToggle(); } : undefined}
+      >{!leaf && <Caret open={!!open} />}</span>
       {accent && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: accent }} />}
       {num != null && <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#f5f5f5] text-[10px] font-semibold text-[#525252] tnum flex-shrink-0">{num}</span>}
       <span className={'truncate flex-1 ' + (strong ? 'text-sm font-semibold text-[#171717]' : muted ? 'text-[13px] text-[#525252]' : 'text-sm text-[#171717]')}>{label}</span>
@@ -96,11 +103,15 @@ function AreaNode({ area, depth }: { area: Area; depth: number }) {
 
 function ValueStreamNode({ vs, depth }: { vs: VS; depth: number }) {
   const [open, setOpen] = useState(true);
+  // Clicking the stream opens its full detail drawer (the retired standalone
+  // page's content, in place); the caret still expands/collapses the branch.
+  const { openVsDetail } = useMetrics();
   return (
     <>
       <Row depth={depth} leaf={vs.areas.length === 0} open={open}
-        onClick={vs.areas.length ? () => setOpen((o) => !o) : undefined}
-        label={vs.name} meta={<Meta>{vs.areas.length} sub-processes</Meta>} />
+        onClick={() => openVsDetail(vs.id)}
+        onToggle={vs.areas.length ? () => setOpen((o) => !o) : undefined}
+        label={vs.name} meta={<Meta>{vs.areas.length} sub-processes · details →</Meta>} />
       {open && (vs.areas.length > 0
         ? vs.areas.map((a) => <AreaNode key={a.id} area={a} depth={depth + 1} />)
         : <InfoRow depth={depth + 1} text="No process areas mapped." />)}
@@ -250,6 +261,8 @@ export default function ListExplorer({ companyName }: { companyName: string; div
   const [dash, setDash] = useState<Dashboard | null>(null);
   const [dashLoading, setDashLoading] = useState(false);
   const [drawerSection, setDrawerSection] = useState<MetricSection | null>(null);
+  // Value-stream full detail drawer (the standalone page was retired).
+  const [vsDetailId, setVsDetailId] = useState<string | null>(null);
   const target = ovStack.length ? ovStack[ovStack.length - 1] : base;
 
   const openMetrics = (level: string, id: string) => { setBase({ level, id }); setOvStack([]); };
@@ -328,7 +341,7 @@ export default function ListExplorer({ companyName }: { companyName: string; div
   const name = tree?.company.name ?? companyName;
 
   return (
-    <MetricsCtx.Provider value={{ open: openMetrics, activeKey }}>
+    <MetricsCtx.Provider value={{ open: openMetrics, openVsDetail: setVsDetailId, activeKey }}>
       {/* Side-by-side: tree scrolls, metrics panel sits beside it (no overlay). */}
       <div className="h-full flex relative">
         <div className="flex-1 min-w-0 overflow-auto">
@@ -361,7 +374,11 @@ export default function ListExplorer({ companyName }: { companyName: string; div
 
         {/* Right-hand metrics panel — same component as the map, pushes content (no dimming overlay) */}
         {base && (
-          <MetricsSidebar dash={dash} loading={dashLoading} onDrill={onDrill} onBack={ovStack.length ? onBack : undefined} onClose={closeMetrics} onViewAll={setDrawerSection} />
+          <MetricsSidebar
+            dash={dash} loading={dashLoading} onDrill={onDrill}
+            onBack={ovStack.length ? onBack : undefined} onClose={closeMetrics} onViewAll={setDrawerSection}
+            onViewDetail={target?.level === 'valueStream' && target.id ? () => setVsDetailId(target.id) : undefined}
+          />
         )}
 
         {/* Comprehensive "view all" drawer — overlays the panel; closing returns the user to exactly where they were. */}
@@ -373,6 +390,9 @@ export default function ListExplorer({ companyName }: { companyName: string; div
             onDrill={onDrill}
           />
         )}
+
+        {/* Value-stream full detail — slides over the list in place. */}
+        {vsDetailId && <ValueStreamDrawer valueStreamId={vsDetailId} onClose={() => setVsDetailId(null)} />}
       </div>
     </MetricsCtx.Provider>
   );

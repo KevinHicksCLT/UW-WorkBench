@@ -11,7 +11,6 @@ import Explorer from './pages/Explorer';
 import DivisionDetail from './pages/DivisionDetail';
 import DepartmentDetail from './pages/DepartmentDetail';
 import Organization from './pages/Organization';
-import ValueStreamDetail from './pages/ValueStreamDetail';
 import SearchResults from './pages/SearchResults';
 import Admin from './pages/Admin';
 import AuditTrail from './pages/AuditTrail';
@@ -31,6 +30,13 @@ import External from './pages/External';
 function RoleRedirect() {
   const { id } = useParams();
   return <Navigate to={`/roles?role=${encodeURIComponent(id ?? '')}`} replace />;
+}
+
+// The standalone value-stream page was retired too — its detail renders as an
+// in-place drawer on the map/list view. Old links land on the focused map.
+function ValueStreamRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/overview?focus=${encodeURIComponent(id ?? '')}`} replace />;
 }
 
 export default function App() {
@@ -71,7 +77,7 @@ export default function App() {
         <Route path="/divisions/:id" element={<DivisionDetail />} />
         <Route path="/departments/:id" element={<DepartmentDetail />} />
         <Route path="/roles/:id" element={<RoleRedirect />} />
-        <Route path="/value-streams/:id" element={<ValueStreamDetail />} />
+        <Route path="/value-streams/:id" element={<ValueStreamRedirect />} />
         <Route path="/search" element={<SearchResults />} />
         {/* Standards & Greenfield Migration — placeholder tabs. */}
         <Route path="/standards" element={<Standards />} />

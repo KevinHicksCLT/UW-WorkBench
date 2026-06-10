@@ -23,6 +23,7 @@ import type {
 import { CARD_W, CARD_H, DOMAIN_HEX } from './model';
 import type { NodeFocusState, DivisionSummary, DivisionFlow, FlowStep, FlowValueStream } from './model';
 import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from '../components/MetricsSidebar';
+import ValueStreamDrawer from '../components/ValueStreamDrawer';
 import { api } from '../lib/api';
 
 // ── Layout constants ─────────────────────────────────────────────────────────
@@ -97,6 +98,9 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
   const [dashLoading, setDashLoading] = useState(false);
   // Comprehensive "view all" drawer (a snapshot of one sidebar section).
   const [drawerSection, setDrawerSection] = useState<MetricSection | null>(null);
+  // Value-stream full detail, shown as an in-place drawer (the standalone page
+  // was retired — the map is the only home for this content now).
+  const [vsDetailId, setVsDetailId] = useState<string | null>(null);
 
   // Fetch helpers
   const fetchFlow = useCallback(async (divId: string) => {
@@ -255,11 +259,13 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
   // The metrics/roles dashboards bottom out at the process-area (L3) level, so
   // drilling into L4 sub-processes / L5 steps keeps the L3 dashboard in view.
   const metricTarget = useMemo<{ level: string; id: string } | null>(() => {
-    // The metrics sidebar only renders at the very last step (L5) — the only level
-    // carrying actual detail (description / roles / inputs / outputs / external).
+    // The metrics sidebar renders at the last step (L5) — the level carrying the
+    // actual detail — and at the value-stream level, whose sidebar offers the
+    // "View full details" drawer (the retired standalone page's content).
     if (level >= 4 && focusedSubStep) return { level: 'step', id: focusedSubStep.id };
+    if (focusedVs) return { level: 'valueStream', id: focusedVs.id };
     return null;
-  }, [level, focusedSubStep]);
+  }, [level, focusedSubStep, focusedVs?.id]);
 
   // Sidebar-internal drill stack for role → person (these aren't map nodes, so
   // they navigate inside the dashboard rather than the canvas).
@@ -852,6 +858,9 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
             onDrill={onDrill}
           />
         )}
+
+        {/* Value-stream full detail — slides over the canvas in place. */}
+        {vsDetailId && <ValueStreamDrawer valueStreamId={vsDetailId} onClose={() => setVsDetailId(null)} />}
       </div>
 
       {/* Right metrics dashboard — appears once the company is opened. */}
@@ -862,7 +871,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
           onDrill={onDrill}
           onBack={ovStack.length ? onDashBack : undefined}
           onViewAll={setDrawerSection}
-          onViewDetail={dashTarget?.level === 'valueStream' && dashTarget.id ? () => navigate(`/value-streams/${dashTarget.id}`) : undefined}
+          onViewDetail={dashTarget?.level === 'valueStream' && dashTarget.id ? () => setVsDetailId(dashTarget.id) : undefined}
         />
       )}
     </div>
