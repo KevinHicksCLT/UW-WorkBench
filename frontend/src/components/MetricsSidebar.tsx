@@ -52,15 +52,17 @@ function fmt(n: number, f?: Fmt) {
 // `tag`. Top-level deliverables render as accent cards; nested levels hang off
 // an indent guide. `defaultOpen` (section.expanded) opens the whole chain.
 
-// Per-tag visual identity: accent color, chip styling, and chip label.
+// Per-tag visual identity: accent color, chip styling, and chip label. One
+// clean hue per level — Capgemini blue (deliverable) → violet (task) →
+// emerald (role) → green check (checklist) — so the hierarchy reads at a glance.
 const TAGS: Record<string, { accent: string; chip: string; label: string }> = {
-  deliverable: { accent: '#0070AD', chip: 'bg-[#eaf1ff] text-[#0070AD] border border-[#cdddff]', label: 'Deliverable' },
-  task:        { accent: '#d97706', chip: 'bg-[#fef3c7] text-[#92400e] border border-[#fde68a]', label: 'Task' },
-  role:        { accent: '#0f766e', chip: 'bg-[#ccfbf1] text-[#0f766e] border border-[#99f6e4]', label: 'Role' },
-  checklist:   { accent: '#16a34a', chip: 'bg-[#dcfce7] text-[#15803d] border border-[#bbf7d0]', label: 'Checklist' },
-  person:      { accent: '#6366f1', chip: 'bg-[#eef2ff] text-[#4f46e5] border border-[#e0e7ff]', label: 'Person' },
-  step:        { accent: '#7c3aed', chip: 'bg-[#ede9fe] text-[#6d28d9] border border-[#ddd6fe]', label: 'L5 step' },
-  app:         { accent: '#1d4ed8', chip: 'bg-[#eaf1ff] text-[#1d4ed8] border border-[#dbe7ff]', label: 'Application' },
+  deliverable: { accent: '#0070AD', chip: 'bg-[#eff6ff] text-[#0070AD] border border-[#bfdbfe]', label: 'Deliverable' },
+  task:        { accent: '#7c3aed', chip: 'bg-[#f5f3ff] text-[#6d28d9] border border-[#ddd6fe]', label: 'Task' },
+  role:        { accent: '#059669', chip: 'bg-[#ecfdf5] text-[#047857] border border-[#a7f3d0]', label: 'Role' },
+  checklist:   { accent: '#16a34a', chip: 'bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0]', label: 'Checklist' },
+  person:      { accent: '#4f46e5', chip: 'bg-[#eef2ff] text-[#4f46e5] border border-[#e0e7ff]', label: 'Person' },
+  step:        { accent: '#0284c7', chip: 'bg-[#f0f9ff] text-[#0369a1] border border-[#bae6fd]', label: 'L5 step' },
+  app:         { accent: '#0070AD', chip: 'bg-[#eaf1ff] text-[#0070AD] border border-[#cdddff]', label: 'Application' },
 };
 
 const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
@@ -69,10 +71,10 @@ const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2)
 // tinted PANELS (boxes inside boxes), so each level of the chain is visibly
 // contained by its parent rather than flowing together.
 const PANEL: Record<string, { bg: string; border: string; rail: string }> = {
-  deliverable: { bg: '#f4f9ff', border: '#d3e4f6', rail: '#0070AD' },
-  task:        { bg: '#fffaf0', border: '#f0e0b8', rail: '#d97706' },
-  role:        { bg: '#f2fbf8', border: '#c8e9df', rail: '#0f766e' },
-  app:         { bg: '#f4f9ff', border: '#d3e4f6', rail: '#1d4ed8' },
+  deliverable: { bg: '#f0f7ff', border: '#c6ddf5', rail: '#0070AD' },
+  task:        { bg: '#faf8ff', border: '#ded5f8', rail: '#7c3aed' },
+  role:        { bg: '#effaf5', border: '#bfe8d4', rail: '#059669' },
+  app:         { bg: '#f0f7ff', border: '#c6ddf5', rail: '#0070AD' },
 };
 
 function TreeRow({ item, depth, wide, defaultOpen, trail = [], onDrill, onNavigate, onInspect }: {
