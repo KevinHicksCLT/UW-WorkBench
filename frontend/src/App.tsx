@@ -1,6 +1,6 @@
 // App.tsx
 
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { useAuth } from './lib/auth';
 import { CompanyProvider } from './lib/company';
 import { BreadcrumbProvider } from './lib/breadcrumbs';
@@ -10,7 +10,6 @@ import Overview from './pages/Overview';
 import Explorer from './pages/Explorer';
 import DivisionDetail from './pages/DivisionDetail';
 import DepartmentDetail from './pages/DepartmentDetail';
-import RoleDetail from './pages/RoleDetail';
 import Organization from './pages/Organization';
 import ValueStreamDetail from './pages/ValueStreamDetail';
 import SearchResults from './pages/SearchResults';
@@ -26,6 +25,13 @@ import PortfolioInitiative from './pages/PortfolioInitiative';
 import PortfolioRaid from './pages/PortfolioRaid';
 import Work from './pages/Work';
 import External from './pages/External';
+
+// The standalone role page was retired (it repeated the Organization role
+// panel) — old /roles/:id links open that panel instead.
+function RoleRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/roles?role=${encodeURIComponent(id ?? '')}`} replace />;
+}
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -64,7 +70,7 @@ export default function App() {
         {/* Detail pages remain as deep-link targets from inspector + search. */}
         <Route path="/divisions/:id" element={<DivisionDetail />} />
         <Route path="/departments/:id" element={<DepartmentDetail />} />
-        <Route path="/roles/:id" element={<RoleDetail />} />
+        <Route path="/roles/:id" element={<RoleRedirect />} />
         <Route path="/value-streams/:id" element={<ValueStreamDetail />} />
         <Route path="/search" element={<SearchResults />} />
         {/* Standards & Greenfield Migration — placeholder tabs. */}

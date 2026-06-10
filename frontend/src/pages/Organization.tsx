@@ -36,10 +36,13 @@ function ViewToggle({ view, onChange }: { view: View; onChange: (v: View) => voi
 }
 
 export default function Organization() {
-  // `?view=departments` deep-links (home "Departments" tile) target the existing
-  // box-grid drill-down — land on the Table view so OrgTable handles the param.
+  // `?view=departments` (home "Departments" tile) and `?role=<id>` (links from
+  // Work / External / Standards / the map) deep-link into the box-grid
+  // drill-down — land on the Table view so OrgTable handles the param.
   const [searchParams] = useSearchParams();
-  const [view, setView] = useState<View>(searchParams.get('view') === 'departments' ? 'table' : 'list');
+  const [view, setView] = useState<View>(
+    searchParams.get('view') === 'departments' || searchParams.get('role') ? 'table' : 'list',
+  );
 
   return (
     <div className="flex flex-col h-full min-h-0">
