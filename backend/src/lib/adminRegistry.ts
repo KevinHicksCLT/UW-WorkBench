@@ -1,5 +1,4 @@
 import { Prisma } from '@prisma/client';
-import { LEVEL_ENTITIES } from './valueStreamAdmin.js';
 
 // ─── Generic admin registry ─────────────────────────────────────────────
 // Derives editable-entity metadata directly from Prisma's DMMF (the runtime
@@ -233,7 +232,6 @@ export const ENTITIES: Record<string, AdminEntity> = build();
 for (const slug of HIDDEN) {
   if (ENTITIES[slug]) ENTITIES[slug].hidden = true;
 }
-for (const e of LEVEL_ENTITIES) ENTITIES[e.slug] = e;
 
 // Tag every entity with its sidebar group (unlisted ones → "Other").
 for (const e of Object.values(ENTITIES)) {

@@ -4,7 +4,6 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { ENTITY_LIST, getEntity, buildData, companyWhere, type AdminEntity } from '../lib/adminRegistry.js';
-import { LEVEL_HANDLERS } from '../lib/valueStreamAdmin.js';
 import { logAudit, computeDiff } from '../services/audit.js';
 import { recomputeInitiative } from '../services/portfolioRollup.js';
 import { runValidations } from '../services/validations.js';
@@ -177,31 +176,24 @@ router.get('/ai-adoption', async (req: Request, res: Response, next: NextFunctio
   try {
     const cid = await companyForReq(req);
     if (!cid) return res.status(400).json({ error: 'Valid companyId query parameter is required' });
-    // One row per canonical value_stream NODE (the id namespace the map/Telemetry
-    // use). Adoption still stores on LevelAiAdoption, joined through node.code
-    // (= the legacy Level id) until the legacy tables retire.
+    // One row per canonical value_stream NODE; adoption stores on the node-keyed
+    // NodeAiAdoption table (the legacy Level-keyed copy is retired).
     const nodes = await prisma.node.findMany({
       where: { companyId: cid, typeKey: 'value_stream' },
       orderBy: { name: 'asc' },
-      select: { id: true, name: true, code: true, parent: { select: { name: true } } },
+      select: { id: true, name: true, parent: { select: { name: true } }, aiAdoption: true },
     });
-    const codes = nodes.map((n) => n.code).filter((c): c is string => !!c);
-    const adoption = await prisma.levelAiAdoption.findMany({ where: { levelId: { in: codes } } });
-    const byLevel = new Map(adoption.map((a) => [a.levelId, a]));
     res.json({
       levels: [...AI_LEVELS],
-      rows: nodes.map((n) => {
-        const a = n.code ? byLevel.get(n.code) : undefined;
-        return {
-          levelId: n.id, // canonical node id (PATCH accepts it)
-          name: n.name,
-          domain: n.parent?.name ?? null,
-          aiAssist: a?.aiAssist ?? 'not_used',
-          aiAugment: a?.aiAugment ?? 'not_used',
-          aiWorkflow: a?.aiWorkflow ?? 'not_used',
-          aiAutonomous: a?.aiAutonomous ?? 'not_used',
-        };
-      }),
+      rows: nodes.map((n) => ({
+        levelId: n.id, // canonical node id (PATCH accepts it)
+        name: n.name,
+        domain: n.parent?.name ?? null,
+        aiAssist: n.aiAdoption?.aiAssist ?? 'not_used',
+        aiAugment: n.aiAdoption?.aiAugment ?? 'not_used',
+        aiWorkflow: n.aiAdoption?.aiWorkflow ?? 'not_used',
+        aiAutonomous: n.aiAdoption?.aiAutonomous ?? 'not_used',
+      })),
     });
   } catch (e) {
     next(e);
@@ -212,13 +204,10 @@ router.patch('/ai-adoption/:levelId', async (req: Request, res: Response, next: 
   try {
     const cid = await companyForReq(req);
     if (!cid) return res.status(400).json({ error: 'Valid companyId query parameter is required' });
-    // Accept the value_stream node id (preferred) or a legacy Level id.
-    const vsNode = await prisma.node.findFirst({ where: { id: req.params.levelId, companyId: cid, typeKey: 'value_stream' }, select: { id: true, code: true, name: true } });
-    const levelId = vsNode ? vsNode.code : (await prisma.level.findFirst({ where: { id: req.params.levelId, companyId: cid, levelNumber: 3 }, select: { id: true } }))?.id ?? null;
-    if (!levelId) {
-      return res.status(vsNode ? 400 : 404).json({ error: vsNode ? `"${vsNode.name}" has no legacy storage row yet — editable after the storage migration` : 'Not found' });
-    }
-    const node = { id: levelId };
+    // The value_stream node id — adoption stores directly on NodeAiAdoption.
+    const vsNode = await prisma.node.findFirst({ where: { id: req.params.levelId, companyId: cid, typeKey: 'value_stream' }, select: { id: true } });
+    if (!vsNode) return res.status(404).json({ error: 'Not found' });
+    const node = { id: vsNode.id };
 
     const data: Record<string, string> = {};
     for (const f of AI_FIELDS) {
@@ -229,10 +218,10 @@ router.patch('/ai-adoption/:levelId', async (req: Request, res: Response, next: 
     }
     if (Object.keys(data).length === 0) return res.status(400).json({ error: 'No AI-adoption fields to update' });
 
-    const before = await prisma.levelAiAdoption.findUnique({ where: { levelId: node.id } });
-    const updated = await prisma.levelAiAdoption.upsert({
-      where: { levelId: node.id },
-      create: { levelId: node.id, ...data },
+    const before = await prisma.nodeAiAdoption.findUnique({ where: { nodeId: node.id } });
+    const updated = await prisma.nodeAiAdoption.upsert({
+      where: { nodeId: node.id },
+      create: { nodeId: node.id, ...data },
       update: data,
     });
     logAudit({
@@ -257,14 +246,6 @@ router.get('/:entity', async (req: Request, res: Response, next: NextFunction) =
     const skip = Number(req.query.offset) || 0;
     const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
 
-    const lhList = LEVEL_HANDLERS[entity.model];
-    if (lhList) {
-      const cid = requireCompanyId(req, res);
-      if (!cid) return;
-      // The level editor renders the whole tree, so allow a much larger page here.
-      const lvlTake = Math.min(Number(req.query.limit) || 2000, 5000);
-      return res.json(await lhList.list(req.tenantId, cid, search, lvlTake, skip));
-    }
 
     const scope = readScope(req, res, entity);
     if (scope === null) return;
@@ -292,14 +273,6 @@ router.get('/:entity/:id', async (req: Request, res: Response, next: NextFunctio
   try {
     const entity = resolve(req, res);
     if (!entity) return;
-    const lhGet = LEVEL_HANDLERS[entity.model];
-    if (lhGet) {
-      const cid = requireCompanyId(req, res);
-      if (!cid) return;
-      const row = await lhGet.getOne(req.tenantId, cid, req.params.id);
-      if (!row) return res.status(404).json({ error: 'Not found' });
-      return res.json(row);
-    }
     const scope = readScope(req, res, entity);
     if (scope === null) return;
     const row = await delegate(entity).findFirst({ where: { id: req.params.id, ...tenantWhere(req, entity), ...scope } });
@@ -317,13 +290,6 @@ router.post('/:entity', async (req: Request, res: Response, next: NextFunction) 
     const entity = resolve(req, res);
     if (!entity) return;
 
-    const lhCreate = LEVEL_HANDLERS[entity.model];
-    if (lhCreate) {
-      const cid = requireCompanyId(req, res);
-      if (!cid) return;
-      const created = await lhCreate.create(req.tenantId, cid, req.user.email, req.body ?? {});
-      return res.status(201).json(created);
-    }
 
     let data: Record<string, unknown>;
     try {
@@ -357,14 +323,6 @@ router.patch('/:entity/:id', async (req: Request, res: Response, next: NextFunct
     const entity = resolve(req, res);
     if (!entity) return;
 
-    const lhUpdate = LEVEL_HANDLERS[entity.model];
-    if (lhUpdate) {
-      const cid = requireCompanyId(req, res);
-      if (!cid) return;
-      const updated = await lhUpdate.update(req.tenantId, cid, req.user.email, req.params.id, req.body ?? {});
-      if (!updated) return res.status(404).json({ error: 'Not found' });
-      return res.json(updated);
-    }
 
     const scope = readScope(req, res, entity);
     if (scope === null) return;
@@ -405,14 +363,6 @@ router.delete('/:entity/:id', async (req: Request, res: Response, next: NextFunc
     const entity = resolve(req, res);
     if (!entity) return;
 
-    const lhDelete = LEVEL_HANDLERS[entity.model];
-    if (lhDelete) {
-      const cid = requireCompanyId(req, res);
-      if (!cid) return;
-      const ok = await lhDelete.remove(req.tenantId, cid, req.user.email, req.params.id);
-      if (!ok) return res.status(404).json({ error: 'Not found' });
-      return res.status(204).end();
-    }
 
     const scope = readScope(req, res, entity);
     if (scope === null) return;

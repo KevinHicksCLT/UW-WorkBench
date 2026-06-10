@@ -1345,6 +1345,7 @@ model Node {
   sortOrder   Int        @default(0)
   provenance  String     @default("illustrative")
   attributes  Json?
+  aiAdoption  NodeAiAdoption?
   outLinks    NodeLink[] @relation("NodeLinkFrom")
   inLinks     NodeLink[] @relation("NodeLinkTo")
   createdAt   DateTime   @default(now())
@@ -1371,4 +1372,19 @@ model NodeLink {
   @@unique([fromId, toId, relationType])
   @@index([toId, relationType])
   @@index([companyId, relationType])
+}
+
+// AI-adoption per value_stream NODE (replaces LevelAiAdoption as the editable
+// store; the Level-keyed table remains only as a retired legacy copy).
+model NodeAiAdoption {
+  id           String   @id @default(cuid())
+  nodeId       String   @unique
+  node         Node     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  aiAssist     String   @default("not_used")
+  aiAugment    String   @default("not_used")
+  aiWorkflow   String   @default("not_used")
+  aiAutonomous String   @default("not_used")
+  useCases     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

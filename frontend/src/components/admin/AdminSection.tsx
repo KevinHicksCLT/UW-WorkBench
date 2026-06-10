@@ -2,7 +2,6 @@ import { useState } from 'react';
 import type { AdminEntity } from '../../lib/adminTypes';
 import type { EditorSpec } from '../../lib/adminConfig';
 import EntityList from './EntityList';
-import LevelTreeEditor from './LevelTreeEditor';
 import MasterDetailEditor, { type ChildSpec } from './MasterDetailEditor';
 import CompanyOnboard from './CompanyOnboard';
 import RoleStudio from './RoleStudio';
@@ -45,16 +44,6 @@ export default function AdminSection({
 
     case 'dashboard':
       return <DashboardAdmin onNavigate={onNavigate} />;
-
-    case 'tree':
-      return (
-        <LevelTreeEditor
-          companyId={companyId}
-          entity={spec.entity}
-          rootLabel={spec.rootLabel}
-          levelNames={spec.levelNames}
-        />
-      );
 
     case 'list': {
       const e = bySlug.get(spec.slug);

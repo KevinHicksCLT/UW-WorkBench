@@ -12,7 +12,6 @@ export type ChildRef = { slug: string; fk: string; title?: string; newLabel?: st
 export type EditorSpec =
   | { kind: 'company' }
   | { kind: 'dashboard' }
-  | { kind: 'tree'; entity: 'valueStreams' | 'organization'; rootLabel: string; levelNames: string[] }
   | { kind: 'masterDetail'; parent: string; parentTitle?: string; intro?: string; children: ChildRef[] }
   | { kind: 'list'; slug: string; intro?: string }
   | { kind: 'group'; intro?: string; lists: { slug: string; title?: string }[] }
@@ -25,9 +24,6 @@ export type EditorSpec =
 
 export type Section = { key: string; label: string; hint?: string; editor: EditorSpec };
 export type TabConfig = { key: string; label: string; description: string; sections: Section[] };
-
-// Friendly per-level names for the value-stream tree (index = level number).
-const VS_LEVELS = ['Enterprise', 'Domain', 'Division', 'Value Stream', 'Sub-Process', 'Process Step'];
 
 export const ADMIN_TABS: TabConfig[] = [
   {
@@ -55,7 +51,7 @@ export const ADMIN_TABS: TabConfig[] = [
     label: 'Value Streams',
     description: 'The operating-model map is driven by a single configurable level hierarchy (Enterprise → Domain → Division → Value Stream → Sub-Process → Process Step). Drill in to edit any node and its detail.',
     sections: [
-      { key: 'levels', label: 'Levels (the map)', hint: 'Drill-down tree', editor: { kind: 'tree', entity: 'valueStreams', rootLabel: 'Value Streams', levelNames: VS_LEVELS } },
+      { key: 'builder', label: 'Model builder', hint: 'the map structure', editor: { kind: 'builder' } },
       { key: 'steps', label: 'Process steps', editor: { kind: 'list', slug: 'processStep', intro: 'Sequenced E2E process steps attached to a value stream (the "how the work flows" detail).' } },
       { key: 'io', label: 'Inputs / outputs', editor: { kind: 'list', slug: 'ioItem', intro: 'Inputs, outputs, and deliverables inventoried per value stream.' } },
     ],
