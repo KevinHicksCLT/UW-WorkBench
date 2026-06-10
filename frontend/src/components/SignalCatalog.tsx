@@ -16,6 +16,7 @@ type Signal = {
   levels: string[]; store?: string; roleDrill: boolean;
   valueStreamName: string | null; domain: string | null; l3: string | null;
   ownerRole: string | null; ownerRoleId: string | null;
+  provenance: string | null; calculation: string | null; unsourced: boolean;
 };
 type Filters = { types: string[]; sources: string[]; categories: string[] };
 type Catalog = { signals: Signal[]; filters: Filters };
@@ -130,11 +131,15 @@ export default function SignalCatalog({ companyId }: { companyId: string | null 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [drill, setDrill] = useState<Signal | null>(null);
+  const [infoId, setInfoId] = useState<string | null>(null);
 
   const [search, setSearch] = useState('');
   const [type, setType] = useState('All');
   const [source, setSource] = useState('All');
   const [category, setCategory] = useState('All');
+  // Explicit ordering: field + direction (default keeps the catalog's own order).
+  const [sortBy, setSortBy] = useState<'default' | 'name' | 'category' | 'type' | 'source'>('default');
+  const [sortDir, setSortDir] = useState<1 | -1>(1);
 
   useEffect(() => {
     setLoading(true); setError('');
@@ -147,13 +152,16 @@ export default function SignalCatalog({ companyId }: { companyId: string | null 
     const q = search.trim().toLowerCase();
     const matchesSearch = (s: Signal) => !q || [s.name, s.description, s.ownerRole, s.valueStreamName, s.category, s.source]
       .some((v) => v?.toLowerCase().includes(q));
-    return data.signals.filter((s) =>
+    const rows = data.signals.filter((s) =>
       matchesSearch(s)
       && (type === 'All' || s.type === type)
       && (source === 'All' || s.sourceTokens.includes(source))
       && (category === 'All' || s.category === category)
     );
-  }, [data, search, type, source, category]);
+    if (sortBy === 'default') return rows;
+    const key = (s: Signal) => (sortBy === 'name' ? s.name : sortBy === 'category' ? s.category ?? '' : sortBy === 'type' ? s.type : s.sourceTokens[0] ?? '');
+    return [...rows].sort((a, b) => key(a).localeCompare(key(b)) * sortDir || a.name.localeCompare(b.name));
+  }, [data, search, type, source, category, sortBy, sortDir]);
 
   const reset = () => { setSearch(''); setType('All'); setSource('All'); setCategory('All'); };
   const anyFilter = !!search || [type, source, category].some((v) => v !== 'All');
@@ -188,6 +196,31 @@ export default function SignalCatalog({ companyId }: { companyId: string | null 
             <Dropdown label="Type" value={type} onChange={setType} options={data.filters.types} />
             <Dropdown label="Source" value={source} onChange={setSource} options={data.filters.sources} />
             <Dropdown label="Category" value={category} onChange={setCategory} options={data.filters.categories} />
+            <div>
+              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-1">Sort by</label>
+              <div className="flex items-center gap-1.5">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                  className="rounded-lg border border-[#eaeaea] bg-white px-2.5 py-1.5 text-sm text-[#171717] focus:outline-none focus:ring-1 focus:ring-[#171717]"
+                >
+                  <option value="default">Catalog order</option>
+                  <option value="name">Name (alphabetical)</option>
+                  <option value="category">Category</option>
+                  <option value="type">Type</option>
+                  <option value="source">Source</option>
+                </select>
+                {sortBy !== 'default' && (
+                  <button
+                    onClick={() => setSortDir((d) => (d === 1 ? -1 : 1))}
+                    title="Flip sort direction"
+                    className="text-xs font-medium text-[#525252] hover:text-[#171717] px-1.5 py-1.5"
+                  >
+                    {sortDir === 1 ? 'A → Z' : 'Z → A'}
+                  </button>
+                )}
+              </div>
+            </div>
             {anyFilter && (
               <button onClick={reset} className="text-xs text-[#525252] hover:text-[#171717] underline underline-offset-2 pb-2">Clear</button>
             )}
@@ -218,8 +251,25 @@ export default function SignalCatalog({ companyId }: { companyId: string | null 
                     <div className="flex items-center gap-1.5">
                       <span className="text-sm text-[#171717] font-medium leading-tight">{s.name}</span>
                       {s.kind === 'workforce' && <span className="inline-flex items-center px-1 py-0.5 rounded bg-[#eef2ff] text-[9px] font-semibold text-[#4338ca] uppercase tracking-wide flex-shrink-0">Viva</span>}
+                      {s.unsourced && <span className="inline-flex items-center px-1 py-0.5 rounded bg-[#fef3c7] text-[9px] font-semibold text-[#92400e] uppercase tracking-wide flex-shrink-0">No source</span>}
+                      {(s.provenance || s.calculation) && (
+                        <button
+                          onClick={() => setInfoId(infoId === s.id ? null : s.id)}
+                          aria-label="Show provenance"
+                          aria-expanded={infoId === s.id}
+                          className={'flex-shrink-0 w-4 h-4 rounded-full border text-[9px] font-semibold grid place-items-center transition-colors duration-150 ' + (infoId === s.id ? 'border-[#171717] bg-[#171717] text-white' : 'border-[#d4d4d4] text-[#a3a3a3] hover:border-[#737373] hover:text-[#525252]')}
+                        >
+                          i
+                        </button>
+                      )}
                     </div>
                     {s.description && <div className="text-[11px] text-[#a3a3a3] mt-0.5 leading-snug">{s.description}</div>}
+                    {infoId === s.id && (
+                      <div className="mt-1.5 rounded-md bg-[#fafafa] border border-[#eaeaea] px-2 py-1.5 space-y-0.5">
+                        {s.provenance && <div className="text-[11px] text-[#525252] leading-snug"><span className="font-semibold text-[#171717]">Source:</span> {s.provenance}</div>}
+                        {s.calculation && <div className="text-[11px] text-[#525252] leading-snug"><span className="font-semibold text-[#171717]">Calculation:</span> {s.calculation}</div>}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-2.5 text-[12px] text-[#525252] whitespace-nowrap">{s.source ?? '—'}</td>
                   <td className="px-4 py-2.5 whitespace-nowrap">

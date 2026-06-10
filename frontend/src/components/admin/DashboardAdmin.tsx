@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { useCompany } from '../../lib/company';
-import { WIDGET_CATALOG, WIDGET_MAP, DEFAULT_LAYOUT, type Widget } from '../../lib/dashboardWidgets';
+import { WIDGET_CATALOG, WIDGET_MAP, DEFAULT_LAYOUT, FOOTPRINT_STATS, FOOTPRINT_DEFAULT, type Widget } from '../../lib/dashboardWidgets';
 
 // ─── Home dashboard configurator (Data Admin → Home) ─────────────────────────
 // The Home screen is a per-company layout of widgets drawn from a fixed catalog
@@ -41,6 +41,14 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
   // Layout (ordered widget ids).
   const [layout, setLayout] = useState<string[]>([]);
   const [savedLayout, setSavedLayout] = useState<string[]>([]);
+  // Which stats the Model footprint card lists.
+  const [footprint, setFootprint] = useState<string[]>(FOOTPRINT_DEFAULT);
+  const [savedFootprint, setSavedFootprint] = useState<string[]>(FOOTPRINT_DEFAULT);
+  // Per-widget custom display titles (empty/missing -> catalog default).
+  const [titles, setTitles] = useState<Record<string, string>>({});
+  const [savedTitles, setSavedTitles] = useState<Record<string, string>>({});
+  // Which widget row's settings editor is expanded.
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [savingLayout, setSavingLayout] = useState(false);
   const [layoutSavedAt, setLayoutSavedAt] = useState<string | null>(null);
 
@@ -50,18 +58,23 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
     if (!companyId) return;
     setError(''); setNameSavedAt(null); setLayoutSavedAt(null);
     api.get(`/admin/company/${companyId}`)
-      .then((c: { id: string; name: string; dashboardConfig?: { widgets?: string[] } | null }) => {
+      .then((c: { id: string; name: string; dashboardConfig?: { widgets?: string[]; footprintStats?: string[]; widgetTitles?: Record<string, string> } | null }) => {
         setCompanyDbId(c.id);
         setName(c.name); setOrigName(c.name);
         // Keep only ids still in the catalog; fall back to the default layout.
         const saved = (c.dashboardConfig?.widgets ?? DEFAULT_LAYOUT).filter((id) => WIDGET_MAP.has(id));
         setLayout(saved); setSavedLayout(saved);
+        const fp = (c.dashboardConfig?.footprintStats ?? FOOTPRINT_DEFAULT).filter((k) => FOOTPRINT_STATS[k]);
+        setFootprint(fp); setSavedFootprint(fp);
+        const wt = c.dashboardConfig?.widgetTitles ?? {};
+        setTitles(wt); setSavedTitles(wt);
       })
       .catch((e) => setError(e.message));
   }, [companyId]);
 
   const nameDirty = name.trim() !== origName && name.trim().length > 0;
-  const layoutDirty = !same(layout, savedLayout);
+  const sameTitles = (a: Record<string, string>, b: Record<string, string>) => JSON.stringify(a) === JSON.stringify(b);
+  const layoutDirty = !same(layout, savedLayout) || !same(footprint, savedFootprint) || !sameTitles(titles, savedTitles);
 
   const saveName = async () => {
     if (!companyDbId) return;
@@ -82,8 +95,10 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
     if (!companyDbId) return;
     setSavingLayout(true); setError('');
     try {
-      await api.patch(`/admin/company/${companyDbId}/dashboard`, { widgets: layout });
-      setSavedLayout(layout);
+      const cleanTitles = Object.fromEntries(Object.entries(titles).filter(([, v]) => v.trim()));
+      await api.patch(`/admin/company/${companyDbId}/dashboard`, { widgets: layout, footprintStats: footprint, widgetTitles: cleanTitles });
+      setSavedLayout(layout); setSavedFootprint(footprint);
+      setTitles(cleanTitles); setSavedTitles(cleanTitles);
       setLayoutSavedAt(new Date().toLocaleTimeString());
     } catch (e) {
       setError((e as Error).message);
@@ -101,6 +116,9 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
   };
   const remove = (id: string) => setLayout((l) => l.filter((x) => x !== id));
   const add = (id: string) => setLayout((l) => (l.includes(id) ? l : [...l, id]));
+
+  const toggleFootprint = (k: string) =>
+    setFootprint((f) => (f.includes(k) ? f.filter((x) => x !== k) : [...f, k]));
 
   const available = WIDGET_CATALOG.filter((w) => !layout.includes(w.id));
   const availTiles = available.filter((w) => w.kind === 'tile');
@@ -156,31 +174,63 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
           {layout.map((id, i) => {
             const w = WIDGET_MAP.get(id);
             if (!w) return null;
+            const editing = editingId === id;
+            const customTitle = titles[id] ?? '';
             return (
-              <div key={id} className="flex items-center gap-3 px-4 py-3 border-b border-[#f5f5f5] last:border-0 hover:bg-[#fafafa]">
-                <div className="flex flex-col">
-                  <button className="text-[#a3a3a3] hover:text-[#171717] disabled:opacity-25" disabled={i === 0} onClick={() => move(i, -1)} aria-label="Move up"><Chevron dir="up" /></button>
-                  <button className="text-[#a3a3a3] hover:text-[#171717] disabled:opacity-25" disabled={i === layout.length - 1} onClick={() => move(i, 1)} aria-label="Move down"><Chevron dir="down" /></button>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-[#171717] truncate">{w.title}</span>
-                    <KindBadge kind={w.kind} />
+              <div key={id} className="border-b border-[#f5f5f5] last:border-0">
+                <div className="flex items-center gap-3 px-4 py-3 hover:bg-[#fafafa]">
+                  <div className="flex flex-col">
+                    <button className="text-[#a3a3a3] hover:text-[#171717] disabled:opacity-25" disabled={i === 0} onClick={() => move(i, -1)} aria-label="Move up"><Chevron dir="up" /></button>
+                    <button className="text-[#a3a3a3] hover:text-[#171717] disabled:opacity-25" disabled={i === layout.length - 1} onClick={() => move(i, 1)} aria-label="Move down"><Chevron dir="down" /></button>
                   </div>
-                  <div className="text-xs text-[#a3a3a3]">{w.desc}</div>
-                </div>
-                {w.source && (
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-[#171717] truncate">{customTitle.trim() || w.title}</span>
+                      <KindBadge kind={w.kind} />
+                      {customTitle.trim() !== '' && <span className="text-[10px] text-[#a3a3a3]">renamed</span>}
+                    </div>
+                    <div className="text-xs text-[#a3a3a3]">{w.desc}</div>
+                  </div>
+                  {/* Per-widget settings: title (+ the footprint card's stat list) */}
                   <button
-                    onClick={() => onNavigate?.(w.source!.tab, w.source!.section)}
-                    className="btn-secondary text-xs flex-shrink-0 inline-flex items-center gap-1"
+                    onClick={() => setEditingId(editing ? null : id)}
+                    aria-expanded={editing}
+                    className={'text-xs flex-shrink-0 inline-flex items-center gap-1 ' + (editing ? 'btn-primary' : 'btn-secondary')}
                   >
-                    Edit data
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+                    {editing ? 'Close' : 'Edit'}
                   </button>
+                  <button onClick={() => remove(id)} className="text-[#a3a3a3] hover:text-[#be123c] flex-shrink-0 p-1" aria-label="Remove">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                  </button>
+                </div>
+                {editing && (
+                  <div className="px-4 pb-4 pt-2 bg-[#fafafa] border-t border-[#f0f0f0] space-y-3">
+                    <div className="max-w-sm">
+                      <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-1">Display title</label>
+                      <input
+                        className="input text-sm"
+                        placeholder={w.title}
+                        value={customTitle}
+                        onChange={(e) => setTitles((t) => ({ ...t, [id]: e.target.value }))}
+                      />
+                      <p className="text-[10px] text-[#a3a3a3] mt-1">Leave empty to use the default name.</p>
+                    </div>
+                    {id === 'card:modelFootprint' && (
+                      <div>
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-1.5">Stats shown</div>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                          {Object.values(FOOTPRINT_STATS).map((st) => (
+                            <label key={st.key} className="flex items-center gap-1.5 text-sm text-[#525252]">
+                              <input type="checkbox" checked={footprint.includes(st.key)} onChange={() => toggleFootprint(st.key)} />
+                              {st.label}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <p className="text-[10px] text-[#a3a3a3]">Changes apply when you save the layout.</p>
+                  </div>
                 )}
-                <button onClick={() => remove(id)} className="text-[#a3a3a3] hover:text-[#be123c] flex-shrink-0 p-1" aria-label="Remove">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
-                </button>
               </div>
             );
           })}

@@ -68,6 +68,19 @@ export default function OrgTable() {
     return out;
   }, [data]);
 
+  // Deep-link: `?role=<legacy role id>` (role links across the app — Work,
+  // External, Standards, the map — land here now that the standalone role page
+  // is gone). Open the role inside its own hierarchy and clear the param.
+  useEffect(() => {
+    const wanted = searchParams.get('role');
+    if (!wanted || allRoles.length === 0) return;
+    const match = allRoles.find((r) => r.id === wanted);
+    if (match) { setDivId(match.divisionId); setDeptId(match.departmentId ?? LOOSE); setRoleId(match.id); setPersonId(null); }
+    const next = new URLSearchParams(searchParams);
+    next.delete('role');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams, allRoles]);
+
   const q = query.trim().toLowerCase();
   const matches = useMemo(
     () => (q ? allRoles.filter((r) => [r.name, r.roleFamily, r.roleLevel, r.departmentName, r.divisionName, r.segment].some((v) => v?.toLowerCase().includes(q))) : []),
@@ -254,7 +267,6 @@ function RoleDetailView({ roleId, crumbs, onSelectPerson }: { roleId: string; cr
             hideBreadcrumb
             title={r.name}
             subtitle={[r.roleFamily, r.department?.name, r.division?.name].filter(Boolean).join(' · ') || 'Role'}
-            actions={<Link to={`/roles/${r.id}`} className="btn-ghost">Full role page →</Link>}
           />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
@@ -352,8 +364,27 @@ function RoleDetailView({ roleId, crumbs, onSelectPerson }: { roleId: string; cr
               </div>
             </div>
 
-            {/* Users in the role */}
+            {/* Users in the role + where it participates */}
             <div className="space-y-6">
+              <div className="card">
+                <h3 className="font-semibold text-slate-900 mb-3">Value-Stream Participation ({r.participation.length})</h3>
+                {r.participation.length === 0 ? (
+                  <div className="text-sm text-slate-500 italic">Not mapped to any value stream.</div>
+                ) : (
+                  <div className="space-y-1.5">
+                    {r.participation.map((p, i) => (
+                      <div key={i} className="flex items-center justify-between gap-3 py-1.5 border-b border-slate-100 last:border-0">
+                        <div className="min-w-0">
+                          <Link to={`/overview?focus=${p.valueStreamId}`} className="text-sm text-brand-700 hover:underline">{p.valueStreamName}</Link>
+                          {p.subStream && <div className="text-xs text-slate-400 truncate">{p.subStream}</div>}
+                        </div>
+                        <span className={`${PARTICIPATION_CLASS[p.participationType] || 'pill-slate'} flex-shrink-0`}>{p.participationType}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="card">
                 <h3 className="font-semibold text-slate-900 mb-3">Users in Role ({r.people.length})</h3>
                 {r.people.length === 0 ? (
@@ -546,22 +577,6 @@ function PersonDetailView({ personId, crumbs }: { personId: string; crumbs: { la
                   </div>
                 </div>
               )}
-
-              <div className="card">
-                <h3 className="font-semibold text-slate-900 mb-3">Assignment{d.assignments.length === 1 ? '' : 's'} ({d.assignments.length})</h3>
-                <div className="space-y-3">
-                  {d.assignments.map((a) => (
-                    <div key={a.roleId} className="text-sm border-b border-slate-100 last:border-0 pb-3 last:pb-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <Link to={`/roles/${a.roleId}`} className="font-medium text-brand-700 hover:underline">{a.roleName}</Link>
-                        <span className="tnum text-xs text-[#a3a3a3] flex-shrink-0">{a.allocationPct}%</span>
-                      </div>
-                      <div className="text-xs text-[#a3a3a3]">{[a.departmentName, a.divisionName].filter(Boolean).join(' · ')}</div>
-                      {a.isPrimary && <span className="chip-soft mt-1 inline-block">Primary</span>}
-                    </div>
-                  ))}
-                </div>
-              </div>
 
               {d.valueStreams.length > 0 && (
                 <div className="card">

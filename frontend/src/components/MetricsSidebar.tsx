@@ -51,14 +51,18 @@ export default function MetricsSidebar({
   onClose?: () => void;
   // Opens a section's comprehensive (uncapped) view in a wide drawer.
   onViewAll?: (section: MetricSection) => void;
-  // When provided (value-stream level), renders a link to the full detail page.
+  // When provided (value-stream level), renders the full-detail drawer button.
   onViewDetail?: () => void;
 }) {
   // Minimizable: collapse the panel to a thin rail to give the map full width.
-  // Always starts collapsed by default; the user can expand it per session.
+  // Always starts collapsed (a thin rail labelled with the selection's name);
+  // the user expands it explicitly.
   const [collapsed, setCollapsed] = useState<boolean>(true);
   const toggleCollapsed = () => setCollapsed((c) => !c);
   const levelLabel = dash ? (LEVEL_LABEL[dash.level] ?? 'Roles') : 'Roles';
+  // The rail labels itself with the clicked node's NAME (the level alone reads
+  // as noise — "Process Level 3" says nothing about WHAT is selected).
+  const railLabel = dash?.title ?? levelLabel;
 
   // ── Collapsed rail ──────────────────────────────────────────────────────────
   if (collapsed) {
@@ -72,9 +76,9 @@ export default function MetricsSidebar({
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
         </button>
-        {levelLabel && (
-          <div className="mt-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0070AD] [writing-mode:vertical-rl] rotate-180 select-none">
-            {levelLabel}
+        {railLabel && (
+          <div className="mt-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0070AD] [writing-mode:vertical-rl] rotate-180 select-none max-h-[60vh] overflow-hidden text-ellipsis" title={railLabel}>
+            {railLabel}
           </div>
         )}
       </aside>

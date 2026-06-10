@@ -2,6 +2,7 @@ import './types/express.js'; // loads the Express.Request augmentation into the 
 import express from 'express';
 import type { Request, Response, ErrorRequestHandler } from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import morgan from 'morgan';
 import type { HealthResponse } from '@cascade/shared';
 
@@ -13,12 +14,12 @@ import divisionRoutes from './routes/divisions.js';
 import departmentRoutes from './routes/departments.js';
 import roleRoutes from './routes/roles.js';
 import valueStreamRoutes from './routes/valueStreams.js';
-import levelRoutes from './routes/levels.js';
 import externalInteractionRoutes from './routes/externalInteractions.js';
 import explorerRoutes from './routes/explorer.js';
 import searchRoutes from './routes/search.js';
 import adminRoutes from './routes/admin.js';
 import adminAiRoutes from './routes/adminAi.js';
+import builderRoutes from './routes/builder.js';
 import adminRoleRoutes from './routes/adminRole.js';
 import dashboardRoutes from './routes/dashboard.js';
 import rationalizationRoutes from './routes/rationalization.js';
@@ -29,6 +30,9 @@ import standardsSkillsRoutes from './routes/standardsSkills.js';
 
 const app = express();
 app.use(cors());
+// Gzip every response — the /work and /explorer payloads are MB-scale JSON
+// that compresses ~10×, which is most of the tab-load latency.
+app.use(compression());
 app.use(express.json({ limit: '5mb' }));
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
@@ -57,13 +61,13 @@ app.use('/divisions', divisionRoutes);
 app.use('/departments', departmentRoutes);
 app.use('/roles', roleRoutes);
 app.use('/value-streams', valueStreamRoutes);
-app.use('/levels', levelRoutes);
 app.use('/external-interactions', externalInteractionRoutes);
 app.use('/explorer', explorerRoutes);
 app.use('/search', searchRoutes);
 // Mount the AI overlay + role-context before the generic admin router so their
 // paths aren't captured by the /:entity catch-all in adminRoutes.
 app.use('/admin/ai', adminAiRoutes);
+app.use('/builder', builderRoutes);
 app.use('/admin/role-context', adminRoleRoutes);
 app.use('/admin', adminRoutes);
 app.use('/dashboard', dashboardRoutes);

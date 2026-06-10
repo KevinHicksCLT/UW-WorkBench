@@ -110,6 +110,18 @@ router.get('/deliverable/:id', async (req: Request, res: Response, next: NextFun
     const subProcesses = [...new Set(source.map((io) => [io.l3, io.l4].filter(Boolean).join(' · ')).filter(Boolean))];
     const dataElements = [...new Set(source.flatMap((io) => splitItems(io.dataElements)))];
 
+    // Upstream: the INPUTS consumed by the same sub-process(es) that produce this
+    // deliverable (the other half of the source I/O inventory — DT2).
+    const seenInputs = new Set<string>();
+    const inputs = ioItems
+      .filter((io) => /input/i.test(io.type) && sourceKeys.has(`${io.valueStreamId}␟${io.l4 ?? ''}`))
+      .filter((io) => { const k = norm(io.name); if (seenInputs.has(k)) return false; seenInputs.add(k); return true; })
+      .map((io) => ({
+        name: io.name,
+        dataElements: splitItems(io.dataElements),
+        roles: mergeRoles([io.keyRoles], resolve),
+      }));
+
     // Downstream: every place this work product is consumed as an INPUT elsewhere.
     const downstream = ioItems
       .filter((io) => /input/i.test(io.type) && norm(io.name) === titleN && !sourceKeys.has(`${io.valueStreamId}␟${io.l4 ?? ''}`))
@@ -124,7 +136,7 @@ router.get('/deliverable/:id', async (req: Request, res: Response, next: NextFun
       kind: 'deliverable',
       id: d.id, title: d.title, description: d.description, type: d.type, owner: d.owner,
       valueStream: vs ? { id: vs.id, name: vs.name, domain: vs.domain } : null,
-      subProcesses, dataElements,
+      subProcesses, dataElements, inputs,
       assignedRoles: assigned.roles, assignedExtra: assigned.unresolved,
       tasks: d.tasks,
       downstream,

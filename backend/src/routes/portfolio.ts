@@ -36,6 +36,22 @@ function ownInitiative(id: string, tenantId: string) {
   return prisma.portfolioInitiative.findFirst({ where: { id, tenantId } });
 }
 
+// ── Health rollup (I13): a parent's effective health is its WORST child's.
+// The stored status stays editable (manual override) — the API returns both,
+// plus a flag so the UI can show the override visibly.
+const STATUS_SEV: Record<string, number> = { ON_TRACK: 0, AT_RISK: 1, OFF_TRACK: 2 };
+const worstStatus = (statuses: string[], fallback: string) =>
+  statuses.length ? statuses.reduce((a, s) => ((STATUS_SEV[s] ?? 0) > (STATUS_SEV[a] ?? 0) ? s : a), 'ON_TRACK') : fallback;
+
+function withHealthRollup<P extends { status: string; workstreams: (W & { initiatives: { status: string }[] })[] }, W extends { status: string }>(program: P) {
+  const workstreams = program.workstreams.map((w) => {
+    const computedStatus = worstStatus(w.initiatives.map((i) => i.status), w.status);
+    return { ...w, computedStatus, statusOverridden: computedStatus !== w.status };
+  });
+  const computedStatus = worstStatus(workstreams.map((w) => w.computedStatus), program.status);
+  return { ...program, workstreams, computedStatus, statusOverridden: computedStatus !== program.status };
+}
+
 // Resolve the operating-model links (value stream / division / owner+sponsor
 // role) on a set of initiatives into display names, in one batched pass.
 async function resolveLinks(inits: { valueStreamId: string | null; divisionId: string | null; ownerRoleId: string | null; sponsorRoleId: string | null }[]) {
@@ -86,6 +102,23 @@ router.get('/links', async (req: Request, res: Response, next: NextFunction) => 
   } catch (e) { next(e); }
 });
 
+// ─── Risk scoring bands ──────────────────────────────────────────────────────
+// How a 5×5 probability×impact score (1–25) reads as a rating. Company-scoped
+// data (Data Admin → Initiatives → Risk scoring bands), consumed by every
+// severity cell in the tracker.
+router.get('/risk-bands', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const companyId = await activeCompanyId(req, res);
+    if (!companyId) return;
+    const bands = await prisma.riskScoringBand.findMany({
+      where: { companyId },
+      orderBy: { minScore: 'asc' },
+      select: { id: true, label: true, minScore: true, maxScore: true, color: true, description: true },
+    });
+    res.json({ bands });
+  } catch (e) { next(e); }
+});
+
 // ─── Portfolio dashboard ───────────────────────────────────────────────────
 router.get('/dashboard', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -130,13 +163,18 @@ router.get('/dashboard', async (req: Request, res: Response, next: NextFunction)
       take: 5,
     });
 
-    const programCount = await prisma.program.count({ where: { tenantId, companyId } });
+    const [programCount, raidOpenGroups] = await Promise.all([
+      prisma.program.count({ where: { tenantId, companyId } }),
+      prisma.raidItem.groupBy({ by: ['type'], where: { status: 'OPEN', initiative: { companyId } }, _count: { _all: true } }),
+    ]);
+    const raidOpen = Object.fromEntries(raidOpenGroups.map((g) => [g.type, g._count._all]));
 
     res.json({
       totals,
       counts: { programs: programCount, initiatives: initiatives.length },
       byStage: tally('stage'),
       byStatus: tally('status'),
+      raidOpen,
       monthlyBenefits,
       topRisks: topRisksRaw,
     });
@@ -155,7 +193,7 @@ router.get('/programs', async (req: Request, res: Response, next: NextFunction) 
       },
       orderBy: { createdAt: 'desc' },
     });
-    res.json(programs);
+    res.json(programs.map((p) => withHealthRollup(p)));
   } catch (e) { next(e); }
 });
 
@@ -168,9 +206,10 @@ router.get('/programs/:id', async (req: Request, res: Response, next: NextFuncti
     if (!program) return res.status(404).json({ error: 'Not found' });
     const allInits = program.workstreams.flatMap((w) => w.initiatives);
     const maps = await resolveLinks(allInits);
+    const rolled = withHealthRollup(program);
     res.json({
-      ...program,
-      workstreams: program.workstreams.map((w) => ({
+      ...rolled,
+      workstreams: rolled.workstreams.map((w) => ({
         ...w,
         initiatives: w.initiatives.map((i) => withLinkNames(i, maps)),
       })),
@@ -320,6 +359,9 @@ router.get('/initiatives/:id', async (req: Request, res: Response, next: NextFun
         costs: { include: { values: true } },
         milestones: { orderBy: { dueDate: 'asc' } },
         raidItems: { orderBy: { severity: 'desc' } },
+        objectives: { include: { objective: { select: { id: true, name: true, weight: true } } }, orderBy: { createdAt: 'asc' } },
+        resources: { orderBy: { startDate: 'asc' } },
+        activities: { orderBy: [{ startDate: 'asc' }, { sortOrder: 'asc' }] },
       },
     });
     if (!init) return res.status(404).json({ error: 'Not found' });
@@ -372,6 +414,7 @@ const initiativeUpdateSchema = z.object({
   dueDate: z.string().optional(),
   status: z.enum(['ON_TRACK', 'AT_RISK', 'OFF_TRACK']).optional(),
   statusNote: z.string().optional(),
+  complexityScore: z.number().min(0).max(10).optional(),
   valueStreamId: z.string().nullable().optional(),
   divisionId: z.string().nullable().optional(),
   ownerRoleId: z.string().nullable().optional(),
@@ -459,6 +502,294 @@ router.delete('/initiatives/milestones/:milestoneId', async (req: Request, res: 
   try {
     if (!(await ownMilestone(req.params.milestoneId, req.tenantId))) return res.status(404).json({ error: 'Not found' });
     await prisma.milestone.delete({ where: { id: req.params.milestoneId } });
+    res.status(204).end();
+  } catch (e) { next(e); }
+});
+
+// ─── Strategic objectives + alignment links (I3/I4) ────────────────────────
+// valueScore = Σ(link.impact × objective.weight), persisted on the initiative
+// after every link/weight change so list views can sort without joins.
+async function recomputeValueScore(initiativeId: string) {
+  const links = await prisma.initiativeObjective.findMany({
+    where: { initiativeId },
+    include: { objective: { select: { weight: true } } },
+  });
+  const valueScore = Math.round(links.reduce((a, l) => a + l.impact * l.objective.weight, 0) * 10) / 10;
+  return prisma.portfolioInitiative.update({ where: { id: initiativeId }, data: { valueScore } });
+}
+
+router.get('/objectives', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const companyId = await activeCompanyId(req, res);
+    if (!companyId) return;
+    const objectives = await prisma.strategicObjective.findMany({
+      where: { tenantId: req.tenantId, companyId },
+      include: { _count: { select: { links: true } } },
+      orderBy: { createdAt: 'asc' },
+    });
+    res.json(objectives);
+  } catch (e) { next(e); }
+});
+
+const objectiveCreateSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().optional(),
+  weight: z.number().min(0).max(10).optional(),
+});
+
+router.post('/objectives', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const companyId = await activeCompanyId(req, res);
+    if (!companyId) return;
+    const data = objectiveCreateSchema.parse(req.body);
+    const obj = await prisma.strategicObjective.create({
+      data: { tenantId: req.tenantId, companyId, name: data.name, description: data.description, weight: data.weight ?? 1 },
+    });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'StrategicObjective', entityId: obj.id, action: 'CREATE' });
+    res.status(201).json(obj);
+  } catch (e) { next(e); }
+});
+
+router.patch('/objectives/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const existing = await prisma.strategicObjective.findFirst({ where: { id: req.params.id, tenantId: req.tenantId }, select: { id: true, weight: true } });
+    if (!existing) return res.status(404).json({ error: 'Not found' });
+    const data = objectiveCreateSchema.partial().parse(req.body);
+    const updated = await prisma.strategicObjective.update({ where: { id: req.params.id }, data });
+    // A weight change shifts every linked initiative's value score.
+    if (data.weight !== undefined && data.weight !== existing.weight) {
+      const links = await prisma.initiativeObjective.findMany({ where: { objectiveId: req.params.id }, select: { initiativeId: true } });
+      for (const l of links) await recomputeValueScore(l.initiativeId);
+    }
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'StrategicObjective', entityId: req.params.id, action: 'UPDATE', diff: data });
+    res.json(updated);
+  } catch (e) { next(e); }
+});
+
+router.delete('/objectives/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const existing = await prisma.strategicObjective.findFirst({ where: { id: req.params.id, tenantId: req.tenantId }, select: { id: true } });
+    if (!existing) return res.status(404).json({ error: 'Not found' });
+    const links = await prisma.initiativeObjective.findMany({ where: { objectiveId: req.params.id }, select: { initiativeId: true } });
+    await prisma.strategicObjective.delete({ where: { id: req.params.id } }); // cascades the links
+    for (const l of links) await recomputeValueScore(l.initiativeId);
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'StrategicObjective', entityId: req.params.id, action: 'DELETE' });
+    res.status(204).end();
+  } catch (e) { next(e); }
+});
+
+router.post('/initiatives/:id/objectives', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const init = await ownInitiative(req.params.id, req.tenantId);
+    if (!init) return res.status(404).json({ error: 'Not found' });
+    const data = z.object({ objectiveId: z.string(), impact: z.number().int().min(1).max(5) }).parse(req.body);
+    const objective = await prisma.strategicObjective.findFirst({ where: { id: data.objectiveId, tenantId: req.tenantId }, select: { id: true } });
+    if (!objective) return res.status(404).json({ error: 'Objective not found' });
+    const link = await prisma.initiativeObjective.create({ data: { initiativeId: req.params.id, objectiveId: data.objectiveId, impact: data.impact } });
+    await recomputeValueScore(req.params.id);
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'InitiativeObjective', entityId: link.id, action: 'CREATE', diff: data });
+    res.status(201).json(link);
+  } catch (e) { next(e); }
+});
+
+// Walk an alignment link up to its initiative's tenant for the ownership guard.
+async function ownObjectiveLink(id: string, tenantId: string) {
+  const l = await prisma.initiativeObjective.findUnique({ where: { id }, include: { initiative: { select: { tenantId: true } } } });
+  return l && l.initiative.tenantId === tenantId ? l : null;
+}
+
+router.patch('/initiatives/objectives/:linkId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const link = await ownObjectiveLink(req.params.linkId, req.tenantId);
+    if (!link) return res.status(404).json({ error: 'Not found' });
+    const data = z.object({ impact: z.number().int().min(1).max(5) }).parse(req.body);
+    const updated = await prisma.initiativeObjective.update({ where: { id: req.params.linkId }, data });
+    await recomputeValueScore(link.initiativeId);
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'InitiativeObjective', entityId: req.params.linkId, action: 'UPDATE', diff: data });
+    res.json(updated);
+  } catch (e) { next(e); }
+});
+
+router.delete('/initiatives/objectives/:linkId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const link = await ownObjectiveLink(req.params.linkId, req.tenantId);
+    if (!link) return res.status(404).json({ error: 'Not found' });
+    await prisma.initiativeObjective.delete({ where: { id: req.params.linkId } });
+    await recomputeValueScore(link.initiativeId);
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'InitiativeObjective', entityId: req.params.linkId, action: 'DELETE' });
+    res.status(204).end();
+  } catch (e) { next(e); }
+});
+
+// ─── Resources (I6) ─────────────────────────────────────────────────────────
+// Company-scoped people list for the resource picker.
+router.get('/people', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const companyId = await activeCompanyId(req, res);
+    if (!companyId) return;
+    const people = await prisma.person.findMany({
+      where: { companyId },
+      select: { id: true, name: true, title: true },
+      orderBy: { name: 'asc' },
+      take: 800,
+    });
+    res.json(people);
+  } catch (e) { next(e); }
+});
+
+const resourceCreateSchema = z.object({
+  name: z.string().min(1),
+  personId: z.string().nullable().optional(),
+  roleName: z.string().nullable().optional(),
+  allocationPct: z.number().int().min(1).max(100),
+  startDate: z.string(),
+  endDate: z.string(),
+});
+
+router.post('/initiatives/:id/resources', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const init = await ownInitiative(req.params.id, req.tenantId);
+    if (!init) return res.status(404).json({ error: 'Not found' });
+    const data = resourceCreateSchema.parse(req.body);
+    const resource = await prisma.initiativeResource.create({
+      data: {
+        initiativeId: req.params.id,
+        name: data.name,
+        personId: data.personId ?? null,
+        roleName: data.roleName ?? null,
+        allocationPct: data.allocationPct,
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate),
+      },
+    });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'InitiativeResource', entityId: resource.id, action: 'CREATE' });
+    res.status(201).json(resource);
+  } catch (e) { next(e); }
+});
+
+async function ownResource(id: string, tenantId: string) {
+  const r = await prisma.initiativeResource.findUnique({ where: { id }, include: { initiative: { select: { tenantId: true } } } });
+  return r && r.initiative.tenantId === tenantId ? r : null;
+}
+
+router.patch('/initiatives/resources/:rid', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!(await ownResource(req.params.rid, req.tenantId))) return res.status(404).json({ error: 'Not found' });
+    const data = resourceCreateSchema.partial().parse(req.body);
+    const patch: Record<string, unknown> = { ...data };
+    if (data.startDate) patch.startDate = new Date(data.startDate);
+    if (data.endDate) patch.endDate = new Date(data.endDate);
+    const updated = await prisma.initiativeResource.update({ where: { id: req.params.rid }, data: patch });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'InitiativeResource', entityId: req.params.rid, action: 'UPDATE', diff: data });
+    res.json(updated);
+  } catch (e) { next(e); }
+});
+
+router.delete('/initiatives/resources/:rid', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!(await ownResource(req.params.rid, req.tenantId))) return res.status(404).json({ error: 'Not found' });
+    await prisma.initiativeResource.delete({ where: { id: req.params.rid } });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'InitiativeResource', entityId: req.params.rid, action: 'DELETE' });
+    res.status(204).end();
+  } catch (e) { next(e); }
+});
+
+// Per-resource-name utilization across a program's initiatives. The total only
+// counts assignments whose date range covers today (active allocations).
+router.get('/programs/:id/resources', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const program = await prisma.program.findFirst({ where: { id: req.params.id, tenantId: req.tenantId }, select: { id: true } });
+    if (!program) return res.status(404).json({ error: 'Not found' });
+    const resources = await prisma.initiativeResource.findMany({
+      where: { initiative: { workstream: { programId: req.params.id } } },
+      include: { initiative: { select: { id: true, name: true } } },
+      orderBy: { name: 'asc' },
+    });
+    const today = new Date();
+    type Row = {
+      name: string; roleName: string | null; totalAllocationPct: number;
+      assignments: { initiativeId: string; initiativeName: string; allocationPct: number; startDate: Date; endDate: Date }[];
+    };
+    const byName = new Map<string, Row>();
+    for (const r of resources) {
+      const row = byName.get(r.name) ?? { name: r.name, roleName: r.roleName, totalAllocationPct: 0, assignments: [] };
+      if (!row.roleName && r.roleName) row.roleName = r.roleName;
+      row.assignments.push({ initiativeId: r.initiative.id, initiativeName: r.initiative.name, allocationPct: r.allocationPct, startDate: r.startDate, endDate: r.endDate });
+      if (r.startDate <= today && r.endDate >= today) row.totalAllocationPct += r.allocationPct;
+      byName.set(r.name, row);
+    }
+    res.json([...byName.values()].map((row) => ({ ...row, overUtilized: row.totalAllocationPct > 100 })));
+  } catch (e) { next(e); }
+});
+
+// ─── Workplan activities (I9) ───────────────────────────────────────────────
+const activityCreateSchema = z.object({
+  name: z.string().min(1),
+  startDate: z.string(),
+  endDate: z.string(),
+  dependsOnId: z.string().nullable().optional(),
+});
+
+// A dependency must point at another activity of the same initiative.
+async function validDependency(dependsOnId: string, initiativeId: string, selfId?: string): Promise<boolean> {
+  if (dependsOnId === selfId) return false;
+  const dep = await prisma.workplanActivity.findFirst({ where: { id: dependsOnId, initiativeId }, select: { id: true } });
+  return !!dep;
+}
+
+router.post('/initiatives/:id/activities', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const init = await ownInitiative(req.params.id, req.tenantId);
+    if (!init) return res.status(404).json({ error: 'Not found' });
+    const data = activityCreateSchema.parse(req.body);
+    if (data.dependsOnId && !(await validDependency(data.dependsOnId, req.params.id))) {
+      return res.status(400).json({ error: 'dependsOnId must reference an activity of the same initiative' });
+    }
+    const last = await prisma.workplanActivity.aggregate({ where: { initiativeId: req.params.id }, _max: { sortOrder: true } });
+    const activity = await prisma.workplanActivity.create({
+      data: {
+        initiativeId: req.params.id,
+        name: data.name,
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate),
+        dependsOnId: data.dependsOnId ?? null,
+        sortOrder: (last._max.sortOrder ?? 0) + 1,
+      },
+    });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'WorkplanActivity', entityId: activity.id, action: 'CREATE' });
+    res.status(201).json(activity);
+  } catch (e) { next(e); }
+});
+
+async function ownActivity(id: string, tenantId: string) {
+  const a = await prisma.workplanActivity.findUnique({ where: { id }, include: { initiative: { select: { tenantId: true } } } });
+  return a && a.initiative.tenantId === tenantId ? a : null;
+}
+
+router.patch('/initiatives/activities/:aid', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const activity = await ownActivity(req.params.aid, req.tenantId);
+    if (!activity) return res.status(404).json({ error: 'Not found' });
+    const data = activityCreateSchema.partial().extend({
+      status: z.enum(['PLANNED', 'IN_PROGRESS', 'DONE']).optional(),
+    }).parse(req.body);
+    if (data.dependsOnId && !(await validDependency(data.dependsOnId, activity.initiativeId, activity.id))) {
+      return res.status(400).json({ error: 'dependsOnId must reference an activity of the same initiative' });
+    }
+    const patch: Record<string, unknown> = { ...data };
+    if (data.startDate) patch.startDate = new Date(data.startDate);
+    if (data.endDate) patch.endDate = new Date(data.endDate);
+    const updated = await prisma.workplanActivity.update({ where: { id: req.params.aid }, data: patch });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'WorkplanActivity', entityId: req.params.aid, action: 'UPDATE', diff: data });
+    res.json(updated);
+  } catch (e) { next(e); }
+});
+
+router.delete('/initiatives/activities/:aid', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!(await ownActivity(req.params.aid, req.tenantId))) return res.status(404).json({ error: 'Not found' });
+    await prisma.workplanActivity.delete({ where: { id: req.params.aid } });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'WorkplanActivity', entityId: req.params.aid, action: 'DELETE' });
     res.status(204).end();
   } catch (e) { next(e); }
 });

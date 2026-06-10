@@ -1,45 +1,36 @@
 import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
-import { readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { buildRoleResolver } from '../lib/roleMatch.js';
+import { canonicalVs, legacyNamesFor } from '../lib/vsMapping.js';
+import { structureCounts } from '../lib/orgCounts.js';
+
+// A sidebar / drill :id may arrive as a unified-node id (the map's namespace
+// since the rework) or a legacy table id (old links). Resolve the node when
+// present; callers translate to the legacy id (node.code) or branch on the node.
+type ResolvedNode = { id: string; typeKey: string; name: string; code: string | null; parentId: string | null; companyId: string };
+async function resolveNode(id: string | undefined): Promise<ResolvedNode | null> {
+  if (!id) return null;
+  return prisma.node.findUnique({ where: { id }, select: { id: true, typeKey: true, name: true, code: true, parentId: true, companyId: true } });
+}
+// Legacy ValueStream ids whose data folds into one canonical stream name.
+async function legacyVsIds(companyId: string, canonicalName: string): Promise<string[]> {
+  const rows = await prisma.valueStream.findMany({ where: { companyId, name: { in: legacyNamesFor(canonicalName) } }, select: { id: true } });
+  return rows.map((r) => r.id);
+}
 
 const router = Router();
 router.use(requireAuth);
 
-// Workforce/digital-experience signals — the per-person telemetry (Viva Insights,
-// Microsoft 365, GitHub, delivery analytics) that the model can roll up from the
-// individual to the role, team, and division. `store` is which table holds the
-// time-series (PersonSignal vs PersonMetric); the catalog drill reads it by role.
-const WORKFORCE_SIGNALS = [
-  { name: 'Time online', store: 'signal', source: 'Viva Insights', category: 'Collaboration', unit: 'hrs/day', frequency: 'Daily', direction: 'up', description: 'Active digital working time per day.' },
-  { name: 'Focus hours', store: 'signal', source: 'Viva Insights', category: 'Wellbeing', unit: 'hrs/wk', frequency: 'Weekly', direction: 'up', description: 'Uninterrupted time available for deep, focused work.' },
-  { name: 'Meetings', store: 'signal', source: 'Viva Insights', category: 'Collaboration', unit: 'hrs/wk', frequency: 'Weekly', direction: 'down', description: 'Time spent in meetings per week.' },
-  { name: 'Team messages', store: 'signal', source: 'Microsoft Teams', category: 'Collaboration', unit: 'msgs/wk', frequency: 'Weekly', direction: 'up', description: 'Chat messages sent per week.' },
-  { name: 'GitHub activity', store: 'signal', source: 'GitHub', category: 'Engineering', unit: 'commits/mo', frequency: 'Monthly', direction: 'up', description: 'Code commits per month.' },
-  { name: 'Throughput', store: 'metric', source: 'Delivery analytics', category: 'Delivery', unit: '/mo', frequency: 'Monthly', direction: 'up', description: 'Work items completed per month.' },
-  { name: 'Quality', store: 'metric', source: 'Delivery analytics', category: 'Quality', unit: '%', frequency: 'Monthly', direction: 'up', description: 'Share of output meeting the quality bar.' },
-  { name: 'Utilization', store: 'metric', source: 'Delivery analytics', category: 'Operational', unit: '%', frequency: 'Monthly', direction: 'up', description: 'Share of capacity actively utilized.' },
-  { name: 'Cycle time', store: 'metric', source: 'Delivery analytics', category: 'Delivery', unit: 'days', frequency: 'Monthly', direction: 'down', description: 'Elapsed time from work started to done.' },
-] as const;
+// Trackable signals live in the TelemetrySignal table (seeded 1:1 from the old
+// hardcoded constants + backend/data/telemetry-catalog.json by
+// scripts/seed-telemetry-signals.ts; editable in Data Admin → Telemetry).
+// isLive=true rows are workforce signals with real per-person readings — their
+// `queryType` holds which time-series table to drill ('signal' = PersonSignal,
+// 'metric' = PersonMetric). isLive=false rows are the workbook reference catalog.
 // Levels a workforce signal can be tracked / rolled up at (individual → org).
 const WORKFORCE_LEVELS = ['Individual', 'Role', 'Team', 'Division', 'Company'];
-
-// Full trackable-metric catalog extracted from the operating-model workbook
-// (Metric_Catalog_Expanded + External_Metric_Catalog): every Viva Insights / M365
-// and system-of-record metric the company could track. A reference inventory —
-// no per-person readings yet, so these don't drill to the role level.
-type CatalogMetric = {
-  name: string; origin: string | null; source: string | null; category: string | null;
-  dataType: string | null; queryType: string | null; description: string | null;
-  managerRelevance: string | null; applicability: string | null; applicableRoles: string | null; useCases: string | null;
-};
-const TELEMETRY_CATALOG: CatalogMetric[] = JSON.parse(
-  readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '../../data/telemetry-catalog.json'), 'utf8'),
-);
 
 // ── Trackable-metric filter taxonomy ─────────────────────────────────────────
 // `type` = the grain a metric is tracked at, collapsed to four plain buckets.
@@ -218,22 +209,20 @@ router.get('/overview', async (req: Request, res: Response, next: NextFunction) 
   try {
     const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true, name: true } });
     if (!company) return res.status(404).json({ error: 'No company' });
-    // The sidebar index: both ways into the model (operating-model domains +
-    // the org's divisions), so the canvas can be operating-model-led while the
-    // org stays one click away.
-    // Value-stream map now renders from the configurable Level tree (Data Admin):
-    // L0 Enterprise = the map ROOT label, L1 Domain = higherCategory bucket,
-    // L2 = Division, L3 = Value Stream. Editing any node in the Data Admin tree —
-    // including the L0 root — therefore reflects on the map.
-    const levels = await prisma.level.findMany({
-      where: { companyId: company.id, levelNumber: { in: [0, 1, 2, 3] } },
-      orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, levelNumber: true, parentId: true },
+    // The sidebar index: both ways into the model (segments + divisions), so the
+    // canvas can be operating-model-led while the org stays one click away.
+    // The map renders from the unified Node tree (operating-model rework):
+    // enterprise = the ROOT label, segment = the grouping bucket, division,
+    // value_stream. Editing any node in the builder therefore reflects here.
+    const treeNodes = await prisma.node.findMany({
+      where: { companyId: company.id, typeKey: { in: ['enterprise', 'segment', 'division', 'value_stream'] } },
+      orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, typeKey: true, parentId: true },
     });
-    const root = levels.find((l) => l.levelNumber === 0);
-    const domains = levels.filter((l) => l.levelNumber === 1);
+    const root = treeNodes.find((l) => l.typeKey === 'enterprise');
+    const domains = treeNodes.filter((l) => l.typeKey === 'segment');
     const domainName = new Map(domains.map((d) => [d.id, d.name] as const));
-    const divisions = levels.filter((l) => l.levelNumber === 2);
-    const vsCount = levels.filter((l) => l.levelNumber === 3).length;
+    const divisions = treeNodes.filter((l) => l.typeKey === 'division');
+    const vsCount = treeNodes.filter((l) => l.typeKey === 'value_stream').length;
     res.json({
       // Root label comes from the L0 tree node when present, else the company name.
       company: { id: company.id, name: root?.name ?? company.name },
@@ -276,11 +265,47 @@ router.get('/value-streams', async (req: Request, res: Response, next: NextFunct
   } catch (e) { next(e); }
 });
 
+// AI-adoption heat-map source for Telemetry. Canonical value streams (Level nodes,
+// levelNumber = 3) with their LevelAiAdoption mapped to a 0-4 level per AI mode
+// (not_used=0 … embedded=4) and the parent node as the domain. This is the same
+// model Value Streams / Home render, so Telemetry now agrees with the rest of the
+// app (audit D3/D7). Streams with no AI yet return all-zero (a real <100% ratio).
+const AI_LEVEL_INDEX: Record<string, number> = { not_used: 0, pilot: 1, emerging: 2, scaling: 3, embedded: 4 };
+router.get('/value-stream-adoption', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true } });
+    if (!company) return res.status(404).json({ error: 'No company' });
+    // Canonical value_stream NODES (ids match the map focus + admin editor);
+    // adoption reads the node-keyed NodeAiAdoption table.
+    const nodes = await prisma.node.findMany({
+      where: { companyId: company.id, typeKey: 'value_stream' },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, parent: { select: { name: true } }, aiAdoption: true },
+    });
+    const idx = (v: string | undefined) => AI_LEVEL_INDEX[v ?? 'not_used'] ?? 0;
+    res.json({
+      valueStreams: nodes.map((n) => ({
+        id: n.id,
+        name: n.name,
+        domain: n.parent?.name ?? null,
+        cells: [idx(n.aiAdoption?.aiAssist), idx(n.aiAdoption?.aiAugment), idx(n.aiAdoption?.aiWorkflow), idx(n.aiAdoption?.aiAutonomous)],
+        // Per-mode use cases ({ assistant|augmented|workflow|agent: [{title, persona, detail}] }),
+        // authored in Data Admin → Telemetry → AI adoption.
+        useCases: n.aiAdoption?.useCases ?? null,
+        // Per-mode adoption statistics ({ <mode>: { rolesUsingPct, efficiencyGainPct } }),
+        // same admin surface.
+        stats: n.aiAdoption?.stats ?? null,
+      })),
+    });
+  } catch (e) { next(e); }
+});
+
 // Telemetry catalog — the full inventory of trackable signals/metrics defined for
 // the company (the "what can we measure" reference, akin to a Viva Insights metric
-// catalog). Read straight from the Metric table, which is sourced from the
-// operating-model workbook. Returns one flat row per metric plus the distinct
-// values backing the filter dropdowns.
+// catalog). Read straight from the DB: the Metric table (workbook KPIs) plus the
+// TelemetrySignal table (live workforce signals + the workbook reference catalog).
+// Returns one flat row per metric plus the distinct values backing the filter
+// dropdowns.
 router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const requested = typeof req.query.companyId === 'string' ? req.query.companyId : '';
@@ -290,18 +315,19 @@ router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextF
     });
     if (!company) return res.status(404).json({ error: 'No company' });
 
-    const [metrics, roles] = await Promise.all([
+    const [metrics, roles, signalRows] = await Promise.all([
       prisma.metric.findMany({
         where: { companyId: company.id },
         orderBy: [{ category: 'asc' }, { name: 'asc' }],
         select: {
           id: true, name: true, description: true, category: true, framework: true,
           frequency: true, measurementLevel: true, ownerRole: true, targetText: true,
-          unit: true, direction: true, l3: true,
+          unit: true, direction: true, l3: true, formula: true,
           valueStream: { select: { id: true, name: true, domain: true } },
         },
       }),
       prisma.role.findMany({ where: { companyId: company.id }, select: { id: true, name: true, itemRole: true } }),
+      prisma.telemetrySignal.findMany({ where: { companyId: company.id }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
     ]);
     // Resolve each KPI's free-text owner role to a linkable operating-model Role so
     // the catalog can drill down to the role level.
@@ -314,14 +340,17 @@ router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextF
       levels: string[]; store?: string; roleDrill: boolean;
       valueStreamName: string | null; domain: string | null; l3: string | null;
       ownerRole: string | null; ownerRoleId: string | null;
+      provenance: string | null; calculation: string | null; unsourced: boolean;
     };
 
-    // Workforce/Viva signals first — tracked at the individual level, rolled up to role.
-    const workforce: Signal[] = WORKFORCE_SIGNALS.map((s) => ({
+    // Live workforce/Viva signals first — tracked at the individual level, rolled
+    // up to role (per-person readings exist, so they drill by role).
+    const workforce: Signal[] = signalRows.filter((s) => s.isLive).map((s) => ({
       id: `wf:${s.name}`, kind: 'workforce', name: s.name, description: s.description,
       source: s.source, category: s.category, framework: null, frequency: s.frequency,
-      unit: s.unit, direction: s.direction, target: null, levels: WORKFORCE_LEVELS, store: s.store,
+      unit: s.unit, direction: s.direction, target: null, levels: WORKFORCE_LEVELS, store: s.queryType ?? 'signal',
       roleDrill: true, valueStreamName: null, domain: null, l3: null, ownerRole: null, ownerRoleId: null,
+      provenance: 'Live signal — seeded per-person readings', calculation: null, unsourced: false,
     }));
 
     // Operating-model KPIs from the workbook.
@@ -334,27 +363,28 @@ router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextF
         levels: m.measurementLevel ? [m.measurementLevel] : [], roleDrill: !!owner,
         valueStreamName: m.valueStream?.name ?? null, domain: m.valueStream?.domain ?? null, l3: m.l3,
         ownerRole: m.ownerRole, ownerRoleId: owner?.id ?? null,
+        provenance: 'Workbook: Value Stream Metrics catalog', calculation: m.formula, unsourced: false,
       };
     });
 
-    // Full reference catalog from the workbook — every metric the company could
-    // track. Dedupe against the live workforce signals (which carry real per-person
-    // readings) by name so they aren't listed twice.
+    // Reference catalog rows (no per-person readings yet, so no role drill).
+    // `kind` was classified at seed time: workforce = Viva Insights / M365
+    // collaboration telemetry; everything else (Jira, ServiceNow, GitHub,
+    // Guidewire, Okta, Splunk, AWS/Azure …) is a system-of-record metric.
+    // Dedupe against the live workforce signals by name so a metric that gained
+    // real readings isn't listed twice.
     const liveNames = new Set(workforce.map((s) => s.name.toLowerCase()));
-    const catalog: Signal[] = TELEMETRY_CATALOG
-      .filter((m) => m.name && !liveNames.has(m.name.toLowerCase()))
-      .map((m, i) => {
-        // Workforce = Viva Insights / M365 collaboration telemetry; everything else
-        // (Jira, ServiceNow, GitHub, Guidewire, Okta, Splunk, AWS/Azure …) is a
-        // system-of-record metric.
-        const isViva = /viva|microsoft|teams|m365|outlook|sharepoint|office 365/i.test(m.source ?? '');
-        return {
-          id: `cat:${i}`, kind: isViva ? 'workforce' : 'system', name: m.name, description: m.description,
-          source: m.source, category: m.category, framework: null, frequency: null,
-          unit: m.dataType, direction: 'up', target: null, levels: ['Individual', 'Role'], roleDrill: false,
-          valueStreamName: null, domain: null, l3: null, ownerRole: null, ownerRoleId: null,
-        };
-      });
+    const catalog: Signal[] = signalRows
+      .filter((s) => !s.isLive && s.name && !liveNames.has(s.name.toLowerCase()))
+      .map((m, i) => ({
+        id: `cat:${i}`, kind: m.kind === 'workforce' ? 'workforce' as const : 'system' as const, name: m.name, description: m.description,
+        source: m.source, category: m.category, framework: null, frequency: m.frequency,
+        unit: m.unit, direction: m.direction, target: null, levels: ['Individual', 'Role'], roleDrill: false,
+        valueStreamName: null, domain: null, l3: null, ownerRole: null, ownerRoleId: null,
+        // Provenance = the workbook sheet the row was extracted from (`origin`).
+        provenance: m.origin ?? 'Workbook metric catalog', calculation: m.queryType,
+        unsourced: !m.source && !m.origin,
+      }));
 
     // Augment every signal with a simple grain `type` (User/Role/Division/System)
     // and a clean, split list of `sourceTokens` (GitHub, Viva Insights, ServiceNow…)
@@ -439,12 +469,12 @@ router.get('/telemetry-signal/by-role', async (req: Request, res: Response, next
 // to a value stream uses this to drop the user onto the map at the right level.
 router.get('/value-stream/:id/focus', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Value stream = an L3 Level node; its division is its L2 parent and the
-    // category is that division's L1 domain.
-    const vs = await prisma.level.findFirst({ where: { id: req.params.id, tenantId: req.tenantId, levelNumber: 3 }, select: { id: true, parentId: true } });
+    // Value stream = a value_stream node; its division is its parent and the
+    // category is that division's parent segment.
+    const vs = await prisma.node.findFirst({ where: { id: req.params.id, company: { tenantId: req.tenantId }, typeKey: 'value_stream' }, select: { id: true, parentId: true } });
     if (!vs || !vs.parentId) return res.status(404).json({ error: 'No participating division' });
-    const div = await prisma.level.findFirst({ where: { id: vs.parentId }, select: { id: true, parentId: true } });
-    const category = div?.parentId ? (await prisma.level.findFirst({ where: { id: div.parentId }, select: { name: true } }))?.name ?? null : null;
+    const div = await prisma.node.findFirst({ where: { id: vs.parentId }, select: { id: true, parentId: true } });
+    const category = div?.parentId ? (await prisma.node.findFirst({ where: { id: div.parentId }, select: { name: true } }))?.name ?? null : null;
     res.json({ valueStreamId: vs.id, divisionId: vs.parentId, category: category ?? 'Core Business' });
   } catch (e) { next(e); }
 });
@@ -458,29 +488,30 @@ router.get('/value-stream/:id/focus', async (req: Request, res: Response, next: 
 router.get('/division/:id/flow', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const tenantId = req.tenantId;
-    // Division = an L2 node in the configurable Level tree. Its category is its
-    // parent L1 domain's name.
-    const div = await prisma.level.findFirst({ where: { id: req.params.id, tenantId, levelNumber: 2 }, select: { id: true, name: true, parentId: true } });
+    // Division = a division node in the unified tree. Its category is its parent
+    // segment's name.
+    const div = await prisma.node.findFirst({ where: { id: req.params.id, company: { tenantId }, typeKey: 'division' }, select: { id: true, name: true, parentId: true } });
     if (!div) return res.status(404).json({ error: 'Not found' });
-    const domain = div.parentId ? await prisma.level.findFirst({ where: { id: div.parentId }, select: { name: true } }) : null;
+    const domain = div.parentId ? await prisma.node.findFirst({ where: { id: div.parentId }, select: { name: true } }) : null;
     const higherCategory = domain?.name ?? null;
 
-    // Value streams = this division's L3 children.
-    const streams = await prisma.level.findMany({ where: { tenantId, parentId: div.id, levelNumber: 3 }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true } });
+    // Value streams = this division's value_stream children (it also parents
+    // departments — filter by type).
+    const streams = await prisma.node.findMany({ where: { parentId: div.id, typeKey: 'value_stream' }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true } });
     const wantVs = typeof req.query.vs === 'string' ? req.query.vs : undefined;
     const selectedVs = streams.find((s) => s.id === wantVs) ?? streams[0] ?? null;
 
     let selected: any = null;
     if (selectedVs) {
-      // L4 Sub-Processes (the flow row) and their L5 Process Steps.
-      const l4 = await prisma.level.findMany({ where: { tenantId, parentId: selectedVs.id, levelNumber: 4 }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, inputs: true, outputs: true } });
-      const l5 = await prisma.level.findMany({ where: { tenantId, levelNumber: 5, parentId: { in: l4.map((x) => x.id) } }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, parentId: true } });
+      // Sub-processes (the flow row) and their process steps.
+      const l4 = await prisma.node.findMany({ where: { parentId: selectedVs.id, typeKey: 'sub_process' }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, attributes: true } });
+      const l5 = await prisma.node.findMany({ where: { typeKey: 'step', parentId: { in: l4.map((x) => x.id) } }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, parentId: true } });
       const l5ByParent = new Map<string, typeof l5>();
       for (const s of l5) { if (!s.parentId) continue; if (!l5ByParent.has(s.parentId)) l5ByParent.set(s.parentId, []); l5ByParent.get(s.parentId)!.push(s); }
       const steps = l4.map((s, i) => ({
         id: s.id, step: i + 1, name: s.name,
         subSteps: (l5ByParent.get(s.id) ?? []).map((x, k) => ({ id: x.id, name: x.name, step: k + 1, l5: [] as { id: string; name: string; step: number }[] })),
-        inputs: s.inputs, outputs: s.outputs, upstream: null, downstream: null,
+        inputs: ((s.attributes as any) ?? {}).inputs ?? null, outputs: ((s.attributes as any) ?? {}).outputs ?? null, upstream: null, downstream: null,
         roles: [] as string[], categories: [] as string[], primaryCategory: higherCategory,
         crossDomain: false, unowned: false,
       }));
@@ -503,29 +534,30 @@ router.get('/tree', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true, name: true } });
     if (!company) return res.status(404).json({ error: 'No company' });
-    // List view renders from the SAME configurable Level tree as the map:
-    // L0 Enterprise = root label, L1 Domain → L2 Division → L3 Value Stream →
-    // L4 Sub-Process → L5 Step.
-    const levels = await prisma.level.findMany({
-      where: { companyId: company.id, levelNumber: { in: [0, 1, 2, 3, 4, 5] } },
-      orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, levelNumber: true, parentId: true },
+    // List view renders from the SAME unified Node tree as the map:
+    // enterprise = root label, segment → division → value_stream → sub_process →
+    // step. Divisions also parent departments, so children are filtered by type.
+    const treeNodes = await prisma.node.findMany({
+      where: { companyId: company.id, typeKey: { in: ['enterprise', 'segment', 'division', 'value_stream', 'sub_process', 'step'] } },
+      orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, typeKey: true, parentId: true },
     });
-    const root = levels.find((l) => l.levelNumber === 0);
-    const childrenOf = new Map<string, typeof levels>();
-    for (const l of levels) { if (!l.parentId) continue; if (!childrenOf.has(l.parentId)) childrenOf.set(l.parentId, []); childrenOf.get(l.parentId)!.push(l); }
-    const domainName = new Map(levels.filter((l) => l.levelNumber === 1).map((d) => [d.id, d.name] as const));
-    const divisions = levels.filter((l) => l.levelNumber === 2);
+    const root = treeNodes.find((l) => l.typeKey === 'enterprise');
+    const childrenOf = new Map<string, typeof treeNodes>();
+    for (const l of treeNodes) { if (!l.parentId) continue; if (!childrenOf.has(l.parentId)) childrenOf.set(l.parentId, []); childrenOf.get(l.parentId)!.push(l); }
+    const kids = (id: string, typeKey: string) => (childrenOf.get(id) ?? []).filter((c) => c.typeKey === typeKey);
+    const domainName = new Map(treeNodes.filter((l) => l.typeKey === 'segment').map((d) => [d.id, d.name] as const));
+    const divisions = treeNodes.filter((l) => l.typeKey === 'division');
 
     res.json({
       company: { id: company.id, name: root?.name ?? company.name },
       divisions: divisions.map((d) => ({
         id: d.id, name: d.name, higherCategory: d.parentId ? domainName.get(d.parentId) ?? null : null, roles: 0,
-        // VS → Sub-Process (L4) as "areas" → Step (L5) as "subProcesses" (leaf).
-        valueStreams: (childrenOf.get(d.id) ?? []).map((vs) => ({
+        // VS → sub_process as "areas" → step as "subProcesses" (leaf).
+        valueStreams: kids(d.id, 'value_stream').map((vs) => ({
           id: vs.id, name: vs.name,
-          areas: (childrenOf.get(vs.id) ?? []).map((l4, i) => ({
+          areas: kids(vs.id, 'sub_process').map((l4, i) => ({
             id: l4.id, step: i + 1, name: l4.name,
-            subProcesses: (childrenOf.get(l4.id) ?? []).map((l5, j) => ({ id: l5.id, step: j + 1, name: l5.name, steps: [] as { id: string; step: number; name: string }[] })),
+            subProcesses: kids(l4.id, 'step').map((l5, j) => ({ id: l5.id, step: j + 1, name: l5.name, steps: [] as { id: string; step: number; name: string }[] })),
           })),
         })),
       })),
@@ -676,7 +708,30 @@ async function metricsDivision(tenantId: string, c: string, id: string): Promise
   };
 }
 
-async function metricsValueStream(tenantId: string, c: string, id: string): Promise<Dashboard | null> {
+async function metricsValueStream(tenantId: string, c: string, id: string, node?: ResolvedNode | null): Promise<Dashboard | null> {
+  // Unified value_stream node (preferred): aggregate all legacy streams that fold
+  // into it (vs-mapping) and drill into its sub_process child nodes.
+  if (node && node.typeKey === 'value_stream') {
+    const ids = await legacyVsIds(c, node.name);
+    const [kpis, areas, ps] = await Promise.all([
+      prisma.metric.findMany({ where: { valueStreamId: { in: ids.length ? ids : ['_'] } }, orderBy: [{ l3: 'asc' }, { category: 'asc' }], select: { name: true, targetText: true, category: true, framework: true } }),
+      prisma.node.findMany({ where: { parentId: node.id, typeKey: 'sub_process' }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true } }),
+      prisma.processStep.findMany({ where: { valueStreamId: { in: ids.length ? ids : ['_'] } }, select: { l3: true } }),
+    ]);
+    const stepByL3 = new Map<string, number>();
+    for (const p of ps) { if (!p.l3) continue; stepByL3.set(p.l3, (stepByL3.get(p.l3) ?? 0) + 1); }
+    return {
+      level: 'valueStream', title: node.name, subtitle: 'Performance',
+      tiles: [
+        { label: 'KPIs defined', value: kpis.length },
+        { label: 'Process Level 4', value: areas.length },
+      ],
+      sections: [
+        { title: 'KPIs & targets', kind: 'kpi', items: kpiList(kpis) },
+        { title: 'Process Level 4', kind: 'list', items: areas.map((s) => ({ label: s.name, value: stepByL3.get(s.name) ?? 0, hint: stepByL3.get(s.name) ? `${stepByL3.get(s.name)} steps` : 'no flow', drill: { level: 'step', id: s.id } })) },
+      ],
+    };
+  }
   const vs = await prisma.valueStream.findFirst({ where: { id, tenantId, companyId: c }, select: { id: true, name: true, domain: true } });
   if (!vs) return null;
   const [kpis, l3rows, ps] = await Promise.all([
@@ -699,14 +754,26 @@ async function metricsValueStream(tenantId: string, c: string, id: string): Prom
   };
 }
 
-async function metricsStep(tenantId: string, id: string): Promise<Dashboard | null> {
-  const s = await prisma.subValueStream.findFirst({ where: { id, tenantId, level: 3 }, select: { id: true, name: true, valueStreamId: true } });
-  if (!s) return null;
+async function metricsStep(tenantId: string, id: string, node?: ResolvedNode | null): Promise<Dashboard | null> {
+  // Unified sub_process node (preferred): key the legacy lookups by NAME within
+  // the parent value stream's folded legacy ids.
+  let s: { id: string; name: string; valueStreamId: string } | null = null;
+  let vsIds: string[] | null = null;
+  if (node && node.typeKey === 'sub_process') {
+    const parent = node.parentId ? await resolveNode(node.parentId) : null;
+    vsIds = parent ? await legacyVsIds(node.companyId, parent.name) : [];
+    s = { id: node.id, name: node.name, valueStreamId: vsIds[0] ?? '_' };
+  } else {
+    const row = await prisma.subValueStream.findFirst({ where: { id, tenantId, level: 3 }, select: { id: true, name: true, valueStreamId: true } });
+    if (row) { s = row; vsIds = [row.valueStreamId]; }
+  }
+  if (!s || !vsIds) return null;
+  const vsFilter = { in: vsIds.length ? vsIds : ['_'] };
   const [kpis, steps, io, rvs] = await Promise.all([
-    prisma.metric.findMany({ where: { valueStreamId: s.valueStreamId, l3: s.name }, orderBy: { category: 'asc' }, select: { name: true, targetText: true, category: true, framework: true } }),
-    prisma.processStep.count({ where: { valueStreamId: s.valueStreamId, l3: s.name } }),
-    prisma.ioItem.groupBy({ by: ['type'], where: { valueStreamId: s.valueStreamId, l3: s.name }, _count: { _all: true } }),
-    prisma.roleValueStream.findMany({ where: { valueStreamId: s.valueStreamId, subStream: { startsWith: s.name + ' — ' } }, select: { roleId: true, participationType: true, role: { select: { id: true, name: true } } } }),
+    prisma.metric.findMany({ where: { valueStreamId: vsFilter, l3: s.name }, orderBy: { category: 'asc' }, select: { name: true, targetText: true, category: true, framework: true } }),
+    prisma.processStep.count({ where: { valueStreamId: vsFilter, l3: s.name } }),
+    prisma.ioItem.groupBy({ by: ['type'], where: { valueStreamId: vsFilter, l3: s.name }, _count: { _all: true } }),
+    prisma.roleValueStream.findMany({ where: { valueStreamId: vsFilter, subStream: { startsWith: s.name + ' — ' } }, select: { roleId: true, participationType: true, role: { select: { id: true, name: true } } } }),
   ]);
   const ioTotal = io.reduce((a, x) => a + x._count._all, 0);
   const inputs = io.find((x) => x.type === 'Input')?._count._all ?? 0;
@@ -798,14 +865,16 @@ router.get('/metrics/:level/:id?', async (req: Request, res: Response, next: Nex
     const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true, name: true } });
     if (!company) return res.status(404).json({ error: 'No company' });
     const id = req.params.id ? decodeURIComponent(req.params.id) : undefined;
+    const node = await resolveNode(id);
+    const lid = node?.code ?? id; // legacy id when a unified-node id was passed
     let out: Dashboard | null = null;
     switch (req.params.level) {
       case 'company':     out = await metricsCompany(company.id, company.name); break;
-      case 'domain':      out = id ? await metricsDomain(company.id, id) : null; break;
-      case 'division':    out = id ? await metricsDivision(req.tenantId, company.id, id) : null; break;
-      case 'valueStream': out = id ? await metricsValueStream(req.tenantId, company.id, id) : null; break;
-      case 'step':        out = id ? await metricsStep(req.tenantId, id) : null; break;
-      case 'role':        out = id ? await metricsRole(req.tenantId, id) : null; break;
+      case 'domain':      out = id ? await metricsDomain(company.id, node?.name ?? id) : null; break;
+      case 'division':    out = lid ? await metricsDivision(req.tenantId, company.id, lid) : null; break;
+      case 'valueStream': out = id ? await metricsValueStream(req.tenantId, company.id, id, node) : null; break;
+      case 'step':        out = id ? await metricsStep(req.tenantId, id, node) : null; break;
+      case 'role':        out = lid ? await metricsRole(req.tenantId, lid) : null; break;
       case 'person':      out = id ? await metricsPerson(req.tenantId, id) : null; break;
     }
     if (!out) return res.status(404).json({ error: 'Not found' });
@@ -889,23 +958,41 @@ function dedupeByStrongestPart(links: { participationType: string; role: RoleLit
   for (const l of links) { const cur = m.get(l.role.id); if (!cur || (PART_ORDER[l.participationType] ?? 9) < (PART_ORDER[cur.part] ?? 9)) m.set(l.role.id, { ...l.role, part: l.participationType }); }
   return [...m.values()].sort((a, b) => (PART_ORDER[a.part] ?? 9) - (PART_ORDER[b.part] ?? 9));
 }
-async function rolesValueStream(tenantId: string, c: string, id: string): Promise<Dashboard | null> {
-  const vs = await prisma.valueStream.findFirst({ where: { id, tenantId, companyId: c }, select: { id: true, name: true } });
-  if (!vs) return null;
-  const links = await prisma.roleValueStream.findMany({ where: { valueStreamId: id }, select: { participationType: true, role: { select: { id: true, name: true, roleLevel: true } } } });
+async function rolesValueStream(tenantId: string, c: string, id: string, node?: ResolvedNode | null): Promise<Dashboard | null> {
+  // Unified value_stream node (preferred): aggregate the folded legacy streams.
+  let name: string | null = null;
+  let vsIds: string[] | null = null;
+  if (node && node.typeKey === 'value_stream') {
+    name = node.name;
+    vsIds = await legacyVsIds(c, node.name);
+  } else {
+    const vs = await prisma.valueStream.findFirst({ where: { id, tenantId, companyId: c }, select: { id: true, name: true } });
+    if (vs) { name = vs.name; vsIds = [vs.id]; }
+  }
+  if (!name || !vsIds) return null;
+  const links = await prisma.roleValueStream.findMany({ where: { valueStreamId: { in: vsIds.length ? vsIds : ['_'] } }, select: { participationType: true, role: { select: { id: true, name: true, roleLevel: true } } } });
   const roles = dedupeByStrongestPart(links);
   return {
-    level: 'valueStream', title: vs.name, subtitle: 'Roles · who owns what',
+    level: 'valueStream', title: name, subtitle: 'Roles · who owns what',
     tiles: [{ label: 'Roles', value: roles.length }],
     sections: [
       { title: 'Participating Roles', kind: 'list', items: roles.map((r) => ({ label: r.name, value: 0, hint: r.part, drill: { level: 'role', id: r.id } })) },
     ],
   };
 }
-async function rolesStep(tenantId: string, id: string): Promise<Dashboard | null> {
-  const s = await prisma.subValueStream.findFirst({ where: { id, tenantId, level: 3 }, select: { id: true, name: true, valueStreamId: true } });
-  if (!s) return null;
-  const links = await prisma.roleValueStream.findMany({ where: { valueStreamId: s.valueStreamId, subStream: { startsWith: s.name + ' — ' } }, select: { participationType: true, role: { select: { id: true, name: true, roleLevel: true } } } });
+async function rolesStep(tenantId: string, id: string, node?: ResolvedNode | null): Promise<Dashboard | null> {
+  let s: { id: string; name: string; valueStreamId: string } | null = null;
+  let vsIds: string[] | null = null;
+  if (node && node.typeKey === 'sub_process') {
+    const parent = node.parentId ? await resolveNode(node.parentId) : null;
+    vsIds = parent ? await legacyVsIds(node.companyId, parent.name) : [];
+    s = { id: node.id, name: node.name, valueStreamId: vsIds[0] ?? '_' };
+  } else {
+    const row = await prisma.subValueStream.findFirst({ where: { id, tenantId, level: 3 }, select: { id: true, name: true, valueStreamId: true } });
+    if (row) { s = row; vsIds = [row.valueStreamId]; }
+  }
+  if (!s || !vsIds) return null;
+  const links = await prisma.roleValueStream.findMany({ where: { valueStreamId: { in: vsIds.length ? vsIds : ['_'] }, subStream: { startsWith: s.name + ' — ' } }, select: { participationType: true, role: { select: { id: true, name: true, roleLevel: true } } } });
   const roles = dedupeByStrongestPart(links);
   return {
     level: 'step', title: s.name, subtitle: 'Roles · who owns what',
@@ -1022,20 +1109,37 @@ router.get('/roles/:level/:id?', async (req: Request, res: Response, next: NextF
     const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true, name: true } });
     if (!company) return res.status(404).json({ error: 'No company' });
     const id = req.params.id ? decodeURIComponent(req.params.id) : undefined;
-    // Configurable-Level node → serve its detail (value-stream map drill-down).
-    if (id) {
+    const node = await resolveNode(id);
+    // Unified work-branch node → serve its step/process detail (map drill-down).
+    // valueStream level gets the richer participating-roles dashboard below; the
+    // deeper process nodes serve their authored detail (leads/supporting/I-O).
+    if (node && ['value_stream', 'sub_process', 'step', 'io_item'].includes(node.typeKey) && req.params.level !== 'valueStream') {
+      const full = await prisma.node.findUnique({ where: { id: node.id }, select: { description: true, attributes: true } });
+      const at = (full?.attributes as any) ?? {};
+      return res.json(levelDashboard({
+        name: node.name,
+        levelNumber: node.typeKey === 'value_stream' ? 3 : node.typeKey === 'sub_process' ? 4 : 5,
+        description: full?.description ?? null,
+        leads: at.leads ?? null, supporting: at.supporting ?? null,
+        inputs: at.inputs ?? null, outputs: at.outputs ?? null,
+        externalParticipants: at.externalParticipants ?? null,
+      }));
+    }
+    // Legacy Level node → serve its detail (old links keep working).
+    if (id && !node) {
       const lvl = await prisma.level.findFirst({ where: { id, tenantId: req.tenantId }, select: { name: true, levelNumber: true, description: true, leads: true, supporting: true, inputs: true, outputs: true, externalParticipants: true } });
       if (lvl) return res.json(levelDashboard(lvl));
     }
+    const lid = node?.code ?? id; // legacy id when a unified-node id was passed
     let out: Dashboard | null = null;
     switch (req.params.level) {
       case 'company':     out = await rolesCompany(company.id, company.name); break;
-      case 'domain':      out = id ? await rolesDomain(company.id, id) : null; break;
-      case 'division':    out = id ? await rolesDivision(req.tenantId, company.id, id) : null; break;
-      case 'department':  out = id ? await rolesDepartment(req.tenantId, id) : null; break;
-      case 'valueStream': out = id ? await rolesValueStream(req.tenantId, company.id, id) : null; break;
-      case 'step':        out = id ? await rolesStep(req.tenantId, id) : null; break;
-      case 'role':        out = id ? await rolesRole(req.tenantId, id) : null; break;
+      case 'domain':      out = id ? await rolesDomain(company.id, node?.name ?? id) : null; break;
+      case 'division':    out = lid ? await rolesDivision(req.tenantId, company.id, lid) : null; break;
+      case 'department':  out = lid ? await rolesDepartment(req.tenantId, lid) : null; break;
+      case 'valueStream': out = id ? await rolesValueStream(req.tenantId, company.id, id, node) : null; break;
+      case 'step':        out = id ? await rolesStep(req.tenantId, id, node) : null; break;
+      case 'role':        out = lid ? await rolesRole(req.tenantId, lid) : null; break;
       case 'person':      out = id ? await rolesPerson(req.tenantId, id) : null; break;
     }
     if (!out) return res.status(404).json({ error: 'Not found' });
@@ -1060,6 +1164,10 @@ router.get('/node/:type/:id/children', async (req: Request, res: Response, next:
 });
 
 async function buildNode(tenantId: string, type: string, id: string, cursor?: string) {
+  // Accept unified-node ids (the rework's namespace): translate to the legacy id
+  // the per-type builders expect. Falls through unchanged for legacy ids.
+  const unified = await resolveNode(id);
+  if (unified?.code) id = unified.code;
   switch (type) {
     case 'company': return nodeCompany(tenantId, id);
     case 'domain': return nodeDomain(tenantId, id);
@@ -1563,39 +1671,47 @@ async function nodeTask(tenantId: string, id: string) {
 //    in motion (L1 Domain → L2 Value Stream → L3 Process Area → L4 Sub-Process).
 //    Powers the "Roles" interactive table (not a drill map). People are loaded
 //    lazily per role via /role/:id/people; here we only carry the headcount.
-const SEGMENT_ORDER = ['Core Business', 'IT', 'Corporate Function'];
-// Divisions ordered by where they sit in the end-to-end process (value chain),
-// not alphabetically. Within each segment the boxes follow this sequence.
-const DIVISION_ORDER = [
-  'Sales, Distribution & Marketing', 'Underwriting', 'Actuarial', 'Claims', 'Reinsurance', 'Operations & Customer Service',
-  'Product, Delivery & PMO', 'Technology & Engineering', 'Data & AI', 'Cybersecurity & IAM',
-  'Human Resources & Talent', 'Finance & Investments', 'Legal & Corporate Governance', 'Risk, Compliance & Audit',
-];
-const divRank = (name: string) => { const i = DIVISION_ORDER.indexOf(name); return i === -1 ? 999 : i; };
 router.get('/org-table', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true, name: true } });
     if (!company) return res.status(404).json({ error: 'No company' });
     const c = company.id;
-    const [divisions, departments, roles, links, headByRole, valueStreams] = await Promise.all([
-      prisma.division.findMany({ where: { companyId: c }, orderBy: { name: 'asc' }, select: { id: true, name: true, higherCategory: true } }),
-      prisma.department.findMany({ where: { companyId: c }, orderBy: { name: 'asc' }, select: { id: true, name: true, divisionId: true } }),
-      prisma.role.findMany({ where: { companyId: c }, orderBy: { name: 'asc' }, select: { id: true, name: true, roleLevel: true, roleFamily: true, divisionId: true, departmentId: true } }),
-      prisma.roleValueStream.findMany({ where: { valueStream: { companyId: c } }, select: { roleId: true, valueStreamId: true, participationType: true, subStream: true, valueStream: { select: { name: true, domain: true, domainRef: { select: { name: true } } } } } }),
+    // Structure + names + ordering come from the unified Node tree (renames and
+    // reorders in the builder propagate here). Detail rows keep their LEGACY ids
+    // (node.code) so the role/division/department detail routes still resolve.
+    // Participation detail stays on the typed RoleValueStream junction (hybrid),
+    // re-mapped onto the canonical value streams.
+    const [nodes, links, headByRole] = await Promise.all([
+      prisma.node.findMany({
+        where: { companyId: c, typeKey: { in: ['segment', 'division', 'department', 'role', 'value_stream'] } },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+        select: { id: true, name: true, typeKey: true, parentId: true, code: true, attributes: true },
+      }),
+      prisma.roleValueStream.findMany({ where: { valueStream: { companyId: c } }, select: { roleId: true, participationType: true, subStream: true, valueStream: { select: { name: true } } } }),
       prisma.assignment.groupBy({ by: ['roleId'], where: { role: { companyId: c } }, _count: { _all: true } }),
-      prisma.valueStream.findMany({ where: { companyId: c }, orderBy: [{ domain: 'asc' }, { name: 'asc' }], select: { id: true, name: true, domain: true } }),
     ]);
+    const byId = new Map(nodes.map((n) => [n.id, n]));
+    const ofType = (t: string) => nodes.filter((n) => n.typeKey === t);
+    const segNodes = ofType('segment');
+    const divNodes = ofType('division');
+    const deptNodes = ofType('department');
+    const roleNodes = ofType('role');
+    const vsNodes = ofType('value_stream');
+    const vsByName = new Map(vsNodes.map((v) => [v.name, v]));
 
-    const peopleByRole = new Map(headByRole.map((h) => [h.roleId, h._count._all]));
-    // role.id -> participations (subStream parsed into L3 / L4)
+    const peopleByRole = new Map(headByRole.map((h) => [h.roleId, h._count._all])); // keyed by legacy Role.id (= role node code)
+
+    // legacy role id -> participations, resolved onto the canonical streams.
     const partByRole = new Map<string, any[]>();
     for (const l of links) {
+      const cname = canonicalVs(l.valueStream.name);
+      const vn = vsByName.get(cname);
       const [l3, l4] = (l.subStream ?? '').split(' — ');
       if (!partByRole.has(l.roleId)) partByRole.set(l.roleId, []);
       partByRole.get(l.roleId)!.push({
-        valueStreamId: l.valueStreamId,
-        valueStreamName: l.valueStream.name,
-        domain: l.valueStream.domainRef?.name ?? l.valueStream.domain ?? null,
+        valueStreamId: vn?.id ?? null,
+        valueStreamName: cname,
+        domain: vn?.parentId ? byId.get(vn.parentId)?.name ?? null : null,
         participationType: l.participationType,
         l3: l3 || null,
         l4: l4 || null,
@@ -1603,47 +1719,62 @@ router.get('/org-table', async (req: Request, res: Response, next: NextFunction)
     }
     const sortPart = (a: any, b: any) => (PART_ORDER[a.participationType] ?? 9) - (PART_ORDER[b.participationType] ?? 9) || a.valueStreamName.localeCompare(b.valueStreamName);
 
-    // L4 Roles nested under L3 Departments, then L2 Divisions, then L1 Segments.
-    const rolesByDept = new Map<string, any[]>();
-    for (const r of roles) {
-      const part = (partByRole.get(r.id) ?? []).sort(sortPart);
-      const node = {
-        id: r.id, name: r.name, roleLevel: r.roleLevel, roleFamily: r.roleFamily,
-        peopleCount: peopleByRole.get(r.id) ?? 0,
+    // Roles nested under departments, then divisions, then segments — plus an
+    // explicit Unassigned bucket so no role is silently dropped (audit D1).
+    const rolesByParent = new Map<string, any[]>();
+    const unassignedRoles: any[] = [];
+    for (const r of roleNodes) {
+      const legacyId = r.code ?? r.id;
+      const a = (r.attributes as any) ?? {};
+      const part = (partByRole.get(legacyId) ?? []).sort(sortPart);
+      const entry = {
+        id: legacyId, name: r.name, roleLevel: a.roleLevel ?? null, roleFamily: a.roleFamily ?? null,
+        peopleCount: peopleByRole.get(legacyId) ?? 0,
         valueStreamCount: new Set(part.map((p) => p.valueStreamId)).size,
         participations: part,
       };
-      const key = r.departmentId ?? `__div:${r.divisionId}`; // roles without a dept hang directly off the division
-      if (!rolesByDept.has(key)) rolesByDept.set(key, []);
-      rolesByDept.get(key)!.push(node);
+      if (!r.parentId) { unassignedRoles.push(entry); continue; }
+      if (!rolesByParent.has(r.parentId)) rolesByParent.set(r.parentId, []);
+      rolesByParent.get(r.parentId)!.push(entry);
     }
 
-    const deptsByDiv = new Map<string, any[]>();
-    for (const d of departments) {
-      const r = rolesByDept.get(d.id) ?? [];
-      if (!deptsByDiv.has(d.divisionId)) deptsByDiv.set(d.divisionId, []);
-      deptsByDiv.get(d.divisionId)!.push({ id: d.id, name: d.name, roles: r, roleCount: r.length, peopleCount: r.reduce((a, x) => a + x.peopleCount, 0) });
-    }
-
-    const divisionNodes = divisions.map((dv) => {
-      const depts = deptsByDiv.get(dv.id) ?? [];
-      const looseRoles = rolesByDept.get(`__div:${dv.id}`) ?? []; // unparented roles, if any
+    const divisionRows = divNodes.map((dv) => {
+      const depts = deptNodes.filter((d) => d.parentId === dv.id).map((d) => {
+        const r = rolesByParent.get(d.id) ?? [];
+        return { id: d.code ?? d.id, name: d.name, roles: r, roleCount: r.length, peopleCount: r.reduce((a, x) => a + x.peopleCount, 0) };
+      });
+      const looseRoles = rolesByParent.get(dv.id) ?? []; // roles hanging directly off the division
       const roleCount = depts.reduce((a, x) => a + x.roleCount, looseRoles.length);
       const peopleCount = depts.reduce((a, x) => a + x.peopleCount, looseRoles.reduce((a2, x2) => a2 + x2.peopleCount, 0));
-      return { id: dv.id, name: dv.name, segment: dv.higherCategory ?? 'Core Business', departments: depts, looseRoles, roleCount, peopleCount };
+      const segment = dv.parentId ? byId.get(dv.parentId)?.name ?? 'Core Business' : 'Core Business';
+      return { id: dv.code ?? dv.id, name: dv.name, segment, departments: depts, looseRoles, roleCount, peopleCount, _segId: dv.parentId };
     });
 
-    const segments = SEGMENT_ORDER
-      .map((name) => {
-        const divs = divisionNodes.filter((d) => d.segment === name).sort((a, b) => divRank(a.name) - divRank(b.name));
-        return { name, divisions: divs, divisionCount: divs.length, roleCount: divs.reduce((a, x) => a + x.roleCount, 0), peopleCount: divs.reduce((a, x) => a + x.peopleCount, 0) };
+    const segments: any[] = segNodes
+      .map((s) => {
+        const divs = divisionRows.filter((d) => d._segId === s.id).map(({ _segId, ...d }) => d);
+        return { name: s.name, divisions: divs, divisionCount: divs.length, roleCount: divs.reduce((a, x) => a + x.roleCount, 0), peopleCount: divs.reduce((a, x) => a + x.peopleCount, 0) };
       })
       .filter((s) => s.divisions.length > 0);
+    if (unassignedRoles.length) {
+      const peopleCount = unassignedRoles.reduce((a, x) => a + x.peopleCount, 0);
+      segments.push({
+        name: 'Unassigned',
+        divisions: [{ id: '__unassigned', name: 'Unassigned roles', segment: 'Unassigned', departments: [], looseRoles: unassignedRoles, roleCount: unassignedRoles.length, peopleCount }],
+        divisionCount: 0, roleCount: unassignedRoles.length, peopleCount,
+      });
+    }
 
+    // Headline totals come from the ONE shared canonical function (X1/X2) so the
+    // Organization header always equals the Home tiles.
+    const totals = await structureCounts(req.tenantId!, c);
     res.json({
       company,
-      totals: { segments: segments.length, divisions: divisions.length, departments: departments.length, roles: roles.length, valueStreams: valueStreams.length, people: [...peopleByRole.values()].reduce((a, x) => a + x, 0) },
-      valueStreams,
+      totals: {
+        segments: totals.segments, divisions: totals.divisions, departments: totals.departments,
+        roles: totals.roles, valueStreams: totals.valueStreams, people: totals.people,
+      },
+      valueStreams: vsNodes.map((v) => ({ id: v.id, name: v.name, domain: v.parentId ? byId.get(v.parentId)?.name ?? null : null })),
       segments,
     });
   } catch (e) { next(e); }
