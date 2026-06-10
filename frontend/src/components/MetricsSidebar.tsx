@@ -19,7 +19,7 @@ export type Dashboard = {
 
 const LEVEL_LABEL: Record<string, string> = {
   company: 'Enterprise', domain: '', division: 'Division', department: 'Department',
-  valueStream: 'Process Level 3', step: 'Process Level 4', role: 'Role', person: 'Individual',
+  valueStream: 'Process Level 3', step: 'Process Level 4', leafStep: 'Process Level 5', role: 'Role', person: 'Individual',
 };
 
 const BAR = '#2563eb';

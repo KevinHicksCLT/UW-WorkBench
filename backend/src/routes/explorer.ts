@@ -913,7 +913,7 @@ async function metricsStep(tenantId: string, id: string, node?: ResolvedNode | n
     const splitIo = (v: string | null) => (v ? v.split(/[,;]/).map((x) => x.trim()).filter(Boolean) : []);
     const inputs = splitIo(step.inputs), outputs = splitIo(step.outputs);
     return {
-      level: 'step', title: step.name, subtitle: `Process step ${step.stepNumber}${step.l4 ? ` · ${step.l4}` : ''} (L5)`,
+      level: 'leafStep', title: step.name, subtitle: `Process step ${step.stepNumber}${step.l4 ? ` · ${step.l4}` : ''} (L5)`,
       tiles: [
         { label: 'People doing the work', value: lens.people.length, illustrative: true },
         { label: 'Working roles', value: lens.roleCount, hint: lens.unresolvedRoles.length ? `+${lens.unresolvedRoles.length} named only` : undefined },
