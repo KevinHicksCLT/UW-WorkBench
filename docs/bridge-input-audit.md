@@ -1,6 +1,6 @@
 # Bridge Input ↔ Database Audit
 
-Workbook: `AI Transformation Bridge Input.xlsx` · Spine: `backend/data/seed/spine.json` · Generated: 2026-06-10T19:23Z
+Workbook: `AI Transformation Bridge Input.xlsx` · Spine: `backend/data/seed/spine.json` · Generated: 2026-06-10T19:42Z
 Company: Meridian Insurance Group · Result: **all 13 sections PASS**
 
 | # | Section | Status | Summary |

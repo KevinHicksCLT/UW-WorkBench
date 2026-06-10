@@ -92,6 +92,12 @@ hydrated with a representative baseline plan for the transformation itself.
 4. "Work Matrix" label removed; dead space between top menu and list removed.
 5. **Data:** deliverable names use consistent letter casing in the DB itself (one canonical row per deliverable, no duplicates differing only by case); fix is a migration/script, recorded in docs.
 
+> **D8.5 audit result (2026-06-10):** `scripts/audit-deliverable-casing.ts` found 305 of 441
+> titles lowercase vs 136 sentence-case, plus 13 same-name groups. The "duplicates" are
+> same-name deliverables in **different value streams** — legitimate distinct rows (0 true
+> duplicates within a company + value stream). `scripts/fix-deliverable-casing.ts --fix`
+> sentence-cased the 305 titles; re-run reports 0 remaining (idempotent).
+
 ## D9 — External → Third-Parties
 
 **AC**
@@ -134,10 +140,10 @@ Each AC is checked off by exercising the running app (Playwright) + querying the
 | D3 VS map | pending |
 | D4 Organization | pending |
 | D5 Standards | pending |
-| D6 Metrics | pending |
-| D7 Workspace | pending |
-| D8 Deliverables & Tasks | pending |
-| D9 Third-Parties | pending |
-| D10 Bridge Assistant | pending |
+| D6 Metrics | rename + redirects DONE; AI-adoption refactor pending |
+| D7 Workspace | rename DONE; restructure pending |
+| D8 Deliverables & Tasks | DONE (tabs split, declutter, 305 titles recased, dupes audited) |
+| D9 Third-Parties | rename + frequency column DONE; owner review pending |
+| D10 Bridge Assistant | rename DONE; formatting verification pending |
 | D11 Dictionary | pending |
-| D12 Admin Configure | pending |
+| D12 Admin Configure | DONE except blank-space (in global UI pass) |
