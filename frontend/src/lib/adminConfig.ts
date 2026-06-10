@@ -20,6 +20,7 @@ export type EditorSpec =
   | { kind: 'validations' }
   | { kind: 'aiAdoption' }
   | { kind: 'builder'; scope?: 'all' | 'map' | 'external' }
+  | { kind: 'stepLens' }
   | { kind: 'catalog' };
 
 export type Section = { key: string; label: string; hint?: string; editor: EditorSpec };
@@ -45,12 +46,13 @@ export const ADMIN_TABS: TabConfig[] = [
     label: 'Value Streams',
     description: 'The operating-model map is driven by a single configurable level hierarchy (Enterprise → Domain → Division → Value Stream → Sub-Process → Process Step). Drill in to edit any node and its detail.',
     sections: [
-      { key: 'builder', label: 'Model builder', hint: 'the map structure', editor: { kind: 'builder', scope: 'map' } },
+      { key: 'sidebar', label: 'Sidebar content', hint: 'what the map sidebar shows', editor: { kind: 'stepLens' } },
+      { key: 'builder', label: 'Map structure', hint: 'levels & connections', editor: { kind: 'builder', scope: 'map' } },
       { key: 'subProcesses', label: 'Sub-processes', editor: { kind: 'list', slug: 'subValueStream', fixed: { level: 4 }, intro: 'The L4 sub-process details — inputs, outputs, upstream/downstream hand-offs, and notes — rendered in the map sidebar and the value-stream drawer. Edits here also refresh the sub-process node on the map.' } },
-      { key: 'steps', label: 'Process steps', editor: { kind: 'list', slug: 'processStep', intro: 'Sequenced E2E process steps attached to a value stream (the "how the work flows" detail). The `code` / `parentProcessId` columns are the workbook Activity IDs (CI-01-01-S03 / CI-01-01) the step lens joins on.' } },
+      { key: 'steps', label: 'Process steps', editor: { kind: 'list', slug: 'processStep', intro: 'Sequenced E2E process steps attached to a value stream (the "how the work flows" detail). The `code` / `parentProcessId` columns are the workbook Activity IDs (CI-01-01-S03 / CI-01-01) the step lens joins on. For a guided, sidebar-shaped editor use the "Sidebar content" section.' } },
       { key: 'io', label: 'Inputs / outputs', editor: { kind: 'list', slug: 'ioItem', intro: 'Inputs, outputs, and deliverables inventoried per value stream.' } },
-      { key: 'stepApps', label: 'Step applications', editor: { kind: 'list', slug: 'stepAppUsage', intro: 'Which application a process step runs on, and how (Execution / System of Record / Approval / Reporting / Support) — the "Applications & systems" section of the map sidebar. Rows match a step by its id or by Activity ID. Illustrative rows came from the deterministic seed; replace them with real ones as they are confirmed.' } },
-      { key: 'stepDeliverables', label: 'Step deliverables', editor: { kind: 'list', slug: 'stepDeliverable', intro: 'The deliverable each step produces, where it is memorialized (system of record) and who approves it in which system — the "Deliverables" chain of the map sidebar.' } },
+      { key: 'stepApps', label: 'Step applications', hint: 'raw table', editor: { kind: 'list', slug: 'stepAppUsage', intro: 'Which application a process step runs on, and how (Execution / System of Record / Approval / Reporting / Support) — the "Applications & systems" section of the map sidebar. Rows match a step by its id or by Activity ID. For a guided editor use "Sidebar content".' } },
+      { key: 'stepDeliverables', label: 'Step deliverables', hint: 'raw table', editor: { kind: 'list', slug: 'stepDeliverable', intro: 'The deliverable each step produces, where it is memorialized (system of record) and who approves it in which system — the "Deliverables" chain of the map sidebar. For a guided editor use "Sidebar content".' } },
     ],
   },
   {

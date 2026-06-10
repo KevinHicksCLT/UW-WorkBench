@@ -10,6 +10,7 @@ import DashboardAdmin from './DashboardAdmin';
 import ValidationPanel from './ValidationPanel';
 import AiAdoptionEditor from './AiAdoptionEditor';
 import ModelBuilder from './ModelBuilder';
+import StepLensEditor from './StepLensEditor';
 
 // Resolves one section's EditorSpec to the right editor component, wiring entity
 // metadata in from the registry. Keeps Admin.tsx declarative — the page just maps
@@ -99,6 +100,9 @@ export default function AdminSection({
 
     case 'builder':
       return <ModelBuilder companyId={companyId} scope={spec.scope ?? 'all'} />;
+
+    case 'stepLens':
+      return <StepLensEditor companyId={companyId} onNavigate={onNavigate} />;
 
     case 'catalog':
       return <CatalogEditor companyId={companyId} bySlug={bySlug} />;
