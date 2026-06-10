@@ -195,6 +195,23 @@ function parseUseCases(raw: unknown): AiUseCasesByMode | null {
   return out;
 }
 
+// Per-mode adoption statistics: { <mode>: { rolesUsingPct, efficiencyGainPct } }, 0–100.
+type AiStatsByMode = Record<(typeof AI_MODES)[number], { rolesUsingPct: number; efficiencyGainPct: number }>;
+function parseStats(raw: unknown): AiStatsByMode | null {
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return null;
+  const pct = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 100 ? Math.round(v) : null);
+  const out = {} as AiStatsByMode;
+  for (const mode of AI_MODES) {
+    const s = (raw as Record<string, unknown>)[mode] ?? {};
+    if (typeof s !== 'object' || s === null) return null;
+    const roles = pct((s as Record<string, unknown>).rolesUsingPct ?? 0);
+    const eff = pct((s as Record<string, unknown>).efficiencyGainPct ?? 0);
+    if (roles === null || eff === null) return null;
+    out[mode] = { rolesUsingPct: roles, efficiencyGainPct: eff };
+  }
+  return out;
+}
+
 async function companyForReq(req: Request): Promise<string | null> {
   const cid = typeof req.query.companyId === 'string' ? req.query.companyId : '';
   if (!cid) return null;
@@ -224,6 +241,7 @@ router.get('/ai-adoption', async (req: Request, res: Response, next: NextFunctio
         aiWorkflow: n.aiAdoption?.aiWorkflow ?? 'not_used',
         aiAutonomous: n.aiAdoption?.aiAutonomous ?? 'not_used',
         useCases: n.aiAdoption?.useCases ?? null,
+        stats: n.aiAdoption?.stats ?? null,
       })),
     });
   } catch (e) {
@@ -252,6 +270,12 @@ router.patch('/ai-adoption/:levelId', async (req: Request, res: Response, next: 
       const parsed = parseUseCases(req.body.useCases);
       if (!parsed) return res.status(400).json({ error: 'useCases must be { assistant|augmented|workflow|agent: [{ title, persona, detail }] } with non-empty titles' });
       data.useCases = parsed;
+    }
+    // Per-mode adoption statistics ({ <mode>: { rolesUsingPct, efficiencyGainPct } }, 0–100).
+    if ((req.body ?? {}).stats !== undefined) {
+      const parsed = parseStats(req.body.stats);
+      if (!parsed) return res.status(400).json({ error: 'stats must be { assistant|augmented|workflow|agent: { rolesUsingPct, efficiencyGainPct } } with values 0–100' });
+      data.stats = parsed;
     }
     if (Object.keys(data).length === 0) return res.status(400).json({ error: 'No AI-adoption fields to update' });
 

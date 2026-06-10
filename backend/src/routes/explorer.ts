@@ -292,6 +292,9 @@ router.get('/value-stream-adoption', async (req: Request, res: Response, next: N
         // Per-mode use cases ({ assistant|augmented|workflow|agent: [{title, persona, detail}] }),
         // authored in Data Admin → Telemetry → AI adoption.
         useCases: n.aiAdoption?.useCases ?? null,
+        // Per-mode adoption statistics ({ <mode>: { rolesUsingPct, efficiencyGainPct } }),
+        // same admin surface.
+        stats: n.aiAdoption?.stats ?? null,
       })),
     });
   } catch (e) { next(e); }

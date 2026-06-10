@@ -11,11 +11,14 @@ import { api } from '../../lib/api';
 type UseCase = { title: string; persona: string; detail: string };
 type ModeKey = 'assistant' | 'augmented' | 'workflow' | 'agent';
 type UseCases = Record<ModeKey, UseCase[]>;
+type ModeStats = { rolesUsingPct: number; efficiencyGainPct: number };
+type Stats = Record<ModeKey, ModeStats>;
 
 type Row = {
   levelId: string; name: string; domain: string | null;
   aiAssist: string; aiAugment: string; aiWorkflow: string; aiAutonomous: string;
   useCases: Partial<UseCases> | null;
+  stats: Partial<Stats> | null;
 };
 
 const MODES: [keyof Row, string][] = [
@@ -32,13 +35,26 @@ const LEVEL_LABEL: Record<string, string> = {
 const normalize = (uc: Partial<UseCases> | null): UseCases => ({
   assistant: uc?.assistant ?? [], augmented: uc?.augmented ?? [], workflow: uc?.workflow ?? [], agent: uc?.agent ?? [],
 });
+const normalizeStats = (st: Partial<Stats> | null): Stats => ({
+  assistant: st?.assistant ?? { rolesUsingPct: 0, efficiencyGainPct: 0 },
+  augmented: st?.augmented ?? { rolesUsingPct: 0, efficiencyGainPct: 0 },
+  workflow: st?.workflow ?? { rolesUsingPct: 0, efficiencyGainPct: 0 },
+  agent: st?.agent ?? { rolesUsingPct: 0, efficiencyGainPct: 0 },
+});
 
 // Per-stream use-case editor panel (expanded below the stream's row).
-function UseCaseEditor({ row, companyId, onSaved }: { row: Row; companyId: string; onSaved: (uc: UseCases) => void }) {
+function UseCaseEditor({ row, companyId, onSaved }: { row: Row; companyId: string; onSaved: (uc: UseCases, st: Stats) => void }) {
   const [draft, setDraft] = useState<UseCases>(() => normalize(row.useCases));
+  const [statsDraft, setStatsDraft] = useState<Stats>(() => normalizeStats(row.stats));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [dirty, setDirty] = useState(false);
+
+  const setStat = (mode: ModeKey, field: keyof ModeStats, value: string) => {
+    const n = Math.max(0, Math.min(100, Number(value) || 0));
+    setStatsDraft((d) => ({ ...d, [mode]: { ...d[mode], [field]: n } }));
+    setDirty(true);
+  };
 
   const setUc = (mode: ModeKey, i: number, field: keyof UseCase, value: string) => {
     setDraft((d) => ({ ...d, [mode]: d[mode].map((u, j) => (j === i ? { ...u, [field]: value } : u)) }));
@@ -61,10 +77,10 @@ function UseCaseEditor({ row, companyId, onSaved }: { row: Row; companyId: strin
       for (const [mode] of MODE_KEYS) cleaned[mode] = draft[mode].filter((u) => u.title.trim() || u.persona.trim() || u.detail.trim());
       const untitled = MODE_KEYS.some(([mode]) => cleaned[mode].some((u) => !u.title.trim()));
       if (untitled) { setError('Every use case needs a title.'); setSaving(false); return; }
-      await api.patch(`/admin/ai-adoption/${row.levelId}?companyId=${companyId}`, { useCases: cleaned });
+      await api.patch(`/admin/ai-adoption/${row.levelId}?companyId=${companyId}`, { useCases: cleaned, stats: statsDraft });
       setDraft(cleaned);
       setDirty(false);
-      onSaved(cleaned);
+      onSaved(cleaned, statsDraft);
     } catch (e) {
       setError(String((e as Error).message));
     } finally {
@@ -80,6 +96,21 @@ function UseCaseEditor({ row, companyId, onSaved }: { row: Row; companyId: strin
             <div className="flex items-center justify-between mb-2">
               <div className="text-xs font-semibold text-[#171717]">{label}</div>
               <button className="text-xs text-[#4338ca] hover:underline" onClick={() => add(mode)}>+ Add use case</button>
+            </div>
+            {/* Adoption statistics rendered on the Active AI drill-in */}
+            <div className="flex items-center gap-3 mb-2.5 text-xs">
+              <label className="flex items-center gap-1.5 text-[#666666]">
+                Roles using %
+                <input type="number" min={0} max={100} className="input py-0.5 text-xs w-16 tnum"
+                  value={statsDraft[mode].rolesUsingPct}
+                  onChange={(e) => setStat(mode, 'rolesUsingPct', e.target.value)} />
+              </label>
+              <label className="flex items-center gap-1.5 text-[#666666]">
+                Efficiency gain %
+                <input type="number" min={0} max={100} className="input py-0.5 text-xs w-16 tnum"
+                  value={statsDraft[mode].efficiencyGainPct}
+                  onChange={(e) => setStat(mode, 'efficiencyGainPct', e.target.value)} />
+              </label>
             </div>
             {draft[mode].length === 0 ? (
               <div className="text-xs text-[#a3a3a3] italic">No use cases for this mode.</div>
@@ -102,7 +133,7 @@ function UseCaseEditor({ row, companyId, onSaved }: { row: Row; companyId: strin
       </div>
       <div className="flex items-center gap-3 mt-3">
         <button className="btn-primary disabled:opacity-50" disabled={saving || !dirty} onClick={save}>
-          {saving ? 'Saving…' : 'Save use cases'}
+          {saving ? 'Saving…' : 'Save use cases & stats'}
         </button>
         {error && <span className="text-xs text-[#be123c]">{error}</span>}
         {!error && !dirty && <span className="text-xs text-[#a3a3a3]">Saved — these render in Telemetry → AI Adoption drill-in.</span>}
@@ -204,7 +235,7 @@ export default function AiAdoptionEditor({ companyId }: { companyId: string | nu
                             <UseCaseEditor
                               row={r}
                               companyId={companyId}
-                              onSaved={(uc) => setRows((rs) => rs ? rs.map((x) => x.levelId === r.levelId ? { ...x, useCases: uc } : x) : rs)}
+                              onSaved={(uc, st) => setRows((rs) => rs ? rs.map((x) => x.levelId === r.levelId ? { ...x, useCases: uc, stats: st } : x) : rs)}
                             />
                           </td>
                         </tr>

@@ -194,7 +194,10 @@ function DomainGroup({ domain, rows }: { domain: string; rows: { vs: ValueStream
       {open && rows.map(({ vs, cells }) => (
         <tr key={vs.id} className="border-b border-[#f5f5f5] hover:bg-[#fafafa] group">
           <td className="px-5 py-2 sticky left-0 bg-white group-hover:bg-[#fafafa] z-10">
-            <Link to={`/overview?focus=${vs.id}`} className="text-sm text-[#171717] group-hover:text-[#4338ca] truncate block max-w-[260px]">
+            {/* Drill one level DEEPER into the stream's AI profile (use cases,
+                role utilization, efficiency) — not across to the value-stream
+                page; that stays reachable from the drill-in's header. */}
+            <Link to={`/active-ai/${vs.id}`} className="text-sm text-[#171717] group-hover:text-[#4338ca] truncate block max-w-[260px]">
               {vs.name}
             </Link>
           </td>

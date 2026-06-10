@@ -11,11 +11,13 @@ import { MODES, HEAT, rolesUsing, efficiencyGain, type AiMode } from '../lib/aiA
 // on NodeAiAdoption and edited in Data Admin → Telemetry → AI adoption).
 
 type UseCase = { title: string; persona: string; detail: string };
+type ModeStats = { rolesUsingPct: number; efficiencyGainPct: number };
 
 type AdoptionStream = {
   id: string; name: string; domain: string | null;
   cells: number[]; // 0-4 level per mode, in MODES order
   useCases: Partial<Record<AiMode['key'], UseCase[]>> | null;
+  stats: Partial<Record<AiMode['key'], ModeStats>> | null;
 };
 
 // Legacy value-stream row — used only to count the roles participating in the
@@ -62,17 +64,22 @@ export default function ActiveAIDetail() {
     [legacy, vs],
   );
 
-  // Per-mode adoption + utilization for this stream, from the DB-backed levels
-  // and use cases.
+  // Per-mode adoption + utilization for this stream. Levels, use cases AND the
+  // statistics come from the DB (NodeAiAdoption, edited in Data Admin →
+  // Telemetry → AI adoption); the code derivations remain only as a fallback
+  // for streams whose stats were never seeded.
   const modeRows = useMemo(() => {
     if (!vs) return [];
     return MODES.map((mode, i) => {
       const level = vs.cells?.[i] ?? 0;
-      const { count, pct } = rolesUsing(level, roleCount);
+      const s = vs.stats?.[mode.key];
+      const fallbackRoles = rolesUsing(level, roleCount);
+      const rolesPct = s?.rolesUsingPct ?? fallbackRoles.pct;
       return {
         mode, level, useCases: vs.useCases?.[mode.key] ?? [],
-        rolesCount: count, rolesPct: pct,
-        effPct: efficiencyGain(vs.name, mode.key, level),
+        rolesPct,
+        rolesCount: roleCount ? Math.round((rolesPct / 100) * roleCount) : fallbackRoles.count,
+        effPct: s?.efficiencyGainPct ?? efficiencyGain(vs.name, mode.key, level),
       };
     });
   }, [vs, roleCount]);
