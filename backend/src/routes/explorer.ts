@@ -754,7 +754,8 @@ async function stepLens(companyId: string, steps: LensStep[]): Promise<Lens> {
 
   // Connected chain (L5 leaf): deliverable → the tasks that must be met → the
   // role responsible for each task → that role's checklist for doing it right
-  // (same category as the task when available) + the people in the role.
+  // (same category as the task when available). People stay OUT of the chain —
+  // they appear only as a subset of roles (Supporting roles → role → people).
   type ItemRow = { roleId: string; text: string; category: { name: string } | null };
   const tasksByRole = new Map<string, ItemRow[]>();
   for (const t of tasks as ItemRow[]) { if (!tasksByRole.has(t.roleId)) tasksByRole.set(t.roleId, []); tasksByRole.get(t.roleId)!.push(t); }
@@ -768,12 +769,11 @@ async function stepLens(companyId: string, steps: LensStep[]): Promise<Lens> {
         const matched = checks.filter((c) => c.category?.name && c.category.name === t.category?.name);
         const checkNodes = (matched.length ? matched : checks).slice(0, CHAIN_CHECKS)
           .map((c) => ({ label: c.text, value: 0, sub: c.category?.name ?? undefined, tag: 'checklist' }));
-        const personNodes = (peopleByRole.get(rid) ?? []).map((p) => ({ ...p, tag: 'person' }));
         return {
           label: t.text, value: 0, sub: t.category?.name ?? undefined, tag: 'task',
           children: [{
             label: roleName(rid), value: 0, hint: partOf(rid), drill: { level: 'role', id: rid }, tag: 'role',
-            children: [...checkNodes, ...personNodes],
+            children: checkNodes,
           }],
         };
       }));

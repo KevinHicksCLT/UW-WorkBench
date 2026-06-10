@@ -209,7 +209,7 @@ export default function MetricsSidebar({
   return (
     <aside
       className="hidden md:flex flex-col bg-white border-l border-[#eaeaea] overflow-y-auto flex-shrink-0"
-      style={{ width: 300, minWidth: 260 }}
+      style={{ width: 390, minWidth: 320 }}
     >
       {/* Header */}
       <div className="px-4 py-4 border-b border-[#eaeaea] sticky top-0 bg-white z-10">
