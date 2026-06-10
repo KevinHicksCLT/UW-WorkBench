@@ -9,11 +9,13 @@ import { useNavigate } from 'react-router-dom';
 
 export type Fmt = 'money' | 'years' | 'number';
 // `href` links out to an app page (e.g. /applications); `children` nests items
-// for `tree` sections (deliverable → task → role → checklist/people).
-export type MetricItem = { label: string; value: number; hint?: string; sub?: string; format?: Fmt; illustrative?: boolean; drill?: { level: string; id: string }; href?: string; children?: MetricItem[] };
+// for `tree` sections (deliverable → task → role → checklist/people); `tag`
+// names what the row IS so it renders with a consistent color + chip.
+export type MetricItem = { label: string; value: number; hint?: string; sub?: string; format?: Fmt; illustrative?: boolean; drill?: { level: string; id: string }; href?: string; children?: MetricItem[]; tag?: string };
 // A `hidden` section never renders inline — it backs a tile's consolidated
-// drawer (tile.drawer names the section).
-export type MetricSection = { title: string; kind: 'bar' | 'list' | 'kpi' | 'tree'; items: MetricItem[]; illustrative?: boolean; hidden?: boolean };
+// drawer (tile.drawer names the section). An `expanded` tree opens every level
+// on load (the L5 deliverable chain).
+export type MetricSection = { title: string; kind: 'bar' | 'list' | 'kpi' | 'tree'; items: MetricItem[]; illustrative?: boolean; hidden?: boolean; expanded?: boolean };
 export type Dashboard = {
   level: string;
   title: string;
@@ -46,50 +48,114 @@ function fmt(n: number, f?: Fmt) {
 }
 
 // ── Nested tree rows (kind: 'tree') ─────────────────────────────────────────
-// Deliverable → task → responsible role → checklist + people. Rows with
-// children expand in place; rows with a drill/href also carry a jump arrow.
-function TreeRow({ item, depth, wide, onDrill, onNavigate }: {
-  item: MetricItem; depth: number; wide?: boolean;
+// Deliverable → task → responsible role → checklist + people, color-coded by
+// `tag`. Top-level deliverables render as accent cards; nested levels hang off
+// an indent guide. `defaultOpen` (section.expanded) opens the whole chain.
+
+// Per-tag visual identity: accent color, chip styling, and chip label.
+const TAGS: Record<string, { accent: string; chip: string; label: string }> = {
+  deliverable: { accent: '#0070AD', chip: 'bg-[#eaf1ff] text-[#0070AD] border border-[#cdddff]', label: 'Deliverable' },
+  task:        { accent: '#d97706', chip: 'bg-[#fef3c7] text-[#92400e] border border-[#fde68a]', label: 'Task' },
+  role:        { accent: '#0f766e', chip: 'bg-[#ccfbf1] text-[#0f766e] border border-[#99f6e4]', label: 'Role' },
+  checklist:   { accent: '#16a34a', chip: 'bg-[#dcfce7] text-[#15803d] border border-[#bbf7d0]', label: 'Checklist' },
+  person:      { accent: '#6366f1', chip: 'bg-[#eef2ff] text-[#4f46e5] border border-[#e0e7ff]', label: 'Person' },
+  step:        { accent: '#7c3aed', chip: 'bg-[#ede9fe] text-[#6d28d9] border border-[#ddd6fe]', label: 'L5 step' },
+  app:         { accent: '#1d4ed8', chip: 'bg-[#eaf1ff] text-[#1d4ed8] border border-[#dbe7ff]', label: 'Application' },
+};
+
+const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+
+function TreeRow({ item, depth, wide, defaultOpen, onDrill, onNavigate }: {
+  item: MetricItem; depth: number; wide?: boolean; defaultOpen?: boolean;
   onDrill: (level: string, id: string) => void;
   onNavigate: (href: string) => void;
 }) {
-  const [open, setOpen] = useState(depth === 0 && !!wide);
+  const [open, setOpen] = useState(!!defaultOpen || (depth === 0 && !!wide));
   const kids = item.children ?? [];
   const go = item.drill ? () => onDrill(item.drill!.level, item.drill!.id) : item.href ? () => onNavigate(item.href!) : undefined;
-  const text = wide ? 'text-[13px]' : 'text-[11.5px]';
+  const tag = item.tag ? TAGS[item.tag] : undefined;
+  const text = wide ? 'text-[13.5px]' : 'text-[12px]';
+  const isCard = depth === 0 && (item.tag === 'deliverable' || item.tag === 'app');
+
+  // Lead marker: role rows show participation as a colored dot, not a tag chip.
+  const isRole = item.tag === 'role';
+  const isPerson = item.tag === 'person';
+  const isCheck = item.tag === 'checklist';
+
+  const marker = isPerson ? (
+    <span className="mt-[1px] w-[18px] h-[18px] rounded-full bg-[#eef2ff] border border-[#e0e7ff] text-[#4f46e5] text-[8px] font-bold flex items-center justify-center flex-shrink-0" aria-hidden>
+      {initials(item.label)}
+    </span>
+  ) : isCheck ? (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-[3px] flex-shrink-0" aria-hidden><path d="M20 6L9 17l-5-5" /></svg>
+  ) : isRole ? (
+    <span
+      className="mt-[6px] w-2 h-2 rounded-full flex-shrink-0"
+      style={{ background: item.hint === 'Lead' ? '#0070AD' : '#cbd5e1' }}
+      title={item.hint === 'Lead' ? 'Lead role' : 'Supporting role'}
+      aria-hidden
+    />
+  ) : null;
+
+  const row = (
+    <div className={`flex items-start gap-1.5 ${isCard ? '' : 'rounded-md px-1.5 py-1 hover:bg-[#f5f8ff] transition-colors duration-150'}`}>
+      {kids.length ? (
+        <button onClick={() => setOpen((o) => !o)} aria-label={open ? 'Collapse' : 'Expand'} className="mt-[4px] flex-shrink-0 text-[#737373] hover:text-[#171717]">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? 'rotate(90deg)' : undefined, transition: 'transform 120ms' }}><path d="M9 6l6 6-6 6" /></svg>
+        </button>
+      ) : marker ?? (
+        <span className="mt-[8px] w-[11px] flex-shrink-0 flex justify-center"><span className="w-1 h-1 rounded-full bg-[#d4d4d4]" /></span>
+      )}
+      {kids.length > 0 && marker}
+      <button
+        onClick={kids.length ? () => setOpen((o) => !o) : go}
+        className={`flex-1 min-w-0 text-left ${kids.length || go ? 'cursor-pointer' : 'cursor-default'}`}
+      >
+        <span className={`${text} ${depth === 0 || isRole ? 'font-semibold text-[#171717]' : 'text-[#383838]'} leading-snug block`}>
+          {item.label}
+          {kids.length > 0 && <span className="text-[#a3a3a3] font-normal"> ({kids.length})</span>}
+        </span>
+        <span className="flex items-center gap-1 flex-wrap mt-0.5 empty:hidden">
+          {tag && !isRole && !isPerson && !isCheck && (
+            <span className={`text-[8.5px] font-semibold uppercase tracking-wide rounded px-1.5 py-px ${tag.chip}`}>{tag.label}</span>
+          )}
+          {item.hint && !isRole && (
+            <span className="text-[9.5px] font-medium text-[#525252] bg-[#f4f4f5] border border-[#e4e4e7] rounded px-1.5 py-px">{item.hint}</span>
+          )}
+        </span>
+        {item.sub && <span className="text-[10px] text-[#8a8a8a] block mt-0.5 leading-snug">{item.sub}</span>}
+      </button>
+      {go && kids.length > 0 && (
+        <button onClick={go} aria-label="Open" className="mt-[4px] flex-shrink-0 text-[#a3a3a3] hover:text-[#1d4ed8]">
+          <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M6.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
+      )}
+    </div>
+  );
+
+  const kidsBlock = open && kids.length > 0 && (
+    <div className={`mt-0.5 ${depth === 0 && isCard ? 'ml-1' : 'ml-[5px]'} pl-2.5 border-l-2 border-[#e8edf5] flex flex-col gap-0.5`}>
+      {kids.map((c, i) => (
+        <TreeRow key={`${c.label}-${i}`} item={c} depth={depth + 1} wide={wide} defaultOpen={defaultOpen} onDrill={onDrill} onNavigate={onNavigate} />
+      ))}
+    </div>
+  );
+
+  if (isCard) {
+    return (
+      <div
+        className="rounded-lg border border-[#e3ebf7] bg-[#fbfdff] px-2.5 py-2 shadow-[0_1px_2px_rgba(16,42,83,0.05)]"
+        style={{ borderLeft: `3px solid ${tag?.accent ?? '#0070AD'}` }}
+      >
+        {row}
+        {kidsBlock}
+      </div>
+    );
+  }
   return (
     <div>
-      <div
-        className="flex items-start gap-1.5 rounded-md px-1.5 py-1 hover:bg-[#f5f8ff] transition-colors duration-150"
-        style={{ marginLeft: depth * (wide ? 14 : 10) }}
-      >
-        {kids.length ? (
-          <button onClick={() => setOpen((o) => !o)} aria-label={open ? 'Collapse' : 'Expand'} className="mt-[3px] flex-shrink-0 text-[#a3a3a3] hover:text-[#171717]">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? 'rotate(90deg)' : undefined, transition: 'transform 120ms' }}><path d="M9 6l6 6-6 6" /></svg>
-          </button>
-        ) : (
-          <span className="mt-[7px] w-[10px] flex-shrink-0 flex justify-center"><span className="w-1 h-1 rounded-full bg-[#d4d4d4]" /></span>
-        )}
-        <button
-          onClick={kids.length ? () => setOpen((o) => !o) : go}
-          className={`flex-1 min-w-0 text-left ${kids.length || go ? 'cursor-pointer' : 'cursor-default'}`}
-        >
-          <span className={`${text} ${depth === 0 ? 'font-semibold text-[#171717]' : 'text-[#383838]'} leading-snug block`}>
-            {item.label}
-            {kids.length > 0 && <span className="text-[#a3a3a3] font-normal"> ({kids.length})</span>}
-          </span>
-          {item.hint && <span className="text-[9px] font-medium text-[#525252] bg-[#f0f0f0] rounded px-1.5 py-0.5 inline-block mt-0.5">{item.hint}</span>}
-          {item.sub && <span className="text-[9.5px] text-[#a3a3a3] block mt-0.5">{item.sub}</span>}
-        </button>
-        {go && kids.length > 0 && (
-          <button onClick={go} aria-label="Open" className="mt-[3px] flex-shrink-0 text-[#a3a3a3] hover:text-[#1d4ed8]">
-            <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M6.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          </button>
-        )}
-      </div>
-      {open && kids.map((c, i) => (
-        <TreeRow key={`${c.label}-${i}`} item={c} depth={depth + 1} wide={wide} onDrill={onDrill} onNavigate={onNavigate} />
-      ))}
+      {row}
+      {kidsBlock}
     </div>
   );
 }
@@ -228,7 +294,9 @@ export default function MetricsSidebar({
             const shown = section.items.slice(0, SECTION_LIMIT);
             const hidden = section.items.length - shown.length;
             return (
-              <div key={section.title} className="px-4 py-3 border-b border-[#eaeaea] last:border-b-0">
+              // Keyed by dashboard + section so tree expand state resets when
+              // the focused node changes (no stale collapse carried across).
+              <div key={`${dash.title}·${section.title}`} className="px-4 py-3 border-b border-[#eaeaea] last:border-b-0">
                 <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] mb-2.5 flex items-center gap-1.5">
                   {section.title}
                 </div>
@@ -285,9 +353,9 @@ export default function MetricsSidebar({
                     ))}
                   </div>
                 ) : section.kind === 'tree' ? (
-                  <div className="flex flex-col gap-0.5">
+                  <div className="flex flex-col gap-1.5">
                     {shown.map((item, i) => (
-                      <TreeRow key={`${item.label}-${i}`} item={item} depth={0} onDrill={onDrill} onNavigate={(href) => navigate(href)} />
+                      <TreeRow key={`${item.label}-${i}`} item={item} depth={0} defaultOpen={section.expanded} onDrill={onDrill} onNavigate={(href) => navigate(href)} />
                     ))}
                   </div>
                 ) : (
@@ -300,8 +368,8 @@ export default function MetricsSidebar({
                           onClick={go}
                           className="w-full text-left rounded-md px-2 py-1.5 -mx-1 hover:bg-[#f5f8ff] border border-transparent hover:border-[#dbe7ff] transition-colors duration-150"
                         >
-                          <span className="flex items-center gap-2">
-                            <span className="text-[11.5px] text-[#171717] truncate flex-1">{item.label}</span>
+                          <span className="flex items-start gap-2">
+                            <span className="text-[11.5px] text-[#171717] leading-snug flex-1">{item.label}</span>
                             {item.value !== 0 && <span className="text-[11px] font-semibold text-[#171717] tabular-nums flex-shrink-0">{fmt(item.value, item.format)}</span>}
                             {item.hint && <span className="text-[9px] font-medium text-[#525252] bg-[#f0f0f0] rounded px-1.5 py-0.5 flex-shrink-0">{item.hint}</span>}
                             <svg width="11" height="11" viewBox="0 0 13 13" fill="none" className="text-[#a3a3a3] flex-shrink-0">
@@ -312,8 +380,8 @@ export default function MetricsSidebar({
                         </button>
                       ) : (
                         <div key={item.label} className="px-2 py-1.5">
-                          <span className="flex items-center gap-2">
-                            <span className="text-[11.5px] text-[#525252] truncate flex-1">{item.label}</span>
+                          <span className="flex items-start gap-2">
+                            <span className="text-[11.5px] text-[#525252] leading-snug flex-1">{item.label}</span>
                             {item.value !== 0 && <span className="text-[11px] font-semibold text-[#171717] tabular-nums flex-shrink-0">{fmt(item.value, item.format)}</span>}
                             {item.hint && <span className="text-[9px] text-[#a3a3a3] flex-shrink-0">{item.hint}</span>}
                           </span>
@@ -324,12 +392,12 @@ export default function MetricsSidebar({
                   </div>
                 )}
 
-                {hidden > 0 && onViewAll && (
+                {(hidden > 0 || section.kind === 'tree') && onViewAll && (
                   <button
                     onClick={() => onViewAll(section)}
                     className="mt-2 w-full flex items-center justify-center gap-1 rounded-md py-1.5 text-[11px] font-medium text-[#1d4ed8] hover:bg-[#f5f8ff] transition-colors duration-150"
                   >
-                    View all {section.items.length}
+                    {hidden > 0 ? `View all ${section.items.length}` : 'Open expanded view'}
                     <svg width="10" height="10" viewBox="0 0 13 13" fill="none" className="flex-shrink-0">
                       <path d="M2 6.5h9M6.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
@@ -418,9 +486,9 @@ export function MetricsDrawer({
               ))}
             </div>
           ) : section.kind === 'tree' ? (
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-2">
               {section.items.map((item, i) => (
-                <TreeRow key={`${item.label}-${i}`} item={item} depth={0} wide onDrill={(l, id) => drill({ level: l, id })} onNavigate={(href) => { navigate(href); onClose(); }} />
+                <TreeRow key={`${item.label}-${i}`} item={item} depth={0} wide defaultOpen onDrill={(l, id) => drill({ level: l, id })} onNavigate={(href) => { navigate(href); onClose(); }} />
               ))}
             </div>
           ) : (

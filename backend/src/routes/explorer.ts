@@ -572,10 +572,13 @@ router.get('/tree', async (req: Request, res: Response, next: NextFunction) => {
 // net impact, payback, confidence), and application run cost ("Application TCO").
 // Bar/list items may carry a `drill` target that navigates to the next map level.
 type Fmt = 'money' | 'years' | 'number';
-type MetricItem = { label: string; value: number; hint?: string; sub?: string; format?: Fmt; illustrative?: boolean; drill?: { level: string; id: string }; href?: string; children?: MetricItem[] };
+// `tag` names what an item IS (deliverable | task | role | checklist | person |
+// step | app) so the sidebar can color-code and iconize rows consistently.
+type MetricItem = { label: string; value: number; hint?: string; sub?: string; format?: Fmt; illustrative?: boolean; drill?: { level: string; id: string }; href?: string; children?: MetricItem[]; tag?: string };
 // kind 'tree' renders items with their nested children (collapsible); a hidden
-// section is drawer-only — reached by clicking the tile that names it.
-type MetricSection = { title: string; kind: 'bar' | 'list' | 'kpi' | 'tree'; items: MetricItem[]; illustrative?: boolean; hidden?: boolean };
+// section is drawer-only — reached by clicking the tile that names it; an
+// `expanded` tree opens every level on load (the L5 deliverable chain).
+type MetricSection = { title: string; kind: 'bar' | 'list' | 'kpi' | 'tree'; items: MetricItem[]; illustrative?: boolean; hidden?: boolean; expanded?: boolean };
 // Loaded annual resource cost by role level — ILLUSTRATIVE. The workbook has no
 // compensation data; the "Financial Driver Map" only states the method
 // (FTE × compensation band), so these bands are assumptions, not workbook values.
@@ -699,16 +702,18 @@ async function stepLens(companyId: string, steps: LensStep[]): Promise<Lens> {
   const peopleByRole = new Map<string, MetricItem[]>();
   for (const a of assignments) {
     if (!peopleByRole.has(a.roleId)) peopleByRole.set(a.roleId, []);
-    peopleByRole.get(a.roleId)!.push({ label: a.person.name, value: 0, hint: a.person.employmentType ?? undefined, illustrative: true, drill: { level: 'person', id: a.person.id } });
+    peopleByRole.get(a.roleId)!.push({ label: a.person.name, value: 0, hint: a.person.employmentType ?? undefined, illustrative: true, drill: { level: 'person', id: a.person.id }, tag: 'person' });
   }
   for (const list of peopleByRole.values()) list.sort((a, b) => a.label.localeCompare(b.label));
 
-  const total = steps.length;
+  // Role rows carry only the Lead/Support signal (rendered as a dot, not a tag
+  // chip) — coverage stats stay out of the UI per review.
   const rolesTree: MetricItem[] = roleIds.map((id) => ({
     label: roleName(id), value: 0,
-    hint: `${partOf(id)}${total > 1 ? ` · ${coverage.get(id) ?? 0}/${total} steps` : ''}`,
+    hint: partOf(id),
     drill: { level: 'role', id },
     children: peopleByRole.get(id) ?? [],
+    tag: 'role',
   }));
 
   const seenPerson = new Set<string>();
@@ -732,7 +737,7 @@ async function stepLens(companyId: string, steps: LensStep[]): Promise<Lens> {
   }
   const applications: MetricItem[] = [...appMap.entries()]
     .sort(([, a], [, b]) => Number(b.primary) - Number(a.primary) || a.name.localeCompare(b.name))
-    .map(([appId, a]) => ({ label: a.name, value: 0, hint: [...a.types].join(' · '), sub: a.sor ? 'System of record' : undefined, illustrative: a.illustrative, href: `/applications?focus=${appId}` }));
+    .map(([appId, a]) => ({ label: a.name, value: 0, hint: [...a.types].join(' · '), sub: a.sor ? 'System of record' : undefined, illustrative: a.illustrative, href: `/applications?focus=${appId}`, tag: 'app' }));
 
   // Deliverables — the producing L5 step nests inside each deliverable.
   const deliverables: MetricItem[] = delivs.map((d) => ({
@@ -743,7 +748,8 @@ async function stepLens(companyId: string, steps: LensStep[]): Promise<Lens> {
       d.approvalType ? `${d.approvalType}${d.approvalApplication && d.approvalApplication.name !== d.sorApplication?.name ? ` via ${d.approvalApplication.name}` : ''}` : null,
     ].filter(Boolean).join(' · ') || undefined,
     illustrative: d.illustrative,
-    children: d.processStep ? [{ label: d.processStep.name, value: 0, hint: `produced by L5 step ${d.processStep.stepNumber}` }] : [],
+    tag: 'deliverable',
+    children: d.processStep ? [{ label: d.processStep.name, value: 0, hint: `L5 step ${d.processStep.stepNumber}`, tag: 'step' }] : [],
   }));
 
   // Connected chain (L5 leaf): deliverable → the tasks that must be met → the
@@ -761,12 +767,12 @@ async function stepLens(companyId: string, steps: LensStep[]): Promise<Lens> {
         const checks = (checksByRole.get(rid) ?? []);
         const matched = checks.filter((c) => c.category?.name && c.category.name === t.category?.name);
         const checkNodes = (matched.length ? matched : checks).slice(0, CHAIN_CHECKS)
-          .map((c) => ({ label: c.text, value: 0, hint: 'checklist', sub: c.category?.name ?? undefined }));
-        const personNodes = (peopleByRole.get(rid) ?? []).map((p) => ({ ...p, hint: `carries out the checklist${p.hint ? ` · ${p.hint}` : ''}` }));
+          .map((c) => ({ label: c.text, value: 0, sub: c.category?.name ?? undefined, tag: 'checklist' }));
+        const personNodes = (peopleByRole.get(rid) ?? []).map((p) => ({ ...p, tag: 'person' }));
         return {
-          label: t.text, value: 0, hint: 'task', sub: t.category?.name ?? undefined,
+          label: t.text, value: 0, sub: t.category?.name ?? undefined, tag: 'task',
           children: [{
-            label: roleName(rid), value: 0, hint: 'responsible role', drill: { level: 'role', id: rid },
+            label: roleName(rid), value: 0, hint: partOf(rid), drill: { level: 'role', id: rid }, tag: 'role',
             children: [...checkNodes, ...personNodes],
           }],
         };
@@ -972,8 +978,6 @@ async function metricsStep(tenantId: string, id: string, node?: ResolvedNode | n
       const borrowed = wider.deliverableChain.filter((d) => own.has(d.label));
       if (borrowed.length) lens = { ...lens, deliverableChain: borrowed };
     }
-    const splitIo = (v: string | null) => (v ? v.split(/[,;]/).map((x) => x.trim()).filter(Boolean) : []);
-    const inputs = splitIo(step.inputs), outputs = splitIo(step.outputs);
     return {
       level: 'leafStep', title: step.name, subtitle: `Process step ${step.stepNumber}${step.l4 ? ` · ${step.l4}` : ''} (L5)`,
       tiles: [
@@ -985,14 +989,10 @@ async function metricsStep(tenantId: string, id: string, node?: ResolvedNode | n
       sections: [
         // The connected view: deliverable → tasks to meet it → responsible role
         // → the checklist that proves each task was done right + the people in
-        // that role who carry it out.
-        { title: 'Deliverables', kind: 'tree', items: lens.deliverableChain },
+        // that role who carry it out. Fully expanded on load.
+        { title: 'Deliverables', kind: 'tree', expanded: true, items: lens.deliverableChain },
         { title: 'Supporting roles', kind: 'tree', items: lens.rolesTree.length ? lens.rolesTree : lens.unresolvedRoles.map((r) => ({ label: r, value: 0, hint: 'named role — not in role inventory' })) },
         { title: 'Applications & systems', kind: 'list', items: lens.applications },
-        { title: 'Inputs → outputs', kind: 'list', items: [
-          ...inputs.map((x) => ({ label: x, value: 0, hint: 'input' })),
-          ...outputs.map((x) => ({ label: x, value: 0, hint: 'output' })),
-        ] },
         { title: 'Supporting employees', kind: 'list', illustrative: true, hidden: true, items: lens.people },
       ],
     };
@@ -1039,8 +1039,8 @@ async function metricsStep(tenantId: string, id: string, node?: ResolvedNode | n
     ],
     sections: [
       // A refined Process Level 3 plus deliverables: each deliverable carries
-      // the L5 step that produces it nested inside.
-      { title: 'Deliverables', kind: 'tree', items: lens.deliverables },
+      // the L5 step that produces it nested inside, expanded on load.
+      { title: 'Deliverables', kind: 'tree', expanded: true, items: lens.deliverables },
       { title: 'Supporting roles', kind: 'tree', items: lens.rolesTree },
       { title: 'Applications & systems', kind: 'list', items: lens.applications },
       { title: 'Supporting employees', kind: 'list', illustrative: true, hidden: true, items: lens.people },
