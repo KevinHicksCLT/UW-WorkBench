@@ -8,7 +8,10 @@ import { humanize, cellText, pickColumns } from '../../lib/adminFormat';
 // through the shared EntityForm drawer. Used directly for generic catalog tabs,
 // and as the building block of the master-detail editors. Optional `filter`
 // narrows rows client-side (for child collections), `fixed` presets+hides fields
-// on new records (e.g. a parent FK), and `onSelect` turns rows into a picker.
+// on new records (e.g. a parent FK) AND narrows the list server-side (each entry
+// becomes an exact-match f_<field> filter, so pre-filtered sections see all their
+// rows — not just the matches inside the first page), and `onSelect` turns rows
+// into a picker.
 
 type Props = {
   entity: AdminEntity;
@@ -48,14 +51,19 @@ export default function EntityList({
 
   const columns = useMemo(() => pickColumns(entity), [entity]);
 
+  // `fixed` values double as server-side exact-match filters.
+  const fixedQs = fixed
+    ? Object.entries(fixed).map(([k, v]) => `&f_${k}=${encodeURIComponent(String(v))}`).join('')
+    : '';
+
   const load = (q: string) => {
     setLoading(true); setError('');
-    api.get(withCompany(`/admin/${entity.slug}?limit=200${q ? `&search=${encodeURIComponent(q)}` : ''}`, companyId))
+    api.get(withCompany(`/admin/${entity.slug}?limit=200${fixedQs}${q ? `&search=${encodeURIComponent(q)}` : ''}`, companyId))
       .then(setList)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   };
-  useEffect(() => { setSearch(''); load(''); /* eslint-disable-next-line */ }, [entity.slug, companyId]);
+  useEffect(() => { setSearch(''); load(''); /* eslint-disable-next-line */ }, [entity.slug, companyId, fixedQs]);
   useEffect(() => { const t = setTimeout(() => load(search), 250); return () => clearTimeout(t); /* eslint-disable-next-line */ }, [search]);
 
   const rows = useMemo(() => {

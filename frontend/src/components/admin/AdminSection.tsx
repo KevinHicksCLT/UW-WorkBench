@@ -51,7 +51,7 @@ export default function AdminSection({
       return (
         <div>
           <Intro text={spec.intro} />
-          <EntityList entity={e} companyId={companyId} />
+          <EntityList entity={e} companyId={companyId} fixed={spec.fixed} />
         </div>
       );
     }

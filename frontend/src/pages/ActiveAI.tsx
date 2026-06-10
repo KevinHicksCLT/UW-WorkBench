@@ -10,8 +10,8 @@ import { MODES, HEAT } from '../lib/aiAdoption';
 // autonomy spectrum (AI assistant → fully autonomous agent). A heat map crosses
 // every real value stream with the four AI modes. The adoption level IS the
 // traffic light: red (piloting) → green (embedded), so leaders and laggards read
-// at a glance. Use cases + levels are authored per value stream in
-// lib/aiAdoption.ts, grounded in each stream's real work.
+// at a glance. Levels + use cases live in the DB (NodeAiAdoption), edited in
+// Data Admin → Telemetry → AI adoption.
 
 // Canonical value stream (Level node) + its AI-adoption levels (0-4 per mode),
 // from /explorer/value-stream-adoption. Edited in Data Admin → Telemetry → AI adoption.
@@ -167,7 +167,7 @@ export default function ActiveAI() {
 
       <p className="text-[11px] text-[#a3a3a3] mt-3 italic">
         Adoption levels are read from the operating model (the same value streams as Value Streams and Home) and edited in
-        Data Admin → Telemetry → AI adoption. Streams with no AI yet show “Not used”. Illustrative until live adoption telemetry is wired in.
+        Data Admin → Telemetry → AI adoption. Streams with no AI yet show “Not used”.
       </p>
       </>
       )}

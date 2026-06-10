@@ -102,6 +102,23 @@ router.get('/links', async (req: Request, res: Response, next: NextFunction) => 
   } catch (e) { next(e); }
 });
 
+// ─── Risk scoring bands ──────────────────────────────────────────────────────
+// How a 5×5 probability×impact score (1–25) reads as a rating. Company-scoped
+// data (Data Admin → Initiatives → Risk scoring bands), consumed by every
+// severity cell in the tracker.
+router.get('/risk-bands', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const companyId = await activeCompanyId(req, res);
+    if (!companyId) return;
+    const bands = await prisma.riskScoringBand.findMany({
+      where: { companyId },
+      orderBy: { minScore: 'asc' },
+      select: { id: true, label: true, minScore: true, maxScore: true, color: true, description: true },
+    });
+    res.json({ bands });
+  } catch (e) { next(e); }
+});
+
 // ─── Portfolio dashboard ───────────────────────────────────────────────────
 router.get('/dashboard', async (req: Request, res: Response, next: NextFunction) => {
   try {

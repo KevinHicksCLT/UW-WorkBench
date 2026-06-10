@@ -80,8 +80,39 @@ model Company {
   deliverables         Deliverable[]
   tasks                Task[]
   nodes                Node[]
+  telemetrySignals     TelemetrySignal[]
 
   @@unique([tenantId, slug])
+}
+
+// Trackable telemetry signal — one row per signal/metric the Telemetry
+// "Trackable Metrics" catalog renders. Two origins, imported 1:1 by
+// scripts/seed-telemetry-signals.ts: the live workforce signals (isLive=true,
+// per-person readings exist in PersonSignal/PersonMetric — queryType holds which
+// store, 'signal' | 'metric') and the workbook reference catalog
+// (Metric_Catalog_Expanded + External_Metric_Catalog; isLive=false, queryType is
+// the extraction/calculation note). Editable in Data Admin → Telemetry.
+model TelemetrySignal {
+  id          String   @id @default(cuid())
+  tenantId    String
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kind        String // workforce (per-person Viva/M365 telemetry) | system (system-of-record metric)
+  name        String
+  description String?
+  source      String? // raw source system text, e.g. "Microsoft Viva Insights"
+  category    String?
+  unit        String? // unit or data type, e.g. "hrs/wk", "Percent / score"
+  frequency   String?
+  direction   String   @default("up") // up = higher is better, down = lower is better
+  origin      String? // provenance — the workbook sheet the row came from
+  queryType   String? // live rows: which store ('signal'|'metric'); catalog rows: how it's calculated
+  isLive      Boolean  @default(false) // true = per-person readings exist (role drill-down works)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([companyId])
 }
 
 // ─── Configurable Level hierarchy (value-stream rebuild) ────────────────
@@ -1227,6 +1258,24 @@ model MetricValue {
 
   @@index([benefitLineId, dataset, periodStart])
   @@index([costLineId, dataset, periodStart])
+}
+
+// Risk-scoring bands: how a 5×5 probability×impact score (1–25) reads as a
+// rating. Data, not code — editable in Data Admin → Initiatives.
+model RiskScoringBand {
+  id          String   @id @default(cuid())
+  tenantId    String
+  companyId   String
+  label       String
+  minScore    Int
+  maxScore    Int
+  color       String
+  description String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@index([companyId])
 }
 
 // ── Initiative-tracker extensions (gap backlog I3/I4/I6/I9) ─────────────────

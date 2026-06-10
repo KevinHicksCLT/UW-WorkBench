@@ -13,7 +13,7 @@ export type EditorSpec =
   | { kind: 'company' }
   | { kind: 'dashboard' }
   | { kind: 'masterDetail'; parent: string; parentTitle?: string; intro?: string; children: ChildRef[] }
-  | { kind: 'list'; slug: string; intro?: string }
+  | { kind: 'list'; slug: string; intro?: string; fixed?: Record<string, string | number> }
   | { kind: 'group'; intro?: string; lists: { slug: string; title?: string }[] }
   | { kind: 'roleStudio' }
   | { kind: 'skills' }
@@ -46,6 +46,7 @@ export const ADMIN_TABS: TabConfig[] = [
     description: 'The operating-model map is driven by a single configurable level hierarchy (Enterprise → Domain → Division → Value Stream → Sub-Process → Process Step). Drill in to edit any node and its detail.',
     sections: [
       { key: 'builder', label: 'Model builder', hint: 'the map structure', editor: { kind: 'builder', scope: 'map' } },
+      { key: 'subProcesses', label: 'Sub-processes', editor: { kind: 'list', slug: 'subValueStream', fixed: { level: 4 }, intro: 'The L4 sub-process details — inputs, outputs, upstream/downstream hand-offs, and notes — rendered in the map sidebar and the value-stream drawer. Edits here also refresh the sub-process node on the map.' } },
       { key: 'steps', label: 'Process steps', editor: { kind: 'list', slug: 'processStep', intro: 'Sequenced E2E process steps attached to a value stream (the "how the work flows" detail).' } },
       { key: 'io', label: 'Inputs / outputs', editor: { kind: 'list', slug: 'ioItem', intro: 'Inputs, outputs, and deliverables inventoried per value stream.' } },
     ],
@@ -84,6 +85,7 @@ export const ADMIN_TABS: TabConfig[] = [
     description: 'Telemetry is built from KPI/metric definitions, the application landscape, and per-person digital signals.',
     sections: [
       { key: 'metrics', label: 'Metrics (KPIs)', editor: { kind: 'list', slug: 'metric', intro: 'Value-stream KPIs — definition, target, unit, and current reading.' } },
+      { key: 'trackable', label: 'Trackable signals', editor: { kind: 'list', slug: 'telemetrySignal', intro: 'The Trackable Metrics inventory — live workforce signals (isLive on; per-person readings drill by role) and the workbook reference catalog of everything the company could measure.' } },
       {
         key: 'apps', label: 'Applications',
         editor: { kind: 'masterDetail', parent: 'application', parentTitle: 'Applications', intro: 'Select an application to edit it and manage which value streams it supports.', children: [{ slug: 'applicationValueStream', fk: 'applicationId', title: 'Value-stream links' }] },
@@ -110,6 +112,7 @@ export const ADMIN_TABS: TabConfig[] = [
         editor: { kind: 'masterDetail', parent: 'initiative', parentTitle: 'Initiatives', intro: 'Transformation initiatives that power the dashboard and the operating-model map. Select one to manage its value-stream and division links.', children: [{ slug: 'initiativeValueStream', fk: 'initiativeId', title: 'Value-stream links' }, { slug: 'initiativeDivision', fk: 'initiativeId', title: 'Division links' }] },
       },
       { key: 'risks', label: 'Risks', editor: { kind: 'list', slug: 'risk' } },
+      { key: 'riskBands', label: 'Risk scoring bands', editor: { kind: 'list', slug: 'riskScoringBand', intro: 'How a 5×5 probability × impact score (1–25) reads as a rating — the standard enterprise risk matrix (ISO 31000-style). Every severity cell in the tracker colors itself from these bands.' } },
       { key: 'scenarios', label: 'Scenarios', editor: { kind: 'list', slug: 'scenario', intro: 'Change-impact economics — one-time cost, recurring benefit, net impact, confidence.' } },
       {
         key: 'rationalization', label: 'App rationalization',

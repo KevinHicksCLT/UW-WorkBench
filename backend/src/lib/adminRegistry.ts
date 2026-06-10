@@ -80,8 +80,11 @@ const LABEL_OVERRIDES: Record<string, string> = {
 
 // The raw value-stream tables back FK pickers elsewhere, so they stay resolvable
 // but are hidden from the sidebar — the unified "Value Streams" entity (below)
-// replaces them with one level-numbered (L1–L5) list.
-const HIDDEN = new Set(['valueStream', 'subValueStream', 'level', 'orgLevel']);
+// replaces them with one level-numbered (L1–L5) list. subValueStream is NOT
+// hidden: its level-4 rows carry the sub-process detail (inputs/outputs/
+// upstream/downstream/notes) the L4 sidebar + drawer render, so it must be
+// editable (Data Admin → Value Streams → Sub-processes).
+const HIDDEN = new Set(['valueStream', 'level', 'orgLevel']);
 
 // Sidebar groups — entities organized by operating-model area so a user can find
 // what to update at a glance. This array defines BOTH the section order and the
@@ -89,9 +92,9 @@ const HIDDEN = new Set(['valueStream', 'subValueStream', 'level', 'orgLevel']);
 // these group names and order. Entities not listed fall into "Other" at the end.
 const GROUPS: { group: string; slugs: string[] }[] = [
   { group: 'Organization', slugs: ['organization', 'company', 'valueStreamDomain', 'division', 'department', 'role'] },
-  { group: 'Value Streams', slugs: ['valueStreams', 'processStep', 'ioItem'] },
+  { group: 'Value Streams', slugs: ['valueStreams', 'subValueStream', 'processStep', 'ioItem'] },
   { group: 'Role Work', slugs: ['category', 'checklistItem', 'roleTask', 'roleValueStream'] },
-  { group: 'Applications & Metrics', slugs: ['application', 'applicationValueStream', 'metric', 'standard', 'standardItem'] },
+  { group: 'Applications & Metrics', slugs: ['application', 'applicationValueStream', 'metric', 'telemetrySignal', 'standard', 'standardItem'] },
   { group: 'People', slugs: ['person', 'assignment', 'personTask', 'personMetric', 'personAppUsage', 'personSignal'] },
   { group: 'Change & Risk', slugs: ['initiative', 'initiativeValueStream', 'initiativeDivision', 'risk', 'scenario'] },
   { group: 'Deliverables & Tasks', slugs: ['deliverable', 'task'] },
@@ -128,6 +131,8 @@ function scalarKind(type: string): FieldKind {
 const MULTILINE = new Set([
   'description', 'responsibilities', 'notes', 'mitigation', 'text', 'charter',
   'inputs', 'outputs', 'upstream', 'downstream', 'dataElements', 'formula',
+  // Standards-area charter block: mission paragraph + newline-joined scope bullets.
+  'mission', 'scope',
 ]);
 
 function pickLabelField(model: Prisma.DMMF.Model): string {

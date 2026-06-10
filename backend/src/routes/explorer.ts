@@ -1,8 +1,5 @@
 import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
-import { readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { buildRoleResolver } from '../lib/roleMatch.js';
@@ -26,36 +23,14 @@ async function legacyVsIds(companyId: string, canonicalName: string): Promise<st
 const router = Router();
 router.use(requireAuth);
 
-// Workforce/digital-experience signals — the per-person telemetry (Viva Insights,
-// Microsoft 365, GitHub, delivery analytics) that the model can roll up from the
-// individual to the role, team, and division. `store` is which table holds the
-// time-series (PersonSignal vs PersonMetric); the catalog drill reads it by role.
-const WORKFORCE_SIGNALS = [
-  { name: 'Time online', store: 'signal', source: 'Viva Insights', category: 'Collaboration', unit: 'hrs/day', frequency: 'Daily', direction: 'up', description: 'Active digital working time per day.' },
-  { name: 'Focus hours', store: 'signal', source: 'Viva Insights', category: 'Wellbeing', unit: 'hrs/wk', frequency: 'Weekly', direction: 'up', description: 'Uninterrupted time available for deep, focused work.' },
-  { name: 'Meetings', store: 'signal', source: 'Viva Insights', category: 'Collaboration', unit: 'hrs/wk', frequency: 'Weekly', direction: 'down', description: 'Time spent in meetings per week.' },
-  { name: 'Team messages', store: 'signal', source: 'Microsoft Teams', category: 'Collaboration', unit: 'msgs/wk', frequency: 'Weekly', direction: 'up', description: 'Chat messages sent per week.' },
-  { name: 'GitHub activity', store: 'signal', source: 'GitHub', category: 'Engineering', unit: 'commits/mo', frequency: 'Monthly', direction: 'up', description: 'Code commits per month.' },
-  { name: 'Throughput', store: 'metric', source: 'Delivery analytics', category: 'Delivery', unit: '/mo', frequency: 'Monthly', direction: 'up', description: 'Work items completed per month.' },
-  { name: 'Quality', store: 'metric', source: 'Delivery analytics', category: 'Quality', unit: '%', frequency: 'Monthly', direction: 'up', description: 'Share of output meeting the quality bar.' },
-  { name: 'Utilization', store: 'metric', source: 'Delivery analytics', category: 'Operational', unit: '%', frequency: 'Monthly', direction: 'up', description: 'Share of capacity actively utilized.' },
-  { name: 'Cycle time', store: 'metric', source: 'Delivery analytics', category: 'Delivery', unit: 'days', frequency: 'Monthly', direction: 'down', description: 'Elapsed time from work started to done.' },
-] as const;
+// Trackable signals live in the TelemetrySignal table (seeded 1:1 from the old
+// hardcoded constants + backend/data/telemetry-catalog.json by
+// scripts/seed-telemetry-signals.ts; editable in Data Admin → Telemetry).
+// isLive=true rows are workforce signals with real per-person readings — their
+// `queryType` holds which time-series table to drill ('signal' = PersonSignal,
+// 'metric' = PersonMetric). isLive=false rows are the workbook reference catalog.
 // Levels a workforce signal can be tracked / rolled up at (individual → org).
 const WORKFORCE_LEVELS = ['Individual', 'Role', 'Team', 'Division', 'Company'];
-
-// Full trackable-metric catalog extracted from the operating-model workbook
-// (Metric_Catalog_Expanded + External_Metric_Catalog): every Viva Insights / M365
-// and system-of-record metric the company could track. A reference inventory —
-// no per-person readings yet, so these don't drill to the role level.
-type CatalogMetric = {
-  name: string; origin: string | null; source: string | null; category: string | null;
-  dataType: string | null; queryType: string | null; description: string | null;
-  managerRelevance: string | null; applicability: string | null; applicableRoles: string | null; useCases: string | null;
-};
-const TELEMETRY_CATALOG: CatalogMetric[] = JSON.parse(
-  readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '../../data/telemetry-catalog.json'), 'utf8'),
-);
 
 // ── Trackable-metric filter taxonomy ─────────────────────────────────────────
 // `type` = the grain a metric is tracked at, collapsed to four plain buckets.
@@ -314,6 +289,9 @@ router.get('/value-stream-adoption', async (req: Request, res: Response, next: N
         name: n.name,
         domain: n.parent?.name ?? null,
         cells: [idx(n.aiAdoption?.aiAssist), idx(n.aiAdoption?.aiAugment), idx(n.aiAdoption?.aiWorkflow), idx(n.aiAdoption?.aiAutonomous)],
+        // Per-mode use cases ({ assistant|augmented|workflow|agent: [{title, persona, detail}] }),
+        // authored in Data Admin → Telemetry → AI adoption.
+        useCases: n.aiAdoption?.useCases ?? null,
       })),
     });
   } catch (e) { next(e); }
@@ -321,9 +299,10 @@ router.get('/value-stream-adoption', async (req: Request, res: Response, next: N
 
 // Telemetry catalog — the full inventory of trackable signals/metrics defined for
 // the company (the "what can we measure" reference, akin to a Viva Insights metric
-// catalog). Read straight from the Metric table, which is sourced from the
-// operating-model workbook. Returns one flat row per metric plus the distinct
-// values backing the filter dropdowns.
+// catalog). Read straight from the DB: the Metric table (workbook KPIs) plus the
+// TelemetrySignal table (live workforce signals + the workbook reference catalog).
+// Returns one flat row per metric plus the distinct values backing the filter
+// dropdowns.
 router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const requested = typeof req.query.companyId === 'string' ? req.query.companyId : '';
@@ -333,7 +312,7 @@ router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextF
     });
     if (!company) return res.status(404).json({ error: 'No company' });
 
-    const [metrics, roles] = await Promise.all([
+    const [metrics, roles, signalRows] = await Promise.all([
       prisma.metric.findMany({
         where: { companyId: company.id },
         orderBy: [{ category: 'asc' }, { name: 'asc' }],
@@ -345,6 +324,7 @@ router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextF
         },
       }),
       prisma.role.findMany({ where: { companyId: company.id }, select: { id: true, name: true, itemRole: true } }),
+      prisma.telemetrySignal.findMany({ where: { companyId: company.id }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
     ]);
     // Resolve each KPI's free-text owner role to a linkable operating-model Role so
     // the catalog can drill down to the role level.
@@ -360,11 +340,12 @@ router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextF
       provenance: string | null; calculation: string | null; unsourced: boolean;
     };
 
-    // Workforce/Viva signals first — tracked at the individual level, rolled up to role.
-    const workforce: Signal[] = WORKFORCE_SIGNALS.map((s) => ({
+    // Live workforce/Viva signals first — tracked at the individual level, rolled
+    // up to role (per-person readings exist, so they drill by role).
+    const workforce: Signal[] = signalRows.filter((s) => s.isLive).map((s) => ({
       id: `wf:${s.name}`, kind: 'workforce', name: s.name, description: s.description,
       source: s.source, category: s.category, framework: null, frequency: s.frequency,
-      unit: s.unit, direction: s.direction, target: null, levels: WORKFORCE_LEVELS, store: s.store,
+      unit: s.unit, direction: s.direction, target: null, levels: WORKFORCE_LEVELS, store: s.queryType ?? 'signal',
       roleDrill: true, valueStreamName: null, domain: null, l3: null, ownerRole: null, ownerRoleId: null,
       provenance: 'Live signal — seeded per-person readings', calculation: null, unsourced: false,
     }));
@@ -383,27 +364,24 @@ router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextF
       };
     });
 
-    // Full reference catalog from the workbook — every metric the company could
-    // track. Dedupe against the live workforce signals (which carry real per-person
-    // readings) by name so they aren't listed twice.
+    // Reference catalog rows (no per-person readings yet, so no role drill).
+    // `kind` was classified at seed time: workforce = Viva Insights / M365
+    // collaboration telemetry; everything else (Jira, ServiceNow, GitHub,
+    // Guidewire, Okta, Splunk, AWS/Azure …) is a system-of-record metric.
+    // Dedupe against the live workforce signals by name so a metric that gained
+    // real readings isn't listed twice.
     const liveNames = new Set(workforce.map((s) => s.name.toLowerCase()));
-    const catalog: Signal[] = TELEMETRY_CATALOG
-      .filter((m) => m.name && !liveNames.has(m.name.toLowerCase()))
-      .map((m, i) => {
-        // Workforce = Viva Insights / M365 collaboration telemetry; everything else
-        // (Jira, ServiceNow, GitHub, Guidewire, Okta, Splunk, AWS/Azure …) is a
-        // system-of-record metric.
-        const isViva = /viva|microsoft|teams|m365|outlook|sharepoint|office 365/i.test(m.source ?? '');
-        return {
-          id: `cat:${i}`, kind: isViva ? 'workforce' : 'system', name: m.name, description: m.description,
-          source: m.source, category: m.category, framework: null, frequency: null,
-          unit: m.dataType, direction: 'up', target: null, levels: ['Individual', 'Role'], roleDrill: false,
-          valueStreamName: null, domain: null, l3: null, ownerRole: null, ownerRoleId: null,
-          // Provenance = the workbook sheet the row was extracted from (`origin`).
-          provenance: m.origin ?? 'Workbook metric catalog', calculation: m.queryType,
-          unsourced: !m.source && !m.origin,
-        };
-      });
+    const catalog: Signal[] = signalRows
+      .filter((s) => !s.isLive && s.name && !liveNames.has(s.name.toLowerCase()))
+      .map((m, i) => ({
+        id: `cat:${i}`, kind: m.kind === 'workforce' ? 'workforce' as const : 'system' as const, name: m.name, description: m.description,
+        source: m.source, category: m.category, framework: null, frequency: m.frequency,
+        unit: m.unit, direction: m.direction, target: null, levels: ['Individual', 'Role'], roleDrill: false,
+        valueStreamName: null, domain: null, l3: null, ownerRole: null, ownerRoleId: null,
+        // Provenance = the workbook sheet the row was extracted from (`origin`).
+        provenance: m.origin ?? 'Workbook metric catalog', calculation: m.queryType,
+        unsourced: !m.source && !m.origin,
+      }));
 
     // Augment every signal with a simple grain `type` (User/Role/Division/System)
     // and a clean, split list of `sourceTokens` (GitHub, Viva Insights, ServiceNow…)

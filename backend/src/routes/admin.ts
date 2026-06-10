@@ -3,16 +3,23 @@ import type { Request, Response, NextFunction } from 'express';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
-import { ENTITY_LIST, getEntity, buildData, companyWhere, type AdminEntity } from '../lib/adminRegistry.js';
+import { ENTITY_LIST, getEntity, buildData, companyWhere, coerceValue, type AdminEntity } from '../lib/adminRegistry.js';
 import { logAudit, computeDiff } from '../services/audit.js';
 import { recomputeInitiative } from '../services/portfolioRollup.js';
 import { runValidations } from '../services/validations.js';
+import { syncSubProcessNode } from '../services/nodeSync.js';
 
 // Line items whose writes change an initiative's denormalized money rollup, so the
 // admin recomputes the parent after create/update/delete (audit A3/ARCH-8).
 const RECOMPUTE_MODELS = new Set(['benefitLine', 'costLine']);
 function maybeRecompute(entity: AdminEntity, row: { initiativeId?: string } | null) {
   if (row?.initiativeId && RECOMPUTE_MODELS.has(entity.model)) void recomputeInitiative(row.initiativeId);
+}
+
+// Entities whose rows have a DERIVED copy in the unified Node graph — refresh it
+// after any admin write so the map/builder never render stale detail.
+function maybeSyncNode(entity: AdminEntity, action: 'CREATE' | 'UPDATE' | 'DELETE', row: Record<string, any> | null) {
+  if (row && entity.slug === 'subValueStream') void syncSubProcessNode(action, row as any);
 }
 
 // tenantId filter fragment — empty for tenant-less line items (isolation comes from
@@ -164,6 +171,29 @@ router.get('/validations', async (req: Request, res: Response, next: NextFunctio
 // (levelNumber = 3) with the four AI autonomy modes. Registered before /:entity.
 const AI_LEVELS = new Set(['not_used', 'pilot', 'emerging', 'scaling', 'embedded']);
 const AI_FIELDS = ['aiAssist', 'aiAugment', 'aiWorkflow', 'aiAutonomous'] as const;
+const AI_MODES = ['assistant', 'augmented', 'workflow', 'agent'] as const;
+
+// Validate + normalize a NodeAiAdoption.useCases payload: an object keyed by AI
+// mode, each an array of { title, persona, detail } strings. Returns the
+// normalized shape (all four modes present), or null when malformed.
+type AiUseCase = { title: string; persona: string; detail: string };
+type AiUseCasesByMode = Record<(typeof AI_MODES)[number], AiUseCase[]>;
+function parseUseCases(raw: unknown): AiUseCasesByMode | null {
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return null;
+  const out: AiUseCasesByMode = { assistant: [], augmented: [], workflow: [], agent: [] };
+  for (const mode of AI_MODES) {
+    const list = (raw as Record<string, unknown>)[mode] ?? [];
+    if (!Array.isArray(list)) return null;
+    for (const uc of list) {
+      if (typeof uc !== 'object' || uc === null) return null;
+      const { title, persona, detail } = uc as Record<string, unknown>;
+      if (typeof title !== 'string' || !title.trim()) return null;
+      if (typeof persona !== 'string' || typeof detail !== 'string') return null;
+      out[mode].push({ title: title.trim(), persona, detail });
+    }
+  }
+  return out;
+}
 
 async function companyForReq(req: Request): Promise<string | null> {
   const cid = typeof req.query.companyId === 'string' ? req.query.companyId : '';
@@ -193,6 +223,7 @@ router.get('/ai-adoption', async (req: Request, res: Response, next: NextFunctio
         aiAugment: n.aiAdoption?.aiAugment ?? 'not_used',
         aiWorkflow: n.aiAdoption?.aiWorkflow ?? 'not_used',
         aiAutonomous: n.aiAdoption?.aiAutonomous ?? 'not_used',
+        useCases: n.aiAdoption?.useCases ?? null,
       })),
     });
   } catch (e) {
@@ -209,12 +240,18 @@ router.patch('/ai-adoption/:levelId', async (req: Request, res: Response, next: 
     if (!vsNode) return res.status(404).json({ error: 'Not found' });
     const node = { id: vsNode.id };
 
-    const data: Record<string, string> = {};
+    const data: Record<string, any> = {};
     for (const f of AI_FIELDS) {
       const v = (req.body ?? {})[f];
       if (v === undefined) continue;
       if (typeof v !== 'string' || !AI_LEVELS.has(v)) return res.status(400).json({ error: `${f} must be one of ${[...AI_LEVELS].join(' | ')}` });
       data[f] = v;
+    }
+    // Per-mode use cases (the content the Active AI drill-in renders).
+    if ((req.body ?? {}).useCases !== undefined) {
+      const parsed = parseUseCases(req.body.useCases);
+      if (!parsed) return res.status(400).json({ error: 'useCases must be { assistant|augmented|workflow|agent: [{ title, persona, detail }] } with non-empty titles' });
+      data.useCases = parsed;
     }
     if (Object.keys(data).length === 0) return res.status(400).json({ error: 'No AI-adoption fields to update' });
 
@@ -253,6 +290,18 @@ router.get('/:entity', async (req: Request, res: Response, next: NextFunction) =
     const where: Record<string, unknown> = { ...tenantWhere(req, entity), ...scope };
     if (search && entity.labelField !== 'id') {
       where[entity.labelField] = { contains: search, mode: 'insensitive' };
+    }
+    // Optional exact-match field filters: ?f_<field>=<value> for any registered
+    // field (e.g. the Sub-processes section lists SubValueStream with f_level=4).
+    for (const f of entity.fields) {
+      const raw = req.query[`f_${f.name}`];
+      if (typeof raw !== 'string' || raw === '') continue;
+      try {
+        const v = coerceValue(f, raw);
+        if (v !== undefined) where[f.name] = v;
+      } catch {
+        return res.status(400).json({ error: `Invalid filter value for ${f.name}` });
+      }
     }
 
     const orderBy = entity.labelField === 'id' ? { createdAt: 'desc' } : { [entity.labelField]: 'asc' };
@@ -302,6 +351,7 @@ router.post('/:entity', async (req: Request, res: Response, next: NextFunction) 
 
     const created = await delegate(entity).create({ data });
     maybeRecompute(entity, created);
+    maybeSyncNode(entity, 'CREATE', created);
     logAudit({
       tenantId: req.tenantId,
       actorEmail: req.user.email,
@@ -339,6 +389,7 @@ router.patch('/:entity/:id', async (req: Request, res: Response, next: NextFunct
 
     const updated = await delegate(entity).update({ where: { id: req.params.id }, data });
     maybeRecompute(entity, updated);
+    maybeSyncNode(entity, 'UPDATE', updated);
     const diff = computeDiff(before, updated, entity.fields.map((f) => f.name));
     if (Object.keys(diff).length) {
       logAudit({
@@ -371,6 +422,7 @@ router.delete('/:entity/:id', async (req: Request, res: Response, next: NextFunc
 
     await delegate(entity).delete({ where: { id: req.params.id } });
     maybeRecompute(entity, before);
+    maybeSyncNode(entity, 'DELETE', before);
     logAudit({
       tenantId: req.tenantId,
       actorEmail: req.user.email,

@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { api } from './api';
 import { STAGE_ORDER, STAGE_LABELS, STATUS_PILL_CLASS, STATUS_LABEL } from './format';
 
 // Shared types + themed UI primitives for the Initiative Tracker tab. Kept
@@ -65,14 +66,61 @@ export function StageChip({ stage }: { stage: string }) {
   return <span className="pill-blue tnum">{idx + 1}. {STAGE_LABELS[stage] ?? stage}</span>;
 }
 
-export function severityClass(v: number): string {
-  return v >= 16 ? 'bg-[#be123c]' : v >= 9 ? 'bg-[#b45309]' : 'bg-[#047857]';
+// ── Risk scoring bands (DB-driven) ──────────────────────────────────────────
+// Severity = probability × impact on the standard 5×5 matrix (1–25). The bands
+// that turn that number into a rating (Low/Moderate/High/Critical + color) are
+// company data — Data Admin → Initiatives → Risk scoring bands — fetched once
+// and cached for the session.
+export type RiskBand = { id: string; label: string; minScore: number; maxScore: number; color: string; description: string | null };
+
+let bandsCache: RiskBand[] | null = null;
+let bandsPromise: Promise<RiskBand[]> | null = null;
+const bandsListeners = new Set<(b: RiskBand[]) => void>();
+
+function loadBands(): Promise<RiskBand[]> {
+  if (bandsCache) return Promise.resolve(bandsCache);
+  bandsPromise ??= api.get('/portfolio/risk-bands')
+    .then((r: { bands: RiskBand[] }) => {
+      bandsCache = r.bands ?? [];
+      bandsListeners.forEach((fn) => fn(bandsCache!));
+      return bandsCache!;
+    })
+    .catch(() => (bandsCache = []));
+  return bandsPromise;
+}
+
+export function useRiskBands(): RiskBand[] {
+  const [bands, setBands] = useState<RiskBand[]>(bandsCache ?? []);
+  useEffect(() => {
+    if (bandsCache) return;
+    bandsListeners.add(setBands);
+    void loadBands();
+    return () => { bandsListeners.delete(setBands); };
+  }, []);
+  return bands;
+}
+
+export function bandFor(bands: RiskBand[], score: number): RiskBand | null {
+  return bands.find((b) => score >= b.minScore && score <= b.maxScore) ?? null;
+}
+
+// Fallback when bands haven't loaded yet (matches the seeded defaults).
+function fallbackColor(v: number): string {
+  return v >= 17 ? '#be123c' : v >= 10 ? '#ea580c' : v >= 5 ? '#b45309' : '#047857';
 }
 
 export function SeverityCell({ value }: { value: number }) {
+  const bands = useRiskBands();
+  const band = bandFor(bands, value);
+  const color = band?.color ?? fallbackColor(value);
   return (
-    <span className={`inline-flex items-center justify-center w-9 h-6 rounded text-white font-semibold text-xs tnum ${severityClass(value)}`}>
+    <span
+      title={`Probability × impact on the 5×5 risk matrix: ${value} of 25${band ? ` — ${band.label}${band.description ? `. ${band.description}` : ''}` : ''}`}
+      className="inline-flex items-center gap-1 rounded px-1.5 h-6 text-white font-semibold text-xs tnum"
+      style={{ background: color }}
+    >
       {value}
+      {band && <span className="font-medium opacity-90">· {band.label}</span>}
     </span>
   );
 }

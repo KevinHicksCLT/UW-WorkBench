@@ -2,19 +2,25 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import PageHeader from '../components/PageHeader';
-import {
-  MODES, HEAT, profileFor, rolesUsing, efficiencyGain,
-} from '../lib/aiAdoption';
+import { MODES, HEAT, rolesUsing, efficiencyGain, type AiMode } from '../lib/aiAdoption';
 
 // Active AI · value-stream drill-in. Reached from the heat map. Shows, for one
 // value stream: the share of its roles utilizing AI (and the efficiency gain),
-// the breakdown by autonomy mode, and the concrete use cases — grounded in this
-// stream's real work — behind each mode.
+// the breakdown by autonomy mode, and the concrete use cases behind each mode.
+// Levels + use cases come from the DB (/explorer/value-stream-adoption, stored
+// on NodeAiAdoption and edited in Data Admin → Telemetry → AI adoption).
 
-type ValueStream = {
-  id: string; name: string; domain: string | null; domainId: string | null;
-  divisionIds: string[]; categories: string[]; roleIds: string[];
+type UseCase = { title: string; persona: string; detail: string };
+
+type AdoptionStream = {
+  id: string; name: string; domain: string | null;
+  cells: number[]; // 0-4 level per mode, in MODES order
+  useCases: Partial<Record<AiMode['key'], UseCase[]>> | null;
 };
+
+// Legacy value-stream row — used only to count the roles participating in the
+// stream (RoleValueStream links live on the legacy table).
+type LegacyStream = { id: string; name: string; roleIds: string[] };
 
 function Tile({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
   return (
@@ -28,38 +34,52 @@ function Tile({ label, value, hint }: { label: string; value: string | number; h
 
 export default function ActiveAIDetail() {
   const { id } = useParams();
-  const [vs, setVs] = useState<ValueStream | null>(null);
+  const [streams, setStreams] = useState<AdoptionStream[]>([]);
+  const [legacy, setLegacy] = useState<LegacyStream[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     setLoading(true);
     setError('');
-    api.get('/explorer/value-streams')
-      .then((d) => setVs((d.valueStreams ?? []).find((s: ValueStream) => s.id === id) ?? null))
+    Promise.all([api.get('/explorer/value-stream-adoption'), api.get('/explorer/value-streams')])
+      .then(([a, v]) => { setStreams(a.valueStreams ?? []); setLegacy(v.valueStreams ?? []); })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [id]);
 
-  // Per-mode adoption + utilization for this stream, from the authored profile.
+  // The :id is the canonical value-stream NODE id; older links may carry the
+  // legacy ValueStream id, which resolves through the legacy list by name.
+  const vs = useMemo(() => {
+    const byNode = streams.find((s) => s.id === id);
+    if (byNode) return byNode;
+    const old = legacy.find((s) => s.id === id);
+    return old ? streams.find((s) => s.name === old.name) ?? null : null;
+  }, [streams, legacy, id]);
+
+  const roleCount = useMemo(
+    () => (vs ? legacy.find((s) => s.name === vs.name)?.roleIds.length ?? 0 : 0),
+    [legacy, vs],
+  );
+
+  // Per-mode adoption + utilization for this stream, from the DB-backed levels
+  // and use cases.
   const modeRows = useMemo(() => {
     if (!vs) return [];
-    const profile = profileFor(vs.name);
-    const N = vs.roleIds.length;
-    return MODES.map((mode) => {
-      const p = profile[mode.key];
-      const { count, pct } = rolesUsing(p.level, N);
+    return MODES.map((mode, i) => {
+      const level = vs.cells?.[i] ?? 0;
+      const { count, pct } = rolesUsing(level, roleCount);
       return {
-        mode, level: p.level, useCases: p.useCases,
+        mode, level, useCases: vs.useCases?.[mode.key] ?? [],
         rolesCount: count, rolesPct: pct,
-        effPct: efficiencyGain(vs.name, mode.key, p.level),
+        effPct: efficiencyGain(vs.name, mode.key, level),
       };
     });
-  }, [vs]);
+  }, [vs, roleCount]);
 
   const summary = useMemo(() => {
     if (!vs) return null;
-    const N = vs.roleIds.length;
+    const N = roleCount;
     const active = modeRows.filter((r) => r.level > 0);
     // A role utilizing any mode is utilizing AI; the broadest mode is the lower bound.
     const rolesUsingCount = Math.max(0, ...modeRows.map((r) => r.rolesCount));
@@ -70,7 +90,7 @@ export default function ActiveAIDetail() {
     const peak = [...modeRows].reverse().find((r) => r.level > 0)?.mode.label ?? 'None yet';
     const useCaseCount = active.reduce((s, r) => s + r.useCases.length, 0);
     return { N, rolesUsingCount, rolesUsingPct, avgEff, peak, useCaseCount };
-  }, [vs, modeRows]);
+  }, [vs, roleCount, modeRows]);
 
   if (loading) return <div className="text-sm text-[#a3a3a3]">Loading value stream…</div>;
   if (error) return <div className="text-sm text-[#be123c]">{error}</div>;
@@ -143,6 +163,8 @@ export default function ActiveAIDetail() {
               {/* Use cases */}
               {inactive ? (
                 <div className="px-5 py-3 text-[13px] text-[#a3a3a3] italic">Not yet adopted in this value stream.</div>
+              ) : r.useCases.length === 0 ? (
+                <div className="px-5 py-3 text-[13px] text-[#a3a3a3] italic">No use cases recorded yet — add them in Data Admin → Telemetry → AI adoption.</div>
               ) : (
                 <ul className="divide-y divide-[#f5f5f5]">
                   {r.useCases.map((u) => (
@@ -162,7 +184,7 @@ export default function ActiveAIDetail() {
       </div>
 
       <p className="text-[11px] text-[#a3a3a3] mt-4 italic">
-        Utilization, efficiency and use cases are illustrative — authored per value stream from its real work until live adoption telemetry is wired in.
+        Adoption levels and use cases are read from the operating model and edited in Data Admin → Telemetry → AI adoption.
       </p>
     </div>
   );
