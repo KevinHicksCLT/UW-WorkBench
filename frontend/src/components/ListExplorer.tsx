@@ -396,7 +396,6 @@ export default function ListExplorer({ companyName, focusVsId = null }: { compan
             dash={dash} loading={dashLoading} onDrill={onDrill}
             onBack={ovStack.length ? onBack : undefined} onClose={closeMetrics} onViewAll={setDrawerSection}
             onViewDetail={target?.level === 'valueStream' && target.id ? () => setVsDetailId(target.id) : undefined}
-            expandKey={base ? `${base.level}:${base.id}` : null}
           />
         )}
 

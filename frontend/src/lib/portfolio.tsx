@@ -105,22 +105,24 @@ export function bandFor(bands: RiskBand[], score: number): RiskBand | null {
 }
 
 // Fallback when bands haven't loaded yet (matches the seeded defaults).
-function fallbackColor(v: number): string {
-  return v >= 17 ? '#be123c' : v >= 10 ? '#ea580c' : v >= 5 ? '#b45309' : '#047857';
+function fallback(v: number): { label: string; color: string } {
+  return v >= 17 ? { label: 'High', color: '#be123c' } : v >= 9 ? { label: 'Medium', color: '#b45309' } : { label: 'Low', color: '#047857' };
 }
 
+// Shows only the RATING (Low/Medium/High …); the raw 5×5 score stays in the
+// tooltip so the number never reads as an unanchored magnitude.
 export function SeverityCell({ value }: { value: number }) {
   const bands = useRiskBands();
   const band = bandFor(bands, value);
-  const color = band?.color ?? fallbackColor(value);
+  const label = band?.label ?? fallback(value).label;
+  const color = band?.color ?? fallback(value).color;
   return (
     <span
-      title={`Probability × impact on the 5×5 risk matrix: ${value} of 25${band ? ` — ${band.label}${band.description ? `. ${band.description}` : ''}` : ''}`}
-      className="inline-flex items-center gap-1 rounded px-1.5 h-6 text-white font-semibold text-xs tnum"
+      title={`Probability × impact on the 5×5 risk matrix: ${value} of 25${band?.description ? ` — ${band.description}` : ''}`}
+      className="inline-flex items-center rounded px-2 h-6 text-white font-semibold text-xs"
       style={{ background: color }}
     >
-      {value}
-      {band && <span className="font-medium opacity-90">· {band.label}</span>}
+      {label}
     </span>
   );
 }

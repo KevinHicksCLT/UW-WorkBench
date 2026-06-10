@@ -4,7 +4,7 @@
 // straight from the workbook tables. Items carrying a `drill` target render as
 // buttons that navigate one level deeper in the map.
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export type Fmt = 'money' | 'years' | 'number';
 export type MetricItem = { label: string; value: number; hint?: string; sub?: string; format?: Fmt; illustrative?: boolean; drill?: { level: string; id: string } };
@@ -41,7 +41,7 @@ function fmt(n: number, f?: Fmt) {
 }
 
 export default function MetricsSidebar({
-  dash, loading, onDrill, onBack, onClose, onViewAll, onViewDetail, expandKey,
+  dash, loading, onDrill, onBack, onClose, onViewAll, onViewDetail,
 }: {
   dash: Dashboard | null;
   loading: boolean;
@@ -53,15 +53,12 @@ export default function MetricsSidebar({
   onViewAll?: (section: MetricSection) => void;
   // When provided (value-stream level), renders the full-detail drawer button.
   onViewDetail?: () => void;
-  // When this key changes (the user clicked a row), the panel auto-expands —
-  // a click is an explicit ask to see the data, not just the rail.
-  expandKey?: string | null;
 }) {
   // Minimizable: collapse the panel to a thin rail to give the map full width.
-  // Starts collapsed by default; expands on row selection (expandKey) or by hand.
-  const [collapsed, setCollapsed] = useState<boolean>(!expandKey);
+  // Always starts collapsed (a thin rail labelled with the selection's name);
+  // the user expands it explicitly.
+  const [collapsed, setCollapsed] = useState<boolean>(true);
   const toggleCollapsed = () => setCollapsed((c) => !c);
-  useEffect(() => { if (expandKey) setCollapsed(false); }, [expandKey]);
   const levelLabel = dash ? (LEVEL_LABEL[dash.level] ?? 'Roles') : 'Roles';
   // The rail labels itself with the clicked node's NAME (the level alone reads
   // as noise — "Process Level 3" says nothing about WHAT is selected).
