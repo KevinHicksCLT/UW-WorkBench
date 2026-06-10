@@ -134,7 +134,11 @@ type Narrative = {
   regulator: string; statutes: string; integration: string;
   regulatorName: string; regulatorWebsite: string | null; statutoryAuthority: string | null;
 };
-function parseNarrative(text: string): Narrative {
+// Strip pandoc backslash-escapes from values lifted out of raw (un-reconstructed)
+// narrative text — URLs and citations otherwise keep literal `\_` etc.
+const unescapeInline = (s: string) => s.replace(/\\([_\[\]#'"&<>$%~^])/g, '$1');
+
+function parseNarrative(text: string, stateName?: string): Narrative {
   const idx = (marker: RegExp) => {
     const m = text.match(marker);
     return m ? text.indexOf(m[0]) : -1;
@@ -149,17 +153,22 @@ function parseNarrative(text: string): Narrative {
   const integration = iInt >= 0 ? text.slice(iInt).replace(/\*\*Integration & Electronic Systems:\*\*\s*/, '').trim() : '';
 
   const nameM = regulator.match(/\*\*([^*]+?)\*\*/);
-  const regulatorName = (nameM ? nameM[1] : '').replace(/\s+/g, ' ').trim();
+  const regulatorName = unescapeInline((nameM ? nameM[1] : '').replace(/\s+/g, ' ').trim());
   const urlM = regulator.match(/https?:\/\/[^\s)\]>"']+/);
   let regulatorWebsite = urlM ? urlM[0] : null;
-  if (regulatorWebsite) regulatorWebsite = regulatorWebsite.split(/%5B|\\\]|\*\*/)[0].replace(/[).,;]+$/, '');
+  if (regulatorWebsite) regulatorWebsite = unescapeInline(regulatorWebsite.split(/%5B|\\\]|\*\*/)[0].replace(/[).,;]+$/, ''));
 
-  // First bold phrase in the statutes block that reads like a code citation.
-  let statutoryAuthority: string | null = null;
+  // Code citation from the statutes block. The doc often bolds a generic
+  // shorthand first ("Insurance Code") and the real citation later ("Texas
+  // Insurance Code", "Minnesota Statutes Chapters 59A–79A") — prefer the first
+  // candidate that names the state or carries a number.
+  const candidates: string[] = [];
   for (const m of statutes.matchAll(/\*\*([^*]+?)\*\*/g)) {
-    const t = m[1].replace(/\s+/g, ' ').trim();
-    if (/Title|Chapter|Code|Statut|§|Revised|Annotated|Laws/i.test(t) && t.length > 8) { statutoryAuthority = t; break; }
+    const t = unescapeInline(m[1].replace(/\s+/g, ' ').trim());
+    if (/Title|Chapter|Code|Statut|§|Revised|Annotated|Laws/i.test(t) && t.length > 8) candidates.push(t);
   }
+  const statutoryAuthority =
+    candidates.find((t) => (stateName && t.includes(stateName)) || /\d/.test(t)) ?? candidates[0] ?? null;
   return { regulator, statutes, integration, regulatorName, regulatorWebsite, statutoryAuthority };
 }
 
@@ -213,7 +222,7 @@ const knownGaps: string[] = [];
 
 for (const b of boundaries) {
   const body = block(b.line + (b.kind === 'state' || b.kind === 'profile' || b.kind === 'rules' ? 1 : 0), endOf(b.line));
-  if (b.kind === 'state' && !narrativeByState.has(b.key!)) narrativeByState.set(b.key!, parseNarrative(body));
+  if (b.kind === 'state' && !narrativeByState.has(b.key!)) narrativeByState.set(b.key!, parseNarrative(body, STATES.find(([c]) => c === b.key)?.[1]));
   if (b.kind === 'profile' && body) profileByState.set(b.key!, parseProfile(body));
   if (b.kind === 'rules' && body) rulesTextByState.set(b.key!, body);
 }
@@ -398,7 +407,7 @@ function deriveSources(code: string, name: string, narrative: Narrative) {
   const push = (s: any) => { if (s.url && !urls.has(s.url)) { urls.add(s.url); out.push(s); } };
   if (narrative.regulatorWebsite) push({ name: `${narrative.regulatorName || name} — official site`, url: narrative.regulatorWebsite, sourceType: 'OTHER', authority: 'OFFICIAL_REGULATOR', monitor: false, checkTier: tier });
   for (const m of narrative.statutes.matchAll(/https?:\/\/[^\s)\]>"']+/g)) {
-    const url = m[0].replace(/[).,;\\]+$/, '');
+    const url = unescapeInline(m[0].replace(/[).,;\\]+$/, ''));
     if (/ulletin/i.test(url)) push({ name: `${name} bulletins page`, url, sourceType: 'BULLETINS_PAGE', authority: 'OFFICIAL_REGULATOR', monitor: true, checkTier: tier });
     else if (/egulation/i.test(url)) push({ name: `${name} regulations page`, url, sourceType: 'REGULATIONS_PAGE', authority: 'OFFICIAL_REGULATOR', monitor: true, checkTier: tier });
     else if (/code|statut/i.test(url)) push({ name: `${name} statutes page`, url, sourceType: 'STATUTES_PAGE', authority: 'OFFICIAL_REGULATOR', monitor: true, checkTier: tier });
