@@ -136,7 +136,7 @@ Each AC is checked off by exercising the running app (Playwright) + querying the
 | Defect | Status |
 | --- | --- |
 | D1 Home rework | pending |
-| D2 VS list | pending |
+| D2 VS list | DONE (grid + sort + expand/collapse-all, 27px rows, no Domain/Division rows, flush top). NOTE: list dedupes to 29 streams vs Home tile's 36 — reconcile in final pass |
 | D3 VS map | pending |
 | D4 Organization | pending |
 | D5 Standards | pending |

@@ -4,12 +4,13 @@ import { api } from '../lib/api';
 import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from './MetricsSidebar';
 import ValueStreamDrawer from './ValueStreamDrawer';
 
-// List view = the WHOLE operating model, fully exploded on load — every level
-// visible at once so the depth of the company reads immediately:
-//   Company › Domain › Division › Value stream › Process area › Sub-process › Step
-// The tree arrives pre-built from /explorer/tree (one request, no lazy loading),
-// and domain/division facet chips filter what's shown. Clicking any node pops the
-// right-hand metrics panel — the SAME MetricsSidebar the map uses. Map view is untouched.
+// List view (defect backlog 02, D2) — an Excel-like grid of the operating model
+// limited to the three levels that carry the real data:
+//   Value stream › Sub-process › Step
+// (the Domain / Division grouping rows are gone — divisions remain available as
+// a filter). Rows are thin, columns are sortable, branches expand/collapse, and
+// clicking a row opens the right-hand metrics panel — the SAME MetricsSidebar
+// the map uses.
 
 // ── Tree shape (from GET /explorer/tree) ──────────────────────────────────────
 type StepL5 = { id: string; step: number; name: string };
@@ -19,168 +20,108 @@ type VS = { id: string; name: string; areas: Area[] };
 type Div = { id: string; name: string; higherCategory: string | null; roles: number; valueStreams: VS[] };
 type Tree = { company: { id: string; name: string }; divisions: Div[] };
 
-// ── Mirror of the map's segment handling (MapCanvas.tsx) ─────────────────────
-// Segments + division order are DATA: the API returns divisions already ordered
-// by Node.sortOrder and labeled with their parent segment node's name. Renaming
-// or reordering a segment in the builder reflects here.
 type Category = string;
 const catFor = (higherCategory: string | null): Category => higherCategory ?? 'Unassigned';
-const hexFor = (c: string) => DOMAIN_HEX[c] ?? '#64748b';
 
 // Context lets any node open the right-hand metrics panel without prop-drilling.
 type MetricsCtxValue = { open: (level: string, id: string) => void; activeKey: string | null; focusVsId: string | null };
 const MetricsCtx = createContext<MetricsCtxValue>({ open: () => {}, activeKey: null, focusVsId: null });
 const useMetrics = () => useContext(MetricsCtx);
 
-// ── Row chrome (shared by every node) ─────────────────────────────────────────
+// ── Row chrome ────────────────────────────────────────────────────────────────
 const Caret = ({ open }: { open: boolean }) => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
     style={{ transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 150ms' }} className="text-[#a3a3a3]" aria-hidden="true">
     <path d="M9 18l6-6-6-6" />
   </svg>
 );
-const Meta = ({ children }: { children: React.ReactNode }) => (
-  <span className="text-[11px] text-[#a3a3a3] tnum flex-shrink-0">{children}</span>
-);
 
-function Row({
-  depth, leaf, open, onClick, onToggle, accent, num, label, meta, muted, strong, selected,
+// One grid row: indented name cell + the two count columns. Thin (D2.3).
+function GridRow({
+  depth, leaf, open, onClick, onToggle, num, label, subs, steps, muted, strong, selected,
 }: {
-  depth: number; leaf?: boolean; open?: boolean; onClick?: () => void;
-  // When provided, the caret toggles expansion independently of the row click
-  // (so a row can open its detail while the chevron still collapses the branch).
-  onToggle?: () => void;
-  accent?: string; num?: number; label: string; meta?: React.ReactNode; muted?: boolean; strong?: boolean; selected?: boolean;
+  depth: number; leaf?: boolean; open?: boolean; onClick?: () => void; onToggle?: () => void;
+  num?: number; label: string; subs?: number | null; steps?: number | null;
+  muted?: boolean; strong?: boolean; selected?: boolean;
 }) {
   const clickable = !!onClick;
   return (
     <div
       onClick={onClick}
-      style={{ paddingLeft: depth * 18 + 10 }}
-      className={'flex items-center gap-2 py-2 pr-3 border-b border-[#f5f5f5] last:border-0 transition-colors duration-150 '
+      className={'grid grid-cols-[1fr_110px_80px] items-center gap-2 pr-2 border-b border-[#f5f5f5] last:border-0 transition-colors duration-150 '
         + (selected ? 'bg-[#f5f8ff] ' : '') + (clickable ? 'cursor-pointer hover:bg-[#fafafa]' : '')}
     >
-      <span
-        className={'w-3.5 flex-shrink-0 flex items-center' + (onToggle ? ' cursor-pointer' : '')}
-        onClick={onToggle ? (e) => { e.stopPropagation(); onToggle(); } : undefined}
-      >{!leaf && <Caret open={!!open} />}</span>
-      {accent && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: accent }} />}
-      {num != null && <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#f5f5f5] text-[10px] font-semibold text-[#525252] tnum flex-shrink-0">{num}</span>}
-      <span className={'truncate flex-1 ' + (strong ? 'text-sm font-semibold text-[#171717]' : muted ? 'text-[13px] text-[#525252]' : 'text-sm text-[#171717]')}>{label}</span>
-      {meta}
+      <div className="flex items-center gap-1.5 py-1 min-w-0" style={{ paddingLeft: depth * 16 + 8 }}>
+        <span
+          className={'w-3.5 flex-shrink-0 flex items-center' + (onToggle ? ' cursor-pointer' : '')}
+          onClick={onToggle ? (e) => { e.stopPropagation(); onToggle(); } : undefined}
+        >{!leaf && <Caret open={!!open} />}</span>
+        {num != null && <span className="flex items-center justify-center w-4.5 h-4.5 min-w-[18px] rounded-full bg-[#f5f5f5] text-[9px] font-semibold text-[#525252] tnum flex-shrink-0">{num}</span>}
+        <span className={'truncate ' + (strong ? 'text-[13px] font-semibold text-[#171717]' : muted ? 'text-[12px] text-[#525252]' : 'text-[13px] text-[#171717]')}>{label}</span>
+      </div>
+      <span className="text-[11px] text-[#737373] tnum text-right">{subs ?? ''}</span>
+      <span className="text-[11px] text-[#737373] tnum text-right">{steps ?? ''}</span>
     </div>
   );
 }
 const InfoRow = ({ depth, text }: { depth: number; text: string }) => (
-  <div style={{ paddingLeft: depth * 18 + 32 }} className="py-2 pr-3 text-[12px] text-[#a3a3a3] italic border-b border-[#f5f5f5]">{text}</div>
+  <div style={{ paddingLeft: depth * 16 + 28 }} className="py-1 pr-3 text-[11px] text-[#a3a3a3] italic border-b border-[#f5f5f5]">{text}</div>
 );
 
-// ── Nodes — every level starts expanded; carets still collapse on demand. ──────
-// L4 sub-process → its L5 process steps. Pure expand/collapse outline.
-function SubProcessNode({ sub, depth }: { sub: SubProc; depth: number }) {
-  // The last step (L5) is the only level that opens the metrics panel — it carries
-  // the actual detail (description / roles / inputs / outputs / external).
+// ── Nodes — controlled by an expandAll epoch so the header buttons can fold the
+// whole grid at once (Excel-style); carets still toggle each branch. ───────────
+function StepNode({ step, depth }: { step: SubProc; depth: number }) {
   const { open: openMetrics, activeKey } = useMetrics();
   return (
-    <Row depth={depth} leaf muted selected={activeKey === `step:${sub.id}`}
-      onClick={() => openMetrics('step', sub.id)}
-      num={sub.step} label={sub.name} />
+    <GridRow depth={depth} leaf muted selected={activeKey === `step:${step.id}`}
+      onClick={() => openMetrics('step', step.id)}
+      num={step.step} label={step.name} />
   );
 }
 
-function AreaNode({ area, depth }: { area: Area; depth: number }) {
-  const [open, setOpen] = useState(true);
-  // L4 sub-processes carry their own authored detail (inputs/outputs/leads) —
-  // clicking opens it in the sidebar; the caret still expands/collapses.
+function SubProcessNode({ area, depth, epoch, defaultOpen }: { area: Area; depth: number; epoch: number; defaultOpen: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  useEffect(() => { setOpen(defaultOpen); }, [epoch]); // eslint-disable-line
   const { open: openMetrics, activeKey } = useMetrics();
-  const subs = area.subProcesses;
+  const steps = area.subProcesses;
   return (
     <>
-      <Row depth={depth} leaf={subs.length === 0} open={open} selected={activeKey === `step:${area.id}`}
+      <GridRow depth={depth} leaf={steps.length === 0} open={open} selected={activeKey === `step:${area.id}`}
         onClick={() => openMetrics('step', area.id)}
-        onToggle={subs.length ? () => setOpen((o) => !o) : undefined}
-        num={area.step} label={area.name} meta={<Meta>{subs.length} steps</Meta>} />
-      {open && subs.map((ss) => <SubProcessNode key={ss.id} sub={ss} depth={depth + 1} />)}
+        onToggle={steps.length ? () => setOpen((o) => !o) : undefined}
+        num={area.step} label={area.name} steps={steps.length} />
+      {open && steps.map((ss) => <StepNode key={ss.id} step={ss} depth={depth + 1} />)}
     </>
   );
 }
 
-function ValueStreamNode({ vs, depth }: { vs: VS; depth: number }) {
-  // Clicking the stream opens its detail in the right sidebar (the full-detail
-  // drawer stays one click away via the sidebar's "View full details"); the
-  // caret still expands/collapses the branch. A deep-linked focus stream
-  // scrolls itself into view.
+function ValueStreamNode({ vs, depth, epoch, defaultOpen }: { vs: VS; depth: number; epoch: number; defaultOpen: boolean }) {
   const { open: openMetrics, activeKey, focusVsId } = useMetrics();
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(defaultOpen);
+  useEffect(() => { setOpen(defaultOpen); }, [epoch]); // eslint-disable-line
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (focusVsId === vs.id) ref.current?.scrollIntoView({ block: 'center' });
   }, [focusVsId, vs.id]);
+  const steps = vs.areas.reduce((n, a) => n + a.subProcesses.length, 0);
   return (
     <>
       <div ref={ref}>
-        <Row depth={depth} leaf={vs.areas.length === 0} open={open} selected={activeKey === `valueStream:${vs.id}`}
+        <GridRow depth={depth} leaf={vs.areas.length === 0} open={open} selected={activeKey === `valueStream:${vs.id}`}
           onClick={() => openMetrics('valueStream', vs.id)}
           onToggle={vs.areas.length ? () => setOpen((o) => !o) : undefined}
-          label={vs.name} meta={<Meta>{vs.areas.length} sub-processes</Meta>} />
+          label={vs.name} subs={vs.areas.length} steps={steps} />
       </div>
       {open && (vs.areas.length > 0
-        ? vs.areas.map((a) => <AreaNode key={a.id} area={a} depth={depth + 1} />)
-        : <InfoRow depth={depth + 1} text="No process areas mapped." />)}
+        ? vs.areas.map((a) => <SubProcessNode key={a.id} area={a} depth={depth + 1} epoch={epoch} defaultOpen={defaultOpen} />)
+        : <InfoRow depth={depth + 1} text="No sub-processes mapped." />)}
     </>
   );
 }
 
-function DivisionNode({ div, depth, accent }: { div: Div; depth: number; accent: string }) {
-  const [open, setOpen] = useState(true);
-  const vss = div.valueStreams;
-  return (
-    <>
-      <Row depth={depth} leaf={vss.length === 0} open={open}
-        onClick={vss.length ? () => setOpen((o) => !o) : undefined}
-        accent={accent} label={div.name} meta={<Meta>{vss.length} value streams</Meta>} />
-      {open && (vss.length > 0
-        ? vss.map((vs) => <ValueStreamNode key={vs.id} vs={vs} depth={depth + 1} />)
-        : <InfoRow depth={depth + 1} text="No led value streams." />)}
-    </>
-  );
-}
-
-function DomainNode({ cat, divs, depth }: { cat: Category; divs: Div[]; depth: number }) {
-  const [open, setOpen] = useState(true);
-  return (
-    <>
-      <Row depth={depth} open={open}
-        onClick={() => setOpen((o) => !o)}
-        accent={DOMAIN_HEX[cat]} label={cat} strong meta={<Meta>{divs.length} divisions</Meta>} />
-      {open && divs.map((d) => <DivisionNode key={d.id} div={d} depth={depth + 1} accent={DOMAIN_HEX[cat]} />)}
-    </>
-  );
-}
-
-// High-level overview banner — model totals across the top. Recomputes from the
-// CURRENTLY-VISIBLE (filtered) tree, so the depth metrics track the active facets.
-function OverviewBanner({ stats }: { stats: { label: string; value: number }[] }) {
-  return (
-    <div className="rounded-xl border border-[#eaeaea] bg-gradient-to-r from-[#fafafa] to-white px-5 py-4 mb-4 flex items-center justify-between gap-x-4">
-      {stats.map((s, i) => (
-        <div key={s.label} className="flex items-center gap-4 min-w-0">
-          {i > 0 && <span className="h-9 w-px bg-[#eaeaea] flex-shrink-0" aria-hidden="true" />}
-          <div className="text-center">
-            <div className="text-2xl font-bold text-[#171717] leading-none tnum">{s.value}</div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mt-1">{s.label}</div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Facet filter bar — domain + division dropdowns. Empty set = show all. ──────
+// ── Slim facet dropdown (multi-select) ────────────────────────────────────────
 type FilterOption = { id: string; name: string; accent?: string };
 
-// Multi-select dropdown: a button shows the label + active count and opens a
-// checkbox panel. Closes on outside click. Mirrors the old chips' toggle behavior.
 function FilterDropdown({ label, options, selected, onToggle }: {
   label: string;
   options: FilterOption[];
@@ -201,25 +142,25 @@ function FilterDropdown({ label, options, selected, onToggle }: {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className={'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-medium transition-colors duration-150 '
+        className={'inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors duration-150 '
           + (count > 0 ? 'border-[#171717] text-[#171717]' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4] hover:text-[#171717]')}
       >
-        <span className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3]">{label}</span>
+        <span className="text-[9px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</span>
         <span>{count > 0 ? `${count} selected` : 'All'}</span>
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
           style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }} aria-hidden="true">
           <path d="M6 9l6 6 6-6" />
         </svg>
       </button>
       {open && (
-        <div className="absolute left-0 top-full mt-1.5 z-30 min-w-[220px] max-h-[300px] overflow-auto rounded-lg border border-[#eaeaea] bg-white shadow-lg p-1">
+        <div className="absolute left-0 top-full mt-1 z-30 min-w-[220px] max-h-[300px] overflow-auto rounded-lg border border-[#eaeaea] bg-white shadow-lg p-1">
           {options.length === 0 ? (
             <div className="px-2.5 py-2 text-[12px] text-[#a3a3a3]">No options</div>
           ) : options.map((o) => (
-            <label key={o.id} className="flex items-center gap-2 px-2.5 py-1.5 rounded-md cursor-pointer hover:bg-[#fafafa]">
+            <label key={o.id} className="flex items-center gap-2 px-2.5 py-1 rounded-md cursor-pointer hover:bg-[#fafafa]">
               <input type="checkbox" checked={selected.has(o.id)} onChange={() => onToggle(o.id)} className="accent-[#171717]" />
               {o.accent && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: o.accent }} />}
-              <span className="text-[13px] text-[#171717] truncate">{o.name}</span>
+              <span className="text-[12px] text-[#171717] truncate">{o.name}</span>
             </label>
           ))}
         </div>
@@ -228,32 +169,15 @@ function FilterDropdown({ label, options, selected, onToggle }: {
   );
 }
 
-function FilterBar({
-  domains, divsByCat, catFilter, divFilter, toggleCat, toggleDiv, clear,
-}: {
-  domains: Category[];
-  divsByCat: Record<Category, Div[]>;
-  catFilter: Set<Category>;
-  divFilter: Set<string>;
-  toggleCat: (c: Category) => void;
-  toggleDiv: (id: string) => void;
-  clear: () => void;
-}) {
-  // Divisions offered = those in the active domains (or all, if no domain selected).
-  const offered = domains.filter((c) => catFilter.size === 0 || catFilter.has(c));
-  const anyFilter = catFilter.size > 0 || divFilter.size > 0;
-  const domainOptions: FilterOption[] = domains.map((c) => ({ id: c, name: c, accent: DOMAIN_HEX[c] }));
-  const divisionOptions: FilterOption[] = offered.flatMap((c) => divsByCat[c]).map((d) => ({ id: d.id, name: d.name, accent: DOMAIN_HEX[catFor(d.higherCategory)] }));
+// Sort toggle for the grid column headers.
+type Sort = { col: 'name' | 'subs' | 'steps'; dir: 1 | -1 };
+function SortBtn({ col, sort, onSort, children }: { col: Sort['col']; sort: Sort; onSort: (c: Sort['col']) => void; children: React.ReactNode }) {
+  const active = sort.col === col;
   return (
-    <div className="rounded-xl border border-[#eaeaea] bg-white px-4 py-3 mb-4">
-      <div className="flex items-center gap-2 flex-wrap">
-        <FilterDropdown label="Domain" options={domainOptions} selected={catFilter} onToggle={(id) => toggleCat(id as Category)} />
-        <FilterDropdown label="Division" options={divisionOptions} selected={divFilter} onToggle={toggleDiv} />
-        {anyFilter && (
-          <button onClick={clear} className="ml-auto text-[11px] font-medium text-[#1d4ed8] hover:underline">Clear filters</button>
-        )}
-      </div>
-    </div>
+    <button onClick={() => onSort(col)} className={'inline-flex items-center gap-1 hover:text-[#171717] ' + (active ? 'text-[#171717]' : '')}>
+      {children}
+      <span className={'text-[10px] font-bold ' + (active ? 'text-[#171717]' : 'text-[#a3a3a3]')}>{active ? (sort.dir === 1 ? '▲' : '▼') : '⇅'}</span>
+    </button>
   );
 }
 
@@ -265,6 +189,12 @@ export default function ListExplorer({ companyName, focusVsId = null }: { compan
   // Facet filters: empty set = no constraint (show all).
   const [catFilter, setCatFilter] = useState<Set<Category>>(new Set());
   const [divFilter, setDivFilter] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState<Sort>({ col: 'name', dir: 1 });
+  // Expand/collapse-all: bump the epoch so every branch resets to defaultOpen.
+  const [allOpen, setAllOpen] = useState(true);
+  const [epoch, setEpoch] = useState(0);
+  const setAll = (open: boolean) => { setAllOpen(open); setEpoch((n) => n + 1); };
 
   // Right-hand metrics panel (identical to the map). `base` = the node clicked in
   // the tree; `ovStack` = in-panel drills (role → person → …) just like the map.
@@ -310,80 +240,109 @@ export default function ListExplorer({ companyName, focusVsId = null }: { compan
   // Changing the focused entity makes the drawer's snapshot stale — close it.
   useEffect(() => { setDrawerSection(null); }, [target?.level, target?.id]);
 
-  // ── Group divisions by segment (API order = Node.sortOrder); resolve filters. ──
+  // ── Facet option lists (domains/divisions remain as FILTERS, not rows). ──
   const divsByCat = useMemo(() => {
     const out: Record<Category, Div[]> = {};
     for (const d of tree?.divisions ?? []) (out[catFor(d.higherCategory)] ??= []).push(d);
     return out;
   }, [tree]);
-
-  const domainsPresent = useMemo(() => {
-    const seen: Category[] = [];
-    for (const d of tree?.divisions ?? []) { const c = catFor(d.higherCategory); if (!seen.includes(c)) seen.push(c); }
-    return seen;
-  }, [tree]);
-
-  // Visible domains/divisions after applying the facet filters.
-  const visibleDomains = domainsPresent
+  const domainsPresent = useMemo(() => Object.keys(divsByCat), [divsByCat]);
+  const domainOptions: FilterOption[] = domainsPresent.map((c) => ({ id: c, name: c, accent: DOMAIN_HEX[c] }));
+  const divisionOptions: FilterOption[] = domainsPresent
     .filter((c) => catFilter.size === 0 || catFilter.has(c))
-    .map((c) => ({ cat: c, divs: divsByCat[c].filter((d) => divFilter.size === 0 || divFilter.has(d.id)) }))
-    .filter((g) => g.divs.length > 0);
+    .flatMap((c) => divsByCat[c])
+    .map((d) => ({ id: d.id, name: d.name, accent: DOMAIN_HEX[catFor(d.higherCategory)] }));
 
-  // Banner depth metrics — recomputed from the visible (filtered) tree.
-  const stats = useMemo(() => {
-    const seenVs = new Set<string>();
-    let divisions = 0, valueStreams = 0, subProcesses = 0, steps = 0;
-    for (const g of visibleDomains) for (const d of g.divs) {
-      divisions++;
-      for (const vs of d.valueStreams) {
-        if (seenVs.has(vs.id)) continue; seenVs.add(vs.id);
-        valueStreams++;
-        for (const a of vs.areas) { subProcesses++; steps += a.subProcesses.length; }
-      }
+  // ── Flatten to the value-stream level (dedupe — a stream can sit under
+  // several divisions), applying the facet filters + search + sort. ──
+  const valueStreams = useMemo(() => {
+    const seen = new Map<string, VS>();
+    for (const d of tree?.divisions ?? []) {
+      if (catFilter.size > 0 && !catFilter.has(catFor(d.higherCategory))) continue;
+      if (divFilter.size > 0 && !divFilter.has(d.id)) continue;
+      for (const vs of d.valueStreams) if (!seen.has(vs.id)) seen.set(vs.id, vs);
     }
-    return [
-      { label: 'Domains', value: visibleDomains.length },
-      { label: 'Divisions', value: divisions },
-      { label: 'Value Streams', value: valueStreams },
-      { label: 'Sub-Processes', value: subProcesses },
-      { label: 'Steps', value: steps },
-    ];
-  }, [visibleDomains]);
+    let list = [...seen.values()];
+    const q = search.trim().toLowerCase();
+    if (q) {
+      list = list.filter((vs) =>
+        vs.name.toLowerCase().includes(q)
+        || vs.areas.some((a) => a.name.toLowerCase().includes(q) || a.subProcesses.some((s) => s.name.toLowerCase().includes(q))));
+    }
+    const stepsOf = (vs: VS) => vs.areas.reduce((n, a) => n + a.subProcesses.length, 0);
+    list.sort((a, b) => {
+      const cmp = sort.col === 'name' ? a.name.localeCompare(b.name)
+        : sort.col === 'subs' ? a.areas.length - b.areas.length
+        : stepsOf(a) - stepsOf(b);
+      return cmp * sort.dir || a.name.localeCompare(b.name);
+    });
+    return list;
+  }, [tree, catFilter, divFilter, search, sort]);
+
+  const totals = useMemo(() => {
+    let subs = 0, steps = 0;
+    for (const vs of valueStreams) { subs += vs.areas.length; for (const a of vs.areas) steps += a.subProcesses.length; }
+    return { vs: valueStreams.length, subs, steps };
+  }, [valueStreams]);
 
   const toggleCat = (c: Category) => setCatFilter((s) => { const n = new Set(s); n.has(c) ? n.delete(c) : n.add(c); return n; });
   const toggleDiv = (id: string) => setDivFilter((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const clear = () => { setCatFilter(new Set()); setDivFilter(new Set()); };
+  const anyFilter = catFilter.size > 0 || divFilter.size > 0 || search.trim() !== '';
+  const clear = () => { setCatFilter(new Set()); setDivFilter(new Set()); setSearch(''); };
 
-  const [rootOpen, setRootOpen] = useState(true);
+  const toggleSort = (col: Sort['col']) => setSort((s) => (s.col === col ? { col, dir: s.dir === 1 ? -1 : 1 } : { col, dir: 1 }));
+
   const activeKey = base ? `${base.level}:${base.id}` : null;
-  const name = tree?.company.name ?? companyName;
 
   return (
     <MetricsCtx.Provider value={{ open: openMetrics, activeKey, focusVsId }}>
-      {/* Side-by-side: tree scrolls, metrics panel sits beside it (no overlay). */}
+      {/* Side-by-side: grid scrolls, metrics panel sits beside it (no overlay). */}
       <div className="h-full flex relative">
         <div className="flex-1 min-w-0 overflow-auto">
-          <div className="max-w-[1000px] mx-auto px-4 sm:px-6 py-5">
+          <div className="px-3 sm:px-4 pt-2 pb-4">
             {loading ? (
               <div className="text-sm text-[#a3a3a3] animate-pulse py-8 text-center">Loading operating model…</div>
             ) : error ? (
               <div className="text-sm text-[#be123c] py-8 text-center">{error}</div>
             ) : (
               <>
-                <OverviewBanner stats={stats} />
-                <FilterBar
-                  domains={domainsPresent} divsByCat={divsByCat}
-                  catFilter={catFilter} divFilter={divFilter}
-                  toggleCat={toggleCat} toggleDiv={toggleDiv} clear={clear}
-                />
+                {/* Slim filter row: search + facets + totals — one line, no fat card (D2.1/D2.3). */}
+                {/* pl clears the floating List|Map toggle pinned at the top-left. */}
+                <div className="flex items-center gap-2 flex-wrap mb-2 pl-[150px]">
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="rounded-md border border-[#eaeaea] bg-white px-2.5 py-1 text-[12px] text-[#171717] w-48 focus:outline-none focus:ring-1 focus:ring-[#171717]"
+                    aria-label="Search value streams"
+                  />
+                  <FilterDropdown label="Domain" options={domainOptions} selected={catFilter} onToggle={(id) => toggleCat(id as Category)} />
+                  <FilterDropdown label="Division" options={divisionOptions} selected={divFilter} onToggle={toggleDiv} />
+                  {anyFilter && <button onClick={clear} className="text-[11px] font-medium text-[#1d4ed8] hover:underline">Clear</button>}
+                  <span className="ml-auto text-[11px] text-[#737373] tnum">
+                    {totals.vs} value streams · {totals.subs} sub-processes · {totals.steps} steps
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <button onClick={() => setAll(true)} className="text-[11px] font-medium text-[#525252] hover:text-[#171717] border border-[#eaeaea] rounded px-1.5 py-0.5">Expand all</button>
+                    <button onClick={() => setAll(false)} className="text-[11px] font-medium text-[#525252] hover:text-[#171717] border border-[#eaeaea] rounded px-1.5 py-0.5">Collapse all</button>
+                  </span>
+                </div>
 
                 <div className="card p-0 overflow-hidden">
-                  {/* Company root */}
-                  <Row depth={0} open={rootOpen} strong label={name} meta={<Meta>{visibleDomains.length} domains</Meta>}
-                    onClick={() => setRootOpen((o) => !o)} />
-                  {rootOpen && (visibleDomains.length > 0
-                    ? visibleDomains.map((dom) => <DomainNode key={dom.cat} cat={dom.cat} divs={dom.divs} depth={1} />)
-                    : <InfoRow depth={1} text="No divisions match the current filters." />)}
+                  {/* Grid header with sort (D2.4/D2.5) */}
+                  <div className="grid grid-cols-[1fr_110px_80px] items-center gap-2 pr-2 border-b border-[#eaeaea] bg-[#fafafa]">
+                    <div className="py-1.5 pl-8 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373]">
+                      <SortBtn col="name" sort={sort} onSort={toggleSort}>Value stream</SortBtn>
+                    </div>
+                    <div className="py-1.5 text-right text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373]">
+                      <SortBtn col="subs" sort={sort} onSort={toggleSort}>Sub-processes</SortBtn>
+                    </div>
+                    <div className="py-1.5 text-right text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373]">
+                      <SortBtn col="steps" sort={sort} onSort={toggleSort}>Steps</SortBtn>
+                    </div>
+                  </div>
+                  {valueStreams.length > 0
+                    ? valueStreams.map((vs) => <ValueStreamNode key={vs.id} vs={vs} depth={0} epoch={epoch} defaultOpen={allOpen} />)
+                    : <InfoRow depth={0} text="No value streams match the current filters." />}
                 </div>
               </>
             )}

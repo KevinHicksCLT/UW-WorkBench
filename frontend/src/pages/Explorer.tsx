@@ -94,11 +94,13 @@ export default function Explorer() {
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      {/* Page header */}
-      <header className="flex-shrink-0 px-6 pt-4 pb-3 border-b border-[#eaeaea] bg-white">
-        {/* Breadcrumb / hint lives here — MapCanvas portals its breadcrumb into this slot. */}
-        <div ref={setCrumbSlot} className="min-h-[24px] flex items-center" />
-      </header>
+      {/* Page header — map view only (MapCanvas portals its breadcrumb into the
+          slot). The list view starts flush under the tab bar (D2.1). */}
+      {view === 'map' && (
+        <header className="flex-shrink-0 px-6 py-1.5 border-b border-[#eaeaea] bg-white">
+          <div ref={setCrumbSlot} className="min-h-[18px] flex items-center" />
+        </header>
+      )}
 
       <div className="relative flex-1 min-h-0 overflow-hidden">
         {/* Hovering toggle: interactive map ↔ list view */}
