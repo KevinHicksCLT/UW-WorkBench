@@ -2,10 +2,11 @@
 //
 // The map sidebar's step lens (Supporting roles/employees · Deliverables ·
 // Applications & systems) is assembled at query time from DB rows. This editor
-// is shaped like the sidebar itself: drill Value stream → Sub-process → Step,
-// then edit each sidebar section in place. Every write goes through the same
-// audited generic admin CRUD (/admin/<entity>) — the DB stays the single
-// source of truth; nothing is stored locally.
+// is shaped like the sidebar itself AND level-aware like the map: pick a value
+// stream and the stream-level content appears prefilled; drill to a
+// sub-process or a single step and the same sections narrow to that scope —
+// editable at every depth. Every write goes through the same audited generic
+// admin CRUD (/admin/<entity>) — the DB stays the single source of truth.
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../../lib/api';
 
@@ -51,6 +52,10 @@ const Label = ({ children }: { children: React.ReactNode }) => (
   <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-1">{children}</label>
 );
 
+const StepChip = ({ text }: { text: string }) => (
+  <span className="text-[9.5px] font-medium text-[#0369a1] bg-[#f0f9ff] border border-[#bae6fd] rounded px-1.5 py-0.5">{text}</span>
+);
+
 export default function StepLensEditor({ companyId, onNavigate }: {
   companyId: string | null;
   onNavigate?: (tab: string, section?: string) => void;
@@ -62,15 +67,33 @@ export default function StepLensEditor({ companyId, onNavigate }: {
   const [steps, setSteps] = useState<Row[]>([]);
   const [l4, setL4] = useState('');
   const [stepId, setStepId] = useState('');
-  const [usages, setUsages] = useState<Row[]>([]);
-  const [delivs, setDelivs] = useState<Row[]>([]);
-  const [who, setWho] = useState({ leads: '', supporting: '' });
+  const [allUsage, setAllUsage] = useState<Row[]>([]);
+  const [allDelivs, setAllDelivs] = useState<Row[]>([]);
+  // Per-step lead/supporting edits, keyed by step id (prefilled from the DB).
+  const [who, setWho] = useState<Record<string, { leads: string; supporting: string }>>({});
+  const [addStep, setAddStep] = useState<Record<'usage' | 'deliv', string>>({ usage: '', deliv: '' });
   const [saving, setSaving] = useState<string | null>(null);
   const [flash, setFlash] = useState('');
 
   const rows = (r: any): Row[] => r?.rows ?? [];
+  // Page through a table (the generic endpoint caps at 200/page).
+  const fetchAll = async (slug: string): Promise<Row[]> => {
+    const out: Row[] = [];
+    for (let offset = 0; offset < 4000; offset += 200) {
+      const r: any = await api.get(withCompany(`/admin/${slug}?limit=200&offset=${offset}`, companyId));
+      out.push(...rows(r));
+      if (out.length >= (r?.total ?? 0)) break;
+    }
+    return out;
+  };
+  const reloadBridges = async () => {
+    const [u, d] = await Promise.all([fetchAll('stepAppUsage'), fetchAll('stepDeliverable')]);
+    setAllUsage(u);
+    setAllDelivs(d);
+  };
 
-  // Reference data: streams for the picker, apps + roles for the selects.
+  // Reference data once per company; bridge rows for the whole company so any
+  // scope (stream / L4 / step) filters instantly client-side.
   useEffect(() => {
     if (!companyId) return;
     api.get(withCompany('/admin/valueStream?limit=200', companyId)).then((r: any) => setStreams(rows(r)));
@@ -79,9 +102,10 @@ export default function StepLensEditor({ companyId, onNavigate }: {
       api.get(withCompany('/admin/role?limit=200', companyId)),
       api.get(withCompany('/admin/role?limit=200&offset=200', companyId)),
     ]).then(([a, b]: any[]) => setRoles([...rows(a), ...rows(b)]));
-  }, [companyId]);
+    void reloadBridges();
+  }, [companyId]); // eslint-disable-line
 
-  // Steps of the selected stream, grouped L4 → ordered steps.
+  // Steps of the selected stream.
   useEffect(() => {
     setL4(''); setStepId(''); setSteps([]);
     if (!companyId || !vsId) return;
@@ -93,34 +117,35 @@ export default function StepLensEditor({ companyId, onNavigate }: {
     for (const s of steps) if (s.l4) seen.set(s.l4, (seen.get(s.l4) ?? 0) + 1);
     return [...seen.entries()];
   }, [steps]);
-  const l4Steps = useMemo(
-    () => steps.filter((s) => s.l4 === l4).sort((a, b) => a.stepNumber - b.stepNumber),
-    [steps, l4],
-  );
-  const step = useMemo(() => steps.find((s) => s.id === stepId) ?? null, [steps, stepId]);
 
-  // The selected step's lens rows. Bridge rows attach by step id OR by the
-  // workbook Activity ID (the step's own code, or its L4 parent code).
-  const loadLens = async (s: Row) => {
-    const fetches = (slug: string) => {
-      const qs = [`f_processStepId=${s.id}`];
-      if (s.code) qs.push(`f_activityCode=${encodeURIComponent(s.code)}`);
-      if (s.parentProcessId) qs.push(`f_activityCode=${encodeURIComponent(s.parentProcessId)}`);
-      return Promise.all(qs.map((q) => api.get(withCompany(`/admin/${slug}?limit=200&${q}`, companyId))));
-    };
-    const [u, d] = await Promise.all([fetches('stepAppUsage'), fetches('stepDeliverable')]);
-    const merge = (parts: any[]) => {
-      const m = new Map<string, Row>();
-      for (const p of parts) for (const r of rows(p)) m.set(r.id, r);
-      return [...m.values()];
-    };
-    setUsages(merge(u));
-    setDelivs(merge(d));
-  };
+  // ── The editing scope: stream → L4 → single step ───────────────────────────
+  const scopeSteps = useMemo(() => {
+    let list = steps;
+    if (l4) list = list.filter((s) => s.l4 === l4);
+    if (stepId) list = list.filter((s) => s.id === stepId);
+    return [...list].sort((a, b) => (a.l4 ?? '').localeCompare(b.l4 ?? '') || a.stepNumber - b.stepNumber);
+  }, [steps, l4, stepId]);
+
   useEffect(() => {
-    setUsages([]); setDelivs([]);
-    if (step) { setWho({ leads: step.leads ?? '', supporting: step.supporting ?? '' }); void loadLens(step); }
-  }, [stepId]); // eslint-disable-line
+    // Prefill the per-step role fields from what's already there.
+    const w: typeof who = {};
+    for (const s of scopeSteps) w[s.id] = { leads: s.leads ?? '', supporting: s.supporting ?? '' };
+    setWho(w);
+    setAddStep({ usage: scopeSteps[0]?.id ?? '', deliv: scopeSteps[0]?.id ?? '' });
+  }, [scopeSteps]);
+
+  const stepById = useMemo(() => new Map(scopeSteps.map((s) => [s.id, s] as const)), [scopeSteps]);
+  const scopeIds = useMemo(() => new Set(scopeSteps.map((s) => s.id)), [scopeSteps]);
+  const scopeCodes = useMemo(() => new Set(scopeSteps.flatMap((s) => [s.code, s.parentProcessId]).filter(Boolean)), [scopeSteps]);
+  const inScope = (r: Row) => (r.processStepId && scopeIds.has(r.processStepId)) || (r.activityCode && scopeCodes.has(r.activityCode));
+  const usages = useMemo(() => allUsage.filter(inScope), [allUsage, scopeIds, scopeCodes]); // eslint-disable-line
+  const delivs = useMemo(() => allDelivs.filter(inScope), [allDelivs, scopeIds, scopeCodes]); // eslint-disable-line
+
+  const stepContext = (r: Row): string => {
+    const s = r.processStepId ? stepById.get(r.processStepId) : undefined;
+    if (s) return `step ${s.stepNumber} · ${s.name}`;
+    return r.activityCode ? `all steps of ${r.activityCode}` : '—';
+  };
 
   const note = (msg: string) => { setFlash(msg); setTimeout(() => setFlash(''), 2500); };
   const patch = async (slug: string, id: string, data: Row) => {
@@ -131,73 +156,88 @@ export default function StepLensEditor({ companyId, onNavigate }: {
   const remove = async (slug: string, id: string) => {
     if (!confirm('Delete this row?')) return;
     await api.delete(withCompany(`/admin/${slug}/${id}`, companyId));
-    if (step) void loadLens(step);
+    void reloadBridges();
   };
 
   const appOptions = apps.map((a) => ({ id: a.id, label: `${a.code ? a.code + ' · ' : ''}${a.name}` }));
   const roleOptions = roles.map((r) => ({ id: r.id, label: r.name })).sort((a, b) => a.label.localeCompare(b.label));
+  const stepOptions = scopeSteps.map((s) => ({ id: s.id, label: `${s.stepNumber}. ${s.name}` }));
 
-  const upd = (set: typeof setUsages) => (id: string, field: string, v: any) =>
-    set((list) => list.map((r) => (r.id === id ? { ...r, [field]: v } : r)));
-  const updUsage = upd(setUsages);
-  const updDeliv = upd(setDelivs);
+  const updUsage = (id: string, field: string, v: any) => setAllUsage((list) => list.map((r) => (r.id === id ? { ...r, [field]: v } : r)));
+  const updDeliv = (id: string, field: string, v: any) => setAllDelivs((list) => list.map((r) => (r.id === id ? { ...r, [field]: v } : r)));
+
+  const scopeLabel = stepId
+    ? `this step (Process Level 5)`
+    : l4
+      ? `the "${l4}" sub-process — ${scopeSteps.length} steps (Process Level 4)`
+      : vsId
+        ? `the whole value stream — ${scopeSteps.length} steps (Process Level 3)`
+        : '';
 
   return (
     <div>
       <p className="text-sm text-[#666666] mb-4 max-w-3xl">
-        This edits exactly what the <strong>map sidebar</strong> shows for a process step — pick a value stream,
-        a sub-process, and a step, then change each sidebar section below. Everything saves to the database
-        (audited), and the sidebar reads it live.
+        This edits exactly what the <strong>map sidebar</strong> shows. Pick a value stream and its sidebar
+        content appears below, prefilled from the database; drill to a sub-process or a single step to narrow
+        the same sections to that level. Every save is audited and the sidebar reads it live.
       </p>
 
-      {/* ── Drill: stream → sub-process → step ───────────────────────────── */}
-      <div className="grid gap-3 sm:grid-cols-3 mb-4">
+      {/* ── Drill: stream → sub-process → step (deeper levels optional) ───── */}
+      <div className="grid gap-3 sm:grid-cols-3 mb-3">
         <div>
           <Label>1 · Value stream (PL3)</Label>
           <Select value={vsId} onChange={setVsId} allowEmpty="Select a value stream…" options={streams.map((v) => ({ id: v.id, label: v.name }))} />
         </div>
         <div>
-          <Label>2 · Sub-process (PL4)</Label>
-          <Select value={l4} onChange={(v) => { setL4(v); setStepId(''); }} allowEmpty={vsId ? 'Select a sub-process…' : 'Pick a value stream first'} options={l4s.map(([name, n]) => ({ id: name, label: `${name} (${n} steps)` }))} />
+          <Label>2 · Sub-process (PL4) — optional</Label>
+          <Select value={l4} onChange={(v) => { setL4(v); setStepId(''); }} allowEmpty={vsId ? 'Whole value stream' : 'Pick a value stream first'} options={l4s.map(([name, n]) => ({ id: name, label: `${name} (${n} steps)` }))} />
         </div>
         <div>
-          <Label>3 · Process step (PL5)</Label>
-          <Select value={stepId} onChange={setStepId} allowEmpty={l4 ? 'Select a step…' : 'Pick a sub-process first'} options={l4Steps.map((s) => ({ id: s.id, label: `${s.stepNumber}. ${s.name}` }))} />
+          <Label>3 · Process step (PL5) — optional</Label>
+          <Select value={stepId} onChange={setStepId} allowEmpty={l4 ? 'Whole sub-process' : 'Pick a sub-process first'} options={steps.filter((s) => s.l4 === l4).sort((a, b) => a.stepNumber - b.stepNumber).map((s) => ({ id: s.id, label: `${s.stepNumber}. ${s.name}` }))} />
         </div>
       </div>
 
       {flash && <div className="mb-3 text-[12px] font-medium text-[#15803d] bg-[#f0fdf4] border border-[#bbf7d0] rounded-md px-3 py-2">{flash}</div>}
 
-      {!step ? (
+      {!vsId ? (
         <div className="card-elevated p-8 text-center text-sm text-[#a3a3a3]">
-          Pick a step above to edit its sidebar content. (The Value-stream and Sub-process levels of the sidebar
-          aggregate from their steps, so editing steps edits every level.)
+          Pick a value stream to see and edit its sidebar content. Drilling deeper narrows the scope, just like the map.
         </div>
       ) : (
-        <div className="space-y-4 max-w-3xl">
+        <div className="space-y-4 max-w-4xl">
+          <div className="text-[12px] text-[#525252]">Editing <strong>{scopeLabel}</strong>. The sidebar at this level aggregates everything below.</div>
+
           {/* ── Who does the work ─────────────────────────────────────────── */}
           <SectionCard
             title="Supporting roles & employees"
             accent={ACCENT.who}
-            hint="Comma-separated role names. Names resolve to the role inventory; the sidebar then shows those roles with their assigned people nested (executive outliers are filtered)."
+            hint="Comma-separated role names per step. Names resolve to the role inventory; the sidebar shows those roles with their assigned people nested (executive outliers are filtered)."
           >
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <Label>Lead role(s)</Label>
-                <input value={who.leads} onChange={(e) => setWho((w) => ({ ...w, leads: e.target.value }))} className="w-full rounded-md border border-[#e5e7eb] px-2 py-1.5 text-[12px]" />
-              </div>
-              <div>
-                <Label>Supporting role(s)</Label>
-                <input value={who.supporting} onChange={(e) => setWho((w) => ({ ...w, supporting: e.target.value }))} className="w-full rounded-md border border-[#e5e7eb] px-2 py-1.5 text-[12px]" />
-              </div>
+            <div className="space-y-2">
+              {scopeSteps.map((s) => (
+                <div key={s.id} className="rounded-md border border-[#e5e7eb] bg-[#fafafa] p-2.5">
+                  {!stepId && <div className="mb-1.5"><StepChip text={`${!l4 ? `${s.l4} · ` : ''}step ${s.stepNumber} · ${s.name}`} /></div>}
+                  <div className="grid gap-2.5 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+                    <div>
+                      <Label>Lead role(s)</Label>
+                      <input value={who[s.id]?.leads ?? ''} onChange={(e) => setWho((w) => ({ ...w, [s.id]: { ...w[s.id], leads: e.target.value } }))} className="w-full rounded-md border border-[#e5e7eb] px-2 py-1.5 text-[12px]" />
+                    </div>
+                    <div>
+                      <Label>Supporting role(s)</Label>
+                      <input value={who[s.id]?.supporting ?? ''} onChange={(e) => setWho((w) => ({ ...w, [s.id]: { ...w[s.id], supporting: e.target.value } }))} className="w-full rounded-md border border-[#e5e7eb] px-2 py-1.5 text-[12px]" />
+                    </div>
+                    <button
+                      onClick={() => patch('processStep', s.id, { leads: who[s.id]?.leads || null, supporting: who[s.id]?.supporting || null })}
+                      disabled={saving === s.id}
+                      className="rounded-md bg-[#171717] text-white px-3 py-1.5 text-[12px] font-semibold hover:bg-black disabled:opacity-50"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-            <button
-              onClick={() => patch('processStep', step.id, { leads: who.leads || null, supporting: who.supporting || null })}
-              disabled={saving === step.id}
-              className="mt-3 rounded-md bg-[#171717] text-white px-3 py-1.5 text-[12px] font-semibold hover:bg-black disabled:opacity-50"
-            >
-              Save roles
-            </button>
             <div className="mt-2 text-[11px] text-[#a3a3a3]">
               People are managed per role (assignments) — <button className="underline text-[#1d4ed8]" onClick={() => onNavigate?.('people', 'people')}>People</button>.
               Tasks &amp; checklists come from the role definitions — <button className="underline text-[#1d4ed8]" onClick={() => onNavigate?.('organization', 'roles')}>Roles &amp; responsibilities</button>.
@@ -208,11 +248,15 @@ export default function StepLensEditor({ companyId, onNavigate }: {
           <SectionCard
             title="Deliverables & approvals"
             accent={ACCENT.deliverable}
-            hint="What the step produces, the system of record it is memorialized in, and who approves it where — the sidebar's Deliverables chain."
+            hint="What each step produces, the system of record it is memorialized in, and who approves it where — the sidebar's Deliverables chain."
           >
             <div className="space-y-3">
               {delivs.map((d) => (
                 <div key={d.id} className="rounded-md border border-[#e5e7eb] bg-[#fafafa] p-3">
+                  <div className="mb-1.5 flex items-center gap-1.5 flex-wrap">
+                    <StepChip text={stepContext(d)} />
+                    {d.illustrative && <span className="text-[9.5px] font-medium uppercase tracking-wide text-[#a3a3a3] bg-white border border-[#eaeaea] rounded px-1.5 py-0.5">Illustrative — saving marks it real</span>}
+                  </div>
                   <div className="grid gap-2.5 sm:grid-cols-2">
                     <div className="sm:col-span-2">
                       <Label>Deliverable</Label>
@@ -238,19 +282,28 @@ export default function StepLensEditor({ companyId, onNavigate }: {
                   <div className="mt-2.5 flex items-center gap-2">
                     <button onClick={() => patch('stepDeliverable', d.id, { name: d.name, sorApplicationId: d.sorApplicationId, approverRoleId: d.approverRoleId, approvalApplicationId: d.approvalApplicationId, approvalType: d.approvalType, illustrative: false })} disabled={saving === d.id} className="rounded-md bg-[#171717] text-white px-3 py-1.5 text-[12px] font-semibold hover:bg-black disabled:opacity-50">Save</button>
                     <button onClick={() => remove('stepDeliverable', d.id)} className="rounded-md border border-[#fecaca] text-[#b91c1c] px-3 py-1.5 text-[12px] font-semibold hover:bg-[#fef2f2]">Delete</button>
-                    {d.illustrative && <span className="text-[9.5px] font-medium uppercase tracking-wide text-[#a3a3a3] bg-white border border-[#eaeaea] rounded px-1.5 py-0.5">Illustrative — saving marks it real</span>}
                   </div>
                 </div>
               ))}
-              <button
-                onClick={async () => {
-                  await api.post(withCompany('/admin/stepDeliverable', companyId), { activityCode: step.code ?? step.parentProcessId ?? '', processStepId: step.id, name: `${step.name} output`, illustrative: false });
-                  void loadLens(step);
-                }}
-                className="rounded-md border border-[#dbe7ff] bg-[#f5f8ff] text-[#1d4ed8] px-3 py-1.5 text-[12px] font-semibold hover:bg-[#eaf1ff]"
-              >
-                + Add deliverable
-              </button>
+              <div className="flex items-end gap-2 flex-wrap">
+                {!stepId && (
+                  <div className="min-w-[260px]">
+                    <Label>Add to step</Label>
+                    <Select value={addStep.deliv} onChange={(v) => setAddStep((a) => ({ ...a, deliv: v }))} options={stepOptions} />
+                  </div>
+                )}
+                <button
+                  onClick={async () => {
+                    const target = stepById.get(stepId || addStep.deliv);
+                    if (!target) return;
+                    await api.post(withCompany('/admin/stepDeliverable', companyId), { activityCode: target.code ?? target.parentProcessId ?? '', processStepId: target.id, name: `${target.name} output`, illustrative: false });
+                    void reloadBridges();
+                  }}
+                  className="rounded-md border border-[#dbe7ff] bg-[#f5f8ff] text-[#1d4ed8] px-3 py-1.5 text-[12px] font-semibold hover:bg-[#eaf1ff]"
+                >
+                  + Add deliverable
+                </button>
+              </div>
             </div>
           </SectionCard>
 
@@ -258,36 +311,52 @@ export default function StepLensEditor({ companyId, onNavigate }: {
           <SectionCard
             title="Applications & systems"
             accent={ACCENT.app}
-            hint="Which application the step runs on and how — the sidebar's Applications & systems section."
+            hint="Which application each step runs on and how — the sidebar's Applications & systems section."
           >
             <div className="space-y-2">
               {usages.map((u) => (
-                <div key={u.id} className="rounded-md border border-[#e5e7eb] bg-[#fafafa] p-2.5 grid gap-2 sm:grid-cols-[1fr_180px_auto_auto_auto] sm:items-end">
-                  <div>
-                    <Label>Application</Label>
-                    <Select value={u.applicationId ?? ''} onChange={(v) => updUsage(u.id, 'applicationId', v)} options={appOptions} />
+                <div key={u.id} className="rounded-md border border-[#e5e7eb] bg-[#fafafa] p-2.5">
+                  <div className="mb-1.5 flex items-center gap-1.5 flex-wrap">
+                    <StepChip text={stepContext(u)} />
+                    {u.illustrative && <span className="text-[9.5px] font-medium uppercase tracking-wide text-[#a3a3a3] bg-white border border-[#eaeaea] rounded px-1.5 py-0.5">Illustrative — saving marks it real</span>}
                   </div>
-                  <div>
-                    <Label>Usage</Label>
-                    <Select value={u.usageType ?? ''} onChange={(v) => updUsage(u.id, 'usageType', v)} options={USAGE_TYPES.map((t) => ({ id: t, label: t }))} />
+                  <div className="grid gap-2 sm:grid-cols-[1fr_180px_auto_auto_auto] sm:items-end">
+                    <div>
+                      <Label>Application</Label>
+                      <Select value={u.applicationId ?? ''} onChange={(v) => updUsage(u.id, 'applicationId', v)} options={appOptions} />
+                    </div>
+                    <div>
+                      <Label>Usage</Label>
+                      <Select value={u.usageType ?? ''} onChange={(v) => updUsage(u.id, 'usageType', v)} options={USAGE_TYPES.map((t) => ({ id: t, label: t }))} />
+                    </div>
+                    <label className="flex items-center gap-1.5 text-[11px] text-[#525252] pb-1.5">
+                      <input type="checkbox" checked={!!u.isPrimary} onChange={(e) => updUsage(u.id, 'isPrimary', e.target.checked)} />
+                      Primary
+                    </label>
+                    <button onClick={() => patch('stepAppUsage', u.id, { applicationId: u.applicationId, usageType: u.usageType, isPrimary: u.isPrimary, illustrative: false })} disabled={saving === u.id} className="rounded-md bg-[#171717] text-white px-3 py-1.5 text-[12px] font-semibold hover:bg-black disabled:opacity-50">Save</button>
+                    <button onClick={() => remove('stepAppUsage', u.id)} className="rounded-md border border-[#fecaca] text-[#b91c1c] px-3 py-1.5 text-[12px] font-semibold hover:bg-[#fef2f2]">Delete</button>
                   </div>
-                  <label className="flex items-center gap-1.5 text-[11px] text-[#525252] pb-1.5">
-                    <input type="checkbox" checked={!!u.isPrimary} onChange={(e) => updUsage(u.id, 'isPrimary', e.target.checked)} />
-                    Primary
-                  </label>
-                  <button onClick={() => patch('stepAppUsage', u.id, { applicationId: u.applicationId, usageType: u.usageType, isPrimary: u.isPrimary, illustrative: false })} disabled={saving === u.id} className="rounded-md bg-[#171717] text-white px-3 py-1.5 text-[12px] font-semibold hover:bg-black disabled:opacity-50">Save</button>
-                  <button onClick={() => remove('stepAppUsage', u.id)} className="rounded-md border border-[#fecaca] text-[#b91c1c] px-3 py-1.5 text-[12px] font-semibold hover:bg-[#fef2f2]">Delete</button>
                 </div>
               ))}
-              <button
-                onClick={async () => {
-                  await api.post(withCompany('/admin/stepAppUsage', companyId), { activityCode: step.code ?? step.parentProcessId ?? '', processStepId: step.id, applicationId: apps[0]?.id, usageType: 'Execution', isPrimary: false, illustrative: false });
-                  void loadLens(step);
-                }}
-                className="rounded-md border border-[#dbe7ff] bg-[#f5f8ff] text-[#1d4ed8] px-3 py-1.5 text-[12px] font-semibold hover:bg-[#eaf1ff]"
-              >
-                + Add application
-              </button>
+              <div className="flex items-end gap-2 flex-wrap">
+                {!stepId && (
+                  <div className="min-w-[260px]">
+                    <Label>Add to step</Label>
+                    <Select value={addStep.usage} onChange={(v) => setAddStep((a) => ({ ...a, usage: v }))} options={stepOptions} />
+                  </div>
+                )}
+                <button
+                  onClick={async () => {
+                    const target = stepById.get(stepId || addStep.usage);
+                    if (!target) return;
+                    await api.post(withCompany('/admin/stepAppUsage', companyId), { activityCode: target.code ?? target.parentProcessId ?? '', processStepId: target.id, applicationId: apps[0]?.id, usageType: 'Execution', isPrimary: false, illustrative: false });
+                    void reloadBridges();
+                  }}
+                  className="rounded-md border border-[#dbe7ff] bg-[#f5f8ff] text-[#1d4ed8] px-3 py-1.5 text-[12px] font-semibold hover:bg-[#eaf1ff]"
+                >
+                  + Add application
+                </button>
+              </div>
             </div>
           </SectionCard>
         </div>
