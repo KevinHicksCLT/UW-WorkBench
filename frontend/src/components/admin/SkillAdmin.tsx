@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
+import { useDialogs } from '../../lib/dialogs';
 import { skillLabel, describeSkillFile, SKILL_FILE_GROUP_ORDER } from '../../lib/skills';
 
 // ─── Agent skill editor (Data Admin → Standards → Agent skills) ──────────────
@@ -13,6 +14,7 @@ type SkillRef = { name: string; files: number };
 type FileRef = { path: string; bytes: number };
 
 export default function SkillAdmin() {
+  const dialogs = useDialogs();
   const [skills, setSkills] = useState<SkillRef[]>([]);
   const [skill, setSkill] = useState<string>('');
   const [files, setFiles] = useState<FileRef[]>([]);
@@ -73,9 +75,18 @@ export default function SkillAdmin() {
     .filter((g) => g.files.length > 0);
   const info = describeSkillFile(active);
 
-  const pickFile = (path: string) => {
-    if (dirty && !confirm('Discard unsaved changes to the current file?')) return;
-    setActive(path);
+  // Guard against losing unsaved edits when switching file or skill.
+  const confirmDiscard = async () =>
+    !dirty ||
+    dialogs.confirm({
+      title: 'Discard unsaved changes?',
+      message: 'The current file has unsaved edits. Switching away will discard them.',
+      confirmLabel: 'Discard changes',
+      danger: true,
+    });
+
+  const pickFile = async (path: string) => {
+    if (await confirmDiscard()) setActive(path);
   };
 
   return (
@@ -90,7 +101,7 @@ export default function SkillAdmin() {
         {skills.map((s) => (
           <button
             key={s.name}
-            onClick={() => { if (dirty && !confirm('Discard unsaved changes?')) return; setSkill(s.name); }}
+            onClick={async () => { if (await confirmDiscard()) setSkill(s.name); }}
             className={
               'px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ' +
               (s.name === skill ? 'bg-[#171717] text-white border-[#171717]' : 'bg-white text-[#525252] border-[#eaeaea] hover:border-[#d4d4d4] hover:text-[#171717]')

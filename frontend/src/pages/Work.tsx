@@ -1,24 +1,26 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
 import PageHeader from '../components/PageHeader';
-import { SectionCard, Tile, withCompany } from '../lib/portfolio';
+import { withCompany } from '../lib/portfolio';
+import { Sheet, SheetCell, type SheetCol } from '../components/Sheet';
 
-// Deliverables & Tasks — a standalone work tracker rendered as a spreadsheet
-// matrix: one row per task, with the deliverable columns (title/type/value
-// stream) repeating across the tasks that share a deliverable. Each column
-// header is a filter (dropdown, or free-text search for Task). Clicking a
-// deliverable or task cell opens a right-hand sidebar with the granular
-// drill-down — roles, value stream, downstream impact. Scoped to the active company.
+// Deliverables & Tasks — the standalone work tracker, split into two tabs:
+// Deliverables (one row per deliverable) and Tasks (one row per task), each in
+// the canonical Sheet format (see components/Sheet.tsx). Clicking a row opens
+// the right-hand drill-down sidebar — roles, value stream, downstream impact.
+// Scoped to the active company.
 
 type Deliverable = {
   id: string; title: string; description: string | null; owner: string | null; type: string;
   status: string; dueDate: string | null; taskCount: number; valueStreamId: string | null; valueStreamName: string | null;
+  roles: string[]; processes: string[];
 };
 type Task = {
   id: string; title: string; owner: string | null; status: string; priority: string; dueDate: string | null;
   source: string; deliverableId: string | null; deliverableTitle: string | null;
+  roles: string[]; processes: string[];
 };
 type WorkData = { deliverables: Deliverable[]; tasks: Task[]; valueStreams: { id: string; name: string }[] };
 
@@ -27,6 +29,7 @@ type RoleRef = { id: string; name: string };
 type RoleSet = { roles: RoleRef[]; unresolved: string[] };
 type DeliverableDetail = {
   kind: 'deliverable'; id: string; title: string; description: string | null; type: string; owner: string | null;
+  jiraKey: string | null;
   valueStream: { id: string; name: string; domain: string } | null;
   subProcesses: string[]; dataElements: string[];
   inputs: { name: string; dataElements: string[]; roles: RoleSet }[];
@@ -36,6 +39,7 @@ type DeliverableDetail = {
 };
 type TaskDetail = {
   kind: 'task'; id: string; title: string; owner: string | null; priority: string;
+  jiraKey: string | null;
   valueStream: { id: string; name: string } | null; subProcess: string | null;
   leadRoles: RoleRef[]; leadExtra: string[]; supportRoles: RoleRef[]; supportExtra: string[];
   outputs: string[];
@@ -45,136 +49,6 @@ type TaskDetail = {
 type Detail = DeliverableDetail | TaskDetail;
 
 const PRIORITY_PILL: Record<string, string> = { High: 'pill-red', Medium: 'pill-amber', Low: 'pill-slate' };
-
-// Distinguishes the two task sources nested under a deliverable: 'role' tasks are
-// role responsibilities folded in; 'process' tasks come from L5 process steps.
-function SourceTag({ source }: { source: string }) {
-  const isRole = source === 'role';
-  return (
-    <span
-      title={isRole ? 'From a role responsibility' : 'From a Process Level 6 step'}
-      className={'text-[10px] font-semibold uppercase tracking-[0.06em] px-1.5 py-0.5 rounded flex-shrink-0 ' +
-        (isRole ? 'bg-[#eef2ff] text-[#4338ca]' : 'bg-[#f5f5f5] text-[#737373]')}
-    >
-      {isRole ? 'Role' : 'Process'}
-    </span>
-  );
-}
-
-// Matrix column header that doubles as a filter: the column name sits above a
-// compact native <select>. A value other than 'All' narrows the rows to that
-// column value. Styled to match the app's company picker.
-function HeaderFilter({ label, value, onChange, options, extra }: {
-  label: string; value: string; onChange: (v: string) => void; options: string[]; extra?: React.ReactNode;
-}) {
-  const active = value !== 'All';
-  return (
-    <th className="text-left align-top px-3 py-2.5 border-b border-[#eaeaea]">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1.5">{label}{extra}</div>
-      <div className="relative">
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={'appearance-none w-full rounded-md border bg-white pl-2.5 pr-7 py-1 text-xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150 ' +
-            (active ? 'border-[#171717] text-[#171717] font-medium' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4]')}
-        >
-          {options.map((o) => <option key={o} value={o}>{o}</option>)}
-        </select>
-        <svg className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[#a3a3a3]" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </div>
-    </th>
-  );
-}
-
-// Like HeaderFilter but with a search box inside the dropdown — used for the
-// Deliverable column, whose option list is long enough to want type-ahead. A
-// custom combobox (native <select> can't host an input); closes on outside click.
-function HeaderComboFilter({ label, value, onChange, options, extra }: {
-  label: string; value: string; onChange: (v: string) => void; options: string[]; extra?: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  const ref = useRef<HTMLTableCellElement>(null);
-  const active = value !== 'All';
-
-  useEffect(() => {
-    if (!open) return;
-    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, [open]);
-
-  const q = query.trim().toLowerCase();
-  // 'All' always stays selectable so the filter can be cleared from the list.
-  const filtered = options.filter((o) => o === 'All' || o.toLowerCase().includes(q));
-  function pick(o: string) { onChange(o); setOpen(false); setQuery(''); }
-
-  return (
-    <th ref={ref} className="text-left align-top px-3 py-2.5 border-b border-[#eaeaea] relative">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1.5">{label}{extra}</div>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className={'flex items-center justify-between gap-1 w-full rounded-md border bg-white pl-2.5 pr-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150 ' +
-          (active ? 'border-[#171717] text-[#171717] font-medium' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4]')}
-      >
-        <span className="truncate">{value}</span>
-        <svg className={'flex-shrink-0 text-[#a3a3a3] transition-transform duration-150 ' + (open ? 'rotate-180' : '')} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </button>
-      {open && (
-        <div className="absolute z-20 left-3 mt-1 min-w-[220px] rounded-md border border-[#eaeaea] bg-white shadow-lg">
-          <div className="p-1.5 border-b border-[#f5f5f5]">
-            <input
-              autoFocus
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search…"
-              className="w-full rounded border border-[#eaeaea] bg-white px-2 py-1 text-xs text-[#171717] placeholder:text-[#a3a3a3] focus:outline-none focus:ring-1 focus:ring-[#171717]"
-            />
-          </div>
-          <div className="max-h-56 overflow-y-auto py-1">
-            {filtered.length === 0 ? (
-              <div className="px-2.5 py-1.5 text-xs text-[#a3a3a3]">No matches</div>
-            ) : filtered.map((o) => (
-              <button
-                key={o}
-                type="button"
-                onClick={() => pick(o)}
-                className={'block w-full truncate text-left px-2.5 py-1.5 text-xs hover:bg-[#fafafa] transition-colors duration-100 ' +
-                  (o === value ? 'text-[#171717] font-medium bg-[#fafafa]' : 'text-[#525252]')}
-              >
-                {o}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </th>
-  );
-}
-
-// Like HeaderFilter but free-text — used for the Task column, whose values are
-// too many/unique for a dropdown.
-function HeaderSearch({ label, value, onChange, extra }: {
-  label: string; value: string; onChange: (v: string) => void; extra?: React.ReactNode;
-}) {
-  return (
-    <th className="text-left align-top px-3 py-2.5 border-b border-[#eaeaea]">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1.5">{label}{extra}</div>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Search…"
-        className={'w-full rounded-md border bg-white px-2.5 py-1 text-xs placeholder:text-[#a3a3a3] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150 ' +
-          (value.trim() ? 'border-[#171717] text-[#171717]' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4]')}
-      />
-    </th>
-  );
-}
 
 // ── Drill-down primitives ─────────────────────────────────────────────────────
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -230,6 +104,11 @@ function DetailBody({ detail }: { detail: Detail }) {
             ? <span className="pill-slate text-xs">{detail.type}</span>
             : <span className={`${PRIORITY_PILL[detail.priority] ?? 'pill-slate'} text-xs`}>{detail.priority}</span>}
           {detail.owner && <span className="pill-slate text-xs">Owner · {detail.owner}</span>}
+          {detail.jiraKey && (
+            <span className="pill-blue text-xs" title="Linked Jira issue (integration stub — no live sync yet)">
+              JIRA {detail.jiraKey}
+            </span>
+          )}
         </div>
       </div>
 
@@ -342,78 +221,20 @@ function DetailBody({ detail }: { detail: Detail }) {
   );
 }
 
-// One flattened matrix row. Each task becomes a row; the deliverable columns
-// (title/type/value stream) repeat across the tasks that share a deliverable. A
-// deliverable with no tasks still gets a row (task cells blank), and tasks with
-// no deliverable get a row with the deliverable cells blank.
 const DASH = '—';
-type Row = {
-  key: string;
-  deliverableId: string | null; deliverable: string;
-  task: string; type: string; valueStream: string; role: string; priority: string;
-  source: string | null;
-  kind: 'deliverable' | 'task'; drillId: string;
-};
-
-// Priority columns sort High → Medium → Low; anything else trails alphabetically.
-const PRIORITY_ORDER: Record<string, number> = { High: 0, Medium: 1, Low: 2 };
-const byPriority = (a: string, b: string) =>
-  (PRIORITY_ORDER[a] ?? 9) - (PRIORITY_ORDER[b] ?? 9) || a.localeCompare(b);
-
-// Column ordering: each filterable column also sorts (▲/▼ toggle in the header).
-type SortCol = 'deliverable' | 'task' | 'type' | 'valueStream' | 'role' | 'priority';
-type Sort = { col: SortCol; dir: 1 | -1 } | null;
-function compareRows(a: Row, b: Row, sort: Sort): number {
-  if (!sort) return 0;
-  const va = a[sort.col], vb = b[sort.col];
-  // Dashes (empty cells) always trail, regardless of direction.
-  if (va === DASH && vb !== DASH) return 1;
-  if (vb === DASH && va !== DASH) return -1;
-  const cmp = sort.col === 'priority' ? byPriority(va, vb) : va.localeCompare(vb);
-  return cmp * sort.dir;
-}
-
-// Small ▲/▼ toggle rendered beside each column label.
-function SortToggle({ col, sort, onSort }: { col: SortCol; sort: Sort; onSort: (c: SortCol) => void }) {
-  const active = sort?.col === col;
-  return (
-    <button
-      type="button"
-      onClick={() => onSort(col)}
-      title={active ? (sort!.dir === 1 ? 'Sorted ascending — click to reverse' : 'Sorted descending — click to clear') : 'Sort by this column'}
-      className={'ml-1 align-middle text-[10px] leading-none ' + (active ? 'text-[#171717]' : 'text-[#c4c4c4] hover:text-[#737373]')}
-    >
-      {active ? (sort!.dir === 1 ? '▲' : '▼') : '⇅'}
-    </button>
-  );
-}
-
-const PAGE_SIZE = 100;
 
 export default function Work() {
   const { companyId, loading: companyLoading } = useCompany();
   const [data, setData] = useState<WorkData>({ deliverables: [], tasks: [], valueStreams: [] });
+  const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState<Detail | null>(null);
-
-  // Column-header filters ('All' = no filter); Task is a free-text search.
-  const [deliverable, setDeliverable] = useState('All');
-  const [taskSearch, setTaskSearch] = useState('');
-  const [type, setType] = useState('All');
-  const [valueStream, setValueStream] = useState('All');
-  const [role, setRole] = useState('All');
-  const [priority, setPriority] = useState('All');
-  const [sort, setSort] = useState<Sort>(null);
-  const [page, setPage] = useState(0);
-
-  // Cycle a column's sort: none -> asc -> desc -> none. Any change resets paging.
-  function toggleSort(col: SortCol) {
-    setSort((s) => (!s || s.col !== col ? { col, dir: 1 } : s.dir === 1 ? { col, dir: -1 } : null));
-    setPage(0);
-  }
+  const [tab, setTab] = useState<'deliverables' | 'tasks'>('deliverables');
 
   useEffect(() => {
     if (companyLoading) return;
-    api.get(withCompany('/work', companyId)).then(setData).catch(() => {});
+    setLoading(true);
+    api.get(withCompany('/work', companyId))
+      .then(setData).catch(() => {}).finally(() => setLoading(false));
   }, [companyId, companyLoading]);
 
   // Open a row's drill-down in the sidebar by fetching its detail.
@@ -422,218 +243,74 @@ export default function Work() {
   }
 
   const { deliverables, tasks } = data;
-
-  // Tasks grouped under their deliverable; tasks with no deliverable kept aside.
-  const tasksByDeliverable = useMemo(() => {
-    const map = new Map<string, Task[]>();
-    for (const t of tasks) if (t.deliverableId) {
-      const arr = map.get(t.deliverableId) ?? []; arr.push(t); map.set(t.deliverableId, arr);
-    }
-    return map;
-  }, [tasks]);
-  const orphanTasks = useMemo(() => tasks.filter((t) => !t.deliverableId), [tasks]);
-
-  // ── Flatten deliverables + tasks into matrix rows ──────────────────────────
-  const rows = useMemo(() => {
-    const out: Row[] = [];
-    for (const d of deliverables) {
-      const childTasks = tasksByDeliverable.get(d.id) ?? [];
-      if (childTasks.length === 0) {
-        out.push({
-          key: `d-${d.id}`, deliverableId: d.id, deliverable: d.title,
-          task: DASH, type: d.type, valueStream: d.valueStreamName ?? DASH,
-          role: d.owner ?? DASH, priority: DASH, source: null,
-          kind: 'deliverable', drillId: d.id,
-        });
-      } else {
-        for (const t of childTasks) {
-          out.push({
-            key: `t-${t.id}`, deliverableId: d.id, deliverable: d.title,
-            task: t.title, type: d.type, valueStream: d.valueStreamName ?? DASH,
-            role: t.owner ?? DASH, priority: t.priority, source: t.source,
-            kind: 'task', drillId: t.id,
-          });
-        }
-      }
-    }
-    for (const t of orphanTasks) {
-      out.push({
-        key: `t-${t.id}`, deliverableId: null, deliverable: DASH,
-        task: t.title, type: DASH, valueStream: DASH,
-        role: t.owner ?? DASH, priority: t.priority, source: t.source,
-        kind: 'task', drillId: t.id,
-      });
-    }
-    return out;
-  }, [deliverables, tasksByDeliverable, orphanTasks]);
-
-  // ── Filter option lists derived from the rows ──────────────────────────────
-  const distinct = (vals: string[]) => [...new Set(vals.filter((v) => v && v !== DASH))];
-  const deliverableOptions = useMemo(() => ['All', ...distinct(rows.map((r) => r.deliverable)).sort()], [rows]);
-  const typeOptions = useMemo(() => ['All', ...distinct(rows.map((r) => r.type)).sort()], [rows]);
-  const valueStreamOptions = useMemo(() => ['All', ...data.valueStreams.map((v) => v.name)], [data.valueStreams]);
-  const roleOptions = useMemo(() => ['All', ...distinct(rows.map((r) => r.role)).sort()], [rows]);
-  const priorityOptions = useMemo(() => ['All', ...distinct(rows.map((r) => r.priority)).sort(byPriority)], [rows]);
-
-  // A row survives every active column filter.
-  const filteredRows = useMemo(() => {
-    const q = taskSearch.trim().toLowerCase();
-    const base = rows.filter((r) =>
-      (deliverable === 'All' || r.deliverable === deliverable)
-      && (type === 'All' || r.type === type)
-      && (valueStream === 'All' || r.valueStream === valueStream)
-      && (role === 'All' || r.role === role)
-      && (priority === 'All' || r.priority === priority)
-      && (!q || r.task.toLowerCase().includes(q))
-    );
-    return sort ? [...base].sort((a, b) => compareRows(a, b, sort)) : base;
-  }, [rows, deliverable, type, valueStream, role, priority, taskSearch, sort]);
-
-  // Render at most a page of rows at a time — the full 5k+ row table is what
-  // made this screen slow, not the query.
-  const pageCount = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
-  const safePage = Math.min(page, pageCount - 1);
-  const pagedRows = useMemo(
-    () => filteredRows.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE),
-    [filteredRows, safePage],
+  const vsByDeliverable = useMemo(
+    () => new Map(deliverables.map((d) => [d.id, d.valueStreamName ?? DASH])),
+    [deliverables],
   );
 
-  // Tiles count distinct deliverables and task rows among the visible rows.
-  const visibleDeliverables = useMemo(
-    () => new Set(filteredRows.filter((r) => r.deliverableId).map((r) => r.deliverableId)).size,
-    [filteredRows],
-  );
-  const visibleTasks = useMemo(() => filteredRows.filter((r) => r.kind === 'task').length, [filteredRows]);
+  const rolesCell = (roles: string[]) => {
+    const joined = (roles ?? []).join(', ');
+    return <SheetCell text={joined || DASH} dim title={joined || undefined} />;
+  };
 
-  const anyFilter = deliverable !== 'All' || type !== 'All' || valueStream !== 'All'
-    || role !== 'All' || priority !== 'All' || taskSearch.trim() !== '';
-  function clearFilters() {
-    setDeliverable('All'); setType('All'); setValueStream('All');
-    setRole('All'); setPriority('All'); setTaskSearch(''); setPage(0);
-  }
+  const dCols = useMemo<SheetCol<Deliverable>[]>(() => [
+    { key: 'title', label: 'Deliverable', width: 'minmax(0,1.3fr)', value: (d) => d.title },
+    { key: 'type', label: 'Type', width: '120px', value: (d) => d.type, dim: true },
+    { key: 'valueStream', label: 'Value Stream', width: 'minmax(0,1fr)', value: (d) => d.valueStreamName ?? DASH, dim: true },
+    { key: 'process', label: 'Process', width: 'minmax(0,1fr)', values: (d) => d.processes ?? [], dim: true },
+    { key: 'roles', label: 'Role', width: 'minmax(0,1fr)', values: (d) => d.roles ?? [], dim: true, render: (d) => rolesCell(d.roles) },
+    {
+      key: 'tasks', label: 'Tasks', width: '70px', value: (d) => String(d.taskCount), filterable: false,
+      render: (d) => <span className="text-[12px] text-[#737373] tnum">{d.taskCount}</span>,
+    },
+  ], []);
+
+  const tCols = useMemo<SheetCol<Task>[]>(() => [
+    { key: 'title', label: 'Task', width: 'minmax(0,1.5fr)', value: (t) => t.title },
+    { key: 'deliverable', label: 'Deliverable', width: 'minmax(0,1fr)', value: (t) => t.deliverableTitle ?? DASH, dim: true },
+    { key: 'valueStream', label: 'Value Stream', width: 'minmax(0,1fr)', value: (t) => (t.deliverableId ? vsByDeliverable.get(t.deliverableId) ?? DASH : DASH), dim: true },
+    { key: 'process', label: 'Process', width: 'minmax(0,0.9fr)', values: (t) => t.processes ?? [], dim: true },
+  ], [vsByDeliverable]);
 
   return (
     <div>
       <PageHeader title="Deliverables & Tasks" subtitle="Track tangible outputs and the work driving them across the company" />
 
-      {/* ── Overview metric tiles ──────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <Tile label="Deliverables" value={visibleDeliverables} />
-        <Tile label="Tasks" value={visibleTasks} />
+      {/* ── Tab switcher — carries the counts so no tile row is needed ── */}
+      <div className="border-b border-[#eaeaea] mb-3 flex items-center gap-1">
+        {([['deliverables', `Deliverables (${deliverables.length})`], ['tasks', `Tasks (${tasks.length})`]] as const).map(([v, label]) => (
+          <button
+            key={v}
+            onClick={() => setTab(v)}
+            className={
+              'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors duration-150 ' +
+              (tab === v ? 'border-[#171717] text-[#171717]' : 'border-transparent text-[#666666] hover:text-[#171717]')
+            }
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
-      {/* ── Matrix: one row per task, filterable column headers ────────────── */}
-      <SectionCard
-        title="Work matrix"
-        actions={
-          <span className="flex items-center gap-3">
-            {/* Explicit ordering control (the column headers' ⇅ toggles set the same sort) */}
-            <label className="flex items-center gap-1.5 text-xs text-[#525252]">
-              Sort by
-              <select
-                className="input py-1 text-xs"
-                value={sort ? sort.col : ''}
-                onChange={(e) => { const col = e.target.value as SortCol | ''; setSort(col ? { col, dir: sort?.col === col ? sort.dir : 1 } : null); setPage(0); }}
-              >
-                <option value="">Default order</option>
-                <option value="deliverable">Deliverable (alphabetical)</option>
-                <option value="task">Task (alphabetical)</option>
-                <option value="type">Type</option>
-                <option value="valueStream">Value stream</option>
-                <option value="role">Role</option>
-                <option value="priority">Priority</option>
-              </select>
-            </label>
-            {sort && (
-              <button
-                onClick={() => { setSort((s) => (s ? { col: s.col, dir: s.dir === 1 ? -1 : 1 } : s)); setPage(0); }}
-                className="text-xs font-medium text-[#525252] hover:text-[#171717]"
-                title="Flip sort direction"
-              >
-                {sort.dir === 1 ? 'A → Z' : 'Z → A'}
-              </button>
-            )}
-            {anyFilter && (
-              <button
-                onClick={clearFilters}
-                className="text-xs font-medium text-[#525252] hover:text-[#171717] transition-colors duration-150"
-              >
-                Clear filters
-              </button>
-            )}
-          </span>
-        }
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr>
-                <HeaderComboFilter label="Deliverable" value={deliverable} onChange={(v) => { setDeliverable(v); setPage(0); }} options={deliverableOptions} extra={<SortToggle col="deliverable" sort={sort} onSort={toggleSort} />} />
-                <HeaderSearch label="Task" value={taskSearch} onChange={(v) => { setTaskSearch(v); setPage(0); }} extra={<SortToggle col="task" sort={sort} onSort={toggleSort} />} />
-                <HeaderFilter label="Type" value={type} onChange={(v) => { setType(v); setPage(0); }} options={typeOptions} extra={<SortToggle col="type" sort={sort} onSort={toggleSort} />} />
-                <HeaderComboFilter label="Value Stream" value={valueStream} onChange={(v) => { setValueStream(v); setPage(0); }} options={valueStreamOptions} extra={<SortToggle col="valueStream" sort={sort} onSort={toggleSort} />} />
-                <HeaderComboFilter label="Role" value={role} onChange={(v) => { setRole(v); setPage(0); }} options={roleOptions} extra={<SortToggle col="role" sort={sort} onSort={toggleSort} />} />
-                <HeaderFilter label="Priority" value={priority} onChange={(v) => { setPriority(v); setPage(0); }} options={priorityOptions} extra={<SortToggle col="priority" sort={sort} onSort={toggleSort} />} />
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRows.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="text-sm text-[#a3a3a3] py-8 text-center">No work items match the filters.</td>
-                </tr>
-              ) : pagedRows.map((r) => (
-                <tr key={r.key} className="border-t border-[#f5f5f5] hover:bg-[#fafafa]">
-                  {/* Deliverable — clickable when present; drills the deliverable */}
-                  <td className="px-3 py-2.5 align-top">
-                    {r.deliverableId ? (
-                      <button
-                        onClick={() => openDrill('deliverable', r.deliverableId!)}
-                        className="text-left font-medium text-[#171717] hover:underline"
-                      >
-                        {r.deliverable}
-                      </button>
-                    ) : <span className="text-[#a3a3a3]">{r.deliverable}</span>}
-                  </td>
-                  {/* Task — clickable when present; drills the task */}
-                  <td className="px-3 py-2.5 align-top">
-                    {r.kind === 'task' ? (
-                      <button
-                        onClick={() => openDrill('task', r.drillId)}
-                        className="flex items-center gap-2 text-left text-[#171717] hover:underline"
-                      >
-                        {r.source && <SourceTag source={r.source} />}
-                        <span>{r.task}</span>
-                      </button>
-                    ) : <span className="text-[#a3a3a3]">{r.task}</span>}
-                  </td>
-                  <td className="px-3 py-2.5 align-top">
-                    {r.type === DASH ? <span className="text-[#a3a3a3]">{DASH}</span> : <span className="pill-slate text-xs">{r.type}</span>}
-                  </td>
-                  <td className="px-3 py-2.5 align-top text-[#525252]">{r.valueStream}</td>
-                  <td className="px-3 py-2.5 align-top text-[#525252]">{r.role}</td>
-                  <td className="px-3 py-2.5 align-top">
-                    {r.priority === DASH ? <span className="text-[#a3a3a3]">{DASH}</span> : <span className={`${PRIORITY_PILL[r.priority] ?? 'pill-slate'} text-xs`}>{r.priority}</span>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {pageCount > 1 && (
-            <div className="flex items-center justify-between gap-3 px-3 py-2.5 border-t border-[#eaeaea] text-xs text-[#525252]">
-              <span className="tnum">
-                {safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, filteredRows.length)} of {filteredRows.length} rows
-              </span>
-              <span className="flex items-center gap-1">
-                <button onClick={() => setPage(0)} disabled={safePage === 0} className="px-2 py-1 rounded border border-[#eaeaea] disabled:opacity-40 hover:bg-[#fafafa]">«</button>
-                <button onClick={() => setPage(safePage - 1)} disabled={safePage === 0} className="px-2 py-1 rounded border border-[#eaeaea] disabled:opacity-40 hover:bg-[#fafafa]">‹ Prev</button>
-                <span className="px-2 tnum">Page {safePage + 1} / {pageCount}</span>
-                <button onClick={() => setPage(safePage + 1)} disabled={safePage >= pageCount - 1} className="px-2 py-1 rounded border border-[#eaeaea] disabled:opacity-40 hover:bg-[#fafafa]">Next ›</button>
-                <button onClick={() => setPage(pageCount - 1)} disabled={safePage >= pageCount - 1} className="px-2 py-1 rounded border border-[#eaeaea] disabled:opacity-40 hover:bg-[#fafafa]">»</button>
-              </span>
-            </div>
-          )}
-        </div>
-      </SectionCard>
+      {tab === 'deliverables' ? (
+        <Sheet
+          rows={deliverables}
+          cols={dCols}
+          rowKey={(d) => d.id}
+          loading={loading}
+          onRowClick={(d) => openDrill('deliverable', d.id)}
+          summarize={(v) => `${new Set(v.map((d) => d.valueStreamName).filter(Boolean)).size} value streams`}
+        />
+      ) : (
+        <Sheet
+          rows={tasks}
+          cols={tCols}
+          rowKey={(t) => t.id}
+          loading={loading}
+          onRowClick={(t) => openDrill('task', t.id)}
+          summarize={(v) => `${new Set(v.map((t) => t.deliverableId).filter(Boolean)).size} deliverables`}
+        />
+      )}
 
       {detail && (
         <Sidebar title={detail.kind === 'deliverable' ? 'Deliverable' : 'Task'} onClose={() => setDetail(null)}>

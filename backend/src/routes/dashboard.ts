@@ -22,6 +22,15 @@ function ordered(rows: { _count: { _all: number } }[], field: string, order?: st
   return keys.map((key) => ({ key, count: map.get(key) ?? 0 }));
 }
 
+// ── Transformation command center (D1) ──────────────────────────────────────
+// How far through the stage-gate funnel an initiative is, as a fraction. Drives
+// the rolled-up % complete on programs and the objective achievement bars.
+const STAGE_PROGRESS: Record<string, number> = { IDEA: 0, PLAN: 0.25, EXECUTE: 0.55, REALIZE: 0.8, COMPLETE: 1 };
+// A parent's effective health is its WORST child's (mirrors /portfolio I13).
+const STATUS_SEV: Record<string, number> = { ON_TRACK: 0, AT_RISK: 1, OFF_TRACK: 2 };
+const worstStatus = (statuses: string[], fallback: string) =>
+  statuses.length ? statuses.reduce((a, s) => ((STATUS_SEV[s] ?? 0) > (STATUS_SEV[a] ?? 0) ? s : a), 'ON_TRACK') : fallback;
+
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const tenantId = req.tenantId;
@@ -50,13 +59,14 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       severityGroups, kindGroups,
       scenarioSum, tcoSum, companies,
     ] = await Promise.all([
-      prisma.node.findMany({ where: { companyId, typeKey: { not: 'io_item' } }, select: { id: true, typeKey: true, name: true, parentId: true, sortOrder: true } }),
+      prisma.node.findMany({ where: { companyId, typeKey: { not: 'io_item' } }, select: { id: true, typeKey: true, name: true, parentId: true, sortOrder: true, attributes: true } }),
       prisma.nodeLink.groupBy({ by: ['toId'], where: { companyId, relationType: 'PARTICIPATES_IN' }, _count: { _all: true } }),
       structureCounts(tenantId, companyId),
       // Initiatives = the strategic-portfolio model the /portfolio (Initiatives)
       // screen renders and Data Admin edits (PortfolioInitiative).
       prisma.portfolioInitiative.count({ where: w }),
-      prisma.risk.count({ where: w }),
+      // Open only — the Risks tile and severity card are labeled "open risks".
+      prisma.risk.count({ where: { ...w, status: 'Open' } }),
       prisma.application.count({ where: w }),
       prisma.metric.count({ where: w }),
       prisma.scenario.count({ where: w }),
@@ -65,7 +75,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       prisma.person.groupBy({ by: ['employmentType'], where: w, _count: { _all: true } }),
       prisma.person.groupBy({ by: ['region'], where: w, _count: { _all: true } }),
       prisma.portfolioInitiative.groupBy({ by: ['status'], where: w, _count: { _all: true } }),
-      prisma.risk.groupBy({ by: ['severity'], where: w, _count: { _all: true } }),
+      prisma.risk.groupBy({ by: ['severity'], where: { ...w, status: 'Open' }, _count: { _all: true } }),
       prisma.application.groupBy({ by: ['kind'], where: w, _count: { _all: true } }),
       prisma.scenario.aggregate({ where: w, _sum: { annualNetImpact: true, annualBenefit: true, annualAddedCost: true, oneTimeCost: true } }),
       prisma.application.aggregate({ where: { tenantId, companyId, illustrative: false, totalTco: { not: null } }, _sum: { totalTco: true } }),
@@ -80,7 +90,17 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       prisma.strategicObjective.count({ where: { tenantId, companyId } }),
       prisma.raidItem.count({ where: { status: 'OPEN', initiative: { companyId } } }),
       prisma.nodeLink.count({ where: { companyId } }),
-      prisma.telemetrySignal.count({ where: { companyId } }),
+      // Match the Metrics tab's Trackable Metrics catalog: live signals + DB
+      // metrics + reference rows, minus non-live rows shadowed by a live one
+      // (same dedupe the catalog assembly in explorer.ts applies).
+      (async () => {
+        const [ts, mCount] = await Promise.all([
+          prisma.telemetrySignal.findMany({ where: { companyId }, select: { name: true, isLive: true } }),
+          prisma.metric.count({ where: w }),
+        ]);
+        const liveNames = new Set(ts.filter((s) => s.isLive).map((s) => s.name.toLowerCase()));
+        return mCount + ts.filter((s) => s.isLive || (s.name && !liveNames.has(s.name.toLowerCase()))).length;
+      })(),
       prisma.externalInteraction.count({ where: w }),
     ]);
 
@@ -89,8 +109,10 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const segments = byType('segment').sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
     const divisionNodes = byType('division');
     const departmentNodes = byType('department');
-    const roleNodes = byType('role');
-    const vsNodes = byType('value_stream');
+    // Hidden nodes (attributes.hidden) are kept in the DB but not rendered.
+    const notHidden = (n: { attributes: unknown }) => (n.attributes as Record<string, unknown> | null)?.hidden !== true;
+    const roleNodes = byType('role').filter(notHidden);
+    const vsNodes = byType('value_stream').filter(notHidden);
     const ioCount = await prisma.node.count({ where: { companyId, typeKey: 'io_item' } });
     void ioCount; // reserved for a future tile
 
@@ -123,6 +145,100 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       .map((d) => ({ id: d.id, name: d.name, higherCategory: segName(d), roles: rolesPerDivision.get(d.id) ?? 0 }))
       .sort((a, b) => b.roles - a.roles)
       .slice(0, 8);
+
+    // ── Transformation command-center rollups (D1 Home widgets) ──────────────
+    const [programs, objectives, latestSignal, topRisksRaw, raidOpenGroups] = await Promise.all([
+      // Programs → workstreams → initiatives (+ their milestones): one query
+      // feeds both the portfolio rollup widget and the Gantt timeline.
+      prisma.program.findMany({
+        where: w,
+        orderBy: { startDate: 'asc' },
+        select: {
+          id: true, name: true, status: true, startDate: true, endDate: true,
+          workstreams: {
+            select: {
+              initiatives: {
+                select: {
+                  id: true, name: true, stage: true, status: true, cumulativeNetBenefit: true,
+                  milestones: { select: { id: true, name: true, dueDate: true, status: true }, orderBy: { dueDate: 'asc' } },
+                },
+              },
+            },
+          },
+        },
+      }),
+      prisma.strategicObjective.findMany({
+        where: { tenantId, companyId },
+        orderBy: [{ weight: 'desc' }, { createdAt: 'asc' }],
+        select: { id: true, name: true, weight: true, links: { select: { impact: true, initiative: { select: { stage: true } } } } },
+      }),
+      prisma.personSignal.aggregate({ where: { person: { companyId } }, _max: { period: true } }),
+      prisma.raidItem.findMany({
+        where: { type: 'RISK', status: 'OPEN', initiative: { companyId } },
+        orderBy: { severity: 'desc' },
+        take: 5,
+        select: { id: true, title: true, severity: true, status: true, initiative: { select: { id: true, name: true } } },
+      }),
+      prisma.raidItem.groupBy({ by: ['type'], where: { status: 'OPEN', initiative: { companyId } }, _count: { _all: true } }),
+    ]);
+
+    // Viva-style workforce rollup: company-wide averages of the per-person
+    // digital-productivity signals for the most recent period seeded.
+    const signalPeriod = latestSignal._max.period;
+    const signalRows = signalPeriod
+      ? await prisma.personSignal.groupBy({
+          by: ['name', 'unit'],
+          where: { period: signalPeriod, person: { companyId } },
+          _avg: { value: true },
+          _count: { _all: true },
+        })
+      : [];
+
+    const transformation = {
+      programs: programs.map((p) => {
+        const inits = p.workstreams.flatMap((ws) => ws.initiatives);
+        return {
+          id: p.id, name: p.name, status: p.status,
+          computedStatus: worstStatus(inits.map((i) => i.status), p.status),
+          startDate: p.startDate, endDate: p.endDate,
+          pctComplete: inits.length
+            ? Math.round((inits.reduce((a, i) => a + (STAGE_PROGRESS[i.stage] ?? 0), 0) / inits.length) * 100)
+            : 0,
+          netBenefit: inits.reduce((a, i) => a + i.cumulativeNetBenefit, 0),
+          initiatives: inits.map((i) => ({
+            id: i.id, name: i.name, stage: i.stage, status: i.status,
+            netBenefit: i.cumulativeNetBenefit,
+            pctComplete: Math.round((STAGE_PROGRESS[i.stage] ?? 0) * 100),
+          })),
+          milestones: inits.flatMap((i) =>
+            i.milestones.map((m) => ({ id: m.id, name: m.name, dueDate: m.dueDate, status: m.status, initiativeName: i.name })),
+          ),
+        };
+      }),
+      // Objective achievement = impact-weighted delivery progress of the linked
+      // initiatives (the portfolio has no separate key-result table; the
+      // InitiativeObjective links ARE the key results being delivered).
+      okrs: objectives.map((o) => {
+        const impactSum = o.links.reduce((a, l) => a + l.impact, 0);
+        return {
+          id: o.id, name: o.name, weight: o.weight, initiatives: o.links.length,
+          achievement: impactSum
+            ? Math.round((o.links.reduce((a, l) => a + l.impact * (STAGE_PROGRESS[l.initiative.stage] ?? 0), 0) / impactSum) * 100)
+            : 0,
+        };
+      }),
+      workforceSignals: {
+        period: signalPeriod,
+        signals: signalRows
+          .map((r) => ({ name: r.name, unit: r.unit, value: Math.round((r._avg.value ?? 0) * 10) / 10, people: r._count._all }))
+          .sort((a, b) => a.name.localeCompare(b.name)),
+      },
+      topRisks: topRisksRaw.map((r) => ({
+        id: r.id, title: r.title, severity: r.severity, status: r.status,
+        initiativeId: r.initiative.id, initiativeName: r.initiative.name,
+      })),
+      raidOpen: Object.fromEntries(raidOpenGroups.map((g) => [g.type, g._count._all])),
+    };
 
     // Portfolio status (ON_TRACK | AT_RISK | OFF_TRACK) → friendly label + RAG health.
     const statusCount = (s: string) => statusGroups.find((g) => g.status === s)?._count._all ?? 0;
@@ -167,6 +283,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       },
       topValueStreams,
       topDivisions,
+      transformation,
     });
   } catch (e) {
     next(e);

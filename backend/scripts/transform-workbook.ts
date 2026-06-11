@@ -53,7 +53,7 @@ const CLEAN_DOMAIN: Record<string, string> = {
   'Enterprise Management': 'Corporate & Enterprise',
   'Enterprise / Product': 'Corporate & Enterprise',
 };
-const DOMAIN_ORDER = ['Core Insurance', 'Distribution & Customer', 'Technology & Data', 'Finance & Actuarial', 'Risk, Compliance & Audit', 'Corporate & Enterprise'];
+const DOMAIN_ORDER = ['Core Insurance', 'Life, Disability & Retirement', 'Distribution & Customer', 'Technology & Data', 'Finance & Actuarial', 'Risk, Compliance & Audit', 'Corporate & Enterprise'];
 const cleanDomain = (raw: string | null): string | null => (raw ? (CLEAN_DOMAIN[raw] ?? raw) : null);
 
 // ─── Role-name reconciliation (variants across sheets) ──────────────────
@@ -190,6 +190,11 @@ for (let pass = 0; pass < 4; pass++) {
 }
 
 // ─── Value Streams → domains, streams, role participation links ─────────
+// The Bridge Input workbook appends ~900 derived L4/L5 coverage rows below the
+// roster (same columns, comma-separated role lists, no Role Family). Those rows
+// duplicate L4 Process Master Key Roles / L5 step leads, so only roster rows
+// (Role Family present, one role per row) are parsed here — step-level role
+// detail stays sourced from the L4/L5 sheets.
 const vs = grid('Value Streams'); // header row 3; data 4+
 const domainSet = new Set<string>();
 const valueStreams: { name: string; domain: string | null; sourceRow: number }[] = [];
@@ -197,6 +202,7 @@ const seenVs = new Set<string>();
 const roleValueStreams: any[] = [];
 for (let i = 4; i < vs.length; i++) {
   const name = str(vs[i][1]); if (!name) continue;
+  if (!str(vs[i][4])) continue; // derived coverage row, not roster
   const domain = cleanDomain(orNull(vs[i][0]));
   if (domain) domainSet.add(domain);
   if (!seenVs.has(name)) { seenVs.add(name); valueStreams.push({ name, domain, sourceRow: i }); }
@@ -226,6 +232,8 @@ let derivedRvs = 0;
 for (let i = 3; i < l4m.length; i++) {
   const l2 = str(l4m[i][2]); const l4 = str(l4m[i][4]);
   if (!l2 || !l4) continue;
+  if (!/^[A-Z]{1,4}-\d/.test(str(l4m[i][0]))) continue; // header text in a data row
+
   const l3 = orNull(l4m[i][3]);
   const domain = cleanDomain(orNull(l4m[i][1]));
   if (!seenVs.has(l2)) { seenVs.add(l2); valueStreams.push({ name: l2, domain, sourceRow: i }); if (domain) domainSet.add(domain); }
@@ -277,9 +285,11 @@ const l5Unmatched = new Set<string>();
 for (let i = 3; i < l5g.length; i++) {
   const rawL4 = str(l5g[i][5]); const name = str(l5g[i][7]);
   if (!rawL4 || !name) continue;
+  if (!/-S\d+$/i.test(str(l5g[i][0]))) continue; // embedded duplicate header row
   const l4Name = resolveL4(rawL4);
   if (!l4Name) { l5Unmatched.add(rawL4); continue; }
   l5Steps.push({
+    code: str(l5g[i][0]), parentProcessId: orNull(l5g[i][1]),
     l4Name, stepNumber: intOrNull(l5g[i][6]) ?? 0, name,
     description: orNull(l5g[i][8]), sourceSheet: 'L5 Process Steps', sourceRow: i,
   });
@@ -309,7 +319,9 @@ const processSteps: any[] = [];
 for (let i = 3; i < l5g.length; i++) {
   const valueStreamName = str(l5g[i][3]); const name = str(l5g[i][7]);
   if (!valueStreamName || !name) continue;
+  if (!/-S\d+$/i.test(str(l5g[i][0]))) continue; // embedded duplicate header row
   processSteps.push({
+    code: str(l5g[i][0]), parentProcessId: orNull(l5g[i][1]),
     valueStreamName, l3: orNull(l5g[i][4]), l4: orNull(l5g[i][5]), stepNumber: intOrNull(l5g[i][6]) ?? 0, name,
     description: orNull(l5g[i][8]), leads: orNull(l5g[i][9]), supporting: orNull(l5g[i][10]),
     inputs: orNull(l5g[i][11]), outputs: orNull(l5g[i][12]), notes: orNull(l5g[i][13]), externalParticipants: orNull(l5g[i][14]), sourceRow: i,

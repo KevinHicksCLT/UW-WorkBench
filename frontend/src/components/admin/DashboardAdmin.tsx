@@ -15,7 +15,7 @@ const same = (a: string[], b: string[]) => a.length === b.length && a.every((x, 
 function KindBadge({ kind }: { kind: Widget['kind'] }) {
   return (
     <span className="text-[10px] font-semibold uppercase tracking-[0.06em] px-1.5 py-0.5 rounded bg-[#f5f5f5] text-[#a3a3a3]">
-      {kind === 'card' ? 'Card' : 'Tile'}
+      {kind === 'tile' ? 'Tile' : kind === 'wide' ? 'Wide card' : 'Card'}
     </span>
   );
 }
@@ -122,7 +122,7 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
 
   const available = WIDGET_CATALOG.filter((w) => !layout.includes(w.id));
   const availTiles = available.filter((w) => w.kind === 'tile');
-  const availCards = available.filter((w) => w.kind === 'card');
+  const availCards = available.filter((w) => w.kind !== 'tile'); // cards + wide cards
 
   return (
     <div className="space-y-6 max-w-3xl">

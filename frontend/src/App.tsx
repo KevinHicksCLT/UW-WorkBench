@@ -3,6 +3,7 @@
 import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { useAuth } from './lib/auth';
 import { CompanyProvider } from './lib/company';
+import { DialogProvider } from './lib/dialogs';
 import { BreadcrumbProvider } from './lib/breadcrumbs';
 import Layout from './components/Layout';
 import Login from './pages/Login';
@@ -23,6 +24,7 @@ import PortfolioProgram from './pages/PortfolioProgram';
 import PortfolioInitiative from './pages/PortfolioInitiative';
 import PortfolioRaid from './pages/PortfolioRaid';
 import Work from './pages/Work';
+import Applications from './pages/Applications';
 import External from './pages/External';
 import Regulations from './pages/Regulations';
 import RegulationDetail from './pages/RegulationDetail';
@@ -39,6 +41,20 @@ function RoleRedirect() {
 function ValueStreamRedirect() {
   const { id } = useParams();
   return <Navigate to={`/overview?focus=${encodeURIComponent(id ?? '')}`} replace />;
+}
+
+// Telemetry became Metrics (defect backlog 02, D6) — old drill-in links follow.
+function ActiveAIRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/metrics/${encodeURIComponent(id ?? '')}`} replace />;
+}
+
+// The portfolio detail pages moved out of Workspace and now live under Home
+// (the command-center widgets are their entry point) — old /portfolio/* deep
+// links follow them.
+function PortfolioDetailRedirect({ base }: { base: string }) {
+  const { id } = useParams();
+  return <Navigate to={`/${base}/${encodeURIComponent(id ?? '')}`} replace />;
 }
 
 export default function App() {
@@ -62,6 +78,7 @@ export default function App() {
   }
 
   return (
+    <DialogProvider>
     <CompanyProvider>
     <BreadcrumbProvider>
     <Layout>
@@ -84,9 +101,12 @@ export default function App() {
         {/* Standards & Greenfield Migration — placeholder tabs. */}
         <Route path="/standards" element={<Standards />} />
         <Route path="/standards/:id" element={<StandardArea />} />
-        {/* Active AI — heat map of AI adoption across value streams + drill-in. */}
-        <Route path="/active-ai" element={<ActiveAI />} />
-        <Route path="/active-ai/:id" element={<ActiveAIDetail />} />
+        {/* Metrics (formerly Telemetry) — AI adoption heat map + drill-in.
+            Old /active-ai links redirect. */}
+        <Route path="/metrics" element={<ActiveAI />} />
+        <Route path="/metrics/:id" element={<ActiveAIDetail />} />
+        <Route path="/active-ai" element={<Navigate to="/metrics" replace />} />
+        <Route path="/active-ai/:id" element={<ActiveAIRedirect />} />
         {/* Application Rationalization now lives inside the Initiatives tab.
             Keep a redirect so old /greenfield links still resolve. */}
         <Route path="/greenfield" element={<Navigate to="/portfolio" replace />} />
@@ -94,9 +114,14 @@ export default function App() {
             Initiatives) integrated with the operating model. Hosts the
             Application Rationalization workspace as its focal feature. */}
         <Route path="/portfolio" element={<Portfolio />} />
-        <Route path="/portfolio/programs/:id" element={<PortfolioProgram />} />
-        <Route path="/portfolio/initiatives/:id" element={<PortfolioInitiative />} />
-        <Route path="/portfolio/raid" element={<PortfolioRaid />} />
+        {/* Portfolio drill-downs live under Home — the command-center widgets
+            on the dashboard are their entry point (not the Workspace tab). */}
+        <Route path="/programs/:id" element={<PortfolioProgram />} />
+        <Route path="/initiatives/:id" element={<PortfolioInitiative />} />
+        <Route path="/raid" element={<PortfolioRaid />} />
+        <Route path="/portfolio/programs/:id" element={<PortfolioDetailRedirect base="programs" />} />
+        <Route path="/portfolio/initiatives/:id" element={<PortfolioDetailRedirect base="initiatives" />} />
+        <Route path="/portfolio/raid" element={<Navigate to="/raid" replace />} />
         {/* Deliverables & Tasks — standalone work tracker (banner + filters + table). */}
         <Route path="/work" element={<Work />} />
         {/* Regulations — 50-state insurance regulatory baseline (states /
@@ -104,6 +129,7 @@ export default function App() {
         <Route path="/regulations" element={<Regulations />} />
         <Route path="/regulations/:code" element={<RegulationDetail />} />
         {/* External Interactions — read-only external-party dependency view. */}
+        <Route path="/applications" element={<Applications />} />
         <Route path="/external" element={<External />} />
         {/* ADMIN-only data administration + audit trail. The Data Dictionary now
             lives inside the Data Admin tab as a view. The backend also gates
@@ -116,5 +142,6 @@ export default function App() {
     </Layout>
     </BreadcrumbProvider>
     </CompanyProvider>
+    </DialogProvider>
   );
 }

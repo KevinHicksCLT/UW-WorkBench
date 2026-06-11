@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
@@ -6,25 +6,68 @@ import PageHeader from '../components/PageHeader';
 import SignalCatalog from '../components/SignalCatalog';
 import { MODES, HEAT } from '../lib/aiAdoption';
 
-// Active AI — where AI is being applied across the company, and how far up the
-// autonomy spectrum (AI assistant → fully autonomous agent). A heat map crosses
-// every real value stream with the four AI modes. The adoption level IS the
-// traffic light: red (piloting) → green (embedded), so leaders and laggards read
-// at a glance. Levels + use cases live in the DB (NodeAiAdoption), edited in
-// Data Admin → Telemetry → AI adoption.
+// Metrics — the AI program in two stages (D6.3), both DB-driven:
+//   Stage 1 "Analysis coverage" — how much of the operating model (value
+//     streams, org groups, roles) has been analyzed for AI opportunity, when we
+//     expect to finish, and whether we're on plan. Source: AnalysisStatus rows
+//     vs the canonical node tree (/ai-analysis/summary), edited in Data Admin.
+//   Stage 2 "AI adoption" — % of tasks automated / discarded / augmented,
+//     broken down by org group, role, task category, deliverable type and value
+//     stream. Source: Task.aiDisposition over the canonical Task table.
+// Below both sits the existing value-stream × AI-mode heat map (NodeAiAdoption).
 
-// Canonical value stream (Level node) + its AI-adoption levels (0-4 per mode),
-// from /explorer/value-stream-adoption. Edited in Data Admin → Telemetry → AI adoption.
+// Canonical value stream (Node) + its AI-adoption levels (0-4 per mode),
+// from /explorer/value-stream-adoption. Edited in Data Admin → Metrics → AI adoption.
 type ValueStream = {
   id: string; name: string; domain: string | null; cells: number[];
 };
 
-function Tile({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
+type CoverageRow = {
+  type: string; label: string; total: number; complete: number; inProgress: number;
+  notStarted: number; pctComplete: number; expectedFinish: string | null;
+  overdue: number; onPlan: boolean;
+};
+type BreakdownRow = {
+  name: string; total: number; automated: number; discarded: number; augmented: number; manual: number;
+};
+type DimensionKey = 'division' | 'role' | 'category' | 'deliverableType' | 'valueStream';
+type Summary = {
+  coverage: CoverageRow[];
+  adoption: {
+    totalTasks: number;
+    counts: { automated: number; discarded: number; augmented: number; manual: number };
+    pct: { automated: number; discarded: number; augmented: number; manual: number };
+    breakdowns: Record<DimensionKey, BreakdownRow[]>;
+  };
+};
+
+// Task-disposition palette — the same traffic-light scheme as the heat map
+// (HEAT greens/amber/grey), so the two sections read as one system.
+const DISPOSITIONS = [
+  { key: 'automated', label: 'Automated', bg: '#16a34a', fg: '#ffffff' },
+  { key: 'augmented', label: 'AI augmented', bg: '#bbf7d0', fg: '#15803d' },
+  { key: 'discarded', label: 'Discarded', bg: '#fef3c7', fg: '#b45309' },
+  { key: 'manual', label: 'Still manual', bg: '#f5f5f5', fg: '#737373' },
+] as const;
+
+const DIMENSIONS: [DimensionKey, string][] = [
+  ['division', 'Org groups'],
+  ['role', 'Roles'],
+  ['category', 'Task categories'],
+  ['deliverableType', 'Deliverable types'],
+  ['valueStream', 'Value streams'],
+];
+
+const fmtMonth = (d: string | null) =>
+  d ? new Date(d).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '—';
+
+// Compact headline stat — small padding/type (D6.2: no oversized boxes).
+function Stat({ label, value, hint, color }: { label: string; value: string | number; hint?: string; color?: string }) {
   return (
-    <div className="card-elevated p-4">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</div>
-      <div className="text-2xl font-semibold text-[#171717] mt-1 tnum">{value}</div>
-      {hint && <div className="text-[11px] text-[#a3a3a3] mt-0.5">{hint}</div>}
+    <div className="card-elevated px-3 py-2">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</div>
+      <div className="text-lg font-semibold tnum leading-snug" style={{ color: color ?? '#171717' }}>{value}</div>
+      {hint && <div className="text-[10px] text-[#a3a3a3]">{hint}</div>}
     </div>
   );
 }
@@ -32,22 +75,27 @@ function Tile({ label, value, hint }: { label: string; value: string | number; h
 export default function ActiveAI() {
   const { companyId, company, loading: companyLoading } = useCompany();
   const [streams, setStreams] = useState<ValueStream[]>([]);
+  const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [view, setView] = useState<'adoption' | 'signals'>('adoption');
+  const [dimension, setDimension] = useState<DimensionKey>('division');
 
   useEffect(() => {
     if (companyLoading) return;
     setLoading(true);
     setError('');
-    api.get('/explorer/value-stream-adoption')
-      .then((d) => setStreams(d.valueStreams ?? []))
+    const qs = companyId ? `?companyId=${companyId}` : '';
+    Promise.all([
+      api.get('/explorer/value-stream-adoption'),
+      api.get(`/ai-analysis/summary${qs}`),
+    ])
+      .then(([adoption, sum]) => { setStreams(adoption.valueStreams ?? []); setSummary(sum); })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [companyId, companyLoading]);
 
   // Build the heat matrix: one row per value stream, one cell (level) per mode.
-  // Levels come straight from the DB (LevelAiAdoption), edited in Data Admin.
   const rows = useMemo(() =>
     streams.map((vs) => ({ vs, cells: vs.cells ?? [0, 0, 0, 0] })), [streams]);
 
@@ -62,25 +110,26 @@ export default function ActiveAI() {
     return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
   }, [rows]);
 
-  // Headline coverage stats across the whole map.
-  const stats = useMemo(() => {
+  // Headline coverage stats across the heat map (inlined in its header).
+  const heatStats = useMemo(() => {
     const total = rows.length;
     const anyAi = rows.filter((r) => r.cells.some((c) => c > 0)).length;
-    const embedded = rows.filter((r) => r.cells.some((c) => c >= 4)).length;
     const autonomous = rows.filter((r) => r.cells[3] >= 2).length;
-    return { total, anyAi, embedded, autonomous };
+    return { total, anyAi, autonomous };
   }, [rows]);
+
+  const breakdown = summary?.adoption.breakdowns[dimension] ?? [];
 
   return (
     <div>
       <PageHeader
-        title="Telemetry"
-        subtitle="Where AI is applied across the company — and how far up the autonomy spectrum, from in-the-moment assistant to fully autonomous agent."
+        title="Metrics"
+        subtitle="The AI program in two stages: first analyze the operating model, then adopt — automate, augment or discard the work itself."
         eyebrow={company?.name}
       />
 
       {/* Sub-view switcher — AI adoption vs the trackable-signal catalog. */}
-      <div className="border-b border-[#eaeaea] mb-5 flex gap-1">
+      <div className="border-b border-[#eaeaea] mb-4 flex gap-1">
         {([['adoption', 'AI Adoption'], ['signals', 'Trackable Metrics']] as const).map(([v, label]) => (
           <button
             key={v}
@@ -97,20 +146,145 @@ export default function ActiveAI() {
 
       {view === 'signals' ? (
         <SignalCatalog companyId={companyId} />
+      ) : loading || companyLoading ? (
+        <div className="py-8 text-sm text-[#a3a3a3]">Loading…</div>
+      ) : error ? (
+        <div className="py-8 text-sm text-[#be123c]">{error}</div>
       ) : (
       <>
-      {/* Coverage headline */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-        <Tile label="Value streams with AI" value={`${stats.anyAi}/${stats.total}`} hint="at least one active mode" />
-        <Tile label="Running autonomous agents" value={stats.autonomous} hint="beyond pilot" />
+      {/* ── Stage 1 · Analysis coverage ──────────────────────────────────────── */}
+      <div className="card-elevated overflow-hidden mb-4">
+        <div className="px-4 py-2.5 border-b border-[#eaeaea]">
+          <h2 className="text-sm font-semibold text-[#171717]">Stage 1 · Analysis coverage</h2>
+          <p className="text-[11px] text-[#666666] mt-0.5">
+            Before adoption comes analysis — how much of the operating model has been assessed for AI opportunity, and whether the remaining work is on plan.
+          </p>
+        </div>
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="border-b border-[#eaeaea] text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">
+              <th className="text-left px-4 py-1.5">Subject</th>
+              <th className="text-left px-2 py-1.5">Analyzed</th>
+              <th className="text-left px-2 py-1.5 w-[34%]">Progress</th>
+              <th className="text-right px-2 py-1.5">% complete</th>
+              <th className="text-right px-2 py-1.5">Expected finish</th>
+              <th className="text-right px-4 py-1.5">Plan</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(summary?.coverage ?? []).map((c) => (
+              <tr key={c.type} className="border-b border-[#f5f5f5] last:border-0">
+                <td className="px-4 py-2 text-sm font-medium text-[#171717]">{c.label}</td>
+                <td className="px-2 py-2 text-sm text-[#525252] tnum whitespace-nowrap">{c.complete}/{c.total}</td>
+                <td className="px-2 py-2">
+                  <div className="h-3 rounded bg-[#f5f5f5] overflow-hidden flex" title={`${c.complete} complete · ${c.inProgress} in progress · ${c.notStarted} not started`}>
+                    <div style={{ width: `${(100 * c.complete) / Math.max(1, c.total)}%`, backgroundColor: '#16a34a' }} />
+                    <div style={{ width: `${(100 * c.inProgress) / Math.max(1, c.total)}%`, backgroundColor: '#bbf7d0' }} />
+                  </div>
+                </td>
+                <td className="px-2 py-2 text-sm text-[#171717] tnum text-right">{c.pctComplete}%</td>
+                <td className="px-2 py-2 text-sm text-[#525252] tnum text-right whitespace-nowrap">{fmtMonth(c.expectedFinish)}</td>
+                <td className="px-4 py-2 text-right">
+                  {c.onPlan ? (
+                    <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ backgroundColor: '#bbf7d0', color: '#15803d' }}>On plan</span>
+                  ) : (
+                    <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap" style={{ backgroundColor: '#fee2e2', color: '#b91c1c' }}>
+                      Behind · {c.overdue} overdue
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="px-4 py-1.5 text-[10px] text-[#a3a3a3] border-t border-[#f5f5f5]">
+          In-progress fill shows analyses underway. Analysis status per value stream / org group / role is edited in Data Admin → Analysis Status.
+        </p>
+      </div>
+
+      {/* ── Stage 2 · AI adoption ────────────────────────────────────────────── */}
+      <div className="card-elevated overflow-hidden mb-4">
+        <div className="px-4 py-2.5 border-b border-[#eaeaea] flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h2 className="text-sm font-semibold text-[#171717]">Stage 2 · AI adoption</h2>
+            <p className="text-[11px] text-[#666666] mt-0.5">
+              What happened to the work after analysis — of {summary?.adoption.totalTasks.toLocaleString() ?? 0} tasks, how many were automated, AI-augmented or discarded outright.
+            </p>
+          </div>
+          <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
+            {DISPOSITIONS.map((d) => (
+              <span key={d.key} className="inline-flex items-center gap-1.5 text-[10px] text-[#666666]">
+                <span className="inline-block h-3 w-3 rounded-sm border border-black/5" style={{ backgroundColor: d.bg }} />
+                {d.label}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Compact headline stats (D6.2) */}
+        <div className="px-4 py-3 grid grid-cols-2 sm:grid-cols-4 gap-2 border-b border-[#f5f5f5]">
+          <Stat label="Tasks automated" value={`${summary?.adoption.pct.automated ?? 0}%`} hint={`${summary?.adoption.counts.automated.toLocaleString()} tasks`} color="#15803d" />
+          <Stat label="Tasks discarded" value={`${summary?.adoption.pct.discarded ?? 0}%`} hint={`${summary?.adoption.counts.discarded.toLocaleString()} eliminated`} color="#b45309" />
+          <Stat label="AI augmented" value={`${summary?.adoption.pct.augmented ?? 0}%`} hint={`${summary?.adoption.counts.augmented.toLocaleString()} tasks`} />
+          <Stat label="Still manual" value={`${summary?.adoption.pct.manual ?? 0}%`} hint={`${summary?.adoption.counts.manual.toLocaleString()} tasks`} />
+        </div>
+
+        {/* Breakdown dimension switcher */}
+        <div className="px-4 pt-2 flex gap-1 flex-wrap border-b border-[#f5f5f5]">
+          {DIMENSIONS.map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setDimension(key)}
+              className={
+                'px-3 py-1.5 text-[11px] font-medium border-b-2 -mb-px transition-colors duration-150 ' +
+                (dimension === key ? 'text-[#171717] border-[#171717]' : 'text-[#a3a3a3] border-transparent hover:text-[#525252]')
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* One stacked bar per group — share of tasks automated/augmented/discarded/manual */}
+        <div className="px-4 py-2">
+          <div className="grid grid-cols-[minmax(140px,220px)_1fr_auto_auto] gap-x-3 items-center">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] py-1">{DIMENSIONS.find(([k]) => k === dimension)?.[1]}</div>
+            <div />
+            <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] text-right w-14">Auto</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] text-right w-14">Disc</div>
+            {breakdown.map((b) => {
+              const pct = (n: number) => (b.total ? Math.round((100 * n) / b.total) : 0);
+              return (
+                <Fragment key={b.name}>
+                  <div className="text-xs text-[#171717] truncate py-1" title={`${b.name} · ${b.total} tasks`}>{b.name}</div>
+                  <div className="h-4 rounded overflow-hidden flex bg-[#f5f5f5]" title={`${b.total} tasks — ${pct(b.automated)}% automated · ${pct(b.augmented)}% augmented · ${pct(b.discarded)}% discarded · ${pct(b.manual)}% manual`}>
+                    {DISPOSITIONS.map((d) => (
+                      <div key={d.key} style={{ width: `${(100 * b[d.key]) / Math.max(1, b.total)}%`, backgroundColor: d.bg }} />
+                    ))}
+                  </div>
+                  <div className="text-xs tnum text-right w-14" style={{ color: '#15803d' }}>{pct(b.automated)}%</div>
+                  <div className="text-xs tnum text-right w-14" style={{ color: '#b45309' }}>{pct(b.discarded)}%</div>
+                </Fragment>
+              );
+            })}
+          </div>
+          {breakdown.length === 0 && (
+            <div className="py-6 text-sm text-[#a3a3a3] italic">No assessed tasks yet for this breakdown.</div>
+          )}
+        </div>
+        <p className="px-4 py-1.5 text-[10px] text-[#a3a3a3] border-t border-[#f5f5f5]">
+          Computed from the canonical Task table (aiDisposition per task) — the same rows as Deliverables &amp; Tasks; edited in Data Admin → Task.
+        </p>
       </div>
 
       {/* ── Value-stream × AI-mode heat map ────────────────────────────────── */}
       <div className="card-elevated overflow-hidden">
-        <div className="px-5 py-3 border-b border-[#eaeaea] flex items-center justify-between gap-4 flex-wrap">
+        <div className="px-4 py-2.5 border-b border-[#eaeaea] flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h2 className="text-sm font-semibold text-[#171717]">AI adoption by value stream</h2>
-            <p className="text-[11px] text-[#666666] mt-0.5">How far each value stream has taken AI at every point on the autonomy spectrum. Click a stream to drill in.</p>
+            <h2 className="text-sm font-semibold text-[#171717]">Adoption by value stream</h2>
+            <p className="text-[11px] text-[#666666] mt-0.5">
+              How far each value stream has taken AI at every point on the autonomy spectrum — {heatStats.anyAi}/{heatStats.total} streams with AI in use, {heatStats.autonomous} running autonomous agents beyond pilot. Click a stream to drill in.
+            </p>
           </div>
           {/* Legend — the level IS the traffic light (red behind → green ahead) */}
           <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
@@ -123,11 +297,7 @@ export default function ActiveAI() {
           </div>
         </div>
 
-        {loading || companyLoading ? (
-          <div className="px-5 py-10 text-sm text-[#a3a3a3]">Loading value streams…</div>
-        ) : error ? (
-          <div className="px-5 py-10 text-sm text-[#be123c]">{error}</div>
-        ) : rows.length === 0 ? (
+        {rows.length === 0 ? (
           <div className="px-5 py-10 text-sm text-[#a3a3a3] italic">No value streams defined for this company.</div>
         ) : (
           <div className="overflow-x-auto">
@@ -166,7 +336,7 @@ export default function ActiveAI() {
 
       <p className="text-[11px] text-[#a3a3a3] mt-3 italic">
         Adoption levels are read from the operating model (the same value streams as Value Streams and Home) and edited in
-        Data Admin → Telemetry → AI adoption. Streams with no AI yet show “Not used”.
+        Data Admin → Metrics → AI adoption. Streams with no AI yet show “Not used”.
       </p>
       </>
       )}
@@ -196,7 +366,7 @@ function DomainGroup({ domain, rows }: { domain: string; rows: { vs: ValueStream
             {/* Drill one level DEEPER into the stream's AI profile (use cases,
                 role utilization, efficiency) — not across to the value-stream
                 page; that stays reachable from the drill-in's header. */}
-            <Link to={`/active-ai/${vs.id}`} className="text-sm text-[#171717] group-hover:text-[#4338ca] truncate block max-w-[260px]">
+            <Link to={`/metrics/${vs.id}`} className="text-sm text-[#171717] group-hover:text-[#4338ca] truncate block max-w-[260px]">
               {vs.name}
             </Link>
           </td>

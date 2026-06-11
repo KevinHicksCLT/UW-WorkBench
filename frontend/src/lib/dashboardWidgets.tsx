@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { fmt } from './format';
+import {
+  PortfolioRollup, ProgramGantt, OkrList, TopRisks, RaidSummary, WorkforceSignals,
+  type TransformationData,
+} from '../components/home/TransformationWidgets';
 
 // ─── Home dashboard widget catalog ───────────────────────────────────────────
 // The single source of truth for what the Home dashboard CAN show. Overview.tsx
@@ -26,6 +30,10 @@ export type Dashboard = {
   financials: { annualNetImpact: number; annualBenefit: number; annualAddedCost: number; oneTimeCost: number; appRunCost: number };
   topValueStreams: { id: string; name: string; domain: string | null; roles: number }[];
   topDivisions: { id: string; name: string; higherCategory: string | null; roles: number }[];
+  // Transformation command-center slice (D1) — programs→initiatives rollup,
+  // Gantt, OKRs, risks/RAID, workforce signals. Optional so older payloads
+  // (or a backend mid-deploy) degrade gracefully.
+  transformation?: TransformationData | null;
 };
 
 // Where an admin jumps to edit the data behind a widget (Data Admin tab/section).
@@ -35,7 +43,7 @@ export type Widget = {
   id: string;
   title: string;
   desc: string; // shown in the configurator
-  kind: 'tile' | 'card';
+  kind: 'tile' | 'card' | 'wide'; // wide = a card spanning the full grid width
   source?: WidgetSource;
   render: (d: Dashboard) => ReactNode;
 };
@@ -114,13 +122,13 @@ const SEVERITY_COLOR = (k: string) => ({ Critical: '#dc2626', High: '#ea580c', M
 const SRC = {
   org: { tab: 'organization', section: 'divisions', label: 'Organization' },
   vs: { tab: 'valueStreams', section: 'levels', label: 'Value Streams' },
-  initiatives: { tab: 'initiatives', section: 'workstreams', label: 'Initiatives' },
+  initiatives: { tab: 'initiatives', section: 'workstreams', label: 'Workspace' },
   work: { tab: 'work', section: 'deliverables', label: 'Deliverables & Tasks' },
   people: { tab: 'people', section: 'people', label: 'People' },
-  apps: { tab: 'telemetry', section: 'apps', label: 'Telemetry' },
-  metrics: { tab: 'telemetry', section: 'metrics', label: 'Telemetry' },
-  risks: { tab: 'initiatives', section: 'risks', label: 'Initiatives' },
-  scenarios: { tab: 'initiatives', section: 'scenarios', label: 'Initiatives' },
+  apps: { tab: 'telemetry', section: 'apps', label: 'Metrics' },
+  metrics: { tab: 'telemetry', section: 'metrics', label: 'Metrics' },
+  risks: { tab: 'initiatives', section: 'risks', label: 'Workspace' },
+  scenarios: { tab: 'initiatives', section: 'scenarios', label: 'Workspace' },
 } as const;
 
 // Per-widget custom display title (Data Admin → Home → Edit on a widget row).
@@ -154,27 +162,91 @@ export const FOOTPRINT_STATS: Record<string, { key: string; label: string; to: s
   standards: { key: 'standards', label: 'Standards', to: '/standards' },
   programs: { key: 'programs', label: 'Programs', to: '/portfolio' },
   objectives: { key: 'objectives', label: 'Strategic objectives', to: '/portfolio' },
-  openRaid: { key: 'openRaid', label: 'Open RAID items', to: '/portfolio' },
+  openRaid: { key: 'openRaid', label: 'Open RAID items', to: '/raid' },
   connections: { key: 'connections', label: 'Model connections', to: '/overview' },
-  signals: { key: 'signals', label: 'Trackable signals', to: '/active-ai' },
+  signals: { key: 'signals', label: 'Trackable signals', to: '/metrics' },
 };
 export const FOOTPRINT_DEFAULT: string[] = ['subProcesses', 'ioItems', 'externalParties', 'standards'];
 
+// Transformation widgets read the `transformation` slice; until the backend
+// serves it (older payloads), they render a quiet placeholder.
+const txn = (d: Dashboard, body: (t: TransformationData) => ReactNode): ReactNode =>
+  d.transformation ? body(d.transformation) : <div className="text-sm text-[#a3a3a3]">No transformation data yet.</div>;
+
 export const WIDGET_CATALOG: Widget[] = [
+  // ── Transformation command center (D1) ──
+  {
+    id: 'card:portfolioRollup', title: 'Transformation portfolio', kind: 'wide', source: SRC.initiatives,
+    desc: 'Programs → initiatives rollup: health, % complete, net benefit',
+    render: (d) => (
+      <Card title={wt(d, 'card:portfolioRollup', 'Transformation portfolio')}>
+        {txn(d, (t) => <PortfolioRollup t={t} />)}
+      </Card>
+    ),
+  },
+  {
+    id: 'card:gantt', title: 'Timeline', kind: 'wide', source: SRC.initiatives,
+    desc: 'Program timeline — one lane per program, milestone diamonds, today line',
+    render: (d) => (
+      <Card title={wt(d, 'card:gantt', 'Timeline')}>
+        {txn(d, (t) => <ProgramGantt t={t} />)}
+      </Card>
+    ),
+  },
+  {
+    id: 'card:okrs', title: 'Objectives & key results', kind: 'card', source: SRC.initiatives,
+    desc: 'Strategic objectives with delivery-weighted achievement bars',
+    render: (d) => (
+      <Card title={wt(d, 'card:okrs', 'Objectives & key results')}>
+        {txn(d, (t) => <OkrList t={t} />)}
+      </Card>
+    ),
+  },
+  {
+    id: 'card:openRisks', title: 'Open risks', kind: 'card', source: SRC.risks,
+    desc: 'Top open portfolio risks by severity',
+    render: (d) => (
+      <Card title={wt(d, 'card:openRisks', 'Open risks')} to="/raid" toLabel="RAID log">
+        {txn(d, (t) => <TopRisks t={t} />)}
+      </Card>
+    ),
+  },
+  {
+    id: 'card:raidSummary', title: 'RAID log', kind: 'card', source: SRC.risks,
+    desc: 'Open RAID counts — risks, issues, assumptions, decisions',
+    render: (d) => (
+      <Card title={wt(d, 'card:raidSummary', 'RAID log')} to="/raid" toLabel="RAID log">
+        {txn(d, (t) => <RaidSummary t={t} />)}
+      </Card>
+    ),
+  },
+  {
+    id: 'card:workforceSignals', title: 'Workforce signals', kind: 'card', source: SRC.people,
+    desc: 'Viva-style rollup — focus hours, meeting load, collaboration averages',
+    render: (d) => (
+      <Card title={wt(d, 'card:workforceSignals', 'Workforce signals')} to="/metrics" toLabel="Metrics">
+        {txn(d, (t) => <WorkforceSignals t={t} />)}
+      </Card>
+    ),
+  },
+
   // Headline count tiles
   tile('tile:divisions', 'Divisions', 'divisions', { hint: (t) => `${t.departments} departments`, to: '/roles', source: SRC.org }),
   tile('tile:roles', 'Roles', 'roles', { to: '/roles', source: SRC.org }),
   tile('tile:valueStreams', 'Value Streams', 'valueStreams', { hint: (t) => `${t.domains} domains`, to: '/overview', source: SRC.vs }),
-  tile('tile:initiatives', 'Initiatives', 'initiatives', { to: '/portfolio', source: SRC.initiatives }),
+  // Initiative/scenario/risk tiles carry no deep-link: their list views are the
+  // Home portfolio widgets themselves (D7.2 — /portfolio is now the workspace),
+  // and operating-model risks render only in Data Admin.
+  tile('tile:initiatives', 'Initiatives', 'initiatives', { source: SRC.initiatives }),
   tile('tile:deliverables', 'Deliverables', 'deliverables', { to: '/work', source: SRC.work }),
   tile('tile:tasks', 'Tasks', 'tasks', { to: '/work', source: SRC.work }),
   tile('tile:people', 'People', 'people', { to: '/roles', source: SRC.people }),
   tile('tile:departments', 'Departments', 'departments', { to: '/roles?view=departments', source: SRC.org }),
   tile('tile:domains', 'Domains', 'domains', { to: '/overview', source: SRC.vs }),
-  tile('tile:applications', 'Applications', 'applications', { to: '/portfolio', source: SRC.apps }),
-  tile('tile:risks', 'Risks', 'risks', { to: '/portfolio', source: SRC.risks }),
-  tile('tile:scenarios', 'Scenarios', 'scenarios', { to: '/portfolio', source: SRC.scenarios }),
-  tile('tile:metrics', 'Metrics', 'metrics', { to: '/overview', source: SRC.metrics }),
+  tile('tile:applications', 'Applications', 'applications', { to: '/applications', source: SRC.apps }),
+  tile('tile:risks', 'Risks', 'risks', { source: SRC.risks }),
+  tile('tile:scenarios', 'Scenarios', 'scenarios', { source: SRC.scenarios }),
+  tile('tile:metrics', 'Metrics', 'metrics', { to: '/metrics', source: SRC.metrics }),
   tile('tile:processSteps', 'Process Steps', 'processSteps', { to: '/overview?view=list', source: SRC.vs }),
 
   // Cards
@@ -219,19 +291,19 @@ export const WIDGET_CATALOG: Widget[] = [
   },
   {
     id: 'card:initiativesByStatus', title: 'Initiatives by status', desc: 'Portfolio initiatives grouped by status', kind: 'card', source: SRC.initiatives,
-    render: (d) => <Card title={wt(d, 'card:initiativesByStatus', 'Initiatives by status')} to="/portfolio"><BarList groups={d.initiativesByStatus} color="#4f46e5" /></Card>,
+    render: (d) => <Card title={wt(d, 'card:initiativesByStatus', 'Initiatives by status')}><BarList groups={d.initiativesByStatus} color="#4f46e5" /></Card>,
   },
   {
     id: 'card:initiativesByHealth', title: 'Initiatives by health', desc: 'Initiatives RAG health (Green / Amber / Red)', kind: 'card', source: SRC.initiatives,
-    render: (d) => <Card title={wt(d, 'card:initiativesByHealth', 'Initiatives by health')} to="/portfolio"><BarList groups={d.initiativesByHealth} color={HEALTH_COLOR} /></Card>,
+    render: (d) => <Card title={wt(d, 'card:initiativesByHealth', 'Initiatives by health')}><BarList groups={d.initiativesByHealth} color={HEALTH_COLOR} /></Card>,
   },
   {
     id: 'card:risksBySeverity', title: 'Risks by severity', desc: 'Open risks grouped by severity', kind: 'card', source: SRC.risks,
-    render: (d) => <Card title={wt(d, 'card:risksBySeverity', 'Risks by severity')} to="/portfolio"><BarList groups={d.risksBySeverity} color={SEVERITY_COLOR} /></Card>,
+    render: (d) => <Card title={wt(d, 'card:risksBySeverity', 'Risks by severity')}><BarList groups={d.risksBySeverity} color={SEVERITY_COLOR} /></Card>,
   },
   {
     id: 'card:applicationsByKind', title: 'Applications by kind', desc: 'The application landscape grouped by kind', kind: 'card', source: SRC.apps,
-    render: (d) => <Card title={wt(d, 'card:applicationsByKind', 'Applications by kind')} to="/portfolio"><BarList groups={d.applicationsByKind} color="#0d9488" /></Card>,
+    render: (d) => <Card title={wt(d, 'card:applicationsByKind', 'Applications by kind')} to="/applications" toLabel="Applications"><BarList groups={d.applicationsByKind} color="#0d9488" /></Card>,
   },
   {
     id: 'card:financials', title: 'Financial impact', desc: 'Scenario economics — net impact, benefit, cost', kind: 'card', source: SRC.scenarios,
@@ -289,13 +361,18 @@ export const WIDGET_CATALOG: Widget[] = [
 
 export const WIDGET_MAP: Map<string, Widget> = new Map(WIDGET_CATALOG.map((w) => [w.id, w]));
 
-// The out-of-the-box layout (mirrors the original fixed dashboard) used when a
-// company has never configured one.
+// The out-of-the-box layout used when a company has never configured one:
+// the transformation command center first (D1), then the original tiles.
+// (Companies with a SAVED layout get the new widgets merged in by
+// backend/scripts/seed-baseline-plan.ts — keep its NEW_WIDGETS list in sync.)
 export const DEFAULT_LAYOUT: string[] = [
+  'card:portfolioRollup', 'card:gantt', 'card:okrs', 'card:openRisks', 'card:raidSummary', 'card:workforceSignals',
   'tile:divisions', 'tile:roles', 'tile:valueStreams', 'tile:initiatives', 'tile:deliverables', 'tile:tasks',
   'card:workforce', 'card:modelFootprint',
 ];
 
 // Tailwind span for a widget within the 6-col responsive dashboard grid.
 export const widgetSpan = (kind: Widget['kind']) =>
-  kind === 'card' ? 'col-span-2 sm:col-span-3 lg:col-span-3' : 'col-span-1';
+  kind === 'wide' ? 'col-span-2 sm:col-span-3 lg:col-span-6'
+  : kind === 'card' ? 'col-span-2 sm:col-span-3 lg:col-span-3'
+  : 'col-span-1';

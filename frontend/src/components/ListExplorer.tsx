@@ -1,15 +1,19 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DOMAIN_HEX, type DivisionSummary } from '../viz/model';
 import { api } from '../lib/api';
 import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from './MetricsSidebar';
 import ValueStreamDrawer from './ValueStreamDrawer';
 
-// List view = the WHOLE operating model, fully exploded on load — every level
-// visible at once so the depth of the company reads immediately:
-//   Company › Domain › Division › Value stream › Process area › Sub-process › Step
-// The tree arrives pre-built from /explorer/tree (one request, no lazy loading),
-// and domain/division facet chips filter what's shown. Clicking any node pops the
-// right-hand metrics panel — the SAME MetricsSidebar the map uses. Map view is untouched.
+// List view (R2 rework) — a FLAT spreadsheet of the operating model. No tree,
+// no expand/collapse: every row is one full process chain read left-to-right
+//   Domain | Division | Value stream | Sub-process | Step
+// (one row per step; sub-processes with no steps and streams with no
+// sub-processes still get a row with the trailing cells blank). Every column
+// header carries a searchable combobox filter (options = the distinct values
+// among rows passing the OTHER filters, Excel-style) plus a sort toggle, the
+// header sticks while the sheet scrolls, and clicking a cell opens the
+// right-hand metrics panel for that specific level — the SAME MetricsSidebar
+// the map uses.
 
 // ── Tree shape (from GET /explorer/tree) ──────────────────────────────────────
 type StepL5 = { id: string; step: number; name: string };
@@ -19,176 +23,53 @@ type VS = { id: string; name: string; areas: Area[] };
 type Div = { id: string; name: string; higherCategory: string | null; roles: number; valueStreams: VS[] };
 type Tree = { company: { id: string; name: string }; divisions: Div[] };
 
-// ── Mirror of the map's segment handling (MapCanvas.tsx) ─────────────────────
-// Segments + division order are DATA: the API returns divisions already ordered
-// by Node.sortOrder and labeled with their parent segment node's name. Renaming
-// or reordering a segment in the builder reflects here.
-type Category = string;
-const catFor = (higherCategory: string | null): Category => higherCategory ?? 'Unassigned';
-const hexFor = (c: string) => DOMAIN_HEX[c] ?? '#64748b';
+const catFor = (higherCategory: string | null): string => higherCategory ?? 'Unassigned';
 
-// Context lets any node open the right-hand metrics panel without prop-drilling.
-type MetricsCtxValue = { open: (level: string, id: string) => void; activeKey: string | null; focusVsId: string | null };
-const MetricsCtx = createContext<MetricsCtxValue>({ open: () => {}, activeKey: null, focusVsId: null });
-const useMetrics = () => useContext(MetricsCtx);
+// Shared column template so the header and every row stay aligned:
+// domain | division | value stream | sub-process | step
+const GRID_COLS = 'grid grid-cols-[140px_160px_minmax(0,1fr)_minmax(0,1.15fr)_minmax(0,1.3fr)]';
 
-// ── Row chrome (shared by every node) ─────────────────────────────────────────
-const Caret = ({ open }: { open: boolean }) => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-    style={{ transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 150ms' }} className="text-[#a3a3a3]" aria-hidden="true">
-    <path d="M9 18l6-6-6-6" />
-  </svg>
-);
-const Meta = ({ children }: { children: React.ReactNode }) => (
-  <span className="text-[11px] text-[#a3a3a3] tnum flex-shrink-0">{children}</span>
-);
+// One flattened chain (one spreadsheet row).
+type FlatRow = {
+  vsId: string; vsName: string;
+  division: string; domain: string; divisions: string[]; domains: string[];
+  areaId: string | null; areaName: string; areaNum: number | null;
+  stepId: string | null; stepName: string; stepNum: number | null;
+};
 
-function Row({
-  depth, leaf, open, onClick, onToggle, accent, num, label, meta, muted, strong, selected,
-}: {
-  depth: number; leaf?: boolean; open?: boolean; onClick?: () => void;
-  // When provided, the caret toggles expansion independently of the row click
-  // (so a row can open its detail while the chevron still collapses the branch).
-  onToggle?: () => void;
-  accent?: string; num?: number; label: string; meta?: React.ReactNode; muted?: boolean; strong?: boolean; selected?: boolean;
-}) {
-  const clickable = !!onClick;
+// ── Spreadsheet column headers: each header cell carries a searchable
+// combobox filter plus a sort toggle. ─────────────────────────────────────────
+type Col = 'domain' | 'division' | 'vs' | 'sub' | 'step';
+type Sort = { col: Col; dir: 1 | -1 };
+
+function SortToggle({ col, sort, onSort }: { col: Col; sort: Sort; onSort: (c: Col) => void }) {
+  const active = sort.col === col;
   return (
-    <div
-      onClick={onClick}
-      style={{ paddingLeft: depth * 18 + 10 }}
-      className={'flex items-center gap-2 py-2 pr-3 border-b border-[#f5f5f5] last:border-0 transition-colors duration-150 '
-        + (selected ? 'bg-[#f5f8ff] ' : '') + (clickable ? 'cursor-pointer hover:bg-[#fafafa]' : '')}
+    <button
+      type="button"
+      onClick={() => onSort(col)}
+      title="Sort by this column"
+      className={'ml-1 align-middle text-[10px] font-bold ' + (active ? 'text-[#171717]' : 'text-[#a3a3a3] hover:text-[#171717]')}
     >
-      <span
-        className={'w-3.5 flex-shrink-0 flex items-center' + (onToggle ? ' cursor-pointer' : '')}
-        onClick={onToggle ? (e) => { e.stopPropagation(); onToggle(); } : undefined}
-      >{!leaf && <Caret open={!!open} />}</span>
-      {accent && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: accent }} />}
-      {num != null && <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#f5f5f5] text-[10px] font-semibold text-[#525252] tnum flex-shrink-0">{num}</span>}
-      <span className={'truncate flex-1 ' + (strong ? 'text-sm font-semibold text-[#171717]' : muted ? 'text-[13px] text-[#525252]' : 'text-sm text-[#171717]')}>{label}</span>
-      {meta}
-    </div>
+      {active ? (sort.dir === 1 ? '▲' : '▼') : '⇅'}
+    </button>
   );
 }
-const InfoRow = ({ depth, text }: { depth: number; text: string }) => (
-  <div style={{ paddingLeft: depth * 18 + 32 }} className="py-2 pr-3 text-[12px] text-[#a3a3a3] italic border-b border-[#f5f5f5]">{text}</div>
+
+const HeaderLabel = ({ children }: { children: React.ReactNode }) => (
+  <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1 whitespace-nowrap">{children}</div>
 );
 
-// ── Nodes — every level starts expanded; carets still collapse on demand. ──────
-// L4 sub-process → its L5 process steps. Pure expand/collapse outline.
-function SubProcessNode({ sub, depth }: { sub: SubProc; depth: number }) {
-  // The last step (L5) is the only level that opens the metrics panel — it carries
-  // the actual detail (description / roles / inputs / outputs / external).
-  const { open: openMetrics, activeKey } = useMetrics();
-  return (
-    <Row depth={depth} leaf muted selected={activeKey === `step:${sub.id}`}
-      onClick={() => openMetrics('step', sub.id)}
-      num={sub.step} label={sub.name} />
-  );
-}
-
-function AreaNode({ area, depth }: { area: Area; depth: number }) {
-  const [open, setOpen] = useState(true);
-  // L4 sub-processes carry their own authored detail (inputs/outputs/leads) —
-  // clicking opens it in the sidebar; the caret still expands/collapses.
-  const { open: openMetrics, activeKey } = useMetrics();
-  const subs = area.subProcesses;
-  return (
-    <>
-      <Row depth={depth} leaf={subs.length === 0} open={open} selected={activeKey === `step:${area.id}`}
-        onClick={() => openMetrics('step', area.id)}
-        onToggle={subs.length ? () => setOpen((o) => !o) : undefined}
-        num={area.step} label={area.name} meta={<Meta>{subs.length} steps</Meta>} />
-      {open && subs.map((ss) => <SubProcessNode key={ss.id} sub={ss} depth={depth + 1} />)}
-    </>
-  );
-}
-
-function ValueStreamNode({ vs, depth }: { vs: VS; depth: number }) {
-  // Clicking the stream opens its detail in the right sidebar (the full-detail
-  // drawer stays one click away via the sidebar's "View full details"); the
-  // caret still expands/collapses the branch. A deep-linked focus stream
-  // scrolls itself into view.
-  const { open: openMetrics, activeKey, focusVsId } = useMetrics();
-  const [open, setOpen] = useState(true);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (focusVsId === vs.id) ref.current?.scrollIntoView({ block: 'center' });
-  }, [focusVsId, vs.id]);
-  return (
-    <>
-      <div ref={ref}>
-        <Row depth={depth} leaf={vs.areas.length === 0} open={open} selected={activeKey === `valueStream:${vs.id}`}
-          onClick={() => openMetrics('valueStream', vs.id)}
-          onToggle={vs.areas.length ? () => setOpen((o) => !o) : undefined}
-          label={vs.name} meta={<Meta>{vs.areas.length} sub-processes</Meta>} />
-      </div>
-      {open && (vs.areas.length > 0
-        ? vs.areas.map((a) => <AreaNode key={a.id} area={a} depth={depth + 1} />)
-        : <InfoRow depth={depth + 1} text="No process areas mapped." />)}
-    </>
-  );
-}
-
-function DivisionNode({ div, depth, accent }: { div: Div; depth: number; accent: string }) {
-  const [open, setOpen] = useState(true);
-  const vss = div.valueStreams;
-  return (
-    <>
-      <Row depth={depth} leaf={vss.length === 0} open={open}
-        onClick={vss.length ? () => setOpen((o) => !o) : undefined}
-        accent={accent} label={div.name} meta={<Meta>{vss.length} value streams</Meta>} />
-      {open && (vss.length > 0
-        ? vss.map((vs) => <ValueStreamNode key={vs.id} vs={vs} depth={depth + 1} />)
-        : <InfoRow depth={depth + 1} text="No led value streams." />)}
-    </>
-  );
-}
-
-function DomainNode({ cat, divs, depth }: { cat: Category; divs: Div[]; depth: number }) {
-  const [open, setOpen] = useState(true);
-  return (
-    <>
-      <Row depth={depth} open={open}
-        onClick={() => setOpen((o) => !o)}
-        accent={DOMAIN_HEX[cat]} label={cat} strong meta={<Meta>{divs.length} divisions</Meta>} />
-      {open && divs.map((d) => <DivisionNode key={d.id} div={d} depth={depth + 1} accent={DOMAIN_HEX[cat]} />)}
-    </>
-  );
-}
-
-// High-level overview banner — model totals across the top. Recomputes from the
-// CURRENTLY-VISIBLE (filtered) tree, so the depth metrics track the active facets.
-function OverviewBanner({ stats }: { stats: { label: string; value: number }[] }) {
-  return (
-    <div className="rounded-xl border border-[#eaeaea] bg-gradient-to-r from-[#fafafa] to-white px-5 py-4 mb-4 flex items-center justify-between gap-x-4">
-      {stats.map((s, i) => (
-        <div key={s.label} className="flex items-center gap-4 min-w-0">
-          {i > 0 && <span className="h-9 w-px bg-[#eaeaea] flex-shrink-0" aria-hidden="true" />}
-          <div className="text-center">
-            <div className="text-2xl font-bold text-[#171717] leading-none tnum">{s.value}</div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mt-1">{s.label}</div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Facet filter bar — domain + division dropdowns. Empty set = show all. ──────
-type FilterOption = { id: string; name: string; accent?: string };
-
-// Multi-select dropdown: a button shows the label + active count and opens a
-// checkbox panel. Closes on outside click. Mirrors the old chips' toggle behavior.
-function FilterDropdown({ label, options, selected, onToggle }: {
-  label: string;
-  options: FilterOption[];
-  selected: ReadonlySet<string>;
-  onToggle: (id: string) => void;
+// Searchable dropdown filter — every column uses this (type-ahead handles the
+// long option lists). Closes on outside click; 'All' clears.
+function HeaderComboFilter({ label, value, onChange, options, sort }: {
+  label: string; value: string; onChange: (v: string) => void; options: string[]; sort?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const ref = useRef<HTMLDivElement>(null);
+  const active = value !== 'All';
+
   useEffect(() => {
     if (!open) return;
     const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
@@ -196,78 +77,93 @@ function FilterDropdown({ label, options, selected, onToggle }: {
     return () => document.removeEventListener('mousedown', onDoc);
   }, [open]);
 
-  const count = options.reduce((n, o) => (selected.has(o.id) ? n + 1 : n), 0);
+  const q = query.trim().toLowerCase();
+  const filtered = options.filter((o) => o === 'All' || o.toLowerCase().includes(q));
+  function pick(o: string) { onChange(o); setOpen(false); setQuery(''); }
+
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="px-2 py-1 min-w-0 relative">
+      <HeaderLabel>{label}{sort}</HeaderLabel>
       <button
+        type="button"
         onClick={() => setOpen((o) => !o)}
-        className={'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-medium transition-colors duration-150 '
-          + (count > 0 ? 'border-[#171717] text-[#171717]' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4] hover:text-[#171717]')}
+        className={'flex items-center justify-between gap-1 w-full rounded border bg-white pl-2 pr-1.5 py-0.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150 '
+          + (active ? 'border-[#171717] text-[#171717] font-medium' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4]')}
       >
-        <span className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3]">{label}</span>
-        <span>{count > 0 ? `${count} selected` : 'All'}</span>
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-          style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }} aria-hidden="true">
+        <span className="truncate">{value}</span>
+        <svg className={'flex-shrink-0 text-[#a3a3a3] transition-transform duration-150 ' + (open ? 'rotate-180' : '')} width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M6 9l6 6 6-6" />
         </svg>
       </button>
       {open && (
-        <div className="absolute left-0 top-full mt-1.5 z-30 min-w-[220px] max-h-[300px] overflow-auto rounded-lg border border-[#eaeaea] bg-white shadow-lg p-1">
-          {options.length === 0 ? (
-            <div className="px-2.5 py-2 text-[12px] text-[#a3a3a3]">No options</div>
-          ) : options.map((o) => (
-            <label key={o.id} className="flex items-center gap-2 px-2.5 py-1.5 rounded-md cursor-pointer hover:bg-[#fafafa]">
-              <input type="checkbox" checked={selected.has(o.id)} onChange={() => onToggle(o.id)} className="accent-[#171717]" />
-              {o.accent && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: o.accent }} />}
-              <span className="text-[13px] text-[#171717] truncate">{o.name}</span>
-            </label>
-          ))}
+        <div className="absolute z-30 left-2 mt-1 w-[260px] rounded-md border border-[#eaeaea] bg-white shadow-lg">
+          <div className="p-1.5 border-b border-[#f5f5f5]">
+            <input
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search…"
+              aria-label={`Filter by ${label.toLowerCase()}`}
+              className="w-full rounded border border-[#eaeaea] bg-white px-2 py-1 text-xs text-[#171717] placeholder:text-[#a3a3a3] focus:outline-none focus:ring-1 focus:ring-[#171717]"
+            />
+          </div>
+          <div className="max-h-56 overflow-y-auto py-1">
+            {filtered.length === 0 ? (
+              <div className="px-2.5 py-1.5 text-xs text-[#a3a3a3]">No matches</div>
+            ) : filtered.map((o) => (
+              <button
+                key={o}
+                type="button"
+                onClick={() => pick(o)}
+                className={'block w-full truncate text-left px-2.5 py-1 text-xs hover:bg-[#fafafa] transition-colors duration-100 '
+                  + (o === value ? 'text-[#171717] font-medium bg-[#fafafa]' : 'text-[#525252]')}
+              >
+                {o}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-function FilterBar({
-  domains, divsByCat, catFilter, divFilter, toggleCat, toggleDiv, clear,
-}: {
-  domains: Category[];
-  divsByCat: Record<Category, Div[]>;
-  catFilter: Set<Category>;
-  divFilter: Set<string>;
-  toggleCat: (c: Category) => void;
-  toggleDiv: (id: string) => void;
-  clear: () => void;
-}) {
-  // Divisions offered = those in the active domains (or all, if no domain selected).
-  const offered = domains.filter((c) => catFilter.size === 0 || catFilter.has(c));
-  const anyFilter = catFilter.size > 0 || divFilter.size > 0;
-  const domainOptions: FilterOption[] = domains.map((c) => ({ id: c, name: c, accent: DOMAIN_HEX[c] }));
-  const divisionOptions: FilterOption[] = offered.flatMap((c) => divsByCat[c]).map((d) => ({ id: d.id, name: d.name, accent: DOMAIN_HEX[catFor(d.higherCategory)] }));
+// One spreadsheet cell. Clickable cells underline on hover and open the
+// metrics panel for exactly that level (stopPropagation so the row's default
+// click — the most specific entity — doesn't also fire). `dead` cells swallow
+// the click entirely (Domain/Division have no sidebar in Value Streams).
+function Cell({ text, num, accent, onClick, dim, dead }: { text: string; num?: number | null; accent?: string; onClick?: () => void; dim?: boolean; dead?: boolean }) {
   return (
-    <div className="rounded-xl border border-[#eaeaea] bg-white px-4 py-3 mb-4">
-      <div className="flex items-center gap-2 flex-wrap">
-        <FilterDropdown label="Domain" options={domainOptions} selected={catFilter} onToggle={(id) => toggleCat(id as Category)} />
-        <FilterDropdown label="Division" options={divisionOptions} selected={divFilter} onToggle={toggleDiv} />
-        {anyFilter && (
-          <button onClick={clear} className="ml-auto text-[11px] font-medium text-[#1d4ed8] hover:underline">Clear filters</button>
-        )}
-      </div>
+    <div
+      className={'px-2 py-[3px] flex items-center gap-1.5 min-w-0' + (onClick ? ' cursor-pointer group/cell' : dead ? ' cursor-default' : '')}
+      onClick={onClick ? (e) => { e.stopPropagation(); onClick(); } : dead ? (e) => e.stopPropagation() : undefined}
+    >
+      {accent && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: accent }} />}
+      {num != null && <span className="text-[9px] text-[#a3a3a3] tnum flex-shrink-0">{num}</span>}
+      <span className={'truncate text-[12px] ' + (dim ? 'text-[#737373]' : 'text-[#171717]') + (onClick ? ' group-hover/cell:underline' : '')}>{text}</span>
     </div>
   );
 }
 
-export default function ListExplorer({ companyName, focusVsId = null }: { companyName: string; divisions?: DivisionSummary[]; streams?: number; focusVsId?: string | null }) {
+const EmptyRow = ({ text }: { text: string }) => (
+  <div className="py-1.5 px-3 text-[11px] text-[#a3a3a3] italic">{text}</div>
+);
+
+export default function ListExplorer({ focusVsId = null }: { companyName?: string; divisions?: DivisionSummary[]; streams?: number; focusVsId?: string | null }) {
   const [tree, setTree] = useState<Tree | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Facet filters: empty set = no constraint (show all).
-  const [catFilter, setCatFilter] = useState<Set<Category>>(new Set());
-  const [divFilter, setDivFilter] = useState<Set<string>>(new Set());
+  // Header filters — one combobox selection per column; 'All' = no constraint.
+  const [domainSel, setDomainSel] = useState('All');
+  const [divisionSel, setDivisionSel] = useState('All');
+  const [vsSel, setVsSel] = useState('All');
+  const [subSel, setSubSel] = useState('All');
+  const [stepSel, setStepSel] = useState('All');
+  const [sort, setSort] = useState<Sort>({ col: 'vs', dir: 1 });
 
-  // Right-hand metrics panel (identical to the map). `base` = the node clicked in
-  // the tree; `ovStack` = in-panel drills (role → person → …) just like the map.
+  // Right-hand metrics panel (identical to the map). `base` = the cell clicked
+  // in the sheet; `ovStack` = in-panel drills (role → person → …).
   const [base, setBase] = useState<{ level: string; id: string } | null>(null);
   const [ovStack, setOvStack] = useState<{ level: string; id: string }[]>([]);
   const [dash, setDash] = useState<Dashboard | null>(null);
@@ -283,7 +179,8 @@ export default function ListExplorer({ companyName, focusVsId = null }: { compan
   const closeMetrics = () => { setBase(null); setOvStack([]); };
 
   // Deep-linked focus (value-stream links across the app land here): open the
-  // stream's detail in the sidebar; the row scrolls itself into view.
+  // stream's detail in the sidebar; the Value stream filter below narrows the
+  // sheet to just that stream once the tree is loaded.
   useEffect(() => {
     if (focusVsId) openMetrics('valueStream', focusVsId);
   }, [focusVsId]); // eslint-disable-line
@@ -310,90 +207,220 @@ export default function ListExplorer({ companyName, focusVsId = null }: { compan
   // Changing the focused entity makes the drawer's snapshot stale — close it.
   useEffect(() => { setDrawerSection(null); }, [target?.level, target?.id]);
 
-  // ── Group divisions by segment (API order = Node.sortOrder); resolve filters. ──
-  const divsByCat = useMemo(() => {
-    const out: Record<Category, Div[]> = {};
-    for (const d of tree?.divisions ?? []) (out[catFor(d.higherCategory)] ??= []).push(d);
-    return out;
-  }, [tree]);
-
-  const domainsPresent = useMemo(() => {
-    const seen: Category[] = [];
-    for (const d of tree?.divisions ?? []) { const c = catFor(d.higherCategory); if (!seen.includes(c)) seen.push(c); }
-    return seen;
-  }, [tree]);
-
-  // Visible domains/divisions after applying the facet filters.
-  const visibleDomains = domainsPresent
-    .filter((c) => catFilter.size === 0 || catFilter.has(c))
-    .map((c) => ({ cat: c, divs: divsByCat[c].filter((d) => divFilter.size === 0 || divFilter.has(d.id)) }))
-    .filter((g) => g.divs.length > 0);
-
-  // Banner depth metrics — recomputed from the visible (filtered) tree.
-  const stats = useMemo(() => {
-    const seenVs = new Set<string>();
-    let divisions = 0, valueStreams = 0, subProcesses = 0, steps = 0;
-    for (const g of visibleDomains) for (const d of g.divs) {
-      divisions++;
+  // ── Flatten every chain to one row (dedupe streams first — a stream can sit
+  // under several divisions, so it carries ALL its divisions/domains). ──
+  const flat = useMemo(() => {
+    const byId = new Map<string, { vs: VS; divisions: Set<string>; domains: Set<string> }>();
+    for (const d of tree?.divisions ?? []) {
+      const dom = catFor(d.higherCategory);
       for (const vs of d.valueStreams) {
-        if (seenVs.has(vs.id)) continue; seenVs.add(vs.id);
-        valueStreams++;
-        for (const a of vs.areas) { subProcesses++; steps += a.subProcesses.length; }
+        let e = byId.get(vs.id);
+        if (!e) { e = { vs, divisions: new Set(), domains: new Set() }; byId.set(vs.id, e); }
+        e.divisions.add(d.name);
+        e.domains.add(dom);
       }
     }
-    return [
-      { label: 'Domains', value: visibleDomains.length },
-      { label: 'Divisions', value: divisions },
-      { label: 'Value Streams', value: valueStreams },
-      { label: 'Sub-Processes', value: subProcesses },
-      { label: 'Steps', value: steps },
-    ];
-  }, [visibleDomains]);
+    const rows: FlatRow[] = [];
+    for (const e of byId.values()) {
+      const divisions = [...e.divisions].sort();
+      const domains = [...e.domains].sort();
+      const head = {
+        vsId: e.vs.id, vsName: e.vs.name,
+        division: divisions.join(', '), domain: domains.join(', '), divisions, domains,
+      };
+      if (e.vs.areas.length === 0) {
+        rows.push({ ...head, areaId: null, areaName: '', areaNum: null, stepId: null, stepName: '', stepNum: null });
+        continue;
+      }
+      for (const a of e.vs.areas) {
+        if (a.subProcesses.length === 0) {
+          rows.push({ ...head, areaId: a.id, areaName: a.name, areaNum: a.step, stepId: null, stepName: '', stepNum: null });
+          continue;
+        }
+        for (const s of a.subProcesses) {
+          rows.push({ ...head, areaId: a.id, areaName: a.name, areaNum: a.step, stepId: s.id, stepName: s.name, stepNum: s.step });
+        }
+      }
+    }
+    return rows;
+  }, [tree]);
 
-  const toggleCat = (c: Category) => setCatFilter((s) => { const n = new Set(s); n.has(c) ? n.delete(c) : n.add(c); return n; });
-  const toggleDiv = (id: string) => setDivFilter((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const clear = () => { setCatFilter(new Set()); setDivFilter(new Set()); };
+  // Deep-linked focus also pre-applies the Value stream filter so the sheet
+  // shows ONLY that stream's rows (clearing any stale picks in other columns).
+  // Links across the app carry LEGACY ValueStream ids while the tree rows use
+  // unified node ids — when the id isn't in the tree, resolve it via the same
+  // focus endpoint the map uses, then match by the canonical id.
+  useEffect(() => {
+    if (!focusVsId || !flat.length) return;
+    let cancelled = false;
+    const apply = (name: string) => {
+      if (cancelled) return;
+      setVsSel(name); setDomainSel('All'); setDivisionSel('All'); setSubSel('All'); setStepSel('All');
+    };
+    const row = flat.find((r) => r.vsId === focusVsId);
+    if (row) { apply(row.vsName); return; }
+    api.get(`/explorer/value-stream/${encodeURIComponent(focusVsId)}/focus`)
+      .then((f: { valueStreamId: string }) => {
+        const resolved = flat.find((r) => r.vsId === f.valueStreamId);
+        if (resolved) apply(resolved.vsName);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [focusVsId, flat]);
 
-  const [rootOpen, setRootOpen] = useState(true);
+  // A row passes the filters; `skip` exempts one column so each combobox can
+  // list the distinct values among rows passing the OTHER filters (Excel-style).
+  const matches = (r: FlatRow, skip?: Col) =>
+    (skip === 'domain' || domainSel === 'All' || r.domains.includes(domainSel))
+    && (skip === 'division' || divisionSel === 'All' || r.divisions.includes(divisionSel))
+    && (skip === 'vs' || vsSel === 'All' || r.vsName === vsSel)
+    && (skip === 'sub' || subSel === 'All' || r.areaName === subSel)
+    && (skip === 'step' || stepSel === 'All' || r.stepName === stepSel);
+
+  const selDeps = [flat, domainSel, divisionSel, vsSel, subSel, stepSel]; // eslint-disable-line
+  const optionList = (vals: Iterable<string>) => ['All', ...[...new Set([...vals].filter(Boolean))].sort()];
+  /* eslint-disable react-hooks/exhaustive-deps */
+  const domainOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'domain')).flatMap((r) => r.domains)), selDeps);
+  const divisionOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'division')).flatMap((r) => r.divisions)), selDeps);
+  const vsOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'vs')).map((r) => r.vsName)), selDeps);
+  const subOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'sub')).map((r) => r.areaName)), selDeps);
+  const stepOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'step')).map((r) => r.stepName)), selDeps);
+  /* eslint-enable react-hooks/exhaustive-deps */
+
+  // A pick can be invalidated by a later pick in another column — clear it.
+  useEffect(() => { if (domainSel !== 'All' && !domainOptions.includes(domainSel)) setDomainSel('All'); }, [domainOptions, domainSel]);
+  useEffect(() => { if (divisionSel !== 'All' && !divisionOptions.includes(divisionSel)) setDivisionSel('All'); }, [divisionOptions, divisionSel]);
+  useEffect(() => { if (vsSel !== 'All' && !vsOptions.includes(vsSel)) setVsSel('All'); }, [vsOptions, vsSel]);
+  useEffect(() => { if (subSel !== 'All' && !subOptions.includes(subSel)) setSubSel('All'); }, [subOptions, subSel]);
+  useEffect(() => { if (stepSel !== 'All' && !stepOptions.includes(stepSel)) setStepSel('All'); }, [stepOptions, stepSel]);
+
+  // Visible rows: filters + sort. Default sort = value stream, with the
+  // process order (sub-process № then step №) as the tie-break so each stream
+  // reads top-to-bottom in execution order.
+  const rows = useMemo(() => {
+    const list = flat.filter((r) => matches(r));
+    const procOrder = (a: FlatRow, b: FlatRow) =>
+      a.vsName.localeCompare(b.vsName)
+      || (a.areaNum ?? 0) - (b.areaNum ?? 0)
+      || a.areaName.localeCompare(b.areaName)
+      || (a.stepNum ?? 0) - (b.stepNum ?? 0);
+    return [...list].sort((a, b) => {
+      const c = sort.col === 'domain' ? a.domain.localeCompare(b.domain)
+        : sort.col === 'division' ? a.division.localeCompare(b.division)
+        : sort.col === 'vs' ? a.vsName.localeCompare(b.vsName)
+        : sort.col === 'sub' ? a.areaName.localeCompare(b.areaName)
+        : a.stepName.localeCompare(b.stepName);
+      return c * sort.dir || procOrder(a, b);
+    });
+  }, [flat, domainSel, divisionSel, vsSel, subSel, stepSel, sort]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Totals strip — distinct entities among the visible (filtered) rows.
+  const totals = useMemo(() => {
+    const vs = new Set<string>(), subs = new Set<string>();
+    let steps = 0;
+    for (const r of rows) {
+      vs.add(r.vsId);
+      if (r.areaId) subs.add(r.areaId);
+      if (r.stepId) steps++;
+    }
+    return { vs: vs.size, subs: subs.size, steps };
+  }, [rows]);
+
+  const anyFilter = domainSel !== 'All' || divisionSel !== 'All' || vsSel !== 'All' || subSel !== 'All' || stepSel !== 'All';
+  const clear = () => { setDomainSel('All'); setDivisionSel('All'); setVsSel('All'); setSubSel('All'); setStepSel('All'); };
+
+  const toggleSort = (col: Col) => setSort((s) => (s.col === col ? { col, dir: s.dir === 1 ? -1 : 1 } : { col, dir: 1 }));
+
   const activeKey = base ? `${base.level}:${base.id}` : null;
-  const name = tree?.company.name ?? companyName;
+  // Scroll target for deep-linked focus: the first visible row of that stream.
+  const focusRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (focusVsId && !loading) focusRef.current?.scrollIntoView({ block: 'center' });
+  }, [focusVsId, loading]);
+
+  // Track first row per stream while rendering (for the focus scroll target).
+  const seenVs = new Set<string>();
 
   return (
-    <MetricsCtx.Provider value={{ open: openMetrics, activeKey, focusVsId }}>
-      {/* Side-by-side: tree scrolls, metrics panel sits beside it (no overlay). */}
+    <>
+      {/* Side-by-side: sheet scrolls, metrics panel sits beside it (no overlay). */}
       <div className="h-full flex relative">
-        <div className="flex-1 min-w-0 overflow-auto">
-          <div className="max-w-[1000px] mx-auto px-4 sm:px-6 py-5">
+        <div className="flex-1 min-w-0 flex flex-col">
+          {/* Very slim strip: totals + clear. Lives OUTSIDE the scroll area so the
+              sticky sheet header pins below it instead of sliding over the
+              floating List|Map toggle (pl clears the toggle). */}
+          <div className="flex-shrink-0 flex items-center gap-3 flex-wrap pr-3 sm:pr-4 pt-2 pb-1.5 pl-[162px] min-h-[48px]">
+            {!loading && !error && (
+              <>
+                <span className="text-[11px] text-[#737373] tnum">
+                  {totals.vs} value streams · {totals.subs} sub-processes · {totals.steps} steps · {rows.length} rows
+                </span>
+                {anyFilter && <button onClick={clear} className="text-[11px] font-medium text-[#1d4ed8] hover:underline">Clear filters</button>}
+              </>
+            )}
+          </div>
+          <div className="flex-1 min-h-0 overflow-auto">
+          <div className="px-3 sm:px-4 pb-4">
             {loading ? (
               <div className="text-sm text-[#a3a3a3] animate-pulse py-8 text-center">Loading operating model…</div>
             ) : error ? (
               <div className="text-sm text-[#be123c] py-8 text-center">{error}</div>
             ) : (
               <>
-                <OverviewBanner stats={stats} />
-                <FilterBar
-                  domains={domainsPresent} divsByCat={divsByCat}
-                  catFilter={catFilter} divFilter={divFilter}
-                  toggleCat={toggleCat} toggleDiv={toggleDiv} clear={clear}
-                />
-
-                <div className="card p-0 overflow-hidden">
-                  {/* Company root */}
-                  <Row depth={0} open={rootOpen} strong label={name} meta={<Meta>{visibleDomains.length} domains</Meta>}
-                    onClick={() => setRootOpen((o) => !o)} />
-                  {rootOpen && (visibleDomains.length > 0
-                    ? visibleDomains.map((dom) => <DomainNode key={dom.cat} cat={dom.cat} divs={dom.divs} depth={1} />)
-                    : <InfoRow depth={1} text="No divisions match the current filters." />)}
+                {/* No overflow-hidden on the card — the combo dropdowns must escape it. */}
+                <div className="card p-0">
+                  {/* Sticky spreadsheet header: each cell hosts its combobox filter + sort. */}
+                  <div className={GRID_COLS + ' items-stretch divide-x divide-[#eaeaea] border-b border-[#eaeaea] bg-[#fafafa] rounded-t-lg sticky top-0 z-20'}>
+                    <HeaderComboFilter label="Domain" value={domainSel} onChange={setDomainSel} options={domainOptions}
+                      sort={<SortToggle col="domain" sort={sort} onSort={toggleSort} />} />
+                    <HeaderComboFilter label="Division" value={divisionSel} onChange={setDivisionSel} options={divisionOptions}
+                      sort={<SortToggle col="division" sort={sort} onSort={toggleSort} />} />
+                    <HeaderComboFilter label="Value stream" value={vsSel} onChange={setVsSel} options={vsOptions}
+                      sort={<SortToggle col="vs" sort={sort} onSort={toggleSort} />} />
+                    <HeaderComboFilter label="Sub-process" value={subSel} onChange={setSubSel} options={subOptions}
+                      sort={<SortToggle col="sub" sort={sort} onSort={toggleSort} />} />
+                    <HeaderComboFilter label="Step" value={stepSel} onChange={setStepSel} options={stepOptions}
+                      sort={<SortToggle col="step" sort={sort} onSort={toggleSort} />} />
+                  </div>
+                  <div className="rounded-b-lg overflow-hidden">
+                    {rows.length === 0 && <EmptyRow text="No rows match the current filters." />}
+                    {rows.map((r) => {
+                      const firstOfVs = !seenVs.has(r.vsId);
+                      seenVs.add(r.vsId);
+                      // Row default click = the most specific entity on the row.
+                      const rowTarget: [string, string] = r.stepId ? ['step', r.stepId] : r.areaId ? ['step', r.areaId] : ['valueStream', r.vsId];
+                      const selected = activeKey != null && (
+                        activeKey === `valueStream:${r.vsId}`
+                        || (r.areaId != null && activeKey === `step:${r.areaId}`)
+                        || (r.stepId != null && activeKey === `step:${r.stepId}`));
+                      return (
+                        <div
+                          key={`${r.vsId}|${r.areaId ?? ''}|${r.stepId ?? ''}`}
+                          ref={firstOfVs && r.vsId === focusVsId ? focusRef : undefined}
+                          onClick={() => openMetrics(rowTarget[0], rowTarget[1])}
+                          className={GRID_COLS + ' items-stretch divide-x divide-[#f0f0f0] border-b border-[#f5f5f5] last:border-0 cursor-pointer transition-colors duration-100 '
+                            + (selected ? 'bg-[#f5f8ff] ' : '') + 'hover:bg-[#fafafa]'}
+                        >
+                          <Cell text={r.domain} accent={DOMAIN_HEX[r.domains[0]] ?? '#94a3b8'} dim dead />
+                          <Cell text={r.division} dim dead />
+                          <Cell text={r.vsName} onClick={() => openMetrics('valueStream', r.vsId)} />
+                          <Cell text={r.areaName} num={r.areaNum} onClick={r.areaId ? () => openMetrics('step', r.areaId!) : undefined} />
+                          <Cell text={r.stepName} num={r.stepNum} onClick={r.stepId ? () => openMetrics('step', r.stepId!) : undefined} />
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </>
             )}
+          </div>
           </div>
         </div>
 
         {/* Right-hand metrics panel — same component as the map, pushes content (no dimming overlay) */}
         {base && (
           <MetricsSidebar
-            dash={dash} loading={dashLoading} onDrill={onDrill}
+            dash={dash} loading={dashLoading} onDrill={onDrill} startExpanded
             onBack={ovStack.length ? onBack : undefined} onClose={closeMetrics} onViewAll={setDrawerSection}
             onViewDetail={target?.level === 'valueStream' && target.id ? () => setVsDetailId(target.id) : undefined}
           />
@@ -412,6 +439,6 @@ export default function ListExplorer({ companyName, focusVsId = null }: { compan
         {/* Value-stream full detail — slides over the list in place. */}
         {vsDetailId && <ValueStreamDrawer valueStreamId={vsDetailId} onClose={() => setVsDetailId(null)} />}
       </div>
-    </MetricsCtx.Provider>
+    </>
   );
 }

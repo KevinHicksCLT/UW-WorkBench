@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../lib/api';
+import { useDialogs } from '../lib/dialogs';
 import { fmt, STAGE_ORDER, STAGE_LABELS } from '../lib/format';
 import PageHeader from '../components/PageHeader';
 import {
@@ -14,6 +15,7 @@ type Tab = (typeof TABS)[number];
 
 export default function PortfolioInitiative() {
   const { id } = useParams();
+  const dialogs = useDialogs();
   const [init, setInit] = useState<Initiative | null>(null);
   const [tab, setTab] = useState<Tab>('Summary');
   const [busy, setBusy] = useState(false);
@@ -25,7 +27,7 @@ export default function PortfolioInitiative() {
   async function workflow(action: string) {
     setBusy(true);
     try { await api.post(`/portfolio/initiatives/${id}/workflow`, { action }); load(); }
-    catch (e) { alert((e as Error).message); }
+    catch (e) { void dialogs.alert({ title: 'Workflow action failed', message: (e as Error).message }); }
     finally { setBusy(false); }
   }
   async function setStatus(status: string) { await api.patch(`/portfolio/initiatives/${id}`, { status }); load(); }
@@ -164,16 +166,17 @@ function Field({ label, value, to }: { label: string; value: string | null | und
 
 // ── CHARTER ──────────────────────────────────────────────────────────────
 function CharterTab({ init, reload }: { init: Initiative; reload: () => void }) {
+  const dialogs = useDialogs();
   const [complexity, setComplexity] = useState(String(init.complexityScore));
   const [saving, setSaving] = useState(false);
   const dirty = Number(complexity) !== init.complexityScore;
 
   async function save() {
     const n = Number(complexity);
-    if (Number.isNaN(n) || n < 0 || n > 10) { alert('Complexity must be between 0 and 10.'); return; }
+    if (Number.isNaN(n) || n < 0 || n > 10) { void dialogs.alert({ title: 'Invalid value', message: 'Complexity must be between 0 and 10.' }); return; }
     setSaving(true);
     try { await api.patch(`/portfolio/initiatives/${init.id}`, { complexityScore: n }); reload(); }
-    catch (e) { alert((e as Error).message); }
+    catch (e) { void dialogs.alert({ title: 'Save failed', message: (e as Error).message }); }
     finally { setSaving(false); }
   }
 
@@ -204,6 +207,7 @@ function CharterTab({ init, reload }: { init: Initiative; reload: () => void }) 
 
 // ── STRATEGIC ALIGNMENT ──────────────────────────────────────────────────
 function AlignmentTab({ init, reload }: { init: Initiative; reload: () => void }) {
+  const dialogs = useDialogs();
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [addId, setAddId] = useState('');
   const [addImpact, setAddImpact] = useState(3);
@@ -217,7 +221,7 @@ function AlignmentTab({ init, reload }: { init: Initiative; reload: () => void }
   const available = objectives.filter((o) => !linkedIds.has(o.id));
 
   async function run(fn: () => Promise<unknown>) {
-    try { await fn(); reload(); } catch (e) { alert((e as Error).message); }
+    try { await fn(); reload(); } catch (e) { void dialogs.alert({ title: 'Change failed', message: (e as Error).message }); }
   }
 
   return (
@@ -338,6 +342,7 @@ function FinancialsTab({ init, reload }: { init: Initiative; reload: () => void 
 }
 
 function LineSection({ title, type, lines, onCreate, onChange }: { title: string; type: 'BENEFIT' | 'COST'; lines: Line[]; onCreate: () => void; onChange: () => void }) {
+  const dialogs = useDialogs();
   const [editing, setEditing] = useState<Line | null>(null);
   return (
     <div className="card-elevated p-5">
@@ -374,7 +379,7 @@ function LineSection({ title, type, lines, onCreate, onChange }: { title: string
                     <td className="py-2.5 text-right">
                       <button
                         className="text-xs text-[#be123c] hover:underline"
-                        onClick={async (e) => { e.stopPropagation(); if (!confirm('Delete this line?')) return; await api.delete(`/portfolio/lines/${type}/${l.id}`); onChange(); }}
+                        onClick={async (e) => { e.stopPropagation(); if (!(await dialogs.confirm({ title: 'Delete this line?', danger: true, message: `"${l.name}" and its monthly values will be deleted.` }))) return; await api.delete(`/portfolio/lines/${type}/${l.id}`); onChange(); }}
                       >Delete</button>
                     </td>
                   </tr>
@@ -478,6 +483,7 @@ function EditValuesModal({ type, line, onClose, onSaved }: { type: 'BENEFIT' | '
 
 // ── WORKPLAN (timeline) ──────────────────────────────────────────────────
 function WorkplanTab({ init, reload }: { init: Initiative; reload: () => void }) {
+  const dialogs = useDialogs();
   const [showCreateM, setShowCreateM] = useState(false);
   const [showCreateA, setShowCreateA] = useState(false);
   const [editing, setEditing] = useState<Activity | null>(null);
@@ -543,7 +549,7 @@ function WorkplanTab({ init, reload }: { init: Initiative; reload: () => void })
                 {m.isGate && <span className="pill-blue text-[10px] flex-shrink-0">GATE</span>}
                 <button
                   className="ml-auto text-[10px] text-[#be123c] hover:underline flex-shrink-0"
-                  onClick={async () => { if (!confirm('Delete milestone?')) return; await api.delete(`/portfolio/initiatives/milestones/${m.id}`); reload(); }}
+                  onClick={async () => { if (!(await dialogs.confirm({ title: 'Delete milestone?', danger: true, message: `"${m.name}" will be deleted.` }))) return; await api.delete(`/portfolio/initiatives/milestones/${m.id}`); reload(); }}
                 >del</button>
               </div>
             ))}
@@ -591,6 +597,7 @@ function WorkplanTab({ init, reload }: { init: Initiative; reload: () => void })
 
 // Create (activity == null) or edit a workplan activity.
 function ActivityModal({ init, activity, onClose, onSaved }: { init: Initiative; activity: Activity | null; onClose: () => void; onSaved: () => void }) {
+  const dialogs = useDialogs();
   const [form, setForm] = useState({
     name: activity?.name ?? '',
     startDate: (activity?.startDate ?? init.startDate).slice(0, 10),
@@ -620,7 +627,7 @@ function ActivityModal({ init, activity, onClose, onSaved }: { init: Initiative;
   }
 
   async function remove() {
-    if (!activity || !confirm('Delete this activity?')) return;
+    if (!activity || !(await dialogs.confirm({ title: 'Delete this activity?', danger: true, message: `"${activity.name}" will be removed from the workplan.` }))) return;
     try { await api.delete(`/portfolio/initiatives/activities/${activity.id}`); onSaved(); }
     catch (err) { setError((err as Error).message); }
   }
@@ -664,6 +671,7 @@ function ActivityModal({ init, activity, onClose, onSaved }: { init: Initiative;
 
 // ── RESOURCES ────────────────────────────────────────────────────────────
 function ResourcesTab({ init, reload }: { init: Initiative; reload: () => void }) {
+  const dialogs = useDialogs();
   const [people, setPeople] = useState<{ id: string; name: string; title: string | null }[]>([]);
   const [form, setForm] = useState({
     name: '', roleName: '', allocationPct: 50,
@@ -720,7 +728,7 @@ function ResourcesTab({ init, reload }: { init: Initiative; reload: () => void }
                   <td className="py-2.5 text-right">
                     <button
                       className="text-xs text-[#be123c] hover:underline"
-                      onClick={async () => { if (!confirm('Remove this resource?')) return; await api.delete(`/portfolio/initiatives/resources/${r.id}`); reload(); }}
+                      onClick={async () => { if (!(await dialogs.confirm({ title: 'Remove this resource?', danger: true, message: `${r.name} will be unassigned from this initiative.`, confirmLabel: 'Remove' }))) return; await api.delete(`/portfolio/initiatives/resources/${r.id}`); reload(); }}
                     >Delete</button>
                   </td>
                 </tr>

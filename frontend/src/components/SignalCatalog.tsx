@@ -1,13 +1,16 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { withCompany } from '../lib/portfolio';
+import { Sheet, SheetCell, type SheetCol } from './Sheet';
 
 // SignalCatalog — the filterable inventory of every trackable signal/metric the
-// operating model can measure: workforce/digital signals (Viva Insights, Microsoft
-// 365, GitHub, delivery analytics) that roll up from the individual to the role,
-// plus the operating-model KPIs from the workbook. Each signal drills DOWN TO THE
-// ROLE LEVEL. Data: GET /explorer/telemetry-catalog (+ /telemetry-signal/by-role).
+// operating model can measure, rendered in the canonical Sheet format (see
+// components/Sheet.tsx): workforce/digital signals (Viva Insights, Microsoft
+// 365, GitHub, delivery analytics) plus the operating-model KPIs from the
+// workbook. Clicking a row expands its description + provenance; workforce
+// signals drill DOWN TO THE ROLE LEVEL via the By-role button.
+// Data: GET /explorer/telemetry-catalog (+ /telemetry-signal/by-role).
 
 type Signal = {
   id: string; kind: 'workforce' | 'kpi' | 'system'; type: string; name: string; description: string | null;
@@ -29,28 +32,6 @@ const LEVEL_CLASS: Record<string, string> = {
   Division: 'bg-[#fae8ff] text-[#86198f]', Company: 'bg-[#f1f5f9] text-[#334155]',
   Executive: 'bg-[#ffe4e6] text-[#9f1239]', Product: 'bg-[#e0f2fe] text-[#0369a1]',
 };
-
-function Dropdown({ label, value, onChange, options }: {
-  label: string; value: string; onChange: (v: string) => void; options: string[];
-}) {
-  return (
-    <div className="min-w-[120px]">
-      <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-1">{label}</label>
-      <div className="relative">
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="appearance-none w-full rounded-lg border border-[#eaeaea] bg-white pl-3 pr-8 py-1.5 text-sm text-[#171717] cursor-pointer hover:border-[#d4d4d4] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150"
-        >
-          {['All', ...options].map((o) => <option key={o} value={o}>{o}</option>)}
-        </select>
-        <svg className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a3a3a3]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </div>
-    </div>
-  );
-}
 
 function LevelChips({ levels }: { levels: string[] }) {
   return (
@@ -131,15 +112,6 @@ export default function SignalCatalog({ companyId }: { companyId: string | null 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [drill, setDrill] = useState<Signal | null>(null);
-  const [infoId, setInfoId] = useState<string | null>(null);
-
-  const [search, setSearch] = useState('');
-  const [type, setType] = useState('All');
-  const [source, setSource] = useState('All');
-  const [category, setCategory] = useState('All');
-  // Explicit ordering: field + direction (default keeps the catalog's own order).
-  const [sortBy, setSortBy] = useState<'default' | 'name' | 'category' | 'type' | 'source'>('default');
-  const [sortDir, setSortDir] = useState<1 | -1>(1);
 
   useEffect(() => {
     setLoading(true); setError('');
@@ -147,165 +119,87 @@ export default function SignalCatalog({ companyId }: { companyId: string | null 
       .then(setData).catch((e) => setError(e.message)).finally(() => setLoading(false));
   }, [companyId]);
 
-  const filtered = useMemo(() => {
-    if (!data) return [];
-    const q = search.trim().toLowerCase();
-    const matchesSearch = (s: Signal) => !q || [s.name, s.description, s.ownerRole, s.valueStreamName, s.category, s.source]
-      .some((v) => v?.toLowerCase().includes(q));
-    const rows = data.signals.filter((s) =>
-      matchesSearch(s)
-      && (type === 'All' || s.type === type)
-      && (source === 'All' || s.sourceTokens.includes(source))
-      && (category === 'All' || s.category === category)
-    );
-    if (sortBy === 'default') return rows;
-    const key = (s: Signal) => (sortBy === 'name' ? s.name : sortBy === 'category' ? s.category ?? '' : sortBy === 'type' ? s.type : s.sourceTokens[0] ?? '');
-    return [...rows].sort((a, b) => key(a).localeCompare(key(b)) * sortDir || a.name.localeCompare(b.name));
-  }, [data, search, type, source, category, sortBy, sortDir]);
+  const cols: SheetCol<Signal>[] = [
+    {
+      key: 'name', label: 'Signal', width: 'minmax(0,1.4fr)', value: (s) => s.name,
+      render: (s) => (
+        <>
+          <span className="truncate text-[12px] text-[#171717]">{s.name}</span>
+          {s.kind === 'workforce' && <span className="inline-flex items-center px-1 py-0.5 rounded bg-[#eef2ff] text-[9px] font-semibold text-[#4338ca] uppercase tracking-wide flex-shrink-0">Viva</span>}
+          {s.unsourced && <span className="inline-flex items-center px-1 py-0.5 rounded bg-[#fef3c7] text-[9px] font-semibold text-[#92400e] uppercase tracking-wide flex-shrink-0">No source</span>}
+        </>
+      ),
+    },
+    { key: 'type', label: 'Type', width: '90px', value: (s) => s.type, dim: true },
+    { key: 'source', label: 'Source', width: '150px', values: (s) => s.sourceTokens, dim: true },
+    { key: 'category', label: 'Category', width: '150px', value: (s) => s.category ?? '', dim: true },
+    {
+      // 'Role' is dropped from the chips — role-level rollup is the By-role drill, not a tracking level.
+      key: 'levels', label: 'Tracked at', width: 'minmax(0,1fr)', values: (s) => s.levels.filter((l) => l !== 'Role'),
+      render: (s) => <LevelChips levels={s.levels.filter((l) => l !== 'Role')} />,
+    },
+    { key: 'frequency', label: 'Frequency', width: '110px', value: (s) => s.frequency ?? '', dim: true },
+    {
+      key: 'target', label: 'Target', width: '110px',
+      render: (s) => <SheetCell text={s.target ?? ((s.unit ?? '').trim() || '—')} dim />,
+    },
+    {
+      key: 'owner', label: 'Value stream / Owner', width: 'minmax(0,1fr)',
+      value: (s) => (s.kind === 'kpi' ? s.valueStreamName ?? '' : 'All roles'),
+      render: (s) => s.kind === 'kpi' ? (
+        <span className="truncate text-[12px] text-[#737373]" title={`${s.valueStreamName ?? ''}${s.ownerRole ? ` · ${s.ownerRole}` : ''}`}>
+          {s.valueStreamName ?? '—'}
+          {s.ownerRole && (
+            s.ownerRoleId
+              ? <Link to={`/roles/${s.ownerRoleId}`} onClick={(e) => e.stopPropagation()} className="text-[#4338ca] hover:underline"> · {s.ownerRole}</Link>
+              : <span className="text-[#a3a3a3]"> · {s.ownerRole}</span>
+          )}
+        </span>
+      ) : (
+        <span className="text-[12px] text-[#a3a3a3]">All roles</span>
+      ),
+    },
+    {
+      key: 'drill', label: '', width: '90px',
+      render: (s) => s.roleDrill && s.kind === 'workforce' ? (
+        <button
+          onClick={(e) => { e.stopPropagation(); setDrill(s); }}
+          className="inline-flex items-center gap-1 rounded-md border border-[#dbe7ff] bg-[#f5f8ff] px-2 py-0.5 text-[11px] font-semibold text-[#1d4ed8] hover:bg-[#eaf1ff] transition-colors duration-150"
+        >
+          By role
+          <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M6.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
+      ) : null,
+    },
+  ];
 
-  const reset = () => { setSearch(''); setType('All'); setSource('All'); setCategory('All'); };
-  const anyFilter = !!search || [type, source, category].some((v) => v !== 'All');
+  if (error) return <div className="px-1 py-6 text-sm text-[#be123c]">{error}</div>;
 
   return (
-    <div className="card-elevated overflow-hidden">
-      <div className="px-5 py-3 border-b border-[#eaeaea]">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h2 className="text-sm font-semibold text-[#171717]">Trackable metrics</h2>
-            <p className="text-[11px] text-[#666666] mt-0.5">
-              Every signal the model can measure — workforce telemetry (Viva Insights, Microsoft 365, GitHub) and operating-model KPIs.
-              Click a workforce signal to drill it down to the role level.
-            </p>
-          </div>
-          <span className="text-[11px] text-[#a3a3a3] tnum">
-            {loading ? '—' : `${filtered.length} of ${data?.signals.length ?? 0} signals`}
-          </span>
-        </div>
-
-        {data && (
-          <div className="flex items-end gap-3 flex-wrap mt-3">
-            <div className="min-w-[180px] flex-1">
-              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-1">Search</label>
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Name, description, owner…"
-                className="w-full rounded-lg border border-[#eaeaea] bg-white px-3 py-1.5 text-sm text-[#171717] placeholder:text-[#c4c4c4] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150"
-              />
-            </div>
-            <Dropdown label="Type" value={type} onChange={setType} options={data.filters.types} />
-            <Dropdown label="Source" value={source} onChange={setSource} options={data.filters.sources} />
-            <Dropdown label="Category" value={category} onChange={setCategory} options={data.filters.categories} />
-            <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-1">Sort by</label>
-              <div className="flex items-center gap-1.5">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                  className="rounded-lg border border-[#eaeaea] bg-white px-2.5 py-1.5 text-sm text-[#171717] focus:outline-none focus:ring-1 focus:ring-[#171717]"
-                >
-                  <option value="default">Catalog order</option>
-                  <option value="name">Name (alphabetical)</option>
-                  <option value="category">Category</option>
-                  <option value="type">Type</option>
-                  <option value="source">Source</option>
-                </select>
-                {sortBy !== 'default' && (
-                  <button
-                    onClick={() => setSortDir((d) => (d === 1 ? -1 : 1))}
-                    title="Flip sort direction"
-                    className="text-xs font-medium text-[#525252] hover:text-[#171717] px-1.5 py-1.5"
-                  >
-                    {sortDir === 1 ? 'A → Z' : 'Z → A'}
-                  </button>
-                )}
-              </div>
-            </div>
-            {anyFilter && (
-              <button onClick={reset} className="text-xs text-[#525252] hover:text-[#171717] underline underline-offset-2 pb-2">Clear</button>
-            )}
-          </div>
-        )}
+    <div>
+      <div className="mb-2">
+        <h2 className="text-sm font-semibold text-[#171717]">Trackable metrics</h2>
+        <p className="text-[11px] text-[#666666] mt-0.5">
+          Every signal the model can measure — workforce telemetry (Viva Insights, Microsoft 365, GitHub) and operating-model KPIs.
+          Click a row for its description &amp; provenance; click <span className="font-semibold">By role</span> on a workforce signal to drill it down to the role level.
+        </p>
       </div>
 
-      {loading ? (
-        <div className="px-5 py-10 text-sm text-[#a3a3a3]">Loading signal catalog…</div>
-      ) : error ? (
-        <div className="px-5 py-10 text-sm text-[#be123c]">{error}</div>
-      ) : filtered.length === 0 ? (
-        <div className="px-5 py-10 text-sm text-[#a3a3a3] italic">No signals match the filters.</div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse min-w-[1040px]">
-            <thead>
-              <tr className="border-b border-[#eaeaea] bg-[#fafafa]">
-                {['Signal', 'Source', 'Category', 'Tracked at', 'Frequency', 'Target', 'Value stream / Owner', ''].map((h, i) => (
-                  <th key={i} className="text-left px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((s) => (
-                <tr key={s.id} className="border-b border-[#f5f5f5] hover:bg-[#fafafa] align-top">
-                  <td className="px-4 py-2.5 max-w-[280px]">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm text-[#171717] font-medium leading-tight">{s.name}</span>
-                      {s.kind === 'workforce' && <span className="inline-flex items-center px-1 py-0.5 rounded bg-[#eef2ff] text-[9px] font-semibold text-[#4338ca] uppercase tracking-wide flex-shrink-0">Viva</span>}
-                      {s.unsourced && <span className="inline-flex items-center px-1 py-0.5 rounded bg-[#fef3c7] text-[9px] font-semibold text-[#92400e] uppercase tracking-wide flex-shrink-0">No source</span>}
-                      {(s.provenance || s.calculation) && (
-                        <button
-                          onClick={() => setInfoId(infoId === s.id ? null : s.id)}
-                          aria-label="Show provenance"
-                          aria-expanded={infoId === s.id}
-                          className={'flex-shrink-0 w-4 h-4 rounded-full border text-[9px] font-semibold grid place-items-center transition-colors duration-150 ' + (infoId === s.id ? 'border-[#171717] bg-[#171717] text-white' : 'border-[#d4d4d4] text-[#a3a3a3] hover:border-[#737373] hover:text-[#525252]')}
-                        >
-                          i
-                        </button>
-                      )}
-                    </div>
-                    {s.description && <div className="text-[11px] text-[#a3a3a3] mt-0.5 leading-snug">{s.description}</div>}
-                    {infoId === s.id && (
-                      <div className="mt-1.5 rounded-md bg-[#fafafa] border border-[#eaeaea] px-2 py-1.5 space-y-0.5">
-                        {s.provenance && <div className="text-[11px] text-[#525252] leading-snug"><span className="font-semibold text-[#171717]">Source:</span> {s.provenance}</div>}
-                        {s.calculation && <div className="text-[11px] text-[#525252] leading-snug"><span className="font-semibold text-[#171717]">Calculation:</span> {s.calculation}</div>}
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-4 py-2.5 text-[12px] text-[#525252] whitespace-nowrap">{s.source ?? '—'}</td>
-                  <td className="px-4 py-2.5 whitespace-nowrap">
-                    {s.category && <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#f5f5f5] text-[11px] text-[#525252]">{s.category}</span>}
-                  </td>
-                  <td className="px-4 py-2.5"><LevelChips levels={s.levels} /></td>
-                  <td className="px-4 py-2.5 text-[12px] text-[#525252] whitespace-nowrap">{s.frequency ?? '—'}</td>
-                  <td className="px-4 py-2.5 text-[12px] text-[#525252] whitespace-nowrap">{s.target ?? ((s.unit ?? '').trim() || '—')}</td>
-                  <td className="px-4 py-2.5 text-[12px] text-[#525252] max-w-[220px]">
-                    {s.kind === 'kpi' ? (
-                      <div>
-                        <div className="truncate" title={s.valueStreamName ?? ''}>{s.valueStreamName ?? '—'}</div>
-                        {s.ownerRole && (
-                          s.ownerRoleId
-                            ? <Link to={`/roles/${s.ownerRoleId}`} className="text-[11px] text-[#4338ca] hover:underline truncate block" title={s.ownerRole}>{s.ownerRole} →</Link>
-                            : <div className="text-[10px] text-[#a3a3a3] truncate" title={s.ownerRole}>{s.ownerRole}</div>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-[#a3a3a3]">All roles</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2.5 whitespace-nowrap text-right">
-                    {s.roleDrill && s.kind === 'workforce' && (
-                      <button onClick={() => setDrill(s)} className="inline-flex items-center gap-1 rounded-md border border-[#dbe7ff] bg-[#f5f8ff] px-2 py-1 text-[11px] font-semibold text-[#1d4ed8] hover:bg-[#eaf1ff] transition-colors duration-150">
-                        By role
-                        <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M6.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <Sheet
+        rows={data?.signals ?? []}
+        cols={cols}
+        rowKey={(s) => s.id}
+        loading={loading}
+        summarize={(v) => `${v.filter((s) => s.kind === 'workforce').length} workforce · ${v.filter((s) => s.kind === 'kpi').length} KPIs · ${v.filter((s) => s.kind === 'system').length} system`}
+        expand={(s) => (
+          <div className="space-y-1 text-[12px] text-[#525252]">
+            {s.description && <div>{s.description}</div>}
+            {s.provenance && <div><span className="font-semibold text-[#171717]">Source:</span> {s.provenance}</div>}
+            {s.calculation && <div><span className="font-semibold text-[#171717]">Calculation:</span> {s.calculation}</div>}
+            {!s.description && !s.provenance && !s.calculation && <div className="text-[#a3a3a3] italic">No further detail for this signal.</div>}
+          </div>
+        )}
+      />
 
       {drill && <RoleDrawer signal={drill} companyId={companyId} onClose={() => setDrill(null)} />}
     </div>

@@ -7,17 +7,21 @@ import { prisma } from '../db/prisma.js';
 // company (assigned or not — the org table renders any unassigned remainder in
 // an explicit bucket rather than dropping it).
 export async function structureCounts(tenantId: string, companyId: string) {
-  const [grouped, people] = await Promise.all([
+  const [grouped, people, hidden] = await Promise.all([
     prisma.node.groupBy({ by: ['typeKey'], where: { companyId }, _count: { _all: true } }),
     prisma.person.count({ where: { tenantId, companyId } }),
+    // Nodes hidden from the UI (Node.attributes.hidden) don't count — every
+    // headline figure must match what the rendering views show.
+    prisma.node.groupBy({ by: ['typeKey'], where: { companyId, typeKey: { in: ['value_stream', 'role'] }, attributes: { path: ['hidden'], equals: true } }, _count: { _all: true } }),
   ]);
   const n: Record<string, number> = Object.fromEntries(grouped.map((g) => [g.typeKey, g._count._all]));
+  const h: Record<string, number> = Object.fromEntries(hidden.map((g) => [g.typeKey, g._count._all]));
   return {
     segments: n.segment ?? 0,
     divisions: n.division ?? 0,
     departments: n.department ?? 0,
-    roles: n.role ?? 0,
-    valueStreams: n.value_stream ?? 0,
+    roles: (n.role ?? 0) - (h.role ?? 0),
+    valueStreams: (n.value_stream ?? 0) - (h.value_stream ?? 0),
     subProcesses: n.sub_process ?? 0,
     steps: n.step ?? 0,
     ioItems: n.io_item ?? 0,

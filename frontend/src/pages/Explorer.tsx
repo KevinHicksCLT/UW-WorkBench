@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../lib/api';
+import { useHeaderBreadcrumbSlot } from '../lib/breadcrumbs';
 import MapCanvas from '../viz/MapCanvas';
 import ListExplorer from '../components/ListExplorer';
 import type { DivisionSummary } from '../viz/model';
@@ -38,7 +39,6 @@ function ViewToggle({ view, onChange }: { view: View; onChange: (v: View) => voi
 export default function Explorer() {
   const [divisions, setDivisions] = useState<DivisionSummary[]>([]);
   const [companyName, setCompanyName] = useState('Enterprise');
-  const [crumbSlot, setCrumbSlot] = useState<HTMLElement | null>(null);
   const [streams, setStreams] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -92,14 +92,12 @@ export default function Explorer() {
     return () => { cancelled = true; };
   }, []);
 
+  // In map view the drill breadcrumb claims the GLOBAL header bar (Layout's
+  // BreadcrumbBar) and MapCanvas portals into it — no in-page header strip.
+  const crumbSlot = useHeaderBreadcrumbSlot(view === 'map');
+
   return (
     <div className="flex flex-col h-full min-h-0">
-      {/* Page header */}
-      <header className="flex-shrink-0 px-6 pt-4 pb-3 border-b border-[#eaeaea] bg-white">
-        {/* Breadcrumb / hint lives here — MapCanvas portals its breadcrumb into this slot. */}
-        <div ref={setCrumbSlot} className="min-h-[24px] flex items-center" />
-      </header>
-
       <div className="relative flex-1 min-h-0 overflow-hidden">
         {/* Hovering toggle: interactive map ↔ list view */}
         <ViewToggle view={view} onChange={setView} />

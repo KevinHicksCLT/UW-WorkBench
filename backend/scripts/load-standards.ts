@@ -17,7 +17,8 @@ import { fileURLToPath } from 'node:url';
 import { prisma } from '../src/db/prisma.js';
 
 const STD_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '../../standards');
-const AREA = 'Cybersecurity & ISO';
+// Renamed from "Cybersecurity & ISO" (defect backlog 02, D5.4 — no abbreviations).
+const AREA = 'Information Security';
 
 type RawStandard = {
   id: string; standard: string; whatItMeans: string; phase: string; responsibleRole: string;

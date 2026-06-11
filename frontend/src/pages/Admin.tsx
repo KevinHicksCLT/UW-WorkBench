@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
 import PageHeader from '../components/PageHeader';
 import DataDictionary from './DataDictionary';
+import AuditTrail from './AuditTrail';
 import AdminSection from '../components/admin/AdminSection';
 import AdminAssistant from '../components/admin/AdminAssistant';
 import { ADMIN_TABS } from '../lib/adminConfig';
@@ -12,17 +12,19 @@ import type { AdminEntity } from '../lib/adminTypes';
 // Two-letter abbreviations shown in the left nav when it's collapsed.
 const TAB_SHORT: Record<string, string> = {
   company: 'CO', home: 'HM', valueStreams: 'VS', organization: 'OR', standards: 'ST',
-  telemetry: 'TE', initiatives: 'IN', work: 'DT', people: 'PE', external: 'EX', catalog: 'DC',
+  regulations: 'RG', telemetry: 'ME', initiatives: 'WS', work: 'DT', applications: 'AP',
+  people: 'PE', external: 'EX', health: 'DH',
 };
 
 // ─── Data Admin Studio ───────────────────────────────────────────────────────
-// One console to configure every tab of the product. The top nav mirrors the
+// One console to configure every tab of the product. The left nav mirrors the
 // app's own navigation (Company onboarding, Home, Value Streams, Organization,
-// Standards, Telemetry, Initiatives, Deliverables & Tasks, People, External) plus
-// a power-user Data Catalog. Each tab renders a tailored editor for its data
+// Standards, Metrics, Workspace, Deliverables & Tasks, People, Regulations,
+// Third-Parties, Data Health). Each tab renders a tailored editor for its data
 // shape (drill-down trees, master-detail, or flat lists) — defined in
-// lib/adminConfig.ts. An AI assistant can draft and apply changes on request.
-// Everything is company-scoped and every write is audited.
+// lib/adminConfig.ts; the app speaks the domain, never raw database tables.
+// An AI assistant can draft and apply changes on request. Everything is
+// company-scoped and every write is audited.
 
 export default function Admin() {
   const { companyId, company } = useCompany();
@@ -30,7 +32,7 @@ export default function Admin() {
   const [error, setError] = useState('');
   const [tabKey, setTabKey] = useState<string>(ADMIN_TABS[0].key);
   const [sectionKey, setSectionKey] = useState<string>(ADMIN_TABS[0].sections[0].key);
-  const [view, setView] = useState<'studio' | 'dictionary'>('studio');
+  const [view, setView] = useState<'studio' | 'audit' | 'dictionary'>('studio');
   const [navCollapsed, setNavCollapsed] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0); // bumped after AI applies changes
@@ -69,23 +71,22 @@ export default function Admin() {
         subtitle={
           view === 'dictionary'
             ? 'Plain-language definitions of the terms used across the platform.'
-            : `Configure every screen of the platform for ${company?.name ?? 'the active company'}. The tabs below mirror the app; pick one to edit what it shows. All changes are audited.`
+            : view === 'audit'
+              ? 'Every create, update, and delete across the platform.'
+              : `Configure every screen of the platform for ${company?.name ?? 'the active company'}. The tabs below mirror the app; pick one to edit what it shows. All changes are audited.`
         }
         eyebrow={company ? 'Editing company' : undefined}
         actions={
-          <div className="flex items-center gap-2">
-            <button onClick={() => setAiOpen(true)} className="btn-primary inline-flex items-center gap-1.5" disabled={!companyId}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.9 5.6L19.5 9l-4.6 3.3 1.8 5.7L12 14.7 7.3 18l1.8-5.7L4.5 9l5.6-.4z" /></svg>
-              AI assist
-            </button>
-            <Link to="/audit" className="btn-secondary">Audit trail</Link>
-          </div>
+          <button onClick={() => setAiOpen(true)} className="btn-primary inline-flex items-center gap-1.5" disabled={!companyId}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.9 5.6L19.5 9l-4.6 3.3 1.8 5.7L12 14.7 7.3 18l1.8-5.7L4.5 9l5.6-.4z" /></svg>
+            AI assist
+          </button>
         }
       />
 
-      {/* View switch */}
+      {/* View switch — Configure, then Audit Log, then the Dictionary (D12.2). */}
       <div className="inline-flex rounded-lg border border-[#eaeaea] p-0.5 mb-5">
-        {([['studio', 'Configure'], ['dictionary', 'Data Dictionary']] as const).map(([v, label]) => (
+        {([['studio', 'Configure'], ['audit', 'Audit Log'], ['dictionary', 'Data Dictionary']] as const).map(([v, label]) => (
           <button
             key={v}
             onClick={() => setView(v)}
@@ -100,6 +101,8 @@ export default function Admin() {
 
       {view === 'dictionary' ? (
         <DataDictionary embedded />
+      ) : view === 'audit' ? (
+        <AuditTrail embedded />
       ) : (
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left sidebar — collapsible primary navigation (mirrors the product nav). */}
@@ -179,7 +182,7 @@ export default function Admin() {
             {/* The active editor. refreshKey forces a remount after AI applies edits. */}
             <div key={`${tab.key}:${section.key}:${refreshKey}`}>
               {entities.length === 0 ? (
-                <div className="card-elevated p-10 text-center text-sm text-[#a3a3a3]">Loading tables…</div>
+                <div className="card-elevated p-10 text-center text-sm text-[#a3a3a3]">Loading…</div>
               ) : (
                 <AdminSection
                   spec={section.editor}
