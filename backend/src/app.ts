@@ -16,6 +16,7 @@ import roleRoutes from './routes/roles.js';
 import valueStreamRoutes from './routes/valueStreams.js';
 import externalInteractionRoutes from './routes/externalInteractions.js';
 import explorerRoutes from './routes/explorer.js';
+import aiAnalysisRoutes from './routes/aiAnalysis.js';
 import applicationRoutes from './routes/applications.js';
 import searchRoutes from './routes/search.js';
 import adminRoutes from './routes/admin.js';
@@ -65,6 +66,7 @@ app.use('/roles', roleRoutes);
 app.use('/value-streams', valueStreamRoutes);
 app.use('/external-interactions', externalInteractionRoutes);
 app.use('/explorer', explorerRoutes);
+app.use('/ai-analysis', aiAnalysisRoutes);
 app.use('/applications', applicationRoutes);
 app.use('/search', searchRoutes);
 // Mount the AI overlay + role-context before the generic admin router so their

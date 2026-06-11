@@ -162,8 +162,8 @@ Each AC is checked off by exercising the running app (Playwright) + querying the
 | D3 VS map | DONE (top-pinned camera, 143×65 boxes w/ wrapped labels, sidebar gated off, sentence-case labels, 11px breadcrumb; parallelism analysis documented) |
 | D4 Organization | DONE (grid + sort, people removed, List & Map tabs) |
 | D5 Standards | DONE (sortable grid, owner column removed, hyperlink drill-downs, Information Security rename in DB+seed+scripts, blank search, illustrative provenance tags; audit documented) |
-| D6 Metrics | rename + redirects DONE; AI-adoption refactor pending |
-| D7 Workspace | rename DONE; restructure pending |
+| D6 Metrics | DONE (two-stage page: AnalysisStatus coverage + Task.aiDisposition adoption breakdowns by group/role/category/deliverable/stream; heat map demoted; compact stats; new tables Data Admin-editable) |
+| D7 Workspace | cascade + declutter DONE; Portfolio/Programs/Risks/RAID move to Home lands with D1 |
 | D8 Deliverables & Tasks | DONE (tabs split, declutter, 305 titles recased, dupes audited) |
 | D9 Third-Parties | rename + frequency column DONE; owner review pending |
 | D10 Bridge Assistant | DONE (renamed; live reply verified — tables/lists render as HTML, no raw markdown) |

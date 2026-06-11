@@ -82,6 +82,7 @@ const LABEL_OVERRIDES: Record<string, string> = {
   complianceRule: 'ruleCode',
   jurisdictionIntegration: 'usage',
   requirementValueStream: 'relationship',
+  analysisStatus: 'subjectType',
 };
 
 // The raw value-stream tables back FK pickers elsewhere, so they stay resolvable
@@ -100,7 +101,7 @@ const GROUPS: { group: string; slugs: string[] }[] = [
   { group: 'Organization', slugs: ['organization', 'company', 'valueStreamDomain', 'division', 'department', 'role'] },
   { group: 'Value Streams', slugs: ['valueStreams', 'subValueStream', 'processStep', 'ioItem', 'stepAppUsage', 'stepDeliverable'] },
   { group: 'Role Work', slugs: ['category', 'checklistItem', 'roleTask', 'roleValueStream'] },
-  { group: 'Applications & Metrics', slugs: ['application', 'applicationValueStream', 'metric', 'telemetrySignal', 'standard', 'standardItem'] },
+  { group: 'Applications & Metrics', slugs: ['application', 'applicationValueStream', 'metric', 'telemetrySignal', 'analysisStatus', 'standard', 'standardItem'] },
   { group: 'People', slugs: ['person', 'assignment', 'personTask', 'personMetric', 'personAppUsage', 'personSignal'] },
   { group: 'Change & Risk', slugs: ['initiative', 'initiativeValueStream', 'initiativeDivision', 'risk', 'scenario'] },
   { group: 'Deliverables & Tasks', slugs: ['deliverable', 'task'] },
