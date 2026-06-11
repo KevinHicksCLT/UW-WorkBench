@@ -157,13 +157,13 @@ Each AC is checked off by exercising the running app (Playwright) + querying the
 
 | Defect | Status |
 | --- | --- |
-| D1 Home rework | pending |
+| D1 Home rework | DONE (six new widgets: portfolio rollup, program Gantt w/ milestones+today line, OKRs, top risks, RAID summary, workforce signals; Portfolio/Programs/Risks/RAID moved from Workspace; jiraKey stub on Task+Deliverable w/ JIRA chip; baseline plan verified credible + Jira keys seeded; all configurable in Data Admin → Home) |
 | D2 VS list | DONE (grid + sort + expand/collapse-all, 27px rows, no Domain/Division rows, flush top). 29-vs-36 count mismatch RESOLVED: 7 Life & Retirement streams had no division parent (no role links either) — re-parented to their closest functional division via `scripts/fix-vs-orphans.ts`; list and Home now both read 36 from the same node tree |
 | D3 VS map | DONE (top-pinned camera, 143×65 boxes w/ wrapped labels, sidebar gated off, sentence-case labels, 11px breadcrumb; parallelism analysis documented) |
 | D4 Organization | DONE (grid + sort, people removed, List & Map tabs) |
 | D5 Standards | DONE (sortable grid, owner column removed, hyperlink drill-downs, Information Security rename in DB+seed+scripts, blank search, illustrative provenance tags; audit documented) |
 | D6 Metrics | DONE (two-stage page: AnalysisStatus coverage + Task.aiDisposition adoption breakdowns by group/role/category/deliverable/stream; heat map demoted; compact stats; new tables Data Admin-editable) |
-| D7 Workspace | cascade + declutter DONE; Portfolio/Programs/Risks/RAID move to Home lands with D1 |
+| D7 Workspace | DONE (cascade + declutter; Portfolio/Programs/Risks/RAID moved to Home; Workspace = App Rationalization Workspace, full width) |
 | D8 Deliverables & Tasks | DONE (tabs split, declutter, 305 titles recased, dupes audited) |
 | D9 Third-Parties | rename + frequency column DONE; owner review pending |
 | D10 Bridge Assistant | DONE (renamed; live reply verified — tables/lists render as HTML, no raw markdown) |

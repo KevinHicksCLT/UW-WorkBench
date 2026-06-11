@@ -134,7 +134,7 @@ router.get('/deliverable/:id', async (req: Request, res: Response, next: NextFun
     const vs = d.valueStreamId ? vsMap.get(d.valueStreamId) ?? null : null;
     res.json({
       kind: 'deliverable',
-      id: d.id, title: d.title, description: d.description, type: d.type, owner: d.owner,
+      id: d.id, title: d.title, description: d.description, type: d.type, owner: d.owner, jiraKey: d.jiraKey,
       valueStream: vs ? { id: vs.id, name: vs.name, domain: vs.domain } : null,
       subProcesses, dataElements, inputs,
       assignedRoles: assigned.roles, assignedExtra: assigned.unresolved,
@@ -199,7 +199,7 @@ router.get('/task/:id', async (req: Request, res: Response, next: NextFunction) 
     const vs = step ? { id: step.valueStream.id, name: step.valueStream.name } : (dvs ? { id: dvs.id, name: dvs.name } : null);
     res.json({
       kind: 'task',
-      id: t.id, title: t.title, owner: t.owner, priority: t.priority,
+      id: t.id, title: t.title, owner: t.owner, priority: t.priority, jiraKey: t.jiraKey,
       valueStream: vs,
       subProcess: step ? [step.l3, step.l4].filter(Boolean).join(' · ') || null : null,
       leadRoles: leadRoles.roles, leadExtra: leadRoles.unresolved,

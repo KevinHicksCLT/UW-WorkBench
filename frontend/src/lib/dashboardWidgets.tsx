@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { fmt } from './format';
+import {
+  PortfolioRollup, ProgramGantt, OkrList, TopRisks, RaidSummary, WorkforceSignals,
+  type TransformationData,
+} from '../components/home/TransformationWidgets';
 
 // ─── Home dashboard widget catalog ───────────────────────────────────────────
 // The single source of truth for what the Home dashboard CAN show. Overview.tsx
@@ -26,6 +30,10 @@ export type Dashboard = {
   financials: { annualNetImpact: number; annualBenefit: number; annualAddedCost: number; oneTimeCost: number; appRunCost: number };
   topValueStreams: { id: string; name: string; domain: string | null; roles: number }[];
   topDivisions: { id: string; name: string; higherCategory: string | null; roles: number }[];
+  // Transformation command-center slice (D1) — programs→initiatives rollup,
+  // Gantt, OKRs, risks/RAID, workforce signals. Optional so older payloads
+  // (or a backend mid-deploy) degrade gracefully.
+  transformation?: TransformationData | null;
 };
 
 // Where an admin jumps to edit the data behind a widget (Data Admin tab/section).
@@ -35,7 +43,7 @@ export type Widget = {
   id: string;
   title: string;
   desc: string; // shown in the configurator
-  kind: 'tile' | 'card';
+  kind: 'tile' | 'card' | 'wide'; // wide = a card spanning the full grid width
   source?: WidgetSource;
   render: (d: Dashboard) => ReactNode;
 };
@@ -160,7 +168,68 @@ export const FOOTPRINT_STATS: Record<string, { key: string; label: string; to: s
 };
 export const FOOTPRINT_DEFAULT: string[] = ['subProcesses', 'ioItems', 'externalParties', 'standards'];
 
+// Transformation widgets read the `transformation` slice; until the backend
+// serves it (older payloads), they render a quiet placeholder.
+const txn = (d: Dashboard, body: (t: TransformationData) => ReactNode): ReactNode =>
+  d.transformation ? body(d.transformation) : <div className="text-sm text-[#a3a3a3]">No transformation data yet.</div>;
+
 export const WIDGET_CATALOG: Widget[] = [
+  // ── Transformation command center (D1) ──
+  {
+    id: 'card:portfolioRollup', title: 'Transformation portfolio', kind: 'wide', source: SRC.initiatives,
+    desc: 'Programs → initiatives rollup: health, % complete, net benefit',
+    render: (d) => (
+      <Card title={wt(d, 'card:portfolioRollup', 'Transformation portfolio')}>
+        {txn(d, (t) => <PortfolioRollup t={t} />)}
+      </Card>
+    ),
+  },
+  {
+    id: 'card:gantt', title: 'Timeline (Gantt)', kind: 'wide', source: SRC.initiatives,
+    desc: 'Program timeline — one lane per program, milestone diamonds, today line',
+    render: (d) => (
+      <Card title={wt(d, 'card:gantt', 'Timeline (Gantt)')}>
+        {txn(d, (t) => <ProgramGantt t={t} />)}
+      </Card>
+    ),
+  },
+  {
+    id: 'card:okrs', title: 'Objectives & key results', kind: 'card', source: SRC.initiatives,
+    desc: 'Strategic objectives with delivery-weighted achievement bars',
+    render: (d) => (
+      <Card title={wt(d, 'card:okrs', 'Objectives & key results')}>
+        {txn(d, (t) => <OkrList t={t} />)}
+      </Card>
+    ),
+  },
+  {
+    id: 'card:openRisks', title: 'Open risks', kind: 'card', source: SRC.risks,
+    desc: 'Top open portfolio risks by severity',
+    render: (d) => (
+      <Card title={wt(d, 'card:openRisks', 'Open risks')} to="/portfolio/raid" toLabel="RAID log">
+        {txn(d, (t) => <TopRisks t={t} />)}
+      </Card>
+    ),
+  },
+  {
+    id: 'card:raidSummary', title: 'RAID log', kind: 'card', source: SRC.risks,
+    desc: 'Open RAID counts — risks, issues, assumptions, decisions',
+    render: (d) => (
+      <Card title={wt(d, 'card:raidSummary', 'RAID log')} to="/portfolio/raid" toLabel="RAID log">
+        {txn(d, (t) => <RaidSummary t={t} />)}
+      </Card>
+    ),
+  },
+  {
+    id: 'card:workforceSignals', title: 'Workforce signals', kind: 'card', source: SRC.people,
+    desc: 'Viva-style rollup — focus hours, meeting load, collaboration averages',
+    render: (d) => (
+      <Card title={wt(d, 'card:workforceSignals', 'Workforce signals')} to="/metrics" toLabel="Metrics">
+        {txn(d, (t) => <WorkforceSignals t={t} />)}
+      </Card>
+    ),
+  },
+
   // Headline count tiles
   tile('tile:divisions', 'Divisions', 'divisions', { hint: (t) => `${t.departments} departments`, to: '/roles', source: SRC.org }),
   tile('tile:roles', 'Roles', 'roles', { to: '/roles', source: SRC.org }),
@@ -289,13 +358,18 @@ export const WIDGET_CATALOG: Widget[] = [
 
 export const WIDGET_MAP: Map<string, Widget> = new Map(WIDGET_CATALOG.map((w) => [w.id, w]));
 
-// The out-of-the-box layout (mirrors the original fixed dashboard) used when a
-// company has never configured one.
+// The out-of-the-box layout used when a company has never configured one:
+// the transformation command center first (D1), then the original tiles.
+// (Companies with a SAVED layout get the new widgets merged in by
+// backend/scripts/seed-baseline-plan.ts — keep its NEW_WIDGETS list in sync.)
 export const DEFAULT_LAYOUT: string[] = [
+  'card:portfolioRollup', 'card:gantt', 'card:okrs', 'card:openRisks', 'card:raidSummary', 'card:workforceSignals',
   'tile:divisions', 'tile:roles', 'tile:valueStreams', 'tile:initiatives', 'tile:deliverables', 'tile:tasks',
   'card:workforce', 'card:modelFootprint',
 ];
 
 // Tailwind span for a widget within the 6-col responsive dashboard grid.
 export const widgetSpan = (kind: Widget['kind']) =>
-  kind === 'card' ? 'col-span-2 sm:col-span-3 lg:col-span-3' : 'col-span-1';
+  kind === 'wide' ? 'col-span-2 sm:col-span-3 lg:col-span-6'
+  : kind === 'card' ? 'col-span-2 sm:col-span-3 lg:col-span-3'
+  : 'col-span-1';

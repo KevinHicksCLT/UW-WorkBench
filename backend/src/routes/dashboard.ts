@@ -22,6 +22,15 @@ function ordered(rows: { _count: { _all: number } }[], field: string, order?: st
   return keys.map((key) => ({ key, count: map.get(key) ?? 0 }));
 }
 
+// ── Transformation command center (D1) ──────────────────────────────────────
+// How far through the stage-gate funnel an initiative is, as a fraction. Drives
+// the rolled-up % complete on programs and the objective achievement bars.
+const STAGE_PROGRESS: Record<string, number> = { IDEA: 0, PLAN: 0.25, EXECUTE: 0.55, REALIZE: 0.8, COMPLETE: 1 };
+// A parent's effective health is its WORST child's (mirrors /portfolio I13).
+const STATUS_SEV: Record<string, number> = { ON_TRACK: 0, AT_RISK: 1, OFF_TRACK: 2 };
+const worstStatus = (statuses: string[], fallback: string) =>
+  statuses.length ? statuses.reduce((a, s) => ((STATUS_SEV[s] ?? 0) > (STATUS_SEV[a] ?? 0) ? s : a), 'ON_TRACK') : fallback;
+
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const tenantId = req.tenantId;
@@ -124,6 +133,100 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       .sort((a, b) => b.roles - a.roles)
       .slice(0, 8);
 
+    // ── Transformation command-center rollups (D1 Home widgets) ──────────────
+    const [programs, objectives, latestSignal, topRisksRaw, raidOpenGroups] = await Promise.all([
+      // Programs → workstreams → initiatives (+ their milestones): one query
+      // feeds both the portfolio rollup widget and the Gantt timeline.
+      prisma.program.findMany({
+        where: w,
+        orderBy: { startDate: 'asc' },
+        select: {
+          id: true, name: true, status: true, startDate: true, endDate: true,
+          workstreams: {
+            select: {
+              initiatives: {
+                select: {
+                  id: true, name: true, stage: true, status: true, cumulativeNetBenefit: true,
+                  milestones: { select: { id: true, name: true, dueDate: true, status: true }, orderBy: { dueDate: 'asc' } },
+                },
+              },
+            },
+          },
+        },
+      }),
+      prisma.strategicObjective.findMany({
+        where: { tenantId, companyId },
+        orderBy: [{ weight: 'desc' }, { createdAt: 'asc' }],
+        select: { id: true, name: true, weight: true, links: { select: { impact: true, initiative: { select: { stage: true } } } } },
+      }),
+      prisma.personSignal.aggregate({ where: { person: { companyId } }, _max: { period: true } }),
+      prisma.raidItem.findMany({
+        where: { type: 'RISK', status: 'OPEN', initiative: { companyId } },
+        orderBy: { severity: 'desc' },
+        take: 5,
+        select: { id: true, title: true, severity: true, status: true, initiative: { select: { id: true, name: true } } },
+      }),
+      prisma.raidItem.groupBy({ by: ['type'], where: { status: 'OPEN', initiative: { companyId } }, _count: { _all: true } }),
+    ]);
+
+    // Viva-style workforce rollup: company-wide averages of the per-person
+    // digital-productivity signals for the most recent period seeded.
+    const signalPeriod = latestSignal._max.period;
+    const signalRows = signalPeriod
+      ? await prisma.personSignal.groupBy({
+          by: ['name', 'unit'],
+          where: { period: signalPeriod, person: { companyId } },
+          _avg: { value: true },
+          _count: { _all: true },
+        })
+      : [];
+
+    const transformation = {
+      programs: programs.map((p) => {
+        const inits = p.workstreams.flatMap((ws) => ws.initiatives);
+        return {
+          id: p.id, name: p.name, status: p.status,
+          computedStatus: worstStatus(inits.map((i) => i.status), p.status),
+          startDate: p.startDate, endDate: p.endDate,
+          pctComplete: inits.length
+            ? Math.round((inits.reduce((a, i) => a + (STAGE_PROGRESS[i.stage] ?? 0), 0) / inits.length) * 100)
+            : 0,
+          netBenefit: inits.reduce((a, i) => a + i.cumulativeNetBenefit, 0),
+          initiatives: inits.map((i) => ({
+            id: i.id, name: i.name, stage: i.stage, status: i.status,
+            netBenefit: i.cumulativeNetBenefit,
+            pctComplete: Math.round((STAGE_PROGRESS[i.stage] ?? 0) * 100),
+          })),
+          milestones: inits.flatMap((i) =>
+            i.milestones.map((m) => ({ id: m.id, name: m.name, dueDate: m.dueDate, status: m.status, initiativeName: i.name })),
+          ),
+        };
+      }),
+      // Objective achievement = impact-weighted delivery progress of the linked
+      // initiatives (the portfolio has no separate key-result table; the
+      // InitiativeObjective links ARE the key results being delivered).
+      okrs: objectives.map((o) => {
+        const impactSum = o.links.reduce((a, l) => a + l.impact, 0);
+        return {
+          id: o.id, name: o.name, weight: o.weight, initiatives: o.links.length,
+          achievement: impactSum
+            ? Math.round((o.links.reduce((a, l) => a + l.impact * (STAGE_PROGRESS[l.initiative.stage] ?? 0), 0) / impactSum) * 100)
+            : 0,
+        };
+      }),
+      workforceSignals: {
+        period: signalPeriod,
+        signals: signalRows
+          .map((r) => ({ name: r.name, unit: r.unit, value: Math.round((r._avg.value ?? 0) * 10) / 10, people: r._count._all }))
+          .sort((a, b) => a.name.localeCompare(b.name)),
+      },
+      topRisks: topRisksRaw.map((r) => ({
+        id: r.id, title: r.title, severity: r.severity, status: r.status,
+        initiativeId: r.initiative.id, initiativeName: r.initiative.name,
+      })),
+      raidOpen: Object.fromEntries(raidOpenGroups.map((g) => [g.type, g._count._all])),
+    };
+
     // Portfolio status (ON_TRACK | AT_RISK | OFF_TRACK) → friendly label + RAG health.
     const statusCount = (s: string) => statusGroups.find((g) => g.status === s)?._count._all ?? 0;
     const STATUS_LABEL: [string, string][] = [['ON_TRACK', 'On track'], ['AT_RISK', 'At risk'], ['OFF_TRACK', 'Off track']];
@@ -167,6 +270,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       },
       topValueStreams,
       topDivisions,
+      transformation,
     });
   } catch (e) {
     next(e);

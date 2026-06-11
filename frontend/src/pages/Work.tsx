@@ -27,6 +27,7 @@ type RoleRef = { id: string; name: string };
 type RoleSet = { roles: RoleRef[]; unresolved: string[] };
 type DeliverableDetail = {
   kind: 'deliverable'; id: string; title: string; description: string | null; type: string; owner: string | null;
+  jiraKey: string | null;
   valueStream: { id: string; name: string; domain: string } | null;
   subProcesses: string[]; dataElements: string[];
   inputs: { name: string; dataElements: string[]; roles: RoleSet }[];
@@ -36,6 +37,7 @@ type DeliverableDetail = {
 };
 type TaskDetail = {
   kind: 'task'; id: string; title: string; owner: string | null; priority: string;
+  jiraKey: string | null;
   valueStream: { id: string; name: string } | null; subProcess: string | null;
   leadRoles: RoleRef[]; leadExtra: string[]; supportRoles: RoleRef[]; supportExtra: string[];
   outputs: string[];
@@ -238,6 +240,11 @@ function DetailBody({ detail }: { detail: Detail }) {
             ? <span className="pill-slate text-xs">{detail.type}</span>
             : <span className={`${PRIORITY_PILL[detail.priority] ?? 'pill-slate'} text-xs`}>{detail.priority}</span>}
           {detail.owner && <span className="pill-slate text-xs">Owner · {detail.owner}</span>}
+          {detail.jiraKey && (
+            <span className="pill-blue text-xs" title="Linked Jira issue (integration stub — no live sync yet)">
+              JIRA {detail.jiraKey}
+            </span>
+          )}
         </div>
       </div>
 
