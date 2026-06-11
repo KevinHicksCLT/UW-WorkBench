@@ -1,15 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import OrgListExplorer from '../components/OrgListExplorer';
+import OrgMapCanvas from '../viz/OrgMapCanvas';
 import OrgTable from './OrgTable';
 
 // Organization tab — mirrors the Value Streams tab: a floating segmented control
-// toggles between two views of the SAME org spine (D4.3 — the old "Table"
-// sub-tab is gone; Map is the second tab, like Value Streams):
+// toggles between two views of the SAME org spine:
 //   List — Excel-like drill-down grid (Domain › Division › Department › Role)
 //          with the shared metrics sidebar.
-//   Map  — the box-grid spatial drill-down (OrgTable), kept intact.
-type View = 'list' | 'map';
+//   Map  — a literal spatial drill-down map (OrgMapCanvas, react-flow), like the
+//          Value Streams map: Company → Segment → Division → Team → Role.
+// A third, toggle-less surface — 'detail' — renders the old OrgTable drill-down
+// for the `?role=<id>` and `?view=departments` deep links (role detail and the
+// departments overview only exist there; the map's role leaves link into it).
+type View = 'list' | 'map' | 'detail';
 
 // Floating segmented control — hovers over the content; List ↔ Map.
 function ViewToggle({ view, onChange }: { view: View; onChange: (v: View) => void }) {
@@ -36,26 +40,43 @@ function ViewToggle({ view, onChange }: { view: View; onChange: (v: View) => voi
   );
 }
 
+const hasDeepLink = (sp: URLSearchParams) => sp.get('view') === 'departments' || !!sp.get('role');
+
 export default function Organization() {
   // `?view=departments` (home "Departments" tile) and `?role=<id>` (links from
-  // Work / External / Standards / the map) deep-link into the box-grid
-  // drill-down — land on the Map view so OrgTable handles the param.
+  // Work / External / Standards / the org map's role leaves) deep-link into the
+  // OrgTable drill-down — the 'detail' surface. OrgTable itself consumes and
+  // clears the params, so this only latches the surface on (it must not flip
+  // back when the params disappear).
   const [searchParams] = useSearchParams();
-  const [view, setView] = useState<View>(
-    searchParams.get('view') === 'departments' || searchParams.get('role') ? 'map' : 'list',
-  );
+  const [view, setView] = useState<View>(hasDeepLink(searchParams) ? 'detail' : 'list');
+  useEffect(() => {
+    if (hasDeepLink(searchParams)) setView('detail');
+  }, [searchParams]);
+
+  // Slot the map's breadcrumb portals into (same pattern as the VS Explorer).
+  const [crumbSlot, setCrumbSlot] = useState<HTMLElement | null>(null);
 
   return (
     <div className="flex flex-col h-full min-h-0">
+      {/* Page header — map view only (OrgMapCanvas portals its breadcrumb here). */}
+      {view === 'map' && (
+        <header className="flex-shrink-0 px-6 py-1.5 border-b border-[#eaeaea] bg-white">
+          <div ref={setCrumbSlot} className="min-h-[18px] flex items-center" />
+        </header>
+      )}
+
       <div className="relative flex-1 min-h-0 overflow-hidden">
         <ViewToggle view={view} onChange={setView} />
 
         {view === 'list' ? (
           <OrgListExplorer />
+        ) : view === 'map' ? (
+          // Map view: a literal drill-down map of the org spine, full-bleed.
+          <OrgMapCanvas breadcrumbSlot={crumbSlot} />
         ) : (
-          // Map view: the original OrgTable box drill-down, in a scrollable
-          // centered container (matching the app's standard detail-page shell).
-          // Top padding clears the floating toggle.
+          // Detail surface (deep links only): the OrgTable drill-down, in a
+          // scrollable centered container. Top padding clears the floating toggle.
           <div className="h-full overflow-auto">
             <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-6">
               <OrgTable />

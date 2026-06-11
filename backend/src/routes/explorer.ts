@@ -578,7 +578,9 @@ type MetricItem = { label: string; value: number; hint?: string; sub?: string; f
 // kind 'tree' renders items with their nested children (collapsible); a hidden
 // section is drawer-only — reached by clicking the tile that names it; an
 // `expanded` tree opens every level on load (the L5 deliverable chain).
-type MetricSection = { title: string; kind: 'bar' | 'list' | 'kpi' | 'tree'; items: MetricItem[]; illustrative?: boolean; hidden?: boolean; expanded?: boolean };
+// `emptyText` keeps the section visible with an honest empty state when a
+// level has no rows (the four primary drill groups always render).
+type MetricSection = { title: string; kind: 'bar' | 'list' | 'kpi' | 'tree'; items: MetricItem[]; illustrative?: boolean; hidden?: boolean; expanded?: boolean; emptyText?: string };
 // Loaded annual resource cost by role level — ILLUSTRATIVE. The workbook has no
 // compensation data; the "Financial Driver Map" only states the method
 // (FTE × compensation band), so these bands are assumptions, not workbook values.
@@ -627,6 +629,8 @@ type Lens = {
   rolesTree: MetricItem[];        // "Supporting roles" — each role with its people nested
   deliverables: MetricItem[];     // each with its producing L5 step nested (when known)
   deliverableChain: MetricItem[]; // deliverable → task → responsible role → checklist + people
+  tasks: MetricItem[];            // flat roll-up: every task of the involved roles (role nested)
+  checklist: MetricItem[];        // flat roll-up: every checklist item of the involved roles
   applications: MetricItem[];
   roleCount: number; unresolvedRoles: string[];
 };
@@ -780,7 +784,39 @@ async function stepLens(companyId: string, steps: LensStep[]): Promise<Lens> {
     return { ...deliverables[di], children: taskNodes.length ? taskNodes : deliverables[di].children };
   });
 
-  return { people, rolesTree, deliverables, deliverableChain, applications, roleCount: roleIds.length, unresolvedRoles: [...unresolved] };
+  // Top-level roll-ups for the "Tasks" and "Checklist" primary sections: every
+  // task / checklist item of the involved roles (leads first). Each task nests
+  // its responsible role (drillable); checklist rows carry the role as a chip.
+  const tasksFlat: MetricItem[] = roleIds.flatMap((rid) =>
+    (tasksByRole.get(rid) ?? []).map((t) => ({
+      label: t.text, value: 0, sub: t.category?.name ?? undefined, tag: 'task',
+      children: [{ label: roleName(rid), value: 0, hint: partOf(rid), drill: { level: 'role', id: rid }, tag: 'role' }],
+    })));
+  const checklistFlat: MetricItem[] = roleIds.flatMap((rid) =>
+    (checksByRole.get(rid) ?? []).map((c) => ({
+      label: c.text, value: 0, sub: c.category?.name ?? undefined, hint: roleName(rid), tag: 'checklist',
+    })));
+
+  return { people, rolesTree, deliverables, deliverableChain, tasks: tasksFlat, checklist: checklistFlat, applications, roleCount: roleIds.length, unresolvedRoles: [...unresolved] };
+}
+
+// ── Primary drill groups ─────────────────────────────────────────────────────
+// Every work-level sidebar (value stream → sub-process → step) leads with the
+// same four sections, in this order: Deliverables, Roles, Tasks, Checklist.
+// Sections with no rows still render, with an honest empty state.
+const CORE_EMPTY = {
+  deliverables: 'No deliverables recorded at this level.',
+  roles: 'No roles resolved for this slice of work.',
+  tasks: 'No role tasks recorded for the involved roles.',
+  checklist: 'No checklist items recorded for the involved roles.',
+};
+function coreSections(lens: Lens, opts: { deliverables: MetricItem[]; expanded?: boolean; rolesFallback?: MetricItem[] }): MetricSection[] {
+  return [
+    { title: 'Deliverables', kind: 'tree', expanded: opts.expanded, items: opts.deliverables, emptyText: CORE_EMPTY.deliverables },
+    { title: 'Roles', kind: 'tree', items: lens.rolesTree.length ? lens.rolesTree : (opts.rolesFallback ?? []), emptyText: CORE_EMPTY.roles },
+    { title: 'Tasks', kind: 'tree', items: lens.tasks, emptyText: CORE_EMPTY.tasks },
+    { title: 'Checklist', kind: 'tree', items: lens.checklist, emptyText: CORE_EMPTY.checklist },
+  ];
 }
 
 async function participatedVsIds(divIds: string[]): Promise<string[]> {
@@ -910,16 +946,15 @@ async function metricsValueStream(tenantId: string, c: string, id: string, node?
       level: 'valueStream', title: node.name, subtitle: 'Who does the work, on what',
       tiles: [
         { label: 'Supporting employees', value: lens.people.length, illustrative: true, drawer: 'Supporting employees' },
-        { label: 'Supporting roles', value: lens.roleCount, drawer: 'Supporting roles' },
+        { label: 'Supporting roles', value: lens.roleCount, drawer: 'Roles' },
         { label: 'Applications', value: lens.applications.length, drawer: 'Applications & systems' },
         { label: 'Deliverables', value: lens.deliverables.length, drawer: 'Deliverables' },
       ],
       sections: [
+        ...coreSections(lens, { deliverables: lens.deliverables }),
         { title: 'Process Level 4', kind: 'list', items: areas.map((s) => ({ label: s.name, value: 0, hint: stepByL4.get(s.name) ? `${stepByL4.get(s.name)} steps` : 'no flow', drill: { level: 'step', id: s.id } })) },
-        { title: 'Supporting roles', kind: 'tree', items: lens.rolesTree },
         { title: 'Applications & systems', kind: 'list', items: lens.applications },
         { title: 'Supporting employees', kind: 'list', illustrative: true, hidden: true, items: lens.people },
-        { title: 'Deliverables', kind: 'tree', hidden: true, items: lens.deliverables },
       ],
     };
   }
@@ -940,16 +975,15 @@ async function metricsValueStream(tenantId: string, c: string, id: string, node?
     level: 'valueStream', title: vs.name, subtitle: 'Who does the work, on what',
     tiles: [
       { label: 'Supporting employees', value: lens.people.length, illustrative: true, drawer: 'Supporting employees' },
-      { label: 'Supporting roles', value: lens.roleCount, drawer: 'Supporting roles' },
+      { label: 'Supporting roles', value: lens.roleCount, drawer: 'Roles' },
       { label: 'Applications', value: lens.applications.length, drawer: 'Applications & systems' },
       { label: 'Deliverables', value: lens.deliverables.length, drawer: 'Deliverables' },
     ],
     sections: [
+      ...coreSections(lens, { deliverables: lens.deliverables }),
       { title: 'Process Level 4', kind: 'list', items: l3rows.map((s) => ({ label: s.name, value: 0, hint: stepByL3.get(s.name) ? `${stepByL3.get(s.name)} steps` : 'no flow', drill: { level: 'step', id: s.id } })) },
-      { title: 'Supporting roles', kind: 'tree', items: lens.rolesTree },
       { title: 'Applications & systems', kind: 'list', items: lens.applications },
       { title: 'Supporting employees', kind: 'list', illustrative: true, hidden: true, items: lens.people },
-      { title: 'Deliverables', kind: 'tree', hidden: true, items: lens.deliverables },
     ],
   };
 }
@@ -976,22 +1010,30 @@ async function metricsStep(tenantId: string, id: string, node?: ResolvedNode | n
       // Keep this step's own deliverable/apps/people; borrow only the chain.
       const own = new Set(lens.deliverables.map((d) => d.label));
       const borrowed = wider.deliverableChain.filter((d) => own.has(d.label));
-      if (borrowed.length) lens = { ...lens, deliverableChain: borrowed };
+      // Borrow the task/checklist roll-ups too when the step's own roles carry
+      // none — same rationale: the parent sub-process's working roles.
+      if (borrowed.length) lens = {
+        ...lens, deliverableChain: borrowed,
+        tasks: lens.tasks.length ? lens.tasks : wider.tasks,
+        checklist: lens.checklist.length ? lens.checklist : wider.checklist,
+      };
     }
     return {
       level: 'leafStep', title: step.name, subtitle: `Process step ${step.stepNumber}${step.l4 ? ` · ${step.l4}` : ''} (L5)`,
       tiles: [
         { label: 'Supporting employees', value: lens.people.length, illustrative: true, drawer: 'Supporting employees' },
-        { label: 'Supporting roles', value: lens.roleCount, hint: lens.unresolvedRoles.length ? `+${lens.unresolvedRoles.length} named only` : undefined, drawer: 'Supporting roles' },
+        { label: 'Supporting roles', value: lens.roleCount, hint: lens.unresolvedRoles.length ? `+${lens.unresolvedRoles.length} named only` : undefined, drawer: 'Roles' },
         { label: 'Applications', value: lens.applications.length, drawer: 'Applications & systems' },
         { label: 'Deliverables', value: lens.deliverableChain.length, drawer: 'Deliverables' },
       ],
       sections: [
-        // The connected view: deliverable → tasks to meet it → responsible role
-        // → the checklist that proves each task was done right + the people in
-        // that role who carry it out. Fully expanded on load.
-        { title: 'Deliverables', kind: 'tree', expanded: true, items: lens.deliverableChain },
-        { title: 'Supporting roles', kind: 'tree', items: lens.rolesTree.length ? lens.rolesTree : lens.unresolvedRoles.map((r) => ({ label: r, value: 0, hint: 'named role — not in role inventory' })) },
+        // The connected view leads: deliverable → tasks to meet it → responsible
+        // role → the checklist that proves each task was done right. Fully
+        // expanded on load; Roles / Tasks / Checklist follow as flat groups.
+        ...coreSections(lens, {
+          deliverables: lens.deliverableChain, expanded: true,
+          rolesFallback: lens.unresolvedRoles.map((r) => ({ label: r, value: 0, hint: 'named role — not in role inventory' })),
+        }),
         { title: 'Applications & systems', kind: 'list', items: lens.applications },
         { title: 'Supporting employees', kind: 'list', illustrative: true, hidden: true, items: lens.people },
       ],
@@ -1033,15 +1075,14 @@ async function metricsStep(tenantId: string, id: string, node?: ResolvedNode | n
     tiles: [
       { label: 'Process steps', value: steps.length },
       { label: 'Supporting employees', value: lens.people.length, illustrative: true, drawer: 'Supporting employees' },
-      { label: 'Supporting roles', value: lens.roleCount, hint: lens.unresolvedRoles.length ? `+${lens.unresolvedRoles.length} named only` : undefined, drawer: 'Supporting roles' },
+      { label: 'Supporting roles', value: lens.roleCount, hint: lens.unresolvedRoles.length ? `+${lens.unresolvedRoles.length} named only` : undefined, drawer: 'Roles' },
       { label: 'Applications', value: lens.applications.length, drawer: 'Applications & systems' },
       { label: 'Deliverables', value: lens.deliverables.length, drawer: 'Deliverables' },
     ],
     sections: [
-      // A refined Process Level 3 plus deliverables: each deliverable carries
-      // the L5 step that produces it nested inside, expanded on load.
-      { title: 'Deliverables', kind: 'tree', expanded: true, items: lens.deliverables },
-      { title: 'Supporting roles', kind: 'tree', items: lens.rolesTree },
+      // Deliverables lead (each carries the L5 step that produces it, expanded
+      // on load), then Roles / Tasks / Checklist as the drill groups.
+      ...coreSections(lens, { deliverables: lens.deliverables, expanded: true }),
       { title: 'Applications & systems', kind: 'list', items: lens.applications },
       { title: 'Supporting employees', kind: 'list', illustrative: true, hidden: true, items: lens.people },
     ],
@@ -1259,11 +1300,12 @@ async function rolesStep(tenantId: string, id: string, node?: ResolvedNode | nul
 async function rolesRole(tenantId: string, id: string): Promise<Dashboard | null> {
   const role = await prisma.role.findFirst({ where: { id, tenantId }, select: { id: true, name: true, roleLevel: true, manager: { select: { id: true, name: true } }, division: { select: { name: true } }, department: { select: { name: true } } } });
   if (!role) return null;
-  const [assignments, reports, rvs, tasks] = await Promise.all([
+  const [assignments, reports, rvs, tasks, checklist] = await Promise.all([
     prisma.assignment.findMany({ where: { roleId: id }, select: { person: { select: { id: true, name: true, employmentType: true } } } }),
     prisma.role.findMany({ where: { managerRoleId: id }, orderBy: { name: 'asc' }, select: { id: true, name: true, roleLevel: true } }),
     prisma.roleValueStream.findMany({ where: { roleId: id }, select: { participationType: true, outputs: true, valueStream: { select: { name: true } } } }),
-    prisma.roleTask.findMany({ where: { roleId: id }, select: { text: true } }),
+    prisma.roleTask.findMany({ where: { roleId: id }, select: { text: true, category: { select: { name: true } } } }),
+    prisma.checklistItem.findMany({ where: { roleId: id }, orderBy: { id: 'asc' }, select: { text: true, category: { select: { name: true } } } }),
   ]);
   // Deliverables: the outputs this role produces in each value stream (workbook).
   const deliverables = rvs.filter((r) => r.outputs).map((r) => ({ label: r.outputs!, value: 0, hint: r.valueStream.name }));
@@ -1277,10 +1319,13 @@ async function rolesRole(tenantId: string, id: string): Promise<Dashboard | null
       { label: 'Responsibilities', value: tasks.length, hint: 'role tasks' },
     ],
     sections: [
+      // Primary drill groups first (Deliverables → Tasks → Checklist; the role
+      // itself stands in for the "Roles" group), org context below.
+      { title: 'Deliverables', kind: 'list', items: deliverables, emptyText: CORE_EMPTY.deliverables },
+      { title: 'Tasks', kind: 'tree', items: tasks.map((t) => ({ label: t.text, value: 0, sub: t.category?.name ?? undefined, tag: 'task' })), emptyText: CORE_EMPTY.tasks },
+      { title: 'Checklist', kind: 'tree', items: checklist.map((c) => ({ label: c.text, value: 0, sub: c.category?.name ?? undefined, tag: 'checklist' })), emptyText: CORE_EMPTY.checklist },
       { title: 'Reports to', kind: 'list', items: role.manager ? [{ label: role.manager.name, value: 0, drill: { level: 'role', id: role.manager.id } }] : [] },
       { title: 'People in role', kind: 'list', items: assignments.map((a) => ({ label: a.person.name, value: 0, hint: a.person.employmentType, drill: { level: 'person', id: a.person.id } })) },
-      { title: 'Deliverables', kind: 'list', items: deliverables },
-      { title: 'Responsibilities (role tasks)', kind: 'list', items: tasks.slice(0, 25).map((t) => ({ label: t.text, value: 0 })) },
       { title: 'Direct reports', kind: 'list', items: reports.map((r) => ({ label: r.name, value: 0, hint: r.roleLevel ?? undefined, drill: { level: 'role', id: r.id } })) },
       { title: 'Value-stream participation', kind: 'list', items: rvs.map((r) => ({ label: r.valueStream.name, value: 0, hint: r.participationType })) },
     ],
@@ -1345,14 +1390,22 @@ function splitList(v: string | null): string[] {
   return v.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean);
 }
 function levelDashboard(l: { name: string; levelNumber: number; description: string | null; leads: string | null; supporting: string | null; inputs: string | null; outputs: string | null; externalParticipants: string | null }): Dashboard {
+  // Same primary order as the lens dashboards — Deliverables (the step's
+  // outputs), Roles (leads + supporting), Tasks, Checklist — then the
+  // descriptive context (description / inputs / external participants) below.
   const sections: MetricSection[] = [];
+  const outputs = splitList(l.outputs);
+  sections.push({ title: 'Deliverables', kind: 'tree', items: outputs.map((r) => ({ label: r, value: 0, tag: 'deliverable' })), emptyText: CORE_EMPTY.deliverables });
+  const leads = splitList(l.leads), supporting = splitList(l.supporting);
+  sections.push({ title: 'Roles', kind: 'tree', items: [
+    ...leads.map((r) => ({ label: r, value: 0, hint: 'Lead', tag: 'role' })),
+    ...supporting.map((r) => ({ label: r, value: 0, hint: 'Support', tag: 'role' })),
+  ], emptyText: CORE_EMPTY.roles });
+  sections.push({ title: 'Tasks', kind: 'tree', items: [], emptyText: CORE_EMPTY.tasks });
+  sections.push({ title: 'Checklist', kind: 'tree', items: [], emptyText: CORE_EMPTY.checklist });
   if (l.description) sections.push({ title: 'Step Description', kind: 'kpi', items: [{ label: l.description, value: 0 }] });
-  const roles = [...splitList(l.leads), ...splitList(l.supporting)];
-  if (roles.length) sections.push({ title: 'Supporting Roles', kind: 'list', items: roles.map((r) => ({ label: r, value: 0 })) });
   const inputs = splitList(l.inputs);
   if (inputs.length) sections.push({ title: 'Key Inputs', kind: 'list', items: inputs.map((r) => ({ label: r, value: 0 })) });
-  const outputs = splitList(l.outputs);
-  if (outputs.length) sections.push({ title: 'Key Outputs', kind: 'list', items: outputs.map((r) => ({ label: r, value: 0 })) });
   const ext = splitList(l.externalParticipants);
   if (ext.length) sections.push({ title: 'External Participants', kind: 'list', items: ext.map((r) => ({ label: r, value: 0 })) });
   return { level: 'step', title: l.name, subtitle: `Level ${l.levelNumber}`, tiles: [], sections };

@@ -14,8 +14,10 @@ export type Fmt = 'money' | 'years' | 'number';
 export type MetricItem = { label: string; value: number; hint?: string; sub?: string; format?: Fmt; illustrative?: boolean; drill?: { level: string; id: string }; href?: string; children?: MetricItem[]; tag?: string; trail?: string };
 // A `hidden` section never renders inline — it backs a tile's consolidated
 // drawer (tile.drawer names the section). An `expanded` tree opens every level
-// on load (the L5 deliverable chain).
-export type MetricSection = { title: string; kind: 'bar' | 'list' | 'kpi' | 'tree'; items: MetricItem[]; illustrative?: boolean; hidden?: boolean; expanded?: boolean };
+// on load (the L5 deliverable chain). A section carrying `emptyText` renders
+// even with no items (the primary drill groups: Deliverables / Roles / Tasks /
+// Checklist), showing that text as an honest empty state.
+export type MetricSection = { title: string; kind: 'bar' | 'list' | 'kpi' | 'tree'; items: MetricItem[]; illustrative?: boolean; hidden?: boolean; expanded?: boolean; emptyText?: string };
 export type Dashboard = {
   level: string;
   title: string;
@@ -308,20 +310,63 @@ export default function MetricsSidebar({
             })}
           </div>
 
-          {/* Sections (hidden ones back the tile drawers only) */}
-          {dash.sections.filter((s) => s.items.length > 0 && !s.hidden).map((section) => {
-            const max = Math.max(1, ...section.items.map((i) => i.value));
-            const shown = section.items.slice(0, SECTION_LIMIT);
-            const hidden = section.items.length - shown.length;
-            return (
-              // Keyed by dashboard + section so tree expand state resets when
-              // the focused node changes (no stale collapse carried across).
-              <div key={`${dash.title}·${section.title}`} className="px-4 py-3 border-b border-[#eaeaea] last:border-b-0">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] mb-2.5 flex items-center gap-1.5">
-                  {section.title}
-                </div>
+          {/* Sections (hidden ones back the tile drawers only; emptyText keeps
+              the primary drill groups visible even with no rows) */}
+          {dash.sections.filter((s) => !s.hidden && (s.items.length > 0 || s.emptyText)).map((section) => (
+            // Keyed by dashboard + section so tree/collapse state resets when
+            // the focused node changes (no stale collapse carried across).
+            <SidebarSection
+              key={`${dash.title}·${section.title}`}
+              section={section}
+              dashTitle={dash.title}
+              onDrill={onDrill}
+              onNavigate={(href) => navigate(href)}
+              onViewAll={onViewAll}
+            />
+          ))}
 
-                {section.kind === 'bar' ? (
+          <div className="px-4 py-3 text-[9px] text-[#cbcbcb]">
+            Roles from the operating-model workbook.
+          </div>
+        </>
+      )}
+    </aside>
+  );
+}
+
+// ── One sidebar section ───────────────────────────────────────────────────────
+// A collapsible group (chevron in the heading, open by default). The four
+// primary drill groups — Deliverables, Roles, Tasks, Checklist — always render
+// in that order; when a level has no rows the section shows its `emptyText`
+// instead of disappearing.
+function SidebarSection({ section, dashTitle, onDrill, onNavigate, onViewAll }: {
+  section: MetricSection;
+  dashTitle: string;
+  onDrill: (level: string, id: string) => void;
+  onNavigate: (href: string) => void;
+  onViewAll?: (section: MetricSection) => void;
+}) {
+  const [open, setOpen] = useState(true);
+  const max = Math.max(1, ...section.items.map((i) => i.value));
+  const shown = section.items.slice(0, SECTION_LIMIT);
+  const hidden = section.items.length - shown.length;
+  return (
+    <div className="px-4 py-3 border-b border-[#eaeaea] last:border-b-0">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className={`w-full flex items-center gap-1.5 text-left text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] hover:text-[#525252] ${open ? 'mb-2.5' : ''}`}
+      >
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0" style={{ transform: open ? 'rotate(90deg)' : undefined, transition: 'transform 120ms' }}><path d="M9 6l6 6-6 6" /></svg>
+        {section.title}
+        <span className="font-normal tabular-nums">({section.items.length})</span>
+      </button>
+
+      {open && (section.items.length === 0 ? (
+        <div className="text-[11px] text-[#a3a3a3] italic leading-snug">{section.emptyText}</div>
+      ) : (
+        <>
+          {section.kind === 'bar' ? (
                   <div className="flex flex-col gap-2">
                     {shown.map((item) => {
                       const pct = Math.round((item.value / max) * 100);
@@ -380,9 +425,9 @@ export default function MetricsSidebar({
                         item={item}
                         depth={0}
                         defaultOpen={section.expanded}
-                        trail={[dash.title]}
+                        trail={[dashTitle]}
                         onDrill={onDrill}
-                        onNavigate={(href) => navigate(href)}
+                        onNavigate={onNavigate}
                         // Clicking any node opens it in the wide drawer as a
                         // detail view of that thing (deliverable → checklist item).
                         onInspect={onViewAll ? (it, trail) => onViewAll({
@@ -395,7 +440,7 @@ export default function MetricsSidebar({
                 ) : (
                   <div className="flex flex-col gap-0.5">
                     {shown.map((item) => {
-                      const go = item.drill ? () => onDrill(item.drill!.level, item.drill!.id) : item.href ? () => navigate(item.href!) : undefined;
+                      const go = item.drill ? () => onDrill(item.drill!.level, item.drill!.id) : item.href ? () => onNavigate(item.href!) : undefined;
                       return go ? (
                         <button
                           key={item.label}
@@ -437,16 +482,9 @@ export default function MetricsSidebar({
                     </svg>
                   </button>
                 )}
-              </div>
-            );
-          })}
-
-          <div className="px-4 py-3 text-[9px] text-[#cbcbcb]">
-            Roles from the operating-model workbook.
-          </div>
         </>
-      )}
-    </aside>
+      ))}
+    </div>
   );
 }
 
