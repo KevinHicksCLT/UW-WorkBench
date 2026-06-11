@@ -59,13 +59,14 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       severityGroups, kindGroups,
       scenarioSum, tcoSum, companies,
     ] = await Promise.all([
-      prisma.node.findMany({ where: { companyId, typeKey: { not: 'io_item' } }, select: { id: true, typeKey: true, name: true, parentId: true, sortOrder: true } }),
+      prisma.node.findMany({ where: { companyId, typeKey: { not: 'io_item' } }, select: { id: true, typeKey: true, name: true, parentId: true, sortOrder: true, attributes: true } }),
       prisma.nodeLink.groupBy({ by: ['toId'], where: { companyId, relationType: 'PARTICIPATES_IN' }, _count: { _all: true } }),
       structureCounts(tenantId, companyId),
       // Initiatives = the strategic-portfolio model the /portfolio (Initiatives)
       // screen renders and Data Admin edits (PortfolioInitiative).
       prisma.portfolioInitiative.count({ where: w }),
-      prisma.risk.count({ where: w }),
+      // Open only — the Risks tile and severity card are labeled "open risks".
+      prisma.risk.count({ where: { ...w, status: 'Open' } }),
       prisma.application.count({ where: w }),
       prisma.metric.count({ where: w }),
       prisma.scenario.count({ where: w }),
@@ -74,7 +75,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       prisma.person.groupBy({ by: ['employmentType'], where: w, _count: { _all: true } }),
       prisma.person.groupBy({ by: ['region'], where: w, _count: { _all: true } }),
       prisma.portfolioInitiative.groupBy({ by: ['status'], where: w, _count: { _all: true } }),
-      prisma.risk.groupBy({ by: ['severity'], where: w, _count: { _all: true } }),
+      prisma.risk.groupBy({ by: ['severity'], where: { ...w, status: 'Open' }, _count: { _all: true } }),
       prisma.application.groupBy({ by: ['kind'], where: w, _count: { _all: true } }),
       prisma.scenario.aggregate({ where: w, _sum: { annualNetImpact: true, annualBenefit: true, annualAddedCost: true, oneTimeCost: true } }),
       prisma.application.aggregate({ where: { tenantId, companyId, illustrative: false, totalTco: { not: null } }, _sum: { totalTco: true } }),
@@ -89,7 +90,17 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       prisma.strategicObjective.count({ where: { tenantId, companyId } }),
       prisma.raidItem.count({ where: { status: 'OPEN', initiative: { companyId } } }),
       prisma.nodeLink.count({ where: { companyId } }),
-      prisma.telemetrySignal.count({ where: { companyId } }),
+      // Match the Metrics tab's Trackable Metrics catalog: live signals + DB
+      // metrics + reference rows, minus non-live rows shadowed by a live one
+      // (same dedupe the catalog assembly in explorer.ts applies).
+      (async () => {
+        const [ts, mCount] = await Promise.all([
+          prisma.telemetrySignal.findMany({ where: { companyId }, select: { name: true, isLive: true } }),
+          prisma.metric.count({ where: w }),
+        ]);
+        const liveNames = new Set(ts.filter((s) => s.isLive).map((s) => s.name.toLowerCase()));
+        return mCount + ts.filter((s) => s.isLive || (s.name && !liveNames.has(s.name.toLowerCase()))).length;
+      })(),
       prisma.externalInteraction.count({ where: w }),
     ]);
 
@@ -98,8 +109,10 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const segments = byType('segment').sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
     const divisionNodes = byType('division');
     const departmentNodes = byType('department');
-    const roleNodes = byType('role');
-    const vsNodes = byType('value_stream');
+    // Hidden nodes (attributes.hidden) are kept in the DB but not rendered.
+    const notHidden = (n: { attributes: unknown }) => (n.attributes as Record<string, unknown> | null)?.hidden !== true;
+    const roleNodes = byType('role').filter(notHidden);
+    const vsNodes = byType('value_stream').filter(notHidden);
     const ioCount = await prisma.node.count({ where: { companyId, typeKey: 'io_item' } });
     void ioCount; // reserved for a future tile
 

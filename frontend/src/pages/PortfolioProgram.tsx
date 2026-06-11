@@ -139,7 +139,7 @@ function WorkstreamsTab({ program, onCreateInit }: { program: Program; onCreateI
                   {ws.initiatives.map((init) => (
                     <tr key={init.id} className="border-b border-[#f5f5f5] hover:bg-[#fafafa]">
                       <td className="py-2.5">
-                        <Link to={`/portfolio/initiatives/${init.id}`} className="font-medium text-[#171717] hover:text-[#4f46e5]">{init.name}</Link>
+                        <Link to={`/initiatives/${init.id}`} className="font-medium text-[#171717] hover:text-[#4f46e5]">{init.name}</Link>
                       </td>
                       <td className="py-2.5 pr-3"><StageBar stage={init.stage} /></td>
                       <td className="py-2.5"><StatusPill status={init.status} /></td>
@@ -176,7 +176,7 @@ function PipelineTab({ program }: { program: Program }) {
             ) : (
               <div className="space-y-2">
                 {inits.map((i) => (
-                  <Link key={i.id} to={`/portfolio/initiatives/${i.id}`} className="block border border-[#eaeaea] rounded-md p-2.5 hover:border-[#a3a3a3] transition-colors">
+                  <Link key={i.id} to={`/initiatives/${i.id}`} className="block border border-[#eaeaea] rounded-md p-2.5 hover:border-[#a3a3a3] transition-colors">
                     <div className="text-sm font-medium text-[#171717] leading-snug mb-1.5">{i.name}</div>
                     <div className="flex items-center justify-between gap-2">
                       <StatusPill status={i.status} />
@@ -243,7 +243,7 @@ function PrioritizationTab({ program }: { program: Program }) {
                 return (
                   <Link
                     key={i.id}
-                    to={`/portfolio/initiatives/${i.id}`}
+                    to={`/initiatives/${i.id}`}
                     className="absolute group"
                     style={{ left: `${x}%`, bottom: `${y}%`, transform: 'translate(-50%, 50%)' }}
                     title={`${i.name} — value ${i.valueScore}, complexity ${i.complexityScore}`}
@@ -275,7 +275,7 @@ function PrioritizationTab({ program }: { program: Program }) {
               {sorted.map((i) => (
                 <tr key={i.id} className="border-b border-[#f5f5f5] hover:bg-[#fafafa]">
                   <td className="py-2.5">
-                    <Link to={`/portfolio/initiatives/${i.id}`} className="font-medium text-[#171717] hover:text-[#4f46e5]">{i.name}</Link>
+                    <Link to={`/initiatives/${i.id}`} className="font-medium text-[#171717] hover:text-[#4f46e5]">{i.name}</Link>
                   </td>
                   <td className="py-2.5 text-right tnum">{i.valueScore}</td>
                   <td className="py-2.5 text-right tnum">{i.complexityScore}</td>
@@ -322,7 +322,7 @@ function RoadmapTab({ program }: { program: Program }) {
             <div className="w-56 flex-shrink-0">
               {ws.initiatives.map((i) => (
                 <div key={i.id} className="h-8 flex items-center min-w-0">
-                  <Link to={`/portfolio/initiatives/${i.id}`} className="text-sm font-medium text-[#171717] hover:text-[#4f46e5] truncate">{i.name}</Link>
+                  <Link to={`/initiatives/${i.id}`} className="text-sm font-medium text-[#171717] hover:text-[#4f46e5] truncate">{i.name}</Link>
                 </div>
               ))}
               {ws.initiatives.length === 0 && <div className="h-8 flex items-center text-xs text-[#a3a3a3]">No initiatives</div>}
@@ -395,7 +395,7 @@ function ProgramResourcesTab({ programId }: { programId: string }) {
                     {r.assignments.map((a, idx) => (
                       <span key={idx}>
                         {idx > 0 && <span className="text-[#d4d4d4]"> · </span>}
-                        <Link to={`/portfolio/initiatives/${a.initiativeId}`} className="hover:text-[#4f46e5]">{a.initiativeName}</Link>
+                        <Link to={`/initiatives/${a.initiativeId}`} className="hover:text-[#4f46e5]">{a.initiativeName}</Link>
                         <span className="tnum"> {a.allocationPct}%</span>
                       </span>
                     ))}

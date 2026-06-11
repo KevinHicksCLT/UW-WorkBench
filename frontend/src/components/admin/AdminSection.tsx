@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { AdminEntity } from '../../lib/adminTypes';
 import type { EditorSpec } from '../../lib/adminConfig';
 import EntityList from './EntityList';
@@ -19,7 +18,7 @@ import StepLensEditor from './StepLensEditor';
 function Missing({ slug }: { slug: string }) {
   return (
     <div className="card-elevated p-8 text-center text-sm text-[#a3a3a3]">
-      The <code className="text-[#525252]">{slug}</code> table isn't available in this build.
+      <code className="text-[#525252]">{slug}</code> isn't available in this build.
     </div>
   );
 }
@@ -104,47 +103,7 @@ export default function AdminSection({
     case 'stepLens':
       return <StepLensEditor companyId={companyId} onNavigate={onNavigate} />;
 
-    case 'catalog':
-      return <CatalogEditor companyId={companyId} bySlug={bySlug} />;
-
     default:
       return null;
   }
-}
-
-// Power-user view: a sub-sidebar of every editable table (grouped) + its EntityList.
-function CatalogEditor({ companyId, bySlug }: { companyId: string | null; bySlug: Map<string, AdminEntity> }) {
-  const entities = Array.from(bySlug.values());
-  const [slug, setSlug] = useState<string>(entities[0]?.slug ?? '');
-  const active = bySlug.get(slug) ?? null;
-
-  return (
-    <div className="flex flex-col lg:flex-row gap-5">
-      <aside className="lg:w-56 flex-shrink-0">
-        <div className="card-elevated p-2 max-h-[70vh] overflow-y-auto">
-          <nav className="space-y-0.5">
-            {entities.map((e, i) => (
-              <div key={e.slug}>
-                {(e.group && e.group !== entities[i - 1]?.group) && (
-                  <div className="px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{e.group}</div>
-                )}
-                <button
-                  onClick={() => setSlug(e.slug)}
-                  className={
-                    'w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors ' +
-                    (e.slug === slug ? 'bg-[#f5f5f5] text-[#171717] font-medium' : 'text-[#525252] hover:bg-[#fafafa] hover:text-[#171717]')
-                  }
-                >
-                  {e.label}
-                </button>
-              </div>
-            ))}
-          </nav>
-        </div>
-      </aside>
-      <section className="flex-1 min-w-0">
-        {active ? <EntityList entity={active} companyId={companyId} /> : <div className="text-sm text-[#a3a3a3]">No tables available.</div>}
-      </section>
-    </div>
-  );
 }

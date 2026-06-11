@@ -3,8 +3,8 @@ import ApplicationRationalization from './GreenfieldMigration';
 
 // Workspace — the Application Rationalization Workspace, full width.
 // D7.2: the Portfolio, Programs, Risks and RAID Log views moved to Home (D1.5)
-// as dashboard widgets; their detail pages remain deep-link targets under
-// /portfolio/programs/:id, /portfolio/initiatives/:id and /portfolio/raid.
+// as dashboard widgets; their detail pages live under Home too
+// (/programs/:id, /initiatives/:id and /raid — old /portfolio/* links redirect).
 
 export default function Portfolio() {
   return (

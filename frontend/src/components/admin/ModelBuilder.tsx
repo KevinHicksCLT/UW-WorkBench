@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../../lib/api';
+import { useDialogs } from '../../lib/dialogs';
 
 // Interactive operating-model builder (rework P7). One surface to build the
 // structure (typed node tree), draw connections (typed links), and rename the
 // taxonomy — speaking the domain, never raw tables. Backend: /builder/*.
 
 type NodeType = { key: string; label: string; pluralLabel: string; level: number; parentKeys: string[]; sortOrder: number };
-type TreeNode = { id: string; typeKey: string; parentId: string | null; name: string; description: string | null; sortOrder: number; provenance: string; inboundLinks: number };
+type TreeNode = { id: string; typeKey: string; parentId: string | null; name: string; description: string | null; sortOrder: number; provenance: string; hidden: boolean; inboundLinks: number };
 type LinkRow = { id: string; relationType: string; attributes: any; peer: { id: string; name: string; typeKey: string } };
 
 // Optional scope narrows the builder to one branch of the model so each Data
@@ -26,6 +27,7 @@ const SCOPES: Record<string, { types: string[]; rootType: string } | undefined> 
 };
 
 export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: string | null; scope?: 'all' | 'map' | 'external' | 'org' }) {
+  const dialogs = useDialogs();
   const [types, setTypes] = useState<NodeType[]>([]);
   const [relationTypes, setRelationTypes] = useState<string[]>([]);
   const [nodes, setNodes] = useState<TreeNode[]>([]);
@@ -34,9 +36,24 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
   const [links, setLinks] = useState<{ in: LinkRow[]; out: LinkRow[] } | null>(null);
   const [error, setError] = useState('');
   const [showTaxonomy, setShowTaxonomy] = useState(false);
+  const [moving, setMoving] = useState<TreeNode | null>(null); // node being moved via the Move dialog
+  const [addingType, setAddingType] = useState<string | null>(null); // inline "new node" input
 
   const typeByKey = useMemo(() => new Map(types.map((t) => [t.key, t])), [types]);
   const label = (key: string) => typeByKey.get(key)?.label ?? key;
+
+  // parentId → children, for fast subtree counts (the whole-model list can be large).
+  const childrenOf = useMemo(() => {
+    const m = new Map<string, TreeNode[]>();
+    for (const n of nodes) {
+      if (!n.parentId) continue;
+      const list = m.get(n.parentId);
+      if (list) list.push(n); else m.set(n.parentId, [n]);
+    }
+    return m;
+  }, [nodes]);
+  const countDescendants = (id: string): number =>
+    (childrenOf.get(id) ?? []).reduce((acc, c) => acc + 1 + countDescendants(c.id), 0);
 
   const load = () => {
     if (!companyId) return;
@@ -74,29 +91,35 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
   const patchNode = async (n: TreeNode, data: Record<string, unknown>) => {
     try {
       const updated = await api.patch(`/builder/nodes/${n.id}?companyId=${companyId}`, data);
-      setNodes((ns) => ns.map((x) => (x.id === n.id ? { ...x, ...updated } : x)));
-      if (selected?.id === n.id) setSelected((s) => (s ? { ...s, ...updated } : s));
+      // The PATCH response carries raw attributes; the tree rows carry the
+      // derived `hidden` flag — keep it in sync.
+      const merged = { ...updated, hidden: updated.attributes ? updated.attributes.hidden === true : n.hidden };
+      setNodes((ns) => ns.map((x) => (x.id === n.id ? { ...x, ...merged } : x)));
+      if (selected?.id === n.id) setSelected((s) => (s ? { ...s, ...merged } : s));
       setError('');
     } catch (e) { setError(String((e as Error).message)); }
   };
-  const addNode = async (typeKey: string) => {
-    const name = prompt(`Name for the new ${label(typeKey)}:`)?.trim();
-    if (!name) return;
+  // Inline create — the "+ <type>" buttons open a name input row in the list
+  // (no browser prompt). Enter or "Add" creates under the current drill node.
+  const createNode = async (typeKey: string, name: string) => {
     try {
       const created = await api.post(`/builder/nodes?companyId=${companyId}`, { typeKey, parentId: current?.id ?? null, name });
       setNodes((ns) => [...ns, { ...created, inboundLinks: 0 }]);
+      setAddingType(null);
       setError('');
     } catch (e) { setError(String((e as Error).message)); }
   };
   const removeNode = async (n: TreeNode) => {
-    const kids = nodes.filter((x) => x.parentId === n.id).length;
-    const msg = kids
-      ? `"${n.name}" has ${kids} child node(s); deleting removes the whole subtree. Type the exact name to confirm:`
-      : `Delete ${label(n.typeKey)} "${n.name}"?`;
-    if (kids) {
-      const typed = prompt(msg);
-      if (typed !== n.name) return;
-    } else if (!confirm(msg)) return;
+    const kids = countDescendants(n.id);
+    const ok = await dialogs.confirm({
+      title: `Delete ${label(n.typeKey)} "${n.name}"?`,
+      danger: true,
+      typedConfirm: kids ? n.name : undefined,
+      message: kids
+        ? `This deletes "${n.name}" and everything under it — ${kids} descendant node${kids === 1 ? '' : 's'}. This cannot be undone.`
+        : 'This cannot be undone.',
+    });
+    if (!ok) return;
     try {
       await api.delete(`/builder/nodes/${n.id}?companyId=${companyId}${kids ? `&confirm=${encodeURIComponent(n.name)}` : ''}`);
       if (selected?.id === n.id) setSelected(null);
@@ -167,8 +190,9 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
                     className="flex-1 min-w-0 text-left"
                     title="Click to inspect · double-click to drill in"
                   >
-                    <span className="text-sm text-[#171717]">{n.name}</span>
+                    <span className={'text-sm ' + (n.hidden ? 'text-[#a3a3a3] line-through decoration-[#d4d4d4]' : 'text-[#171717]')}>{n.name}</span>
                     <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide text-[#a3a3a3]">{label(n.typeKey)}</span>
+                    {n.hidden && <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide text-[#b45309] bg-[#fef3c7] rounded px-1.5 py-0.5">hidden</span>}
                   </button>
                   <span className="text-[11px] text-[#a3a3a3] tnum flex-shrink-0">
                     {kidCount > 0 && `${kidCount} children · `}{n.inboundLinks > 0 && `${n.inboundLinks} links`}
@@ -176,14 +200,31 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
                   {kidCount > 0 && (
                     <button onClick={() => setStack((s) => [...s, n])} className="text-xs text-[#0070AD] hover:underline flex-shrink-0">Open →</button>
                   )}
-                  <button onClick={() => removeNode(n)} className="text-xs text-[#be123c] hover:underline flex-shrink-0">Delete</button>
+                  <button onClick={() => setMoving(n)} className="text-xs text-[#525252] hover:text-[#171717] hover:underline flex-shrink-0">Move…</button>
+                  {(n.typeKey === 'value_stream' || n.typeKey === 'role') && (
+                    <button
+                      onClick={() => void patchNode(n, { hidden: !n.hidden })}
+                      className="text-xs text-[#525252] hover:text-[#171717] hover:underline flex-shrink-0"
+                      title={n.hidden ? 'Render this node in the app again' : 'Keep in the database but stop rendering it in the app'}
+                    >
+                      {n.hidden ? 'Show' : 'Hide'}
+                    </button>
+                  )}
+                  <button onClick={() => void removeNode(n)} className="text-xs text-[#be123c] hover:underline flex-shrink-0">Delete</button>
                 </div>
               );
             })}
+            {addingType && (
+              <InlineAddRow
+                typeLabel={label(addingType)}
+                onCancel={() => setAddingType(null)}
+                onCreate={(name) => void createNode(addingType, name)}
+              />
+            )}
             {childTypes.length > 0 && (
               <div className="px-4 py-2 flex items-center gap-2 flex-wrap">
                 {childTypes.map((t) => (
-                  <button key={t.key} onClick={() => addNode(t.key)} className="text-xs px-2.5 py-1 rounded-md border border-dashed border-[#cbd5e1] text-[#525252] hover:bg-[#fafafa]">
+                  <button key={t.key} onClick={() => setAddingType(t.key)} className="text-xs px-2.5 py-1 rounded-md border border-dashed border-[#cbd5e1] text-[#525252] hover:bg-[#fafafa]">
                     + {t.label}
                   </button>
                 ))}
@@ -262,6 +303,141 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
             </div>
           )}
         </aside>
+      </div>
+
+      {moving && (
+        <MoveNodeDialog
+          node={moving}
+          nodes={scoped}
+          typeByKey={typeByKey}
+          typeLabel={label}
+          descendants={countDescendants(moving.id)}
+          onClose={() => setMoving(null)}
+          onMove={(parentId) => { const n = moving; setMoving(null); void patchNode(n, { parentId }); }}
+        />
+      )}
+    </div>
+  );
+}
+
+// Inline "name the new node" row — replaces the old browser prompt(). Enter or
+// Add creates; Escape or Cancel dismisses.
+function InlineAddRow({ typeLabel, onCreate, onCancel }: {
+  typeLabel: string; onCreate: (name: string) => void; onCancel: () => void;
+}) {
+  const [name, setName] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => { inputRef.current?.focus(); }, []);
+  const submit = () => { const v = name.trim(); if (v) onCreate(v); };
+  return (
+    <div className="flex items-center gap-2 px-4 py-2 bg-[#fafafa]">
+      <span className="text-[10px] font-semibold uppercase tracking-wide text-[#a3a3a3] flex-shrink-0">New {typeLabel}</span>
+      <input
+        ref={inputRef}
+        className="input py-1 text-sm flex-1"
+        placeholder={`${typeLabel} name…`}
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') onCancel(); }}
+      />
+      <button onClick={submit} disabled={!name.trim()} className="text-xs px-2.5 py-1 rounded-md bg-[#171717] text-white disabled:opacity-40 flex-shrink-0">Add</button>
+      <button onClick={onCancel} className="text-xs px-2.5 py-1 rounded-md border border-[#e5e5e5] text-[#525252] hover:bg-white flex-shrink-0">Cancel</button>
+    </div>
+  );
+}
+
+// "Move…" dialog: search the valid destinations for this node (parents allowed
+// by the taxonomy, never itself or anything inside its own subtree) and click
+// one — the node moves there together with its whole subtree.
+function MoveNodeDialog({ node, nodes, typeByKey, typeLabel, descendants, onClose, onMove }: {
+  node: TreeNode;
+  nodes: TreeNode[];
+  typeByKey: Map<string, NodeType>;
+  typeLabel: (k: string) => string;
+  descendants: number;
+  onClose: () => void;
+  onMove: (parentId: string) => void;
+}) {
+  const [q, setQ] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => { inputRef.current?.focus(); }, []);
+
+  const byId = useMemo(() => new Map(nodes.map((n) => [n.id, n])), [nodes]);
+  // Everything inside the moving node's subtree is an invalid destination (cycle).
+  const inSubtree = useMemo(() => {
+    const ids = new Set<string>([node.id]);
+    let grew = true;
+    while (grew) {
+      grew = false;
+      for (const n of nodes) {
+        if (n.parentId && ids.has(n.parentId) && !ids.has(n.id)) { ids.add(n.id); grew = true; }
+      }
+    }
+    return ids;
+  }, [node.id, nodes]);
+
+  const parentKeys = typeByKey.get(node.typeKey)?.parentKeys ?? [];
+  const path = (n: TreeNode): string => {
+    const parts: string[] = [];
+    let p = n.parentId ? byId.get(n.parentId) : undefined;
+    while (p && parts.length < 3) { parts.unshift(p.name); p = p.parentId ? byId.get(p.parentId) : undefined; }
+    return parts.join(' / ');
+  };
+
+  const candidates = nodes
+    .filter((n) => parentKeys.includes(n.typeKey) && !inSubtree.has(n.id))
+    .filter((n) => !q.trim() || n.name.toLowerCase().includes(q.trim().toLowerCase()) || path(n).toLowerCase().includes(q.trim().toLowerCase()))
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .slice(0, 50);
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4"
+      onClick={onClose}
+      onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Move ${node.name}`}
+    >
+      <div className="card-elevated bg-white max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
+        <h3 className="text-base font-semibold text-[#171717] mb-1">Move “{node.name}”</h3>
+        <p className="text-sm text-[#525252] mb-3">
+          Click where it should live. It moves together with everything under it
+          {descendants > 0 && <> ({descendants} item{descendants === 1 ? '' : 's'})</>}.
+        </p>
+        <input
+          ref={inputRef}
+          className="input mb-2"
+          placeholder="Search destinations…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
+        <div className="border border-[#eeeeee] rounded divide-y divide-[#f5f5f5] max-h-72 overflow-y-auto">
+          {candidates.length === 0 && (
+            <div className="px-3 py-4 text-sm text-[#a3a3a3] italic">No valid destinations{q ? ' match the search' : ''}.</div>
+          )}
+          {candidates.map((c) => {
+            const isCurrent = c.id === node.parentId;
+            return (
+              <button
+                key={c.id}
+                disabled={isCurrent}
+                onClick={() => onMove(c.id)}
+                className={'w-full text-left px-3 py-2 text-sm flex items-center gap-2 ' + (isCurrent ? 'bg-[#fafafa] cursor-default' : 'hover:bg-[#eef6fb]')}
+              >
+                <span className="flex-1 min-w-0">
+                  <span className="text-[#171717]">{c.name}</span>
+                  {path(c) && <span className="ml-2 text-[11px] text-[#a3a3a3]">{path(c)}</span>}
+                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-[#a3a3a3] flex-shrink-0">{typeLabel(c.typeKey)}</span>
+                {isCurrent && <span className="text-[10px] text-[#a3a3a3] flex-shrink-0">current</span>}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex justify-end mt-4">
+          <button className="text-sm px-3 py-1.5 rounded-md border border-[#e5e5e5] text-[#525252] hover:bg-[#fafafa]" onClick={onClose}>Cancel</button>
+        </div>
       </div>
     </div>
   );

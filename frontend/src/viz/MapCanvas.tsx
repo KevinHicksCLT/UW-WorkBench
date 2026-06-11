@@ -5,7 +5,7 @@
 // rendering left-to-right as you drill in.
 // A right-hand MetricsSidebar shows a spreadsheet-derived dashboard for whatever
 // level is currently focused (company / domain / division / value stream / area)
-// — currently gated off behind SHOW_METRICS_SIDEBAR (see below).
+// — the SAME panel the list view shows (SHOW_METRICS_SIDEBAR below).
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
@@ -29,10 +29,11 @@ import { api } from '../lib/api';
 
 // ── Layout constants ─────────────────────────────────────────────────────────
 
-// Defect backlog 02, D3.3 — right-side metrics sidebar disabled until we feel
-// good about the data. Flip back to true to restore it (the fetch + render are
-// both gated). Node clicks still drill the canvas; they just don't open a panel.
-const SHOW_METRICS_SIDEBAR: boolean = false;
+// Right-side metrics sidebar — re-enabled so the map matches the list view
+// (was gated off in defect backlog 02, D3.3, while the data was distrusted;
+// the deliverable-chain rework restored confidence). Both fetch + render gate
+// on this flag.
+const SHOW_METRICS_SIDEBAR: boolean = true;
 
 // Every card is the same size (MAP_CARD_W × MAP_CARD_H, from MapNode.tsx) so the
 // whole map reads as one consistent grid. The per-level aliases below keep the
@@ -292,7 +293,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
   useEffect(() => { setDrawerSection(null); }, [dashTarget?.level, dashTarget?.id]);
 
   useEffect(() => {
-    // Sidebar disabled (D3.3) → skip the fetch entirely, not just the render.
+    // Flag off → skip the fetch entirely, not just the render.
     if (!SHOW_METRICS_SIDEBAR || !dashTarget) { setDash(null); return; }
     let cancelled = false;
     setDashLoading(true); setDash(null);
@@ -894,13 +895,14 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
         {vsDetailId && <ValueStreamDrawer valueStreamId={vsDetailId} onClose={() => setVsDetailId(null)} />}
       </div>
 
-      {/* Right metrics dashboard — defect backlog 02, D3.3: disabled until the
-          data is trusted (SHOW_METRICS_SIDEBAR). Node clicks still drill. */}
+      {/* Right metrics dashboard — same panel and behavior as the list view
+          (startExpanded; the minimize control collapses it to the rail). */}
       {SHOW_METRICS_SIDEBAR && dashTarget && (
         <MetricsSidebar
           dash={dash}
           loading={dashLoading}
           onDrill={onDrill}
+          startExpanded
           onBack={ovStack.length ? onDashBack : undefined}
           onViewAll={setDrawerSection}
           onViewDetail={dashTarget?.level === 'valueStream' && dashTarget.id ? () => setVsDetailId(dashTarget.id) : undefined}

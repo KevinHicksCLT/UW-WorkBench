@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
+import { useDialogs } from '../../lib/dialogs';
 import type { AdminEntity } from '../../lib/adminTypes';
 import EntityList from './EntityList';
 import EntityForm from '../EntityForm';
@@ -111,6 +112,16 @@ export default function RoleStudio({ companyId, bySlug }: { companyId: string | 
         </div>
       </div>
 
+      {/* Task categories — the shared groupings role tasks and checklist items
+          are filed under (company-wide, not per role). */}
+      {bySlug.get('category') && (
+        <div className="mt-8 pt-6 border-t border-[#f5f5f5]">
+          <Section title="Task categories" hint="The shared categories that group role tasks and checklist items across every role.">
+            <EntityList entity={bySlug.get('category')!} companyId={companyId} title="Categories" dense />
+          </Section>
+        </div>
+      )}
+
       {editingRole && selected && (
         <EntityForm entity={roleEntity} companyId={companyId} record={selected} onClose={() => setEditingRole(false)} onSaved={() => { setEditingRole(false); setListRefresh((n) => n + 1); }} />
       )}
@@ -134,6 +145,7 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
 // to the role by free-text matching. Fetched from /admin/role-context/:id; edited
 // through the normal /admin/{ioItem|processStep} endpoints.
 function RoleContextSection({ role, companyId, entity, kind }: { role: Role; companyId: string | null; entity?: AdminEntity; kind: 'io' | 'steps' }) {
+  const dialogs = useDialogs();
   const [ctx, setCtx] = useState<Context | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -150,7 +162,8 @@ function RoleContextSection({ role, companyId, entity, kind }: { role: Role; com
 
   if (!entity) return null;
 
-  const roleAlias = role.itemRole || role.name;
+  // itemRole can be a semicolon-separated alias list — prefill with the primary alias.
+  const roleAlias = role.itemRole?.split(';')[0]?.trim() || role.name;
   const rows = kind === 'io' ? (ctx?.ioItems ?? []) : (ctx?.processSteps ?? []);
   const title = kind === 'io' ? 'Deliverables & inputs' : 'Process tasks';
   const hint = kind === 'io'
@@ -161,9 +174,14 @@ function RoleContextSection({ role, companyId, entity, kind }: { role: Role; com
     : { leads: roleAlias };
 
   const remove = async (row: Record<string, any>) => {
-    if (!confirm(`Delete "${row.name}"?\n\nThis removes the row from the catalog (it will disappear from every role that referenced it).`)) return;
+    const ok = await dialogs.confirm({
+      title: `Delete "${row.name}"?`,
+      danger: true,
+      message: 'This removes the row from the catalog — it will disappear from every role that referenced it.',
+    });
+    if (!ok) return;
     try { await api.delete(withCompany(`/admin/${entity.slug}/${row.id}`, companyId)); load(); }
-    catch (e) { alert((e as Error).message); }
+    catch (e) { void dialogs.alert({ title: 'Delete failed', message: (e as Error).message }); }
   };
 
   return (

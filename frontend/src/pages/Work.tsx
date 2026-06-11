@@ -1,24 +1,26 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
 import PageHeader from '../components/PageHeader';
 import { withCompany } from '../lib/portfolio';
+import { Sheet, SheetCell, type SheetCol } from '../components/Sheet';
 
-// Deliverables & Tasks — the standalone work tracker, split into two tabs
-// (defect backlog 02, D8): Deliverables (one row per deliverable) and Tasks
-// (one row per task). Each column header is a filter (dropdown, combo, or
-// free-text search) with a sort toggle. Clicking a deliverable or task opens
+// Deliverables & Tasks — the standalone work tracker, split into two tabs:
+// Deliverables (one row per deliverable) and Tasks (one row per task), each in
+// the canonical Sheet format (see components/Sheet.tsx). Clicking a row opens
 // the right-hand drill-down sidebar — roles, value stream, downstream impact.
 // Scoped to the active company.
 
 type Deliverable = {
   id: string; title: string; description: string | null; owner: string | null; type: string;
   status: string; dueDate: string | null; taskCount: number; valueStreamId: string | null; valueStreamName: string | null;
+  roles: string[]; processes: string[];
 };
 type Task = {
   id: string; title: string; owner: string | null; status: string; priority: string; dueDate: string | null;
   source: string; deliverableId: string | null; deliverableTitle: string | null;
+  roles: string[]; processes: string[];
 };
 type WorkData = { deliverables: Deliverable[]; tasks: Task[]; valueStreams: { id: string; name: string }[] };
 
@@ -47,144 +49,6 @@ type TaskDetail = {
 type Detail = DeliverableDetail | TaskDetail;
 
 const PRIORITY_PILL: Record<string, string> = { High: 'pill-red', Medium: 'pill-amber', Low: 'pill-slate' };
-
-// Distinguishes the two task sources nested under a deliverable: 'role' tasks are
-// role responsibilities folded in; 'process' tasks come from L5 process steps.
-function SourceTag({ source }: { source: string }) {
-  const isRole = source === 'role';
-  return (
-    <span
-      title={isRole ? 'From a role responsibility' : 'From a Process Level 6 step'}
-      className={'text-[10px] font-semibold uppercase tracking-[0.06em] px-1.5 py-0.5 rounded flex-shrink-0 ' +
-        (isRole ? 'bg-[#eef2ff] text-[#4338ca]' : 'bg-[#f5f5f5] text-[#737373]')}
-    >
-      {isRole ? 'Role' : 'Process'}
-    </span>
-  );
-}
-
-// Matrix column header that doubles as a filter: the column name sits above a
-// compact native <select>. A value other than 'All' narrows the rows to that
-// column value. Styled to match the app's company picker.
-function HeaderFilter({ label, value, onChange, options, extra }: {
-  label: string; value: string; onChange: (v: string) => void; options: string[]; extra?: React.ReactNode;
-}) {
-  const active = value !== 'All';
-  return (
-    <th className="text-left align-top px-3 py-2 border-b border-[#eaeaea]">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1">{label}{extra}</div>
-      <div className="relative">
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={'appearance-none w-full rounded-md border bg-white pl-2.5 pr-7 py-1 text-xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150 ' +
-            (active ? 'border-[#171717] text-[#171717] font-medium' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4]')}
-        >
-          {options.map((o) => <option key={o} value={o}>{o}</option>)}
-        </select>
-        <svg className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[#a3a3a3]" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </div>
-    </th>
-  );
-}
-
-// Like HeaderFilter but with a search box inside the dropdown — used for the
-// Deliverable column, whose option list is long enough to want type-ahead. A
-// custom combobox (native <select> can't host an input); closes on outside click.
-function HeaderComboFilter({ label, value, onChange, options, extra }: {
-  label: string; value: string; onChange: (v: string) => void; options: string[]; extra?: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  const ref = useRef<HTMLTableCellElement>(null);
-  const active = value !== 'All';
-
-  useEffect(() => {
-    if (!open) return;
-    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, [open]);
-
-  const q = query.trim().toLowerCase();
-  // 'All' always stays selectable so the filter can be cleared from the list.
-  const filtered = options.filter((o) => o === 'All' || o.toLowerCase().includes(q));
-  function pick(o: string) { onChange(o); setOpen(false); setQuery(''); }
-
-  return (
-    <th ref={ref} className="text-left align-top px-3 py-2 border-b border-[#eaeaea] relative">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1">{label}{extra}</div>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className={'flex items-center justify-between gap-1 w-full rounded-md border bg-white pl-2.5 pr-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150 ' +
-          (active ? 'border-[#171717] text-[#171717] font-medium' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4]')}
-      >
-        <span className="truncate">{value}</span>
-        <svg className={'flex-shrink-0 text-[#a3a3a3] transition-transform duration-150 ' + (open ? 'rotate-180' : '')} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </button>
-      {open && (
-        <div className="absolute z-20 left-3 mt-1 min-w-[220px] rounded-md border border-[#eaeaea] bg-white shadow-lg">
-          <div className="p-1.5 border-b border-[#f5f5f5]">
-            <input
-              autoFocus
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search…"
-              className="w-full rounded border border-[#eaeaea] bg-white px-2 py-1 text-xs text-[#171717] placeholder:text-[#a3a3a3] focus:outline-none focus:ring-1 focus:ring-[#171717]"
-            />
-          </div>
-          <div className="max-h-56 overflow-y-auto py-1">
-            {filtered.length === 0 ? (
-              <div className="px-2.5 py-1.5 text-xs text-[#a3a3a3]">No matches</div>
-            ) : filtered.map((o) => (
-              <button
-                key={o}
-                type="button"
-                onClick={() => pick(o)}
-                className={'block w-full truncate text-left px-2.5 py-1.5 text-xs hover:bg-[#fafafa] transition-colors duration-100 ' +
-                  (o === value ? 'text-[#171717] font-medium bg-[#fafafa]' : 'text-[#525252]')}
-              >
-                {o}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </th>
-  );
-}
-
-// Like HeaderFilter but free-text — used for the title columns, whose values are
-// too many/unique for a dropdown.
-function HeaderSearch({ label, value, onChange, extra }: {
-  label: string; value: string; onChange: (v: string) => void; extra?: React.ReactNode;
-}) {
-  return (
-    <th className="text-left align-top px-3 py-2 border-b border-[#eaeaea]">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1">{label}{extra}</div>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={'w-full rounded-md border bg-white px-2.5 py-1 text-xs placeholder:text-[#a3a3a3] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150 ' +
-          (value.trim() ? 'border-[#171717] text-[#171717]' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4]')}
-      />
-    </th>
-  );
-}
-
-// Plain (non-filter) column header with an optional sort toggle.
-function HeaderPlain({ label, extra }: { label: string; extra?: React.ReactNode }) {
-  return (
-    <th className="text-left align-top px-3 py-2 border-b border-[#eaeaea]">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373]">{label}{extra}</div>
-    </th>
-  );
-}
 
 // ── Drill-down primitives ─────────────────────────────────────────────────────
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -359,79 +223,18 @@ function DetailBody({ detail }: { detail: Detail }) {
 
 const DASH = '—';
 
-// Column ordering: each column sorts via the toggle in its header.
-type Sort = { col: string; dir: 1 | -1 } | null;
-function compareValues(va: string, vb: string, dir: 1 | -1): number {
-  // Dashes (empty cells) always trail, regardless of direction.
-  if (va === DASH && vb !== DASH) return 1;
-  if (vb === DASH && va !== DASH) return -1;
-  return va.localeCompare(vb, undefined, { numeric: true }) * dir;
-}
-
-// Sort toggle rendered beside each column label — sized for visibility (D8.2).
-function SortToggle({ col, sort, onSort }: { col: string; sort: Sort; onSort: (c: string) => void }) {
-  const active = sort?.col === col;
-  return (
-    <button
-      type="button"
-      onClick={() => onSort(col)}
-      title={active ? (sort!.dir === 1 ? 'Sorted ascending — click to reverse' : 'Sorted descending — click to clear') : 'Sort by this column'}
-      className={'ml-1.5 align-middle text-[13px] leading-none font-bold ' + (active ? 'text-[#171717]' : 'text-[#737373] hover:text-[#171717]')}
-    >
-      {active ? (sort!.dir === 1 ? '▲' : '▼') : '⇅'}
-    </button>
-  );
-}
-
-const PAGE_SIZE = 100;
-
-// Shared pagination footer.
-function Pager({ page, pageCount, total, onPage }: { page: number; pageCount: number; total: number; onPage: (p: number) => void }) {
-  if (pageCount <= 1) return null;
-  return (
-    <div className="flex items-center justify-between gap-3 px-3 py-2.5 border-t border-[#eaeaea] text-xs text-[#525252]">
-      <span className="tnum">
-        {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total} rows
-      </span>
-      <span className="flex items-center gap-1">
-        <button onClick={() => onPage(0)} disabled={page === 0} className="px-2 py-1 rounded border border-[#eaeaea] disabled:opacity-40 hover:bg-[#fafafa]">«</button>
-        <button onClick={() => onPage(page - 1)} disabled={page === 0} className="px-2 py-1 rounded border border-[#eaeaea] disabled:opacity-40 hover:bg-[#fafafa]">‹ Prev</button>
-        <span className="px-2 tnum">Page {page + 1} / {pageCount}</span>
-        <button onClick={() => onPage(page + 1)} disabled={page >= pageCount - 1} className="px-2 py-1 rounded border border-[#eaeaea] disabled:opacity-40 hover:bg-[#fafafa]">Next ›</button>
-        <button onClick={() => onPage(pageCount - 1)} disabled={page >= pageCount - 1} className="px-2 py-1 rounded border border-[#eaeaea] disabled:opacity-40 hover:bg-[#fafafa]">»</button>
-      </span>
-    </div>
-  );
-}
-
 export default function Work() {
   const { companyId, loading: companyLoading } = useCompany();
   const [data, setData] = useState<WorkData>({ deliverables: [], tasks: [], valueStreams: [] });
+  const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState<Detail | null>(null);
   const [tab, setTab] = useState<'deliverables' | 'tasks'>('deliverables');
 
-  // ── Deliverables tab filters ──
-  const [dSearch, setDSearch] = useState('');
-  const [dType, setDType] = useState('All');
-  const [dValueStream, setDValueStream] = useState('All');
-  const [dSort, setDSort] = useState<Sort>(null);
-  const [dPage, setDPage] = useState(0);
-
-  // ── Tasks tab filters ──
-  const [tSearch, setTSearch] = useState('');
-  const [tDeliverable, setTDeliverable] = useState('All');
-  const [tValueStream, setTValueStream] = useState('All');
-  const [tSort, setTSort] = useState<Sort>(null);
-  const [tPage, setTPage] = useState(0);
-
-  // Cycle a column's sort: none -> asc -> desc -> none. Any change resets paging.
-  const cycle = (s: Sort, col: string): Sort => (!s || s.col !== col ? { col, dir: 1 } : s.dir === 1 ? { col, dir: -1 } : null);
-  const dToggleSort = (col: string) => { setDSort((s) => cycle(s, col)); setDPage(0); };
-  const tToggleSort = (col: string) => { setTSort((s) => cycle(s, col)); setTPage(0); };
-
   useEffect(() => {
     if (companyLoading) return;
-    api.get(withCompany('/work', companyId)).then(setData).catch(() => {});
+    setLoading(true);
+    api.get(withCompany('/work', companyId))
+      .then(setData).catch(() => {}).finally(() => setLoading(false));
   }, [companyId, companyLoading]);
 
   // Open a row's drill-down in the sidebar by fetching its detail.
@@ -445,61 +248,35 @@ export default function Work() {
     [deliverables],
   );
 
-  // ── Deliverables tab rows ──
-  const dTypeOptions = useMemo(() => ['All', ...[...new Set(deliverables.map((d) => d.type).filter(Boolean))].sort()], [deliverables]);
-  const valueStreamOptions = useMemo(() => ['All', ...data.valueStreams.map((v) => v.name)], [data.valueStreams]);
-  const dRows = useMemo(() => {
-    const q = dSearch.trim().toLowerCase();
-    const base = deliverables.filter((d) =>
-      (!q || d.title.toLowerCase().includes(q))
-      && (dType === 'All' || d.type === dType)
-      && (dValueStream === 'All' || d.valueStreamName === dValueStream)
-    );
-    if (!dSort) return base;
-    const { col, dir } = dSort;
-    return [...base].sort((a, b) => {
-      if (col === 'tasks') return (a.taskCount - b.taskCount) * dir;
-      const va = col === 'title' ? a.title : col === 'type' ? a.type : (a.valueStreamName ?? DASH);
-      const vb = col === 'title' ? b.title : col === 'type' ? b.type : (b.valueStreamName ?? DASH);
-      return compareValues(va, vb, dir);
-    });
-  }, [deliverables, dSearch, dType, dValueStream, dSort]);
-  const dPageCount = Math.max(1, Math.ceil(dRows.length / PAGE_SIZE));
-  const dSafePage = Math.min(dPage, dPageCount - 1);
-  const dPaged = dRows.slice(dSafePage * PAGE_SIZE, (dSafePage + 1) * PAGE_SIZE);
+  const rolesCell = (roles: string[]) => {
+    const joined = (roles ?? []).join(', ');
+    return <SheetCell text={joined || DASH} dim title={joined || undefined} />;
+  };
 
-  // ── Tasks tab rows ──
-  const tDeliverableOptions = useMemo(() => ['All', ...[...new Set(deliverables.map((d) => d.title))].sort()], [deliverables]);
-  const tRows = useMemo(() => {
-    const q = tSearch.trim().toLowerCase();
-    const base = tasks.filter((t) => {
-      const vs = t.deliverableId ? vsByDeliverable.get(t.deliverableId) ?? DASH : DASH;
-      return (!q || t.title.toLowerCase().includes(q))
-        && (tDeliverable === 'All' || t.deliverableTitle === tDeliverable)
-        && (tValueStream === 'All' || vs === tValueStream);
-    });
-    if (!tSort) return base;
-    const { col, dir } = tSort;
-    return [...base].sort((a, b) => {
-      const get = (t: Task) =>
-        col === 'title' ? t.title
-        : col === 'deliverable' ? (t.deliverableTitle ?? DASH)
-        : (t.deliverableId ? vsByDeliverable.get(t.deliverableId) ?? DASH : DASH);
-      return compareValues(get(a), get(b), dir);
-    });
-  }, [tasks, tSearch, tDeliverable, tValueStream, tSort, vsByDeliverable]);
-  const tPageCount = Math.max(1, Math.ceil(tRows.length / PAGE_SIZE));
-  const tSafePage = Math.min(tPage, tPageCount - 1);
-  const tPaged = tRows.slice(tSafePage * PAGE_SIZE, (tSafePage + 1) * PAGE_SIZE);
+  const dCols = useMemo<SheetCol<Deliverable>[]>(() => [
+    { key: 'title', label: 'Deliverable', width: 'minmax(0,1.3fr)', value: (d) => d.title },
+    { key: 'type', label: 'Type', width: '120px', value: (d) => d.type, dim: true },
+    { key: 'valueStream', label: 'Value Stream', width: 'minmax(0,1fr)', value: (d) => d.valueStreamName ?? DASH, dim: true },
+    { key: 'process', label: 'Process', width: 'minmax(0,1fr)', values: (d) => d.processes ?? [], dim: true },
+    { key: 'roles', label: 'Role', width: 'minmax(0,1fr)', values: (d) => d.roles ?? [], dim: true, render: (d) => rolesCell(d.roles) },
+    {
+      key: 'tasks', label: 'Tasks', width: '70px', value: (d) => String(d.taskCount), filterable: false,
+      render: (d) => <span className="text-[12px] text-[#737373] tnum">{d.taskCount}</span>,
+    },
+  ], []);
 
-  const dAnyFilter = dSearch.trim() !== '' || dType !== 'All' || dValueStream !== 'All';
-  const tAnyFilter = tSearch.trim() !== '' || tDeliverable !== 'All' || tValueStream !== 'All';
+  const tCols = useMemo<SheetCol<Task>[]>(() => [
+    { key: 'title', label: 'Task', width: 'minmax(0,1.5fr)', value: (t) => t.title },
+    { key: 'deliverable', label: 'Deliverable', width: 'minmax(0,1fr)', value: (t) => t.deliverableTitle ?? DASH, dim: true },
+    { key: 'valueStream', label: 'Value Stream', width: 'minmax(0,1fr)', value: (t) => (t.deliverableId ? vsByDeliverable.get(t.deliverableId) ?? DASH : DASH), dim: true },
+    { key: 'process', label: 'Process', width: 'minmax(0,0.9fr)', values: (t) => t.processes ?? [], dim: true },
+  ], [vsByDeliverable]);
 
   return (
     <div>
       <PageHeader title="Deliverables & Tasks" subtitle="Track tangible outputs and the work driving them across the company" />
 
-      {/* ── Tab switcher (D8.1) — carries the counts so no tile row is needed ── */}
+      {/* ── Tab switcher — carries the counts so no tile row is needed ── */}
       <div className="border-b border-[#eaeaea] mb-3 flex items-center gap-1">
         {([['deliverables', `Deliverables (${deliverables.length})`], ['tasks', `Tasks (${tasks.length})`]] as const).map(([v, label]) => (
           <button
@@ -513,83 +290,26 @@ export default function Work() {
             {label}
           </button>
         ))}
-        <span className="flex-1" />
-        {((tab === 'deliverables' && dAnyFilter) || (tab === 'tasks' && tAnyFilter)) && (
-          <button
-            onClick={() => {
-              if (tab === 'deliverables') { setDSearch(''); setDType('All'); setDValueStream('All'); setDPage(0); }
-              else { setTSearch(''); setTDeliverable('All'); setTValueStream('All'); setTPage(0); }
-            }}
-            className="text-xs font-medium text-[#525252] hover:text-[#171717] transition-colors duration-150 pb-1"
-          >
-            Clear filters
-          </button>
-        )}
       </div>
 
       {tab === 'deliverables' ? (
-        <div className="card-elevated overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr>
-                  <HeaderSearch label="Deliverable" value={dSearch} onChange={(v) => { setDSearch(v); setDPage(0); }} extra={<SortToggle col="title" sort={dSort} onSort={dToggleSort} />} />
-                  <HeaderFilter label="Type" value={dType} onChange={(v) => { setDType(v); setDPage(0); }} options={dTypeOptions} extra={<SortToggle col="type" sort={dSort} onSort={dToggleSort} />} />
-                  <HeaderComboFilter label="Value Stream" value={dValueStream} onChange={(v) => { setDValueStream(v); setDPage(0); }} options={valueStreamOptions} extra={<SortToggle col="valueStream" sort={dSort} onSort={dToggleSort} />} />
-                  <HeaderPlain label="Tasks" extra={<SortToggle col="tasks" sort={dSort} onSort={dToggleSort} />} />
-                </tr>
-              </thead>
-              <tbody>
-                {dRows.length === 0 ? (
-                  <tr><td colSpan={4} className="text-sm text-[#a3a3a3] py-8 text-center">No deliverables match the filters.</td></tr>
-                ) : dPaged.map((d) => (
-                  <tr key={d.id} className="border-t border-[#f5f5f5] hover:bg-[#fafafa]">
-                    <td className="px-3 py-2 align-top">
-                      <button onClick={() => openDrill('deliverable', d.id)} className="text-left font-medium text-[#171717] hover:underline">
-                        {d.title}
-                      </button>
-                    </td>
-                    <td className="px-3 py-2 align-top"><span className="pill-slate text-xs">{d.type}</span></td>
-                    <td className="px-3 py-2 align-top text-[#525252]">{d.valueStreamName ?? DASH}</td>
-                    <td className="px-3 py-2 align-top text-[#525252] tnum">{d.taskCount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <Pager page={dSafePage} pageCount={dPageCount} total={dRows.length} onPage={setDPage} />
-          </div>
-        </div>
+        <Sheet
+          rows={deliverables}
+          cols={dCols}
+          rowKey={(d) => d.id}
+          loading={loading}
+          onRowClick={(d) => openDrill('deliverable', d.id)}
+          summarize={(v) => `${new Set(v.map((d) => d.valueStreamName).filter(Boolean)).size} value streams`}
+        />
       ) : (
-        <div className="card-elevated overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr>
-                  <HeaderSearch label="Task" value={tSearch} onChange={(v) => { setTSearch(v); setTPage(0); }} extra={<SortToggle col="title" sort={tSort} onSort={tToggleSort} />} />
-                  <HeaderComboFilter label="Deliverable" value={tDeliverable} onChange={(v) => { setTDeliverable(v); setTPage(0); }} options={tDeliverableOptions} extra={<SortToggle col="deliverable" sort={tSort} onSort={tToggleSort} />} />
-                  <HeaderComboFilter label="Value Stream" value={tValueStream} onChange={(v) => { setTValueStream(v); setTPage(0); }} options={valueStreamOptions} extra={<SortToggle col="valueStream" sort={tSort} onSort={tToggleSort} />} />
-                </tr>
-              </thead>
-              <tbody>
-                {tRows.length === 0 ? (
-                  <tr><td colSpan={3} className="text-sm text-[#a3a3a3] py-8 text-center">No tasks match the filters.</td></tr>
-                ) : tPaged.map((t) => (
-                  <tr key={t.id} className="border-t border-[#f5f5f5] hover:bg-[#fafafa]">
-                    <td className="px-3 py-2 align-top">
-                      <button onClick={() => openDrill('task', t.id)} className="flex items-center gap-2 text-left text-[#171717] hover:underline">
-                        <SourceTag source={t.source} />
-                        <span>{t.title}</span>
-                      </button>
-                    </td>
-                    <td className="px-3 py-2 align-top text-[#525252]">{t.deliverableTitle ?? DASH}</td>
-                    <td className="px-3 py-2 align-top text-[#525252]">{t.deliverableId ? vsByDeliverable.get(t.deliverableId) ?? DASH : DASH}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <Pager page={tSafePage} pageCount={tPageCount} total={tRows.length} onPage={setTPage} />
-          </div>
-        </div>
+        <Sheet
+          rows={tasks}
+          cols={tCols}
+          rowKey={(t) => t.id}
+          loading={loading}
+          onRowClick={(t) => openDrill('task', t.id)}
+          summarize={(v) => `${new Set(v.map((t) => t.deliverableId).filter(Boolean)).size} deliverables`}
+        />
       )}
 
       {detail && (

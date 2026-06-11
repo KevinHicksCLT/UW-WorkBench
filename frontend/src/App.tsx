@@ -3,6 +3,7 @@
 import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { useAuth } from './lib/auth';
 import { CompanyProvider } from './lib/company';
+import { DialogProvider } from './lib/dialogs';
 import { BreadcrumbProvider } from './lib/breadcrumbs';
 import Layout from './components/Layout';
 import Login from './pages/Login';
@@ -48,6 +49,14 @@ function ActiveAIRedirect() {
   return <Navigate to={`/metrics/${encodeURIComponent(id ?? '')}`} replace />;
 }
 
+// The portfolio detail pages moved out of Workspace and now live under Home
+// (the command-center widgets are their entry point) — old /portfolio/* deep
+// links follow them.
+function PortfolioDetailRedirect({ base }: { base: string }) {
+  const { id } = useParams();
+  return <Navigate to={`/${base}/${encodeURIComponent(id ?? '')}`} replace />;
+}
+
 export default function App() {
   const { user, loading } = useAuth();
 
@@ -69,6 +78,7 @@ export default function App() {
   }
 
   return (
+    <DialogProvider>
     <CompanyProvider>
     <BreadcrumbProvider>
     <Layout>
@@ -104,9 +114,14 @@ export default function App() {
             Initiatives) integrated with the operating model. Hosts the
             Application Rationalization workspace as its focal feature. */}
         <Route path="/portfolio" element={<Portfolio />} />
-        <Route path="/portfolio/programs/:id" element={<PortfolioProgram />} />
-        <Route path="/portfolio/initiatives/:id" element={<PortfolioInitiative />} />
-        <Route path="/portfolio/raid" element={<PortfolioRaid />} />
+        {/* Portfolio drill-downs live under Home — the command-center widgets
+            on the dashboard are their entry point (not the Workspace tab). */}
+        <Route path="/programs/:id" element={<PortfolioProgram />} />
+        <Route path="/initiatives/:id" element={<PortfolioInitiative />} />
+        <Route path="/raid" element={<PortfolioRaid />} />
+        <Route path="/portfolio/programs/:id" element={<PortfolioDetailRedirect base="programs" />} />
+        <Route path="/portfolio/initiatives/:id" element={<PortfolioDetailRedirect base="initiatives" />} />
+        <Route path="/portfolio/raid" element={<Navigate to="/raid" replace />} />
         {/* Deliverables & Tasks — standalone work tracker (banner + filters + table). */}
         <Route path="/work" element={<Work />} />
         {/* Regulations — 50-state insurance regulatory baseline (states /
@@ -127,5 +142,6 @@ export default function App() {
     </Layout>
     </BreadcrumbProvider>
     </CompanyProvider>
+    </DialogProvider>
   );
 }

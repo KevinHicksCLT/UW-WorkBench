@@ -79,7 +79,7 @@ export default function StandardArea() {
 
       {/* Charter — mission + scope from the department standards sheet */}
       {(a.mission || scopeBullets.length > 0 || a.owner) && (
-        <div className="card mb-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="card mb-3 grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2">
             {a.mission && (
               <>
@@ -107,17 +107,17 @@ export default function StandardArea() {
       )}
 
       {/* Search */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-3">
         <input className="input sm:max-w-xs" placeholder="Search standards…" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
 
       {groups.length === 0 ? (
         <div className="card text-sm text-slate-500 italic">No standards match.</div>
       ) : (
-        <div className="space-y-5">
+        <div className="space-y-3">
           {groups.map((g) => (
             <div key={g.category}>
-              <div className="flex items-center justify-between gap-3 mb-2">
+              <div className="flex items-center justify-between gap-3 mb-1.5">
                 <h3 className="text-sm font-semibold text-[#171717] flex items-center gap-2">
                   {g.category}
                   <span className="text-xs font-normal text-[#a3a3a3] tnum">{g.rows.length}</span>
@@ -140,7 +140,7 @@ export default function StandardArea() {
                   const isOpen = open.has(it.id);
                   return (
                     <div key={it.id} className="border-b border-[#f5f5f5] last:border-0">
-                      <div className="flex items-start gap-2 px-4 py-2.5 hover:bg-[#fafafa] transition-colors duration-150 cursor-pointer" onClick={() => toggle(it.id)}>
+                      <div className="flex items-start gap-2 px-4 py-2 hover:bg-[#fafafa] transition-colors duration-150 cursor-pointer" onClick={() => toggle(it.id)}>
                         <Chevron open={isOpen} />
                         <div className="flex-1 min-w-0">
                           <div className="text-sm text-[#171717]">{it.name}</div>

@@ -12,17 +12,19 @@ import type { AdminEntity } from '../lib/adminTypes';
 // Two-letter abbreviations shown in the left nav when it's collapsed.
 const TAB_SHORT: Record<string, string> = {
   company: 'CO', home: 'HM', valueStreams: 'VS', organization: 'OR', standards: 'ST',
-  telemetry: 'TE', initiatives: 'IN', work: 'DT', people: 'PE', external: 'EX', catalog: 'DC',
+  regulations: 'RG', telemetry: 'ME', initiatives: 'WS', work: 'DT', applications: 'AP',
+  people: 'PE', external: 'EX', health: 'DH',
 };
 
 // ─── Data Admin Studio ───────────────────────────────────────────────────────
-// One console to configure every tab of the product. The top nav mirrors the
+// One console to configure every tab of the product. The left nav mirrors the
 // app's own navigation (Company onboarding, Home, Value Streams, Organization,
-// Standards, Telemetry, Initiatives, Deliverables & Tasks, People, External) plus
-// a power-user Data Catalog. Each tab renders a tailored editor for its data
+// Standards, Metrics, Workspace, Deliverables & Tasks, People, Regulations,
+// Third-Parties, Data Health). Each tab renders a tailored editor for its data
 // shape (drill-down trees, master-detail, or flat lists) — defined in
-// lib/adminConfig.ts. An AI assistant can draft and apply changes on request.
-// Everything is company-scoped and every write is audited.
+// lib/adminConfig.ts; the app speaks the domain, never raw database tables.
+// An AI assistant can draft and apply changes on request. Everything is
+// company-scoped and every write is audited.
 
 export default function Admin() {
   const { companyId, company } = useCompany();
@@ -180,7 +182,7 @@ export default function Admin() {
             {/* The active editor. refreshKey forces a remount after AI applies edits. */}
             <div key={`${tab.key}:${section.key}:${refreshKey}`}>
               {entities.length === 0 ? (
-                <div className="card-elevated p-10 text-center text-sm text-[#a3a3a3]">Loading tables…</div>
+                <div className="card-elevated p-10 text-center text-sm text-[#a3a3a3]">Loading…</div>
               ) : (
                 <AdminSection
                   spec={section.editor}

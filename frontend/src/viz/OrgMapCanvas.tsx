@@ -21,6 +21,8 @@ import '@xyflow/react/dist/style.css';
 import { MAP_CARD_W, MAP_CARD_H, sentenceCase } from './nodes/MapNode';
 import { DOMAIN_HEX, DOMAIN_BG, DOMAIN_BORDER, DOMAIN_TEXT, type NodeFocusState } from './model';
 import { useApi } from '../lib/useApi';
+import { api } from '../lib/api';
+import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from '../components/MetricsSidebar';
 
 // ── Org-table payload (same shapes as pages/OrgTable.tsx) ────────────────────
 
@@ -265,6 +267,37 @@ function OrgMapCanvasInner({ data, breadcrumbSlot }: Props & { data: OrgData }) 
   const [selDivId, setSelDivId] = useState<string | null>(null);
   const [selDeptId, setSelDeptId] = useState<string | null>(null); // LOOSE = direct-to-division roles
 
+  // Right-hand metrics panel — the SAME MetricsSidebar (and dashboards) the org
+  // LIST view opens, so both views stay in sync: drilling a segment/division/
+  // team here shows exactly what clicking that row in the list shows. `base` =
+  // the node clicked on the map; `ovStack` = in-panel drills (role → person).
+  const [base, setBase] = useState<{ level: string; id: string } | null>(null);
+  const [ovStack, setOvStack] = useState<{ level: string; id: string }[]>([]);
+  const [dash, setDash] = useState<Dashboard | null>(null);
+  const [dashLoading, setDashLoading] = useState(false);
+  const [drawerSection, setDrawerSection] = useState<MetricSection | null>(null);
+  const [accentHex, setAccentHex] = useState<string | undefined>(undefined);
+  const target = ovStack.length ? ovStack[ovStack.length - 1] : base;
+
+  const openMetrics = (level: string, id: string, accent?: string) => { setBase({ level, id }); setOvStack([]); setAccentHex(accent); };
+  const onPanelDrill = (level: string, id: string) => setOvStack((s) => [...s, { level, id }]);
+  const onPanelBack = () => setOvStack((s) => s.slice(0, -1));
+  const closeMetrics = () => { setBase(null); setOvStack([]); };
+
+  useEffect(() => {
+    if (!target) { setDash(null); return; }
+    let cancelled = false; setDashLoading(true); setDash(null);
+    const url = target.id ? `/explorer/roles/${target.level}/${encodeURIComponent(target.id)}` : `/explorer/roles/${target.level}`;
+    api.get(url)
+      .then((d: Dashboard) => { if (!cancelled) setDash(d); })
+      .catch(() => { if (!cancelled) setDash(null); })
+      .finally(() => { if (!cancelled) setDashLoading(false); });
+    return () => { cancelled = true; };
+  }, [target?.level, target?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Changing the focused entity makes the drawer's snapshot stale — close it.
+  useEffect(() => { setDrawerSection(null); }, [target?.level, target?.id]);
+
   // Derived selection
   const segments = data.segments;
   const selSegment = selSegName ? segments.find((s) => s.name === selSegName) ?? null : null;
@@ -281,32 +314,45 @@ function OrgMapCanvasInner({ data, breadcrumbSlot }: Props & { data: OrgData }) 
   const roles = selTeam?.roles ?? [];
 
   // Click handlers — clicking the selected node again collapses back a level.
-  const onCompanyClick = useCallback(() => {
+  // Each selection also opens the SAME metrics sidebar the list view opens for
+  // that entity (deselecting steps the panel back to the parent level).
+  const hexOf = (segName: string | null) => (segName ? DOMAIN_HEX[segName] ?? '#94a3b8' : undefined);
+
+  function onCompanyClick() {
     if (companyOpen) {
       setCompanyOpen(false); setSelSegName(null); setSelDivId(null); setSelDeptId(null);
+      closeMetrics();
     } else {
       setCompanyOpen(true);
     }
-  }, [companyOpen]);
+  }
 
-  const onSegmentClick = useCallback((name: string) => {
-    setSelSegName((prev) => (prev === name ? null : name));
-    setSelDivId(null); setSelDeptId(null);
-  }, []);
+  function onSegmentClick(name: string) {
+    const next = selSegName === name ? null : name;
+    setSelSegName(next); setSelDivId(null); setSelDeptId(null);
+    if (next) openMetrics('domain', name, hexOf(name)); else closeMetrics();
+  }
 
-  const onDivisionClick = useCallback((id: string) => {
-    setSelDivId((prev) => (prev === id ? null : id));
-    setSelDeptId(null);
-  }, []);
+  function onDivisionClick(id: string) {
+    const next = selDivId === id ? null : id;
+    setSelDivId(next); setSelDeptId(null);
+    if (next) openMetrics('division', id, hexOf(selSegName));
+    else if (selSegName) openMetrics('domain', selSegName, hexOf(selSegName));
+  }
 
-  const onDeptClick = useCallback((id: string) => {
-    setSelDeptId((prev) => (prev === id ? null : id));
-  }, []);
+  function onDeptClick(id: string) {
+    const next = selDeptId === id ? null : id;
+    setSelDeptId(next);
+    // The "Direct to division" pseudo-team has no department entity — keep the
+    // division's dashboard up for it.
+    if (next && next !== LOOSE) openMetrics('department', id, hexOf(selSegName));
+    else if (selDivId) openMetrics('division', selDivId, hexOf(selSegName));
+  }
 
-  // Breadcrumb jumps
-  const crumbClear = useCallback(() => { setSelSegName(null); setSelDivId(null); setSelDeptId(null); }, []);
-  const crumbToSegment = useCallback(() => { setSelDivId(null); setSelDeptId(null); }, []);
-  const crumbToDivision = useCallback(() => { setSelDeptId(null); }, []);
+  // Breadcrumb jumps — keep the sidebar pointed at the level jumped to.
+  const crumbClear = useCallback(() => { setSelSegName(null); setSelDivId(null); setSelDeptId(null); closeMetrics(); }, []); // eslint-disable-line
+  const crumbToSegment = () => { setSelDivId(null); setSelDeptId(null); if (selSegName) openMetrics('domain', selSegName, hexOf(selSegName)); };
+  const crumbToDivision = () => { setSelDeptId(null); if (selDivId) openMetrics('division', selDivId, hexOf(selSegName)); };
 
   // ── Build nodes and edges ──────────────────────────────────────────────────
   const { nodes, edges } = useMemo(() => {
@@ -522,17 +568,17 @@ function OrgMapCanvasInner({ data, breadcrumbSlot }: Props & { data: OrgData }) 
   }, [selDeptId]); // eslint-disable-line
 
   // ── Node click handler ─────────────────────────────────────────────────────
-  const onNodeClick: NodeMouseHandler = useCallback((_e, node) => {
+  const onNodeClick: NodeMouseHandler = (_e, node) => {
     if (node.type === 'orgCompany') onCompanyClick();
     else if (node.type === 'orgSegment') onSegmentClick(node.id.replace(/^seg:/, ''));
     else if (node.type === 'orgDivision') onDivisionClick(node.id.replace(/^div:/, ''));
     else if (node.type === 'orgDept') onDeptClick(node.id.replace(/^dept:/, ''));
     else if (node.type === 'orgRole') {
-      // Role leaf → the existing role deep link (legacy id; Organization routes
-      // it to the role detail drill-down).
+      // Role leaf → the role's full-detail drawer, in place (Organization
+      // overlays it on this map; same drawer the list opens for roles).
       navigate(`/roles?role=${encodeURIComponent(node.id.replace(/^role:/, ''))}`);
     }
-  }, [onCompanyClick, onSegmentClick, onDivisionClick, onDeptClick, navigate]);
+  };
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -583,7 +629,7 @@ function OrgMapCanvasInner({ data, breadcrumbSlot }: Props & { data: OrgData }) 
       )}
 
       {/* React Flow canvas. No `fitView` prop on purpose — see fitTopView. */}
-      <div className="rf-stage rf-stage--map" style={{ flex: 1, position: 'relative' }}>
+      <div className="rf-stage rf-stage--map" style={{ flex: 1, position: 'relative', minWidth: 0 }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -599,6 +645,22 @@ function OrgMapCanvasInner({ data, breadcrumbSlot }: Props & { data: OrgData }) 
           <Controls showInteractive={false} position="bottom-left" />
         </ReactFlow>
       </div>
+
+      {/* Right-hand metrics panel — identical to the org list view's. */}
+      {base && (
+        <MetricsSidebar dash={dash} loading={dashLoading} onDrill={onPanelDrill} startExpanded accent={accentHex}
+          onBack={ovStack.length ? onPanelBack : undefined} onClose={closeMetrics} onViewAll={setDrawerSection} />
+      )}
+
+      {/* Comprehensive "view all" drawer — overlays the panel. */}
+      {drawerSection && (
+        <MetricsDrawer
+          section={drawerSection}
+          contextTitle={dash?.title ?? ''}
+          onClose={() => setDrawerSection(null)}
+          onDrill={onPanelDrill}
+        />
+      )}
     </div>
   );
 }

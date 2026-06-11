@@ -9,6 +9,7 @@
 // admin CRUD (/admin/<entity>) — the DB stays the single source of truth.
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../../lib/api';
+import { useDialogs } from '../../lib/dialogs';
 
 type Row = Record<string, any>;
 const withCompany = (path: string, companyId: string | null) =>
@@ -19,7 +20,7 @@ const APPROVAL_TYPES = ['System Workflow', 'Manual Sign-off', 'E-Signature'];
 
 // Section accents mirror the sidebar's hue ladder so what you edit here is
 // visually the same thing you see on the map.
-const ACCENT = { who: '#059669', deliverable: '#0070AD', app: '#1d4ed8' } as const;
+const ACCENT = { steps: '#7c3aed', detail: '#b45309', who: '#059669', deliverable: '#0070AD', app: '#1d4ed8' } as const;
 
 function SectionCard({ title, accent, hint, children }: { title: string; accent: string; hint?: string; children: React.ReactNode }) {
   return (
@@ -60,6 +61,7 @@ export default function StepLensEditor({ companyId, onNavigate }: {
   companyId: string | null;
   onNavigate?: (tab: string, section?: string) => void;
 }) {
+  const dialogs = useDialogs();
   const [streams, setStreams] = useState<Row[]>([]);
   const [apps, setApps] = useState<Row[]>([]);
   const [roles, setRoles] = useState<Row[]>([]);
@@ -106,11 +108,26 @@ export default function StepLensEditor({ companyId, onNavigate }: {
   }, [companyId]); // eslint-disable-line
 
   // Steps of the selected stream.
+  const loadSteps = () => {
+    if (!companyId || !vsId) { setSteps([]); return; }
+    api.get(withCompany(`/admin/processStep?limit=200&f_valueStreamId=${vsId}`, companyId)).then((r: any) => setSteps(rows(r)));
+  };
   useEffect(() => {
     setL4(''); setStepId(''); setSteps([]);
-    if (!companyId || !vsId) return;
-    api.get(withCompany(`/admin/processStep?limit=200&f_valueStreamId=${vsId}`, companyId)).then((r: any) => setSteps(rows(r)));
-  }, [companyId, vsId]);
+    loadSteps();
+  }, [companyId, vsId]); // eslint-disable-line
+
+  // The L4 sub-process detail record (inputs/outputs/hand-offs/notes shown in
+  // the map sidebar at PL4). undefined = nothing selected / loading, null = the
+  // selected sub-process has no detail row yet.
+  const [l4Row, setL4Row] = useState<Row | null | undefined>(undefined);
+  const loadL4Row = () => {
+    setL4Row(undefined);
+    if (!companyId || !vsId || !l4) return;
+    api.get(withCompany(`/admin/subValueStream?limit=200&f_valueStreamId=${vsId}&f_level=4`, companyId))
+      .then((r: any) => setL4Row(rows(r).find((x: Row) => x.name === l4) ?? null));
+  };
+  useEffect(() => { loadL4Row(); }, [companyId, vsId, l4]); // eslint-disable-line
 
   const l4s = useMemo(() => {
     const seen = new Map<string, number>();
@@ -154,9 +171,58 @@ export default function StepLensEditor({ companyId, onNavigate }: {
     finally { setSaving(null); }
   };
   const remove = async (slug: string, id: string) => {
-    if (!confirm('Delete this row?')) return;
+    if (!(await dialogs.confirm({ title: 'Delete this row?', danger: true, message: 'This cannot be undone.' }))) return;
     await api.delete(withCompany(`/admin/${slug}/${id}`, companyId));
     void reloadBridges();
+  };
+
+  // ── The steps themselves (rename on blur, delete, add) ─────────────────────
+  const [newStepName, setNewStepName] = useState('');
+  const renameStep = async (s: Row, name: string) => {
+    if (!name || name === s.name) return;
+    await patch('processStep', s.id, { name });
+    loadSteps();
+  };
+  const removeStep = async (s: Row) => {
+    const ok = await dialogs.confirm({
+      title: `Delete step ${s.stepNumber} "${s.name}"?`,
+      danger: true,
+      message: 'Its application and deliverable rows below are deleted with it. This cannot be undone.',
+    });
+    if (!ok) return;
+    await api.delete(withCompany(`/admin/processStep/${s.id}`, companyId));
+    if (stepId === s.id) setStepId('');
+    loadSteps();
+    void reloadBridges();
+  };
+  const addNewStep = async () => {
+    const name = newStepName.trim();
+    if (!name) return;
+    const sibs = l4 ? steps.filter((s) => s.l4 === l4) : steps;
+    const proto = l4 ? sibs[0] : null;
+    await api.post(withCompany('/admin/processStep', companyId), {
+      valueStreamId: vsId,
+      name,
+      stepNumber: Math.max(0, ...sibs.map((s) => s.stepNumber)) + 1,
+      l4: l4 || null,
+      l3: proto?.l3 ?? null,
+      parentProcessId: proto?.parentProcessId ?? null,
+    });
+    setNewStepName('');
+    note('Step added.');
+    loadSteps();
+  };
+
+  // ── L4 sub-process detail (the PL4 sidebar narrative) ──────────────────────
+  const saveL4Detail = async (data: Row) => {
+    if (!l4Row) return;
+    await patch('subValueStream', l4Row.id, data);
+    loadL4Row();
+  };
+  const createL4Detail = async () => {
+    await api.post(withCompany('/admin/subValueStream', companyId), { valueStreamId: vsId, level: 4, name: l4 });
+    note('Detail record created — fill it in below.');
+    loadL4Row();
   };
 
   const appOptions = apps.map((a) => ({ id: a.id, label: `${a.code ? a.code + ' · ' : ''}${a.name}` }));
@@ -207,6 +273,63 @@ export default function StepLensEditor({ companyId, onNavigate }: {
       ) : (
         <div className="space-y-4 max-w-4xl">
           <div className="text-[12px] text-[#525252]">Editing <strong>{scopeLabel}</strong>. The sidebar at this level aggregates everything below.</div>
+
+          {/* ── The steps themselves ──────────────────────────────────────── */}
+          <SectionCard
+            title="Process steps"
+            accent={ACCENT.steps}
+            hint="The sequenced steps at this scope — rename, remove, or add one. Per-step roles, deliverables, and applications are edited in the sections below."
+          >
+            <div className="space-y-1.5">
+              {scopeSteps.map((s) => (
+                <div key={s.id} className="flex items-center gap-2">
+                  <span className="text-[11px] text-[#a3a3a3] w-7 text-right flex-shrink-0">{s.stepNumber}.</span>
+                  {!l4 && s.l4 && <span className="flex-shrink-0"><StepChip text={s.l4} /></span>}
+                  <input
+                    key={s.id + ':' + s.name}
+                    defaultValue={s.name}
+                    onBlur={(e) => void renameStep(s, e.target.value.trim())}
+                    className="flex-1 rounded-md border border-[#e5e7eb] px-2 py-1.5 text-[12px]"
+                  />
+                  <button onClick={() => void removeStep(s)} className="flex-shrink-0 rounded-md border border-[#fecaca] text-[#b91c1c] px-2.5 py-1.5 text-[12px] font-semibold hover:bg-[#fef2f2]">Delete</button>
+                </div>
+              ))}
+              {scopeSteps.length === 0 && <div className="text-[12px] text-[#a3a3a3] italic">No steps at this scope yet — add the first one below.</div>}
+              {!stepId && (
+                <div className="flex items-center gap-2 pt-1.5">
+                  <span className="w-7 flex-shrink-0" />
+                  <input
+                    value={newStepName}
+                    onChange={(e) => setNewStepName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') void addNewStep(); }}
+                    placeholder={l4 ? `New step in "${l4}"…` : 'New step name…'}
+                    className="flex-1 rounded-md border border-dashed border-[#cbd5e1] px-2 py-1.5 text-[12px]"
+                  />
+                  <button onClick={() => void addNewStep()} disabled={!newStepName.trim()} className="flex-shrink-0 rounded-md border border-[#dbe7ff] bg-[#f5f8ff] text-[#1d4ed8] px-3 py-1.5 text-[12px] font-semibold hover:bg-[#eaf1ff] disabled:opacity-40">+ Add step</button>
+                </div>
+              )}
+            </div>
+          </SectionCard>
+
+          {/* ── Sub-process detail (PL4 narrative) ───────────────────────── */}
+          {l4 && !stepId && (
+            <SectionCard
+              title="Sub-process detail"
+              accent={ACCENT.detail}
+              hint="The narrative the sidebar shows for this sub-process — its inputs, outputs, upstream/downstream hand-offs, and notes."
+            >
+              {l4Row === undefined ? (
+                <div className="text-[12px] text-[#a3a3a3]">Loading…</div>
+              ) : l4Row === null ? (
+                <div className="flex items-center gap-3">
+                  <span className="text-[12px] text-[#a3a3a3] italic">This sub-process has no detail record yet.</span>
+                  <button onClick={() => void createL4Detail()} className="rounded-md border border-[#dbe7ff] bg-[#f5f8ff] text-[#1d4ed8] px-3 py-1.5 text-[12px] font-semibold hover:bg-[#eaf1ff]">Create it</button>
+                </div>
+              ) : (
+                <SubProcessDetailCard key={l4Row.id} row={l4Row} saving={saving === l4Row.id} onSave={(d) => void saveL4Detail(d)} />
+              )}
+            </SectionCard>
+          )}
 
           {/* ── Who does the work ─────────────────────────────────────────── */}
           <SectionCard
@@ -359,6 +482,39 @@ export default function StepLensEditor({ companyId, onNavigate }: {
           </SectionCard>
         </div>
       )}
+    </div>
+  );
+}
+
+// Editable inputs/outputs/hand-offs/notes of one L4 SubValueStream row.
+function SubProcessDetailCard({ row, saving, onSave }: { row: Row; saving: boolean; onSave: (data: Row) => void }) {
+  const FIELDS: [string, string][] = [
+    ['inputs', 'Inputs'], ['outputs', 'Outputs'],
+    ['upstream', 'Upstream hand-off'], ['downstream', 'Downstream hand-off'],
+    ['notes', 'Notes'],
+  ];
+  const [d, setD] = useState<Row>(() => Object.fromEntries(FIELDS.map(([k]) => [k, row[k] ?? ''])));
+  return (
+    <div>
+      <div className="grid gap-2.5 sm:grid-cols-2">
+        {FIELDS.map(([k, label]) => (
+          <div key={k} className={k === 'notes' ? 'sm:col-span-2' : ''}>
+            <Label>{label}</Label>
+            <textarea
+              value={d[k]}
+              onChange={(e) => setD((x) => ({ ...x, [k]: e.target.value }))}
+              className="w-full rounded-md border border-[#e5e7eb] px-2 py-1.5 text-[12px] min-h-[56px]"
+            />
+          </div>
+        ))}
+      </div>
+      <button
+        onClick={() => onSave(Object.fromEntries(FIELDS.map(([k]) => [k, d[k] || null])))}
+        disabled={saving}
+        className="mt-2.5 rounded-md bg-[#171717] text-white px-3 py-1.5 text-[12px] font-semibold hover:bg-black disabled:opacity-50"
+      >
+        Save
+      </button>
     </div>
   );
 }

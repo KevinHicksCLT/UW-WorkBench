@@ -1,14 +1,20 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 
-// ── Visited-path breadcrumb trail ───────────────────────────────────────────
-// The breadcrumb is the path the user actually walked, not a fixed hierarchy.
-// It persists across tab boundaries (e.g. open a role from a value stream and
-// the value-stream crumb stays). Every trail is rooted at Home, and each tab's
-// base level shows "Home / <Tab>" so a breadcrumb is present on every tab — the
-// same always-on behaviour as the Value Streams map (which roots at the company
-// and renders its own drill breadcrumb). Pages contribute their own crumb via
-// PageHeader (useRegisterCrumb).
+// ── Visited-path breadcrumb trail (global header) ───────────────────────────
+// The breadcrumb is the path the user actually walked, not a fixed hierarchy,
+// and it renders ONCE — in the global header (components/BreadcrumbBar inside
+// Layout), never inside pages. The trail PERSISTS across tab boundaries:
+// following a link from one tab into another appends to the trail, so the
+// crumbs always lead back to exactly where the user came from — including
+// query state (each crumb keeps the latest pathname+search it saw, so e.g. a
+// filtered RAID log restores its filter). Two things re-root the trail:
+//   - clicking a tab in the top nav (Layout calls resetToTab — an explicit
+//     fresh start),
+//   - navigating to a URL already in the trail (back-nav → truncate to it).
+// Pages contribute their crumb via PageHeader (useRegisterCrumb). Drill-driven
+// surfaces (the Value Streams / Organization maps) can CLAIM the header bar
+// and portal their richer drill breadcrumb into it (useHeaderBreadcrumbSlot).
 
 export type Crumb = { to: string; label: string };
 
@@ -16,69 +22,91 @@ export type Crumb = { to: string; label: string };
 const HOME: Crumb = { to: '/', label: 'Home' };
 
 // Top-level tabs besides Home (their exact paths are the "base level" of each
-// tab). The Value Streams tab (/overview) renders its own breadcrumb in the map
-// canvas, so it never reaches PageHeader — it lives here only so owningTab() can
-// root nested value-stream pages.
+// tab). Kept in sync with the Layout nav.
 const TABS: Crumb[] = [
   { to: '/overview', label: 'Value Streams' },
   { to: '/roles', label: 'Organization' },
   { to: '/standards', label: 'Standards' },
+  { to: '/regulations', label: 'Regulations' },
   { to: '/metrics', label: 'Metrics' },
   { to: '/portfolio', label: 'Workspace' },
   { to: '/work', label: 'Deliverables & Tasks' },
+  { to: '/applications', label: 'Applications' },
+  { to: '/external', label: 'Third-Parties' },
   { to: '/admin', label: 'Data Admin' },
 ];
 
-const baseTab = (pathname: string): Crumb | undefined =>
-  pathname === '/' ? HOME : TABS.find((t) => t.to === pathname);
+// Crumbs are keyed by pathname; `to` carries pathname+search for restoration.
+const pathOf = (to: string) => to.split('?')[0];
 
-// The tab a nested page belongs under — seeded as the crumb after Home when a
+// The tab a nested page belongs under — seeds the crumb after Home when a
 // trail starts fresh (e.g. on a deep link) so the breadcrumb is always rooted.
-function owningTab(pathname: string): Crumb {
-  if (pathname.startsWith('/roles') || pathname.startsWith('/divisions') || pathname.startsWith('/departments')) return TABS[1];
-  if (pathname.startsWith('/value-streams') || pathname.startsWith('/overview') || pathname.startsWith('/n/')) return TABS[0];
-  if (pathname.startsWith('/metrics')) return TABS[3];
-  if (pathname.startsWith('/standards')) return TABS[2];
-  if (pathname.startsWith('/portfolio')) return TABS[4];
-  if (pathname.startsWith('/work')) return TABS[5];
-  if (pathname.startsWith('/admin') || pathname.startsWith('/audit')) return TABS[6];
-  return HOME;
+// Portfolio drill-downs (/programs, /initiatives, /raid) belong to Home.
+const TAB_PREFIXES: [string, string][] = [
+  ['/roles', '/roles'], ['/divisions', '/roles'], ['/departments', '/roles'],
+  ['/value-streams', '/overview'], ['/overview', '/overview'], ['/n/', '/overview'],
+  ['/standards', '/standards'], ['/regulations', '/regulations'], ['/metrics', '/metrics'],
+  ['/portfolio', '/portfolio'], ['/work', '/work'], ['/applications', '/applications'],
+  ['/external', '/external'], ['/admin', '/admin'], ['/audit', '/admin'],
+];
+function owningTab(path: string): Crumb {
+  const hit = TAB_PREFIXES.find(([p]) => path.startsWith(p));
+  return (hit && TABS.find((t) => t.to === hit[1])) || HOME;
 }
 
 const sameTrail = (a: Crumb[], b: Crumb[]) =>
   a.length === b.length && a.every((c, i) => c.to === b[i].to && c.label === b[i].label);
 
-type Ctx = { trail: Crumb[]; register: (to: string, label: string) => void };
+type Ctx = {
+  trail: Crumb[];
+  register: (to: string, label: string) => void;
+  resetToTab: (to: string) => void;
+  headerSlot: HTMLElement | null;
+  setHeaderSlot: (el: HTMLElement | null) => void;
+  headerClaimed: boolean;
+  claimHeader: (claimed: boolean) => void;
+};
 const BreadcrumbContext = createContext<Ctx | null>(null);
 
 export function BreadcrumbProvider({ children }: { children: ReactNode }) {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const [trail, setTrail] = useState<Crumb[]>([]);
+  const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
+  const [headerClaimed, claimHeader] = useState(false);
 
-  // Structural update on navigation: at a tab's base level, root the trail at
-  // "Home / <Tab>" (Home alone carries no breadcrumb); when stepping back to an
-  // ancestor already in the trail, truncate to it. Forward navigation into a new
-  // page is finished by register() (it carries the label).
+  // Structural update on navigation. Key behaviours:
+  //   - Home is the root — no crumb.
+  //   - A URL already in the trail (matched by pathname) → back-nav: truncate
+  //     to it and refresh its `to` with the current search (query state).
+  //   - A tab base reached by an in-app LINK (top-nav clicks call resetToTab
+  //     instead) → APPEND the tab, keeping the cross-tab path walkable back.
+  //   - Anything else is a page register()s with its own label.
   useEffect(() => {
+    const here = pathname + search;
     setTrail((prev) => {
-      if (pathname === '/') return prev.length ? [] : prev; // Home is the root — no crumb
+      if (pathname === '/') return prev.length ? [] : prev;
+      const idx = prev.findIndex((c) => pathOf(c.to) === pathname);
+      if (idx >= 0) {
+        const next = prev.slice(0, idx + 1);
+        next[idx] = { ...next[idx], to: here };
+        return sameTrail(prev, next) ? prev : next;
+      }
       const tab = TABS.find((t) => t.to === pathname);
       if (tab) {
-        const rooted = [HOME, tab];
-        return sameTrail(prev, rooted) ? prev : rooted;
+        const base = prev.length ? prev : [HOME];
+        return [...base, { label: tab.label, to: here }];
       }
-      const idx = prev.findIndex((c) => c.to === pathname);
-      if (idx >= 0 && idx < prev.length - 1) return prev.slice(0, idx + 1);
       return prev;
     });
-  }, [pathname]);
+  }, [pathname, search]);
 
   const register = useCallback((to: string, label: string) => {
-    if (baseTab(to)) return; // base levels carry their fixed tab crumb, not the page title
+    const path = pathOf(to);
+    if (path === '/' || TABS.some((t) => t.to === path)) return; // base levels carry their fixed tab crumb
     setTrail((prev) => {
-      const idx = prev.findIndex((c) => c.to === to);
+      const idx = prev.findIndex((c) => pathOf(c.to) === path);
       if (idx >= 0) {
-        if (idx === prev.length - 1 && prev[idx].label === label) return prev;
+        if (idx === prev.length - 1 && prev[idx].label === label && prev[idx].to === to) return prev;
         const next = prev.slice(0, idx + 1);
         next[idx] = { to, label };
         return next;
@@ -87,26 +115,62 @@ export function BreadcrumbProvider({ children }: { children: ReactNode }) {
       // tab, collapsing to just Home when the page belongs directly under it).
       let seed: Crumb[] = [];
       if (prev.length === 0) {
-        const tab = owningTab(to);
+        const tab = owningTab(path);
         seed = tab.to === HOME.to ? [HOME] : [HOME, tab];
       }
       return [...prev, ...seed, { to, label }];
     });
   }, []);
 
-  return <BreadcrumbContext.Provider value={{ trail, register }}>{children}</BreadcrumbContext.Provider>;
-}
+  // Explicit fresh start — Layout calls this from top-nav / wordmark clicks.
+  // Non-tab URLs are a no-op so it is safe to call for any navigation source.
+  const resetToTab = useCallback((to: string) => {
+    if (to === '/') { setTrail([]); return; }
+    const tab = TABS.find((t) => t.to === to);
+    if (tab) setTrail([HOME, tab]);
+  }, []);
 
-export function useBreadcrumbTrail(): Crumb[] {
-  return useContext(BreadcrumbContext)?.trail ?? [];
+  return (
+    <BreadcrumbContext.Provider value={{ trail, register, resetToTab, headerSlot, setHeaderSlot, headerClaimed, claimHeader }}>
+      {children}
+    </BreadcrumbContext.Provider>
+  );
 }
 
 // Registers the current page's crumb (its title). No-op on a tab's base level.
+// The crumb carries pathname+search so returning to it restores query state.
 export function useRegisterCrumb(label: string) {
   const ctx = useContext(BreadcrumbContext);
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const register = ctx?.register;
   useEffect(() => {
-    register?.(pathname, label);
-  }, [register, pathname, label]);
+    register?.(pathname + search, label);
+  }, [register, pathname, search, label]);
+}
+
+// Layout's view of the breadcrumb header: the trail to render, the slot
+// element to mount (pages portal into it), whether a page has claimed it,
+// and the reset hook for top-nav clicks.
+export function useBreadcrumbHeader() {
+  const ctx = useContext(BreadcrumbContext);
+  return {
+    trail: ctx?.trail ?? [],
+    headerClaimed: ctx?.headerClaimed ?? false,
+    setHeaderSlot: ctx?.setHeaderSlot ?? (() => {}),
+    resetToTab: ctx?.resetToTab ?? (() => {}),
+  };
+}
+
+// A drill-driven page (map view) claims the global header bar while `active`,
+// hiding the visited trail, and gets the element to portal its own breadcrumb
+// into. Returns null while inactive.
+export function useHeaderBreadcrumbSlot(active: boolean): HTMLElement | null {
+  const ctx = useContext(BreadcrumbContext);
+  const claim = ctx?.claimHeader;
+  useEffect(() => {
+    if (!active || !claim) return;
+    claim(true);
+    return () => claim(false);
+  }, [active, claim]);
+  return active ? ctx?.headerSlot ?? null : null;
 }

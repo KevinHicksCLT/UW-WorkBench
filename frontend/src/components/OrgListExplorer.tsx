@@ -1,16 +1,21 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DOMAIN_HEX } from '../viz/model';
 import { api } from '../lib/api';
 import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from './MetricsSidebar';
+import RoleDrawer from './RoleDrawer';
 
-// Org List view (defect backlog 02, D4) — a spreadsheet-style grid of the org
-// spine, the mirror image of the Value Streams list (ListExplorer):
-//   Domain › Division › Department › Role
-// People are NOT rendered — the tree stops at Role (D4.2). Filtering lives IN
-// the column headers (same pattern as the Work tab): the name column carries a
-// free-text search, Division a searchable dropdown, Domain a plain dropdown.
-// Rows are thin, branches expand/collapse (with Expand/Collapse-all), and
-// clicking a row opens the SAME right-hand MetricsSidebar the map and
+// Org List view (R2 rework) — a FLAT spreadsheet of the org spine, the mirror
+// image of the Value Streams list (ListExplorer). No tree, no expand/collapse:
+// every row is one full chain read left-to-right
+//   Domain | Division | Department | Role
+// (one row per role; departments with no roles and divisions with no
+// departments still get a row with the trailing cells blank; roles attached
+// directly to a division show "Direct to division" in the Department column).
+// People are NOT rendered — the sheet stops at Role. Every column header
+// carries a searchable combobox filter (options = the distinct values among
+// rows passing the OTHER filters, Excel-style) plus a sort toggle, the header
+// sticks while the sheet scrolls, and clicking a cell opens the right-hand
+// metrics panel for that specific level — the SAME MetricsSidebar the map and
 // value-stream list use. The box-grid drill-down (OrgTable) is untouched.
 
 // ── Tree shape (from GET /explorer/org-table) ─────────────────────────────────
@@ -25,144 +30,24 @@ type OrgData = {
   segments: SegNode[];
 };
 
-// Count helpers — derived from the (possibly search-pruned) arrays so the
-// columns always agree with the rows actually rendered.
-const divRoleCount = (d: DivNode) => d.departments.reduce((n, t) => n + t.roles.length, 0) + d.looseRoles.length;
-const segDeptCount = (s: SegNode) => s.divisions.reduce((n, d) => n + d.departments.length, 0);
-const segRoleCount = (s: SegNode) => s.divisions.reduce((n, d) => n + divRoleCount(d), 0);
-
-// Context lets any node open the right-hand metrics panel without prop-drilling.
-type MetricsCtxValue = { open: (level: string, id: string) => void; activeKey: string | null };
-const MetricsCtx = createContext<MetricsCtxValue>({ open: () => {}, activeKey: null });
-const useMetrics = () => useContext(MetricsCtx);
-
 // Shared column template so the header and every row stay aligned:
-// name | division | domain | departments | roles
-const GRID_COLS = 'grid grid-cols-[minmax(0,1fr)_180px_140px_110px_70px]';
+// domain | division | department | role
+const GRID_COLS = 'grid grid-cols-[160px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.2fr)]';
 
-// ── Row chrome ────────────────────────────────────────────────────────────────
-const Caret = ({ open }: { open: boolean }) => (
-  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-    style={{ transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 150ms' }} className="text-[#a3a3a3]" aria-hidden="true">
-    <path d="M9 18l6-6-6-6" />
-  </svg>
-);
+// One flattened chain (one spreadsheet row).
+type FlatRow = {
+  domain: string;
+  divId: string; divName: string;
+  deptId: string | null; deptName: string;
+  roleId: string | null; roleName: string;
+};
 
-// One grid row: indented name cell, the Division/Domain text cells (filled where
-// the row has a sensible value, blank otherwise) and the two count columns.
-// Column dividers (divide-x) give the sheet feel; rows stay thin (D4.1).
-function GridRow({
-  depth, leaf, open, onClick, onToggle, accent, label, division, domain, depts, roles, muted, strong, selected,
-}: {
-  depth: number; leaf?: boolean; open?: boolean; onClick?: () => void; onToggle?: () => void;
-  accent?: string; label: string; division?: string; domain?: string; depts?: number | null; roles?: number | null;
-  muted?: boolean; strong?: boolean; selected?: boolean;
-}) {
-  const clickable = !!onClick;
-  return (
-    <div
-      onClick={onClick}
-      className={GRID_COLS + ' items-stretch divide-x divide-[#f0f0f0] border-b border-[#f5f5f5] last:border-0 transition-colors duration-150 '
-        + (selected ? 'bg-[#f5f8ff] ' : '') + (clickable ? 'cursor-pointer hover:bg-[#fafafa]' : '')}
-    >
-      <div className="flex items-center gap-1.5 py-1 pr-2 min-w-0" style={{ paddingLeft: depth * 16 + 8 }}>
-        <span
-          className={'w-3.5 flex-shrink-0 flex items-center' + (onToggle ? ' cursor-pointer' : '')}
-          onClick={onToggle ? (e) => { e.stopPropagation(); onToggle(); } : undefined}
-        >{!leaf && <Caret open={!!open} />}</span>
-        {accent && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: accent }} />}
-        <span className={'truncate ' + (strong ? 'text-[13px] font-semibold text-[#171717]' : muted ? 'text-[12px] text-[#525252]' : 'text-[13px] text-[#171717]')}>{label}</span>
-      </div>
-      <div className="px-2 flex items-center min-w-0"><span className="truncate text-[11px] text-[#525252]">{division ?? ''}</span></div>
-      <div className="px-2 flex items-center min-w-0"><span className="truncate text-[11px] text-[#525252]">{domain ?? ''}</span></div>
-      <div className="px-2 flex items-center justify-end"><span className="text-[11px] text-[#737373] tnum">{depts ?? ''}</span></div>
-      <div className="px-2 flex items-center justify-end"><span className="text-[11px] text-[#737373] tnum">{roles ?? ''}</span></div>
-    </div>
-  );
-}
-const InfoRow = ({ depth, text }: { depth: number; text: string }) => (
-  <div style={{ paddingLeft: depth * 16 + 28 }} className="py-1 pr-3 text-[11px] text-[#a3a3a3] italic border-b border-[#f5f5f5]">{text}</div>
-);
+// ── Spreadsheet column headers: each header cell carries a searchable
+// combobox filter plus a sort toggle. ─────────────────────────────────────────
+type Col = 'domain' | 'division' | 'dept' | 'role';
+type Sort = { col: Col; dir: 1 | -1 };
 
-// ── Nodes — controlled by an expandAll epoch so the header buttons can fold the
-// whole grid at once (Excel-style); carets still toggle each branch. ───────────
-// A role is a leaf (people are not rendered — D4.2); clicking opens its dashboard.
-// Each level carries its parent division name down so the Division column reads
-// like a filled spreadsheet column.
-function RoleRow({ role, division, depth }: { role: RoleNode; division?: string; depth: number }) {
-  const { open: openMetrics, activeKey } = useMetrics();
-  return (
-    <GridRow depth={depth} leaf muted selected={activeKey === `role:${role.id}`}
-      onClick={() => openMetrics('role', role.id)} label={role.name} division={division} />
-  );
-}
-
-function DeptNodeC({ dept, division, depth, epoch, defaultOpen }: { dept: DeptNode; division?: string; depth: number; epoch: number; defaultOpen: boolean }) {
-  const { open: openMetrics, activeKey } = useMetrics();
-  const [open, setOpen] = useState(defaultOpen);
-  useEffect(() => { setOpen(defaultOpen); }, [epoch]); // eslint-disable-line
-  return (
-    <>
-      <GridRow depth={depth} leaf={dept.roles.length === 0} open={open} selected={activeKey === `department:${dept.id}`}
-        onClick={() => openMetrics('department', dept.id)}
-        onToggle={dept.roles.length ? () => setOpen((o) => !o) : undefined}
-        label={dept.name} division={division} roles={dept.roles.length} />
-      {open && (dept.roles.length > 0
-        ? dept.roles.map((r) => <RoleRow key={r.id} role={r} division={division} depth={depth + 1} />)
-        : <InfoRow depth={depth + 1} text="No roles in this team." />)}
-    </>
-  );
-}
-
-function DivNodeC({ div, domain, depth, epoch, defaultOpen }: { div: DivNode; domain: string; depth: number; epoch: number; defaultOpen: boolean }) {
-  const { open: openMetrics, activeKey } = useMetrics();
-  const [open, setOpen] = useState(defaultOpen);
-  useEffect(() => { setOpen(defaultOpen); }, [epoch]); // eslint-disable-line
-  const hasChildren = div.departments.length > 0 || div.looseRoles.length > 0;
-  return (
-    <>
-      <GridRow depth={depth} leaf={!hasChildren} open={open} selected={activeKey === `division:${div.id}`}
-        onClick={() => openMetrics('division', div.id)}
-        onToggle={hasChildren ? () => setOpen((o) => !o) : undefined}
-        label={div.name} domain={domain} depts={div.departments.length} roles={divRoleCount(div)} />
-      {open && (
-        <>
-          {div.departments.map((d) => <DeptNodeC key={d.id} dept={d} division={div.name} depth={depth + 1} epoch={epoch} defaultOpen={defaultOpen} />)}
-          {div.looseRoles.length > 0 && (
-            <DeptNodeC
-              key={`__loose:${div.id}`}
-              dept={{ id: `__loose:${div.id}`, name: 'Direct to division', roles: div.looseRoles, roleCount: div.looseRoles.length, peopleCount: 0 }}
-              division={div.name} depth={depth + 1} epoch={epoch} defaultOpen={defaultOpen}
-            />
-          )}
-          {!hasChildren && <InfoRow depth={depth + 1} text="No teams or roles." />}
-        </>
-      )}
-    </>
-  );
-}
-
-function SegmentNodeC({ seg, depth, epoch, defaultOpen }: { seg: SegNode; depth: number; epoch: number; defaultOpen: boolean }) {
-  const { open: openMetrics, activeKey } = useMetrics();
-  const [open, setOpen] = useState(defaultOpen);
-  useEffect(() => { setOpen(defaultOpen); }, [epoch]); // eslint-disable-line
-  const accent = DOMAIN_HEX[seg.name] ?? '#94a3b8';
-  return (
-    <>
-      <GridRow depth={depth} leaf={seg.divisions.length === 0} open={open} accent={accent} strong selected={activeKey === `domain:${seg.name}`}
-        onClick={() => openMetrics('domain', seg.name)}
-        onToggle={seg.divisions.length ? () => setOpen((o) => !o) : undefined}
-        label={seg.name} depts={segDeptCount(seg)} roles={segRoleCount(seg)} />
-      {open && seg.divisions.map((d) => <DivNodeC key={d.id} div={d} domain={seg.name} depth={depth + 1} epoch={epoch} defaultOpen={defaultOpen} />)}
-    </>
-  );
-}
-
-// ── Spreadsheet column headers (Work-tab pattern, D4 rework): each header cell
-// carries its own filter control plus a sort toggle. ──────────────────────────
-type Sort = { col: 'name' | 'depts' | 'roles'; dir: 1 | -1 };
-
-function SortToggle({ col, sort, onSort }: { col: Sort['col']; sort: Sort; onSort: (c: Sort['col']) => void }) {
+function SortToggle({ col, sort, onSort }: { col: Col; sort: Sort; onSort: (c: Col) => void }) {
   const active = sort.col === col;
   return (
     <button
@@ -180,50 +65,8 @@ const HeaderLabel = ({ children }: { children: React.ReactNode }) => (
   <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1 whitespace-nowrap">{children}</div>
 );
 
-// Free-text filter in the header — used for the name column (searches all levels).
-function HeaderSearch({ label, value, onChange, sort }: { label: string; value: string; onChange: (v: string) => void; sort?: React.ReactNode }) {
-  return (
-    <div className="px-2 py-1.5 min-w-0">
-      <HeaderLabel>{label}{sort}</HeaderLabel>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Filter…"
-        aria-label={`Filter by ${label.toLowerCase()}`}
-        className={'w-full max-w-[280px] rounded border bg-white px-2 py-0.5 text-[11px] placeholder:text-[#a3a3a3] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150 '
-          + (value.trim() ? 'border-[#171717] text-[#171717]' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4]')}
-      />
-    </div>
-  );
-}
-
-// Compact native <select> filter — used for the Domain column.
-function HeaderFilter({ label, value, onChange, options, sort }: {
-  label: string; value: string; onChange: (v: string) => void; options: string[]; sort?: React.ReactNode;
-}) {
-  const active = value !== 'All';
-  return (
-    <div className="px-2 py-1.5 min-w-0">
-      <HeaderLabel>{label}{sort}</HeaderLabel>
-      <div className="relative">
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={'appearance-none w-full rounded border bg-white pl-2 pr-6 py-0.5 text-[11px] cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150 '
-            + (active ? 'border-[#171717] text-[#171717] font-medium' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4]')}
-        >
-          {options.map((o) => <option key={o} value={o}>{o}</option>)}
-        </select>
-        <svg className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[#a3a3a3]" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </div>
-    </div>
-  );
-}
-
-// Searchable dropdown filter — used for the Division column, whose option list
-// is long enough to want type-ahead. Closes on outside click; 'All' clears.
+// Searchable dropdown filter — every column uses this (type-ahead handles the
+// long option lists). Closes on outside click; 'All' clears.
 function HeaderComboFilter({ label, value, onChange, options, sort }: {
   label: string; value: string; onChange: (v: string) => void; options: string[]; sort?: React.ReactNode;
 }) {
@@ -244,7 +87,7 @@ function HeaderComboFilter({ label, value, onChange, options, sort }: {
   function pick(o: string) { onChange(o); setOpen(false); setQuery(''); }
 
   return (
-    <div ref={ref} className="px-2 py-1.5 min-w-0 relative">
+    <div ref={ref} className="px-2 py-1 min-w-0 relative">
       <HeaderLabel>{label}{sort}</HeaderLabel>
       <button
         type="button"
@@ -258,13 +101,14 @@ function HeaderComboFilter({ label, value, onChange, options, sort }: {
         </svg>
       </button>
       {open && (
-        <div className="absolute z-30 left-2 mt-1 w-[240px] rounded-md border border-[#eaeaea] bg-white shadow-lg">
+        <div className="absolute z-30 left-2 mt-1 w-[260px] rounded-md border border-[#eaeaea] bg-white shadow-lg">
           <div className="p-1.5 border-b border-[#f5f5f5]">
             <input
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search…"
+              aria-label={`Filter by ${label.toLowerCase()}`}
               className="w-full rounded border border-[#eaeaea] bg-white px-2 py-1 text-xs text-[#171717] placeholder:text-[#a3a3a3] focus:outline-none focus:ring-1 focus:ring-[#171717]"
             />
           </div>
@@ -289,29 +133,38 @@ function HeaderComboFilter({ label, value, onChange, options, sort }: {
   );
 }
 
-// Plain (sort-only) header — used for the count columns.
-function HeaderPlain({ label, sort, right }: { label: string; sort?: React.ReactNode; right?: boolean }) {
+// One spreadsheet cell. Clickable cells underline on hover and open the
+// metrics panel for exactly that level (stopPropagation so the row's default
+// click — the most specific entity — doesn't also fire).
+function Cell({ text, accent, onClick, dim }: { text: string; accent?: string; onClick?: () => void; dim?: boolean }) {
   return (
-    <div className={'px-2 py-1.5' + (right ? ' text-right' : '')}>
-      <HeaderLabel>{label}{sort}</HeaderLabel>
+    <div
+      className={'px-2 py-[3px] flex items-center gap-1.5 min-w-0' + (onClick ? ' cursor-pointer group/cell' : '')}
+      onClick={onClick ? (e) => { e.stopPropagation(); onClick(); } : undefined}
+    >
+      {accent && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: accent }} />}
+      <span className={'truncate text-[12px] ' + (dim ? 'text-[#737373]' : 'text-[#171717]') + (onClick ? ' group-hover/cell:underline' : '')}>{text}</span>
     </div>
   );
 }
 
-export default function OrgListExplorer() {
+const EmptyRow = ({ text }: { text: string }) => (
+  <div className="py-1.5 px-3 text-[11px] text-[#a3a3a3] italic">{text}</div>
+);
+
+const LOOSE_DEPT = 'Direct to division';
+
+export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: string | null }) {
   const [data, setData] = useState<OrgData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Header filters: 'All' = no constraint; the name search prunes all levels.
-  const [search, setSearch] = useState('');
+  // Header filters — one combobox selection per column; 'All' = no constraint.
   const [domainSel, setDomainSel] = useState('All');
   const [divisionSel, setDivisionSel] = useState('All');
-  const [sort, setSort] = useState<Sort>({ col: 'name', dir: 1 });
-  // Expand/collapse-all: bump the epoch so every branch resets to defaultOpen.
-  const [allOpen, setAllOpen] = useState(true);
-  const [epoch, setEpoch] = useState(0);
-  const setAll = (open: boolean) => { setAllOpen(open); setEpoch((n) => n + 1); };
+  const [deptSel, setDeptSel] = useState('All');
+  const [roleSel, setRoleSel] = useState('All');
+  const [sort, setSort] = useState<Sort>({ col: 'domain', dir: 1 });
 
   // Right-hand metrics panel — identical to the map / value-stream list.
   const [base, setBase] = useState<{ level: string; id: string } | null>(null);
@@ -319,9 +172,13 @@ export default function OrgListExplorer() {
   const [dash, setDash] = useState<Dashboard | null>(null);
   const [dashLoading, setDashLoading] = useState(false);
   const [drawerSection, setDrawerSection] = useState<MetricSection | null>(null);
+  // Role full-detail drawer (the standalone role page was retired).
+  const [roleDetailId, setRoleDetailId] = useState<string | null>(null);
   const target = ovStack.length ? ovStack[ovStack.length - 1] : base;
 
-  const openMetrics = (level: string, id: string) => { setBase({ level, id }); setOvStack([]); };
+  // Domain color of the current selection — tints the sidebar (rail + header).
+  const [accentHex, setAccentHex] = useState<string | undefined>(undefined);
+  const openMetrics = (level: string, id: string, accent?: string) => { setBase({ level, id }); setOvStack([]); setAccentHex(accent); };
   const onDrill = (level: string, id: string) => setOvStack((s) => [...s, { level, id }]);
   const onBack = () => setOvStack((s) => s.slice(0, -1));
   const closeMetrics = () => { setBase(null); setOvStack([]); };
@@ -348,130 +205,177 @@ export default function OrgListExplorer() {
   // Changing the focused entity makes the drawer's snapshot stale — close it.
   useEffect(() => { setDrawerSection(null); }, [target?.level, target?.id]);
 
-  // Visible tree: header filters → search prune (a matching node keeps its whole
-  // subtree; otherwise only matching descendants survive) → recursive sort.
-  const visibleSegments = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const hit = (s: string) => s.toLowerCase().includes(q);
-
-    const pruneDept = (dept: DeptNode): DeptNode | null => {
-      if (!q || hit(dept.name)) return dept;
-      const roles = dept.roles.filter((r) => hit(r.name));
-      return roles.length ? { ...dept, roles } : null;
-    };
-    const pruneDiv = (div: DivNode): DivNode | null => {
-      if (!q || hit(div.name)) return div;
-      const departments = div.departments.map(pruneDept).filter((d): d is DeptNode => d !== null);
-      const looseRoles = div.looseRoles.filter((r) => hit(r.name));
-      return departments.length || looseRoles.length ? { ...div, departments, looseRoles } : null;
-    };
-
-    const cmp = (name: [string, string], depts: [number, number], roles: [number, number]) => {
-      const c = sort.col === 'name' ? name[0].localeCompare(name[1])
-        : sort.col === 'depts' ? depts[0] - depts[1]
-        : roles[0] - roles[1];
-      return c * sort.dir || name[0].localeCompare(name[1]);
-    };
-    const sortRoles = (rs: RoleNode[]) => [...rs].sort((a, b) => cmp([a.name, b.name], [0, 0], [0, 0]));
-
-    return (data?.segments ?? [])
-      .filter((s) => domainSel === 'All' || s.name === domainSel)
-      .map((s) => ({ ...s, divisions: s.divisions.filter((d) => divisionSel === 'All' || d.name === divisionSel) }))
-      .map((s) => (!q || hit(s.name) ? s : { ...s, divisions: s.divisions.map(pruneDiv).filter((d): d is DivNode => d !== null) }))
-      .filter((s) => s.divisions.length > 0)
-      .map((s) => ({
-        ...s,
-        divisions: s.divisions
-          .map((d) => ({
-            ...d,
-            departments: d.departments
-              .map((t) => ({ ...t, roles: sortRoles(t.roles) }))
-              .sort((a, b) => cmp([a.name, b.name], [0, 0], [a.roles.length, b.roles.length])),
-            looseRoles: sortRoles(d.looseRoles),
-          }))
-          .sort((a, b) => cmp([a.name, b.name], [a.departments.length, b.departments.length], [divRoleCount(a), divRoleCount(b)])),
-      }))
-      .sort((a, b) => cmp([a.name, b.name], [segDeptCount(a), segDeptCount(b)], [segRoleCount(a), segRoleCount(b)]));
-  }, [data, domainSel, divisionSel, search, sort]);
-
-  // Totals for the slim strip — recomputed from the visible (filtered) tree.
-  const totals = useMemo(() => {
-    let divisions = 0, departments = 0, roles = 0;
-    for (const s of visibleSegments) for (const d of s.divisions) {
-      divisions++;
-      departments += d.departments.length;
-      roles += divRoleCount(d);
+  // ── Flatten every chain to one row. Roles attached straight to a division
+  // get the LOOSE_DEPT label. ──
+  const flat = useMemo(() => {
+    const rows: FlatRow[] = [];
+    for (const s of data?.segments ?? []) {
+      for (const d of s.divisions) {
+        const head = { domain: s.name, divId: d.id, divName: d.name };
+        for (const t of d.departments) {
+          if (t.roles.length === 0) {
+            rows.push({ ...head, deptId: t.id, deptName: t.name, roleId: null, roleName: '' });
+            continue;
+          }
+          for (const r of t.roles) rows.push({ ...head, deptId: t.id, deptName: t.name, roleId: r.id, roleName: r.name });
+        }
+        for (const r of d.looseRoles) rows.push({ ...head, deptId: null, deptName: LOOSE_DEPT, roleId: r.id, roleName: r.name });
+        if (d.departments.length === 0 && d.looseRoles.length === 0) {
+          rows.push({ ...head, deptId: null, deptName: '', roleId: null, roleName: '' });
+        }
+      }
     }
-    return { domains: visibleSegments.length, divisions, departments, roles };
-  }, [visibleSegments]);
+    return rows;
+  }, [data]);
 
-  // ── Header-filter option lists. Picking a domain narrows the division list
-  // (and clears a division pick that no longer applies). ──
-  const domainOptions = useMemo(() => ['All', ...(data?.segments ?? []).map((s) => s.name)], [data]);
-  const divisionOptions = useMemo(() => {
-    const names = (data?.segments ?? [])
-      .filter((s) => domainSel === 'All' || s.name === domainSel)
-      .flatMap((s) => s.divisions.map((d) => d.name));
-    return ['All', ...[...new Set(names)].sort()];
-  }, [data, domainSel]);
+  // Deep-linked role (links from other tabs land here with the drawer open):
+  // pre-apply the Role filter so the sheet shows ONLY that role's row(s),
+  // clearing any stale picks in other columns.
+  useEffect(() => {
+    if (!focusRoleId || !flat.length) return;
+    const name = flat.find((r) => r.roleId === focusRoleId)?.roleName;
+    if (name) { setRoleSel(name); setDomainSel('All'); setDivisionSel('All'); setDeptSel('All'); }
+  }, [focusRoleId, flat]);
 
-  const anyFilter = domainSel !== 'All' || divisionSel !== 'All' || search.trim() !== '';
-  const clear = () => { setDomainSel('All'); setDivisionSel('All'); setSearch(''); };
+  // A row passes the filters; `skip` exempts one column so each combobox can
+  // list the distinct values among rows passing the OTHER filters (Excel-style).
+  const matches = (r: FlatRow, skip?: Col) =>
+    (skip === 'domain' || domainSel === 'All' || r.domain === domainSel)
+    && (skip === 'division' || divisionSel === 'All' || r.divName === divisionSel)
+    && (skip === 'dept' || deptSel === 'All' || r.deptName === deptSel)
+    && (skip === 'role' || roleSel === 'All' || r.roleName === roleSel);
 
-  const toggleSort = (col: Sort['col']) => setSort((s) => (s.col === col ? { col, dir: s.dir === 1 ? -1 : 1 } : { col, dir: 1 }));
+  const selDeps = [flat, domainSel, divisionSel, deptSel, roleSel]; // eslint-disable-line
+  const optionList = (vals: Iterable<string>) => ['All', ...[...new Set([...vals].filter(Boolean))].sort()];
+  /* eslint-disable react-hooks/exhaustive-deps */
+  const domainOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'domain')).map((r) => r.domain)), selDeps);
+  const divisionOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'division')).map((r) => r.divName)), selDeps);
+  const deptOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'dept')).map((r) => r.deptName)), selDeps);
+  const roleOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'role')).map((r) => r.roleName)), selDeps);
+  /* eslint-enable react-hooks/exhaustive-deps */
+
+  // A pick can be invalidated by a later pick in another column — clear it.
+  useEffect(() => { if (domainSel !== 'All' && !domainOptions.includes(domainSel)) setDomainSel('All'); }, [domainOptions, domainSel]);
+  useEffect(() => { if (divisionSel !== 'All' && !divisionOptions.includes(divisionSel)) setDivisionSel('All'); }, [divisionOptions, divisionSel]);
+  useEffect(() => { if (deptSel !== 'All' && !deptOptions.includes(deptSel)) setDeptSel('All'); }, [deptOptions, deptSel]);
+  useEffect(() => { if (roleSel !== 'All' && !roleOptions.includes(roleSel)) setRoleSel('All'); }, [roleOptions, roleSel]);
+
+  // Visible rows: filters + sort (chain order as the tie-break).
+  const rows = useMemo(() => {
+    const list = flat.filter((r) => matches(r));
+    const chainOrder = (a: FlatRow, b: FlatRow) =>
+      a.domain.localeCompare(b.domain)
+      || a.divName.localeCompare(b.divName)
+      || a.deptName.localeCompare(b.deptName)
+      || a.roleName.localeCompare(b.roleName);
+    return [...list].sort((a, b) => {
+      const c = sort.col === 'domain' ? a.domain.localeCompare(b.domain)
+        : sort.col === 'division' ? a.divName.localeCompare(b.divName)
+        : sort.col === 'dept' ? a.deptName.localeCompare(b.deptName)
+        : a.roleName.localeCompare(b.roleName);
+      return c * sort.dir || chainOrder(a, b);
+    });
+  }, [flat, domainSel, divisionSel, deptSel, roleSel, sort]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Totals strip — distinct entities among the visible (filtered) rows.
+  const totals = useMemo(() => {
+    const domains = new Set<string>(), divisions = new Set<string>(), depts = new Set<string>();
+    let roles = 0;
+    for (const r of rows) {
+      domains.add(r.domain);
+      divisions.add(r.divId);
+      if (r.deptId) depts.add(r.deptId);
+      if (r.roleId) roles++;
+    }
+    return { domains: domains.size, divisions: divisions.size, departments: depts.size, roles };
+  }, [rows]);
+
+  const anyFilter = domainSel !== 'All' || divisionSel !== 'All' || deptSel !== 'All' || roleSel !== 'All';
+  const clear = () => { setDomainSel('All'); setDivisionSel('All'); setDeptSel('All'); setRoleSel('All'); };
+
+  const toggleSort = (col: Col) => setSort((s) => (s.col === col ? { col, dir: s.dir === 1 ? -1 : 1 } : { col, dir: 1 }));
 
   const activeKey = base ? `${base.level}:${base.id}` : null;
 
   return (
-    <MetricsCtx.Provider value={{ open: openMetrics, activeKey }}>
-      {/* Side-by-side: grid scrolls, metrics panel sits beside it (no overlay). */}
+    <>
+      {/* Side-by-side: sheet scrolls, metrics panel sits beside it (no overlay). */}
       <div className="h-full flex relative">
-        <div className="flex-1 min-w-0 overflow-auto">
-          <div className="px-3 sm:px-4 pt-2 pb-4">
+        <div className="flex-1 min-w-0 flex flex-col">
+          {/* Very slim strip: totals + clear. Lives OUTSIDE the scroll area so the
+              sticky sheet header pins below it instead of sliding over the
+              floating List|Map toggle (pl clears the toggle). */}
+          <div className="flex-shrink-0 flex items-center gap-3 flex-wrap pr-3 sm:pr-4 pt-2 pb-1.5 pl-[162px] min-h-[48px]">
+            {!loading && !error && (
+              <>
+                <span className="text-[11px] text-[#737373] tnum">
+                  {totals.domains} domains · {totals.divisions} divisions · {totals.departments} departments · {totals.roles} roles
+                </span>
+                {anyFilter && <button onClick={clear} className="text-[11px] font-medium text-[#1d4ed8] hover:underline">Clear filters</button>}
+              </>
+            )}
+          </div>
+          <div className="flex-1 min-h-0 overflow-auto">
+          <div className="px-3 sm:px-4 pb-4">
             {loading ? (
               <div className="text-sm text-[#a3a3a3] animate-pulse py-8 text-center">Loading organization…</div>
             ) : error ? (
               <div className="text-sm text-[#be123c] py-8 text-center">{error}</div>
             ) : (
               <>
-                {/* Very slim strip: totals + expand/collapse (filters moved into the headers).
-                    pl clears the floating List|Map toggle pinned at the top-left. */}
-                <div className="flex items-center gap-3 flex-wrap mb-1.5 pl-[150px] min-h-[24px]">
-                  <span className="text-[11px] text-[#737373] tnum">
-                    {totals.domains} domains · {totals.divisions} divisions · {totals.departments} departments · {totals.roles} roles
-                  </span>
-                  {anyFilter && <button onClick={clear} className="text-[11px] font-medium text-[#1d4ed8] hover:underline">Clear filters</button>}
-                  <span className="ml-auto flex items-center gap-1">
-                    <button onClick={() => setAll(true)} className="text-[11px] font-medium text-[#525252] hover:text-[#171717] border border-[#eaeaea] rounded px-1.5 py-0.5">Expand all</button>
-                    <button onClick={() => setAll(false)} className="text-[11px] font-medium text-[#525252] hover:text-[#171717] border border-[#eaeaea] rounded px-1.5 py-0.5">Collapse all</button>
-                  </span>
-                </div>
-
-                {/* No overflow-hidden on the card — the Division combo dropdown must escape it. */}
+                {/* No overflow-hidden on the card — the combo dropdowns must escape it. */}
                 <div className="card p-0">
-                  {/* Spreadsheet header: each cell hosts its filter + sort (Work-tab pattern). */}
-                  <div className={GRID_COLS + ' items-stretch divide-x divide-[#eaeaea] border-b border-[#eaeaea] bg-[#fafafa] rounded-t-lg'}>
-                    <HeaderSearch label="Organization" value={search} onChange={setSearch}
-                      sort={<SortToggle col="name" sort={sort} onSort={toggleSort} />} />
-                    <HeaderComboFilter label="Division" value={divisionSel} onChange={setDivisionSel} options={divisionOptions} />
-                    <HeaderFilter label="Domain" value={domainSel} onChange={(v) => { setDomainSel(v); setDivisionSel('All'); }} options={domainOptions} />
-                    <HeaderPlain right label="Departments" sort={<SortToggle col="depts" sort={sort} onSort={toggleSort} />} />
-                    <HeaderPlain right label="Roles" sort={<SortToggle col="roles" sort={sort} onSort={toggleSort} />} />
+                  {/* Sticky spreadsheet header: each cell hosts its combobox filter + sort. */}
+                  <div className={GRID_COLS + ' items-stretch divide-x divide-[#eaeaea] border-b border-[#eaeaea] bg-[#fafafa] rounded-t-lg sticky top-0 z-20'}>
+                    <HeaderComboFilter label="Domain" value={domainSel} onChange={setDomainSel} options={domainOptions}
+                      sort={<SortToggle col="domain" sort={sort} onSort={toggleSort} />} />
+                    <HeaderComboFilter label="Division" value={divisionSel} onChange={setDivisionSel} options={divisionOptions}
+                      sort={<SortToggle col="division" sort={sort} onSort={toggleSort} />} />
+                    <HeaderComboFilter label="Department" value={deptSel} onChange={setDeptSel} options={deptOptions}
+                      sort={<SortToggle col="dept" sort={sort} onSort={toggleSort} />} />
+                    <HeaderComboFilter label="Role" value={roleSel} onChange={setRoleSel} options={roleOptions}
+                      sort={<SortToggle col="role" sort={sort} onSort={toggleSort} />} />
                   </div>
                   <div className="rounded-b-lg overflow-hidden">
-                    {visibleSegments.length > 0
-                      ? visibleSegments.map((seg) => <SegmentNodeC key={seg.name} seg={seg} depth={0} epoch={epoch} defaultOpen={allOpen} />)
-                      : <InfoRow depth={0} text="No divisions match the current filters." />}
+                    {rows.length === 0 && <EmptyRow text="No rows match the current filters." />}
+                    {rows.map((r) => {
+                      const hex = DOMAIN_HEX[r.domain] ?? '#94a3b8';
+                      const selected = activeKey != null && (
+                        activeKey === `domain:${r.domain}`
+                        || activeKey === `division:${r.divId}`
+                        || (r.deptId != null && activeKey === `department:${r.deptId}`)
+                        || (r.roleId != null && activeKey === `role:${r.roleId}`));
+                      return (
+                        <div
+                          key={`${r.divId}|${r.deptId ?? r.deptName}|${r.roleId ?? ''}`}
+                          // Row default click = the most specific entity on the row.
+                          // Roles open the full-detail drawer (same as the map);
+                          // higher levels open the metrics sidebar (same as the map).
+                          onClick={() => r.roleId ? setRoleDetailId(r.roleId)
+                            : r.deptId ? openMetrics('department', r.deptId, hex)
+                            : openMetrics('division', r.divId, hex)}
+                          className={GRID_COLS + ' items-stretch divide-x divide-[#f0f0f0] border-b border-[#f5f5f5] last:border-0 cursor-pointer transition-colors duration-100 '
+                            + (selected ? 'bg-[#f5f8ff] ' : '') + 'hover:bg-[#fafafa]'}
+                        >
+                          <Cell text={r.domain} accent={hex} onClick={() => openMetrics('domain', r.domain, hex)} dim />
+                          <Cell text={r.divName} onClick={() => openMetrics('division', r.divId, hex)} />
+                          <Cell text={r.deptName} dim={r.deptId == null} onClick={r.deptId ? () => openMetrics('department', r.deptId!, hex) : undefined} />
+                          <Cell text={r.roleName} onClick={r.roleId ? () => setRoleDetailId(r.roleId!) : undefined} />
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </>
             )}
           </div>
+          </div>
         </div>
 
         {/* Right-hand metrics panel — same component as the map. */}
         {base && (
-          <MetricsSidebar dash={dash} loading={dashLoading} onDrill={onDrill} onBack={ovStack.length ? onBack : undefined} onClose={closeMetrics} onViewAll={setDrawerSection} />
+          <MetricsSidebar dash={dash} loading={dashLoading} onDrill={onDrill} startExpanded accent={accentHex} onBack={ovStack.length ? onBack : undefined} onClose={closeMetrics} onViewAll={setDrawerSection}
+            onViewDetail={target?.level === 'role' && target.id ? () => setRoleDetailId(target.id) : undefined} />
         )}
 
         {/* Comprehensive "view all" drawer — overlays the panel. */}
@@ -483,7 +387,10 @@ export default function OrgListExplorer() {
             onDrill={onDrill}
           />
         )}
+
+        {/* Role full detail — slides over the sheet in place. */}
+        {roleDetailId && <RoleDrawer roleId={roleDetailId} onClose={() => setRoleDetailId(null)} />}
       </div>
-    </MetricsCtx.Provider>
+    </>
   );
 }

@@ -67,11 +67,13 @@ router.get('/tree', async (req: Request, res: Response, next: NextFunction) => {
     const nodes = await prisma.node.findMany({
       where: { companyId: cid, ...(includeIo ? {} : { typeKey: { not: 'io_item' } }) },
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-      select: { id: true, typeKey: true, parentId: true, name: true, description: true, sortOrder: true, provenance: true, code: true },
+      select: { id: true, typeKey: true, parentId: true, name: true, description: true, sortOrder: true, provenance: true, code: true, attributes: true },
     });
     const linkCounts = await prisma.nodeLink.groupBy({ by: ['toId'], where: { companyId: cid }, _count: { _all: true } });
     const inbound = new Map(linkCounts.map((l) => [l.toId, l._count._all]));
-    res.json({ nodes: nodes.map((n) => ({ ...n, inboundLinks: inbound.get(n.id) ?? 0 })) });
+    // `hidden` (attributes.hidden) = present in the DB but not rendered in the
+    // app's value-stream UI; the builder always shows it, with a badge.
+    res.json({ nodes: nodes.map(({ attributes, ...n }) => ({ ...n, hidden: (attributes as any)?.hidden === true, inboundLinks: inbound.get(n.id) ?? 0 })) });
   } catch (e) { next(e); }
 });
 
@@ -123,6 +125,12 @@ router.patch('/nodes/:id', async (req: Request, res: Response, next: NextFunctio
       data.name = body.name.trim();
     }
     if (body.description !== undefined) data.description = body.description === null ? null : String(body.description);
+    // Hide from the app UI (kept in the DB; the builder still shows it).
+    if (body.hidden !== undefined) {
+      const attrs = { ...((node.attributes as Record<string, unknown>) ?? {}) };
+      if (body.hidden) attrs.hidden = true; else delete attrs.hidden;
+      data.attributes = attrs;
+    }
     if (body.sortOrder !== undefined) {
       const n = Number(body.sortOrder);
       if (!Number.isInteger(n)) return res.status(400).json({ error: 'sortOrder must be an integer' });

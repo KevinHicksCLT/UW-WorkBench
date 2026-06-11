@@ -4,13 +4,13 @@
 // straight from the workbook tables. Items carrying a `drill` target render as
 // buttons that navigate one level deeper in the map.
 
-import { useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export type Fmt = 'money' | 'years' | 'number';
 // `href` links out to an app page (e.g. /applications); `children` nests items
-// for `tree` sections (deliverable → task → role → checklist/people); `tag`
-// names what the row IS so it renders with a consistent color + chip.
+// for `tree` sections (deliverable → role → task → checklist → application →
+// person); `tag` names what the row IS so it renders with a consistent color + chip.
 export type MetricItem = { label: string; value: number; hint?: string; sub?: string; format?: Fmt; illustrative?: boolean; drill?: { level: string; id: string }; href?: string; children?: MetricItem[]; tag?: string; trail?: string };
 // A `hidden` section never renders inline — it backs a tile's consolidated
 // drawer (tile.drawer names the section). An `expanded` tree opens every level
@@ -50,13 +50,15 @@ function fmt(n: number, f?: Fmt) {
 }
 
 // ── Nested tree rows (kind: 'tree') ─────────────────────────────────────────
-// Deliverable → task → responsible role → checklist + people, color-coded by
-// `tag`. Top-level deliverables render as accent cards; nested levels hang off
-// an indent guide. `defaultOpen` (section.expanded) opens the whole chain.
+// Deliverable → responsible role → task → checklist → where the work is done
+// (application → person), color-coded by `tag`. Top-level deliverables render
+// as accent cards; nested levels hang off an indent guide. `defaultOpen`
+// (section.expanded) opens the whole chain.
 
 // Per-tag visual identity: accent color, chip styling, and chip label. One
-// clean hue per level — Capgemini blue (deliverable) → violet (task) →
-// emerald (role) → green check (checklist) — so the hierarchy reads at a glance.
+// clean hue per level — Capgemini blue (deliverable) → emerald (role) →
+// violet (task) → green check (checklist) → blue (application) → indigo
+// (person) — so the hierarchy reads at a glance.
 const TAGS: Record<string, { accent: string; chip: string; label: string }> = {
   deliverable: { accent: '#0070AD', chip: 'bg-[#eff6ff] text-[#0070AD] border border-[#bfdbfe]', label: 'Deliverable' },
   task:        { accent: '#7c3aed', chip: 'bg-[#f5f3ff] text-[#6d28d9] border border-[#ddd6fe]', label: 'Task' },
@@ -68,6 +70,73 @@ const TAGS: Record<string, { accent: string; chip: string; label: string }> = {
 };
 
 const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+
+// ── Chain legend ─────────────────────────────────────────────────────────────
+// The connection order, spelled out above the chain so the nesting reads as a
+// flow: Deliverable → Role → Task → Checklist → Application → Person.
+const CHAIN_ORDER: (keyof typeof TAGS)[] = ['deliverable', 'role', 'task', 'checklist', 'app', 'person'];
+function ChainLegend({ wide }: { wide?: boolean }) {
+  return (
+    <div className={`flex items-center flex-wrap gap-y-1 ${wide ? 'mb-3' : 'mb-2.5'}`}>
+      {CHAIN_ORDER.map((k, i) => (
+        <span key={k} className="flex items-center">
+          {i > 0 && (
+            <svg width="9" height="9" viewBox="0 0 13 13" fill="none" className="mx-0.5 text-[#c4c4c4] flex-shrink-0" aria-hidden>
+              <path d="M2 6.5h9M7.5 3.5l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+          <span className={`text-[8px] font-semibold uppercase tracking-wide rounded px-1 py-px ${TAGS[k].chip}`}>{TAGS[k].label}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// A tree section whose top-level rows are deliverables IS the connected chain —
+// it gets the legend.
+const isChainSection = (s: MetricSection) => s.kind === 'tree' && s.items.some((i) => i.tag === 'deliverable');
+
+// Connector captions between chain levels: a tiny colored label above each run
+// of same-tag children says what the nesting MEANS, so the user doesn't have
+// to infer the relationship from indentation alone.
+const GROUP_LABEL: Record<string, string> = {
+  role: 'Responsible roles',
+  task: 'Tasks',
+  checklist: 'Checklist',
+  app: 'Supporting application',
+  person: 'Supporting employee',
+  step: 'Produced by step',
+};
+
+// Children of a tree row, with a connector caption wherever the tag changes.
+function TreeChildren({ items, depth, wide, defaultOpen, trail, onDrill, onNavigate, onInspect }: {
+  items: MetricItem[]; depth: number; wide?: boolean; defaultOpen?: boolean; trail?: string[];
+  onDrill: (level: string, id: string) => void;
+  onNavigate: (href: string) => void;
+  onInspect?: (item: MetricItem, trail: string[]) => void;
+}) {
+  return (
+    <div className="mt-1.5 flex flex-col gap-1.5">
+      {items.map((c, i) => {
+        const label = c.tag ? GROUP_LABEL[c.tag] : undefined;
+        const showHeader = !!label && (i === 0 || items[i - 1].tag !== c.tag);
+        return (
+          <Fragment key={`${c.label}-${i}`}>
+            {showHeader && (
+              <div className="flex items-center gap-1 mt-0.5 text-[8.5px] font-bold uppercase tracking-[0.08em]" style={{ color: TAGS[c.tag!]?.accent }}>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0" aria-hidden>
+                  <path d="M4 4v8a4 4 0 004 4h12M15 11l5 5-5 5" />
+                </svg>
+                {label}
+              </div>
+            )}
+            <TreeRow item={c} depth={depth} wide={wide} defaultOpen={defaultOpen} trail={trail} onDrill={onDrill} onNavigate={onNavigate} onInspect={onInspect} />
+          </Fragment>
+        );
+      })}
+    </div>
+  );
+}
 
 // Container-level identity: deliverables, tasks, roles and apps render as
 // tinted PANELS (boxes inside boxes), so each level of the chain is visibly
@@ -154,11 +223,7 @@ function TreeRow({ item, depth, wide, defaultOpen, trail = [], onDrill, onNaviga
   );
 
   const kidsBlock = open && kids.length > 0 && (
-    <div className="mt-1.5 flex flex-col gap-1.5">
-      {kids.map((c, i) => (
-        <TreeRow key={`${c.label}-${i}`} item={c} depth={depth + 1} wide={wide} defaultOpen={defaultOpen} trail={[...trail, item.label]} onDrill={onDrill} onNavigate={onNavigate} onInspect={onInspect} />
-      ))}
-    </div>
+    <TreeChildren items={kids} depth={depth + 1} wide={wide} defaultOpen={defaultOpen} trail={[...trail, item.label]} onDrill={onDrill} onNavigate={onNavigate} onInspect={onInspect} />
   );
 
   // Panel levels are boxes inside boxes — tinted background + colored left
@@ -183,7 +248,7 @@ function TreeRow({ item, depth, wide, defaultOpen, trail = [], onDrill, onNaviga
 }
 
 export default function MetricsSidebar({
-  dash, loading, onDrill, onBack, onClose, onViewAll, onViewDetail,
+  dash, loading, onDrill, onBack, onClose, onViewAll, onViewDetail, startExpanded, accent,
 }: {
   dash: Dashboard | null;
   loading: boolean;
@@ -195,13 +260,23 @@ export default function MetricsSidebar({
   onViewAll?: (section: MetricSection) => void;
   // When provided (value-stream level), renders the full-detail drawer button.
   onViewDetail?: () => void;
+  // List views open the panel immediately (a thin rail next to a spreadsheet
+  // reads as nothing happening); the map keeps the rail-first default so the
+  // canvas isn't covered.
+  startExpanded?: boolean;
+  // Domain color of the selection (org views) — tints the rail and the panel's
+  // top edge so the sidebar visibly belongs to the clicked branch.
+  accent?: string;
 }) {
   const navigate = useNavigate();
   // Minimizable: collapse the panel to a thin rail to give the map full width.
-  // Always starts collapsed (a thin rail labelled with the selection's name);
-  // the user expands it explicitly.
-  const [collapsed, setCollapsed] = useState<boolean>(true);
+  // Starts collapsed (a thin rail labelled with the selection's name) — except
+  // at Process Level 5, where the connected chain IS the payoff of the drill,
+  // so the panel opens itself (and gets extra width for the deep nesting).
+  const [collapsed, setCollapsed] = useState<boolean>(!startExpanded);
   const toggleCollapsed = () => setCollapsed((c) => !c);
+  const isLeaf = dash?.level === 'leafStep';
+  useEffect(() => { if (isLeaf) setCollapsed(false); }, [isLeaf]);
   const levelLabel = dash ? (LEVEL_LABEL[dash.level] ?? 'Roles') : 'Roles';
   // The rail labels itself with the clicked node's NAME (the level alone reads
   // as noise — "Process Level 3" says nothing about WHAT is selected).
@@ -210,17 +285,22 @@ export default function MetricsSidebar({
   // ── Collapsed rail ──────────────────────────────────────────────────────────
   if (collapsed) {
     return (
-      <aside className="hidden md:flex flex-col items-center bg-[#eaf1ff] border-l border-[#cdddff] flex-shrink-0" style={{ width: 44 }}>
+      <aside
+        className="hidden md:flex flex-col items-center bg-[#eaf1ff] border-l border-[#cdddff] flex-shrink-0"
+        style={{ width: 44, ...(accent ? { background: `${accent}14`, borderColor: `${accent}45` } : {}) }}
+      >
         <button
           onClick={toggleCollapsed}
           aria-label="Expand panel"
           title="Expand panel"
           className="mt-3 w-8 h-8 rounded-full bg-[#0070AD] text-white shadow-sm hover:bg-[#005a8c] flex items-center justify-center"
+          style={accent ? { background: accent } : undefined}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
         </button>
         {railLabel && (
-          <div className="mt-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0070AD] [writing-mode:vertical-rl] rotate-180 select-none max-h-[60vh] overflow-hidden text-ellipsis" title={railLabel}>
+          <div className="mt-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0070AD] [writing-mode:vertical-rl] rotate-180 select-none max-h-[60vh] overflow-hidden text-ellipsis"
+            style={accent ? { color: accent } : undefined} title={railLabel}>
             {railLabel}
           </div>
         )}
@@ -231,7 +311,7 @@ export default function MetricsSidebar({
   return (
     <aside
       className="hidden md:flex flex-col bg-white border-l border-[#eaeaea] overflow-y-auto flex-shrink-0"
-      style={{ width: 390, minWidth: 320 }}
+      style={{ width: isLeaf ? 460 : 390, minWidth: 320, ...(accent ? { borderTop: `3px solid ${accent}` } : {}) }}
     >
       {/* Header */}
       <div className="px-4 py-4 border-b border-[#eaeaea] sticky top-0 bg-white z-10">
@@ -241,8 +321,9 @@ export default function MetricsSidebar({
               <svg width="15" height="15" viewBox="0 0 13 13" fill="none"><path d="M11 6.5H2M6 2.5l-4 4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
           )}
+          {accent && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: accent }} aria-hidden="true" />}
           {levelLabel && (
-            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3]">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3]" style={accent ? { color: accent } : undefined}>
               {levelLabel}
             </div>
           )}
@@ -419,6 +500,7 @@ function SidebarSection({ section, dashTitle, onDrill, onNavigate, onViewAll }: 
                   </div>
                 ) : section.kind === 'tree' ? (
                   <div className="flex flex-col gap-1.5">
+                    {isChainSection(section) && <ChainLegend />}
                     {shown.map((item, i) => (
                       <TreeRow
                         key={`${item.label}-${i}`}
@@ -559,10 +641,8 @@ export function MetricsDrawer({
                     </button>
                   )}
                   {(it.children?.length ?? 0) > 0 && (
-                    <div className="mt-4 pt-3 border-t border-[#eaeaea] flex flex-col gap-2">
-                      {it.children!.map((c, i) => (
-                        <TreeRow key={`${c.label}-${i}`} item={c} depth={0} wide defaultOpen onDrill={(l, id) => drill({ level: l, id })} onNavigate={(href) => { navigate(href); onClose(); }} />
-                      ))}
+                    <div className="mt-4 pt-3 border-t border-[#eaeaea]">
+                      <TreeChildren items={it.children!} depth={0} wide defaultOpen onDrill={(l, id) => drill({ level: l, id })} onNavigate={(href) => { navigate(href); onClose(); }} />
                     </div>
                   )}
                 </div>
@@ -598,6 +678,7 @@ export function MetricsDrawer({
             </div>
           ) : section.kind === 'tree' ? (
             <div className="flex flex-col gap-2">
+              {isChainSection(section) && <ChainLegend wide />}
               {section.items.map((item, i) => (
                 <TreeRow key={`${item.label}-${i}`} item={item} depth={0} wide defaultOpen onDrill={(l, id) => drill({ level: l, id })} onNavigate={(href) => { navigate(href); onClose(); }} />
               ))}

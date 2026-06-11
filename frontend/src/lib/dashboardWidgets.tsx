@@ -162,7 +162,7 @@ export const FOOTPRINT_STATS: Record<string, { key: string; label: string; to: s
   standards: { key: 'standards', label: 'Standards', to: '/standards' },
   programs: { key: 'programs', label: 'Programs', to: '/portfolio' },
   objectives: { key: 'objectives', label: 'Strategic objectives', to: '/portfolio' },
-  openRaid: { key: 'openRaid', label: 'Open RAID items', to: '/portfolio' },
+  openRaid: { key: 'openRaid', label: 'Open RAID items', to: '/raid' },
   connections: { key: 'connections', label: 'Model connections', to: '/overview' },
   signals: { key: 'signals', label: 'Trackable signals', to: '/metrics' },
 };
@@ -185,10 +185,10 @@ export const WIDGET_CATALOG: Widget[] = [
     ),
   },
   {
-    id: 'card:gantt', title: 'Timeline (Gantt)', kind: 'wide', source: SRC.initiatives,
+    id: 'card:gantt', title: 'Timeline', kind: 'wide', source: SRC.initiatives,
     desc: 'Program timeline — one lane per program, milestone diamonds, today line',
     render: (d) => (
-      <Card title={wt(d, 'card:gantt', 'Timeline (Gantt)')}>
+      <Card title={wt(d, 'card:gantt', 'Timeline')}>
         {txn(d, (t) => <ProgramGantt t={t} />)}
       </Card>
     ),
@@ -206,7 +206,7 @@ export const WIDGET_CATALOG: Widget[] = [
     id: 'card:openRisks', title: 'Open risks', kind: 'card', source: SRC.risks,
     desc: 'Top open portfolio risks by severity',
     render: (d) => (
-      <Card title={wt(d, 'card:openRisks', 'Open risks')} to="/portfolio/raid" toLabel="RAID log">
+      <Card title={wt(d, 'card:openRisks', 'Open risks')} to="/raid" toLabel="RAID log">
         {txn(d, (t) => <TopRisks t={t} />)}
       </Card>
     ),
@@ -215,7 +215,7 @@ export const WIDGET_CATALOG: Widget[] = [
     id: 'card:raidSummary', title: 'RAID log', kind: 'card', source: SRC.risks,
     desc: 'Open RAID counts — risks, issues, assumptions, decisions',
     render: (d) => (
-      <Card title={wt(d, 'card:raidSummary', 'RAID log')} to="/portfolio/raid" toLabel="RAID log">
+      <Card title={wt(d, 'card:raidSummary', 'RAID log')} to="/raid" toLabel="RAID log">
         {txn(d, (t) => <RaidSummary t={t} />)}
       </Card>
     ),
@@ -234,16 +234,19 @@ export const WIDGET_CATALOG: Widget[] = [
   tile('tile:divisions', 'Divisions', 'divisions', { hint: (t) => `${t.departments} departments`, to: '/roles', source: SRC.org }),
   tile('tile:roles', 'Roles', 'roles', { to: '/roles', source: SRC.org }),
   tile('tile:valueStreams', 'Value Streams', 'valueStreams', { hint: (t) => `${t.domains} domains`, to: '/overview', source: SRC.vs }),
-  tile('tile:initiatives', 'Initiatives', 'initiatives', { to: '/portfolio', source: SRC.initiatives }),
+  // Initiative/scenario/risk tiles carry no deep-link: their list views are the
+  // Home portfolio widgets themselves (D7.2 — /portfolio is now the workspace),
+  // and operating-model risks render only in Data Admin.
+  tile('tile:initiatives', 'Initiatives', 'initiatives', { source: SRC.initiatives }),
   tile('tile:deliverables', 'Deliverables', 'deliverables', { to: '/work', source: SRC.work }),
   tile('tile:tasks', 'Tasks', 'tasks', { to: '/work', source: SRC.work }),
   tile('tile:people', 'People', 'people', { to: '/roles', source: SRC.people }),
   tile('tile:departments', 'Departments', 'departments', { to: '/roles?view=departments', source: SRC.org }),
   tile('tile:domains', 'Domains', 'domains', { to: '/overview', source: SRC.vs }),
-  tile('tile:applications', 'Applications', 'applications', { to: '/portfolio', source: SRC.apps }),
-  tile('tile:risks', 'Risks', 'risks', { to: '/portfolio', source: SRC.risks }),
-  tile('tile:scenarios', 'Scenarios', 'scenarios', { to: '/portfolio', source: SRC.scenarios }),
-  tile('tile:metrics', 'Metrics', 'metrics', { to: '/overview', source: SRC.metrics }),
+  tile('tile:applications', 'Applications', 'applications', { to: '/applications', source: SRC.apps }),
+  tile('tile:risks', 'Risks', 'risks', { source: SRC.risks }),
+  tile('tile:scenarios', 'Scenarios', 'scenarios', { source: SRC.scenarios }),
+  tile('tile:metrics', 'Metrics', 'metrics', { to: '/metrics', source: SRC.metrics }),
   tile('tile:processSteps', 'Process Steps', 'processSteps', { to: '/overview?view=list', source: SRC.vs }),
 
   // Cards
@@ -288,19 +291,19 @@ export const WIDGET_CATALOG: Widget[] = [
   },
   {
     id: 'card:initiativesByStatus', title: 'Initiatives by status', desc: 'Portfolio initiatives grouped by status', kind: 'card', source: SRC.initiatives,
-    render: (d) => <Card title={wt(d, 'card:initiativesByStatus', 'Initiatives by status')} to="/portfolio"><BarList groups={d.initiativesByStatus} color="#4f46e5" /></Card>,
+    render: (d) => <Card title={wt(d, 'card:initiativesByStatus', 'Initiatives by status')}><BarList groups={d.initiativesByStatus} color="#4f46e5" /></Card>,
   },
   {
     id: 'card:initiativesByHealth', title: 'Initiatives by health', desc: 'Initiatives RAG health (Green / Amber / Red)', kind: 'card', source: SRC.initiatives,
-    render: (d) => <Card title={wt(d, 'card:initiativesByHealth', 'Initiatives by health')} to="/portfolio"><BarList groups={d.initiativesByHealth} color={HEALTH_COLOR} /></Card>,
+    render: (d) => <Card title={wt(d, 'card:initiativesByHealth', 'Initiatives by health')}><BarList groups={d.initiativesByHealth} color={HEALTH_COLOR} /></Card>,
   },
   {
     id: 'card:risksBySeverity', title: 'Risks by severity', desc: 'Open risks grouped by severity', kind: 'card', source: SRC.risks,
-    render: (d) => <Card title={wt(d, 'card:risksBySeverity', 'Risks by severity')} to="/portfolio"><BarList groups={d.risksBySeverity} color={SEVERITY_COLOR} /></Card>,
+    render: (d) => <Card title={wt(d, 'card:risksBySeverity', 'Risks by severity')}><BarList groups={d.risksBySeverity} color={SEVERITY_COLOR} /></Card>,
   },
   {
     id: 'card:applicationsByKind', title: 'Applications by kind', desc: 'The application landscape grouped by kind', kind: 'card', source: SRC.apps,
-    render: (d) => <Card title={wt(d, 'card:applicationsByKind', 'Applications by kind')} to="/portfolio"><BarList groups={d.applicationsByKind} color="#0d9488" /></Card>,
+    render: (d) => <Card title={wt(d, 'card:applicationsByKind', 'Applications by kind')} to="/applications" toLabel="Applications"><BarList groups={d.applicationsByKind} color="#0d9488" /></Card>,
   },
   {
     id: 'card:financials', title: 'Financial impact', desc: 'Scenario economics — net impact, benefit, cost', kind: 'card', source: SRC.scenarios,

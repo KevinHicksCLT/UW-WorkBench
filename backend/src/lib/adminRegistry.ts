@@ -91,7 +91,7 @@ const LABEL_OVERRIDES: Record<string, string> = {
 // hidden: its level-4 rows carry the sub-process detail (inputs/outputs/
 // upstream/downstream/notes) the L4 sidebar + drawer render, so it must be
 // editable (Data Admin → Value Streams → Sub-processes).
-const HIDDEN = new Set(['valueStream', 'level', 'orgLevel']);
+const HIDDEN = new Set(['valueStream', 'level', 'orgLevel', 'valueStreamDomain']);
 
 // Sidebar groups — entities organized by operating-model area so a user can find
 // what to update at a glance. This array defines BOTH the section order and the

@@ -20,8 +20,7 @@ export type EditorSpec =
   | { kind: 'validations' }
   | { kind: 'aiAdoption' }
   | { kind: 'builder'; scope?: 'all' | 'map' | 'external' | 'org' }
-  | { kind: 'stepLens' }
-  | { kind: 'catalog' };
+  | { kind: 'stepLens' };
 
 export type Section = { key: string; label: string; hint?: string; editor: EditorSpec };
 export type TabConfig = { key: string; label: string; description: string; sections: Section[] };
@@ -44,24 +43,20 @@ export const ADMIN_TABS: TabConfig[] = [
   {
     key: 'valueStreams',
     label: 'Value Streams',
-    description: 'The operating-model map is driven by a single configurable level hierarchy (Enterprise → Domain → Division → Value Stream → Sub-Process → Process Step). Drill in to edit any node and its detail.',
+    description: 'Two surfaces cover the whole map: "Map structure" builds the hierarchy (add, rename, move, connect, delete any node), and "Sidebar content" edits everything a node shows when clicked — steps, sub-process detail, roles, deliverables, and applications.',
     sections: [
-      { key: 'builder', label: 'Map structure', hint: 'levels & connections', editor: { kind: 'builder', scope: 'map' } },
-      { key: 'subProcesses', label: 'Sub-processes', editor: { kind: 'list', slug: 'subValueStream', fixed: { level: 4 }, intro: 'The L4 sub-process details — inputs, outputs, upstream/downstream hand-offs, and notes — rendered in the map sidebar and the value-stream drawer. Edits here also refresh the sub-process node on the map.' } },
-      { key: 'steps', label: 'Process steps', editor: { kind: 'list', slug: 'processStep', intro: 'Sequenced E2E process steps attached to a value stream (the "how the work flows" detail). The `code` / `parentProcessId` columns are the workbook Activity IDs (CI-01-01-S03 / CI-01-01) the step lens joins on. For a guided, sidebar-shaped editor use the "Sidebar content" section.' } },
-      { key: 'io', label: 'Inputs / outputs', editor: { kind: 'list', slug: 'ioItem', intro: 'Inputs, outputs, and deliverables inventoried per value stream.' } },
-      { key: 'sidebar', label: 'Sidebar content', hint: 'what the map sidebar shows', editor: { kind: 'stepLens' } },
-      { key: 'stepApps', label: 'Step applications', hint: 'raw table', editor: { kind: 'list', slug: 'stepAppUsage', intro: 'Which application a process step runs on, and how (Execution / System of Record / Approval / Reporting / Support) — the "Applications & systems" section of the map sidebar. Rows match a step by its id or by Activity ID. For a guided editor use "Sidebar content".' } },
-      { key: 'stepDeliverables', label: 'Step deliverables', hint: 'raw table', editor: { kind: 'list', slug: 'stepDeliverable', intro: 'The deliverable each step produces, where it is memorialized (system of record) and who approves it in which system — the "Deliverables" chain of the map sidebar. For a guided editor use "Sidebar content".' } },
+      { key: 'builder', label: 'Map structure', hint: 'add, move & connect', editor: { kind: 'builder', scope: 'map' } },
+      { key: 'sidebar', label: 'Sidebar content', hint: 'what a node shows when clicked', editor: { kind: 'stepLens' } },
+      { key: 'io', label: 'Inputs & outputs', editor: { kind: 'list', slug: 'ioItem', intro: 'The inputs, outputs, and deliverables inventoried per value stream — the "Inputs / outputs" panel of the value-stream drawer and the source of role deliverables.' } },
     ],
   },
   {
     key: 'organization',
     label: 'Organization',
-    description: 'The Organization view shows Segment → Division → Department → Role → People. The CEO segment grouping comes from each division’s "Higher category" (Core Business / IT / Corporate Function). Edit the org spine here — these are the exact tables the Organization screen reads.',
+    description: 'The Organization view shows Segment → Division → Department → Role → People. "Org structure" moves and reshapes the spine; "Divisions & departments" edits their fields (including the CEO segment a division rolls up to); roles, their work, and task categories live in the role studio.',
     sections: [
       {
-        key: 'structure', label: 'Org structure', hint: 'move levels & subtrees',
+        key: 'structure', label: 'Org structure', hint: 'add, move & reshape',
         editor: { kind: 'builder', scope: 'org' },
       },
       {
@@ -69,10 +64,9 @@ export const ADMIN_TABS: TabConfig[] = [
         editor: { kind: 'masterDetail', parent: 'division', parentTitle: 'Divisions', intro: 'Pick a division to edit it (including its "Higher category" — the CEO segment it rolls up to) and manage its departments.', children: [{ slug: 'department', fk: 'divisionId', title: 'Departments' }] },
       },
       {
-        key: 'roles', label: 'Roles & responsibilities', hint: 'Full role studio',
+        key: 'roles', label: 'Roles & responsibilities', hint: 'full role studio',
         editor: { kind: 'roleStudio' },
       },
-      { key: 'categories', label: 'Task categories', editor: { kind: 'list', slug: 'category', intro: 'Categories used to group role tasks and checklist items.' } },
     ],
   },
   {
@@ -85,80 +79,6 @@ export const ADMIN_TABS: TabConfig[] = [
         editor: { kind: 'masterDetail', parent: 'standard', parentTitle: 'Standards areas', intro: 'Select a standards area to edit it and manage its guidelines.', children: [{ slug: 'standardItem', fk: 'standardId', title: 'Guidelines & standards' }] },
       },
       { key: 'skills', label: 'Agent skills', hint: 'edit SKILL.md & files', editor: { kind: 'skills' } },
-    ],
-  },
-  {
-    key: 'telemetry',
-    label: 'Metrics',
-    description: 'The Metrics tab is built from KPI/metric definitions, the application landscape, and per-person digital signals.',
-    sections: [
-      { key: 'metrics', label: 'Metrics (KPIs)', editor: { kind: 'list', slug: 'metric', intro: 'Value-stream KPIs — definition, target, unit, and current reading.' } },
-      { key: 'trackable', label: 'Trackable signals', editor: { kind: 'list', slug: 'telemetrySignal', intro: 'The Trackable Metrics inventory — live workforce signals (isLive on; per-person readings drill by role) and the workbook reference catalog of everything the company could measure.' } },
-      {
-        key: 'apps', label: 'Applications',
-        editor: { kind: 'masterDetail', parent: 'application', parentTitle: 'Applications', intro: 'Select an application to edit it (including its APP-nnn code and System-of-Record flag from the Bridge Input catalog) and manage which value streams and process steps it supports.', children: [{ slug: 'applicationValueStream', fk: 'applicationId', title: 'Value-stream links' }, { slug: 'stepAppUsage', fk: 'applicationId', title: 'Step usage' }] },
-      },
-      { key: 'signals', label: 'People signals', editor: { kind: 'group', intro: 'Per-person digital-productivity signals, performance metrics, and app-usage mix.', lists: [{ slug: 'personSignal', title: 'Signals' }, { slug: 'personMetric', title: 'Performance metrics' }, { slug: 'personAppUsage', title: 'App usage' }] } },
-      { key: 'aiAdoption', label: 'AI adoption', hint: 'per value stream', editor: { kind: 'aiAdoption' } },
-    ],
-  },
-  {
-    key: 'initiatives',
-    label: 'Workspace',
-    description: 'The Workspace screen renders the portfolio tracker: Program → Workstream → Initiative. Edit that here, plus the operating-model initiatives (which power the dashboard and map), risks, scenarios, and application-rationalization workspaces.',
-    sections: [
-      {
-        key: 'portfolio', label: 'Portfolio (programs)', hint: 'what the screen shows',
-        editor: { kind: 'masterDetail', parent: 'program', parentTitle: 'Programs', intro: 'The portfolio tracker the Initiatives screen renders. Select a program to manage its workstreams; each workstream holds the portfolio initiatives.', children: [{ slug: 'workstream', fk: 'programId', title: 'Workstreams' }] },
-      },
-      {
-        key: 'workstreams', label: 'Workstream initiatives',
-        editor: { kind: 'masterDetail', parent: 'workstream', parentTitle: 'Workstreams', intro: 'Select a workstream to manage the portfolio initiatives under it.', children: [{ slug: 'portfolioInitiative', fk: 'workstreamId', title: 'Portfolio initiatives' }] },
-      },
-      {
-        key: 'initiatives', label: 'Operating-model initiatives',
-        editor: { kind: 'masterDetail', parent: 'initiative', parentTitle: 'Initiatives', intro: 'Transformation initiatives that power the dashboard and the operating-model map. Select one to manage its value-stream and division links.', children: [{ slug: 'initiativeValueStream', fk: 'initiativeId', title: 'Value-stream links' }, { slug: 'initiativeDivision', fk: 'initiativeId', title: 'Division links' }] },
-      },
-      { key: 'risks', label: 'Risks', editor: { kind: 'list', slug: 'risk' } },
-      { key: 'riskBands', label: 'Risk scoring bands', editor: { kind: 'list', slug: 'riskScoringBand', intro: 'How a 5×5 probability × impact score (1–25) reads as a rating — the standard enterprise risk matrix (ISO 31000-style). Every severity cell in the tracker colors itself from these bands.' } },
-      { key: 'scenarios', label: 'Scenarios', editor: { kind: 'list', slug: 'scenario', intro: 'Change-impact economics — one-time cost, recurring benefit, net impact, confidence.' } },
-      {
-        key: 'rationalization', label: 'App Rationalization Workspace',
-        editor: {
-          kind: 'masterDetail', parent: 'rationalizationWorkspace', parentTitle: 'Workspaces',
-          intro: 'Each workspace rationalizes a business process. Select one to manage its legacy apps, target services, components, capabilities, and plan.',
-          children: [
-            { slug: 'rationalizationApp', fk: 'workspaceId', title: 'Legacy apps' },
-            { slug: 'rationalizationMicroservice', fk: 'workspaceId', title: 'Target services' },
-            { slug: 'rationalizationComponent', fk: 'workspaceId', title: 'Target components' },
-            { slug: 'rationalizationCapability', fk: 'workspaceId', title: 'Capabilities' },
-            { slug: 'rationalizationPlanStep', fk: 'workspaceId', title: 'Migration plan' },
-          ],
-        },
-      },
-    ],
-  },
-  {
-    key: 'work',
-    label: 'Deliverables & Tasks',
-    description: 'The work tracker — tangible deliverables and the tasks that roll up to them.',
-    sections: [
-      {
-        key: 'deliverables', label: 'Deliverables',
-        editor: { kind: 'masterDetail', parent: 'deliverable', parentTitle: 'Deliverables', intro: 'Select a deliverable to edit it and manage its tasks.', children: [{ slug: 'task', fk: 'deliverableId', title: 'Tasks' }] },
-      },
-      { key: 'tasks', label: 'All tasks', editor: { kind: 'list', slug: 'task', intro: 'Every task, including standalone tasks not tied to a deliverable.' } },
-    ],
-  },
-  {
-    key: 'people',
-    label: 'People',
-    description: 'The people who staff roles, their assignments, and their work.',
-    sections: [
-      {
-        key: 'people', label: 'People',
-        editor: { kind: 'masterDetail', parent: 'person', parentTitle: 'People', intro: 'Select a person to edit them and manage their assignments and tasks.', children: [{ slug: 'assignment', fk: 'personId', title: 'Assignments' }, { slug: 'personTask', fk: 'personId', title: 'Tasks' }] },
-      },
     ],
   },
   {
@@ -200,6 +120,96 @@ export const ADMIN_TABS: TabConfig[] = [
     ],
   },
   {
+    key: 'telemetry',
+    label: 'Metrics',
+    description: 'The Metrics tab is built from KPI/metric definitions, the application landscape, and per-person digital signals.',
+    sections: [
+      { key: 'metrics', label: 'Metrics (KPIs)', editor: { kind: 'list', slug: 'metric', intro: 'Value-stream KPIs — definition, target, unit, and current reading.' } },
+      { key: 'trackable', label: 'Trackable signals', editor: { kind: 'list', slug: 'telemetrySignal', intro: 'The Trackable Metrics inventory — live workforce signals (isLive on; per-person readings drill by role) and the workbook reference catalog of everything the company could measure.' } },
+      { key: 'signals', label: 'People signals', editor: { kind: 'group', intro: 'Per-person digital-productivity signals, performance metrics, and app-usage mix.', lists: [{ slug: 'personSignal', title: 'Signals' }, { slug: 'personMetric', title: 'Performance metrics' }, { slug: 'personAppUsage', title: 'App usage' }] } },
+      { key: 'aiAdoption', label: 'AI adoption', hint: 'per value stream', editor: { kind: 'aiAdoption' } },
+      { key: 'analysisCoverage', label: 'Analysis coverage', editor: { kind: 'list', slug: 'analysisStatus', intro: 'The AI analysis plan the Metrics tab tracks — one row per analyzed subject (value stream, org group, or role) with its status and planned/actual dates.' } },
+    ],
+  },
+  {
+    key: 'initiatives',
+    label: 'Workspace',
+    description: 'The Workspace screen renders the portfolio tracker: Program → Workstream → Initiative. "Programs & workstreams" manages the containers; "Portfolio initiatives" manages each initiative and everything inside it (move one by editing its workstream). Plus the operating-model initiatives, risks, scenarios, and application-rationalization workspaces.',
+    sections: [
+      {
+        key: 'portfolio', label: 'Programs & workstreams',
+        editor: { kind: 'masterDetail', parent: 'program', parentTitle: 'Programs', intro: 'The containers of the portfolio tracker. Select a program to manage its workstreams; the initiatives themselves live in "Portfolio initiatives".', children: [{ slug: 'workstream', fk: 'programId', title: 'Workstreams' }] },
+      },
+      {
+        key: 'initiativeDetail', label: 'Portfolio initiatives',
+        editor: {
+          kind: 'masterDetail', parent: 'portfolioInitiative', parentTitle: 'Portfolio initiatives',
+          intro: 'Every portfolio initiative and everything its drill-down screen renders. Select one to edit it (changing its workstream moves it), and to manage its benefit and cost lines, milestones, and RAID log.',
+          children: [
+            { slug: 'benefitLine', fk: 'initiativeId', title: 'Benefit lines' },
+            { slug: 'costLine', fk: 'initiativeId', title: 'Cost lines' },
+            { slug: 'milestone', fk: 'initiativeId', title: 'Milestones' },
+            { slug: 'raidItem', fk: 'initiativeId', title: 'RAID log' },
+          ],
+        },
+      },
+      {
+        key: 'initiatives', label: 'Operating-model initiatives',
+        editor: { kind: 'masterDetail', parent: 'initiative', parentTitle: 'Initiatives', intro: 'Transformation initiatives that power the dashboard and the operating-model map. Select one to manage its value-stream and division links.', children: [{ slug: 'initiativeValueStream', fk: 'initiativeId', title: 'Value-stream links' }, { slug: 'initiativeDivision', fk: 'initiativeId', title: 'Division links' }] },
+      },
+      { key: 'risks', label: 'Risks', editor: { kind: 'group', intro: 'The operating-model risk register, plus how a 5×5 probability × impact score (1–25) reads as a rating — every severity cell in the tracker colors itself from these bands.', lists: [{ slug: 'risk', title: 'Risks' }, { slug: 'riskScoringBand', title: 'Risk scoring bands' }] } },
+      { key: 'scenarios', label: 'Scenarios', editor: { kind: 'list', slug: 'scenario', intro: 'Change-impact economics — one-time cost, recurring benefit, net impact, confidence.' } },
+      {
+        key: 'rationalization', label: 'App Rationalization Workspace',
+        editor: {
+          kind: 'masterDetail', parent: 'rationalizationWorkspace', parentTitle: 'Workspaces',
+          intro: 'Each workspace rationalizes a business process. Select one to manage its legacy apps, target services, components, capabilities, and plan.',
+          children: [
+            { slug: 'rationalizationApp', fk: 'workspaceId', title: 'Legacy apps' },
+            { slug: 'rationalizationMicroservice', fk: 'workspaceId', title: 'Target services' },
+            { slug: 'rationalizationComponent', fk: 'workspaceId', title: 'Target components' },
+            { slug: 'rationalizationCapability', fk: 'workspaceId', title: 'Capabilities' },
+            { slug: 'rationalizationPlanStep', fk: 'workspaceId', title: 'Migration plan' },
+          ],
+        },
+      },
+    ],
+  },
+  {
+    key: 'work',
+    label: 'Deliverables & Tasks',
+    description: 'The work tracker — tangible deliverables and the tasks that roll up to them.',
+    sections: [
+      {
+        key: 'deliverables', label: 'Deliverables',
+        editor: { kind: 'masterDetail', parent: 'deliverable', parentTitle: 'Deliverables', intro: 'Select a deliverable to edit it and manage its tasks.', children: [{ slug: 'task', fk: 'deliverableId', title: 'Tasks' }] },
+      },
+      { key: 'tasks', label: 'All tasks', editor: { kind: 'list', slug: 'task', intro: 'Every task, including standalone tasks not tied to a deliverable.' } },
+    ],
+  },
+  {
+    key: 'applications',
+    label: 'Applications',
+    description: 'The application landscape the Applications screen renders — each system, its catalog code and System-of-Record flag, and which value streams and process steps it supports.',
+    sections: [
+      {
+        key: 'apps', label: 'Applications',
+        editor: { kind: 'masterDetail', parent: 'application', parentTitle: 'Applications', intro: 'Select an application to edit it (including its APP-nnn code and System-of-Record flag from the Bridge Input catalog) and manage which value streams and process steps it supports.', children: [{ slug: 'applicationValueStream', fk: 'applicationId', title: 'Value-stream links' }, { slug: 'stepAppUsage', fk: 'applicationId', title: 'Step usage' }] },
+      },
+    ],
+  },
+  {
+    key: 'people',
+    label: 'People',
+    description: 'The people who staff roles, their assignments, and their work.',
+    sections: [
+      {
+        key: 'people', label: 'People',
+        editor: { kind: 'masterDetail', parent: 'person', parentTitle: 'People', intro: 'Select a person to edit them and manage their assignments and tasks.', children: [{ slug: 'assignment', fk: 'personId', title: 'Assignments' }, { slug: 'personTask', fk: 'personId', title: 'Tasks' }] },
+      },
+    ],
+  },
+  {
     key: 'external',
     label: 'Third-Parties',
     description: 'External parties the organization interacts with — the party catalog (model nodes) and the interaction inventory.',
@@ -213,11 +223,5 @@ export const ADMIN_TABS: TabConfig[] = [
     label: 'Data Health',
     description: 'Read-only integrity checks across the operating model — count reconciliation, singular-role over-fill, region/employment plausibility, and financial-rollup staleness. Use this to spot what the next data pass needs to fix.',
     sections: [{ key: 'validations', label: 'Validation checks', editor: { kind: 'validations' } }],
-  },
-  {
-    key: 'catalog',
-    label: 'Data Catalog',
-    description: 'Every editable table in one place — the power-user view. Use the tailored tabs above for day-to-day editing.',
-    sections: [{ key: 'catalog', label: 'All tables', editor: { kind: 'catalog' } }],
   },
 ];

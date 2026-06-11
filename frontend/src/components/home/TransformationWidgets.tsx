@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fmt } from '../../lib/format';
-import { StatusPill, makeTimelineScale, TimelineGrid, TimelineAxis } from '../../lib/portfolio';
+import { StatusPill, SeverityCell, makeTimelineScale, TimelineGrid, TimelineAxis } from '../../lib/portfolio';
 
 // ─── Transformation command-center widgets (Home, D1) ────────────────────────
 // The widget BODIES for the Home dashboard's transformation widgets — the
 // programs→initiatives rollup, the Gantt timeline, OKRs, risks/RAID and the
 // Viva-style workforce signals. The catalog in lib/dashboardWidgets wraps each
 // of these in its Card and feeds it the `transformation` slice of the
-// GET /dashboard payload. Everything links into the existing /portfolio detail
-// pages (programs, initiatives, RAID log), which remain the drill-down targets.
+// GET /dashboard payload. The drill-down targets (/programs/:id,
+// /initiatives/:id, /raid) live under Home too — clicking through never
+// leaves the Home tab for the Workspace.
 
 export type HomeInitiative = {
   id: string; name: string; stage: string; status: string; netBenefit: number; pctComplete: number;
@@ -74,7 +75,7 @@ export function PortfolioRollup({ t }: { t: TransformationData }) {
 function PortfolioRow({ p, open, onToggle }: { p: HomeProgram; open: boolean; onToggle: () => void }) {
   return (
     <>
-      <tr className="border-b border-[#f5f5f5]">
+      <tr className="border-b border-[#f5f5f5] hover:bg-[#fafafa] transition-colors duration-150">
         <td className="py-2.5">
           <span className="flex items-center gap-1.5">
             <button onClick={onToggle} aria-expanded={open} aria-label={open ? 'Collapse initiatives' : 'Expand initiatives'} className="text-[#a3a3a3] hover:text-[#171717] flex-shrink-0">
@@ -82,7 +83,7 @@ function PortfolioRow({ p, open, onToggle }: { p: HomeProgram; open: boolean; on
                 <path d="M9 6l6 6-6 6" />
               </svg>
             </button>
-            <Link to={`/portfolio/programs/${p.id}`} className="font-medium text-[#171717] hover:text-[#4f46e5]">{p.name}</Link>
+            <Link to={`/programs/${p.id}`} className="font-medium text-[#171717] hover:text-[#4f46e5]">{p.name}</Link>
           </span>
         </td>
         <td className="py-2.5"><StatusPill status={p.computedStatus} /></td>
@@ -93,7 +94,7 @@ function PortfolioRow({ p, open, onToggle }: { p: HomeProgram; open: boolean; on
       {open && p.initiatives.map((i) => (
         <tr key={i.id} className="border-b border-[#f5f5f5] bg-[#fafafa]">
           <td className="py-2 pl-7">
-            <Link to={`/portfolio/initiatives/${i.id}`} className="text-[#525252] hover:text-[#4f46e5]">{i.name}</Link>
+            <Link to={`/initiatives/${i.id}`} className="text-[#525252] hover:text-[#4f46e5]">{i.name}</Link>
             <span className="ml-2 text-[10px] uppercase tracking-[0.06em] text-[#a3a3a3]">{i.stage.charAt(0) + i.stage.slice(1).toLowerCase()}</span>
           </td>
           <td className="py-2"><StatusPill status={i.status} /></td>
@@ -107,45 +108,58 @@ function PortfolioRow({ p, open, onToggle }: { p: HomeProgram; open: boolean; on
 }
 
 // ── Gantt timeline: one lane per program, milestone diamonds, today line ────
+// Each bar is a light track for the program's full duration with a solid fill
+// for % complete; alternating quarter bands sit behind the lanes. The label
+// column is wide enough to wrap long program names instead of truncating them.
 export function ProgramGantt({ t }: { t: TransformationData }) {
   const dates: (string | Date)[] = t.programs.flatMap((p) => [p.startDate, p.endDate, ...p.milestones.map((m) => m.dueDate)]);
-  const scale = makeTimelineScale(dates);
+  const scale = makeTimelineScale(dates, 'quarter');
   if (!scale || t.programs.length === 0) return <div className="text-sm text-[#a3a3a3]">No dated programs yet.</div>;
   const now = Date.now();
   const showToday = now >= scale.min && now <= scale.max;
+  // Quarter boundaries (ticks + both edges) → alternating background bands.
+  const bounds = [0, ...scale.ticks.map((tk) => tk.pct), 100];
   return (
     <div>
       <div className="flex">
-        <div className="w-44 flex-shrink-0" />
+        <div className="w-56 flex-shrink-0" />
         <div className="flex-1 relative"><TimelineAxis scale={scale} /></div>
       </div>
       <div className="flex">
-        <div className="w-44 flex-shrink-0">
+        <div className="w-56 flex-shrink-0">
           {t.programs.map((p) => (
-            <div key={p.id} className="h-9 flex items-center pr-3">
-              <Link to={`/portfolio/programs/${p.id}`} className="text-xs font-medium text-[#171717] hover:text-[#4f46e5] truncate">{p.name}</Link>
+            <div key={p.id} className="h-11 flex items-center pr-4">
+              <Link to={`/programs/${p.id}`} className="text-xs font-medium leading-snug text-[#171717] hover:text-[#4f46e5]">{p.name}</Link>
             </div>
           ))}
         </div>
         <div className="flex-1 relative">
+          {bounds.slice(0, -1).map((b, i) =>
+            i % 2 === 1 ? (
+              <div key={i} className="absolute top-0 bottom-0 bg-[#fafafa] pointer-events-none" style={{ left: `${b}%`, width: `${bounds[i + 1] - b}%` }} />
+            ) : null,
+          )}
           <TimelineGrid scale={scale} />
           {showToday && (
             <div className="absolute top-0 bottom-0 w-px bg-[#be123c] z-10" style={{ left: `${scale.pct(new Date(now))}%` }} title="Today" />
           )}
           {t.programs.map((p) => {
             const left = scale.pct(p.startDate);
-            const width = Math.max(1, scale.pct(p.endDate) - left);
+            const width = Math.max(1.5, scale.pct(p.endDate) - left);
+            const color = STATUS_COLOR[p.computedStatus] ?? '#4f46e5';
             return (
-              <div key={p.id} className="h-9 relative">
+              <div key={p.id} className="h-11 relative">
                 <div
-                  className="absolute top-1/2 -translate-y-1/2 h-3.5 rounded-full opacity-90"
-                  style={{ left: `${left}%`, width: `${width}%`, backgroundColor: STATUS_COLOR[p.computedStatus] ?? '#4f46e5' }}
+                  className="absolute top-1/2 -translate-y-1/2 h-4 rounded-full overflow-hidden"
+                  style={{ left: `${left}%`, width: `${width}%`, backgroundColor: color + '26' }}
                   title={`${p.name} · ${fmt.month(p.startDate)} – ${fmt.month(p.endDate)} · ${p.pctComplete}% complete`}
-                />
+                >
+                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, Math.max(0, p.pctComplete))}%`, backgroundColor: color }} />
+                </div>
                 {p.milestones.map((m) => (
                   <div
                     key={m.id}
-                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-2 rotate-45 border border-white"
+                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 rotate-45 rounded-[2px] border-2 border-white shadow-sm z-20"
                     style={{ left: `${scale.pct(m.dueDate)}%`, backgroundColor: m.status === 'DONE' ? '#047857' : m.status === 'MISSED' ? '#dc2626' : '#171717' }}
                     title={`${m.name} (${m.initiativeName}) · ${fmt.date(m.dueDate)}`}
                   />
@@ -156,9 +170,13 @@ export function ProgramGantt({ t }: { t: TransformationData }) {
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-[10px] text-[#a3a3a3]">
-        <span className="flex items-center gap-1.5"><span className="w-4 h-1.5 rounded-full bg-[#4f46e5] inline-block" /> Program</span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-5 h-2 rounded-full inline-block overflow-hidden bg-[#4f46e5]/15"><span className="block h-full w-1/2 rounded-full bg-[#4f46e5]" /></span>
+          Program (fill = % complete)
+        </span>
         <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rotate-45 bg-[#171717] inline-block" /> Milestone</span>
         <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rotate-45 bg-[#047857] inline-block" /> Done</span>
+        <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rotate-45 bg-[#dc2626] inline-block" /> Missed</span>
         <span className="flex items-center gap-1.5"><span className="w-px h-3 bg-[#be123c] inline-block" /> Today</span>
       </div>
     </div>
@@ -184,43 +202,51 @@ export function OkrList({ t }: { t: TransformationData }) {
 }
 
 // ── Open risks: top open risks by severity ───────────────────────────────────
-function SeverityBadge({ value }: { value: number }) {
-  const color = value >= 16 ? '#dc2626' : value >= 10 ? '#d97706' : '#65a30d';
-  return (
-    <span className="inline-flex items-center justify-center w-7 h-5 rounded text-[11px] font-semibold text-white tnum flex-shrink-0" style={{ backgroundColor: color }}>
-      {value}
-    </span>
-  );
-}
-
+// Severity shows as its RATING (Low / Medium / High via SeverityCell — the same
+// risk-band pill the RAID log uses), never as a raw 5×5 score.
 export function TopRisks({ t }: { t: TransformationData }) {
   if (t.topRisks.length === 0) return <div className="text-sm text-[#a3a3a3]">No open risks.</div>;
   return (
-    <div className="space-y-2">
+    <div className="space-y-0.5 -mx-2">
       {t.topRisks.map((r) => (
-        <div key={r.id} className="flex items-center gap-2.5 text-sm">
-          <SeverityBadge value={r.severity} />
+        <Link key={r.id} to={`/initiatives/${r.initiativeId}`} className="flex items-center gap-2.5 text-sm rounded-md px-2 py-1.5 hover:bg-[#fafafa] transition-colors duration-150 group">
+          <span className="flex-shrink-0"><SeverityCell value={r.severity} /></span>
           <div className="min-w-0 flex-1">
-            <Link to={`/portfolio/initiatives/${r.initiativeId}`} className="block truncate text-[#171717] hover:text-[#4f46e5]">{r.title}</Link>
+            <div className="truncate text-[#171717] group-hover:text-[#4f46e5]">{r.title}</div>
             <div className="text-[10px] text-[#a3a3a3] truncate">{r.initiativeName}</div>
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   );
 }
 
 // ── RAID log: open counts by type ────────────────────────────────────────────
+// Each tile deep-links into the RAID log pre-filtered to its type.
+const RAID_TYPES = [
+  { type: 'RISK', label: 'Risks', color: '#be123c', bg: '#fef2f2', border: '#fecaca' },
+  { type: 'ISSUE', label: 'Issues', color: '#b45309', bg: '#fffbeb', border: '#fde68a' },
+  { type: 'ASSUMPTION', label: 'Assumptions', color: '#4f46e5', bg: '#eef2ff', border: '#c7d2fe' },
+  { type: 'DECISION', label: 'Decisions', color: '#047857', bg: '#ecfdf5', border: '#a7f3d0' },
+] as const;
+
 export function RaidSummary({ t }: { t: TransformationData }) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      {(['RISK', 'ISSUE', 'ASSUMPTION', 'DECISION'] as const).map((type) => {
+      {RAID_TYPES.map(({ type, label, color, bg, border }) => {
         const n = t.raidOpen[type] ?? 0;
+        const live = n > 0;
         return (
-          <div key={type} className={'rounded-md border p-3 ' + (n > 0 && type === 'RISK' ? 'border-[#fecaca] bg-[#fef2f2]' : 'border-[#eeeeee] bg-[#fafafa]')}>
-            <div className="text-[10px] uppercase tracking-[0.08em] text-[#a3a3a3]">{type.charAt(0) + type.slice(1).toLowerCase()}s</div>
-            <div className="text-xl font-semibold tnum text-[#171717]">{n}</div>
-          </div>
+          <Link
+            key={type}
+            to={`/raid?type=${type}`}
+            className="rounded-md border p-3 transition-shadow duration-150 hover:shadow-sm"
+            style={{ borderColor: live ? border : '#eeeeee', backgroundColor: live ? bg : '#fafafa' }}
+          >
+            <div className="text-[10px] font-semibold uppercase tracking-[0.08em]" style={{ color: live ? color : '#a3a3a3' }}>{label}</div>
+            <div className="text-xl font-semibold tnum" style={{ color: live ? color : '#171717' }}>{n}</div>
+            <div className="text-[10px] text-[#a3a3a3] mt-0.5">open</div>
+          </Link>
         );
       })}
     </div>

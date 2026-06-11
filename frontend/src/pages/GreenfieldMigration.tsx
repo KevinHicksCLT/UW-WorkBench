@@ -29,10 +29,11 @@ type LogEntry = { id: string; action: string; actorEmail: string; createdAt: str
 // The canonical L3 value streams and their L4 processes come from the unified
 // Level tree (GET /explorer/tree: division → value_stream → areas). The
 // rationalization stages carry no FK into that tree, so each stage (lens) is
-// matched to its closest L4 process by name-token overlap; picking an L3
-// repopulates the L4 dropdown, and picking an L4 with a matched stage selects
-// that stage as the board's lens. Stages with no match stay reachable via an
-// "Application lenses" group in the L4 dropdown.
+// matched to its closest L4 process by name-token overlap. Only L3 streams and
+// L4 processes that resolve to an existing board are listed (no dead picks);
+// picking an L3 repopulates the L4 dropdown and opens its first board. Stages
+// with no match stay reachable via an "Application lenses" group in the L4
+// dropdown.
 type LensL4 = { id: string; name: string };
 type LensL3 = { id: string; name: string; l4s: LensL4[] };
 
@@ -340,24 +341,31 @@ export default function ApplicationRationalization({ embedded = false }: { embed
     return { byStage, byL4 };
   }, [stages, lensTree]);
 
+  // Only L3 value streams / L4 processes that resolve to an existing analysis
+  // board (a matched stage) are offered in the cascade — everything else is hidden.
+  const boardTree = useMemo(
+    () => lensTree
+      .map((l3) => ({ ...l3, l4s: l3.l4s.filter((l4) => lensIndex.byL4.has(l4.id)) }))
+      .filter((l3) => l3.l4s.length > 0),
+    [lensTree, lensIndex],
+  );
+
   // Reflect the selected stage back into the dropdowns (app switch, load, …).
   useEffect(() => {
     if (lensTree.length === 0 || !selectedId) return;
     const mapped = lensIndex.byStage.get(selectedId);
     if (mapped) { setSelL3(mapped.l3Id); setSelL4(mapped.l4Id); }
-    else { setSelL3((p) => p || lensTree[0].id); setSelL4(`stage:${selectedId}`); }
-  }, [selectedId, lensIndex, lensTree]);
+    else { setSelL3((p) => (boardTree.some((x) => x.id === p) ? p : boardTree[0]?.id ?? '')); setSelL4(`stage:${selectedId}`); }
+  }, [selectedId, lensIndex, lensTree, boardTree]);
 
   const onPickL3 = useCallback((id: string) => {
     setSelL3(id);
-    const l3 = lensTree.find((x) => x.id === id);
-    // Prefer the first L4 under this stream that has an analysis lens.
-    const withLens = l3?.l4s.find((l4) => lensIndex.byL4.has(l4.id));
-    const next = withLens ?? l3?.l4s[0];
+    // Every listed L4 has a board — selecting a stream opens its first one.
+    const next = boardTree.find((x) => x.id === id)?.l4s[0];
     setSelL4(next?.id ?? '');
     const stage = next ? lensIndex.byL4.get(next.id) : undefined;
     if (stage) setSelectedId(stage);
-  }, [lensTree, lensIndex]);
+  }, [boardTree, lensIndex]);
 
   const onPickL4 = useCallback((v: string) => {
     setSelL4(v);
@@ -366,7 +374,7 @@ export default function ApplicationRationalization({ embedded = false }: { embed
     if (stage) setSelectedId(stage);
   }, [lensIndex]);
 
-  const curL3 = lensTree.find((x) => x.id === selL3);
+  const curL3 = boardTree.find((x) => x.id === selL3);
   const unmappedStages = stages.filter((s) => !lensIndex.byStage.has(s.id));
 
   const createInitiative = useCallback(async () => {
@@ -569,16 +577,18 @@ export default function ApplicationRationalization({ embedded = false }: { embed
         </LensField>
         {lensTree.length > 0 && stages.length > 0 && (
           <>
-            <LensField label="Value stream (L3)">
-              <select value={selL3} onChange={(e) => onPickL3(e.target.value)} className={LENS_SELECT_CLS}>
-                {lensTree.map((l3) => <option key={l3.id} value={l3.id}>{l3.name}</option>)}
-              </select>
-            </LensField>
+            {boardTree.length > 0 && (
+              <LensField label="Value stream (L3)">
+                <select value={selL3} onChange={(e) => onPickL3(e.target.value)} className={LENS_SELECT_CLS}>
+                  {boardTree.map((l3) => <option key={l3.id} value={l3.id}>{l3.name}</option>)}
+                </select>
+              </LensField>
+            )}
             <LensField label="Process (L4)">
               <select value={selL4} onChange={(e) => onPickL4(e.target.value)} className={LENS_SELECT_CLS}>
                 {selL4 === '' && <option value="">Select a process…</option>}
                 {(curL3?.l4s ?? []).map((l4) => (
-                  <option key={l4.id} value={l4.id}>{l4.name}{lensIndex.byL4.has(l4.id) ? ' ●' : ''}</option>
+                  <option key={l4.id} value={l4.id}>{l4.name}</option>
                 ))}
                 {unmappedStages.length > 0 && (
                   <optgroup label="Application lenses">
@@ -602,9 +612,6 @@ export default function ApplicationRationalization({ embedded = false }: { embed
           <div className="text-[11px] text-[#666666] min-w-0">
             <span className="font-semibold text-[#171717]">{selectedStage?.name ?? detail.name}</span>
             <span className="text-[#a3a3a3] tnum"> · {pct(detail.progress)} migrated</span>
-            {selL4 !== '' && !selL4.startsWith('stage:') && !lensIndex.byL4.has(selL4) && (
-              <span className="text-[#b45309]"> · no analysis lens for this process yet</span>
-            )}
             <span className="text-[#a3a3a3]"> — {editing
               ? 'editing: drag boxes; drag edge dots to draw arrows; Delete removes a selected arrow; double-click a box to edit it'
               : 'read-only; use Edit board to rearrange, re-wire and edit boxes'}</span>

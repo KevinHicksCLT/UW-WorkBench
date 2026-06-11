@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useHeaderBreadcrumbSlot } from '../lib/breadcrumbs';
 import OrgListExplorer from '../components/OrgListExplorer';
 import OrgMapCanvas from '../viz/OrgMapCanvas';
 import OrgTable from './OrgTable';
+import RoleDrawer from '../components/RoleDrawer';
 
 // Organization tab — mirrors the Value Streams tab: a floating segmented control
 // toggles between two views of the SAME org spine:
@@ -11,8 +13,9 @@ import OrgTable from './OrgTable';
 //   Map  — a literal spatial drill-down map (OrgMapCanvas, react-flow), like the
 //          Value Streams map: Company → Segment → Division → Team → Role.
 // A third, toggle-less surface — 'detail' — renders the old OrgTable drill-down
-// for the `?role=<id>` and `?view=departments` deep links (role detail and the
-// departments overview only exist there; the map's role leaves link into it).
+// for the `?view=departments` deep link (the departments overview only exists
+// there). `?role=<id>` deep links land on the LIST view with the role's full
+// detail drawer open (the standalone role page was retired into RoleDrawer).
 type View = 'list' | 'map' | 'detail';
 
 // Floating segmented control — hovers over the content; List ↔ Map.
@@ -40,37 +43,39 @@ function ViewToggle({ view, onChange }: { view: View; onChange: (v: View) => voi
   );
 }
 
-const hasDeepLink = (sp: URLSearchParams) => sp.get('view') === 'departments' || !!sp.get('role');
-
 export default function Organization() {
-  // `?view=departments` (home "Departments" tile) and `?role=<id>` (links from
-  // Work / External / Standards / the org map's role leaves) deep-link into the
-  // OrgTable drill-down — the 'detail' surface. OrgTable itself consumes and
-  // clears the params, so this only latches the surface on (it must not flip
-  // back when the params disappear).
-  const [searchParams] = useSearchParams();
-  const [view, setView] = useState<View>(hasDeepLink(searchParams) ? 'detail' : 'list');
+  // Deep links: `?view=departments` (home "Departments" tile) opens the OrgTable
+  // drill-down — the 'detail' surface (OrgTable consumes and clears the param,
+  // so this only latches the surface on). `?role=<id>` (links from Work /
+  // External / Standards / the org map's role leaves / old /roles/:id URLs)
+  // opens that role's detail drawer OVER whatever view is active — the user
+  // stays exactly where they drilled to, in map or list. The param is consumed
+  // and cleared here so re-clicking the same link re-opens the drawer.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [view, setView] = useState<View>(searchParams.get('view') === 'departments' ? 'detail' : 'list');
+  const [roleDrawerId, setRoleDrawerId] = useState<string | null>(searchParams.get('role'));
   useEffect(() => {
-    if (hasDeepLink(searchParams)) setView('detail');
-  }, [searchParams]);
+    if (searchParams.get('view') === 'departments') setView('detail');
+    const role = searchParams.get('role');
+    if (role) {
+      setRoleDrawerId(role);
+      const next = new URLSearchParams(searchParams);
+      next.delete('role');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
-  // Slot the map's breadcrumb portals into (same pattern as the VS Explorer).
-  const [crumbSlot, setCrumbSlot] = useState<HTMLElement | null>(null);
+  // In map view the drill breadcrumb claims the GLOBAL header bar (Layout's
+  // BreadcrumbBar) and OrgMapCanvas portals into it — no in-page header strip.
+  const crumbSlot = useHeaderBreadcrumbSlot(view === 'map');
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      {/* Page header — map view only (OrgMapCanvas portals its breadcrumb here). */}
-      {view === 'map' && (
-        <header className="flex-shrink-0 px-6 py-1.5 border-b border-[#eaeaea] bg-white">
-          <div ref={setCrumbSlot} className="min-h-[18px] flex items-center" />
-        </header>
-      )}
-
       <div className="relative flex-1 min-h-0 overflow-hidden">
         <ViewToggle view={view} onChange={setView} />
 
         {view === 'list' ? (
-          <OrgListExplorer />
+          <OrgListExplorer focusRoleId={roleDrawerId} />
         ) : view === 'map' ? (
           // Map view: a literal drill-down map of the org spine, full-bleed.
           <OrgMapCanvas breadcrumbSlot={crumbSlot} />
@@ -83,6 +88,9 @@ export default function Organization() {
             </div>
           </div>
         )}
+
+        {/* Deep-linked role detail — slides over the active view in place. */}
+        {roleDrawerId && <RoleDrawer roleId={roleDrawerId} onClose={() => setRoleDrawerId(null)} />}
       </div>
     </div>
   );
