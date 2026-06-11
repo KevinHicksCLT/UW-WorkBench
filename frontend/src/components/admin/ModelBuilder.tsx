@@ -19,9 +19,13 @@ type LinkRow = { id: string; relationType: string; attributes: any; peer: { id: 
 const SCOPES: Record<string, { types: string[]; rootType: string } | undefined> = {
   map: { types: ['enterprise', 'segment', 'division', 'value_stream', 'sub_process', 'step', 'io_item'], rootType: 'enterprise' },
   external: { types: ['external_party'], rootType: 'external_party' },
+  // Org spine — re-parenting carries the whole subtree (children reference the
+  // moved node), and the Level mover re-levels within the org taxonomy. The
+  // Organization screens render from these same nodes (/explorer/org-table).
+  org: { types: ['enterprise', 'segment', 'division', 'department', 'role'], rootType: 'enterprise' },
 };
 
-export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: string | null; scope?: 'all' | 'map' | 'external' }) {
+export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: string | null; scope?: 'all' | 'map' | 'external' | 'org' }) {
   const [types, setTypes] = useState<NodeType[]>([]);
   const [relationTypes, setRelationTypes] = useState<string[]>([]);
   const [nodes, setNodes] = useState<TreeNode[]>([]);

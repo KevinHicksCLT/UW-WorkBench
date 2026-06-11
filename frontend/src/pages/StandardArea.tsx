@@ -146,7 +146,6 @@ export default function StandardArea() {
                           <div className="text-sm text-[#171717]">{it.name}</div>
                           {!isOpen && <div className="text-xs text-[#a3a3a3] truncate">{it.description}</div>}
                         </div>
-                        {it.buildRun && <span className="chip-soft flex-shrink-0">{it.buildRun}</span>}
                         <div className="hidden sm:block w-44 flex-shrink-0 text-right text-xs text-[#525252] truncate">
                           {it.responsible ? it.responsible.roleName : it.ownerRole ?? '—'}
                         </div>

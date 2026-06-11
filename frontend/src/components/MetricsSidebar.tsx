@@ -508,7 +508,6 @@ export function MetricsDrawer({
                   <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                     {t && <span className={`text-[9.5px] font-semibold uppercase tracking-wide rounded px-2 py-0.5 ${t.chip}`}>{t.label}</span>}
                     {it.hint && <span className="text-[10.5px] font-medium text-[#525252] bg-[#f4f4f5] border border-[#e4e4e7] rounded px-2 py-0.5">{it.hint}</span>}
-                    {it.illustrative && <span className="text-[9.5px] font-medium uppercase tracking-wide text-[#a3a3a3] bg-[#fafafa] border border-[#eaeaea] rounded px-2 py-0.5">Illustrative</span>}
                   </div>
                   <div className="text-[16px] font-bold text-[#171717] leading-snug">{it.label}</div>
                   {it.sub && <div className="text-[12px] text-[#737373] mt-1">{it.sub}</div>}

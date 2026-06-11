@@ -255,7 +255,6 @@ export default function StepLensEditor({ companyId, onNavigate }: {
                 <div key={d.id} className="rounded-md border border-[#e5e7eb] bg-[#fafafa] p-3">
                   <div className="mb-1.5 flex items-center gap-1.5 flex-wrap">
                     <StepChip text={stepContext(d)} />
-                    {d.illustrative && <span className="text-[9.5px] font-medium uppercase tracking-wide text-[#a3a3a3] bg-white border border-[#eaeaea] rounded px-1.5 py-0.5">Illustrative — saving marks it real</span>}
                   </div>
                   <div className="grid gap-2.5 sm:grid-cols-2">
                     <div className="sm:col-span-2">
@@ -318,7 +317,6 @@ export default function StepLensEditor({ companyId, onNavigate }: {
                 <div key={u.id} className="rounded-md border border-[#e5e7eb] bg-[#fafafa] p-2.5">
                   <div className="mb-1.5 flex items-center gap-1.5 flex-wrap">
                     <StepChip text={stepContext(u)} />
-                    {u.illustrative && <span className="text-[9.5px] font-medium uppercase tracking-wide text-[#a3a3a3] bg-white border border-[#eaeaea] rounded px-1.5 py-0.5">Illustrative — saving marks it real</span>}
                   </div>
                   <div className="grid gap-2 sm:grid-cols-[1fr_180px_auto_auto_auto] sm:items-end">
                     <div>

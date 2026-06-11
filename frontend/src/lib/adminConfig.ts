@@ -19,7 +19,7 @@ export type EditorSpec =
   | { kind: 'skills' }
   | { kind: 'validations' }
   | { kind: 'aiAdoption' }
-  | { kind: 'builder'; scope?: 'all' | 'map' | 'external' }
+  | { kind: 'builder'; scope?: 'all' | 'map' | 'external' | 'org' }
   | { kind: 'stepLens' }
   | { kind: 'catalog' };
 
@@ -60,6 +60,10 @@ export const ADMIN_TABS: TabConfig[] = [
     label: 'Organization',
     description: 'The Organization view shows Segment → Division → Department → Role → People. The CEO segment grouping comes from each division’s "Higher category" (Core Business / IT / Corporate Function). Edit the org spine here — these are the exact tables the Organization screen reads.',
     sections: [
+      {
+        key: 'structure', label: 'Org structure', hint: 'move levels & subtrees',
+        editor: { kind: 'builder', scope: 'org' },
+      },
       {
         key: 'divisions', label: 'Divisions & departments',
         editor: { kind: 'masterDetail', parent: 'division', parentTitle: 'Divisions', intro: 'Pick a division to edit it (including its "Higher category" — the CEO segment it rolls up to) and manage its departments.', children: [{ slug: 'department', fk: 'divisionId', title: 'Departments' }] },

@@ -85,7 +85,6 @@ export default function Applications() {
                 {a.code && <span className="text-[10px] font-mono font-semibold text-[#0070AD] bg-[#eaf1ff] border border-[#cdddff] rounded px-1.5 py-0.5">{a.code}</span>}
                 <span className="text-[14px] font-semibold text-[#171717]">{a.name}</span>
                 {a.systemOfRecord && <span className="text-[9px] font-semibold uppercase tracking-wide text-[#15803d] bg-[#f0fdf4] border border-[#bbf7d0] rounded px-1.5 py-0.5">System of record</span>}
-                {a.illustrative && <span className="text-[9px] font-medium uppercase tracking-wide text-[#a3a3a3] bg-[#fafafa] border border-[#eaeaea] rounded px-1.5 py-0.5">Illustrative</span>}
                 <span className="ml-auto text-[10px] text-[#a3a3a3]">{a.kind}{a.category ? ` · ${a.category}` : ''}</span>
               </div>
               <div className="mt-1 flex items-center gap-4 text-[11px] text-[#525252] flex-wrap">
