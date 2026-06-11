@@ -155,6 +155,12 @@ hydrated with a representative baseline plan for the transformation itself.
 Each AC is checked off by exercising the running app (Playwright) + querying the DB
 (Neon) after edits. The final pass (task #11) re-verifies everything end-to-end.
 
+**Final e2e sweep (2026-06-10):** all 11 routes (/, /overview, /roles, /standards,
+/metrics, /portfolio, /work, /external, /regulations, /applications, /admin) load with
+zero console and zero page errors; `tsc --noEmit` clean in both workspaces; all data
+fix scripts confirmed idempotent on second run. D11 dictionary refreshed for the
+renamed tabs + new Analysis Status / AI Disposition terms.
+
 | Defect | Status |
 | --- | --- |
 | D1 Home rework | DONE (six new widgets: portfolio rollup, program Gantt w/ milestones+today line, OKRs, top risks, RAID summary, workforce signals; Portfolio/Programs/Risks/RAID moved from Workspace; jiraKey stub on Task+Deliverable w/ JIRA chip; baseline plan verified credible + Jira keys seeded; all configurable in Data Admin → Home) |
@@ -167,5 +173,5 @@ Each AC is checked off by exercising the running app (Playwright) + querying the
 | D8 Deliverables & Tasks | DONE (tabs split, declutter, 305 titles recased, dupes audited) |
 | D9 Third-Parties | rename + frequency column DONE; owner review pending |
 | D10 Bridge Assistant | DONE (renamed; live reply verified — tables/lists render as HTML, no raw markdown) |
-| D11 Dictionary | pending |
+| D11 Dictionary | DONE (renamed-tab terms, Third-Parties group, Analysis Status + AI Disposition entries) |
 | D12 Admin Configure | DONE except blank-space (in global UI pass) |
