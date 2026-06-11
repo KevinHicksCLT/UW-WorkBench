@@ -136,7 +136,7 @@ function UseCaseEditor({ row, companyId, onSaved }: { row: Row; companyId: strin
           {saving ? 'Saving…' : 'Save use cases & stats'}
         </button>
         {error && <span className="text-xs text-[#be123c]">{error}</span>}
-        {!error && !dirty && <span className="text-xs text-[#a3a3a3]">Saved — these render in Telemetry → AI Adoption drill-in.</span>}
+        {!error && !dirty && <span className="text-xs text-[#a3a3a3]">Saved — these render in Metrics → AI Adoption drill-in.</span>}
       </div>
     </div>
   );
@@ -176,7 +176,7 @@ export default function AiAdoptionEditor({ companyId }: { companyId: string | nu
   return (
     <div>
       <p className="text-sm text-[#666666] mb-4 max-w-3xl">
-        AI-adoption level per value stream and autonomy mode — the data the Telemetry “AI adoption” heat map renders.
+        AI-adoption level per value stream and autonomy mode — the data the Metrics “AI adoption” heat map renders.
         Edits save immediately and are audited. Value streams with no AI yet stay <span className="font-medium">Not used</span>.
         Expand a stream to edit the concrete <span className="font-medium">use cases</span> behind each mode (rendered in the Active AI drill-in).
       </p>

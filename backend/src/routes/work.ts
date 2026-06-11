@@ -39,7 +39,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     if (!companyId) return;
     const tenantId = req.tenantId;
 
-    const [deliverables, tasks, valueStreams] = await Promise.all([
+    const [deliverables, tasks, valueStreams, ioItems, steps, roles] = await Promise.all([
       prisma.deliverable.findMany({
         where: { tenantId, companyId },
         include: { _count: { select: { tasks: true } } },
@@ -47,25 +47,82 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       }),
       prisma.task.findMany({
         where: { tenantId, companyId },
-        include: { deliverable: { select: { id: true, title: true } } },
+        include: { deliverable: { select: { id: true, title: true, valueStreamId: true } } },
         orderBy: [{ source: 'asc' }, { dueDate: 'asc' }, { createdAt: 'asc' }],
       }),
       prisma.valueStream.findMany({ where: { companyId }, select: { id: true, name: true }, orderBy: { name: 'asc' } }),
+      prisma.ioItem.findMany({
+        where: { valueStream: { companyId } },
+        select: { type: true, name: true, l3: true, l4: true, keyRoles: true, valueStreamId: true },
+      }),
+      prisma.processStep.findMany({
+        where: { valueStream: { companyId } },
+        select: { name: true, l3: true, l4: true, leads: true, supporting: true, valueStreamId: true },
+      }),
+      prisma.role.findMany({ where: { companyId }, select: { id: true, name: true, itemRole: true } }),
     ]);
 
     // Resolve deliverable value-stream links to display names in one pass.
     const vsName = new Map(valueStreams.map((v) => [v.id, v.name] as const));
 
+    // Per-row Role / Process enrichment for the header filters — same joins the
+    // drill-down endpoints use, computed once across all rows. Deliverables key
+    // back to their source output/deliverable I/O rows (value stream + name);
+    // tasks key back to their source L5 step (name, preferring the
+    // deliverable's value stream).
+    const resolve = buildRoleResolver(roles);
+    const cellNames = (cell: string | null) => {
+      const r = resolveRoleCell(cell, resolve);
+      return [...r.roles.map((m) => m.name), ...r.unresolved];
+    };
+    const ioByKey = new Map<string, { roles: Set<string>; processes: Set<string> }>();
+    for (const io of ioItems) {
+      if (!/output|deliver/i.test(io.type)) continue;
+      const k = `${io.valueStreamId}␟${norm(io.name)}`;
+      let e = ioByKey.get(k);
+      if (!e) { e = { roles: new Set(), processes: new Set() }; ioByKey.set(k, e); }
+      for (const n of cellNames(io.keyRoles)) e.roles.add(n);
+      const p = io.l4 ?? io.l3;
+      if (p) e.processes.add(p);
+    }
+    const stepsByName = new Map<string, typeof steps>();
+    for (const s of steps) {
+      const k = norm(s.name);
+      if (!stepsByName.has(k)) stepsByName.set(k, []);
+      stepsByName.get(k)!.push(s);
+    }
+
     res.json({
-      deliverables: deliverables.map((d) => ({
-        id: d.id, title: d.title, description: d.description, owner: d.owner, type: d.type,
-        status: d.status, dueDate: d.dueDate, taskCount: d._count.tasks,
-        valueStreamId: d.valueStreamId, valueStreamName: d.valueStreamId ? vsName.get(d.valueStreamId) ?? null : null,
-      })),
-      tasks: tasks.map((t) => ({
-        id: t.id, title: t.title, owner: t.owner, status: t.status, priority: t.priority, dueDate: t.dueDate,
-        source: t.source, deliverableId: t.deliverableId, deliverableTitle: t.deliverable?.title ?? null,
-      })),
+      deliverables: deliverables.map((d) => {
+        const e = d.valueStreamId ? ioByKey.get(`${d.valueStreamId}␟${norm(d.title)}`) : undefined;
+        return {
+          id: d.id, title: d.title, description: d.description, owner: d.owner, type: d.type,
+          status: d.status, dueDate: d.dueDate, taskCount: d._count.tasks,
+          valueStreamId: d.valueStreamId, valueStreamName: d.valueStreamId ? vsName.get(d.valueStreamId) ?? null : null,
+          roles: [...(e?.roles ?? [])].sort(),
+          processes: [...(e?.processes ?? [])].sort(),
+        };
+      }),
+      tasks: tasks.map((t) => {
+        // Same-named L5 steps exist within one stream (e.g. the two Claims
+        // "Negotiate Settlement" flows) — after narrowing by value stream,
+        // disambiguate by matching the task owner to a step lead role.
+        const sameName = stepsByName.get(norm(t.title)) ?? [];
+        const inVs = t.deliverable?.valueStreamId ? sameName.filter((s) => s.valueStreamId === t.deliverable!.valueStreamId) : [];
+        const pool = inVs.length ? inVs : sameName;
+        const step = (pool.length > 1 && t.owner
+          ? pool.find((s) => cellNames(s.leads).some((n) => norm(n) === norm(t.owner!)))
+          : null) ?? pool[0] ?? null;
+        const p = step ? step.l4 ?? step.l3 : null;
+        // Role-sourced tasks have no L5 step; their owner IS the role.
+        const stepRoles = step ? [...new Set([...cellNames(step.leads), ...cellNames(step.supporting)])].sort() : [];
+        return {
+          id: t.id, title: t.title, owner: t.owner, status: t.status, priority: t.priority, dueDate: t.dueDate,
+          source: t.source, deliverableId: t.deliverableId, deliverableTitle: t.deliverable?.title ?? null,
+          roles: stepRoles.length ? stepRoles : (t.owner ? [t.owner] : []),
+          processes: p ? [p] : [],
+        };
+      }),
       valueStreams,
     });
   } catch (e) { next(e); }
@@ -134,7 +191,7 @@ router.get('/deliverable/:id', async (req: Request, res: Response, next: NextFun
     const vs = d.valueStreamId ? vsMap.get(d.valueStreamId) ?? null : null;
     res.json({
       kind: 'deliverable',
-      id: d.id, title: d.title, description: d.description, type: d.type, owner: d.owner,
+      id: d.id, title: d.title, description: d.description, type: d.type, owner: d.owner, jiraKey: d.jiraKey,
       valueStream: vs ? { id: vs.id, name: vs.name, domain: vs.domain } : null,
       subProcesses, dataElements, inputs,
       assignedRoles: assigned.roles, assignedExtra: assigned.unresolved,
@@ -176,9 +233,17 @@ router.get('/task/:id', async (req: Request, res: Response, next: NextFunction) 
     const vsMap = new Map(vsList.map((v) => [v.id, v] as const));
     const nameN = norm(t.title);
 
-    // Source step: name match, preferring the task's deliverable value stream.
+    // Source step: name match, preferring the task's deliverable value stream;
+    // same-named steps within that stream are disambiguated by the task owner
+    // matching a step lead role (mirrors the list endpoint).
     const sameName = steps.filter((s) => norm(s.name) === nameN);
-    const step = sameName.find((s) => t.deliverable && s.valueStreamId === t.deliverable.valueStreamId) ?? sameName[0] ?? null;
+    const inVs = t.deliverable ? sameName.filter((s) => s.valueStreamId === t.deliverable!.valueStreamId) : [];
+    const pool = inVs.length ? inVs : sameName;
+    const ownerMatch = (s: (typeof steps)[number]) => {
+      const r = mergeRoles([s.leads], resolve);
+      return [...r.roles.map((m) => m.name), ...r.unresolved].some((n) => norm(n) === norm(t.owner!));
+    };
+    const step = (pool.length > 1 && t.owner ? pool.find(ownerMatch) : null) ?? pool[0] ?? null;
 
     const leadRoles = mergeRoles([step?.leads ?? null], resolve);
     const supportRoles = mergeRoles([step?.supporting ?? null], resolve);
@@ -199,7 +264,7 @@ router.get('/task/:id', async (req: Request, res: Response, next: NextFunction) 
     const vs = step ? { id: step.valueStream.id, name: step.valueStream.name } : (dvs ? { id: dvs.id, name: dvs.name } : null);
     res.json({
       kind: 'task',
-      id: t.id, title: t.title, owner: t.owner, priority: t.priority,
+      id: t.id, title: t.title, owner: t.owner, priority: t.priority, jiraKey: t.jiraKey,
       valueStream: vs,
       subProcess: step ? [step.l3, step.l4].filter(Boolean).join(' · ') || null : null,
       leadRoles: leadRoles.roles, leadExtra: leadRoles.unresolved,

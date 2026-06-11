@@ -78,9 +78,11 @@ const LABEL_OVERRIDES: Record<string, string> = {
   initiativeValueStream: 'impactType',
   initiativeDivision: 'role',
   assignment: 'employmentType',
+  stepAppUsage: 'activityCode',
   complianceRule: 'ruleCode',
   jurisdictionIntegration: 'usage',
   requirementValueStream: 'relationship',
+  analysisStatus: 'subjectType',
 };
 
 // The raw value-stream tables back FK pickers elsewhere, so they stay resolvable
@@ -89,7 +91,7 @@ const LABEL_OVERRIDES: Record<string, string> = {
 // hidden: its level-4 rows carry the sub-process detail (inputs/outputs/
 // upstream/downstream/notes) the L4 sidebar + drawer render, so it must be
 // editable (Data Admin → Value Streams → Sub-processes).
-const HIDDEN = new Set(['valueStream', 'level', 'orgLevel']);
+const HIDDEN = new Set(['valueStream', 'level', 'orgLevel', 'valueStreamDomain']);
 
 // Sidebar groups — entities organized by operating-model area so a user can find
 // what to update at a glance. This array defines BOTH the section order and the
@@ -97,16 +99,16 @@ const HIDDEN = new Set(['valueStream', 'level', 'orgLevel']);
 // these group names and order. Entities not listed fall into "Other" at the end.
 const GROUPS: { group: string; slugs: string[] }[] = [
   { group: 'Organization', slugs: ['organization', 'company', 'valueStreamDomain', 'division', 'department', 'role'] },
-  { group: 'Value Streams', slugs: ['valueStreams', 'subValueStream', 'processStep', 'ioItem'] },
+  { group: 'Value Streams', slugs: ['valueStreams', 'subValueStream', 'processStep', 'ioItem', 'stepAppUsage', 'stepDeliverable'] },
   { group: 'Role Work', slugs: ['category', 'checklistItem', 'roleTask', 'roleValueStream'] },
-  { group: 'Applications & Metrics', slugs: ['application', 'applicationValueStream', 'metric', 'telemetrySignal', 'standard', 'standardItem'] },
+  { group: 'Applications & Metrics', slugs: ['application', 'applicationValueStream', 'metric', 'telemetrySignal', 'analysisStatus', 'standard', 'standardItem'] },
   { group: 'People', slugs: ['person', 'assignment', 'personTask', 'personMetric', 'personAppUsage', 'personSignal'] },
   { group: 'Change & Risk', slugs: ['initiative', 'initiativeValueStream', 'initiativeDivision', 'risk', 'scenario'] },
   { group: 'Deliverables & Tasks', slugs: ['deliverable', 'task'] },
   { group: 'Initiative Tracker (SPM)', slugs: ['program', 'workstream', 'portfolioInitiative', 'benefitLine', 'costLine', 'milestone', 'raidItem'] },
   { group: 'Application Rationalization', slugs: ['rationalizationWorkspace', 'rationalizationApp', 'rationalizationComponent', 'rationalizationCapability', 'rationalizationMicroservice', 'rationalizationPlanStep'] },
   { group: 'Regulations', slugs: ['jurisdiction', 'regulatoryRequirement', 'requirementValueStream', 'regulatoryBulletin', 'integrationSystem', 'jurisdictionIntegration', 'regulatorySource', 'complianceRule'] },
-  { group: 'External', slugs: ['externalInteraction'] },
+  { group: 'Third-Parties', slugs: ['externalInteraction'] },
 ];
 const OTHER_GROUP = 'Other';
 

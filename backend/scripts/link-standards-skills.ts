@@ -15,7 +15,8 @@ const AREA_SKILL: Record<string, string> = {
   'Actuarial': 'actuarial-sdlc-compliance',
   'Claims Operations': 'claims-operations-sdlc-compliance',
   'Compliance & Risk Management': 'compliance-risk-management-sdlc-compliance',
-  'Cybersecurity & ISO': 'cybersecurity-iso-sdlc-compliance',
+  // Renamed from "Cybersecurity & ISO" (defect backlog 02, D5.4 — no abbreviations).
+  'Information Security': 'cybersecurity-iso-sdlc-compliance',
   'Data & Analytics': 'data-analytics-sdlc-compliance',
   'Engineering & Development': 'engineering-development-sdlc-compliance',
   'Enterprise & Solution Architecture': 'enterprise-solution-architecture-sdlc-compliance',

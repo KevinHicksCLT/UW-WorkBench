@@ -3,8 +3,10 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { useCompany } from '../lib/company';
 import { api } from '../lib/api';
+import { useBreadcrumbHeader } from '../lib/breadcrumbs';
 import SearchBox from './SearchBox';
 import AssistantWidget from './AssistantWidget';
+import BreadcrumbBar from './BreadcrumbBar';
 
 type IndexItem = { id: string; name: string; valueStreams?: number; roles?: number };
 
@@ -30,19 +32,29 @@ export default function Layout({ children }: { children: ReactNode }) {
       .catch(() => {});
   }, [user]);
 
+  const { resetToTab } = useBreadcrumbHeader();
+
   const here = (key: string) => location.pathname.includes(key);
-  const go = (url: string) => { navigate(url); setMobileMenuOpen(false); };
+  // Nav-menu navigation is an explicit fresh start — re-root the breadcrumb
+  // trail at the chosen tab (no-op for non-tab URLs like the drill-down rows).
+  const go = (url: string) => { resetToTab(url); navigate(url); setMobileMenuOpen(false); };
+
+  // The portfolio drill-downs (program / initiative / RAID log) live under Home —
+  // their entry points are the Home dashboard widgets, so Home stays the active tab.
+  const onHome = location.pathname === '/'
+    || ['/programs/', '/initiatives/', '/raid'].some((p) => location.pathname.startsWith(p));
 
   // ── Nav link helper ────────────────────────────────────────────────────────
   // Underline-style tab: sits on the nav row's hairline, dark indicator when active.
   const NavLink = ({ to, children: label }: { to: string; children: ReactNode }) => {
-    const active = location.pathname === to || (to !== '/' && location.pathname.startsWith(to));
+    const active = to === '/' ? onHome : location.pathname === to || location.pathname.startsWith(to);
     return (
       <Link
         to={to}
+        onClick={() => resetToTab(to)}
         aria-current={active ? 'page' : undefined}
         className={
-          'relative inline-flex items-center h-11 -mb-px px-0.5 text-sm whitespace-nowrap border-b-2 transition-colors duration-150 ' +
+          'relative inline-flex items-center h-9 -mb-px px-0.5 text-sm whitespace-nowrap border-b-2 transition-colors duration-150 ' +
           (active
             ? 'text-[#171717] font-semibold border-[#171717]'
             : 'text-[#666666] font-medium border-transparent hover:text-[#171717] hover:border-[#d4d4d4]')
@@ -82,10 +94,10 @@ export default function Layout({ children }: { children: ReactNode }) {
       <header className="flex-shrink-0 z-30 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/75 safe-pt safe-px">
 
         {/* Row 1 — brand + utilities */}
-        <div className="flex items-center gap-4 px-4 sm:px-6 h-14 border-b border-[#eaeaea] sm:border-b-0">
+        <div className="flex items-center gap-4 px-4 sm:px-6 h-10 border-b border-[#eaeaea] sm:border-b-0">
 
           {/* Wordmark — Capgemini logotype flowing into the product name as one lockup */}
-          <Link to="/" className="flex items-baseline gap-2 flex-shrink-0 group" aria-label="Capgemini Transformation Bridge — home">
+          <Link to="/" onClick={() => resetToTab('/')} className="flex items-baseline gap-2 flex-shrink-0 group" aria-label="Capgemini Transformation Bridge — home">
             {/* h-[20px] matches the logotype cap-height to the text; translate-y aligns its baseline */}
             <img src="/capgemini-wordmark.svg" alt="Capgemini" className="h-[20px] w-auto translate-y-[5.5px]" />
             <span className="font-semibold text-[#0070AD] text-[15px] tracking-tight whitespace-nowrap -translate-y-[1.5px] group-hover:text-[#12abdb] transition-colors duration-150">
@@ -177,12 +189,17 @@ export default function Layout({ children }: { children: ReactNode }) {
           <NavLink to="/roles">Organization</NavLink>
           <NavLink to="/standards">Standards</NavLink>
           <NavLink to="/regulations">Regulations</NavLink>
-          <NavLink to="/active-ai">Telemetry</NavLink>
-          <NavLink to="/portfolio">Initiatives</NavLink>
+          <NavLink to="/metrics">Metrics</NavLink>
+          <NavLink to="/portfolio">Workspace</NavLink>
           <NavLink to="/work">Deliverables &amp; Tasks</NavLink>
-          <NavLink to="/external">External</NavLink>
+          <NavLink to="/applications">Applications</NavLink>
+          <NavLink to="/external">Third-Parties</NavLink>
           {user?.role === 'ADMIN' && <NavLink to="/admin">Data Admin</NavLink>}
         </nav>
+
+        {/* Row 3 — the app's single breadcrumb: the cross-tab visited trail,
+            or a map view's portaled drill breadcrumb. Hidden on Home. */}
+        <BreadcrumbBar />
       </header>
 
       {/* ── Mobile dropdown menu ─────────────────────────────────────────────── */}
@@ -194,7 +211,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
           />
-          <div className="sm:hidden fixed top-14 left-0 right-0 z-30 bg-white border-b border-[#eaeaea] max-h-[70vh] overflow-y-auto shadow-md">
+          <div className="sm:hidden fixed top-12 left-0 right-0 z-30 bg-white border-b border-[#eaeaea] max-h-[70vh] overflow-y-auto shadow-md">
             {/* Search */}
             <div className="px-4 py-3 border-b border-[#eaeaea]">
               <SearchBox />
@@ -220,7 +237,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             <div className="py-1">
               <button
                 onClick={() => go('/')}
-                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (location.pathname === '/' ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
+                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (onHome ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
               >
                 Home
               </button>
@@ -249,16 +266,16 @@ export default function Layout({ children }: { children: ReactNode }) {
                 Regulations
               </button>
               <button
-                onClick={() => go('/active-ai')}
-                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/active-ai') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
+                onClick={() => go('/metrics')}
+                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/metrics') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
               >
-                Telemetry
+                Metrics
               </button>
               <button
                 onClick={() => go('/portfolio')}
                 className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/portfolio') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
               >
-                Initiatives
+                Workspace
               </button>
               <button
                 onClick={() => go('/work')}
@@ -267,10 +284,16 @@ export default function Layout({ children }: { children: ReactNode }) {
                 Deliverables & Tasks
               </button>
               <button
+                onClick={() => go('/applications')}
+                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/applications') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
+              >
+                Applications
+              </button>
+              <button
                 onClick={() => go('/external')}
                 className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/external') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
               >
-                External
+                Third-Parties
               </button>
               {user?.role === 'ADMIN' && (
                 <button
@@ -324,9 +347,10 @@ export default function Layout({ children }: { children: ReactNode }) {
         // Background is #fafafa (Vercel sunken surface) to let white cards pop.
         <main className="flex-1 min-h-0 overflow-hidden bg-[#fafafa] safe-px">{children}</main>
       ) : (
-        // Detail pages: scrollable, centred max-width container.
+        // Detail pages: scrollable, full-width container (no max-width cap —
+        // wide screens get content, not gutters).
         <main className="flex-1 overflow-auto bg-[#fafafa] safe-px">
-          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+          <div className="px-4 sm:px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             {children}
           </div>
         </main>

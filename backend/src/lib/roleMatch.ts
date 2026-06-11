@@ -9,13 +9,15 @@
 
 const str = (v: unknown): string => (v == null ? '' : String(v).trim().replace(/\s+/g, ' '));
 
-// Abbreviation expansion table (same set the transform uses).
+// Abbreviation expansion table (same set the transform uses, plus the bare
+// C-suite abbreviations the workbook uses standalone — "CFO", "CEO").
 const ABBR: [RegExp, string][] = [
   [/\bops\b/g, 'operations'], [/\bmgmt\b/g, 'management'], [/\bmgr\b/g, 'manager'],
   [/\buw\b/g, 'underwriting'], [/\bdev\b/g, 'development'], [/\badmin\b/g, 'administration'],
   [/\bintel\b/g, 'intelligence'], [/\bauto\b/g, 'automation'], [/\beng\b/g, 'engineering'],
   [/\bsec\b/g, 'security'], [/\binfo\b/g, 'information'], [/\bri\b/g, 'reinsurance'],
   [/\biam\b/g, 'identity access management'], [/\bcat\b/g, 'catastrophe'],
+  [/\bcfo\b/g, 'chief financial officer'], [/\bceo\b/g, 'chief executive officer'],
 ];
 const baseNorm = (v: unknown): string =>
   str(v).toLowerCase().replace(/\s*\([^)]*\)\s*/g, ' ').replace(/[^a-z0-9/ ]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -35,13 +37,20 @@ export function splitRoleRefs(cell: string | null | undefined): string[] {
   return str(cell).split(/[,;]+/).map((x) => x.trim()).filter(Boolean);
 }
 
+// A role's alias list: its canonical name plus its `itemRole`. itemRole holds
+// one alias or a semicolon-separated list ("Old Name; Other Known Title").
+function roleAliases(role: { name: string; itemRole?: string | null }): string[] {
+  return [role.name, ...(role.itemRole ? role.itemRole.split(';') : [])]
+    .map((a) => a.trim())
+    .filter(Boolean);
+}
+
 // Build a fast membership test for a single role: returns true when a workbook
 // role-reference token resolves to this role. Aliases come from the role's
 // canonical name and its Items-sheet `itemRole`.
 export function roleMatcher(role: { name: string; itemRole?: string | null }) {
   const aliasSet = new Set<string>();
-  for (const alias of [role.name, role.itemRole]) {
-    if (!alias) continue;
+  for (const alias of roleAliases(role)) {
     for (const c of candidates(alias)) aliasSet.add(c);
   }
   return (token: string): boolean => {
@@ -62,8 +71,7 @@ export function cellMentionsRole(cell: string | null | undefined, matches: (t: s
 export function buildRoleResolver(roles: { id: string; name: string; itemRole?: string | null }[]) {
   const index = new Map<string, { id: string; name: string }>();
   for (const r of roles) {
-    for (const alias of [r.name, r.itemRole]) {
-      if (!alias) continue;
+    for (const alias of roleAliases(r)) {
       for (const c of candidates(alias)) if (!index.has(c)) index.set(c, { id: r.id, name: r.name });
     }
   }

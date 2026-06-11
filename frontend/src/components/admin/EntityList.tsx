@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../../lib/api';
+import { useDialogs } from '../../lib/dialogs';
 import EntityForm from '../EntityForm';
 import type { AdminEntity, ListResponse } from '../../lib/adminTypes';
-import { humanize, cellText, pickColumns } from '../../lib/adminFormat';
+import { fieldLabel, cellText, pickColumns } from '../../lib/adminFormat';
 
 // Reusable record table for one admin entity: search + table + create/edit/delete
 // through the shared EntityForm drawer. Used directly for generic catalog tabs,
@@ -35,21 +36,24 @@ function withCompany(path: string, companyId: string | null) {
 }
 
 // Entities whose delete cascades a large subtree — require typed-name confirmation
-// instead of a one-click confirm() (audit A4: company delete wipes its whole tree).
+// instead of a one-click confirm (audit A4: company delete wipes its whole tree).
 const TYPED_CONFIRM_DELETE = new Set(['company']);
 
 export default function EntityList({
   entity, companyId, title, newLabel, fixed, filter, selectable, selectedId, onSelect, onChanged, emptyHint, dense, bodyMaxHeight,
 }: Props) {
+  const dialogs = useDialogs();
   const [list, setList] = useState<ListResponse | null>(null);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [editing, setEditing] = useState<Record<string, any> | null | 'new'>(null);
-  const [confirmRow, setConfirmRow] = useState<Record<string, any> | null>(null);
-  const [confirmText, setConfirmText] = useState('');
+  const [sort, setSort] = useState<{ col: string; dir: 1 | -1 } | null>(null);
 
   const columns = useMemo(() => pickColumns(entity), [entity]);
+
+  const toggleSort = (col: string) =>
+    setSort((s) => (s?.col === col ? (s.dir === 1 ? { col, dir: -1 } : null) : { col, dir: 1 }));
 
   // `fixed` values double as server-side exact-match filters.
   const fixedQs = fixed
@@ -68,19 +72,51 @@ export default function EntityList({
 
   const rows = useMemo(() => {
     const all = list?.rows ?? [];
-    return filter ? all.filter(filter) : all;
-  }, [list, filter]);
+    const filtered = filter ? all.filter(filter) : all;
+    if (!sort) return filtered;
+    const { col, dir } = sort;
+    return [...filtered].sort((a, b) => {
+      const av = a[col], bv = b[col];
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir;
+      return String(av).localeCompare(String(bv), undefined, { numeric: true, sensitivity: 'base' }) * dir;
+    });
+  }, [list, filter, sort]);
 
   const onSaved = () => { setEditing(null); load(search); onChanged?.(); };
   const doDelete = async (row: Record<string, any>) => {
     try { await api.delete(withCompany(`/admin/${entity.slug}/${row.id}`, companyId)); load(search); onChanged?.(); }
-    catch (e) { alert((e as Error).message); }
+    catch (e) { void dialogs.alert({ title: 'Delete failed', message: (e as Error).message }); }
   };
-  const remove = (row: Record<string, any>) => {
-    if (TYPED_CONFIRM_DELETE.has(entity.slug)) { setConfirmText(''); setConfirmRow(row); return; }
-    const name = row[entity.labelField] ?? row.id;
-    if (!confirm(`Delete this ${entity.label}?\n\n${name}\n\nThis cannot be undone.`)) return;
-    void doDelete(row);
+  const remove = async (row: Record<string, any>) => {
+    const name = String(row[entity.labelField] ?? row.id);
+    const ok = TYPED_CONFIRM_DELETE.has(entity.slug)
+      ? await dialogs.confirm({
+          title: `Delete ${entity.label} permanently?`,
+          danger: true,
+          typedConfirm: name,
+          confirmLabel: 'Delete permanently',
+          message: (
+            <>
+              This permanently deletes <span className="font-medium text-[#171717]">{name}</span> and{' '}
+              <span className="font-medium">all of its data</span> — divisions, departments, roles, people, value
+              streams, applications, initiatives, deliverables, tasks, and everything else scoped to it. This cascades
+              and <span className="font-medium">cannot be undone</span>.
+            </>
+          ),
+        })
+      : await dialogs.confirm({
+          title: `Delete this ${entity.label}?`,
+          danger: true,
+          message: (
+            <>
+              <span className="font-medium text-[#171717]">{name}</span> will be deleted. This cannot be undone.
+            </>
+          ),
+        });
+    if (ok) void doDelete(row);
   };
 
   return (
@@ -105,7 +141,18 @@ export default function EntityList({
             <thead>
               <tr className="border-b border-[#eaeaea] text-left">
                 {columns.map((c) => (
-                  <th key={c.name} className={`px-3 ${dense ? 'py-1.5' : 'py-2'} font-medium text-[#666666] whitespace-nowrap`}>{humanize(c.name)}</th>
+                  <th key={c.name} className={`px-3 ${dense ? 'py-1.5' : 'py-2'} font-medium text-[#666666] whitespace-nowrap`}>
+                    <button
+                      onClick={() => toggleSort(c.name)}
+                      className="inline-flex items-center gap-1 hover:text-[#171717]"
+                      title={`Sort by ${fieldLabel(entity.slug, c.name)}`}
+                    >
+                      {fieldLabel(entity.slug, c.name)}
+                      <span className={'text-[10px] ' + (sort?.col === c.name ? 'text-[#171717]' : 'text-[#d4d4d4]')}>
+                        {sort?.col === c.name ? (sort.dir === 1 ? '▲' : '▼') : '↕'}
+                      </span>
+                    </button>
+                  </th>
                 ))}
                 <th className="px-3 py-2 w-24"></th>
               </tr>
@@ -131,7 +178,7 @@ export default function EntityList({
                     ))}
                     <td className="px-3 py-2 text-right whitespace-nowrap">
                       <button onClick={(e) => { e.stopPropagation(); setEditing(row); }} className="text-[#525252] hover:text-[#171717] text-xs font-medium">Edit</button>
-                      <button onClick={(e) => { e.stopPropagation(); remove(row); }} className="ml-3 text-[#be123c] hover:text-[#9f1239] text-xs font-medium">Delete</button>
+                      <button onClick={(e) => { e.stopPropagation(); void remove(row); }} className="ml-3 text-[#be123c] hover:text-[#9f1239] text-xs font-medium">Delete</button>
                     </td>
                   </tr>
                 ))
@@ -152,47 +199,6 @@ export default function EntityList({
         />
       )}
 
-      {confirmRow && (() => {
-        const label = String(confirmRow[entity.labelField] ?? confirmRow.id);
-        return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setConfirmRow(null)}>
-            <div className="card-elevated bg-white max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
-              <h3 className="text-base font-semibold text-[#9f1239] mb-2">Delete {entity.label} permanently?</h3>
-              <p className="text-sm text-[#525252] mb-3">
-                This permanently deletes <span className="font-medium text-[#171717]">{label}</span> and{' '}
-                <span className="font-medium">all of its data</span> — divisions, departments, roles, people, value
-                streams, applications, initiatives, deliverables, tasks, and everything else scoped to it. This cascades
-                and <span className="font-medium">cannot be undone</span>.
-              </p>
-              <label className="label">
-                Type <span className="font-mono text-[#171717]">{label}</span> to confirm
-              </label>
-              <input
-                className="input"
-                value={confirmText}
-                onChange={(e) => setConfirmText(e.target.value)}
-                autoFocus
-                onKeyDown={(e) => { if (e.key === 'Enter' && confirmText === label) { const r = confirmRow; setConfirmRow(null); void doDelete(r); } }}
-              />
-              <div className="flex justify-end gap-2 mt-4">
-                <button
-                  className="text-sm px-3 py-1.5 rounded-md border border-[#e5e5e5] text-[#525252] hover:bg-[#fafafa]"
-                  onClick={() => setConfirmRow(null)}
-                >
-                  Cancel
-                </button>
-                <button
-                  disabled={confirmText !== label}
-                  onClick={() => { const r = confirmRow; setConfirmRow(null); void doDelete(r); }}
-                  className="text-sm px-3 py-1.5 rounded-md bg-[#be123c] text-white hover:bg-[#9f1239] disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Delete permanently
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
     </div>
   );
 }

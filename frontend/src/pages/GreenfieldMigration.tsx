@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   ReactFlow, ReactFlowProvider, Background, Controls, MarkerType, Handle, Position,
   useNodesState, useEdgesState, addEdge, reconnectEdge,
@@ -24,6 +24,42 @@ type Drill =
 
 // A change-log entry (audit row scoped to the workspace).
 type LogEntry = { id: string; action: string; actorEmail: string; createdAt: string; diff: string | null };
+
+// ── Value-stream lens cascade (L3 → L4 dropdowns) ───────────────────────────
+// The canonical L3 value streams and their L4 processes come from the unified
+// Level tree (GET /explorer/tree: division → value_stream → areas). The
+// rationalization stages carry no FK into that tree, so each stage (lens) is
+// matched to its closest L4 process by name-token overlap. Only L3 streams and
+// L4 processes that resolve to an existing board are listed (no dead picks);
+// picking an L3 repopulates the L4 dropdown and opens its first board. Stages
+// with no match stay reachable via an "Application lenses" group in the L4
+// dropdown.
+type LensL4 = { id: string; name: string };
+type LensL3 = { id: string; name: string; l4s: LensL4[] };
+
+const LENS_STOP = new Set(['and', 'the', 'for', 'with', 'mgmt', 'management']);
+// Lowercased, lightly-stemmed name tokens ("Channels" matches "channel").
+const lensTokens = (s: string) =>
+  s.toLowerCase().split(/[^a-z0-9]+/).map((t) => t.replace(/s$/, '')).filter((t) => t.length >= 3 && !LENS_STOP.has(t));
+// Overlap score — hits on the L4 name count double vs hits on its parent L3.
+function lensScore(stage: string[], l4: string[], l3: string[]): number {
+  const s = new Set(stage);
+  let n = 0;
+  for (const t of l4) if (s.has(t)) n += 2;
+  for (const t of l3) if (s.has(t)) n += 1;
+  return n;
+}
+
+// Tiny labelled control for the cascade row.
+function LensField({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label className="flex flex-col gap-0.5 min-w-0">
+      <span className="text-[9px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</span>
+      {children}
+    </label>
+  );
+}
+const LENS_SELECT_CLS = 'h-7 rounded-md border border-[#eaeaea] bg-white px-1.5 text-[12px] text-[#171717] max-w-[240px] focus:outline-none focus:border-[#d4d4d4]';
 
 // ── Custom React Flow nodes ─────────────────────────────────────────────────
 // Handles are hidden in read mode and revealed via the `.board-editing` CSS
@@ -265,6 +301,82 @@ export default function ApplicationRationalization({ embedded = false }: { embed
     setSelectedId((prev) => (prev && stages.some((s) => s.id === prev) ? prev : stages[0].id));
   }, [stages]);
 
+  // ── L3 → L4 lens cascade ──────────────────────────────────────────────────
+  const [lensTree, setLensTree] = useState<LensL3[]>([]);
+  const [selL3, setSelL3] = useState('');
+  // '' (placeholder) | an L4 id | `stage:<id>` for an unmatched application lens.
+  const [selL4, setSelL4] = useState('');
+
+  useEffect(() => {
+    api.get('/explorer/tree')
+      .then((t: { divisions: { valueStreams: { id: string; name: string; areas: { id: string; name: string }[] }[] }[] }) => {
+        const seen = new Set<string>();
+        const l3s: LensL3[] = [];
+        for (const d of t.divisions) for (const vs of d.valueStreams) {
+          if (seen.has(vs.name)) continue;
+          seen.add(vs.name);
+          l3s.push({ id: vs.id, name: vs.name, l4s: vs.areas.map((a) => ({ id: a.id, name: a.name })) });
+        }
+        setLensTree(l3s.sort((a, b) => a.name.localeCompare(b.name)));
+      })
+      .catch(() => setLensTree([])); // cascade degrades to the app dropdown only
+  }, []);
+
+  // Match each stage (lens) of the selected application to its closest L4.
+  const lensIndex = useMemo(() => {
+    const byStage = new Map<string, { l3Id: string; l4Id: string }>();
+    const byL4 = new Map<string, string>(); // l4Id → stageId (first match wins)
+    for (const s of stages) {
+      const st = lensTokens(`${s.name} ${s.businessProcess ?? ''}`);
+      let best: { l3Id: string; l4Id: string; score: number } | null = null;
+      for (const l3 of lensTree) {
+        const l3t = lensTokens(l3.name);
+        for (const l4 of l3.l4s) {
+          const score = lensScore(st, lensTokens(l4.name), l3t);
+          if (score > 0 && (!best || score > best.score)) best = { l3Id: l3.id, l4Id: l4.id, score };
+        }
+      }
+      if (best && !byL4.has(best.l4Id)) { byStage.set(s.id, { l3Id: best.l3Id, l4Id: best.l4Id }); byL4.set(best.l4Id, s.id); }
+    }
+    return { byStage, byL4 };
+  }, [stages, lensTree]);
+
+  // Only L3 value streams / L4 processes that resolve to an existing analysis
+  // board (a matched stage) are offered in the cascade — everything else is hidden.
+  const boardTree = useMemo(
+    () => lensTree
+      .map((l3) => ({ ...l3, l4s: l3.l4s.filter((l4) => lensIndex.byL4.has(l4.id)) }))
+      .filter((l3) => l3.l4s.length > 0),
+    [lensTree, lensIndex],
+  );
+
+  // Reflect the selected stage back into the dropdowns (app switch, load, …).
+  useEffect(() => {
+    if (lensTree.length === 0 || !selectedId) return;
+    const mapped = lensIndex.byStage.get(selectedId);
+    if (mapped) { setSelL3(mapped.l3Id); setSelL4(mapped.l4Id); }
+    else { setSelL3((p) => (boardTree.some((x) => x.id === p) ? p : boardTree[0]?.id ?? '')); setSelL4(`stage:${selectedId}`); }
+  }, [selectedId, lensIndex, lensTree, boardTree]);
+
+  const onPickL3 = useCallback((id: string) => {
+    setSelL3(id);
+    // Every listed L4 has a board — selecting a stream opens its first one.
+    const next = boardTree.find((x) => x.id === id)?.l4s[0];
+    setSelL4(next?.id ?? '');
+    const stage = next ? lensIndex.byL4.get(next.id) : undefined;
+    if (stage) setSelectedId(stage);
+  }, [boardTree, lensIndex]);
+
+  const onPickL4 = useCallback((v: string) => {
+    setSelL4(v);
+    if (v.startsWith('stage:')) { setSelectedId(v.slice(6)); return; }
+    const stage = lensIndex.byL4.get(v);
+    if (stage) setSelectedId(stage);
+  }, [lensIndex]);
+
+  const curL3 = boardTree.find((x) => x.id === selL3);
+  const unmappedStages = stages.filter((s) => !lensIndex.byStage.has(s.id));
+
   const createInitiative = useCallback(async () => {
     const name = newName.trim();
     if (!name) return;
@@ -449,34 +561,45 @@ export default function ApplicationRationalization({ embedded = false }: { embed
   if (loading || companyLoading) return <div className="text-sm text-[#a3a3a3]">Loading rationalization…</div>;
   if (error) return <div className="text-sm text-[#be123c]">{error}</div>;
 
+  const selectedStage = stages.find((s) => s.id === selectedId);
+
   return (
     <div>
-      {embedded ? (
-        <div className="flex items-start justify-between gap-3 mb-4">
-          <div className="min-w-0">
-            <h2 className="text-3xl font-bold text-[#171717] tracking-tight">Application Rationalization</h2>
-          </div>
-        </div>
-      ) : (
-        <PageHeader title="Application Rationalization" />
-      )}
+      {!embedded && <PageHeader title="Application Rationalization Workspace" />}
 
-      {/* Application selector — the company runs many rationalization initiatives */}
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] mr-1">Application</span>
-          {initiatives.length === 0 && <span className="text-[12px] text-[#a3a3a3]">None yet</span>}
-          {initiatives.map((app) => {
-            const active = app === selectedApp;
-            return (
-              <button key={app} onClick={() => setSelectedApp(app)}
-                className={'rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors duration-150 ' +
-                  (active ? 'bg-[#171717] text-white border-[#171717]' : 'bg-white text-[#525252] border-[#eaeaea] hover:border-[#d4d4d4]')}>
-                {app}
-              </button>
-            );
-          })}
-        </div>
+      {/* Lens cascade — Application → L3 value stream → L4 process (dependent selects) */}
+      <div className="flex flex-wrap items-end gap-2 mb-3">
+        <LensField label="Application">
+          <select value={selectedApp ?? ''} onChange={(e) => setSelectedApp(e.target.value)} className={LENS_SELECT_CLS}>
+            {initiatives.length === 0 && <option value="">None yet</option>}
+            {initiatives.map((app) => <option key={app} value={app}>{app}</option>)}
+          </select>
+        </LensField>
+        {lensTree.length > 0 && stages.length > 0 && (
+          <>
+            {boardTree.length > 0 && (
+              <LensField label="Value stream (L3)">
+                <select value={selL3} onChange={(e) => onPickL3(e.target.value)} className={LENS_SELECT_CLS}>
+                  {boardTree.map((l3) => <option key={l3.id} value={l3.id}>{l3.name}</option>)}
+                </select>
+              </LensField>
+            )}
+            <LensField label="Process (L4)">
+              <select value={selL4} onChange={(e) => onPickL4(e.target.value)} className={LENS_SELECT_CLS}>
+                {selL4 === '' && <option value="">Select a process…</option>}
+                {(curL3?.l4s ?? []).map((l4) => (
+                  <option key={l4.id} value={l4.id}>{l4.name}</option>
+                ))}
+                {unmappedStages.length > 0 && (
+                  <optgroup label="Application lenses">
+                    {unmappedStages.map((s) => <option key={s.id} value={`stage:${s.id}`}>{s.name}</option>)}
+                  </optgroup>
+                )}
+              </select>
+            </LensField>
+          </>
+        )}
+        <div className="flex-1" />
         <button onClick={() => { setNewName(''); setShowNew(true); }} className="btn-secondary text-[12px] flex-shrink-0">+ New application</button>
       </div>
 
@@ -484,36 +607,14 @@ export default function ApplicationRationalization({ embedded = false }: { embed
         <div className="card-elevated p-8 text-center text-sm text-[#a3a3a3]">No applications yet — use “+ New application” to start one.</div>
       ) : (
        <>
-      <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] mb-2">Value stream — pick a lens</div>
-      <div className="flex items-stretch overflow-x-auto pb-1 mb-5">
-        {stages.map((s, i) => {
-          const active = s.id === selectedId;
-          const notchLeft = i > 0;
-          const clip = notchLeft
-            ? 'polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%, 16px 50%)'
-            : 'polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%)';
-          return (
-            <button key={s.id} onClick={() => setSelectedId(s.id)}
-              className={`relative flex-shrink-0 text-left pr-7 py-2.5 transition-colors duration-150 ${notchLeft ? 'pl-9 -ml-3' : 'pl-4'} ` +
-                (active ? 'bg-[#171717] text-white' : 'bg-white text-[#525252] hover:bg-[#fafafa] border border-[#eaeaea]')}
-              style={{ clipPath: clip, minWidth: 168, zIndex: stages.length - i }}>
-              <div className="text-[10px] uppercase tracking-[0.08em] opacity-60">Stage {i + 1}</div>
-              <div className={'text-[13px] leading-tight ' + (active ? 'font-semibold' : 'font-medium')}>{s.name}</div>
-              <div className="flex items-center gap-2 mt-1.5">
-                <div className="w-20"><div className="h-1 rounded-full bg-[#e5e5e5] overflow-hidden"><div className="h-full bg-[#10b981]" style={{ width: `${s.progress * 100}%` }} /></div></div>
-                <span className={'text-[11px] tnum ' + (active ? 'text-white/80' : 'text-[#a3a3a3]')}>{pct(s.progress)}</span>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
       {detail && (
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-          <div className="text-[12px] text-[#666666] min-w-0">
-            {editing
-              ? <span><span className="font-semibold text-[#4f46e5]">Editing the board.</span> Drag boxes to reposition. Hover a box edge for the blue dots, then drag dot → dot to draw an arrow, or drag an arrow’s end onto another box to re-point it. Click an arrow and press Delete to remove. <span className="font-medium">Double-click any box (brown-field, CAPDAN or green-field) to edit it.</span> Staged below.</span>
-              : <span>Read-only view. Use <span className="font-medium">Edit board</span> to drag boxes, re-wire arrows, and double-click a box to edit it.</span>}
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <div className="text-[11px] text-[#666666] min-w-0">
+            <span className="font-semibold text-[#171717]">{selectedStage?.name ?? detail.name}</span>
+            <span className="text-[#a3a3a3] tnum"> · {pct(detail.progress)} migrated</span>
+            <span className="text-[#a3a3a3]"> — {editing
+              ? 'editing: drag boxes; drag edge dots to draw arrows; Delete removes a selected arrow; double-click a box to edit it'
+              : 'read-only; use Edit board to rearrange, re-wire and edit boxes'}</span>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             {editing

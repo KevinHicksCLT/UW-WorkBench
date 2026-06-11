@@ -83,7 +83,7 @@ export default function AssistantWidget() {
       {open && (
         <div
           role="dialog"
-          aria-label="AI Assistant"
+          aria-label="Bridge Assistant"
           className={
             'fixed z-40 bg-white border border-[#eaeaea] shadow-2xl flex flex-col ' +
             'inset-x-3 bottom-3 top-16 rounded-2xl ' +
@@ -100,7 +100,7 @@ export default function AssistantWidget() {
                 </svg>
               </span>
               <div>
-                <div className="text-sm font-semibold text-[#171717] leading-tight">Assistant</div>
+                <div className="text-sm font-semibold text-[#171717] leading-tight">Bridge Assistant</div>
                 <div className="text-[11px] text-[#a3a3a3] leading-tight">Get AI insights on the transformation</div>
               </div>
             </div>

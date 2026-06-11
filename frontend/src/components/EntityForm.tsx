@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { fieldLabel } from '../lib/adminFormat';
 import type { AdminEntity, AdminField } from '../lib/adminTypes';
 
 // Auto-generated create/edit form for a single admin entity. Renders one input
@@ -38,12 +39,13 @@ function initialValue(field: AdminField, record: Record<string, any> | null) {
 }
 
 export default function EntityForm({ entity, companyId, record, fixed, defaults, onClose, onSaved }: Props) {
-  // Fields actually shown in the form: skip derived (readonly) fields, skip
-  // create-only fields when editing, and hide any field supplied via `fixed`
-  // (e.g. the parent FK in a master-detail child form — preset, not chosen).
+  // Fields actually shown in the form: skip derived (readonly) fields and skip
+  // create-only fields when editing. A field supplied via `fixed` (e.g. the
+  // parent FK in a master-detail child form) is preset + hidden on CREATE, but
+  // shown when EDITING so an existing row can be moved to a different parent.
   const fixedKeys = fixed ? new Set(Object.keys(fixed)) : new Set<string>();
   const formFields = entity.fields.filter(
-    (f) => !f.readonly && !(f.createOnly && record) && !fixedKeys.has(f.name),
+    (f) => !f.readonly && !(f.createOnly && record) && !(fixedKeys.has(f.name) && !record),
   );
 
   const [values, setValues] = useState<Record<string, any>>(() => {
@@ -83,7 +85,9 @@ export default function EntityForm({ entity, companyId, record, fixed, defaults,
     setSaving(true);
     setError('');
     try {
-      const payload = { ...values, ...(fixed ?? {}) };
+      // `fixed` presets only apply on create — on edit the same fields are
+      // visible in the form, so the user's choice (a move) must win.
+      const payload = record ? { ...values } : { ...values, ...(fixed ?? {}) };
       if (record) await api.patch(withCompany(`/admin/${entity.slug}/${record.id}`, companyId), payload);
       else await api.post(withCompany(`/admin/${entity.slug}`, companyId), payload);
       onSaved();
@@ -112,7 +116,7 @@ export default function EntityForm({ entity, companyId, record, fixed, defaults,
           {formFields.map((f) => (
             <div key={f.name}>
               <label className="label" htmlFor={`f-${f.name}`}>
-                {f.name}{f.required && <span className="text-[#be123c]"> *</span>}
+                {fieldLabel(entity.slug, f.name)}{f.required && <span className="text-[#be123c]"> *</span>}
                 {f.relation && <span className="text-[#a3a3a3] font-normal normal-case tracking-normal"> → {f.relation.entity}</span>}
               </label>
 

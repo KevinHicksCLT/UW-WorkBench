@@ -6,6 +6,7 @@ import { useCompany } from '../lib/company';
 import { useApi } from '../lib/useApi';
 import { withCompany, Tile, SectionCard } from '../lib/portfolio';
 import PageHeader from '../components/PageHeader';
+import { Sheet, SheetCell, type SheetCol } from '../components/Sheet';
 import { LinkChips, LinksEditor, type VsLink, type VsOption } from '../components/RequirementLinks';
 
 // Regulations — the 50-state insurance regulatory baseline, three lenses:
@@ -77,28 +78,6 @@ function lastUpdated(r: JurisdictionRow) {
   const d = new Date(r.lastVerifiedAt ?? r.updatedAt);
   return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString();
 }
-
-// Compact select for the filter bar — "All" clears the filter.
-function FilterSelect({ label, value, options, onChange }: {
-  label: string; value: string; options: { value: string; label: string }[]; onChange: (v: string) => void;
-}) {
-  return (
-    <label className="flex items-center gap-1.5 text-xs text-[#666666]">
-      <span className="whitespace-nowrap">{label}</span>
-      <select
-        className="rounded-md border border-[#eaeaea] bg-white px-1.5 py-1 text-xs text-[#171717] max-w-[150px]"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        <option value="">All</option>
-        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
-    </label>
-  );
-}
-
-const uniqVals = <T,>(rows: T[], get: (r: T) => string) =>
-  [...new Set(rows.map(get))].sort().map((v) => ({ value: v, label: flagLabel(v) }));
 
 export default function Regulations() {
   const navigate = useNavigate();
@@ -175,82 +154,38 @@ export default function Regulations() {
 
 // ── States lens ───────────────────────────────────────────────────────────────
 function StatesLens({ rows, loading, onOpen }: { rows: JurisdictionRow[]; loading: boolean; onOpen: (code: string) => void }) {
-  const [search, setSearch] = useState('');
-  const [f, setF] = useState<Record<string, string>>({});
-  const set = (k: string) => (v: string) => setF((prev) => ({ ...prev, [k]: v }));
-
-  const filtered = useMemo(() => rows.filter((r) => {
-    for (const k of ['filingPortal', 'compactStatus', 'workersCompModel', 'apcd', 'sbs', 'priorityTier'])
-      if (f[k] && (r as unknown as Record<string, string>)[k] !== f[k]) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      if (!r.name.toLowerCase().includes(q) && r.code !== search.toUpperCase() && !r.regulatorName.toLowerCase().includes(q)) return false;
-    }
-    return true;
-  }), [rows, f, search]);
-
+  const cols: SheetCol<JurisdictionRow>[] = [
+    {
+      key: 'state', label: 'State', width: 'minmax(0,1.2fr)', value: (r) => r.name,
+      render: (r) => (
+        <>
+          <span className="truncate text-[12px] font-medium text-[#171717]">{r.name}</span>
+          <span className="text-[11px] text-[#a3a3a3] tnum flex-shrink-0">{r.code}</span>
+          {r.priorityTier === 'PRIORITY' && <span className="pill-amber flex-shrink-0">Priority</span>}
+          {r.profileDepth === 'FULL_PROFILE' && <span className="pill-blue flex-shrink-0" title="Full compliance profile from the source document">Profile</span>}
+        </>
+      ),
+    },
+    { key: 'filingPortal', label: 'Filing portal', width: '130px', value: (r) => flagLabel(r.filingPortal), render: (r) => <FlagPill value={r.filingPortal} detail={r.filingPortalDetail} /> },
+    { key: 'compact', label: 'Compact', width: '130px', value: (r) => flagLabel(r.compactStatus), render: (r) => <FlagPill value={r.compactStatus} /> },
+    { key: 'wc', label: "Workers' comp", width: '150px', value: (r) => flagLabel(r.workersCompModel), render: (r) => <FlagPill value={r.workersCompModel} detail={r.workersCompDetail} /> },
+    { key: 'apcd', label: 'APCD', width: '110px', value: (r) => flagLabel(r.apcd), render: (r) => <FlagPill value={r.apcd} /> },
+    { key: 'sbs', label: 'SBS', width: '110px', value: (r) => flagLabel(r.sbs), render: (r) => <FlagPill value={r.sbs} /> },
+    {
+      key: 'reqs', label: 'Reqs', width: '60px', value: (r) => String(r._count.requirements), filterable: false,
+      render: (r) => <span className="text-[12px] text-[#737373] tnum">{r._count.requirements}</span>,
+    },
+    { key: 'updated', label: 'Last updated', width: '110px', value: (r) => lastUpdated(r), filterable: false, sortable: false, dim: true },
+  ];
   return (
-    <SectionCard title={`States (${filtered.length}${filtered.length !== rows.length ? ` of ${rows.length}` : ''})`}>
-      {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4">
-        <input
-          className="rounded-md border border-[#eaeaea] bg-white px-2.5 py-1 text-xs text-[#171717] w-44 placeholder-[#a3a3a3]"
-          placeholder="Search state or regulator…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <FilterSelect label="Filing portal" value={f.filingPortal ?? ''} options={uniqVals(rows, (r) => r.filingPortal)} onChange={set('filingPortal')} />
-        <FilterSelect label="Compact" value={f.compactStatus ?? ''} options={uniqVals(rows, (r) => r.compactStatus)} onChange={set('compactStatus')} />
-        <FilterSelect label="Workers' comp" value={f.workersCompModel ?? ''} options={uniqVals(rows, (r) => r.workersCompModel)} onChange={set('workersCompModel')} />
-        <FilterSelect label="APCD" value={f.apcd ?? ''} options={uniqVals(rows, (r) => r.apcd)} onChange={set('apcd')} />
-        <FilterSelect label="SBS" value={f.sbs ?? ''} options={uniqVals(rows, (r) => r.sbs)} onChange={set('sbs')} />
-        <FilterSelect label="Tier" value={f.priorityTier ?? ''} options={uniqVals(rows, (r) => r.priorityTier)} onChange={set('priorityTier')} />
-      </div>
-
-      <div className="overflow-x-auto -mx-5 px-5">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-[11px] font-semibold uppercase tracking-[0.04em] text-[#525252] border-b border-[#eaeaea]">
-              <th className="py-2 pr-3">State</th>
-              <th className="py-2 pr-3">Filing portal</th>
-              <th className="py-2 pr-3">Compact</th>
-              <th className="py-2 pr-3">Workers' comp</th>
-              <th className="py-2 pr-3">APCD</th>
-              <th className="py-2 pr-3">SBS</th>
-              <th className="py-2 pr-3 text-right">Reqs</th>
-              <th className="py-2">Last updated</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading && <tr><td colSpan={8} className="py-6 text-center text-[#a3a3a3]">Loading…</td></tr>}
-            {!loading && filtered.map((r) => (
-              <tr
-                key={r.id}
-                className="border-b border-[#f5f5f5] hover:bg-[#fafafa] cursor-pointer transition-colors duration-100"
-                onClick={() => onOpen(r.code)}
-              >
-                <td className="py-2 pr-3">
-                  <span className="font-medium text-[#171717]">{r.name}</span>
-                  <span className="ml-1.5 text-[11px] text-[#a3a3a3] tnum">{r.code}</span>
-                  {r.priorityTier === 'PRIORITY' && <span className="ml-1.5 pill-amber">Priority</span>}
-                  {r.profileDepth === 'FULL_PROFILE' && <span className="ml-1 pill-blue" title="Full compliance profile from the source document">Profile</span>}
-                </td>
-                <td className="py-2 pr-3"><FlagPill value={r.filingPortal} detail={r.filingPortalDetail} /></td>
-                <td className="py-2 pr-3"><FlagPill value={r.compactStatus} /></td>
-                <td className="py-2 pr-3"><FlagPill value={r.workersCompModel} detail={r.workersCompDetail} /></td>
-                <td className="py-2 pr-3"><FlagPill value={r.apcd} /></td>
-                <td className="py-2 pr-3"><FlagPill value={r.sbs} /></td>
-                <td className="py-2 pr-3 text-right tnum text-[#525252]">{r._count.requirements}</td>
-                <td className="py-2 whitespace-nowrap text-[#525252]">{lastUpdated(r)}</td>
-              </tr>
-            ))}
-            {!loading && filtered.length === 0 && (
-              <tr><td colSpan={8} className="py-6 text-center text-[#a3a3a3]">No states match the current filters.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </SectionCard>
+    <Sheet
+      rows={rows}
+      cols={cols}
+      rowKey={(r) => r.id}
+      loading={loading}
+      onRowClick={(r) => onOpen(r.code)}
+      summarize={(v) => `${v.filter((r) => r.priorityTier === 'PRIORITY').length} priority states`}
+    />
   );
 }
 
@@ -262,103 +197,71 @@ function RequirementsLens({ rows, valueStreams, canEdit, onLinksSaved, onOpenSta
   onLinksSaved: (id: string, links: VsLink[]) => void;
   onOpenState: (code: string) => void;
 }) {
-  const [search, setSearch] = useState('');
-  const [f, setF] = useState<Record<string, string>>({});
-  const [editing, setEditing] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const set = (k: string) => (v: string) => setF((prev) => ({ ...prev, [k]: v }));
-
-  const filtered = useMemo(() => rows.filter((r) => {
-    if (f.state && r.jurisdiction.code !== f.state) return false;
-    if (f.category && r.category !== f.category) return false;
-    if (f.lineOfBusiness && r.lineOfBusiness !== f.lineOfBusiness) return false;
-    if (f.obligationType && r.obligationType !== f.obligationType) return false;
-    if (f.confidence && r.confidence !== f.confidence) return false;
-    if (f.valueStreamId === '__unmapped' && r.valueStreamLinks.length > 0) return false;
-    if (f.valueStreamId && f.valueStreamId !== '__unmapped' && !r.valueStreamLinks.some((l) => l.valueStreamId === f.valueStreamId)) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      if (!r.title.toLowerCase().includes(q) && !r.requirement.toLowerCase().includes(q) && !(r.citation ?? '').toLowerCase().includes(q)) return false;
-    }
-    return true;
-  }), [rows, f, search]);
-
-  const stateOpts = useMemo(() => [...new Set(rows.map((r) => r.jurisdiction.code))].sort().map((c) => ({ value: c, label: c })), [rows]);
-  const vsOpts = [{ value: '__unmapped', label: '— Unmapped —' }, ...valueStreams.map((v) => ({ value: v.id, label: v.name }))];
-
+  const cols: SheetCol<RequirementRow>[] = [
+    {
+      key: 'state', label: 'State', width: '80px', value: (r) => r.jurisdiction.code,
+      render: (r) => <SheetCell text={r.jurisdiction.code} title={r.jurisdiction.name} onClick={() => onOpenState(r.jurisdiction.code)} />,
+    },
+    { key: 'title', label: 'Requirement', width: 'minmax(0,1.6fr)', value: (r) => r.title },
+    { key: 'category', label: 'Category', width: '140px', value: (r) => catLabel(r.category), dim: true },
+    { key: 'lob', label: 'Line of business', width: '140px', value: (r) => flagLabel(r.lineOfBusiness), dim: true },
+    {
+      key: 'obligation', label: 'Obligation', width: '130px', value: (r) => flagLabel(r.obligationType),
+      render: (r) => r.obligationType === 'FILING_GATE'
+        ? <span className="pill-amber">Filing gate</span>
+        : <SheetCell text={flagLabel(r.obligationType)} dim />,
+    },
+    {
+      key: 'confidence', label: 'Confidence', width: '120px', value: (r) => flagLabel(r.confidence),
+      render: (r) => (
+        <span className={r.confidence === 'VERIFIED' ? 'pill-green' : r.confidence === 'STALE' ? 'pill-red' : r.confidence === 'BASELINE' ? 'pill-slate' : 'pill-amber'}>
+          {flagLabel(r.confidence)}
+        </span>
+      ),
+    },
+    {
+      key: 'links', label: 'Value streams', width: 'minmax(0,1fr)',
+      values: (r) => (r.valueStreamLinks.length ? r.valueStreamLinks.map((l) => l.valueStream.name) : ['— Unmapped —']),
+      render: (r) => <span className="min-w-0 truncate"><LinkChips links={r.valueStreamLinks} /></span>,
+    },
+  ];
   return (
-    <SectionCard title={`Requirements (${filtered.length}${filtered.length !== rows.length ? ` of ${rows.length}` : ''})`}>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4">
-        <input
-          className="rounded-md border border-[#eaeaea] bg-white px-2.5 py-1 text-xs text-[#171717] w-52 placeholder-[#a3a3a3]"
-          placeholder="Search title, text, citation…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <FilterSelect label="State" value={f.state ?? ''} options={stateOpts} onChange={set('state')} />
-        <FilterSelect label="Category" value={f.category ?? ''} options={uniqVals(rows, (r) => r.category).map((o) => ({ ...o, label: catLabel(o.value) }))} onChange={set('category')} />
-        <FilterSelect label="Line of business" value={f.lineOfBusiness ?? ''} options={uniqVals(rows, (r) => r.lineOfBusiness)} onChange={set('lineOfBusiness')} />
-        <FilterSelect label="Obligation" value={f.obligationType ?? ''} options={uniqVals(rows, (r) => r.obligationType)} onChange={set('obligationType')} />
-        <FilterSelect label="Confidence" value={f.confidence ?? ''} options={uniqVals(rows, (r) => r.confidence)} onChange={set('confidence')} />
-        <FilterSelect label="Value stream" value={f.valueStreamId ?? ''} options={vsOpts} onChange={set('valueStreamId')} />
-      </div>
+    <Sheet
+      rows={rows}
+      cols={cols}
+      rowKey={(r) => r.id}
+      summarize={(v) => `${new Set(v.map((r) => r.jurisdiction.code)).size} states · ${v.filter((r) => !r.valueStreamLinks.length).length} unmapped`}
+      expand={(r) => <RequirementExpand r={r} valueStreams={valueStreams} canEdit={canEdit} onLinksSaved={onLinksSaved} />}
+    />
+  );
+}
 
-      <div className="divide-y divide-[#f5f5f5]">
-        {filtered.map((r) => (
-          <div key={r.id} className="py-2.5">
-            <div className="flex items-start gap-3">
-              <button
-                onClick={() => onOpenState(r.jurisdiction.code)}
-                className="flex-shrink-0 w-9 text-left text-[11px] font-semibold tnum text-[#4338ca] hover:underline mt-0.5"
-                title={r.jurisdiction.name}
-              >
-                {r.jurisdiction.code}
-              </button>
-              <div className="flex-1 min-w-0">
-                <button
-                  className="text-left text-sm font-medium text-[#171717] hover:text-[#4338ca] transition-colors duration-100"
-                  onClick={() => setExpanded(expanded === r.id ? null : r.id)}
-                >
-                  {r.title}
-                </button>
-                <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                  <span className="pill-slate">{catLabel(r.category)}</span>
-                  {r.lineOfBusiness !== 'ALL' && <span className="pill-slate">{flagLabel(r.lineOfBusiness)}</span>}
-                  {r.obligationType === 'FILING_GATE' && <span className="pill-amber">Filing gate</span>}
-                  {r.confidence !== 'BASELINE' && <span className={r.confidence === 'VERIFIED' ? 'pill-green' : r.confidence === 'STALE' ? 'pill-red' : 'pill-amber'}>{flagLabel(r.confidence)}</span>}
-                  <LinkChips links={r.valueStreamLinks} />
-                  {canEdit && (
-                    <button
-                      onClick={() => setEditing(editing === r.id ? null : r.id)}
-                      className="text-[11px] text-[#666666] hover:text-[#171717] underline decoration-[#d4d4d4] transition-colors duration-100"
-                    >
-                      {editing === r.id ? 'close' : 'edit links'}
-                    </button>
-                  )}
-                </div>
-                {expanded === r.id && (
-                  <div className="mt-2 text-sm text-[#525252] leading-relaxed">
-                    {r.requirement}
-                    {r.citation && <div className="mt-1 text-xs text-[#a3a3a3]">Citation: {r.citation}</div>}
-                    {r.frequency && <div className="text-xs text-[#a3a3a3]">Frequency: {r.frequency}</div>}
-                  </div>
-                )}
-                {editing === r.id && (
-                  <LinksEditor
-                    requirementId={r.id}
-                    links={r.valueStreamLinks}
-                    valueStreams={valueStreams}
-                    onSaved={(links) => { onLinksSaved(r.id, links); setEditing(null); }}
-                    onCancel={() => setEditing(null)}
-                  />
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-        {filtered.length === 0 && <div className="py-6 text-center text-sm text-[#a3a3a3]">No requirements match the current filters.</div>}
-      </div>
-    </SectionCard>
+// Expansion panel for a requirement row: full text, citation, frequency, and
+// (ADMIN/MANAGER) the inline value-stream links editor.
+function RequirementExpand({ r, valueStreams, canEdit, onLinksSaved }: {
+  r: RequirementRow; valueStreams: VsOption[]; canEdit: boolean; onLinksSaved: (id: string, links: VsLink[]) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  return (
+    <div className="text-sm text-[#525252] leading-relaxed">
+      {r.requirement}
+      {r.citation && <div className="mt-1 text-xs text-[#a3a3a3]">Citation: {r.citation}</div>}
+      {r.frequency && <div className="text-xs text-[#a3a3a3]">Frequency: {r.frequency}</div>}
+      {canEdit && !editing && (
+        <button onClick={() => setEditing(true)} className="mt-2 text-[11px] text-[#666666] hover:text-[#171717] underline decoration-[#d4d4d4] transition-colors duration-100">
+          edit links
+        </button>
+      )}
+      {editing && (
+        <LinksEditor
+          requirementId={r.id}
+          links={r.valueStreamLinks}
+          valueStreams={valueStreams}
+          onSaved={(links) => { onLinksSaved(r.id, links); setEditing(false); }}
+          onCancel={() => setEditing(false)}
+        />
+      )}
+    </div>
   );
 }
 

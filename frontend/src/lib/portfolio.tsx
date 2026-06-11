@@ -257,7 +257,7 @@ export type TimelineScale = { min: number; max: number; pct: (d: string | Date) 
 export const ACTIVITY_STATUS_COLOR: Record<string, string> = { PLANNED: '#a3a3a3', IN_PROGRESS: '#4f46e5', DONE: '#047857' };
 export const ACTIVITY_STATUS_LABEL: Record<string, string> = { PLANNED: 'Planned', IN_PROGRESS: 'In progress', DONE: 'Done' };
 
-export function makeTimelineScale(dates: (string | Date)[]): TimelineScale | null {
+export function makeTimelineScale(dates: (string | Date)[], unit: 'month' | 'quarter' = 'month'): TimelineScale | null {
   const ts = dates.map((d) => new Date(d).getTime()).filter((n) => !Number.isNaN(n));
   if (ts.length === 0) return null;
   const TWO_WEEKS = 14 * 86400000;
@@ -265,16 +265,22 @@ export function makeTimelineScale(dates: (string | Date)[]): TimelineScale | nul
   const max = Math.max(...ts) + TWO_WEEKS;
   const span = Math.max(1, max - min);
   const pct = (d: string | Date) => Math.min(100, Math.max(0, ((new Date(d).getTime() - min) / span) * 100));
-  // Month-start ticks, thinned so we render at most ~12 labels.
-  const monthCount = Math.ceil(span / (30 * 86400000));
-  const step = Math.max(1, Math.ceil(monthCount / 12));
+  // Period-start ticks (month or calendar quarter), thinned to at most ~12 labels.
+  const intervalMonths = unit === 'quarter' ? 3 : 1;
+  const periodCount = Math.ceil(span / (intervalMonths * 30 * 86400000));
+  const step = Math.max(1, Math.ceil(periodCount / 12));
+  const label = (d: Date) => unit === 'quarter'
+    ? `Q${Math.floor(d.getMonth() / 3) + 1} '${String(d.getFullYear()).slice(2)}`
+    : d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
   const ticks: { pct: number; label: string }[] = [];
   const first = new Date(min);
-  let cur = new Date(first.getFullYear(), first.getMonth() + 1, 1);
+  let cur = unit === 'quarter'
+    ? new Date(first.getFullYear(), Math.floor(first.getMonth() / 3) * 3 + 3, 1)
+    : new Date(first.getFullYear(), first.getMonth() + 1, 1);
   let i = 0;
   while (cur.getTime() <= max) {
-    if (i % step === 0) ticks.push({ pct: ((cur.getTime() - min) / span) * 100, label: cur.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }) });
-    cur = new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
+    if (i % step === 0) ticks.push({ pct: ((cur.getTime() - min) / span) * 100, label: label(cur) });
+    cur = new Date(cur.getFullYear(), cur.getMonth() + intervalMonths, 1);
     i++;
   }
   return { min, max, pct, ticks };
