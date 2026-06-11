@@ -2068,7 +2068,7 @@ router.get('/standards', async (req: Request, res: Response, next: NextFunction)
       prisma.standard.findMany({
         where: { companyId: company.id, count: { gt: 0 } },
         orderBy: [{ count: 'desc' }, { department: 'asc' }],
-        select: { id: true, department: true, count: true, charterIncluded: true, owner: true, link: true },
+        select: { id: true, department: true, count: true, charterIncluded: true, owner: true, link: true, illustrative: true },
       }),
       prisma.role.findMany({ where: { companyId: company.id }, select: { id: true, name: true, roleLevel: true } }),
       prisma.assignment.groupBy({ by: ['roleId'], where: { role: { companyId: company.id } }, _count: { _all: true } }),

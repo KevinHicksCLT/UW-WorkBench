@@ -75,6 +75,16 @@ hydrated with a representative baseline plan for the transformation itself.
 7. Search box has no instructional placeholder text (Google-style empty box).
 8. **Data audit:** the "N departments × exactly 22 standards" coincidence is investigated; counts after the fix reflect real per-area variation, with the audit + fix recorded in docs.
 
+> **D5.8 audit result (2026-06-10):** confirmed — 8 of 13 areas had exactly 22 items
+> (plus 20/20/24). The items themselves are distinct, domain-appropriate guidelines per
+> area (no copy-paste), but every area except Cybersecurity & ISO was authored to a
+> ~22-item-per-department template. Cybersecurity & ISO's 113 items come from real
+> regulatory packs (GDPR / CCPA-CPRA / NYDFS 500). Fix (`scripts/fix-standards-data.ts`):
+> the 12 template areas are now flagged `illustrative=true` and the UI shows an
+> "Illustrative" tag explaining the uniformity; the real area keeps `illustrative=false`.
+> Fabricating fake count variation was deliberately rejected — the honest fix is
+> labeling the provenance; real inventories will replace the template via Data Admin.
+
 ## D6 — Telemetry → Metrics
 
 **AC**
@@ -151,7 +161,7 @@ Each AC is checked off by exercising the running app (Playwright) + querying the
 | D2 VS list | DONE (grid + sort + expand/collapse-all, 27px rows, no Domain/Division rows, flush top). NOTE: list dedupes to 29 streams vs Home tile's 36 — reconcile in final pass |
 | D3 VS map | DONE (top-pinned camera, 143×65 boxes w/ wrapped labels, sidebar gated off, sentence-case labels, 11px breadcrumb; parallelism analysis documented) |
 | D4 Organization | DONE (grid + sort, people removed, List & Map tabs) |
-| D5 Standards | pending |
+| D5 Standards | DONE (sortable grid, owner column removed, hyperlink drill-downs, Information Security rename in DB+seed+scripts, blank search, illustrative provenance tags; audit documented) |
 | D6 Metrics | rename + redirects DONE; AI-adoption refactor pending |
 | D7 Workspace | rename DONE; restructure pending |
 | D8 Deliverables & Tasks | DONE (tabs split, declutter, 305 titles recased, dupes audited) |
