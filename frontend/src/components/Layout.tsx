@@ -54,7 +54,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         onClick={() => resetToTab(to)}
         aria-current={active ? 'page' : undefined}
         className={
-          'relative inline-flex items-center h-10 -mb-px px-0.5 text-sm whitespace-nowrap border-b-2 transition-colors duration-150 ' +
+          'relative inline-flex items-center h-9 -mb-px px-0.5 text-sm whitespace-nowrap border-b-2 transition-colors duration-150 ' +
           (active
             ? 'text-[#171717] font-semibold border-[#171717]'
             : 'text-[#666666] font-medium border-transparent hover:text-[#171717] hover:border-[#d4d4d4]')
@@ -94,7 +94,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <header className="flex-shrink-0 z-30 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/75 safe-pt safe-px">
 
         {/* Row 1 — brand + utilities */}
-        <div className="flex items-center gap-4 px-4 sm:px-6 h-12 border-b border-[#eaeaea] sm:border-b-0">
+        <div className="flex items-center gap-4 px-4 sm:px-6 h-10 border-b border-[#eaeaea] sm:border-b-0">
 
           {/* Wordmark — Capgemini logotype flowing into the product name as one lockup */}
           <Link to="/" onClick={() => resetToTab('/')} className="flex items-baseline gap-2 flex-shrink-0 group" aria-label="Capgemini Transformation Bridge — home">

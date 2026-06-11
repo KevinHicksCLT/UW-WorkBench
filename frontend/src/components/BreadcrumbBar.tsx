@@ -21,7 +21,7 @@ export default function BreadcrumbBar() {
   const show = headerClaimed || trail.length > 0;
 
   return (
-    <div className={(show ? 'flex' : 'hidden') + ' items-center min-h-[30px] px-4 sm:px-6 py-1 border-b border-[#eaeaea] bg-white overflow-x-auto'}>
+    <div className={(show ? 'flex' : 'hidden') + ' items-center min-h-[26px] px-4 sm:px-6 py-0.5 border-b border-[#eaeaea] bg-white overflow-x-auto'}>
       {/* Portal target for map drill breadcrumbs — always mounted. */}
       <div ref={setHeaderSlot} className={headerClaimed ? 'flex items-center flex-wrap min-w-0' : 'hidden'} />
 
