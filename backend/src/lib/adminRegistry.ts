@@ -107,7 +107,7 @@ const GROUPS: { group: string; slugs: string[] }[] = [
   { group: 'Initiative Tracker (SPM)', slugs: ['program', 'workstream', 'portfolioInitiative', 'benefitLine', 'costLine', 'milestone', 'raidItem'] },
   { group: 'Application Rationalization', slugs: ['rationalizationWorkspace', 'rationalizationApp', 'rationalizationComponent', 'rationalizationCapability', 'rationalizationMicroservice', 'rationalizationPlanStep'] },
   { group: 'Regulations', slugs: ['jurisdiction', 'regulatoryRequirement', 'requirementValueStream', 'regulatoryBulletin', 'integrationSystem', 'jurisdictionIntegration', 'regulatorySource', 'complianceRule'] },
-  { group: 'External', slugs: ['externalInteraction'] },
+  { group: 'Third-Parties', slugs: ['externalInteraction'] },
 ];
 const OTHER_GROUP = 'Other';
 

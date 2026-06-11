@@ -73,21 +73,18 @@ export default function Portfolio() {
 
   return (
     <div>
-      <PageHeader
-        title="Workspace"
-        subtitle="Strategic portfolio — programs, initiatives, benefits and risks"
-      />
+      <PageHeader title="Workspace" />
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-4">
         {/* Left sidebar — collapsible tab navigation */}
-        <aside className={'flex-shrink-0 transition-[width] duration-150 ' + (collapsed ? 'lg:w-14' : 'lg:w-56')}>
+        <aside className={'flex-shrink-0 transition-[width] duration-150 ' + (collapsed ? 'lg:w-12' : 'lg:w-44')}>
           {/* Collapse toggle (desktop only) */}
           <button
             onClick={() => setCollapsed((v) => !v)}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             aria-expanded={!collapsed}
             className={
-              'hidden lg:flex items-center gap-2 w-full rounded-md px-3 py-2 mb-1 text-[#666666] hover:text-[#171717] hover:bg-[#fafafa] transition-colors duration-150 ' +
+              'hidden lg:flex items-center gap-2 w-full rounded-md px-2.5 py-1.5 mb-1 text-[#666666] hover:text-[#171717] hover:bg-[#fafafa] transition-colors duration-150 ' +
               (collapsed ? 'justify-center' : '')
             }
           >
@@ -111,7 +108,7 @@ export default function Portfolio() {
                   aria-current={active ? 'page' : undefined}
                   title={collapsed ? t : undefined}
                   className={
-                    'whitespace-nowrap lg:whitespace-normal rounded-md px-3 py-2 text-sm transition-colors duration-150 lg:border-l-2 ' +
+                    'whitespace-nowrap lg:whitespace-normal rounded-md px-2.5 py-1.5 text-[13px] transition-colors duration-150 lg:border-l-2 ' +
                     (collapsed ? 'lg:text-center lg:px-0 lg:font-semibold' : 'text-left') + ' ' +
                     (active
                       ? 'bg-[#f5f5f5] text-[#171717] font-semibold lg:border-[#171717]'
@@ -134,7 +131,7 @@ export default function Portfolio() {
           )}
 
           {tab === 'Application Rationalization Workspace' && (
-            <div className="card-elevated p-5 border-l-[3px] border-l-[#4f46e5]">
+            <div className="card-elevated p-4 border-l-[3px] border-l-[#4f46e5]">
               <ApplicationRationalization embedded />
             </div>
           )}
@@ -164,7 +161,7 @@ function PortfolioSummaryTab({ data, programs, onViewPrograms }: { data: Dashboa
   const raidTotal = Object.values(data.raidOpen ?? {}).reduce((a, n) => a + n, 0);
   const statusTotal = Object.values(data.byStatus).reduce((a, n) => a + n, 0) || 1;
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* One portfolio number across all programs */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <Tile label="Total benefit" value={fmt.currency(data.totals.benefit, { compact: true })} />
@@ -265,7 +262,7 @@ function ProgramsTab({ programs, counts, onNew }: { programs: ProgramRow[]; coun
   return (
     <div>
       {/* Headline counts banner */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
+      <div className="grid grid-cols-2 gap-3 mb-4">
         <Tile label="Programs" value={counts.programs} />
         <Tile label="Initiatives" value={counts.initiatives} />
       </div>

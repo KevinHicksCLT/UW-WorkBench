@@ -151,7 +151,19 @@ export const GLOSSARY: GlossaryGroup[] = [
         term: 'Metric',
         aka: 'KPI',
         definition:
-          'A measure attached to a value stream, with a formula, a target, and a direction (higher-is-better or lower-is-better). It answers "how well is this work performing?"',
+          'A measure attached to a value stream, with a formula, a target, and a direction (higher-is-better or lower-is-better). It answers "how well is this work performing?" The Metrics tab (formerly Telemetry) is built from these.',
+      },
+      {
+        term: 'Analysis Status',
+        definition:
+          'The per-subject tracker behind the Metrics tab\'s analysis-coverage view: whether a value stream, division, or role has been analyzed for AI opportunity yet, with a planned date and completion date — the stage that comes before AI adoption.',
+        values: ['Not Started', 'In Progress', 'Complete'],
+      },
+      {
+        term: 'AI Disposition',
+        definition:
+          'The outcome of analyzing a task for AI: automated away, discarded as unnecessary, augmented (human + AI), or left manual. Drives the Metrics tab\'s adoption percentages.',
+        values: ['Automated', 'Discarded', 'Augmented', 'Manual'],
       },
       {
         term: 'TCO',
@@ -340,13 +352,14 @@ export const GLOSSARY: GlossaryGroup[] = [
     ],
   },
   {
-    group: 'External',
+    group: 'Third-Parties',
     blurb: 'Where the enterprise meets the outside world.',
     terms: [
       {
         term: 'External Interaction',
+        aka: 'Third-Party Interaction',
         definition:
-          'An exchange between an internal role and an external party (vendor, regulator, customer, partner). It records what flows in and out, the type of dependency, and how often it happens.',
+          'An exchange between an internal role and an external party (vendor, regulator, customer, partner). It records what flows in and out and the type of dependency. Rendered on the Third-Parties tab.',
       },
     ],
   },
