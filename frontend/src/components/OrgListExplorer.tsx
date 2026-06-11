@@ -3,12 +3,14 @@ import { DOMAIN_HEX } from '../viz/model';
 import { api } from '../lib/api';
 import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from './MetricsSidebar';
 
-// Org List view (defect backlog 02, D4) — an Excel-like grid of the org spine,
-// the mirror image of the Value Streams list (ListExplorer):
+// Org List view (defect backlog 02, D4) — a spreadsheet-style grid of the org
+// spine, the mirror image of the Value Streams list (ListExplorer):
 //   Domain › Division › Department › Role
-// People are NOT rendered — the tree stops at Role (D4.2). Rows are thin,
-// columns are sortable, branches expand/collapse (with Expand/Collapse-all),
-// and clicking a row opens the SAME right-hand MetricsSidebar the map and
+// People are NOT rendered — the tree stops at Role (D4.2). Filtering lives IN
+// the column headers (same pattern as the Work tab): the name column carries a
+// free-text search, Division a searchable dropdown, Domain a plain dropdown.
+// Rows are thin, branches expand/collapse (with Expand/Collapse-all), and
+// clicking a row opens the SAME right-hand MetricsSidebar the map and
 // value-stream list use. The box-grid drill-down (OrgTable) is untouched.
 
 // ── Tree shape (from GET /explorer/org-table) ─────────────────────────────────
@@ -34,6 +36,10 @@ type MetricsCtxValue = { open: (level: string, id: string) => void; activeKey: s
 const MetricsCtx = createContext<MetricsCtxValue>({ open: () => {}, activeKey: null });
 const useMetrics = () => useContext(MetricsCtx);
 
+// Shared column template so the header and every row stay aligned:
+// name | division | domain | departments | roles
+const GRID_COLS = 'grid grid-cols-[minmax(0,1fr)_180px_140px_110px_70px]';
+
 // ── Row chrome ────────────────────────────────────────────────────────────────
 const Caret = ({ open }: { open: boolean }) => (
   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
@@ -42,22 +48,24 @@ const Caret = ({ open }: { open: boolean }) => (
   </svg>
 );
 
-// One grid row: indented name cell + the two count columns. Thin (D4.1).
+// One grid row: indented name cell, the Division/Domain text cells (filled where
+// the row has a sensible value, blank otherwise) and the two count columns.
+// Column dividers (divide-x) give the sheet feel; rows stay thin (D4.1).
 function GridRow({
-  depth, leaf, open, onClick, onToggle, accent, label, depts, roles, muted, strong, selected,
+  depth, leaf, open, onClick, onToggle, accent, label, division, domain, depts, roles, muted, strong, selected,
 }: {
   depth: number; leaf?: boolean; open?: boolean; onClick?: () => void; onToggle?: () => void;
-  accent?: string; label: string; depts?: number | null; roles?: number | null;
+  accent?: string; label: string; division?: string; domain?: string; depts?: number | null; roles?: number | null;
   muted?: boolean; strong?: boolean; selected?: boolean;
 }) {
   const clickable = !!onClick;
   return (
     <div
       onClick={onClick}
-      className={'grid grid-cols-[1fr_110px_80px] items-center gap-2 pr-2 border-b border-[#f5f5f5] last:border-0 transition-colors duration-150 '
+      className={GRID_COLS + ' items-stretch divide-x divide-[#f0f0f0] border-b border-[#f5f5f5] last:border-0 transition-colors duration-150 '
         + (selected ? 'bg-[#f5f8ff] ' : '') + (clickable ? 'cursor-pointer hover:bg-[#fafafa]' : '')}
     >
-      <div className="flex items-center gap-1.5 py-1 min-w-0" style={{ paddingLeft: depth * 16 + 8 }}>
+      <div className="flex items-center gap-1.5 py-1 pr-2 min-w-0" style={{ paddingLeft: depth * 16 + 8 }}>
         <span
           className={'w-3.5 flex-shrink-0 flex items-center' + (onToggle ? ' cursor-pointer' : '')}
           onClick={onToggle ? (e) => { e.stopPropagation(); onToggle(); } : undefined}
@@ -65,8 +73,10 @@ function GridRow({
         {accent && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: accent }} />}
         <span className={'truncate ' + (strong ? 'text-[13px] font-semibold text-[#171717]' : muted ? 'text-[12px] text-[#525252]' : 'text-[13px] text-[#171717]')}>{label}</span>
       </div>
-      <span className="text-[11px] text-[#737373] tnum text-right">{depts ?? ''}</span>
-      <span className="text-[11px] text-[#737373] tnum text-right">{roles ?? ''}</span>
+      <div className="px-2 flex items-center min-w-0"><span className="truncate text-[11px] text-[#525252]">{division ?? ''}</span></div>
+      <div className="px-2 flex items-center min-w-0"><span className="truncate text-[11px] text-[#525252]">{domain ?? ''}</span></div>
+      <div className="px-2 flex items-center justify-end"><span className="text-[11px] text-[#737373] tnum">{depts ?? ''}</span></div>
+      <div className="px-2 flex items-center justify-end"><span className="text-[11px] text-[#737373] tnum">{roles ?? ''}</span></div>
     </div>
   );
 }
@@ -77,15 +87,17 @@ const InfoRow = ({ depth, text }: { depth: number; text: string }) => (
 // ── Nodes — controlled by an expandAll epoch so the header buttons can fold the
 // whole grid at once (Excel-style); carets still toggle each branch. ───────────
 // A role is a leaf (people are not rendered — D4.2); clicking opens its dashboard.
-function RoleRow({ role, depth }: { role: RoleNode; depth: number }) {
+// Each level carries its parent division name down so the Division column reads
+// like a filled spreadsheet column.
+function RoleRow({ role, division, depth }: { role: RoleNode; division?: string; depth: number }) {
   const { open: openMetrics, activeKey } = useMetrics();
   return (
     <GridRow depth={depth} leaf muted selected={activeKey === `role:${role.id}`}
-      onClick={() => openMetrics('role', role.id)} label={role.name} />
+      onClick={() => openMetrics('role', role.id)} label={role.name} division={division} />
   );
 }
 
-function DeptNodeC({ dept, depth, epoch, defaultOpen }: { dept: DeptNode; depth: number; epoch: number; defaultOpen: boolean }) {
+function DeptNodeC({ dept, division, depth, epoch, defaultOpen }: { dept: DeptNode; division?: string; depth: number; epoch: number; defaultOpen: boolean }) {
   const { open: openMetrics, activeKey } = useMetrics();
   const [open, setOpen] = useState(defaultOpen);
   useEffect(() => { setOpen(defaultOpen); }, [epoch]); // eslint-disable-line
@@ -94,15 +106,15 @@ function DeptNodeC({ dept, depth, epoch, defaultOpen }: { dept: DeptNode; depth:
       <GridRow depth={depth} leaf={dept.roles.length === 0} open={open} selected={activeKey === `department:${dept.id}`}
         onClick={() => openMetrics('department', dept.id)}
         onToggle={dept.roles.length ? () => setOpen((o) => !o) : undefined}
-        label={dept.name} roles={dept.roles.length} />
+        label={dept.name} division={division} roles={dept.roles.length} />
       {open && (dept.roles.length > 0
-        ? dept.roles.map((r) => <RoleRow key={r.id} role={r} depth={depth + 1} />)
+        ? dept.roles.map((r) => <RoleRow key={r.id} role={r} division={division} depth={depth + 1} />)
         : <InfoRow depth={depth + 1} text="No roles in this team." />)}
     </>
   );
 }
 
-function DivNodeC({ div, depth, epoch, defaultOpen }: { div: DivNode; depth: number; epoch: number; defaultOpen: boolean }) {
+function DivNodeC({ div, domain, depth, epoch, defaultOpen }: { div: DivNode; domain: string; depth: number; epoch: number; defaultOpen: boolean }) {
   const { open: openMetrics, activeKey } = useMetrics();
   const [open, setOpen] = useState(defaultOpen);
   useEffect(() => { setOpen(defaultOpen); }, [epoch]); // eslint-disable-line
@@ -112,15 +124,15 @@ function DivNodeC({ div, depth, epoch, defaultOpen }: { div: DivNode; depth: num
       <GridRow depth={depth} leaf={!hasChildren} open={open} selected={activeKey === `division:${div.id}`}
         onClick={() => openMetrics('division', div.id)}
         onToggle={hasChildren ? () => setOpen((o) => !o) : undefined}
-        label={div.name} depts={div.departments.length} roles={divRoleCount(div)} />
+        label={div.name} domain={domain} depts={div.departments.length} roles={divRoleCount(div)} />
       {open && (
         <>
-          {div.departments.map((d) => <DeptNodeC key={d.id} dept={d} depth={depth + 1} epoch={epoch} defaultOpen={defaultOpen} />)}
+          {div.departments.map((d) => <DeptNodeC key={d.id} dept={d} division={div.name} depth={depth + 1} epoch={epoch} defaultOpen={defaultOpen} />)}
           {div.looseRoles.length > 0 && (
             <DeptNodeC
               key={`__loose:${div.id}`}
               dept={{ id: `__loose:${div.id}`, name: 'Direct to division', roles: div.looseRoles, roleCount: div.looseRoles.length, peopleCount: 0 }}
-              depth={depth + 1} epoch={epoch} defaultOpen={defaultOpen}
+              division={div.name} depth={depth + 1} epoch={epoch} defaultOpen={defaultOpen}
             />
           )}
           {!hasChildren && <InfoRow depth={depth + 1} text="No teams or roles." />}
@@ -141,22 +153,85 @@ function SegmentNodeC({ seg, depth, epoch, defaultOpen }: { seg: SegNode; depth:
         onClick={() => openMetrics('domain', seg.name)}
         onToggle={seg.divisions.length ? () => setOpen((o) => !o) : undefined}
         label={seg.name} depts={segDeptCount(seg)} roles={segRoleCount(seg)} />
-      {open && seg.divisions.map((d) => <DivNodeC key={d.id} div={d} depth={depth + 1} epoch={epoch} defaultOpen={defaultOpen} />)}
+      {open && seg.divisions.map((d) => <DivNodeC key={d.id} div={d} domain={seg.name} depth={depth + 1} epoch={epoch} defaultOpen={defaultOpen} />)}
     </>
   );
 }
 
-// ── Slim facet dropdown (multi-select) ────────────────────────────────────────
-type FilterOption = { id: string; name: string; accent?: string };
+// ── Spreadsheet column headers (Work-tab pattern, D4 rework): each header cell
+// carries its own filter control plus a sort toggle. ──────────────────────────
+type Sort = { col: 'name' | 'depts' | 'roles'; dir: 1 | -1 };
 
-function FilterDropdown({ label, options, selected, onToggle }: {
-  label: string;
-  options: FilterOption[];
-  selected: ReadonlySet<string>;
-  onToggle: (id: string) => void;
+function SortToggle({ col, sort, onSort }: { col: Sort['col']; sort: Sort; onSort: (c: Sort['col']) => void }) {
+  const active = sort.col === col;
+  return (
+    <button
+      type="button"
+      onClick={() => onSort(col)}
+      title="Sort by this column"
+      className={'ml-1 align-middle text-[10px] font-bold ' + (active ? 'text-[#171717]' : 'text-[#a3a3a3] hover:text-[#171717]')}
+    >
+      {active ? (sort.dir === 1 ? '▲' : '▼') : '⇅'}
+    </button>
+  );
+}
+
+const HeaderLabel = ({ children }: { children: React.ReactNode }) => (
+  <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1 whitespace-nowrap">{children}</div>
+);
+
+// Free-text filter in the header — used for the name column (searches all levels).
+function HeaderSearch({ label, value, onChange, sort }: { label: string; value: string; onChange: (v: string) => void; sort?: React.ReactNode }) {
+  return (
+    <div className="px-2 py-1.5 min-w-0">
+      <HeaderLabel>{label}{sort}</HeaderLabel>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Filter…"
+        aria-label={`Filter by ${label.toLowerCase()}`}
+        className={'w-full max-w-[280px] rounded border bg-white px-2 py-0.5 text-[11px] placeholder:text-[#a3a3a3] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150 '
+          + (value.trim() ? 'border-[#171717] text-[#171717]' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4]')}
+      />
+    </div>
+  );
+}
+
+// Compact native <select> filter — used for the Domain column.
+function HeaderFilter({ label, value, onChange, options, sort }: {
+  label: string; value: string; onChange: (v: string) => void; options: string[]; sort?: React.ReactNode;
+}) {
+  const active = value !== 'All';
+  return (
+    <div className="px-2 py-1.5 min-w-0">
+      <HeaderLabel>{label}{sort}</HeaderLabel>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={'appearance-none w-full rounded border bg-white pl-2 pr-6 py-0.5 text-[11px] cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150 '
+            + (active ? 'border-[#171717] text-[#171717] font-medium' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4]')}
+        >
+          {options.map((o) => <option key={o} value={o}>{o}</option>)}
+        </select>
+        <svg className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[#a3a3a3]" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+// Searchable dropdown filter — used for the Division column, whose option list
+// is long enough to want type-ahead. Closes on outside click; 'All' clears.
+function HeaderComboFilter({ label, value, onChange, options, sort }: {
+  label: string; value: string; onChange: (v: string) => void; options: string[]; sort?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const ref = useRef<HTMLDivElement>(null);
+  const active = value !== 'All';
+
   useEffect(() => {
     if (!open) return;
     const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
@@ -164,47 +239,62 @@ function FilterDropdown({ label, options, selected, onToggle }: {
     return () => document.removeEventListener('mousedown', onDoc);
   }, [open]);
 
-  const count = options.reduce((n, o) => (selected.has(o.id) ? n + 1 : n), 0);
+  const q = query.trim().toLowerCase();
+  const filtered = options.filter((o) => o === 'All' || o.toLowerCase().includes(q));
+  function pick(o: string) { onChange(o); setOpen(false); setQuery(''); }
+
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="px-2 py-1.5 min-w-0 relative">
+      <HeaderLabel>{label}{sort}</HeaderLabel>
       <button
+        type="button"
         onClick={() => setOpen((o) => !o)}
-        className={'inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors duration-150 '
-          + (count > 0 ? 'border-[#171717] text-[#171717]' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4] hover:text-[#171717]')}
+        className={'flex items-center justify-between gap-1 w-full rounded border bg-white pl-2 pr-1.5 py-0.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150 '
+          + (active ? 'border-[#171717] text-[#171717] font-medium' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4]')}
       >
-        <span className="text-[9px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</span>
-        <span>{count > 0 ? `${count} selected` : 'All'}</span>
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-          style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }} aria-hidden="true">
+        <span className="truncate">{value}</span>
+        <svg className={'flex-shrink-0 text-[#a3a3a3] transition-transform duration-150 ' + (open ? 'rotate-180' : '')} width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M6 9l6 6 6-6" />
         </svg>
       </button>
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-30 min-w-[220px] max-h-[300px] overflow-auto rounded-lg border border-[#eaeaea] bg-white shadow-lg p-1">
-          {options.length === 0 ? (
-            <div className="px-2.5 py-2 text-[12px] text-[#a3a3a3]">No options</div>
-          ) : options.map((o) => (
-            <label key={o.id} className="flex items-center gap-2 px-2.5 py-1 rounded-md cursor-pointer hover:bg-[#fafafa]">
-              <input type="checkbox" checked={selected.has(o.id)} onChange={() => onToggle(o.id)} className="accent-[#171717]" />
-              {o.accent && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: o.accent }} />}
-              <span className="text-[12px] text-[#171717] truncate">{o.name}</span>
-            </label>
-          ))}
+        <div className="absolute z-30 left-2 mt-1 w-[240px] rounded-md border border-[#eaeaea] bg-white shadow-lg">
+          <div className="p-1.5 border-b border-[#f5f5f5]">
+            <input
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search…"
+              className="w-full rounded border border-[#eaeaea] bg-white px-2 py-1 text-xs text-[#171717] placeholder:text-[#a3a3a3] focus:outline-none focus:ring-1 focus:ring-[#171717]"
+            />
+          </div>
+          <div className="max-h-56 overflow-y-auto py-1">
+            {filtered.length === 0 ? (
+              <div className="px-2.5 py-1.5 text-xs text-[#a3a3a3]">No matches</div>
+            ) : filtered.map((o) => (
+              <button
+                key={o}
+                type="button"
+                onClick={() => pick(o)}
+                className={'block w-full truncate text-left px-2.5 py-1 text-xs hover:bg-[#fafafa] transition-colors duration-100 '
+                  + (o === value ? 'text-[#171717] font-medium bg-[#fafafa]' : 'text-[#525252]')}
+              >
+                {o}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-// Sort toggle for the grid column headers.
-type Sort = { col: 'name' | 'depts' | 'roles'; dir: 1 | -1 };
-function SortBtn({ col, sort, onSort, children }: { col: Sort['col']; sort: Sort; onSort: (c: Sort['col']) => void; children: React.ReactNode }) {
-  const active = sort.col === col;
+// Plain (sort-only) header — used for the count columns.
+function HeaderPlain({ label, sort, right }: { label: string; sort?: React.ReactNode; right?: boolean }) {
   return (
-    <button onClick={() => onSort(col)} className={'inline-flex items-center gap-1 hover:text-[#171717] ' + (active ? 'text-[#171717]' : '')}>
-      {children}
-      <span className={'text-[10px] font-bold ' + (active ? 'text-[#171717]' : 'text-[#a3a3a3]')}>{active ? (sort.dir === 1 ? '▲' : '▼') : '⇅'}</span>
-    </button>
+    <div className={'px-2 py-1.5' + (right ? ' text-right' : '')}>
+      <HeaderLabel>{label}{sort}</HeaderLabel>
+    </div>
   );
 }
 
@@ -213,10 +303,10 @@ export default function OrgListExplorer() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Facet filters: empty set = no constraint (show all).
-  const [segFilter, setSegFilter] = useState<Set<string>>(new Set());
-  const [divFilter, setDivFilter] = useState<Set<string>>(new Set());
+  // Header filters: 'All' = no constraint; the name search prunes all levels.
   const [search, setSearch] = useState('');
+  const [domainSel, setDomainSel] = useState('All');
+  const [divisionSel, setDivisionSel] = useState('All');
   const [sort, setSort] = useState<Sort>({ col: 'name', dir: 1 });
   // Expand/collapse-all: bump the epoch so every branch resets to defaultOpen.
   const [allOpen, setAllOpen] = useState(true);
@@ -258,7 +348,7 @@ export default function OrgListExplorer() {
   // Changing the focused entity makes the drawer's snapshot stale — close it.
   useEffect(() => { setDrawerSection(null); }, [target?.level, target?.id]);
 
-  // Visible tree: facet filters → search prune (a matching node keeps its whole
+  // Visible tree: header filters → search prune (a matching node keeps its whole
   // subtree; otherwise only matching descendants survive) → recursive sort.
   const visibleSegments = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -285,8 +375,8 @@ export default function OrgListExplorer() {
     const sortRoles = (rs: RoleNode[]) => [...rs].sort((a, b) => cmp([a.name, b.name], [0, 0], [0, 0]));
 
     return (data?.segments ?? [])
-      .filter((s) => segFilter.size === 0 || segFilter.has(s.name))
-      .map((s) => ({ ...s, divisions: s.divisions.filter((d) => divFilter.size === 0 || divFilter.has(d.id)) }))
+      .filter((s) => domainSel === 'All' || s.name === domainSel)
+      .map((s) => ({ ...s, divisions: s.divisions.filter((d) => divisionSel === 'All' || d.name === divisionSel) }))
       .map((s) => (!q || hit(s.name) ? s : { ...s, divisions: s.divisions.map(pruneDiv).filter((d): d is DivNode => d !== null) }))
       .filter((s) => s.divisions.length > 0)
       .map((s) => ({
@@ -302,9 +392,9 @@ export default function OrgListExplorer() {
           .sort((a, b) => cmp([a.name, b.name], [a.departments.length, b.departments.length], [divRoleCount(a), divRoleCount(b)])),
       }))
       .sort((a, b) => cmp([a.name, b.name], [segDeptCount(a), segDeptCount(b)], [segRoleCount(a), segRoleCount(b)]));
-  }, [data, segFilter, divFilter, search, sort]);
+  }, [data, domainSel, divisionSel, search, sort]);
 
-  // Totals for the slim header row — recomputed from the visible (filtered) tree.
+  // Totals for the slim strip — recomputed from the visible (filtered) tree.
   const totals = useMemo(() => {
     let divisions = 0, departments = 0, roles = 0;
     for (const s of visibleSegments) for (const d of s.divisions) {
@@ -315,16 +405,18 @@ export default function OrgListExplorer() {
     return { domains: visibleSegments.length, divisions, departments, roles };
   }, [visibleSegments]);
 
-  // Facet options.
-  const segmentOptions: FilterOption[] = (data?.segments ?? []).map((s) => ({ id: s.name, name: s.name, accent: DOMAIN_HEX[s.name] }));
-  const divisionOptions: FilterOption[] = (data?.segments ?? [])
-    .filter((s) => segFilter.size === 0 || segFilter.has(s.name))
-    .flatMap((s) => s.divisions.map((d) => ({ id: d.id, name: d.name, accent: DOMAIN_HEX[s.name] })));
+  // ── Header-filter option lists. Picking a domain narrows the division list
+  // (and clears a division pick that no longer applies). ──
+  const domainOptions = useMemo(() => ['All', ...(data?.segments ?? []).map((s) => s.name)], [data]);
+  const divisionOptions = useMemo(() => {
+    const names = (data?.segments ?? [])
+      .filter((s) => domainSel === 'All' || s.name === domainSel)
+      .flatMap((s) => s.divisions.map((d) => d.name));
+    return ['All', ...[...new Set(names)].sort()];
+  }, [data, domainSel]);
 
-  const toggleSeg = (id: string) => setSegFilter((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const toggleDiv = (id: string) => setDivFilter((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const anyFilter = segFilter.size > 0 || divFilter.size > 0 || search.trim() !== '';
-  const clear = () => { setSegFilter(new Set()); setDivFilter(new Set()); setSearch(''); };
+  const anyFilter = domainSel !== 'All' || divisionSel !== 'All' || search.trim() !== '';
+  const clear = () => { setDomainSel('All'); setDivisionSel('All'); setSearch(''); };
 
   const toggleSort = (col: Sort['col']) => setSort((s) => (s.col === col ? { col, dir: s.dir === 1 ? -1 : 1 } : { col, dir: 1 }));
 
@@ -342,43 +434,35 @@ export default function OrgListExplorer() {
               <div className="text-sm text-[#be123c] py-8 text-center">{error}</div>
             ) : (
               <>
-                {/* Slim filter row: search + facets + totals — one line, no fat card (D4.1). */}
-                {/* pl clears the floating List|Map toggle pinned at the top-left. */}
-                <div className="flex items-center gap-2 flex-wrap mb-2 pl-[150px]">
-                  <input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="rounded-md border border-[#eaeaea] bg-white px-2.5 py-1 text-[12px] text-[#171717] w-48 focus:outline-none focus:ring-1 focus:ring-[#171717]"
-                    aria-label="Search organization"
-                  />
-                  <FilterDropdown label="Domain" options={segmentOptions} selected={segFilter} onToggle={toggleSeg} />
-                  <FilterDropdown label="Division" options={divisionOptions} selected={divFilter} onToggle={toggleDiv} />
-                  {anyFilter && <button onClick={clear} className="text-[11px] font-medium text-[#1d4ed8] hover:underline">Clear</button>}
-                  <span className="ml-auto text-[11px] text-[#737373] tnum">
+                {/* Very slim strip: totals + expand/collapse (filters moved into the headers).
+                    pl clears the floating List|Map toggle pinned at the top-left. */}
+                <div className="flex items-center gap-3 flex-wrap mb-1.5 pl-[150px] min-h-[24px]">
+                  <span className="text-[11px] text-[#737373] tnum">
                     {totals.domains} domains · {totals.divisions} divisions · {totals.departments} departments · {totals.roles} roles
                   </span>
-                  <span className="flex items-center gap-1">
+                  {anyFilter && <button onClick={clear} className="text-[11px] font-medium text-[#1d4ed8] hover:underline">Clear filters</button>}
+                  <span className="ml-auto flex items-center gap-1">
                     <button onClick={() => setAll(true)} className="text-[11px] font-medium text-[#525252] hover:text-[#171717] border border-[#eaeaea] rounded px-1.5 py-0.5">Expand all</button>
                     <button onClick={() => setAll(false)} className="text-[11px] font-medium text-[#525252] hover:text-[#171717] border border-[#eaeaea] rounded px-1.5 py-0.5">Collapse all</button>
                   </span>
                 </div>
 
-                <div className="card p-0 overflow-hidden">
-                  {/* Grid header with sort */}
-                  <div className="grid grid-cols-[1fr_110px_80px] items-center gap-2 pr-2 border-b border-[#eaeaea] bg-[#fafafa]">
-                    <div className="py-1.5 pl-8 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373]">
-                      <SortBtn col="name" sort={sort} onSort={toggleSort}>Organization</SortBtn>
-                    </div>
-                    <div className="py-1.5 text-right text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373]">
-                      <SortBtn col="depts" sort={sort} onSort={toggleSort}>Departments</SortBtn>
-                    </div>
-                    <div className="py-1.5 text-right text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373]">
-                      <SortBtn col="roles" sort={sort} onSort={toggleSort}>Roles</SortBtn>
-                    </div>
+                {/* No overflow-hidden on the card — the Division combo dropdown must escape it. */}
+                <div className="card p-0">
+                  {/* Spreadsheet header: each cell hosts its filter + sort (Work-tab pattern). */}
+                  <div className={GRID_COLS + ' items-stretch divide-x divide-[#eaeaea] border-b border-[#eaeaea] bg-[#fafafa] rounded-t-lg'}>
+                    <HeaderSearch label="Organization" value={search} onChange={setSearch}
+                      sort={<SortToggle col="name" sort={sort} onSort={toggleSort} />} />
+                    <HeaderComboFilter label="Division" value={divisionSel} onChange={setDivisionSel} options={divisionOptions} />
+                    <HeaderFilter label="Domain" value={domainSel} onChange={(v) => { setDomainSel(v); setDivisionSel('All'); }} options={domainOptions} />
+                    <HeaderPlain right label="Departments" sort={<SortToggle col="depts" sort={sort} onSort={toggleSort} />} />
+                    <HeaderPlain right label="Roles" sort={<SortToggle col="roles" sort={sort} onSort={toggleSort} />} />
                   </div>
-                  {visibleSegments.length > 0
-                    ? visibleSegments.map((seg) => <SegmentNodeC key={seg.name} seg={seg} depth={0} epoch={epoch} defaultOpen={allOpen} />)
-                    : <InfoRow depth={0} text="No divisions match the current filters." />}
+                  <div className="rounded-b-lg overflow-hidden">
+                    {visibleSegments.length > 0
+                      ? visibleSegments.map((seg) => <SegmentNodeC key={seg.name} seg={seg} depth={0} epoch={epoch} defaultOpen={allOpen} />)
+                      : <InfoRow depth={0} text="No divisions match the current filters." />}
+                  </div>
                 </div>
               </>
             )}
