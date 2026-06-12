@@ -51,13 +51,17 @@ const HeaderLabel = ({ children }: { children: React.ReactNode }) => (
 // Long option lists render at most this many entries — type-ahead narrows.
 const MAX_OPTIONS = 300;
 
-function HeaderComboFilter({ label, value, onChange, options, sort }: {
-  label: string; value: string; onChange: (v: string) => void; options: string[]; sort?: React.ReactNode;
+// `value` is the multi-selection ([] = All). A plain click replaces the
+// selection (classic single-pick, closes the dropdown); ctrl/cmd/shift-click
+// toggles the option in/out of the selection and keeps the dropdown open.
+// Exported so the Value Streams / Organization list explorers share it.
+export function HeaderComboFilter({ label, value, onChange, options, sort }: {
+  label: string; value: string[]; onChange: (v: string[]) => void; options: string[]; sort?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const ref = useRef<HTMLDivElement>(null);
-  const active = value !== 'All';
+  const active = value.length > 0;
 
   useEffect(() => {
     if (!open) return;
@@ -69,7 +73,15 @@ function HeaderComboFilter({ label, value, onChange, options, sort }: {
   const q = query.trim().toLowerCase();
   const filtered = options.filter((o) => o === 'All' || o.toLowerCase().includes(q));
   const shown = filtered.slice(0, MAX_OPTIONS);
-  function pick(o: string) { onChange(o); setOpen(false); setQuery(''); }
+  function pick(o: string, e: React.MouseEvent) {
+    if (o === 'All') { onChange([]); setOpen(false); setQuery(''); return; }
+    if (e.ctrlKey || e.metaKey || e.shiftKey) {
+      onChange(value.includes(o) ? value.filter((v) => v !== o) : [...value, o]);
+      return; // stay open for further picks
+    }
+    onChange([o]); setOpen(false); setQuery('');
+  }
+  const display = value.length === 0 ? 'All' : value.length === 1 ? value[0] : `${value.length} selected`;
 
   return (
     <div ref={ref} className="px-2 py-1 min-w-0 relative" onClick={(e) => e.stopPropagation()}>
@@ -80,7 +92,7 @@ function HeaderComboFilter({ label, value, onChange, options, sort }: {
         className={'flex items-center justify-between gap-1 w-full rounded border bg-white pl-2 pr-1.5 py-0.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150 '
           + (active ? 'border-[#171717] text-[#171717] font-medium' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4]')}
       >
-        <span className="truncate">{value}</span>
+        <span className="truncate" title={value.length > 1 ? value.join(', ') : undefined}>{display}</span>
         <svg className={'flex-shrink-0 text-[#a3a3a3] transition-transform duration-150 ' + (open ? 'rotate-180' : '')} width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M6 9l6 6 6-6" />
         </svg>
@@ -100,21 +112,26 @@ function HeaderComboFilter({ label, value, onChange, options, sort }: {
           <div className="max-h-56 overflow-y-auto py-1">
             {shown.length === 0 ? (
               <div className="px-2.5 py-1.5 text-xs text-[#a3a3a3]">No matches</div>
-            ) : shown.map((o) => (
-              <button
-                key={o}
-                type="button"
-                onClick={() => pick(o)}
-                className={'block w-full truncate text-left px-2.5 py-1 text-xs hover:bg-[#fafafa] transition-colors duration-100 '
-                  + (o === value ? 'text-[#171717] font-medium bg-[#fafafa]' : 'text-[#525252]')}
-              >
-                {o}
-              </button>
-            ))}
+            ) : shown.map((o) => {
+              const checked = o === 'All' ? value.length === 0 : value.includes(o);
+              return (
+                <button
+                  key={o}
+                  type="button"
+                  onClick={(e) => pick(o, e)}
+                  className={'flex w-full items-center gap-1.5 text-left px-2.5 py-1 text-xs hover:bg-[#fafafa] transition-colors duration-100 '
+                    + (checked ? 'text-[#171717] font-medium bg-[#fafafa]' : 'text-[#525252]')}
+                >
+                  <span className="w-3 flex-shrink-0 text-[#171717]">{checked && o !== 'All' ? '✓' : ''}</span>
+                  <span className="truncate">{o}</span>
+                </button>
+              );
+            })}
             {filtered.length > MAX_OPTIONS && (
               <div className="px-2.5 py-1.5 text-[10px] text-[#a3a3a3] italic">+{filtered.length - MAX_OPTIONS} more — type to narrow</div>
             )}
           </div>
+          <div className="px-2.5 py-1 border-t border-[#f5f5f5] text-[10px] text-[#a3a3a3]">Ctrl/Shift-click to select multiple</div>
         </div>
       )}
     </div>
@@ -158,9 +175,13 @@ export function Sheet<R>({
   leading?: React.ReactNode;
 }) {
   const filterCols = cols.filter((c) => (c.filterable ?? !!(c.value || c.values)));
-  const [sel, setSel] = useState<Record<string, string>>(() => {
-    const init: Record<string, string> = {};
-    for (const c of filterCols) init[c.key] = defaultFilters?.[c.key] ?? 'All';
+  // Per-column multi-selection; [] = All (no filter on that column).
+  const [sel, setSel] = useState<Record<string, string[]>>(() => {
+    const init: Record<string, string[]> = {};
+    for (const c of filterCols) {
+      const d = defaultFilters?.[c.key];
+      init[c.key] = d && d !== 'All' ? [d] : [];
+    }
     return init;
   });
   const firstSortable = cols.find((c) => (c.sortable ?? !!(c.value || c.values)));
@@ -174,7 +195,13 @@ export function Sheet<R>({
   // A row passes the filters; `skip` exempts one column so each combobox can
   // list the distinct values among rows passing the OTHER filters (Excel-style).
   const matches = (r: R, skip?: string) =>
-    filterCols.every((c) => c.key === skip || sel[c.key] === 'All' || valOf(c, r).includes(sel[c.key]));
+    filterCols.every((c) => {
+      if (c.key === skip) return true;
+      const picked = sel[c.key] ?? [];
+      if (picked.length === 0) return true;
+      const vals = valOf(c, r);
+      return picked.some((p) => vals.includes(p));
+    });
 
   const optionList = (vals: Iterable<string>) => ['All', ...[...new Set([...vals].filter(Boolean))].sort()];
   const optionsByCol = useMemo(() => {
@@ -183,14 +210,14 @@ export function Sheet<R>({
     return out;
   }, [rows, sel, cols]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // A pick can be invalidated by a later pick in another column — clear it.
+  // A pick can be invalidated by a later pick in another column — drop it.
   // (Skip while rows are still loading, so defaultFilters survive the empty state.)
   useEffect(() => {
     if (!rows.length) return;
     for (const c of filterCols) {
-      if (sel[c.key] !== 'All' && !optionsByCol[c.key]?.includes(sel[c.key])) {
-        setSel((p) => ({ ...p, [c.key]: 'All' }));
-      }
+      const picked = sel[c.key] ?? [];
+      const kept = picked.filter((p) => optionsByCol[c.key]?.includes(p));
+      if (kept.length !== picked.length) setSel((p) => ({ ...p, [c.key]: kept }));
     }
   }, [optionsByCol]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -208,10 +235,10 @@ export function Sheet<R>({
     });
   }, [rows, sel, sort, colByKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const anyFilter = filterCols.some((c) => sel[c.key] !== 'All');
+  const anyFilter = filterCols.some((c) => (sel[c.key] ?? []).length > 0);
   const clear = () => {
-    const init: Record<string, string> = {};
-    for (const c of filterCols) init[c.key] = 'All';
+    const init: Record<string, string[]> = {};
+    for (const c of filterCols) init[c.key] = [];
     setSel(init);
   };
   const toggleSort = (col: string) => setSort((s) => (s.col === col ? { col, dir: s.dir === 1 ? -1 : 1 } : { col, dir: 1 }));
@@ -248,7 +275,7 @@ export function Sheet<R>({
             const sortable = c.sortable ?? !!(c.value || c.values);
             const sortNode = sortable ? <SortToggle col={c.key} sort={sort} onSort={toggleSort} /> : undefined;
             return filterable ? (
-              <HeaderComboFilter key={c.key} label={c.label} value={sel[c.key] ?? 'All'} onChange={(v) => setSel((p) => ({ ...p, [c.key]: v }))}
+              <HeaderComboFilter key={c.key} label={c.label} value={sel[c.key] ?? []} onChange={(v) => setSel((p) => ({ ...p, [c.key]: v }))}
                 options={optionsByCol[c.key] ?? ['All']} sort={sortNode} />
             ) : (
               <div key={c.key} className="px-2 py-1 min-w-0"><HeaderLabel>{c.label}{sortNode}</HeaderLabel></div>
