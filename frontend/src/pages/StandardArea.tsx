@@ -11,7 +11,7 @@ import { skillLabel } from '../lib/skills';
 // role accountable for meeting it.
 
 type ValueStream = { id: string; name: string; domain: string | null };
-type Responsible = { roleId: string; roleName: string; roleLevel: string | null; peopleCount: number };
+type Responsible = { roleId: string; roleName: string; roleLevel: string | null };
 type Item = {
   id: string;
   category: string;
@@ -28,10 +28,12 @@ type Item = {
   responsible: Responsible | null;
   valueStreams: ValueStream[];
 };
+// Top-level rows are groups; their decomposed child standards ride along.
+type Group = Item & { subs: Item[] };
 type Data = {
   area: { id: string; department: string; count: number; charterIncluded: boolean; owner: string | null; link: string | null; mission: string | null; scope: string | null };
-  totals: { items: number; categories: number; withOwnerRole: number };
-  items: Item[];
+  totals: { items: number; groups: number; categories: number; withOwnerRole: number };
+  items: Group[];
 };
 
 export default function StandardArea() {
@@ -53,9 +55,10 @@ export default function StandardArea() {
           i.category.toLowerCase().includes(needle) ||
           (i.ownerRole ?? '').toLowerCase().includes(needle) ||
           (i.agentSkill ?? '').toLowerCase().includes(needle) ||
-          (i.regCitation ?? '').toLowerCase().includes(needle))
+          (i.regCitation ?? '').toLowerCase().includes(needle) ||
+          i.subs.some((s) => s.name.toLowerCase().includes(needle) || s.description.toLowerCase().includes(needle)))
       : data.items;
-    const byCat = new Map<string, Item[]>();
+    const byCat = new Map<string, Group[]>();
     for (const it of items) { if (!byCat.has(it.category)) byCat.set(it.category, []); byCat.get(it.category)!.push(it); }
     // All standards in a regulatory category share one enforcing skill, so
     // surface it once at the category level (not repeated per standard).
@@ -120,7 +123,8 @@ export default function StandardArea() {
               <div className="flex items-center justify-between gap-3 mb-1.5">
                 <h3 className="text-sm font-semibold text-[#171717] flex items-center gap-2">
                   {g.category}
-                  <span className="text-xs font-normal text-[#a3a3a3] tnum">{g.rows.length}</span>
+                  {/* leaf standards in the category, matching the area totals */}
+                  <span className="text-xs font-normal text-[#a3a3a3] tnum">{g.rows.reduce((n, r) => n + (r.subs.length || 1), 0)}</span>
                 </h3>
                 {g.skill && (
                   <button
@@ -153,10 +157,25 @@ export default function StandardArea() {
 
                       {isOpen && (
                         <div className="bg-[#fafafa] border-t border-[#f5f5f5] px-4 py-3 pl-10 grid grid-cols-1 lg:grid-cols-3 gap-4">
-                          {/* What it means */}
+                          {/* What it means — the group's higher-level summary,
+                              then each of its standards as a bullet with its
+                              own detail. */}
                           <div className="lg:col-span-2">
                             <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] mb-1">What it means</div>
                             <p className="text-sm text-[#171717]">{it.description}</p>
+                            {it.subs.length > 0 && (
+                              <ul className="mt-2 space-y-2">
+                                {it.subs.map((s) => (
+                                  <li key={s.id} className="flex items-start gap-2">
+                                    <span className="mt-[7px] w-1 h-1 rounded-full bg-[#a3a3a3] flex-shrink-0" />
+                                    <div>
+                                      <div className="text-sm font-medium text-[#171717]">{s.name}</div>
+                                      <p className="text-xs text-[#525252]">{s.description}</p>
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
                             {it.valueStreams.length > 0 && (
                               <div className="mt-3">
                                 <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] mb-1.5">Applies to value streams</div>
@@ -182,15 +201,16 @@ export default function StandardArea() {
                                 {it.ownerRole && it.ownerRole !== it.responsible.roleName && (
                                   <span className="text-xs text-[#a3a3a3]"> ({it.ownerRole})</span>
                                 )}
-                                <div className="text-xs text-[#a3a3a3] mt-0.5 flex items-center gap-1.5">
-                                  {it.responsible.roleLevel && it.responsible.roleLevel !== 'Individual Contributor' && <span className="chip-soft">{it.responsible.roleLevel}</span>}
-                                  <span className="tnum">{it.responsible.peopleCount} {it.responsible.peopleCount === 1 ? 'person' : 'people'}</span>
-                                </div>
+                                {it.responsible.roleLevel && it.responsible.roleLevel !== 'Individual Contributor' && (
+                                  <div className="text-xs text-[#a3a3a3] mt-0.5 flex items-center gap-1.5">
+                                    <span className="chip-soft">{it.responsible.roleLevel}</span>
+                                  </div>
+                                )}
                               </div>
                             ) : (
                               <div className="text-sm text-[#525252]">
                                 {it.ownerRole ?? <span className="text-[#a3a3a3] italic">Unassigned</span>}
-                                {it.ownerRole && <div className="text-[11px] text-[#a3a3a3] italic mt-0.5">not matched to a roster role</div>}
+                                {it.ownerRole && <div className="text-[11px] text-[#a3a3a3] italic mt-0.5">not matched to a role in the inventory</div>}
                               </div>
                             )}
                             {it.relatedRole && it.relatedRole !== it.ownerRole && (

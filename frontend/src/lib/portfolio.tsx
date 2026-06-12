@@ -16,7 +16,7 @@ export type Raid = { id: string; type: string; title: string; description: strin
 
 export type Objective = { id: string; name: string; description: string | null; weight: number; _count?: { links: number } };
 export type ObjectiveLink = { id: string; objectiveId: string; impact: number; objective: { id: string; name: string; weight: number } };
-export type Resource = { id: string; personId: string | null; roleName: string | null; name: string; allocationPct: number; startDate: string; endDate: string };
+export type Resource = { id: string; roleName: string | null; name: string; allocationPct: number; startDate: string; endDate: string };
 export type Activity = { id: string; name: string; startDate: string; endDate: string; status: string; dependsOnId: string | null; sortOrder: number };
 
 export type InitiativeLinks = {
@@ -104,18 +104,20 @@ export function bandFor(bands: RiskBand[], score: number): RiskBand | null {
   return bands.find((b) => score >= b.minScore && score <= b.maxScore) ?? null;
 }
 
-// Fallback when bands haven't loaded yet (matches the seeded defaults).
-function fallback(v: number): { label: string; color: string } {
-  return v >= 17 ? { label: 'High', color: '#be123c' } : v >= 9 ? { label: 'Medium', color: '#b45309' } : { label: 'Low', color: '#047857' };
-}
+// Fallback bands for before the company's have loaded (match the seeded
+// defaults) — exported so band-driven visuals can render rows immediately.
+export const FALLBACK_BANDS: RiskBand[] = [
+  { id: 'fallback-low', label: 'Low', minScore: 1, maxScore: 8, color: '#047857', description: null },
+  { id: 'fallback-medium', label: 'Medium', minScore: 9, maxScore: 16, color: '#b45309', description: null },
+  { id: 'fallback-high', label: 'High', minScore: 17, maxScore: 25, color: '#be123c', description: null },
+];
 
 // Shows only the RATING (Low/Medium/High …); the raw 5×5 score stays in the
 // tooltip so the number never reads as an unanchored magnitude.
 export function SeverityCell({ value }: { value: number }) {
   const bands = useRiskBands();
-  const band = bandFor(bands, value);
-  const label = band?.label ?? fallback(value).label;
-  const color = band?.color ?? fallback(value).color;
+  const band = bandFor(bands, value) ?? bandFor(FALLBACK_BANDS, value) ?? FALLBACK_BANDS[FALLBACK_BANDS.length - 1];
+  const { label, color } = band;
   return (
     <span
       title={`Probability × impact on the 5×5 risk matrix: ${value} of 25${band?.description ? ` — ${band.description}` : ''}`}

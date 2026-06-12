@@ -672,23 +672,18 @@ function ActivityModal({ init, activity, onClose, onSaved }: { init: Initiative;
 // ── RESOURCES ────────────────────────────────────────────────────────────
 function ResourcesTab({ init, reload }: { init: Initiative; reload: () => void }) {
   const dialogs = useDialogs();
-  const [people, setPeople] = useState<{ id: string; name: string; title: string | null }[]>([]);
   const [form, setForm] = useState({
     name: '', roleName: '', allocationPct: 50,
     startDate: init.startDate.slice(0, 10), endDate: init.dueDate.slice(0, 10),
   });
   const [error, setError] = useState('');
 
-  useEffect(() => { api.get(`/portfolio/people?companyId=${init.companyId}`).then(setPeople).catch(() => {}); }, [init.companyId]);
-
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const person = people.find((p) => p.name === form.name.trim());
     try {
       await api.post(`/portfolio/initiatives/${init.id}/resources`, {
         name: form.name.trim(),
-        personId: person?.id ?? null,
-        roleName: form.roleName.trim() || person?.title || null,
+        roleName: form.roleName.trim() || null,
         allocationPct: Number(form.allocationPct),
         startDate: form.startDate,
         endDate: form.endDate,
@@ -741,14 +736,11 @@ function ResourcesTab({ init, reload }: { init: Initiative; reload: () => void }
       <form onSubmit={submit} className="flex flex-wrap items-end gap-3 mt-4 pt-4 border-t border-[#f5f5f5]">
         <div className="flex-1 min-w-44">
           <label className="label">Name</label>
-          <input className="input" list="portfolio-people" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Pick a person or type a name" required />
-          <datalist id="portfolio-people">
-            {people.map((p) => <option key={p.id} value={p.name} />)}
-          </datalist>
+          <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Type a name" required />
         </div>
         <div className="w-44">
           <label className="label">Role</label>
-          <input className="input" value={form.roleName} onChange={(e) => setForm({ ...form, roleName: e.target.value })} placeholder="(from person if blank)" />
+          <input className="input" value={form.roleName} onChange={(e) => setForm({ ...form, roleName: e.target.value })} placeholder="e.g. Delivery lead" />
         </div>
         <div className="w-24">
           <label className="label">Alloc %</label>

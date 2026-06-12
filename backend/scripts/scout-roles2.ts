@@ -1,5 +1,5 @@
 // Accurate pass: unresolved role refs via the app's own resolver, + content
-// coverage counts (checklists / tasks / VS participation / people per role).
+// coverage counts (checklists / tasks / VS participation per role).
 import 'dotenv/config';
 import { prisma } from '../src/db/prisma.js';
 import { buildRoleResolver, resolveRoleCell } from '../src/lib/roleMatch.js';
@@ -28,23 +28,20 @@ async function main() {
   for (const [name, n] of sorted) console.log(`  ${n}× ${name}`);
 
   // Content coverage
-  const [cl, rt, vs, asg] = await Promise.all([
+  const [cl, rt, vs] = await Promise.all([
     prisma.checklistItem.groupBy({ by: ['roleId'], _count: { _all: true } }),
     prisma.roleTask.groupBy({ by: ['roleId'], _count: { _all: true } }),
     prisma.roleValueStream.groupBy({ by: ['roleId'], _count: { _all: true } }),
-    prisma.assignment.groupBy({ by: ['roleId'], _count: { _all: true } }),
   ]);
   const has = (g: { roleId: string }[]) => new Set(g.map((x) => x.roleId));
-  const hcl = has(cl), hrt = has(rt), hvs = has(vs), hasg = has(asg);
+  const hcl = has(cl), hrt = has(rt), hvs = has(vs);
   const noCl = roles.filter((r) => !hcl.has(r.id)).map((r) => r.name);
   const noRt = roles.filter((r) => !hrt.has(r.id)).map((r) => r.name);
   const noVs = roles.filter((r) => !hvs.has(r.id)).map((r) => r.name);
-  const noAsg = roles.filter((r) => !hasg.has(r.id)).map((r) => r.name);
   console.log(`\ncoverage gaps of ${roles.length} roles:`);
   console.log(`no checklist items (${noCl.length}): ${noCl.join(' | ')}`);
   console.log(`\nno role tasks (${noRt.length}): ${noRt.join(' | ')}`);
   console.log(`\nno value-stream participation (${noVs.length}): ${noVs.join(' | ')}`);
-  console.log(`\nno people assigned (${noAsg.length}): ${noAsg.slice(0, 40).join(' | ')}${noAsg.length > 40 ? ' …' : ''}`);
 
   await prisma.$disconnect();
 }

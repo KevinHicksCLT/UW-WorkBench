@@ -1,0 +1,460 @@
+{
+  "department": "Enterprise & Solution Architecture",
+  "items": [
+    {
+      "category": "API Standards",
+      "name": "API Contracts",
+      "summary": "Governs how API providers and consumers formalize and protect their integration agreements, so that policy, claims, and billing interfaces evolve without silently breaking downstream systems across ABC's business lines.",
+      "subs": [
+        {
+          "title": "Consumer-Driven Contracts",
+          "description": "API expectations are defined from the consumer's perspective, with each consuming team publishing a contract that captures the requests it makes and the response shapes it depends on. Provider teams treat the union of these contracts as the binding interface definition, ensuring that a policy administration API change cannot be considered safe until every registered consumer contract still holds."
+        },
+        {
+          "title": "Contract Testing in CI/CD",
+          "description": "Every build of an API provider executes automated contract tests against the current set of consumer contracts, and consumer builds verify against the provider's published contract. A failed contract verification fails the pipeline, preventing deployment of changes that would break an integration partner such as a claims intake or agent portal service."
+        },
+        {
+          "title": "Breaking Changes Require Consumer Notification",
+          "description": "Any change that removes fields, alters semantics, or tightens validation must be communicated to all registered consumers before release, with a documented migration window. Notification follows the API catalog's consumer registry, and release approval requires evidence that affected teams, including external distribution partners, have acknowledged the change."
+        }
+      ]
+    },
+    {
+      "category": "API Standards",
+      "name": "API Design Guidelines",
+      "summary": "Defines the uniform design language for all APIs built across the enterprise, ensuring that interfaces to policy, claims, billing, and customer domains feel consistent, are intuitive to integrate with, and reduce onboarding time for internal teams and distribution partners.",
+      "subs": [
+        {
+          "title": "RESTful Design",
+          "description": "APIs follow REST conventions over HTTPS, using standard methods (GET, POST, PUT, PATCH, DELETE) with their defined semantics and appropriate status codes. Operations must be modeled as state transfers on resources rather than remote procedure calls, so a quote, policy, or claim is manipulated through predictable, cacheable interactions."
+        },
+        {
+          "title": "Resource-Oriented",
+          "description": "Interfaces are organized around business resources such as policies, claims, insureds, and invoices, identified by stable URIs, rather than around internal system operations. Resource boundaries should reflect the insurance domain model, keeping URLs meaningful to integrators and decoupled from the implementing system's database structure."
+        },
+        {
+          "title": "HATEOAS for Discoverability",
+          "description": "Responses include hypermedia links that advertise valid next actions and related resources, such as a claim payload linking to its associated policy, payments, and permissible status transitions. This lets clients navigate workflows dynamically and reduces hardcoded URL construction in consuming applications."
+        },
+        {
+          "title": "Consistent Naming Conventions",
+          "description": "Resource paths, query parameters, and JSON field names follow the published enterprise naming standard, including casing rules, plural resource nouns, and approved domain vocabulary aligned with the corporate glossary. Insurance terms must be used consistently, so the same concept is never exposed as policyHolder in one API and insuredParty in another."
+        }
+      ]
+    },
+    {
+      "category": "API Standards",
+      "name": "API Documentation",
+      "summary": "Establishes how every API is described and made discoverable, guaranteeing that internal teams and external partners always have accurate, current reference material for the enterprise's service interfaces.",
+      "subs": [
+        {
+          "title": "OpenAPI 3.0 Specs Required",
+          "description": "Each API must carry a complete OpenAPI 3.0 specification covering all endpoints, schemas, security schemes, and error responses. The specification is the authoritative interface description used for design review, contract testing, and partner onboarding, and an API without one cannot pass architecture review."
+        },
+        {
+          "title": "Auto-Generated From Code",
+          "description": "Specifications are produced from source annotations or framework metadata as part of the build, rather than maintained by hand. This keeps documentation synchronized with deployed behavior and makes drift between the spec and the running service a build-time defect instead of a production surprise."
+        },
+        {
+          "title": "Published to Developer Portal",
+          "description": "Generated specifications are published automatically to the enterprise developer portal, where they are versioned, searchable, and paired with usage guides and sandbox access. The portal is the single discovery point for all APIs, including those consumed by agency, broker, and group-benefits integration partners."
+        }
+      ]
+    },
+    {
+      "category": "API Standards",
+      "name": "API Error Handling",
+      "summary": "Sets the enterprise-wide approach to communicating API failures, so consumers can handle errors programmatically and consistently while sensitive implementation detail never leaks outside the carrier's systems.",
+      "subs": [
+        {
+          "title": "RFC 7807 Problem Details Format",
+          "description": "All error responses use the RFC 7807 Problem Details structure, returning application/problem+json with type, title, status, detail, and instance members. Domain-specific extensions, such as underwriting decline reasons or claim validation failures, are added as documented extension members rather than ad hoc payloads."
+        },
+        {
+          "title": "Consistent Error Codes",
+          "description": "Error type identifiers and business error codes are drawn from a governed enterprise catalog, so the same condition, for example a lapsed policy or an ineligible coverage, maps to the same code across every API. New codes are registered centrally before use to prevent overlapping or duplicate meanings."
+        },
+        {
+          "title": "No Stack Traces in Production",
+          "description": "Production error responses must never include stack traces, internal class names, SQL fragments, or infrastructure details. Diagnostic context is written to centralized logging with a correlation identifier that is returned to the caller, allowing support teams to trace an incident without exposing internals to consumers or attackers."
+        }
+      ]
+    },
+    {
+      "category": "API Standards",
+      "name": "API Performance",
+      "summary": "Defines the responsiveness and efficiency obligations of every API, protecting the experience of agents, policyholders, and partner systems that depend on the carrier's services at quote, bind, claim, and service moments.",
+      "subs": [
+        {
+          "title": "P95 Latency Under 200ms",
+          "description": "APIs must serve the 95th percentile of requests in under 200 milliseconds, measured at the gateway under representative production load. Teams track this objective in their observability dashboards, and sustained breaches trigger performance remediation work before new feature delivery, since slow APIs directly degrade quoting and claims-intake experiences."
+        },
+        {
+          "title": "Pagination Required for Collections",
+          "description": "Endpoints returning collections, such as policy lists, claim histories, or billing transactions, must paginate using the standard cursor or offset conventions with documented default and maximum page sizes. Unbounded result sets are prohibited because portfolio-scale queries can return millions of rows and destabilize both provider and consumer."
+        },
+        {
+          "title": "Caching Headers",
+          "description": "Responses declare explicit cache behavior through Cache-Control, ETag, and related headers, distinguishing safely cacheable reference data, like product or coverage catalogs, from volatile or sensitive resources that must not be cached. Conditional request support is expected wherever it materially reduces repeated payload transfer."
+        },
+        {
+          "title": "Compression Enabled",
+          "description": "HTTP response compression, gzip at minimum, is enabled for compressible content types on all APIs. This reduces bandwidth and latency for large payloads such as policy documents metadata or claims search results, particularly for field adjusters and agents on constrained networks."
+        }
+      ]
+    },
+    {
+      "category": "API Standards",
+      "name": "API Security",
+      "summary": "Establishes the mandatory security controls for exposing APIs inside and outside the enterprise, safeguarding policyholder data and meeting the regulatory obligations of a multi-line insurance carrier.",
+      "subs": [
+        {
+          "title": "OAuth 2.0 and OIDC",
+          "description": "APIs are protected with OAuth 2.0 access tokens, with OpenID Connect used for user authentication and identity propagation. Scopes are defined per business capability so a consumer authorized to read claim status cannot invoke payment or policy-change operations, and token validation is enforced at the gateway as well as in the service."
+        },
+        {
+          "title": "API Keys for Partners",
+          "description": "External partners such as agencies, brokers, TPAs, and group-benefits platforms are issued individual API keys in addition to OAuth credentials, enabling per-partner identification, quota assignment, and revocation. Keys are provisioned through the partner onboarding process, rotated on a defined schedule, and never shared across organizations."
+        },
+        {
+          "title": "Rate Limiting",
+          "description": "Every exposed API enforces request rate limits at the gateway, with per-consumer quotas tuned to legitimate usage patterns. Limits protect core systems like policy administration and claims platforms from abusive traffic, runaway integrations, and denial-of-service conditions, and limit breaches return the standard 429 response with retry guidance."
+        },
+        {
+          "title": "Input Validation",
+          "description": "All inbound parameters, headers, and payloads are validated against the API's schema and business rules before processing, rejecting malformed, oversized, or unexpected input. Validation occurs server-side regardless of any client checks, as a primary defense against injection attacks and data corruption in systems of record."
+        },
+        {
+          "title": "No PII in URLs",
+          "description": "Personally identifiable information, including Social Security numbers, policy numbers tied to individuals, dates of birth, and health details, must never appear in URL paths or query strings, where it would persist in logs, browser histories, and proxies. Such data is conveyed only in request bodies or headers over encrypted channels, with opaque identifiers used for resource addressing."
+        }
+      ]
+    },
+    {
+      "category": "API Standards",
+      "name": "API Versioning",
+      "summary": "Governs how API changes are versioned and retired over time, giving the many internal systems and external partners that integrate with the carrier a predictable, low-disruption upgrade path.",
+      "subs": [
+        {
+          "title": "URI Versioning for Breaking Changes",
+          "description": "Breaking changes are released under a new major version segment in the URI, such as /v1 to /v2, leaving the prior version operational in parallel. This allows agency systems, vendor platforms, and internal consumers to migrate on their own schedules rather than being forced into lockstep releases."
+        },
+        {
+          "title": "Header Versioning for Minor Changes",
+          "description": "Backward-compatible refinements may be selected through a version or media-type header rather than a new URI, keeping resource addresses stable. Minor versions must remain additive, so a consumer that ignores the header continues to receive a valid, compatible response."
+        },
+        {
+          "title": "Twelve-Month Deprecation Policy",
+          "description": "When a version is deprecated, it remains supported for a minimum of twelve months, during which consumers receive deprecation headers, portal notices, and direct communication through the consumer registry. Retirement before the window closes requires ARB approval and confirmation that all remaining traffic has migrated."
+        }
+      ]
+    },
+    {
+      "category": "Architecture Governance",
+      "name": "Architecture Decision Records",
+      "summary": "Defines how significant architecture choices are captured and preserved as a durable, auditable history, so future teams understand why the enterprise's systems are shaped the way they are and avoid relitigating settled decisions.",
+      "subs": [
+        {
+          "title": "ADRs Required for Significant Decisions",
+          "description": "Any architecturally significant decision, such as selecting a policy administration integration pattern, adopting a new platform, or departing from a reference architecture, must be documented as an ADR before implementation proceeds. Each record states the context, the options considered, the decision, and its consequences in the standard template."
+        },
+        {
+          "title": "Stored in Repo",
+          "description": "ADRs live in version control alongside the code or platform they govern, typically in a docs/adr directory, so they are diffable, reviewable through pull requests, and discoverable by the teams doing the work. Repository storage keeps the decision history coupled to the system's evolution rather than buried in shared drives."
+        },
+        {
+          "title": "Status Tracked Through Lifecycle",
+          "description": "Every ADR carries an explicit status of Proposed, Accepted, or Deprecated, updated as the decision moves through review and is eventually superseded. A deprecated record is never deleted; it references the ADR that replaced it, preserving the chain of reasoning for auditors and future architects."
+        }
+      ]
+    },
+    {
+      "category": "Architecture Governance",
+      "name": "Architecture Fitness Functions",
+      "summary": "Turns architectural standards into executable checks, so compliance with the enterprise's structural rules is verified continuously by machines rather than periodically by review meetings.",
+      "subs": [
+        {
+          "title": "Automated Tests for Architecture Compliance",
+          "description": "Teams encode architectural rules, such as dependency direction between layers, prohibited library usage, bounded-context isolation, and latency or coupling thresholds, as automated fitness functions. These tests make the intended architecture objectively measurable instead of relying on documentation and goodwill."
+        },
+        {
+          "title": "Run in CI/CD",
+          "description": "Fitness functions execute in the continuous integration pipeline on every build, alongside unit and contract tests. Running them this early surfaces architectural erosion, like a claims service reaching directly into the policy database, at the moment it is introduced rather than during an annual review."
+        },
+        {
+          "title": "Failures Block Deployment",
+          "description": "A failing fitness function is a hard gate; the pipeline stops and the change cannot be promoted until the violation is fixed or a documented, time-boxed exception is approved by the architecture function. This ensures compliance debt cannot silently accumulate in production insurance systems."
+        }
+      ]
+    },
+    {
+      "category": "Architecture Governance",
+      "name": "Architecture Review Board (ARB)",
+      "summary": "Establishes the enterprise's senior review forum for architectural oversight, ensuring major technology investments across P&C, Life & Retirement, and group benefits align with the target architecture before significant spend is committed.",
+      "subs": [
+        {
+          "title": "ARB Approval Required for Major Initiatives",
+          "description": "Initiatives that exceed defined cost, risk, or cross-domain impact thresholds, including core system replacements, new vendor platforms, and material integration programs, must present to the ARB and obtain approval before funding gates are passed. Submissions use the standard solution architecture package so reviews compare like for like."
+        },
+        {
+          "title": "Weekly Cadence",
+          "description": "The board convenes weekly with a published agenda and quorum rules, keeping review latency short enough that governance does not stall delivery. Urgent items can be triaged between sessions through a documented expedited path, with the decision ratified at the next meeting."
+        },
+        {
+          "title": "Decision Log Maintained",
+          "description": "Every ARB outcome, including approvals, conditions, deferrals, and rejections, is recorded in a maintained decision log with rationale and owners for any follow-up actions. The log is accessible to delivery teams and auditors, and conditions are tracked to closure rather than forgotten after the meeting."
+        }
+      ]
+    },
+    {
+      "category": "Architecture Governance",
+      "name": "Reference Architecture Library",
+      "summary": "Maintains the curated catalog of approved architectural patterns for the enterprise, accelerating solution design by giving teams proven starting points and keeping the technology estate coherent across business lines.",
+      "subs": [
+        {
+          "title": "Approved Patterns Documented With Examples",
+          "description": "Each reference architecture, covering areas such as API integration, event streaming, document management, and core-system extension, is documented with its intended context, component diagram, technology choices, and at least one worked example from a real implementation. Patterns are versioned and reviewed periodically so the library reflects current platforms rather than retired ones."
+        },
+        {
+          "title": "Deviations Require Justification and Approval",
+          "description": "A solution that departs from an applicable reference architecture must record the business or technical justification and obtain approval through the architecture review process before build begins. Approved deviations are logged and revisited, since each one either signals a gap the library should absorb or a debt item to be remediated."
+        }
+      ]
+    },
+    {
+      "category": "Architecture Governance",
+      "name": "Solution Design Review",
+      "summary": "Requires that every initiative's solution architecture is documented and reviewed before development starts, preventing costly rework by catching misalignment with the enterprise's platforms, data flows, and security posture at the design stage.",
+      "subs": [
+        {
+          "title": "Solution Architecture Document Required Before Development",
+          "description": "No development effort beyond approved spikes may begin until a solution architecture document has been completed and reviewed. The document covers business context, component and integration views, data flows including any PII or PHI handling, non-functional requirements, and alignment with reference architectures, giving reviewers a full picture before code is written."
+        },
+        {
+          "title": "Standardized Template",
+          "description": "All solution architecture documents use the enterprise template, which prescribes the required sections, diagram notations, and sign-off matrix. A common structure lets reviewers across the architecture community assess designs efficiently and makes documents comparable across the P&C, Life & Retirement, and group benefits portfolios."
+        }
+      ]
+    },
+    {
+      "category": "Architecture Governance",
+      "name": "Technical Debt Register",
+      "summary": "Makes technical debt a visible, managed portfolio rather than an invisible drag, ensuring the enterprise consciously balances new capability delivery against the long-term health of its systems.",
+      "subs": [
+        {
+          "title": "Tech Debt Logged, Prioritized, and Scheduled",
+          "description": "Identified debt items, from outdated frameworks in policy systems to shortcut integrations and missing test coverage, are recorded in the central register with a description, affected systems, risk rating, and estimated remediation effort. Items are prioritized against business risk and scheduled into delivery plans, so each entry carries an owner and a target rather than sitting as an unbounded backlog."
+        },
+        {
+          "title": "Twenty Percent Capacity Reserved for Debt Reduction",
+          "description": "Delivery teams reserve roughly twenty percent of each planning increment for remediating items from the debt register. This allocation is protected during planning and tracked in increment reviews, preventing feature pressure from indefinitely deferring the maintenance that keeps quoting, claims, and billing platforms reliable."
+        }
+      ]
+    },
+    {
+      "category": "Architecture Governance",
+      "name": "Technical Design Review",
+      "summary": "Mandates peer scrutiny of detailed designs before implementation, ensuring that component-level decisions are sound, operable, and secure rather than discovered to be flawed in production.",
+      "subs": [
+        {
+          "title": "Detailed Design Reviewed by Peers",
+          "description": "Detailed technical designs, covering component structure, data models, integration contracts, and failure handling, are reviewed by engineers and architects from outside the authoring team before build begins. Reviewers record findings and the author must resolve or formally accept each one, creating a documented quality gate below the solution-architecture level."
+        },
+        {
+          "title": "Security, Performance, and Operability Checklist",
+          "description": "Each review works through the standard checklist covering security items such as authentication, authorization, and data protection for policyholder information, performance items such as expected volumes and latency budgets, and operability items such as logging, monitoring, alerting, and runbook readiness. The completed checklist is attached to the design artifact as evidence of the review."
+        }
+      ]
+    },
+    {
+      "category": "Architecture Patterns",
+      "name": "Backend-for-Frontend (BFF)",
+      "summary": "Prescribes the pattern for tailoring API experiences to each consuming channel, keeping the carrier's web, mobile, and partner experiences fast and independently evolvable without bloating shared domain services.",
+      "subs": [
+        {
+          "title": "Dedicated API Layer per Client Type",
+          "description": "Each client category, including the policyholder web portal, mobile apps, and partner or agency channels, gets its own backend-for-frontend service shaped to that channel's screens and workflows. The BFF is owned by the team building the client experience, allowing channel-specific changes such as a mobile claims-photo flow without modifying shared domain APIs."
+        },
+        {
+          "title": "Aggregation at the BFF Layer",
+          "description": "Composition of data from multiple domain services, for example combining policy, billing, and claims status into a single account dashboard response, happens in the BFF rather than in the client or in core services. Domain APIs stay clean and reusable while each channel receives right-sized payloads in a single round trip."
+        }
+      ]
+    },
+    {
+      "category": "Architecture Patterns",
+      "name": "CQRS Pattern",
+      "summary": "Defines when and how to separate command and query responsibilities in system design, allowing high-volume insurance workloads to scale reads independently of writes while preserving strong audit trails where the business demands them.",
+      "subs": [
+        {
+          "title": "Separate Read and Write Models for High-Scale Scenarios",
+          "description": "Where read and write loads diverge significantly, such as claims status inquiry traffic dwarfing claim updates, or agent portfolio dashboards querying policy data at high volume, systems may maintain distinct write and read models with the read side built as optimized projections. CQRS is reserved for these demonstrated scale cases, not applied by default, because it adds synchronization and consistency complexity."
+        },
+        {
+          "title": "Event Sourcing Optional for Audit-Heavy Domains",
+          "description": "Domains with intensive audit and reconstruction requirements, such as claims adjudication, policy endorsements, or financial postings, may additionally adopt event sourcing so state is derived from an immutable event log. The choice is optional and made per domain, weighing the regulatory value of a complete change history against the operational cost of event-store management and replay tooling."
+        }
+      ]
+    },
+    {
+      "category": "Architecture Patterns",
+      "name": "Domain-Driven Design",
+      "summary": "Establishes domain-driven design as the enterprise's approach to modeling its business in software, keeping system boundaries, team structures, and terminology aligned with how the insurance business actually operates.",
+      "subs": [
+        {
+          "title": "Strategic DDD for Domain Modeling",
+          "description": "Strategic domain-driven design techniques, including context mapping and subdomain classification, are used to partition the enterprise into core, supporting, and generic domains such as underwriting, claims, billing, and distribution. This strategic view guides where to invest in custom differentiating capability versus adopting commodity solutions."
+        },
+        {
+          "title": "Bounded Contexts Map to Teams",
+          "description": "Each bounded context is owned end to end by a single long-lived team, and system boundaries are drawn so that a context does not span teams. Aligning ownership this way keeps models internally consistent, limits cross-team coordination on changes, and makes accountability for a domain like P&C claims or retirement servicing unambiguous."
+        },
+        {
+          "title": "Ubiquitous Language Enforced",
+          "description": "Within each bounded context, the same business vocabulary is used in conversation, documentation, APIs, and code, with terms defined in the context's glossary. Concepts like insured, member, claimant, and beneficiary must mean exactly one thing inside a context, eliminating the translation errors that arise when engineers and underwriting or claims staff use words differently."
+        }
+      ]
+    },
+    {
+      "category": "Architecture Patterns",
+      "name": "Event-Driven Architecture",
+      "summary": "Sets the rules for asynchronous, event-based integration between business domains, decoupling the carrier's systems so that changes in one area propagate reliably without tight runtime dependencies.",
+      "subs": [
+        {
+          "title": "Events for Cross-Domain Communication",
+          "description": "When one domain needs to react to changes in another, for example billing responding to a policy issuance or analytics consuming claim status changes, the interaction is implemented through published domain events on the enterprise event backbone rather than synchronous point-to-point calls. Events follow the published schema standards and are treated as part of the producing domain's public contract."
+        },
+        {
+          "title": "Eventual Consistency Acceptable for Non-Financial Data",
+          "description": "Consumers of events may lag the source of record briefly, and this eventual consistency is acceptable for non-financial data such as contact updates, document status, or dashboard aggregates. Financial movements, including premium collection, claim payments, and reserve changes, require stronger consistency guarantees and must not rely on eventually consistent projections for transactional decisions."
+        }
+      ]
+    },
+    {
+      "category": "Architecture Patterns",
+      "name": "Microservices Criteria",
+      "summary": "Defines the qualifying criteria a service must meet to be built and operated as a microservice, preventing both distributed monoliths and uncontrolled service sprawl across the enterprise's platforms.",
+      "subs": [
+        {
+          "title": "Services Under 500 Lines of Business Logic",
+          "description": "A microservice should contain fewer than roughly 500 lines of core business logic, serving as a guardrail for scope rather than a precise quota. A service trending well beyond this size signals that it is absorbing multiple responsibilities, such as combining rating and document generation, and should be evaluated for decomposition."
+        },
+        {
+          "title": "Single Bounded Context",
+          "description": "Each service lives entirely within one bounded context and never straddles domain boundaries. A service may implement part of the claims context, but it must not blend claims and billing concepts in one codebase or database, keeping the domain model coherent and changes localized."
+        },
+        {
+          "title": "Independent Deployment",
+          "description": "Every microservice is deployable on its own, with its own pipeline, versioning, and data store access, and without coordinated releases of other services. Designs that require lockstep deployment indicate hidden coupling and fail this criterion."
+        },
+        {
+          "title": "Team Ownership",
+          "description": "Each service has exactly one owning team accountable for its full lifecycle, including build, run, on-call, and eventual decommissioning. Shared or orphaned services are not permitted; if no team can own a proposed service, it should not be created as a separate deployable."
+        }
+      ]
+    },
+    {
+      "category": "Architecture Patterns",
+      "name": "Saga Pattern",
+      "summary": "Establishes the saga pattern as the standard for managing distributed transactions that span multiple services, coordinating multi-step business processes such as policy issuance or claim settlement through either choreography, where services react to each other's events, or orchestration, where a workflow engine directs the steps and their compensating actions when a stage fails.",
+      "subs": []
+    },
+    {
+      "category": "Architecture Patterns",
+      "name": "Sidecar/Service Mesh",
+      "summary": "Mandates a service mesh, Istio or Linkerd, for workloads running in Kubernetes, so cross-cutting concerns including mutual TLS between services, retry and timeout policies, and traffic observability are handled uniformly by the platform's sidecar proxies rather than re-implemented inconsistently inside each insurance application service.",
+      "subs": []
+    },
+    {
+      "category": "Architecture Patterns",
+      "name": "Strangler Fig Migration",
+      "summary": "Prescribes the enterprise's approach to retiring legacy systems, such as aging policy administration and claims platforms, through controlled incremental replacement instead of high-risk big-bang rewrites.",
+      "subs": [
+        {
+          "title": "Legacy Modernization via Incremental Replacement",
+          "description": "Legacy capabilities are replaced one slice at a time, with each slice, such as a product line's quoting or a specific claims workflow, rebuilt in the target architecture behind a routing facade. The legacy system keeps running throughout, and each increment must deliver verifiable, production-ready functionality before the next begins."
+        },
+        {
+          "title": "New Traffic to New System",
+          "description": "Once a replaced capability is live, new business and new transactions are routed to the modern system while the legacy platform continues serving in-force business not yet migrated. The routing layer enforces this split deterministically, for example sending new policy issuance to the new core while renewals of unmigrated policies stay on the old one."
+        },
+        {
+          "title": "Gradual Cutover",
+          "description": "Existing data and traffic are migrated in planned waves, with parallel-run validation, reconciliation checks, and rollback paths at each stage. The legacy system is decommissioned only after all functions and in-force records have been transitioned and verified, and the migration plan includes explicit exit criteria for each wave."
+        }
+      ]
+    },
+    {
+      "category": "Architecture Principles",
+      "name": "API-First Design",
+      "summary": "Establishes APIs as the primary product of every capability the enterprise builds, ensuring functionality created for one channel or business line is immediately reusable across the carrier's portals, partners, and internal systems.",
+      "subs": [
+        {
+          "title": "All Capabilities Exposed via Well-Defined APIs",
+          "description": "Every business capability, whether rating, eligibility, claims intake, or document retrieval, is delivered behind a versioned, documented API designed before implementation begins. No capability may be reachable only through a user interface or a private database connection, so future channels and automation can consume it without rework."
+        },
+        {
+          "title": "Internal Services Are First-Class API Consumers",
+          "description": "Internal systems integrate through the same published APIs offered to external consumers, with no privileged back doors into databases or undocumented endpoints. Treating internal consumers identically keeps contracts honest, exercises the APIs at real volume, and guarantees that what partners receive is the same hardened interface the enterprise itself depends on."
+        }
+      ]
+    },
+    {
+      "category": "Architecture Principles",
+      "name": "Business-Aligned Technology",
+      "summary": "Requires that every technology decision, from platform selection to integration design, be traceable to the business capabilities and outcomes it supports, so architecture investment across the P&C, Life & Retirement, and group benefits portfolios is justified by demonstrable value such as faster product launch, improved claims experience, or reduced operating cost rather than technical preference.",
+      "subs": []
+    },
+    {
+      "category": "Architecture Principles",
+      "name": "Data as an Asset",
+      "summary": "Declares enterprise data, including policy, claims, customer, and financial information, a strategic asset that must have a named owner and steward, defined quality and governance controls, and managed availability for analytics and operations, rather than being treated as an incidental byproduct of the applications that happen to capture it.",
+      "subs": []
+    },
+    {
+      "category": "Architecture Principles",
+      "name": "Design for Failure",
+      "summary": "Requires every system to assume that dependencies will fail and to degrade gracefully when they do, applying retry with backoff, circuit breakers, and defined fallback behavior so that an outage in one component, such as a third-party data provider or a downstream core system, does not cascade into the loss of quoting, claims intake, or policyholder service.",
+      "subs": []
+    },
+    {
+      "category": "Architecture Principles",
+      "name": "Loose Coupling",
+      "summary": "Establishes minimal interdependence as a core design principle for the enterprise's systems, so individual platforms can change, scale, or be replaced without dragging the rest of the estate along with them.",
+      "subs": [
+        {
+          "title": "Minimize Dependencies Between Systems",
+          "description": "Designs must keep the number and depth of inter-system dependencies as low as practical, interacting through published contracts rather than shared databases or internal implementation details. Each proposed dependency is justified during design review, since every coupling point becomes a constraint on future change to core insurance platforms."
+        },
+        {
+          "title": "Use Event-Driven Patterns",
+          "description": "Where systems need awareness of each other's state changes, asynchronous events are preferred over synchronous request chains. Publishing events such as PolicyIssued or ClaimClosed lets consumers subscribe without the producer knowing they exist, removing temporal coupling and protecting upstream systems from downstream outages."
+        },
+        {
+          "title": "Design for Replaceability",
+          "description": "Components are built so they can be swapped out behind stable interfaces, with vendor-specific and infrastructure concerns isolated at the edges of the system. This keeps the enterprise free to replace a rating engine, document platform, or vendor service when the business case changes, without rewriting the consumers around it."
+        }
+      ]
+    },
+    {
+      "category": "Architecture Principles",
+      "name": "Reuse Before Buy Before Build",
+      "summary": "Defines the mandatory evaluation order for sourcing any new capability, steering investment toward the enterprise's existing assets and the commercial market before committing to custom development, and reserving engineering capacity for genuinely differentiating insurance capabilities.",
+      "subs": [
+        {
+          "title": "Leverage Existing Capabilities First",
+          "description": "Before any acquisition or build, teams must search the enterprise's existing application, API, and platform inventory for a capability that already meets the need, possibly with configuration or modest extension. Duplicating a function that exists elsewhere in the carrier, such as a second document-generation or address-validation service, requires explicit justification at architecture review."
+        },
+        {
+          "title": "Evaluate Commercial Solutions",
+          "description": "If no internal capability fits, commercially available software and SaaS offerings are evaluated next against functional fit, total cost of ownership, security and regulatory compliance, and integration with the enterprise architecture. The insurance software market covers most commodity needs, so the burden of proof rests on showing that available products genuinely fall short."
+        },
+        {
+          "title": "Custom Build as Last Resort",
+          "description": "Bespoke development is undertaken only when reuse and commercial options have been formally assessed and found inadequate, typically for capabilities that differentiate the carrier, such as proprietary underwriting models or distinctive customer experiences. A decision to build is documented with the comparative analysis and carries an acknowledged commitment to fund the asset's ongoing maintenance."
+        }
+      ]
+    }
+  ]
+}

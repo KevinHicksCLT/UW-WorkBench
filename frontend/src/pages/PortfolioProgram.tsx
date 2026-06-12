@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
 import { fmt, STAGE_ORDER, STAGE_LABELS } from '../lib/format';
@@ -9,6 +9,7 @@ import {
   makeTimelineScale, TimelineAxis, TimelineGrid,
   type LinkOptions,
 } from '../lib/portfolio';
+import PortfolioRaid from './PortfolioRaid';
 
 // Program drill-down: KPI rollup + tabbed views over the program's initiatives —
 // Workstreams (tables + create), Pipeline (stage columns), Prioritization
@@ -33,7 +34,7 @@ type ResourceRow = {
   assignments: { initiativeId: string; initiativeName: string; allocationPct: number; startDate: string; endDate: string }[];
 };
 
-const TABS = ['Workstreams', 'Pipeline', 'Prioritization', 'Roadmap', 'Resources'] as const;
+const TABS = ['Workstreams', 'Pipeline', 'Prioritization', 'Roadmap', 'Resources', 'RAID'] as const;
 type Tab = (typeof TABS)[number];
 
 const STATUS_COLOR: Record<string, string> = { ON_TRACK: '#047857', AT_RISK: '#b45309', OFF_TRACK: '#be123c' };
@@ -41,10 +42,13 @@ const STATUS_COLOR: Record<string, string> = { ON_TRACK: '#047857', AT_RISK: '#b
 export default function PortfolioProgram() {
   const { id } = useParams();
   const { companyId } = useCompany();
+  const [params] = useSearchParams();
   const [program, setProgram] = useState<Program | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [links, setLinks] = useState<LinkOptions | null>(null);
-  const [tab, setTab] = useState<Tab>('Workstreams');
+  // ?tab=RAID etc. presets the open tab (the Home RAID-by-program widget deep-links here).
+  const linkedTab = params.get('tab') as Tab | null;
+  const [tab, setTab] = useState<Tab>(linkedTab && TABS.includes(linkedTab) ? linkedTab : 'Workstreams');
   const [showCreateWs, setShowCreateWs] = useState(false);
   const [createInitWs, setCreateInitWs] = useState<{ id: string; name: string } | null>(null);
   const [error, setError] = useState('');
@@ -98,6 +102,7 @@ export default function PortfolioProgram() {
       {tab === 'Prioritization' && <PrioritizationTab program={program} />}
       {tab === 'Roadmap' && <RoadmapTab program={program} />}
       {tab === 'Resources' && <ProgramResourcesTab programId={program.id} />}
+      {tab === 'RAID' && <PortfolioRaid embedded programId={program.id} />}
 
       {showCreateWs && <CreateWorkstreamModal programId={id!} onClose={() => setShowCreateWs(false)} onCreated={() => { setShowCreateWs(false); load(); }} />}
       {createInitWs && <CreateInitiativeModal workstream={createInitWs} links={links} onClose={() => setCreateInitWs(null)} onCreated={() => { setCreateInitWs(null); load(); }} />}

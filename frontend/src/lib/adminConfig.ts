@@ -53,7 +53,7 @@ export const ADMIN_TABS: TabConfig[] = [
   {
     key: 'organization',
     label: 'Organization',
-    description: 'The Organization view shows Segment → Division → Department → Role → People. "Org structure" moves and reshapes the spine; "Divisions & departments" edits their fields (including the CEO segment a division rolls up to); roles, their work, and task categories live in the role studio.',
+    description: 'The Organization view shows Segment → Division → Department → Role. "Org structure" moves and reshapes the spine; "Divisions & departments" edits their fields (including the CEO segment a division rolls up to); roles, their work, and task categories live in the role studio.',
     sections: [
       {
         key: 'structure', label: 'Org structure', hint: 'add, move & reshape',
@@ -122,11 +122,10 @@ export const ADMIN_TABS: TabConfig[] = [
   {
     key: 'telemetry',
     label: 'Metrics',
-    description: 'The Metrics tab is built from KPI/metric definitions, the application landscape, and per-person digital signals.',
+    description: 'The Metrics tab is built from KPI/metric definitions and the application landscape.',
     sections: [
       { key: 'metrics', label: 'Metrics (KPIs)', editor: { kind: 'list', slug: 'metric', intro: 'Value-stream KPIs — definition, target, unit, and current reading.' } },
-      { key: 'trackable', label: 'Trackable signals', editor: { kind: 'list', slug: 'telemetrySignal', intro: 'The Trackable Metrics inventory — live workforce signals (isLive on; per-person readings drill by role) and the workbook reference catalog of everything the company could measure.' } },
-      { key: 'signals', label: 'People signals', editor: { kind: 'group', intro: 'Per-person digital-productivity signals, performance metrics, and app-usage mix.', lists: [{ slug: 'personSignal', title: 'Signals' }, { slug: 'personMetric', title: 'Performance metrics' }, { slug: 'personAppUsage', title: 'App usage' }] } },
+      { key: 'trackable', label: 'Trackable signals', editor: { kind: 'list', slug: 'telemetrySignal', intro: 'The Trackable Metrics inventory — live signals (isLive on) and the workbook reference catalog of everything the company could measure.' } },
       { key: 'aiAdoption', label: 'AI adoption', hint: 'per value stream', editor: { kind: 'aiAdoption' } },
       { key: 'analysisCoverage', label: 'Analysis coverage', editor: { kind: 'list', slug: 'analysisStatus', intro: 'The AI analysis plan the Metrics tab tracks — one row per analyzed subject (value stream, org group, or role) with its status and planned/actual dates.' } },
     ],
@@ -195,17 +194,6 @@ export const ADMIN_TABS: TabConfig[] = [
       {
         key: 'apps', label: 'Applications',
         editor: { kind: 'masterDetail', parent: 'application', parentTitle: 'Applications', intro: 'Select an application to edit it (including its APP-nnn code and System-of-Record flag from the Bridge Input catalog) and manage which value streams and process steps it supports.', children: [{ slug: 'applicationValueStream', fk: 'applicationId', title: 'Value-stream links' }, { slug: 'stepAppUsage', fk: 'applicationId', title: 'Step usage' }] },
-      },
-    ],
-  },
-  {
-    key: 'people',
-    label: 'People',
-    description: 'The people who staff roles, their assignments, and their work.',
-    sections: [
-      {
-        key: 'people', label: 'People',
-        editor: { kind: 'masterDetail', parent: 'person', parentTitle: 'People', intro: 'Select a person to edit them and manage their assignments and tasks.', children: [{ slug: 'assignment', fk: 'personId', title: 'Assignments' }, { slug: 'personTask', fk: 'personId', title: 'Tasks' }] },
       },
     ],
   },

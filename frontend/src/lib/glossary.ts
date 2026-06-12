@@ -54,7 +54,7 @@ export const GLOSSARY: GlossaryGroup[] = [
       {
         term: 'Role',
         definition:
-          'A defined position or job function — not a person. A role is the unit of accountability: it carries responsibilities, a reporting line, and the tasks and value-stream participation the work requires. People are assigned to roles.',
+          'A defined position or job function. A role is the unit of accountability: it carries responsibilities, a reporting line, and the tasks and value-stream participation the work requires.',
       },
       {
         term: 'Role Level',
@@ -119,7 +119,7 @@ export const GLOSSARY: GlossaryGroup[] = [
       {
         term: 'Role Task',
         definition:
-          'A defined, recurring responsibility of a role. It is the template from which a real person’s live tasks are derived once someone is assigned to the role.',
+          'A defined, recurring responsibility of a role — the template the role’s live tasks are derived from.',
       },
       {
         term: 'Role ↔ Value Stream',
@@ -181,56 +181,6 @@ export const GLOSSARY: GlossaryGroup[] = [
         definition:
           'A single guideline within a Standard — its title, description, the lifecycle phase it applies in (Build / Run), and the role accountable for it.',
         values: ['Build', 'Run', 'Build/Run'],
-      },
-    ],
-  },
-  {
-    group: 'People',
-    blurb: 'The real individuals who staff the roles.',
-    terms: [
-      {
-        term: 'Person',
-        definition:
-          'An individual who staffs one or more roles — a badged employee, a contractor, or an SI (system-integrator) partner.',
-      },
-      {
-        term: 'Employment Type',
-        definition: 'How a person is engaged, used to separate internal staff from external labor.',
-        values: ['badged', 'contractor', 'si_partner'],
-      },
-      {
-        term: 'Region',
-        definition: 'Where a person delivers from, used for onshore/offshore mix analysis.',
-        values: ['Onshore', 'Nearshore', 'Offshore'],
-      },
-      {
-        term: 'Assignment',
-        definition:
-          'The link that places a person into a role (and optionally onto an initiative), with an allocation percentage and whether it is their primary role.',
-      },
-      {
-        term: 'Person Task',
-        definition:
-          'A live piece of work a person is doing — with a status, priority, and due date. Often instantiated from a Role Task.',
-        values: ['To Do', 'In Progress', 'Blocked', 'Done'],
-      },
-      {
-        term: 'Person Metric',
-        definition:
-          'A monthly performance reading for an individual (throughput, quality, utilization, cycle time) measured against a target.',
-      },
-      {
-        term: 'Activity Signal',
-        aka: 'Person Signal',
-        definition:
-          'A monthly behavioral reading for an individual — time online, code activity, messages, focus hours, meetings — used to characterize how a person spends their time. Illustrative.',
-      },
-      {
-        term: 'App Usage',
-        aka: 'Person App Usage',
-        definition:
-          'The mix of applications an individual spends active time in, ranked by share — the "most-used app" signal. Illustrative.',
-        values: ['IDE', 'Comms', 'Analytics', 'Domain', 'Productivity'],
       },
     ],
   },

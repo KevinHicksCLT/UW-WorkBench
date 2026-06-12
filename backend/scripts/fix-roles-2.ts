@@ -48,7 +48,6 @@ async function mergeRole(dupName: string, survivorName: string) {
   if (!survivor) { log(`!! merge target missing: ${survivorName}`); return; }
   await prisma.checklistItem.updateMany({ where: { roleId: dup.id }, data: { roleId: survivor.id } });
   await prisma.roleTask.updateMany({ where: { roleId: dup.id }, data: { roleId: survivor.id } });
-  await prisma.assignment.updateMany({ where: { roleId: dup.id }, data: { roleId: survivor.id } });
   const taken = new Set(
     (await prisma.roleValueStream.findMany({ where: { roleId: survivor.id }, select: { valueStreamId: true, subStream: true } }))
       .map((x) => `${x.valueStreamId}|${x.subStream ?? ''}`),

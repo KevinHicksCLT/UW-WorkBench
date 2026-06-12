@@ -1,6 +1,6 @@
 // Seed for gap backlog I3/I4/I6/I9/I11 (2026-06): strategic objectives +
 // alignment links (with recomputed value scores), charter complexity scores,
-// per-initiative resources (real Person rows), and workplan activities for the
+// per-initiative resources (illustrative names), and workplan activities for the
 // Meridian Insurance Group portfolio. Idempotent: skips entirely when any
 // StrategicObjective already exists. Run: npx tsx scripts/seed-portfolio-extensions.ts
 import { prisma } from '../src/db/prisma.js';
@@ -55,12 +55,22 @@ async function main() {
   }
   console.log(`Created ${objectives.length} strategic objectives.`);
 
-  // Real people for resource assignments.
-  const people = await prisma.person.findMany({ where: { companyId }, take: 20, orderBy: { name: 'asc' }, select: { id: true, name: true, title: true } });
-  if (people.length < 4) throw new Error('Not enough Person rows for resource seeding.');
+  // Illustrative resource roster (name + role text on InitiativeResource).
+  const ROSTER: { name: string; title: string }[] = [
+    { name: 'Ana Delgado', title: 'Program Manager' },
+    { name: 'Marcus Webb', title: 'Solution Architect' },
+    { name: 'Priya Raman', title: 'Data Engineer' },
+    { name: 'Tom Okafor', title: 'Business Analyst' },
+    { name: 'Lena Fischer', title: 'Change Lead' },
+    { name: 'Diego Santos', title: 'Platform Engineer' },
+    { name: 'Sofia Lindqvist', title: 'UX Designer' },
+    { name: 'Ravi Mehta', title: 'QA Lead' },
+    { name: 'Claire Dubois', title: 'Product Owner' },
+    { name: 'Jonah Kim', title: 'ML Engineer' },
+  ];
 
   const initiatives = await prisma.portfolioInitiative.findMany({ where: { companyId }, orderBy: { createdAt: 'asc' } });
-  let personCursor = 0;
+  let rosterCursor = 0;
 
   for (const init of initiatives) {
     const plan = PLAN[init.name] ?? { complexity: 5, objectives: [[0, 3], [4, 3]] as [number, number][] };
@@ -80,18 +90,17 @@ async function main() {
       data: { complexityScore: plan.complexity, valueScore },
     });
 
-    // 4. Resources — 3–4 real people, 25–75% allocations, ranges inside start→due.
+    // 4. Resources — 3–4 roster entries, 25–75% allocations, ranges inside start→due.
     const span = daysBetween(init.startDate, init.dueDate);
     const resourceCount = 3 + (plan.complexity % 2); // 3 or 4
     for (let r = 0; r < resourceCount; r++) {
-      const person = people[personCursor % people.length];
-      personCursor++;
+      const member = ROSTER[rosterCursor % ROSTER.length];
+      rosterCursor++;
       await prisma.initiativeResource.create({
         data: {
           initiativeId: init.id,
-          personId: person.id,
-          name: person.name,
-          roleName: person.title ?? 'Team Member',
+          name: member.name,
+          roleName: member.title,
           allocationPct: 25 + ((r * 17 + plan.complexity * 3) % 51), // 25–75
           startDate: addDays(init.startDate, Math.round(span * 0.05 * r)),
           endDate: addDays(init.dueDate, -Math.round(span * 0.05 * r)),

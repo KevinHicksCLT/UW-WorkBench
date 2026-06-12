@@ -30,7 +30,8 @@ const TABS: Crumb[] = [
   { to: '/regulations', label: 'Regulations' },
   { to: '/metrics', label: 'Metrics' },
   { to: '/portfolio', label: 'Workspace' },
-  { to: '/work', label: 'Deliverables & Tasks' },
+  { to: '/deliverables', label: 'Deliverables' },
+  { to: '/tasks', label: 'Tasks' },
   { to: '/applications', label: 'Applications' },
   { to: '/external', label: 'Third-Parties' },
   { to: '/admin', label: 'Data Admin' },
@@ -46,7 +47,8 @@ const TAB_PREFIXES: [string, string][] = [
   ['/roles', '/roles'], ['/divisions', '/roles'], ['/departments', '/roles'],
   ['/value-streams', '/overview'], ['/overview', '/overview'], ['/n/', '/overview'],
   ['/standards', '/standards'], ['/regulations', '/regulations'], ['/metrics', '/metrics'],
-  ['/portfolio', '/portfolio'], ['/work', '/work'], ['/applications', '/applications'],
+  ['/portfolio', '/portfolio'], ['/deliverables', '/deliverables'], ['/tasks', '/tasks'],
+  ['/work', '/deliverables'], ['/applications', '/applications'],
   ['/external', '/external'], ['/admin', '/admin'], ['/audit', '/admin'],
 ];
 function owningTab(path: string): Crumb {

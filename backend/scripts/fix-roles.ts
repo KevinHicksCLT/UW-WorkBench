@@ -420,7 +420,6 @@ async function main() {
     // Move children; RoleValueStream rows that would collide on the unique key are dropped.
     await prisma.checklistItem.updateMany({ where: { roleId: dup.id }, data: { roleId: survivor.id } });
     await prisma.roleTask.updateMany({ where: { roleId: dup.id }, data: { roleId: survivor.id } });
-    await prisma.assignment.updateMany({ where: { roleId: dup.id }, data: { roleId: survivor.id } });
     const survivorVs = await prisma.roleValueStream.findMany({ where: { roleId: survivor.id }, select: { valueStreamId: true, subStream: true } });
     const taken = new Set(survivorVs.map((x) => `${x.valueStreamId}|${x.subStream ?? ''}`));
     const dupVs = await prisma.roleValueStream.findMany({ where: { roleId: dup.id } });

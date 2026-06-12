@@ -9,7 +9,7 @@ router.use(requireAuth);
 const PART_ORDER: Record<string, number> = { Lead: 0, Core: 1, Control: 2, Oversight: 3, Support: 4 };
 
 // GET /departments/:id — department → roles, each with the role-level detail that
-// used to live one click deeper (level, family, headcount, value-stream
+// used to live one click deeper (level, family, value-stream
 // participation parsed into L3/L4, and responsibility/checklist counts). This
 // lets the department page render a rich roles table instead of bare pills.
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
@@ -34,12 +34,6 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     });
     if (!department) return res.status(404).json({ error: 'Not found' });
 
-    const roleIds = department.roles.map((r) => r.id);
-    const head = roleIds.length
-      ? await prisma.assignment.groupBy({ by: ['roleId'], where: { roleId: { in: roleIds } }, _count: { _all: true } })
-      : [];
-    const peopleByRole = new Map(head.map((h) => [h.roleId, h._count._all]));
-
     const roles = department.roles.map((r) => {
       const participations = r.valueStreamLinks
         .map((l) => {
@@ -56,7 +50,6 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         .sort((a, b) => (PART_ORDER[a.participationType] ?? 9) - (PART_ORDER[b.participationType] ?? 9) || a.valueStreamName.localeCompare(b.valueStreamName));
       return {
         id: r.id, name: r.name, roleLevel: r.roleLevel, roleFamily: r.roleFamily, description: r.description,
-        peopleCount: peopleByRole.get(r.id) ?? 0,
         valueStreamCount: new Set(participations.map((p) => p.valueStreamId)).size,
         checklistCount: r._count.checklistItems,
         taskCount: r._count.roleTasks,
@@ -67,7 +60,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     res.json({
       id: department.id, name: department.name,
       company: department.company, division: department.division,
-      totals: { roles: roles.length, people: roles.reduce((a, r) => a + r.peopleCount, 0) },
+      totals: { roles: roles.length },
       roles,
     });
   } catch (e) { next(e); }

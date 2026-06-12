@@ -107,16 +107,7 @@ export async function seedIllustrative(
   console.log(`   + ${APPS.length} illustrative systems`);
 }
 
-// ─── Deep levels: initiatives, people, assignments, tasks, metrics, risks ──
-
-const FIRST = ['Alex', 'Priya', 'Wei', 'Maria', 'James', 'Aisha', 'Diego', 'Yuki', 'Omar', 'Sofia', 'Liam', 'Nina', 'Raj', 'Elena', 'Kwame', 'Hana', 'Tomas', 'Ivy', 'Noah', 'Zara', 'Mateo', 'Lena', 'Arjun', 'Mei', 'Caleb', 'Fatima', 'Pavel', 'Grace'];
-const LAST = ['Chen', 'Patel', 'Garcia', 'Smith', 'Okoro', 'Kim', 'Nguyen', 'Singh', 'Rossi', 'Haddad', 'Muller', 'Silva', 'Khan', 'Ivanova', 'Mensah', 'Sato', 'Costa', 'Brown', 'Lee', 'Ali', 'Novak', 'Reyes', 'Dubois', 'Yilmaz', 'Walsh', 'Park', 'Adeyemi', 'Cohen'];
-const VENDORS = ['Infosys', 'TCS', 'Accenture', 'Cognizant', 'Capgemini', 'Wipro'];
-const OFFSHORE_LOC = ['Bengaluru, IN', 'Pune, IN', 'Hyderabad, IN', 'Manila, PH'];
-const NEARSHORE_LOC = ['Krakow, PL', 'Lisbon, PT', 'San Jose, CR'];
-const ONSHORE_LOC = ['London, UK', 'New York, US', 'Chicago, US', 'Toronto, CA'];
-const PERIODS = ['2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05'];
-const CONTRACTOR_HEAVY = ['technology', 'data', 'claims', 'cybersecurity'];
+// ─── Deep levels: initiatives, risks ────────────────────────────────────────
 
 const INITIATIVES = [
   { code: 'CLM-TX', name: 'Claims Transformation', stage: 'Build', health: 'Amber', budget: 14_000_000, vs: ['Claims'], div: ['Claims'] },
@@ -127,64 +118,28 @@ const INITIATIVES = [
   { code: 'DIST-SS', name: 'Distribution Self-Service', stage: 'Discovery', health: 'Green', budget: 3_600_000, vs: ['Distribution', 'Customer Service'], div: ['Sales'] },
 ];
 
-// Most-used-app pools for the person drill ("Most used apps"). Tech vs business
-// roles draw from different mixes. ILLUSTRATIVE: the workbook has no app telemetry.
-const TECH_APPS = [
-  { appName: 'VS Code', category: 'IDE' },
-  { appName: 'IntelliJ IDEA', category: 'IDE' },
-  { appName: 'GitHub', category: 'IDE' },
-  { appName: 'Microsoft Teams', category: 'Comms' },
-  { appName: 'Jira', category: 'Productivity' },
-  { appName: 'Snowflake', category: 'Analytics' },
-  { appName: 'Azure Portal', category: 'Domain' },
-];
-const BIZ_APPS = [
-  { appName: 'Outlook', category: 'Comms' },
-  { appName: 'Microsoft Teams', category: 'Comms' },
-  { appName: 'Excel', category: 'Productivity' },
-  { appName: 'Power BI', category: 'Analytics' },
-  { appName: 'Guidewire', category: 'Domain' },
-  { appName: 'ServiceNow', category: 'Domain' },
-  { appName: 'Salesforce', category: 'Domain' },
-];
-const APP_WEIGHTS = [40, 28, 20, 12]; // descending share of active time, sums to 100
-
 const pickFrom = <T>(seed: number, arr: T[]): T => arr[seed % arr.length];
-async function chunked<T>(rows: T[], fn: (c: T[]) => Promise<unknown>, size = 1000) {
-  for (let i = 0; i < rows.length; i += size) await fn(rows.slice(i, i + size));
-}
 
 export async function seedDeepLevels(prisma: PrismaClient, ctx: { tenantId: string; companyId: string; clear?: boolean }) {
   const { tenantId, companyId, clear = true } = ctx;
 
-  // Idempotent rebuild: clear this company's deep levels first. Deleting people
-  // cascades to assignments, person-tasks, person-metrics, signals and app-usage;
-  // deleting initiatives cascades to value-stream/division links. Harmless no-op
+  // Idempotent rebuild: clear this company's deep levels first. Deleting
+  // initiatives cascades to value-stream/division links. Harmless no-op
   // during a full re-seed (the company was just recreated, so these are empty).
   // Pass clear:false to run as a purely additive fill onto empty tables.
   if (clear) {
-    await prisma.person.deleteMany({ where: { companyId } });
     await prisma.risk.deleteMany({ where: { companyId } });
     await prisma.initiative.deleteMany({ where: { companyId } });
   }
 
-  const [divisions, roles, valueStreams, roleTaskRows] = await Promise.all([
+  const [divisions, roles, valueStreams] = await Promise.all([
     prisma.division.findMany({ where: { companyId }, select: { id: true, name: true } }),
     prisma.role.findMany({ where: { companyId }, select: { id: true, name: true, roleFamily: true, divisionId: true } }),
     prisma.valueStream.findMany({ where: { companyId }, select: { id: true, name: true } }),
-    prisma.roleTask.findMany({ where: { role: { companyId } }, select: { roleId: true, text: true } }),
   ]);
-  const divName = new Map(divisions.map((d) => [d.id, d.name] as const));
-  const tasksByRole = new Map<string, string[]>();
-  for (const rt of roleTaskRows) {
-    const a = tasksByRole.get(rt.roleId) ?? [];
-    if (a.length < 8) a.push(rt.text);
-    tasksByRole.set(rt.roleId, a);
-  }
 
   // Initiatives + value-stream/division links.
   const initRows: any[] = [], ivsRows: any[] = [], idivRows: any[] = [];
-  const initIdByDiv = new Map<string, string>();
   for (const ini of INITIATIVES) {
     const id = `init_${ini.code}`;
     const matchDivs = divisions.filter((d) => ini.div.some((s) => d.name.toLowerCase().includes(s.toLowerCase())));
@@ -193,83 +148,11 @@ export async function seedDeepLevels(prisma: PrismaClient, ctx: { tenantId: stri
     const sponsor = home && (roles.find((r) => r.divisionId === home.id && /chief|head|director/i.test(r.name)) ?? roles.find((r) => r.divisionId === home.id));
     initRows.push({ id, tenantId, companyId, name: ini.name, code: ini.code, status: 'In Progress', stage: ini.stage, health: ini.health, budget: ini.budget, sponsorRoleId: sponsor?.id ?? null, illustrative: true });
     for (const v of matchVs) ivsRows.push({ tenantId, initiativeId: id, valueStreamId: v.id, impactType: 'Transforms', illustrative: true });
-    for (const d of matchDivs) { idivRows.push({ tenantId, initiativeId: id, divisionId: d.id, role: 'Sponsoring', illustrative: true }); initIdByDiv.set(d.id, id); }
+    for (const d of matchDivs) idivRows.push({ tenantId, initiativeId: id, divisionId: d.id, role: 'Sponsoring', illustrative: true });
   }
   await prisma.initiative.createMany({ data: initRows });
   await prisma.initiativeValueStream.createMany({ data: ivsRows, skipDuplicates: true });
   await prisma.initiativeDivision.createMany({ data: idivRows, skipDuplicates: true });
-
-  // People + assignments + tasks + metrics + productivity signals + app usage.
-  const people: any[] = [], assignments: any[] = [], tasks: any[] = [], metrics: any[] = [];
-  const signals: any[] = [], appUsage: any[] = [];
-  const GENERIC = ['Refine backlog item', 'Implement feature', 'Peer code review', 'Resolve defects', 'Update runbook', 'Prepare release notes'];
-  for (const role of roles) {
-    const dName = role.divisionId ? divName.get(role.divisionId) ?? '' : '';
-    const heavy = CONTRACTOR_HEAVY.some((s) => dName.toLowerCase().includes(s));
-    const isUIDev = /ui developer/i.test(role.name);
-    const count = 2 + (hash(role.name) % 3);
-    for (let i = 0; i < count; i++) {
-      const pid = `per_${role.id}_${i}`;
-      const h = hash(`${role.id}:${i}`);
-      const name = `${pickFrom(h, FIRST)} ${pickFrom(h >> 5, LAST)}`;
-      let employmentType = (h % 100) < (heavy ? 65 : 15) ? (h % 7 === 0 ? 'si_partner' : 'contractor') : 'badged';
-      // Region mix reflects a typical offshore-led delivery model: ~60% Offshore,
-      // ~10% Nearshore, ~30% Onshore (i.e. ~70% off/near-shore). Applies to badged
-      // and non-badged staff alike, with location following region.
-      const r = h % 100;
-      let region = r < 60 ? 'Offshore' : r < 70 ? 'Nearshore' : 'Onshore';
-      let vendor: string | null = employmentType !== 'badged' ? pickFrom(h >> 3, VENDORS) : null;
-      let location = region === 'Offshore' ? pickFrom(h >> 7, OFFSHORE_LOC) : region === 'Nearshore' ? pickFrom(h >> 7, NEARSHORE_LOC) : pickFrom(h >> 7, ONSHORE_LOC);
-      if (isUIDev && i === 0) { employmentType = 'contractor'; region = 'Offshore'; vendor = pickFrom(h, VENDORS); location = pickFrom(h, OFFSHORE_LOC); }
-      people.push({ id: pid, tenantId, companyId, name, email: `${name.replace(/[^a-z]+/gi, '.').toLowerCase()}@example.com`, employmentType, vendor, location, region, title: role.name, illustrative: true });
-
-      let initiativeId: string | null = role.divisionId && (h % 100) < 30 ? initIdByDiv.get(role.divisionId) ?? null : null;
-      if (isUIDev && i === 0) initiativeId = 'init_CLM-TX';
-      assignments.push({ id: `asg_${pid}`, tenantId, personId: pid, roleId: role.id, initiativeId, employmentType, allocationPct: 50 + (h % 51), isPrimary: true, illustrative: true });
-
-      const roleTexts = tasksByRole.get(role.id) ?? [];
-      const tcount = 3 + (h % 4);
-      for (let t = 0; t < tcount; t++) {
-        const th = hash(`${pid}:t${t}`);
-        const title = (roleTexts.length ? roleTexts[th % roleTexts.length] : GENERIC[th % GENERIC.length]).slice(0, 140);
-        tasks.push({ tenantId, personId: pid, title, status: pickFrom(th, ['In Progress', 'In Progress', 'Done', 'Done', 'To Do', 'Blocked']), priority: pickFrom(th >> 3, ['High', 'Medium', 'Medium', 'Low']), illustrative: true });
-      }
-      const tech = /engineer|developer|data|devops|architect|analyst|scientist|sre|platform/i.test(role.name);
-      for (const period of PERIODS) {
-        const mh = hash(`${pid}:${period}`);
-        const mp = (lo: number, hi: number, salt: number) => lo + (((mh >> (salt % 20)) % 1000) / 1000) * (hi - lo);
-        metrics.push(
-          { tenantId, personId: pid, period, name: 'Throughput', value: Math.round(mp(8, 40, 1)), unit: '/mo', target: null, direction: 'up', illustrative: true },
-          { tenantId, personId: pid, period, name: 'Quality', value: Math.round(mp(80, 99, 5)), unit: '%', target: 95, direction: 'up', illustrative: true },
-          { tenantId, personId: pid, period, name: 'Utilization', value: Math.round(mp(60, 98, 9)), unit: '%', target: 85, direction: 'up', illustrative: true },
-          { tenantId, personId: pid, period, name: 'Cycle time', value: Math.round(mp(2, 15, 13) * 10) / 10, unit: 'days', target: 5, direction: 'down', illustrative: true },
-        );
-        // Digital-productivity signals (monthly time-series, read by the person drill).
-        const sh = hash(`${pid}:sig:${period}`);
-        const sp = (lo: number, hi: number, salt: number) => Math.round((lo + (((sh >> (salt % 20)) % 1000) / 1000) * (hi - lo)) * 10) / 10;
-        signals.push(
-          { tenantId, personId: pid, period, name: 'Time online', value: sp(6, 9.5, 1), unit: 'hrs/day', illustrative: true },
-          { tenantId, personId: pid, period, name: 'GitHub activity', value: tech ? sp(8, 60, 3) : sp(0, 6, 3), unit: 'commits/mo', illustrative: true },
-          { tenantId, personId: pid, period, name: 'Team messages', value: sp(20, 140, 5), unit: 'msgs/wk', illustrative: true },
-          { tenantId, personId: pid, period, name: 'Focus hours', value: sp(8, 26, 7), unit: 'hrs/wk', illustrative: true },
-          { tenantId, personId: pid, period, name: 'Meetings', value: sp(3, 22, 9), unit: 'hrs/wk', illustrative: true },
-        );
-      }
-      // Most-used apps: a deterministic, role-appropriate ranked top-4 mix.
-      const pool = tech ? TECH_APPS : BIZ_APPS;
-      const start = hash(`${pid}:apps`) % pool.length;
-      const ordered = [...pool.slice(start), ...pool.slice(0, start)].slice(0, APP_WEIGHTS.length);
-      ordered.forEach((app, idx) => {
-        appUsage.push({ tenantId, personId: pid, appName: app.appName, category: app.category, usagePct: APP_WEIGHTS[idx], rank: idx + 1, illustrative: true });
-      });
-    }
-  }
-  await prisma.person.createMany({ data: people });
-  await prisma.assignment.createMany({ data: assignments });
-  await chunked(tasks, (c) => prisma.personTask.createMany({ data: c }));
-  await chunked(metrics, (c) => prisma.personMetric.createMany({ data: c }));
-  await chunked(signals, (c) => prisma.personSignal.createMany({ data: c }));
-  await chunked(appUsage, (c) => prisma.personAppUsage.createMany({ data: c }));
 
   // Risks: per initiative + a few per value stream.
   const SEV = ['Critical', 'High', 'Medium', 'Low'], STATUS = ['Open', 'Mitigating', 'Accepted', 'Open'];
@@ -289,7 +172,7 @@ export async function seedDeepLevels(prisma: PrismaClient, ctx: { tenantId: stri
   }
   await prisma.risk.createMany({ data: risks });
 
-  console.log(`   + ${initRows.length} initiatives, ${people.length} people, ${assignments.length} assignments, ${tasks.length} tasks, ${metrics.length} person-metrics, ${signals.length} signals, ${appUsage.length} app-usage, ${risks.length} risks`);
+  console.log(`   + ${initRows.length} initiatives, ${risks.length} risks`);
 }
 
 // ─── Real Application TCO records (from v15 Application TCO sheet) ─────────

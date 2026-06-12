@@ -13,13 +13,13 @@ import type { AdminEntity } from '../lib/adminTypes';
 const TAB_SHORT: Record<string, string> = {
   company: 'CO', home: 'HM', valueStreams: 'VS', organization: 'OR', standards: 'ST',
   regulations: 'RG', telemetry: 'ME', initiatives: 'WS', work: 'DT', applications: 'AP',
-  people: 'PE', external: 'EX', health: 'DH',
+  external: 'EX', health: 'DH',
 };
 
 // ─── Data Admin Studio ───────────────────────────────────────────────────────
 // One console to configure every tab of the product. The left nav mirrors the
 // app's own navigation (Company onboarding, Home, Value Streams, Organization,
-// Standards, Metrics, Workspace, Deliverables & Tasks, People, Regulations,
+// Standards, Metrics, Workspace, Deliverables & Tasks, Regulations,
 // Third-Parties, Data Health). Each tab renders a tailored editor for its data
 // shape (drill-down trees, master-detail, or flat lists) — defined in
 // lib/adminConfig.ts; the app speaks the domain, never raw database tables.

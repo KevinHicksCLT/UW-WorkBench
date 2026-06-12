@@ -52,7 +52,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     });
     if (!role) return res.status(404).json({ error: 'Not found' });
 
-    const [items, tasks, assignments, ioItemRows, stepRows] = await Promise.all([
+    const [items, tasks, ioItemRows, stepRows] = await Promise.all([
       prisma.checklistItem.findMany({
         where: { roleId: role.id },
         select: { text: true, category: { select: { name: true } } },
@@ -62,13 +62,6 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         where: { roleId: role.id },
         select: { text: true, category: { select: { name: true } } },
         orderBy: { id: 'asc' },
-      }),
-      // Users in the role (illustrative; hydrated later). Carries allocation so
-      // the role drill-down can show who sits in the role.
-      prisma.assignment.findMany({
-        where: { roleId: role.id },
-        orderBy: { person: { name: 'asc' } },
-        select: { allocationPct: true, isPrimary: true, person: { select: { id: true, name: true, title: true, region: true, employmentType: true, vendor: true, illustrative: true } } },
       }),
       // Lowest-level I/O inventory (one row per input/deliverable at the L4
       // sub-process grain) tied to roles only by the free-text `keyRoles` column.
@@ -131,7 +124,6 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         inputs: l.inputs,
         outputs: l.outputs,
       })),
-      people: assignments.map((a) => ({ ...a.person, allocationPct: a.allocationPct, isPrimary: a.isPrimary })),
       // Checklist + role-task rows are ~identical; merge + de-dupe into one list.
       responsibilities: groupByCategory([...items, ...tasks]),
     });

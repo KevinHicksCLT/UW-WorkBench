@@ -3,11 +3,11 @@ import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import Anthropic from '@anthropic-ai/sdk';
 import { requireAuth } from '../middleware/auth.js';
-import { runReadOnlySql, type SqlResult } from '../services/chatDb.js';
+import { runReadOnlySql, SCHEMA, type SqlResult } from '../services/chatDb.js';
 import { getSchemaSummary } from '../services/chatSchema.js';
 
 // AI assistant API. The user asks a question; Claude answers by writing and
-// running read-only SQL against the operating_model schema (via the run_sql
+// running read-only SQL against the app's database (via the run_sql
 // tool) to ground itself in real data, but it is also free to reason, make
 // clearly-labelled assumptions, and — when asked — pull in outside knowledge via
 // web search. It replies in rich Markdown (tables, charts). Every query is forced
@@ -36,9 +36,10 @@ function anthropic(): Anthropic {
 const RUN_SQL_TOOL: Anthropic.Tool = {
   name: 'run_sql',
   description:
-    'Run a single read-only Postgres SELECT against the operating_model schema and get the rows back. ' +
-    'Use it for every factual question — never guess at data. The search_path is already operating_model, ' +
-    'so reference tables unqualified (e.g. FROM role). Always include a LIMIT (max 500). ' +
+    `Run a single read-only Postgres SELECT against the ${SCHEMA} schema and get the rows back. ` +
+    `Use it for every factual question — never guess at data. The search_path is already ${SCHEMA}, ` +
+    'so reference tables unqualified, but mixed-case table names must be double-quoted exactly as listed ' +
+    '(e.g. FROM "Role"). Always include a LIMIT (max 500). ' +
     'Only SELECT/WITH is allowed; any write is rejected. Prefer joining on the documented foreign keys.',
   input_schema: {
     type: 'object',
@@ -57,23 +58,36 @@ function buildSystemPrompt(schema: string): string {
     '',
     `Today is ${today}.`,
     '',
-    'Grounding & reasoning:',
-    '- The operating-model data is your source of truth for facts ABOUT this company. For any question that',
-    '  the data can answer (counts, names, rankings, relationships), call run_sql and use the real numbers —',
-    '  never fabricate a value that lives in the database.',
-    '- But you are NOT limited to the database. You may reason, interpret, draw conclusions, and offer',
-    '  recommendations, frameworks, benchmarks, and industry context from your own expertise.',
-    '- When a question goes beyond the stored data, answer it anyway using sound reasoning. State your',
-    '  assumptions explicitly (e.g. "Assuming X…") and clearly separate what the data shows from what you',
-    '  are inferring or estimating.',
-    '- If the user asks you to research something, or the question needs current/outside information not in',
-    '  the database, use the web_search tool, then cite what you found.',
-    '- Combine sources freely: ground the facts in SQL, enrich the analysis with reasoning and research.',
+    'Grounding — the database comes FIRST, always:',
+    '- This company\'s database is your single source of truth. Treat EVERY question as being about THIS',
+    '  company\'s data unless it is unmistakably a general-knowledge question. Your FIRST action for any',
+    '  question is to call run_sql and look — never answer from memory or general knowledge when the data',
+    '  could hold the answer, and never fabricate or estimate a value that lives in the database.',
+    '- If you are unsure whether the data covers a topic, CHECK: search likely tables and text columns',
+    '  (ILIKE) before concluding it is not in the data. Only say "the data doesn\'t cover this" after',
+    '  actually querying for it.',
+    '- Answer with the app\'s specific records — real names, counts, and rows from the queries — not with',
+    '  generic industry descriptions of what such data typically looks like.',
+    '- Reasoning, recommendations, benchmarks, and industry context are welcome ON TOP of the queried data,',
+    '  clearly separated from it (e.g. "The data shows X; in my assessment Y…"). They never replace it.',
+    '- Use web_search only when the user explicitly asks for outside research, or the question clearly needs',
+    '  current external information the database cannot hold — and even then, query the database first so',
+    '  the answer stays anchored to this company\'s records. Cite what you found.',
+    '',
+    'Domain semantics — how users phrase questions about this data:',
+    '- "Standards" means the INDIVIDUAL standard/guideline items ("StandardItem" rows) — each one is',
+    '  effectively a single validation that must be tested — NOT the "Standard" documents/areas that group',
+    '  them. "How many actuarial standards are there?" → count the "StandardItem" rows of the matching',
+    '  "Standard" (match its name/department with ILIKE) and, when the list is reasonably short, list them.',
+    '  Mention the parent document only as context, never as the headline answer.',
+    '- Likewise "checklists" usually means the individual "ChecklistItem" rows, not their categories.',
     '',
     'SQL rules:',
     '- Keep SQL read-only (SELECT/WITH only) and always add a LIMIT (<= 500).',
-    '- The search_path is operating_model, so reference tables unqualified (e.g. FROM role).',
-    '- Text columns often hold free-text lists (e.g. typical_inputs); use ILIKE / pattern matching when helpful.',
+    `- The search_path is ${SCHEMA}, so reference tables unqualified — but mixed-case table names must be`,
+    '  double-quoted exactly as listed in the schema (e.g. FROM "Role", JOIN "ChecklistItem").',
+    '- Text columns often hold free-text "; "-joined lists (e.g. "IoItem"."keyRoles", "ProcessStep".leads);',
+    '  use ILIKE / pattern matching when helpful. Mixed-case column names also need double quotes.',
     '- If a query errors, read the message, fix the SQL, and retry. Only name source tables if the user asks how you know.',
     '',
     'Formatting — clean, minimal, executive style. Aim for a sharp consulting memo, NOT a decorated report:',
@@ -89,7 +103,7 @@ function buildSystemPrompt(schema: string): string {
     '  Do not repeat the same numbers in both a chart AND a table — pick the single clearest representation.',
     '- Default to brevity. A good answer is often three sentences and one table or chart, nothing more.',
     '',
-    `Database is Postgres. The schema (search_path = operating_model) is:`,
+    `Database is Postgres. The schema (search_path = ${SCHEMA}) is:`,
     schema,
   ].join('\n');
 }

@@ -26,10 +26,10 @@ import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } fro
 
 // ── Org-table payload (same shapes as pages/OrgTable.tsx) ────────────────────
 
-type RoleLite = { id: string; name: string; roleLevel: string | null; roleFamily: string | null; peopleCount: number; valueStreamCount: number };
-type Dept = { id: string; name: string; roles: RoleLite[]; roleCount: number; peopleCount: number };
-type Division = { id: string; name: string; segment: string; departments: Dept[]; looseRoles: RoleLite[]; roleCount: number; peopleCount: number };
-type Segment = { name: string; divisions: Division[]; divisionCount: number; roleCount: number; peopleCount: number };
+type RoleLite = { id: string; name: string; roleLevel: string | null; roleFamily: string | null; valueStreamCount: number };
+type Dept = { id: string; name: string; roles: RoleLite[]; roleCount: number };
+type Division = { id: string; name: string; segment: string; departments: Dept[]; looseRoles: RoleLite[]; roleCount: number };
+type Segment = { name: string; divisions: Division[]; divisionCount: number; roleCount: number };
 type OrgData = { company: { id: string; name: string }; totals: Record<string, number>; segments: Segment[] };
 
 const LOOSE = '__loose'; // sentinel "team" for roles reporting directly to a division
@@ -102,7 +102,7 @@ type OrgCompanyData = { name: string; focusState?: NodeFocusState };
 type OrgSegmentData = { name: string; divisionCount: number; focusState?: NodeFocusState; pieceIndex?: number };
 type OrgDivisionData = { name: string; segment: string; teamCount: number; roleCount: number; focusState?: NodeFocusState; pieceIndex?: number };
 type OrgDeptData = { name: string; roleCount: number; focusState?: NodeFocusState; pieceIndex?: number };
-type OrgRoleData = { name: string; peopleCount: number; focusState?: NodeFocusState; pieceIndex?: number };
+type OrgRoleData = { name: string; focusState?: NodeFocusState; pieceIndex?: number };
 
 const delayStyle = (i?: number) => (i != null ? { animationDelay: `${i * 40}ms` } : undefined);
 
@@ -217,7 +217,6 @@ const OrgRoleNode = memo(function OrgRoleNode({ data }: NodeProps) {
       <div style={{ fontSize: 11.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.3, ...CLAMP2 }}>
         {sentenceCase(d.name)}
       </div>
-      <CountChip text={`${d.peopleCount} ${d.peopleCount === 1 ? 'person' : 'people'} ›`} />
       <VHandles />
     </div>
   );
@@ -270,7 +269,7 @@ function OrgMapCanvasInner({ data, breadcrumbSlot }: Props & { data: OrgData }) 
   // Right-hand metrics panel — the SAME MetricsSidebar (and dashboards) the org
   // LIST view opens, so both views stay in sync: drilling a segment/division/
   // team here shows exactly what clicking that row in the list shows. `base` =
-  // the node clicked on the map; `ovStack` = in-panel drills (role → person).
+  // the node clicked on the map; `ovStack` = in-panel drills (e.g. role).
   const [base, setBase] = useState<{ level: string; id: string } | null>(null);
   const [ovStack, setOvStack] = useState<{ level: string; id: string }[]>([]);
   const [dash, setDash] = useState<Dashboard | null>(null);
@@ -483,7 +482,7 @@ function OrgMapCanvasInner({ data, breadcrumbSlot }: Props & { data: OrgData }) 
         id,
         type: 'orgRole',
         position: rolePos[i],
-        data: { name: r.name, peopleCount: r.peopleCount, focusState: 'neutral', pieceIndex: i } satisfies OrgRoleData,
+        data: { name: r.name, focusState: 'neutral', pieceIndex: i } satisfies OrgRoleData,
         draggable: false,
       });
       es.push({

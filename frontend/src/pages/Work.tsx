@@ -6,7 +6,8 @@ import PageHeader from '../components/PageHeader';
 import { withCompany } from '../lib/portfolio';
 import { Sheet, SheetCell, type SheetCol } from '../components/Sheet';
 
-// Deliverables & Tasks — the standalone work tracker, split into two tabs:
+// Deliverables / Tasks — the standalone work tracker, now two top-level tabs
+// (/deliverables and /tasks) rendering this same page with a `tab` prop:
 // Deliverables (one row per deliverable) and Tasks (one row per task), each in
 // the canonical Sheet format (see components/Sheet.tsx). Clicking a row opens
 // the right-hand drill-down sidebar — roles, value stream, downstream impact.
@@ -223,12 +224,11 @@ function DetailBody({ detail }: { detail: Detail }) {
 
 const DASH = '—';
 
-export default function Work() {
+export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
   const { companyId, loading: companyLoading } = useCompany();
   const [data, setData] = useState<WorkData>({ deliverables: [], tasks: [], valueStreams: [] });
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState<Detail | null>(null);
-  const [tab, setTab] = useState<'deliverables' | 'tasks'>('deliverables');
 
   useEffect(() => {
     if (companyLoading) return;
@@ -274,23 +274,11 @@ export default function Work() {
 
   return (
     <div>
-      <PageHeader title="Deliverables & Tasks" subtitle="Track tangible outputs and the work driving them across the company" />
-
-      {/* ── Tab switcher — carries the counts so no tile row is needed ── */}
-      <div className="border-b border-[#eaeaea] mb-3 flex items-center gap-1">
-        {([['deliverables', `Deliverables (${deliverables.length})`], ['tasks', `Tasks (${tasks.length})`]] as const).map(([v, label]) => (
-          <button
-            key={v}
-            onClick={() => setTab(v)}
-            className={
-              'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors duration-150 ' +
-              (tab === v ? 'border-[#171717] text-[#171717]' : 'border-transparent text-[#666666] hover:text-[#171717]')
-            }
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      {tab === 'deliverables' ? (
+        <PageHeader title={`Deliverables (${deliverables.length})`} subtitle="Track tangible outputs across the company" />
+      ) : (
+        <PageHeader title={`Tasks (${tasks.length})`} subtitle="Track the work driving deliverables across the company" />
+      )}
 
       {tab === 'deliverables' ? (
         <Sheet

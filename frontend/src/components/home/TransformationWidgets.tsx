@@ -5,8 +5,8 @@ import { StatusPill, SeverityCell, makeTimelineScale, TimelineGrid, TimelineAxis
 
 // ─── Transformation command-center widgets (Home, D1) ────────────────────────
 // The widget BODIES for the Home dashboard's transformation widgets — the
-// programs→initiatives rollup, the Gantt timeline, OKRs, risks/RAID and the
-// Viva-style workforce signals. The catalog in lib/dashboardWidgets wraps each
+// programs→initiatives rollup, the Gantt timeline and risks/RAID.
+// The catalog in lib/dashboardWidgets wraps each
 // of these in its Card and feeds it the `transformation` slice of the
 // GET /dashboard payload. The drill-down targets (/programs/:id,
 // /initiatives/:id, /raid) live under Home too — clicking through never
@@ -24,16 +24,19 @@ export type HomeProgram = {
   pctComplete: number; netBenefit: number;
   initiatives: HomeInitiative[];
   milestones: HomeMilestone[];
+  raidOpen?: Record<string, number>; // open RAID counts by type (optional: older payloads)
 };
 export type TransformationData = {
   programs: HomeProgram[];
-  okrs: { id: string; name: string; weight: number; achievement: number; initiatives: number }[];
-  workforceSignals: { period: string | null; signals: { name: string; unit: string; value: number; people: number }[] };
   topRisks: { id: string; title: string; severity: number; status: string; initiativeId: string; initiativeName: string }[];
   raidOpen: Record<string, number>;
 };
 
-const STATUS_COLOR: Record<string, string> = { ON_TRACK: '#4f46e5', AT_RISK: '#d97706', OFF_TRACK: '#dc2626' };
+// One color per program (health stays on the StatusPill): the same palette
+// keys a program's timeline lane, its % complete bar, and every child
+// initiative's bar — children always match their parent. Cycles past 6.
+const PROGRAM_PALETTE = ['#4f46e5', '#0d9488', '#9333ea', '#0284c7', '#db2777', '#ea580c'];
+const programColor = (idx: number) => PROGRAM_PALETTE[idx % PROGRAM_PALETTE.length];
 
 function ProgressBar({ pct, color = '#4f46e5' }: { pct: number; color?: string }) {
   return (
@@ -63,8 +66,8 @@ export function PortfolioRollup({ t }: { t: TransformationData }) {
           </tr>
         </thead>
         <tbody>
-          {t.programs.map((p) => (
-            <PortfolioRow key={p.id} p={p} open={!!open[p.id]} onToggle={() => setOpen((o) => ({ ...o, [p.id]: !o[p.id] }))} />
+          {t.programs.map((p, idx) => (
+            <PortfolioRow key={p.id} p={p} color={programColor(idx)} open={!!open[p.id]} onToggle={() => setOpen((o) => ({ ...o, [p.id]: !o[p.id] }))} />
           ))}
         </tbody>
       </table>
@@ -72,7 +75,7 @@ export function PortfolioRollup({ t }: { t: TransformationData }) {
   );
 }
 
-function PortfolioRow({ p, open, onToggle }: { p: HomeProgram; open: boolean; onToggle: () => void }) {
+function PortfolioRow({ p, color, open, onToggle }: { p: HomeProgram; color: string; open: boolean; onToggle: () => void }) {
   return (
     <>
       <tr className="border-b border-[#f5f5f5] hover:bg-[#fafafa] transition-colors duration-150">
@@ -87,7 +90,7 @@ function PortfolioRow({ p, open, onToggle }: { p: HomeProgram; open: boolean; on
           </span>
         </td>
         <td className="py-2.5"><StatusPill status={p.computedStatus} /></td>
-        <td className="py-2.5 pr-4"><ProgressBar pct={p.pctComplete} color={STATUS_COLOR[p.computedStatus] ?? '#4f46e5'} /></td>
+        <td className="py-2.5 pr-4"><ProgressBar pct={p.pctComplete} color={color} /></td>
         <td className="py-2.5 text-right tnum">{p.initiatives.length}</td>
         <td className={'py-2.5 text-right tnum ' + (p.netBenefit < 0 ? 'text-[#be123c]' : 'text-[#171717]')}>{fmt.currency(p.netBenefit, { compact: true })}</td>
       </tr>
@@ -98,7 +101,7 @@ function PortfolioRow({ p, open, onToggle }: { p: HomeProgram; open: boolean; on
             <span className="ml-2 text-[10px] uppercase tracking-[0.06em] text-[#a3a3a3]">{i.stage.charAt(0) + i.stage.slice(1).toLowerCase()}</span>
           </td>
           <td className="py-2"><StatusPill status={i.status} /></td>
-          <td className="py-2 pr-4"><ProgressBar pct={i.pctComplete} color={STATUS_COLOR[i.status] ?? '#4f46e5'} /></td>
+          <td className="py-2 pr-4"><ProgressBar pct={i.pctComplete} color={color} /></td>
           <td className="py-2" />
           <td className={'py-2 text-right tnum text-xs ' + (i.netBenefit < 0 ? 'text-[#be123c]' : 'text-[#525252]')}>{fmt.currency(i.netBenefit, { compact: true })}</td>
         </tr>
@@ -143,10 +146,10 @@ export function ProgramGantt({ t }: { t: TransformationData }) {
           {showToday && (
             <div className="absolute top-0 bottom-0 w-px bg-[#be123c] z-10" style={{ left: `${scale.pct(new Date(now))}%` }} title="Today" />
           )}
-          {t.programs.map((p) => {
+          {t.programs.map((p, idx) => {
             const left = scale.pct(p.startDate);
             const width = Math.max(1.5, scale.pct(p.endDate) - left);
-            const color = STATUS_COLOR[p.computedStatus] ?? '#4f46e5';
+            const color = programColor(idx);
             return (
               <div key={p.id} className="h-11 relative">
                 <div
@@ -172,31 +175,13 @@ export function ProgramGantt({ t }: { t: TransformationData }) {
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-[10px] text-[#a3a3a3]">
         <span className="flex items-center gap-1.5">
           <span className="w-5 h-2 rounded-full inline-block overflow-hidden bg-[#4f46e5]/15"><span className="block h-full w-1/2 rounded-full bg-[#4f46e5]" /></span>
-          Program (fill = % complete)
+          Program (fill = % complete, one color per program)
         </span>
         <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rotate-45 bg-[#171717] inline-block" /> Milestone</span>
         <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rotate-45 bg-[#047857] inline-block" /> Done</span>
         <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rotate-45 bg-[#dc2626] inline-block" /> Missed</span>
         <span className="flex items-center gap-1.5"><span className="w-px h-3 bg-[#be123c] inline-block" /> Today</span>
       </div>
-    </div>
-  );
-}
-
-// ── Objectives & key results: achievement bars ───────────────────────────────
-export function OkrList({ t }: { t: TransformationData }) {
-  if (t.okrs.length === 0) return <div className="text-sm text-[#a3a3a3]">No strategic objectives yet.</div>;
-  return (
-    <div className="space-y-2.5">
-      {t.okrs.map((o) => (
-        <div key={o.id}>
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <span className="text-xs text-[#525252] truncate">{o.name}</span>
-            <span className="text-[10px] text-[#a3a3a3] flex-shrink-0 tnum">w{o.weight} · {o.initiatives} init.</span>
-          </div>
-          <ProgressBar pct={o.achievement} color={o.achievement >= 60 ? '#047857' : o.achievement >= 30 ? '#4f46e5' : '#d97706'} />
-        </div>
-      ))}
     </div>
   );
 }
@@ -230,48 +215,54 @@ const RAID_TYPES = [
   { type: 'DECISION', label: 'Decisions', color: '#047857', bg: '#ecfdf5', border: '#a7f3d0' },
 ] as const;
 
+// One count tile (Risks / Issues / Assumptions / Decisions) — shared by the
+// portfolio-wide RaidSummary and the per-program RaidByProgram boxes. Zero
+// counts render muted so hotspots stand out.
+function RaidTile({ rt, n, to }: { rt: (typeof RAID_TYPES)[number]; n: number; to: string }) {
+  const live = n > 0;
+  return (
+    <Link
+      to={to}
+      className="rounded-md border p-3 transition-shadow duration-150 hover:shadow-sm"
+      style={{ borderColor: live ? rt.border : '#eeeeee', backgroundColor: live ? rt.bg : '#fafafa' }}
+    >
+      <div className="text-[10px] font-semibold uppercase tracking-[0.08em]" style={{ color: live ? rt.color : '#a3a3a3' }}>{rt.label}</div>
+      <div className="text-xl font-semibold tnum" style={{ color: live ? rt.color : '#171717' }}>{n}</div>
+      <div className="text-[10px] text-[#a3a3a3] mt-0.5">open</div>
+    </Link>
+  );
+}
+
 export function RaidSummary({ t }: { t: TransformationData }) {
   return (
-    <div className="grid grid-cols-2 gap-3">
-      {RAID_TYPES.map(({ type, label, color, bg, border }) => {
-        const n = t.raidOpen[type] ?? 0;
-        const live = n > 0;
-        return (
-          <Link
-            key={type}
-            to={`/raid?type=${type}`}
-            className="rounded-md border p-3 transition-shadow duration-150 hover:shadow-sm"
-            style={{ borderColor: live ? border : '#eeeeee', backgroundColor: live ? bg : '#fafafa' }}
-          >
-            <div className="text-[10px] font-semibold uppercase tracking-[0.08em]" style={{ color: live ? color : '#a3a3a3' }}>{label}</div>
-            <div className="text-xl font-semibold tnum" style={{ color: live ? color : '#171717' }}>{n}</div>
-            <div className="text-[10px] text-[#a3a3a3] mt-0.5">open</div>
-          </Link>
-        );
-      })}
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {RAID_TYPES.map((rt) => (
+        <RaidTile key={rt.type} rt={rt} n={t.raidOpen[rt.type] ?? 0} to={`/raid?type=${rt.type}`} />
+      ))}
     </div>
   );
 }
 
-// ── Workforce signals: Viva-style company-wide averages ─────────────────────
-export function WorkforceSignals({ t }: { t: TransformationData }) {
-  const ws = t.workforceSignals;
-  if (!ws.period || ws.signals.length === 0) return <div className="text-sm text-[#a3a3a3]">No workforce signals yet.</div>;
+// ── RAID by program: one RAID-log box (the same 4-tile grid) per program ────
+// The program name and every tile deep-link to that program's RAID tab; tiles
+// also preset the type filter there.
+export function RaidByProgram({ t }: { t: TransformationData }) {
+  if (t.programs.length === 0) return <div className="text-sm text-[#a3a3a3]">No programs yet.</div>;
   return (
-    <div>
-      <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-        {ws.signals.map((s) => (
-          <div key={s.name}>
-            <div className="text-lg font-semibold text-[#171717] tnum">
-              {fmt.number(s.value)} <span className="text-xs font-normal text-[#a3a3a3]">{s.unit}</span>
-            </div>
-            <div className="text-[11px] text-[#525252]">{s.name}</div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {t.programs.map((p) => (
+        <div key={p.id} className="rounded-lg border border-[#eaeaea] p-4">
+          <Link to={`/programs/${p.id}?tab=RAID`} className="block text-sm font-semibold text-[#171717] hover:text-[#4f46e5] truncate mb-3">
+            {p.name}
+          </Link>
+          <div className="grid grid-cols-2 gap-3">
+            {RAID_TYPES.map((rt) => (
+              <RaidTile key={rt.type} rt={rt} n={p.raidOpen?.[rt.type] ?? 0} to={`/programs/${p.id}?tab=RAID&type=${rt.type}`} />
+            ))}
           </div>
-        ))}
-      </div>
-      <div className="text-[10px] text-[#a3a3a3] mt-3">
-        Avg per person · {ws.signals[0]?.people ?? 0} people · {ws.period} · illustrative signals
-      </div>
+        </div>
+      ))}
     </div>
   );
 }
+

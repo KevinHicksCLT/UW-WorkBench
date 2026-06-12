@@ -11,7 +11,7 @@ import RoleDrawer from './RoleDrawer';
 // (one row per role; departments with no roles and divisions with no
 // departments still get a row with the trailing cells blank; roles attached
 // directly to a division show "Direct to division" in the Department column).
-// People are NOT rendered — the sheet stops at Role. Every column header
+// The sheet stops at Role. Every column header
 // carries a searchable combobox filter (options = the distinct values among
 // rows passing the OTHER filters, Excel-style) plus a sort toggle, the header
 // sticks while the sheet scrolls, and clicking a cell opens the right-hand
@@ -20,13 +20,13 @@ import RoleDrawer from './RoleDrawer';
 
 // ── Tree shape (from GET /explorer/org-table) ─────────────────────────────────
 type Part = { valueStreamId: string; valueStreamName: string; domain: string | null; participationType: string; l3: string | null; l4: string | null };
-type RoleNode = { id: string; name: string; roleLevel: string | null; roleFamily: string | null; peopleCount: number; valueStreamCount: number; participations: Part[] };
-type DeptNode = { id: string; name: string; roles: RoleNode[]; roleCount: number; peopleCount: number };
-type DivNode = { id: string; name: string; segment: string; departments: DeptNode[]; looseRoles: RoleNode[]; roleCount: number; peopleCount: number };
-type SegNode = { name: string; divisions: DivNode[]; divisionCount: number; roleCount: number; peopleCount: number };
+type RoleNode = { id: string; name: string; roleLevel: string | null; roleFamily: string | null; valueStreamCount: number; participations: Part[] };
+type DeptNode = { id: string; name: string; roles: RoleNode[]; roleCount: number };
+type DivNode = { id: string; name: string; segment: string; departments: DeptNode[]; looseRoles: RoleNode[]; roleCount: number };
+type SegNode = { name: string; divisions: DivNode[]; divisionCount: number; roleCount: number };
 type OrgData = {
   company: { id: string; name: string };
-  totals: { segments: number; divisions: number; departments: number; roles: number; people: number };
+  totals: { segments: number; divisions: number; departments: number; roles: number };
   segments: SegNode[];
 };
 
