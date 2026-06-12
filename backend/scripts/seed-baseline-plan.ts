@@ -19,9 +19,12 @@ import { prisma } from '../src/db/prisma.js';
 // Must mirror the ids (and order) of the new widgets in
 // frontend/src/lib/dashboardWidgets.tsx DEFAULT_LAYOUT.
 const NEW_WIDGETS = [
-  'card:portfolioRollup', 'card:gantt', 'card:okrs',
-  'card:openRisks', 'card:raidSummary', 'card:workforceSignals',
+  'card:portfolioRollup', 'card:gantt',
+  'card:raidSummary', 'card:raidByProgram',
 ];
+// Dropped from layouts (still in the catalog, re-addable in Data Admin → Home):
+// the full-width RAID log replaced the Open risks card.
+const RETIRED_WIDGETS = ['card:openRisks'];
 
 const day = 86400000;
 
@@ -84,15 +87,25 @@ async function main() {
       continue;
     }
     const missing = NEW_WIDGETS.filter((id) => !widgets.includes(id));
-    if (missing.length === 0) {
+    const retired = RETIRED_WIDGETS.filter((id) => widgets.includes(id));
+    if (missing.length === 0 && retired.length === 0) {
       console.log(`3. layout (${company.name}): new widgets already present — no-op`);
       continue;
     }
+    // Insert each missing widget after its predecessor in NEW_WIDGETS when that
+    // predecessor is already in the layout (keeps related cards together);
+    // otherwise prepend. Then drop the retired ids.
+    const merged = [...widgets];
+    for (const id of missing) {
+      const anchor = merged.indexOf(NEW_WIDGETS[NEW_WIDGETS.indexOf(id) - 1]);
+      if (anchor !== -1) merged.splice(anchor + 1, 0, id);
+      else merged.unshift(id);
+    }
     await prisma.company.update({
       where: { id: company.id },
-      data: { dashboardConfig: { ...cfg, widgets: [...missing, ...widgets] } },
+      data: { dashboardConfig: { ...cfg, widgets: merged.filter((id) => !RETIRED_WIDGETS.includes(id)) } },
     });
-    console.log(`3. layout (${company.name}): prepended ${missing.join(', ')}`);
+    console.log(`3. layout (${company.name}): added [${missing.join(', ') || 'none'}], removed [${retired.join(', ') || 'none'}]`);
   }
 
   await prisma.$disconnect();

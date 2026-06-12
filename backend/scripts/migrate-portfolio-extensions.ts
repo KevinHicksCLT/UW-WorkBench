@@ -28,7 +28,6 @@ const DDL = [
   `CREATE TABLE IF NOT EXISTS "InitiativeResource" (
      id text PRIMARY KEY,
      "initiativeId" text NOT NULL REFERENCES "PortfolioInitiative"(id) ON DELETE CASCADE,
-     "personId" text,
      "roleName" text,
      name text NOT NULL,
      "allocationPct" integer NOT NULL DEFAULT 50,

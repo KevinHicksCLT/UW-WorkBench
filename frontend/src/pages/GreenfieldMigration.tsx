@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import {
   ReactFlow, ReactFlowProvider, Background, Controls, MarkerType, Handle, Position,
   useNodesState, useEdgesState, addEdge, reconnectEdge,
-  type Node, type Edge, type NodeProps, type Connection,
+  BaseEdge, EdgeLabelRenderer, getBezierPath,
+  type Node, type Edge, type NodeProps, type EdgeProps, type Connection,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { api } from '../lib/api';
@@ -75,20 +76,19 @@ const sideHandles = (
 function CellNode({ data }: NodeProps) {
   const d = data as { layer: Layer; appId: string; tags: CategoryTag[]; onDrill: DrillFn };
   return (
-    <div className="rounded-lg border-2 border-[#e7d3b5] bg-[#fdf8f0] shadow-sm px-2.5 py-2" style={{ width: 230 }}>
+    <div className="rounded-lg border-2 border-[#e7d3b5] bg-[#fdf8f0] shadow-sm px-3 py-2.5" style={{ width: 250 }}>
       {sideHandles}
-      <div className="text-[14px] font-bold text-[#8a5a1a] mb-1.5">{d.layer}</div>
-      <div className="flex flex-wrap gap-1">
-        {d.tags.length === 0 ? <span className="text-[11px] text-[#cfcfcf]">—</span> : d.tags.map((t) => {
+      <div className="flex flex-wrap gap-1.5">
+        {d.tags.length === 0 ? <span className="text-[13px] text-[#cfcfcf]">—</span> : d.tags.map((t) => {
           const ok = belongsHere(t.capdan);
           const cls = ok ? 'bg-[#ecfdf5] text-[#047857] border-[#a7f3d0]' : 'bg-[#fff1f2] text-[#be123c] border-[#fecdd3]';
           return (
             <button key={`${t.category}-${t.capdan}`} onClick={(e) => { e.stopPropagation(); d.onDrill(d.appId, d.layer, t.category); }}
-              className={`inline-flex items-center gap-1 rounded-md border pl-1.5 pr-1 py-0.5 text-[11px] font-medium hover:shadow-sm ${cls}`}
+              className={`inline-flex items-center gap-1 rounded-md border pl-2 pr-1 py-0.5 text-[13px] font-medium hover:shadow-sm ${cls}`}
               title={`${t.count} ${t.category} · ${ok ? 'belongs here' : t.capdan === 'Relocate' ? `move to ${t.targetLayer}` : 'eliminate'} — click for detail`}>
-              <span className="truncate max-w-[120px]">{t.category}</span>
+              <span className="truncate max-w-[150px]">{t.category}</span>
               {t.capdan === 'Relocate' && t.targetLayer && <span className="opacity-80">→ {t.targetLayer}</span>}
-              <span className="inline-flex items-center justify-center min-w-[15px] h-[14px] rounded-full bg-white/70 text-[10px] font-semibold px-0.5">{t.count}</span>
+              <span className="inline-flex items-center justify-center min-w-[18px] h-[17px] rounded-full bg-white/70 text-[12px] font-semibold px-0.5">{t.count}</span>
             </button>
           );
         })}
@@ -100,14 +100,13 @@ function CellNode({ data }: NodeProps) {
 function CapdanNode({ data }: NodeProps) {
   const d = data as { name: string; destination: string | null; targetTech: string | null; count: number };
   return (
-    <div className="rounded-lg border-2 border-[#c7d2fe] bg-[#f5f7ff] shadow-sm px-3 py-2.5 cursor-pointer hover:border-[#a5b4fc]" style={{ width: 214 }} title="Click for the normalized findings">
+    <div className="rounded-lg border-2 border-[#c7d2fe] bg-[#f5f7ff] shadow-sm px-3 py-2.5 cursor-pointer hover:border-[#a5b4fc]" style={{ width: 240 }} title="Click for the normalized findings">
       {sideHandles}
-      <div className="flex items-center justify-between">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#4f46e5]">Normalize</div>
-        <div className="text-[10px] text-[#a3a3a3] tnum">{d.count} ›</div>
+      <div className="flex items-start justify-between gap-2">
+        <div className="text-[17px] font-bold text-[#171717] leading-tight">{d.name}</div>
+        <div className="text-[12px] text-[#a3a3a3] tnum flex-shrink-0 mt-0.5">{d.count} ›</div>
       </div>
-      <div className="text-[15px] font-bold text-[#171717] leading-tight mt-0.5">{d.name}</div>
-      {d.destination && <div className="text-[11px] text-[#0f766e] mt-1">→ {d.destination}</div>}
+      {d.destination && <div className="text-[13px] text-[#0f766e] mt-1">→ {d.destination}</div>}
     </div>
   );
 }
@@ -115,30 +114,33 @@ function CapdanNode({ data }: NodeProps) {
 function ServiceNode({ data }: NodeProps) {
   const d = data as { name: string; status: string; tech: string | null; layers: Layer[]; count: number };
   return (
-    <div className="rounded-xl border-2 border-[#a7f3d0] bg-[#ecfdf5] shadow-sm px-3 py-2.5 cursor-pointer hover:border-[#6ee7b7]" style={{ width: 236 }} title="Click for the granular detail of this green-field service">
+    <div className="rounded-xl border-2 border-[#a7f3d0] bg-[#ecfdf5] shadow-sm px-3 py-2.5 cursor-pointer hover:border-[#6ee7b7]" style={{ width: 260 }} title="Click for the granular detail of this green-field service">
       {sideHandles}
       <div className="flex items-center justify-between">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#0f766e]">Green-field · {d.status}</div>
-        <div className="text-[10px] text-[#0f766e] tnum">{d.count} ›</div>
+        <div className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#0f766e]">{d.status}</div>
+        <div className="text-[12px] text-[#0f766e] tnum">{d.count} ›</div>
       </div>
-      <div className="text-[16px] font-bold text-[#171717] leading-tight mt-0.5">{d.name}</div>
-      {/* IT layers this service owns — aligns the green-field app to the stack */}
-      <div className="flex flex-wrap gap-1 mt-1.5">
-        {d.layers.map((l) => (
-          <span key={l} className="inline-flex items-center rounded border border-[#99f6e4] bg-white/70 px-1.5 py-0.5 text-[10px] font-medium text-[#0f766e]">{l}</span>
-        ))}
-      </div>
-      {d.tech && <div className="text-[10px] text-[#a3a3a3] mt-1.5 leading-snug">{d.tech}</div>}
+      <div className="text-[18px] font-bold text-[#171717] leading-tight mt-0.5">{d.name}</div>
+      {/* IT layers this service owns — only worth showing when it spans more than
+          the row it sits on (a single layer is already given by row alignment) */}
+      {d.layers.length > 1 && (
+        <div className="flex flex-wrap gap-1 mt-1.5">
+          {d.layers.map((l) => (
+            <span key={l} className="inline-flex items-center rounded border border-[#99f6e4] bg-white/70 px-1.5 py-0.5 text-[12px] font-medium text-[#0f766e]">{l}</span>
+          ))}
+        </div>
+      )}
+      {d.tech && <div className="text-[12px] text-[#a3a3a3] mt-1.5 leading-snug">{d.tech}</div>}
     </div>
   );
 }
 
 function HeaderNode({ data }: NodeProps) {
-  const d = data as { title: string; sub?: string; tone?: 'brown' | 'indigo' | 'teal' };
+  const d = data as { title: string; appId?: string; center?: boolean; w?: number };
   return (
-    <div style={{ width: 236 }}>
-      <div className="text-[19px] font-bold text-[#171717] leading-tight">{d.title}</div>
-      {d.sub && <div className="text-[19px] font-bold text-[#171717] leading-tight truncate">{d.sub}</div>}
+    <div className={`text-[19px] font-bold text-[#171717] leading-tight truncate${d.center ? ' text-center' : ''}`}
+      style={d.center ? { width: d.w } : { maxWidth: 270 }}>
+      {d.title}
     </div>
   );
 }
@@ -152,10 +154,35 @@ function LayerLabelNode({ data }: NodeProps) {
   );
 }
 
-const nodeTypes = { cell: CellNode, capdan: CapdanNode, service: ServiceNode, header: HeaderNode, layerLabel: LayerLabelNode };
+// Smooth bezier relocation arrow. The curve lives entirely in the lane between
+// the brown-field and CAPDAN columns; the label is pinned to the empty
+// horizontal gap just before the target row (the path midpoint can land on a
+// box, the row gap never does).
+function RelocateEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style, markerEnd, data }: EdgeProps) {
+  const [path] = getBezierPath({ sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, curvature: 0.4 });
+  const dir = targetY >= sourceY ? 1 : -1;
+  const lx = (sourceX + targetX) / 2;
+  const ly = targetY - dir * (ROW_H * 0.52);
+  return (
+    <>
+      <BaseEdge id={id} path={path} style={style} markerEnd={markerEnd} />
+      <EdgeLabelRenderer>
+        <div
+          style={{ position: 'absolute', transform: `translate(-50%, -50%) translate(${lx}px, ${ly}px)`, pointerEvents: 'none' }}
+          className="rounded bg-[#f5f3ff] px-1 text-[12px] font-semibold text-[#7c3aed] whitespace-nowrap"
+        >
+          {(data as { label?: string })?.label}
+        </div>
+      </EdgeLabelRenderer>
+    </>
+  );
+}
 
-const X = { label: -130, app0: 0, app1: 260, capdan: 600, service: 900 };
-const ROW_H = 150;
+const nodeTypes = { cell: CellNode, capdan: CapdanNode, service: ServiceNode, header: HeaderNode, layerLabel: LayerLabelNode };
+const edgeTypes = { relocate: RelocateEdge };
+
+const X = { label: -130, app0: 0, app1: 280, capdan: 600, service: 910 };
+const ROW_H = 155;
 
 // ── Board overlay (user-curated drag/connect layer) ──────────────────────────
 type Overlay = {
@@ -418,9 +445,8 @@ export default function ApplicationRationalization({ embedded = false }: { embed
   // green-field boxes edit the service.
   const onNodeDoubleClick = useCallback((_e: unknown, node: Node) => {
     if (!editingRef.current) return;
-    const d = node.data as { appId?: string; componentId?: string; sub?: string };
-    if (node.id.startsWith('cell:') && d.appId) setEditTarget({ kind: 'app', id: d.appId });
-    else if (node.id.startsWith('hdr:') && d.sub) setEditTarget({ kind: 'app', id: node.id.slice(4) });
+    const d = node.data as { appId?: string; componentId?: string };
+    if ((node.id.startsWith('cell:') || node.id.startsWith('hdr:')) && d.appId) setEditTarget({ kind: 'app', id: d.appId });
     else if (node.id.startsWith('cap:') && d.componentId) setEditTarget({ kind: 'component', id: d.componentId });
     else if (node.id.startsWith('svc:')) setEditTarget({ kind: 'service', id: node.id.slice(4) });
   }, []);
@@ -443,31 +469,44 @@ export default function ApplicationRationalization({ embedded = false }: { embed
     }
     const keptCountByLayer = (layer: Layer) => detail.findings.filter((f) => f.layer === layer && belongsHere(f.capdan)).length;
 
-    // Headers
-    nodes.push({ id: 'hdr:cap', type: 'header', position: { x: X.capdan, y: -78 }, data: { title: 'CAPDAN — Normalize', tone: 'indigo' }, ...lock });
-    nodes.push({ id: 'hdr:svc', type: 'header', position: { x: X.service, y: -78 }, data: { title: 'Green-field', tone: 'teal' }, ...lock });
-    detail.apps.slice(0, 2).forEach((a, i) => {
-      nodes.push({ id: `hdr:${a.id}`, type: 'header', position: { x: appX[i], y: -86 }, data: { title: 'Brown-field', sub: a.name, tone: 'brown' }, ...lock });
+    // Headers — section labels on the top row ("Brown-field" once, centered over
+    // both legacy columns), app names on the row below; all the same style.
+    nodes.push({ id: 'hdr:cap', type: 'header', position: { x: X.capdan, y: -92 }, data: { title: 'CAPDAN — Normalize' }, ...lock });
+    nodes.push({ id: 'hdr:svc', type: 'header', position: { x: X.service, y: -92 }, data: { title: 'Green-field' }, ...lock });
+    const headApps = detail.apps.slice(0, 2);
+    if (headApps.length > 0) {
+      nodes.push({ id: 'hdr:brown', type: 'header', position: { x: appX[0], y: -92 }, data: { title: 'Brown-field', center: true, w: appX[headApps.length - 1] + 250 - appX[0] }, ...lock });
+    }
+    headApps.forEach((a, i) => {
+      nodes.push({ id: `hdr:${a.id}`, type: 'header', position: { x: appX[i], y: -54 }, data: { title: a.name, appId: a.id }, ...lock });
     });
 
     LAYERS.forEach((layer, li) => {
       const y = li * ROW_H;
       nodes.push({ id: `lbl:${layer}`, type: 'layerLabel', position: { x: X.label, y: y + 18 }, data: { layer }, ...lock });
 
-      detail.apps.slice(0, 2).forEach((a, i) => {
-        const tags = categoryTags(detail.findings, layer, a.id);
-        nodes.push({ id: `cell:${a.id}:${layer}`, type: 'cell', position: { x: appX[i], y }, data: { layer, appId: a.id, tags, onDrill }, selectable: false });
-        if (tags.some((t) => belongsHere(t.capdan))) {
-          edges.push({ id: `c-${a.id}-${layer}`, source: `cell:${a.id}:${layer}`, target: `cap:${layer}`, sourceHandle: 'r', targetHandle: 'l', type: 'default', style: { stroke: '#cbd5e1', strokeWidth: 1.5 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#94a3b8', width: 14, height: 14 } });
-        }
-        const seen = new Set<string>();
-        for (const t of tags) {
-          if (t.capdan !== 'Relocate' || !t.targetLayer) continue;
-          const key = `${a.id}-${layer}-${t.targetLayer}`;
-          if (seen.has(key)) continue; seen.add(key);
-          edges.push({ id: `r-${key}`, source: `cell:${a.id}:${layer}`, target: `cap:${t.targetLayer}`, sourceHandle: 'r', targetHandle: 'l', type: 'default', animated: true, style: { stroke: '#7c3aed', strokeWidth: 1.75, strokeDasharray: '5 3' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#7c3aed', width: 16, height: 16 }, label: `→ ${t.targetLayer}`, labelStyle: { fill: '#7c3aed', fontSize: 10, fontWeight: 600 }, labelBgStyle: { fill: '#f5f3ff' } });
-        }
+      // Edges flow strictly left → right so nothing crosses a box: app0 chains
+      // into app1, and only the LAST app column connects across to CAPDAN
+      // (kept + relocate findings of both apps are unioned onto that edge).
+      const two = detail.apps.slice(0, 2);
+      const tagsByApp = two.map((a) => categoryTags(detail.findings, layer, a.id));
+      two.forEach((a, i) => {
+        nodes.push({ id: `cell:${a.id}:${layer}`, type: 'cell', position: { x: appX[i], y }, data: { layer, appId: a.id, tags: tagsByApp[i], onDrill }, selectable: false });
       });
+      if (two.length === 2 && tagsByApp[0].length > 0) {
+        edges.push({ id: `f-${layer}`, source: `cell:${two[0].id}:${layer}`, target: `cell:${two[1].id}:${layer}`, sourceHandle: 'r', targetHandle: 'l', type: 'default', style: { stroke: '#cbd5e1', strokeWidth: 1.5 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#94a3b8', width: 14, height: 14 } });
+      }
+      const lastCell = two.length ? `cell:${two[two.length - 1].id}:${layer}` : null;
+      if (lastCell && tagsByApp.some((tags) => tags.some((t) => belongsHere(t.capdan)))) {
+        edges.push({ id: `c-${layer}`, source: lastCell, target: `cap:${layer}`, sourceHandle: 'r', targetHandle: 'l', type: 'default', style: { stroke: '#cbd5e1', strokeWidth: 1.5 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#94a3b8', width: 14, height: 14 } });
+      }
+      // Relocations leave this layer for another — drawn as right-angle paths
+      // that travel down the empty lane between the columns (never through boxes).
+      const relocateTargets = [...new Set(tagsByApp.flat().filter((t) => t.capdan === 'Relocate' && t.targetLayer).map((t) => t.targetLayer as Layer))];
+      for (const target of relocateTargets) {
+        if (!lastCell) continue;
+        edges.push({ id: `r-${layer}-${target}`, source: lastCell, target: `cap:${target}`, sourceHandle: 'r', targetHandle: 'l', type: 'relocate', data: { label: `→ ${target}` }, animated: true, style: { stroke: '#7c3aed', strokeWidth: 1.75, strokeDasharray: '5 3' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#7c3aed', width: 16, height: 16 } });
+      }
 
       const comp = detail.components.find((c) => c.layer === layer);
       if (comp) {
@@ -630,10 +669,10 @@ export default function ApplicationRationalization({ embedded = false }: { embed
         ) : (
           <ReactFlowProvider key={selectedId}>
             <ReactFlow
-              nodes={bnodes} edges={bedges} nodeTypes={nodeTypes}
+              nodes={bnodes} edges={bedges} nodeTypes={nodeTypes} edgeTypes={edgeTypes}
               onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
               onConnect={onConnect} onReconnect={onReconnect} onNodeClick={onNodeClick} onNodeDoubleClick={onNodeDoubleClick}
-              fitView fitViewOptions={{ padding: 0.15 }}
+              fitView fitViewOptions={{ padding: 0.04 }}
               nodesDraggable={editing} nodesConnectable={editing} elementsSelectable={editing}
               edgesReconnectable={editing}
               deleteKeyCode={editing ? ['Backspace', 'Delete'] : null}

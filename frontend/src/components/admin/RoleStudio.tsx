@@ -13,7 +13,6 @@ import EntityForm from '../EntityForm';
 //   • Value-stream participation                                 → FK by roleId
 //   • Deliverables & inputs (from the I/O inventory)             → IoItem (text-matched)
 //   • Process tasks (the L5 steps the role leads/supports)       → ProcessStep (text-matched)
-//   • People in the role                                         → Assignment (FK)
 // The I/O and process rows aren't FK-linked to the role (the screen resolves them
 // by matching the role name against free-text columns), so we fetch the resolved
 // set from /admin/role-context/:id and edit those exact rows through the normal
@@ -40,7 +39,7 @@ export default function RoleStudio({ companyId, bySlug }: { companyId: string | 
     <div>
       <p className="text-sm text-[#666666] mb-4 max-w-2xl">
         Pick a role to edit everything the Role screen shows for it — profile, responsibilities, value-stream
-        participation, the deliverables & inputs it owns, the process steps it leads, and the people in it.
+        participation, the deliverables & inputs it owns, and the process steps it leads.
       </p>
       <div className="flex flex-col lg:flex-row gap-5 items-start">
         <div className="lg:w-[38%] flex-shrink-0 lg:sticky lg:top-2">
@@ -101,12 +100,6 @@ export default function RoleStudio({ companyId, bySlug }: { companyId: string | 
                 kind="steps"
               />
 
-              {/* People */}
-              {bySlug.get('assignment') && (
-                <Section title="People in this role" hint="Assignments of people to the role.">
-                  <EntityList entity={bySlug.get('assignment')!} companyId={companyId} title="Assignments" fixed={{ roleId: selected.id }} filter={(r) => r.roleId === selected.id} emptyHint="No people assigned yet." dense />
-                </Section>
-              )}
             </div>
           )}
         </div>

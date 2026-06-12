@@ -27,7 +27,7 @@ type Data = {
   standards: Standard[];
 };
 type FlatItem = {
-  id: string; areaId: string; department: string; category: string;
+  id: string; areaId: string; department: string; category: string; group: string | null;
   name: string; description: string | null; roleId: string | null; roleName: string | null;
 };
 
@@ -51,7 +51,12 @@ export default function Standards() {
       value: (r) => r.department, dim: true,
       render: (r) => <SheetCell text={r.department} dim onClick={() => navigate(`/standards/${r.areaId}`)} />,
     },
-    { key: 'category', label: 'Category', width: '190px', value: (r) => r.category, dim: true },
+    { key: 'category', label: 'Category', width: '150px', value: (r) => r.category, dim: true },
+    {
+      key: 'group', label: 'Group', width: '200px',
+      value: (r) => r.group ?? DASH, dim: true,
+      render: (r) => <SheetCell text={r.group ?? DASH} dim title={r.group ?? undefined} />,
+    },
     { key: 'name', label: 'Standard', width: 'minmax(0,1fr)', value: (r) => r.name },
     {
       key: 'description', label: 'Description', width: 'minmax(0,1.4fr)',

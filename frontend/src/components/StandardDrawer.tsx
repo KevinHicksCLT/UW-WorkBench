@@ -11,7 +11,7 @@ import { skillLabel } from '../lib/skills';
 // drawer picks the clicked item out of the area's items.
 
 type ValueStream = { id: string; name: string; domain: string | null };
-type Responsible = { roleId: string; roleName: string; roleLevel: string | null; peopleCount: number };
+type Responsible = { roleId: string; roleName: string; roleLevel: string | null };
 type Item = {
   id: string;
   category: string;
@@ -26,9 +26,11 @@ type Item = {
   responsible: Responsible | null;
   valueStreams: ValueStream[];
 };
+// Top-level rows are groups: each carries its decomposed child standards.
+type Group = Item & { subs: Item[] };
 type AreaData = {
   area: { id: string; department: string };
-  items: Item[];
+  items: Group[];
 };
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
@@ -39,6 +41,9 @@ export default function StandardDrawer({ areaId, itemId, onClose }: { areaId: st
   const [data, setData] = useState<AreaData | null>(null);
   const [error, setError] = useState('');
   const [viewSkill, setViewSkill] = useState<string | null>(null);
+  // The drawer can hop between sibling standards of the same group without
+  // closing — activeId tracks the standard currently shown.
+  const [activeId, setActiveId] = useState(itemId);
 
   useEffect(() => {
     setData(null);
@@ -46,7 +51,13 @@ export default function StandardDrawer({ areaId, itemId, onClose }: { areaId: st
     api.get(`/explorer/standards/${areaId}`).then(setData).catch((e: Error) => setError(e.message));
   }, [areaId]);
 
-  const item = data?.items.find((i) => i.id === itemId) ?? null;
+  useEffect(() => setActiveId(itemId), [itemId]);
+
+  // The clicked row is a leaf standard: either a group's child or a group
+  // without children. `group` provides the higher-level context when present.
+  const group = data?.items.find((g) => g.id === activeId || g.subs.some((s) => s.id === activeId)) ?? null;
+  const item = group ? (group.id === activeId ? group : group.subs.find((s) => s.id === activeId)!) : null;
+  const isSub = !!group && !!item && group.id !== item.id;
   const gates = item?.sdlcGates ? item.sdlcGates.split(/;\s*/).filter(Boolean) : [];
 
   return (
@@ -64,6 +75,7 @@ export default function StandardDrawer({ areaId, itemId, onClose }: { areaId: st
               <div className="text-[11px] text-[#a3a3a3] mt-0.5">
                 <Link to={`/standards/${areaId}`} className="hover:underline hover:text-[#525252]">{data!.area.department}</Link>
                 {' · '}{item.category}
+                {isSub && <>{' · '}{group!.name}</>}
               </div>
             )}
           </div>
@@ -89,6 +101,29 @@ export default function StandardDrawer({ areaId, itemId, onClose }: { areaId: st
                 <SectionLabel>What it means</SectionLabel>
                 <p className="text-sm text-[#171717] leading-relaxed">{item.description}</p>
               </div>
+
+              {/* Group context — the higher-level standard this one belongs to,
+                  with its sibling standards as bullets (click to hop). */}
+              {isSub && (
+                <div className="rounded-lg border border-[#eaeaea] bg-[#fafafa] p-3">
+                  <SectionLabel>Part of · {group!.name}</SectionLabel>
+                  <p className="text-xs text-[#525252] leading-relaxed mb-2">{group!.description}</p>
+                  <ul className="space-y-1">
+                    {group!.subs.map((s) => (
+                      <li key={s.id} className="flex items-start gap-1.5 text-xs">
+                        <span className="mt-[5px] w-1 h-1 rounded-full bg-[#a3a3a3] flex-shrink-0" />
+                        {s.id === item.id ? (
+                          <span className="font-semibold text-[#171717]">{s.name}</span>
+                        ) : (
+                          <button onClick={() => setActiveId(s.id)} className="text-left text-[#525252] hover:text-[#171717] hover:underline">
+                            {s.name}
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Enforcing agent skill — view & download the skill pack */}
               {item.agentSkill && (
@@ -133,15 +168,16 @@ export default function StandardDrawer({ areaId, itemId, onClose }: { areaId: st
                     {item.ownerRole && item.ownerRole !== item.responsible.roleName && (
                       <span className="text-xs text-[#a3a3a3]"> ({item.ownerRole})</span>
                     )}
-                    <div className="text-xs text-[#a3a3a3] mt-0.5 flex items-center gap-1.5">
-                      {item.responsible.roleLevel && item.responsible.roleLevel !== 'Individual Contributor' && <span className="chip-soft">{item.responsible.roleLevel}</span>}
-                      <span className="tnum">{item.responsible.peopleCount} {item.responsible.peopleCount === 1 ? 'person' : 'people'}</span>
-                    </div>
+                    {item.responsible.roleLevel && item.responsible.roleLevel !== 'Individual Contributor' && (
+                      <div className="text-xs text-[#a3a3a3] mt-0.5 flex items-center gap-1.5">
+                        <span className="chip-soft">{item.responsible.roleLevel}</span>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-sm text-[#525252]">
                     {item.ownerRole ?? <span className="text-[#a3a3a3] italic">Unassigned</span>}
-                    {item.ownerRole && <div className="text-[11px] text-[#a3a3a3] italic mt-0.5">not matched to a roster role</div>}
+                    {item.ownerRole && <div className="text-[11px] text-[#a3a3a3] italic mt-0.5">not matched to a role in the inventory</div>}
                   </div>
                 )}
                 {item.relatedRole && item.relatedRole !== item.ownerRole && (

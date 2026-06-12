@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { api } from '../lib/api';
 import AssistantMarkdown from './AssistantMarkdown';
 
@@ -10,13 +11,65 @@ import AssistantMarkdown from './AssistantMarkdown';
 type Query = { query: string; rowCount: number; error?: string };
 type Msg = { role: 'user' | 'assistant'; content: string; queries?: Query[] };
 
-const SUGGESTIONS = [
+const DEFAULT_SUGGESTIONS = [
   'How many roles are there, by role level?',
   'Which value streams have the most roles?',
   'Which roles have the most checklist items?',
 ];
 
+const ORG_SUGGESTIONS = [
+  'How many roles are there, by role level?',
+  'Which departments have the most roles?',
+  'Which roles have the most checklist items?',
+];
+
+const PROCESS_SUGGESTIONS = [
+  'Which value streams have the most process steps?',
+  'Which L4 processes have the most L5 steps?',
+  'Which roles lead the most process steps?',
+];
+
+// Suggested starter questions per screen — first matching path prefix wins,
+// falling back to DEFAULT_SUGGESTIONS.
+const SUGGESTIONS_BY_SCREEN: [prefix: string, suggestions: string[]][] = [
+  ['/standards', [
+    'How many individual standards are there, by standards area?',
+    'List the individual actuarial standards we have to validate',
+    'Which roles own the most individual standards?',
+  ]],
+  ['/roles', ORG_SUGGESTIONS],
+  ['/divisions', ORG_SUGGESTIONS],
+  ['/departments', ORG_SUGGESTIONS],
+  ['/overview', PROCESS_SUGGESTIONS],
+  ['/n/', PROCESS_SUGGESTIONS],
+  ['/metrics', [
+    'Which value streams have the most metrics?',
+    'How many metrics are there, by metric category?',
+    'Which roles own the most metrics?',
+  ]],
+  ['/applications', [
+    'Which applications have the highest total annual TCO?',
+    'How does application TCO break down by primary division?',
+    'Which value streams are linked to the most applications?',
+  ]],
+  ['/deliverables', [
+    'Which roles are named on the most deliverables and outputs?',
+    'Which L4 processes have the most inputs and outputs?',
+    'Which process steps involve external participants?',
+  ]],
+  ['/tasks', [
+    'Which roles are named on the most deliverables and outputs?',
+    'Which L4 processes have the most inputs and outputs?',
+    'Which process steps involve external participants?',
+  ]],
+];
+
+function suggestionsFor(pathname: string): string[] {
+  return SUGGESTIONS_BY_SCREEN.find(([prefix]) => pathname.startsWith(prefix))?.[1] ?? DEFAULT_SUGGESTIONS;
+}
+
 export default function AssistantWidget() {
+  const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -149,7 +202,7 @@ export default function AssistantWidget() {
                   Ask about roles, value streams, processes, or checklists — or for analysis and recommendations. Facts come from the data; charts and tables render inline.
                 </div>
                 <div className="flex flex-col gap-1.5 w-full">
-                  {SUGGESTIONS.map((s) => (
+                  {suggestionsFor(pathname).map((s) => (
                     <button
                       key={s}
                       onClick={() => send(s)}

@@ -11,7 +11,7 @@ import type { PrismaClient } from '@prisma/client';
 
 type BenefitDef = { name: string; category: string; monthly: number };
 type CostDef = { name: string; category: string; monthly: number };
-type MilestoneDef = { name: string; monthOffset: number; isGate?: boolean; done?: boolean };
+type MilestoneDef = { name: string; monthOffset: number; isGate?: boolean; done?: boolean; missed?: boolean };
 type RaidDef = { type: 'RISK' | 'ASSUMPTION' | 'ISSUE' | 'DECISION'; title: string; probability?: number; impact?: number; mitigation?: string; status?: 'OPEN' | 'MITIGATED' | 'CLOSED' };
 type InitDef = {
   name: string;
@@ -66,6 +66,9 @@ const PROGRAMS: ProgramDef[] = [
             ],
             raid: [
               { type: 'RISK', title: 'Broker channel API adoption slower than planned', probability: 3, impact: 4, mitigation: 'Phased onboarding with top-10 brokers first.' },
+              { type: 'RISK', title: 'Broker portal security findings delay pilot', probability: 4, impact: 5, mitigation: 'Engage security architecture early; penetration test before the pilot gate.' },
+              { type: 'RISK', title: 'Integration vendor attrition on the squad', probability: 2, impact: 5, mitigation: 'Cross-train internal engineers; keep integration runbooks current.' },
+              { type: 'RISK', title: 'Clearance false positives frustrate brokers', probability: 3, impact: 2, mitigation: 'Tune match thresholds; manual review queue for borderline matches.' },
               { type: 'ISSUE', title: 'Legacy ACORD parser edge cases', probability: 4, impact: 3, status: 'MITIGATED' },
               { type: 'DECISION', title: 'Adopt canonical submission model', probability: 1, impact: 1, status: 'CLOSED' },
             ],
@@ -94,6 +97,9 @@ const PROGRAMS: ProgramDef[] = [
             ],
             raid: [
               { type: 'RISK', title: 'Actuarial sign-off on rule parity may slip', probability: 4, impact: 4, mitigation: 'Parallel-run shadow scoring for two quarters.' },
+              { type: 'RISK', title: 'Rate-filing approvals lag in key states', probability: 3, impact: 5, mitigation: 'Stagger state rollout; file earliest in slow-approval states.' },
+              { type: 'RISK', title: 'Quote latency under peak volume', probability: 3, impact: 3, mitigation: 'Load-test at 3× peak; cache common rating paths.' },
+              { type: 'RISK', title: 'Legacy rater decommission slips, doubling run cost', probability: 5, impact: 2, mitigation: 'Tie decommission dates to cutover gates.' },
               { type: 'ASSUMPTION', title: 'State rate tables remain stable during migration', probability: 2, impact: 3 },
             ],
           },
@@ -123,11 +129,14 @@ const PROGRAMS: ProgramDef[] = [
             ],
             milestones: [
               { name: 'Triage model trained', monthOffset: -2, isGate: true, done: true },
-              { name: 'Assisted-routing pilot', monthOffset: 2, done: false },
+              { name: 'Assisted-routing pilot', monthOffset: -1, missed: true },
               { name: 'Auto-routing GA', monthOffset: 7, isGate: true },
             ],
             raid: [
               { type: 'RISK', title: 'Model drift on rare loss types', probability: 3, impact: 4, mitigation: 'Quarterly retraining + human-in-the-loop fallback.' },
+              { type: 'RISK', title: 'Adjusters override auto-routing recommendations', probability: 4, impact: 3, mitigation: 'Explainable routing reasons; pilot feedback loop into the model.' },
+              { type: 'RISK', title: 'Catastrophe surge overwhelms triage queue', probability: 2, impact: 4, mitigation: 'CAT surge mode routes straight to senior adjusters.' },
+              { type: 'RISK', title: 'PII exposure in claim narratives', probability: 2, impact: 2, mitigation: 'Mask PII before model inference.' },
               { type: 'ISSUE', title: 'FNOL data quality gaps from legacy intake', probability: 4, impact: 3 },
             ],
           },
@@ -149,11 +158,14 @@ const PROGRAMS: ProgramDef[] = [
               { name: 'Data platform run', category: 'OPEX', monthly: 11000 },
             ],
             milestones: [
-              { name: 'Business case approval', monthOffset: 1, isGate: true },
+              { name: 'Business case approval', monthOffset: 0, isGate: true, missed: true },
               { name: 'Source onboarding wave 1', monthOffset: 5 },
             ],
             raid: [
               { type: 'RISK', title: 'Funding contention with FNOL initiative', probability: 4, impact: 4, mitigation: 'Sequence behind FNOL; share platform squad.' },
+              { type: 'RISK', title: 'Source-system owners not staffed for onboarding', probability: 5, impact: 4, mitigation: 'Secure named data stewards before wave 1 starts.' },
+              { type: 'RISK', title: 'Cloud egress costs exceed estimates', probability: 2, impact: 3, mitigation: 'Egress monitoring plus tiered storage policy.' },
+              { type: 'RISK', title: 'Fraud-analytics scope creep into the MVP', probability: 4, impact: 2, mitigation: 'Gate scope changes through business-case re-approval.' },
               { type: 'DECISION', title: 'Lakehouse vendor selection pending', probability: 1, impact: 1 },
             ],
           },
@@ -188,6 +200,9 @@ const PROGRAMS: ProgramDef[] = [
             raid: [
               { type: 'ASSUMPTION', title: 'Adoption sustains above 60% of licensed seats', probability: 2, impact: 3 },
               { type: 'RISK', title: 'Data governance gaps in assistant prompts', probability: 2, impact: 4, status: 'MITIGATED', mitigation: 'DLP + prompt logging review.' },
+              { type: 'RISK', title: 'Shadow-IT AI tools bypass the governed assistant', probability: 3, impact: 3, mitigation: 'Block unsanctioned tools; fast-track feature requests.' },
+              { type: 'RISK', title: 'Vendor pricing changes erode the business case', probability: 1, impact: 4, mitigation: 'Multi-year contract with price-protection clause.' },
+              { type: 'RISK', title: 'Hallucinated answers reach regulated communications', probability: 2, impact: 4, mitigation: 'Human review required for external-facing outputs.' },
             ],
           },
         ],
@@ -307,7 +322,7 @@ export async function seedPortfolio(prisma: PrismaClient, ctx: { tenantId: strin
           await prisma.milestone.createMany({
             data: idef.milestones.map((m) => ({
               initiativeId: init.id, name: m.name, dueDate: startOfMonth(addMonths(today, m.monthOffset)),
-              isGate: m.isGate ?? false, status: m.done ? 'DONE' : 'PENDING',
+              isGate: m.isGate ?? false, status: m.done ? 'DONE' : m.missed ? 'MISSED' : 'PENDING',
               completedAt: m.done ? startOfMonth(addMonths(today, m.monthOffset)) : null,
             })),
           });

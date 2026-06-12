@@ -1,0 +1,448 @@
+{
+  "department": "Engineering & Development",
+  "items": [
+    {
+      "category": "CI/CD",
+      "name": "Deployment Standards",
+      "summary": "Governs how production releases are executed so that policy administration, claims, and digital services can be updated without customer-facing downtime. Ensures every deployment is progressive, observable, and reversible before it reaches the full book of business.",
+      "subs": [
+        {
+          "title": "Blue-Green or Canary Deployments",
+          "description": "Production releases must use either a blue-green cutover or a canary rollout; direct in-place replacement of running services is not permitted. Canary releases route a small percentage of live traffic to the new version and are promoted only after error rates and latency remain within agreed thresholds, protecting quoting, billing, and claims traffic from untested code."
+        },
+        {
+          "title": "Feature Flags for Gradual Rollout",
+          "description": "New functionality ships dark behind feature flags and is enabled progressively by segment, such as a single state, product line, or agent cohort. Flags must be managed in the approved flag platform with named owners and removal dates, so the codebase does not accumulate permanent toggles."
+        },
+        {
+          "title": "Instant Rollback Capability",
+          "description": "Every deployment must be reversible within minutes through an automated rollback path that is tested as part of the release pipeline, not improvised during an incident. Database migrations accompanying a release are required to be backward compatible for at least one version so the prior build can be restored without data repair."
+        }
+      ]
+    },
+    {
+      "category": "CI/CD",
+      "name": "Environment Parity",
+      "summary": "Establishes that lower environments faithfully mirror production so defects surface before they can affect policyholders or regulatory reporting. Eliminates configuration drift as a source of works-on-dev failures.",
+      "subs": [
+        {
+          "title": "Consistent Dev, Test, and Prod Environments",
+          "description": "Development, test, and production environments must run the same operating system images, runtime versions, middleware, and network topology, differing only in scale and data. Any intentional deviation is documented and reviewed, because behavior that cannot be reproduced in test cannot be certified for release to systems handling policy and claims data."
+        },
+        {
+          "title": "Infrastructure as Code for All Environments",
+          "description": "Every environment is provisioned exclusively from version-controlled infrastructure-as-code templates such as Terraform or CloudFormation; manual console changes are prohibited and detected via drift checks. This gives auditors and engineers a single reviewable definition of how each environment is built."
+        },
+        {
+          "title": "Externalized Configuration",
+          "description": "Environment-specific values, including connection strings, endpoints, and credentials, must live outside the application artifact in a configuration service or secrets vault. The same immutable build is promoted through every environment, so what was tested is byte-for-byte what runs in production."
+        }
+      ]
+    },
+    {
+      "category": "CI/CD",
+      "name": "Pipeline Standards",
+      "summary": "Defines the baseline automation every code repository must have so that integration problems are caught continuously rather than at release time. Keeps feedback fast enough that engineers across all business lines integrate small changes daily.",
+      "subs": [
+        {
+          "title": "CI Pipeline for All Repositories",
+          "description": "Every active repository, including internal tools and batch jobs supporting actuarial and finance processes, must have a continuous integration pipeline that compiles the code and runs its test suite on each push. Repositories without a pipeline may not receive production deployments."
+        },
+        {
+          "title": "Builds Under 15 Minutes",
+          "description": "The standard CI build, from trigger to pass-or-fail signal, must complete in under fifteen minutes. Teams whose builds exceed the limit are expected to parallelize stages, cache dependencies, or split slow suites, because long builds discourage frequent integration and delay defect detection."
+        },
+        {
+          "title": "Automated Deployment to Dev on Merge",
+          "description": "Merging to the integration branch automatically deploys the build to the shared development environment without manual steps. This keeps the dev environment continuously current so downstream teams, including QA and integration partners, always test against the latest merged code."
+        }
+      ]
+    },
+    {
+      "category": "CI/CD",
+      "name": "Quality Gates",
+      "summary": "Requires the CI pipeline to fail the build automatically whenever any test fails, code coverage drops below its threshold, a security scan reports a finding of High severity or above, or lint errors are present. No build that trips a gate may be promoted or manually overridden without a documented exception, ensuring code reaching insurance production systems has cleared a consistent, non-negotiable quality bar.",
+      "subs": []
+    },
+    {
+      "category": "Code Quality",
+      "name": "Code Comments",
+      "summary": "Sets expectations for when and how engineers annotate source code so that intent survives team turnover. Aims for code that explains itself, with commentary reserved for the reasoning a reader cannot infer, such as rating rules or regulatory constraints.",
+      "subs": [
+        {
+          "title": "Self-Documenting Code Preferred",
+          "description": "Engineers should express intent through descriptive names, small functions, and clear structure before reaching for a comment. A comment that merely restates what the code does signals the code itself should be rewritten for clarity."
+        },
+        {
+          "title": "Complex Logic Commented",
+          "description": "Genuinely intricate logic, such as premium calculation formulas, reinsurance allocation rules, or state-specific regulatory branching, must carry comments explaining the business rationale and citing the source requirement or filing where applicable. The comment records why the code behaves as it does, not a line-by-line narration."
+        },
+        {
+          "title": "No Commented-Out Code in Main Branch",
+          "description": "Disabled code blocks must not be committed to the main branch; version control history is the mechanism for recovering removed code. Reviewers are expected to reject pull requests containing commented-out fragments, which obscure the active logic and mislead future maintainers."
+        }
+      ]
+    },
+    {
+      "category": "Code Quality",
+      "name": "Code Complexity",
+      "summary": "Caps structural complexity so the systems that price, issue, and service policies remain testable and safe to change. Enforced limits keep individual units of code small enough to be fully reasoned about and covered by tests.",
+      "subs": [
+        {
+          "title": "Cyclomatic Complexity Under 10",
+          "description": "No method may exceed a cyclomatic complexity of ten, measured by static analysis in the pipeline. Branch-heavy logic, common in underwriting eligibility and claims adjudication code, must be decomposed into smaller decision units that can each be exhaustively tested."
+        },
+        {
+          "title": "Method Length Under 50 Lines",
+          "description": "Methods are limited to fifty lines of executable code. A method approaching the limit usually carries more than one responsibility and should be split, keeping each unit small enough for a reviewer to verify in a single reading."
+        },
+        {
+          "title": "Class Length Under 500 Lines",
+          "description": "Classes may not exceed five hundred lines. Larger classes, frequently found in legacy policy administration adapters, must be refactored into focused collaborators rather than continually extended, preventing the god-object pattern from re-emerging."
+        },
+        {
+          "title": "SonarQube Gates Enforced",
+          "description": "These thresholds are codified as SonarQube quality gates wired into CI, so a violation fails the build rather than relying on reviewer vigilance. Gate configurations are managed centrally and teams may tighten, but not loosen, them without an approved exception."
+        }
+      ]
+    },
+    {
+      "category": "Code Quality",
+      "name": "Coding Standards",
+      "summary": "Mandates a single, tool-enforced style for each language in use so code reads consistently across the dozens of teams supporting P&C, Life & Retirement, and group benefits systems. Removes formatting debates from code review entirely.",
+      "subs": [
+        {
+          "title": "Language-Specific Style Guides Enforced via Linters",
+          "description": "Each approved language has a designated style guide, and conformance is enforced by linters such as ESLint or Checkstyle running in the CI pipeline. Lint violations fail the build, so stylistic conventions are applied mechanically rather than negotiated in review comments."
+        },
+        {
+          "title": "Consistent Formatting via Prettier or Black",
+          "description": "Source formatting is applied automatically by an opinionated formatter, Prettier for JavaScript and TypeScript codebases and Black for Python, typically via pre-commit hooks. Hand-formatted variations are overwritten by the tool, guaranteeing that diffs show substantive changes only."
+        }
+      ]
+    },
+    {
+      "category": "Code Quality",
+      "name": "Technical Debt",
+      "summary": "Establishes a managed lifecycle for technical debt so that shortcuts taken under delivery pressure are visible, scheduled, and bounded. Prevents the gradual erosion of maintainability that has historically calcified insurance core systems.",
+      "subs": [
+        {
+          "title": "Tech Debt Tagged in Backlog",
+          "description": "Every known piece of technical debt must be captured as a backlog item with a standard debt tag, a description of the compromise made, and an estimate of remediation effort. Untracked debt discovered during development is logged at the time it is found, so the portfolio of debt is always visible to product owners and engineering leadership."
+        },
+        {
+          "title": "Addressed Within Two Sprints",
+          "description": "Newly incurred debt items must be scheduled and remediated within two sprints of being raised. Items that cannot meet that window require an explicit deferral decision from the team lead, recorded on the backlog item, so debt is never silently abandoned."
+        },
+        {
+          "title": "Debt Ratio Below 15 Percent of Velocity",
+          "description": "Teams allocate capacity so that outstanding debt remediation never demands more than fifteen percent of sprint velocity. When the ratio trends toward the ceiling, feature intake is throttled until the balance is restored, keeping delivery speed sustainable across long-lived policy and claims platforms."
+        }
+      ]
+    },
+    {
+      "category": "Code Review",
+      "name": "PR Review SLA",
+      "summary": "Sets response-time expectations for pull request review so that completed work does not sit idle and merge conflicts do not accumulate. Keeps the path from finished code to integrated code measured in hours, not days.",
+      "subs": [
+        {
+          "title": "PRs Reviewed Within Four Hours",
+          "description": "A submitted pull request must receive its first substantive review within four business hours. Teams are expected to treat review as a first-class daily duty, arranging coverage across time zones where squads are distributed, because stalled reviews block delivery of fixes to customer-facing insurance services."
+        },
+        {
+          "title": "No PR Open Beyond 48 Hours Without Action",
+          "description": "No pull request may remain open for more than forty-eight hours without recorded activity, whether approval, requested changes, or an explicit hold note. Stale PRs are escalated to the team lead and surfaced on the engineering dashboard so aging work is resolved or consciously parked."
+        }
+      ]
+    },
+    {
+      "category": "Code Review",
+      "name": "Pair Programming",
+      "summary": "Promotes collaborative construction and deliberate knowledge transfer so that critical system expertise is never held by a single engineer. Reduces key-person risk on platforms where institutional knowledge of rating, billing, and claims logic is hard to rebuild.",
+      "subs": [
+        {
+          "title": "Pairing Required for Complex Features",
+          "description": "Features judged complex during sprint planning, including changes to rating engines, payment processing, or cross-system integrations, must be built by a pair rather than a solo engineer. The pairing requirement applies from design through implementation, giving every high-risk change two sets of eyes before it ever reaches formal review."
+        },
+        {
+          "title": "Weekly Knowledge Sharing Sessions",
+          "description": "Each team holds a recurring weekly session in which engineers present recent designs, incident learnings, or unfamiliar areas of the codebase to colleagues. Sessions are recorded and indexed so that domain knowledge, particularly around legacy life and annuity systems, spreads beyond the individuals who currently maintain them."
+        }
+      ]
+    },
+    {
+      "category": "Code Review",
+      "name": "Review Checklist",
+      "summary": "Standardizes what a reviewer must evaluate before approving a change, so review quality does not depend on who happens to pick up the pull request. Pairs rigorous inspection with a respectful feedback culture.",
+      "subs": [
+        {
+          "title": "Functionality, Tests, Security, Performance, and Maintainability Checked",
+          "description": "Reviewers must work through the standard checklist on every pull request, confirming the change does what the work item requires, carries adequate tests, introduces no security weaknesses such as injection paths or exposure of policyholder data, performs acceptably at production volumes, and remains readable for future maintainers. Approval attests that each dimension was considered, not merely that the code compiles."
+        },
+        {
+          "title": "Constructive Feedback",
+          "description": "Review comments address the code, never the author, and are expected to explain the reasoning behind a requested change or link to the relevant standard. Blocking comments are distinguished from optional suggestions so authors know exactly what must change before merge."
+        }
+      ]
+    },
+    {
+      "category": "Documentation",
+      "name": "API Documentation",
+      "summary": "Ensures every service interface is documented accurately and automatically, so internal consumers, agency partners, and vendor integrators can build against APIs without tribal knowledge. Documentation is generated from the code, keeping it trustworthy by construction.",
+      "subs": [
+        {
+          "title": "OpenAPI Spec Auto-Generated",
+          "description": "Every HTTP API must publish an OpenAPI specification generated from source annotations or contract definitions as part of the build, never maintained by hand. The generated spec is the contract of record for consumers ranging from the mobile claims app to third-party agency management systems, and a build whose spec generation fails does not ship."
+        },
+        {
+          "title": "Examples Provided",
+          "description": "Each documented endpoint includes realistic request and response examples, using synthetic policy and claim data that mirrors production shapes without containing real customer information. Examples must cover common error responses as well as the success path so integrators can handle failures correctly."
+        },
+        {
+          "title": "Changelog Maintained",
+          "description": "API changes are recorded in a versioned changelog noting additions, deprecations, and breaking changes, with deprecations announced ahead of removal per the API versioning policy. Consumers inside and outside the company rely on the changelog to plan their own upgrade work."
+        }
+      ]
+    },
+    {
+      "category": "Documentation",
+      "name": "Architecture Docs",
+      "summary": "Preserves the reasoning and structure behind system designs so architectural knowledge outlives individual tenure. Gives new engineers and auditors a reliable map of how the carrier's platforms fit together and why.",
+      "subs": [
+        {
+          "title": "Architecture Decision Records for Decisions",
+          "description": "Significant technical decisions, such as selecting a policy administration integration pattern or adopting an event streaming platform, are captured as architecture decision records stored alongside the code. Each ADR states the context, the options weighed, the choice made, and its consequences, giving future teams the rationale they need before reversing or extending a decision."
+        },
+        {
+          "title": "C4 Diagrams Maintained",
+          "description": "Every system maintains current C4 model diagrams covering at least the context and container levels, showing how it relates to surrounding platforms such as billing, document management, and data warehouses. Diagrams are stored as code where practical and reviewed whenever the architecture materially changes, so they remain a trustworthy reference rather than a stale artifact."
+        },
+        {
+          "title": "Onboarding Guide for New Developers",
+          "description": "Each team keeps an onboarding guide that takes a new engineer from zero to a merged change, covering domain context, system landscape, access requests, and local setup. The guide is validated by each new joiner, who is expected to fix anything found out of date as their first contribution."
+        }
+      ]
+    },
+    {
+      "category": "Documentation",
+      "name": "README Standards",
+      "summary": "Guarantees that every repository is self-explanatory at the point of entry, so any engineer or auditor can understand and operate a codebase without hunting for its owners. Treats the README as living operational documentation, not a one-time formality.",
+      "subs": [
+        {
+          "title": "README Covers Purpose, Setup, Run, Test, and Deploy",
+          "description": "Every repository must contain a README that states what the system does and which business capability it serves, then walks through environment setup, running locally, executing the test suite, and how deployment works. An engineer unfamiliar with the repo should be able to reach a running local instance using the README alone."
+        },
+        {
+          "title": "Kept Current",
+          "description": "README content is updated in the same pull request as the change that invalidates it, and accuracy is checked during onboarding and periodic repo health reviews. An outdated README is treated as a defect to be fixed, not an accepted state."
+        }
+      ]
+    },
+    {
+      "category": "Observability",
+      "name": "Alerting Standards",
+      "summary": "Defines how production alerts are designed, routed, and sustained so that genuine problems in policy, billing, and claims systems reach a responder who can act, while noise is systematically driven out. Protects both customers and the on-call engineers who support them.",
+      "subs": [
+        {
+          "title": "Actionable Alerts",
+          "description": "Every alert must correspond to a condition that requires human action and indicate plainly what is failing and who is affected. Informational signals belong on dashboards, not pages; an alert that repeatedly fires without prompting action must be tuned or retired."
+        },
+        {
+          "title": "Runbook Linked",
+          "description": "Each alert definition carries a link to a runbook describing diagnosis steps, remediation options, and escalation contacts, including business escalation paths for incidents touching claims payments or policyholder data. Alerts without a runbook may not be promoted to production paging."
+        },
+        {
+          "title": "On-Call Rotation",
+          "description": "Every production service is covered by a defined on-call rotation with documented schedules, handoff procedures, and escalation tiers. Rotations are staffed to keep individual load sustainable, and engineers joining a rotation must first complete shadow shifts."
+        },
+        {
+          "title": "Alert Fatigue Monitored",
+          "description": "Teams track paging volume, after-hours interruptions, and the ratio of actionable to non-actionable alerts as standing metrics reviewed in operational meetings. Sustained noise triggers a mandatory alert-tuning effort, because a desensitized on-call rotation will eventually miss the page that matters."
+        }
+      ]
+    },
+    {
+      "category": "Observability",
+      "name": "Logging Standards",
+      "summary": "Standardizes application logging so that production behavior across the insurance platform can be searched, correlated, and audited without exposing customer information. Makes logs a dependable diagnostic and compliance asset rather than unstructured noise.",
+      "subs": [
+        {
+          "title": "Structured JSON Logging",
+          "description": "All services emit logs as structured JSON with standard fields for timestamp, service name, severity, and event details, rather than free-form text. Structured output lets the central log platform index and query events consistently across every system from quoting front ends to batch policy renewals."
+        },
+        {
+          "title": "Correlation IDs",
+          "description": "A correlation identifier is generated at the edge of each request and propagated through every downstream service, queue message, and batch handoff it touches. This allows a single customer transaction, such as a first notice of loss, to be traced end to end across the many systems that participate in it."
+        },
+        {
+          "title": "No PII in Logs",
+          "description": "Logs must never contain personally identifiable information, protected health information, or payment data; identifiers such as policy or claim numbers are used in place of names, and sensitive fields are masked at the logging framework level. Automated scanning of log streams checks for violations, which are treated as security incidents given the regulatory obligations on nonpublic personal information."
+        },
+        {
+          "title": "Appropriate Log Levels",
+          "description": "Engineers apply severity levels by their defined meanings: ERROR for failures needing attention, WARN for degraded but functioning behavior, INFO for significant business events, and DEBUG for detail disabled in production by default. Disciplined leveling keeps production log volume manageable and makes severity-based filtering meaningful during incidents."
+        }
+      ]
+    },
+    {
+      "category": "Observability",
+      "name": "Metrics & Tracing",
+      "summary": "Requires quantitative instrumentation of every service so the health of the platform is measurable in real time and degradations are localized quickly. Provides the telemetry foundation for both incident response and capacity planning across the carrier's systems.",
+      "subs": [
+        {
+          "title": "RED Metrics (Rate, Errors, Duration)",
+          "description": "Every service exposes request rate, error rate, and duration metrics as its baseline instrumentation, with latency captured as percentile distributions rather than averages. These three signals form the common health language used in service-level objectives and incident triage across all engineering teams."
+        },
+        {
+          "title": "Distributed Tracing Enabled",
+          "description": "Services participate in the platform-wide distributed tracing system, propagating trace context across HTTP calls, messaging, and scheduled jobs. Traces reveal where time is spent when a transaction crosses many systems, which is essential for diagnosing slowness in flows like quote-to-issue that traverse rating, underwriting, and document services."
+        },
+        {
+          "title": "Dashboards per Service",
+          "description": "Each production service has a maintained dashboard presenting its RED metrics, resource utilization, and key business indicators such as quotes issued or claims transactions processed. Dashboards follow a common layout so any responder can orient quickly in an unfamiliar service during an incident."
+        }
+      ]
+    },
+    {
+      "category": "Testing",
+      "name": "Integration Testing",
+      "summary": "Governs how interactions between services and with external parties are verified, so integration failures are caught in the pipeline rather than in production handoffs with bureaus, banks, and vendors. Keeps cross-system confidence high in a landscape with many moving parts.",
+      "subs": [
+        {
+          "title": "Contract Tests for APIs",
+          "description": "Service interfaces are protected by consumer-driven contract tests, using tooling such as Pact, that verify a provider continues to satisfy the expectations of every registered consumer. Contract verification runs in CI on both sides, so a breaking change to a shared API, for example one consumed by both the agent portal and the mobile app, fails the build before it can be released."
+        },
+        {
+          "title": "Integration Tests for External Dependencies",
+          "description": "Interactions with external systems, including MVR and credit bureau services, payment processors, reinsurers, and state regulatory interfaces, are covered by integration tests run against sandboxes or high-fidelity stubs. Tests must exercise failure modes such as timeouts and malformed responses, not just the happy path, because partner outages are a routine production reality."
+        },
+        {
+          "title": "Test Data Management",
+          "description": "Integration suites run against governed synthetic test data that reflects realistic policy, customer, and claim structures; production data may not be copied into lower environments without approved masking. Test datasets are versioned and refreshable on demand so suites remain deterministic and repeatable."
+        }
+      ]
+    },
+    {
+      "category": "Testing",
+      "name": "Performance Testing",
+      "summary": "Ensures systems are proven against realistic load before release and watched for degradation afterward, so seasonal surges such as open enrollment, renewal cycles, and catastrophe-driven claims spikes do not surprise the platform. Makes performance a verified property rather than an assumption.",
+      "subs": [
+        {
+          "title": "Load Tests Before Production",
+          "description": "Changes that could affect throughput or latency must pass load tests in a production-like environment before release, using traffic models that reflect peak conditions such as billing runs or a CAT event driving concentrated first-notice-of-loss volume. Results are compared against the service's capacity targets, and a failed load test blocks the release."
+        },
+        {
+          "title": "Performance Baseline Established",
+          "description": "Each service maintains a recorded performance baseline covering latency percentiles, throughput, and resource consumption at reference load. The baseline is refreshed after significant releases and serves as the objective reference point for judging whether subsequent changes have helped or harmed."
+        },
+        {
+          "title": "Automated Regression Detection",
+          "description": "Pipeline-integrated checks compare each candidate build's performance results against the baseline and flag statistically significant degradation automatically, rather than depending on someone noticing a slow graph. A detected regression must be resolved or formally accepted with justification before the release proceeds."
+        }
+      ]
+    },
+    {
+      "category": "Testing",
+      "name": "Test Automation",
+      "summary": "Defines the automation-first testing posture that lets teams release frequently while protecting complex insurance business logic from regression. Reserves scarce human testing effort for the discovery work machines cannot do.",
+      "subs": [
+        {
+          "title": "All Regression Automated",
+          "description": "The full regression suite, covering established behavior such as rating accuracy, policy lifecycle transitions, and claims workflows, must be automated and executed in the pipeline. Manual regression passes are not an accepted release practice, since they cannot keep pace with the release cadence and silently shrink under deadline pressure."
+        },
+        {
+          "title": "Manual Testing for Exploratory Only",
+          "description": "Human testing is reserved for exploratory sessions: charter-driven investigation of new features, unusual policy and claim scenarios, and usability concerns that scripted checks cannot evaluate. Defects found during exploration are converted into automated tests so the same issue is guarded against permanently."
+        },
+        {
+          "title": "Test Pyramid Observed",
+          "description": "Suites are shaped according to the test pyramid, with fast unit tests forming the bulk of coverage, a moderate layer of integration tests, and a deliberately small set of end-to-end journeys such as quote-to-bind. Inverted pyramids dominated by slow UI tests are flagged in engineering health reviews and scheduled for rebalancing."
+        }
+      ]
+    },
+    {
+      "category": "Testing",
+      "name": "Unit Test Coverage",
+      "summary": "Sets enforced minimums for unit-level verification so that the logic computing premiums, benefits, and claim outcomes is demonstrably exercised by tests. Treats coverage as a floor enforced in the pipeline, with stricter expectations where errors carry financial or regulatory consequence.",
+      "subs": [
+        {
+          "title": "Minimum 80 Percent Line Coverage",
+          "description": "Every codebase must sustain at least eighty percent line coverage from its unit suite, enforced as a pipeline gate that fails builds falling below the threshold. Coverage must come from meaningful assertions; tests written purely to inflate the number are rejected in review."
+        },
+        {
+          "title": "90 Percent Coverage for Critical Paths",
+          "description": "Code paths with direct financial or compliance impact, including premium rating, claims payment calculation, commission processing, and regulatory reporting, are held to a ninety percent minimum. Teams designate these critical modules explicitly so the elevated gate is applied automatically where a defect could mean mispriced policies or incorrect payouts."
+        },
+        {
+          "title": "No Untested Public Methods",
+          "description": "Every public method must be exercised by at least one unit test covering its primary behavior and principal error cases. A public surface with no tests is treated as unfinished work, since public methods are exactly the contracts other components depend on."
+        }
+      ]
+    },
+    {
+      "category": "Version Control",
+      "name": "Branch Protection",
+      "summary": "Locks down the integration branches so that no change reaches them without independent review and a passing pipeline, and so history can never be rewritten. Provides the traceability and change-control evidence expected of a regulated insurance carrier.",
+      "subs": [
+        {
+          "title": "Pull Request Required for Main and Develop",
+          "description": "All changes to main and develop must arrive through a pull request; direct pushes are disabled at the platform level for every contributor, including administrators. The PR record preserves who changed what and why, forming part of the change-control audit trail."
+        },
+        {
+          "title": "Two Approvers Required",
+          "description": "Merging requires approval from two reviewers who are not the author, with at least one holding code-owner responsibility for the affected area. The dual-approval rule ensures no single individual can move code into a protected branch unilaterally, a separation-of-duties control auditors verify."
+        },
+        {
+          "title": "CI Must Pass",
+          "description": "Merge is blocked until all required pipeline checks, including tests, coverage, security scanning, and lint, complete successfully on the latest commit. Approvals do not override a red build, and bypassing checks requires a documented emergency exception."
+        },
+        {
+          "title": "No Force Push",
+          "description": "Force pushes and branch deletion are disabled on protected branches so committed history is immutable. This guarantees the audit trail of changes to production systems cannot be altered after the fact, and corrections are made with new commits or reverts rather than rewrites."
+        }
+      ]
+    },
+    {
+      "category": "Version Control",
+      "name": "Branching Strategy",
+      "summary": "Prescribes how teams structure branches and integrate work so that changes flow to the mainline in small, reviewable increments. Prevents the long-lived divergence and merge crises that slow delivery on shared insurance platforms.",
+      "subs": [
+        {
+          "title": "GitFlow or Trunk-Based Development",
+          "description": "Each repository adopts one of the two sanctioned models, GitFlow or trunk-based development, documents the choice in its README, and applies it consistently. Trunk-based flow is preferred for services on continuous delivery, while GitFlow remains acceptable for systems with scheduled release trains such as core policy administration."
+        },
+        {
+          "title": "Feature Branches Under Three Days",
+          "description": "A feature branch should live no longer than three working days before merging. Work too large for that window is decomposed into incremental slices, using feature flags to keep unfinished functionality dark, so branches stay small and merge conflicts stay rare."
+        },
+        {
+          "title": "No Direct Commits to Main or Master",
+          "description": "Commits may never be made directly to the main or master branch under any circumstances, including hotfixes, which follow an expedited pull request path instead. Combined with branch protection, this keeps review and CI as unconditional steps in the route to production."
+        }
+      ]
+    },
+    {
+      "category": "Version Control",
+      "name": "Commit Standards",
+      "summary": "Defines how individual commits are composed and described so that repository history doubles as a readable, traceable record of change. Supports automated release tooling and the audit traceability from production code back to authorized work.",
+      "subs": [
+        {
+          "title": "Conventional Commits Format",
+          "description": "Commit messages follow the Conventional Commits specification, beginning with a type such as feat, fix, or chore and an optional scope. The structured format is machine-parseable, enabling automated changelog generation and semantic version calculation across the engineering organization."
+        },
+        {
+          "title": "Atomic Commits",
+          "description": "Each commit contains exactly one logical change that builds and passes tests on its own. Mixing a bug fix with an unrelated refactor in a single commit is not permitted, because atomic history makes review, bisection, and selective revert practical when a production issue must be isolated quickly."
+        },
+        {
+          "title": "Meaningful Messages",
+          "description": "Commit messages state what changed and why in terms a future maintainer can act on; placeholders like fixes or wip may not reach a protected branch. Where the motivation is not obvious, the message body explains the context, such as the regulatory bulletin or defect that prompted the change."
+        },
+        {
+          "title": "Linked to Work Item",
+          "description": "Every commit references its originating backlog item or defect identifier, validated by a server-side hook. The link provides end-to-end traceability from an approved piece of work to the exact code that implemented it, evidence routinely requested in change-management audits."
+        }
+      ]
+    }
+  ]
+}

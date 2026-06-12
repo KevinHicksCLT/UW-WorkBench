@@ -90,7 +90,7 @@ export default function App() {
         <Route path="/overview" element={<Explorer />} />
         <Route path="/n/*" element={<Explorer />} />
         <Route path="/explorer" element={<Navigate to="/overview" replace />} />
-        {/* Roles & people — interactive table (org groupings → person, value-stream cross-link). */}
+        {/* Organization — interactive table (org groupings → role, value-stream cross-link). */}
         <Route path="/roles" element={<Organization />} />
         {/* Detail pages remain as deep-link targets from inspector + search. */}
         <Route path="/divisions/:id" element={<DivisionDetail />} />
@@ -122,8 +122,11 @@ export default function App() {
         <Route path="/portfolio/programs/:id" element={<PortfolioDetailRedirect base="programs" />} />
         <Route path="/portfolio/initiatives/:id" element={<PortfolioDetailRedirect base="initiatives" />} />
         <Route path="/portfolio/raid" element={<Navigate to="/raid" replace />} />
-        {/* Deliverables & Tasks — standalone work tracker (banner + filters + table). */}
-        <Route path="/work" element={<Work />} />
+        {/* Deliverables / Tasks — standalone work tracker, one top-level tab
+            each. Old /work links land on Deliverables. */}
+        <Route path="/deliverables" element={<Work tab="deliverables" />} />
+        <Route path="/tasks" element={<Work tab="tasks" />} />
+        <Route path="/work" element={<Navigate to="/deliverables" replace />} />
         {/* Regulations — 50-state insurance regulatory baseline (states /
             requirements / coverage lenses) + per-state detail by USPS code. */}
         <Route path="/regulations" element={<Regulations />} />

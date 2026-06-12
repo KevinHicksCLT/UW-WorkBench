@@ -4,12 +4,13 @@ import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
 import { fmt } from '../lib/format';
 import PageHeader from '../components/PageHeader';
-import { SectionCard, SeverityCell, withCompany } from '../lib/portfolio';
+import { FALLBACK_BANDS, SectionCard, SeverityCell, useRiskBands, withCompany } from '../lib/portfolio';
 import { Sheet, SheetCell, type SheetCol } from '../components/Sheet';
 
-// Portfolio-wide RAID log — a probability × impact risk heatmap plus the item
-// list in the canonical Sheet format (see components/Sheet.tsx); Type / Status
-// are column filters (status defaults to OPEN). Clicking a row expands its
+// Portfolio-wide RAID log — open-risk counts per severity band (the same
+// company-configurable bands the severity badges use) plus the item list in
+// the canonical Sheet format (see components/Sheet.tsx); Type / Status are
+// column filters (status defaults to OPEN). Clicking a row expands its
 // mitigation. Scoped to the active company.
 
 type RaidRow = {
@@ -20,9 +21,11 @@ type RaidRow = {
 const TYPES = ['RISK', 'ASSUMPTION', 'ISSUE', 'DECISION'];
 
 // Embeddable: pass `embedded` to render inside another page (Initiatives tab)
-// without its own page header.
-export default function PortfolioRaid({ embedded = false }: { embedded?: boolean } = {}) {
+// without its own page header. Pass `programId` to scope the log to one
+// program — every program gets its own RAID log (program page → RAID tab).
+export default function PortfolioRaid({ embedded = false, programId }: { embedded?: boolean; programId?: string } = {}) {
   const { companyId, loading: companyLoading } = useCompany();
+  const bands = useRiskBands();
   const [params] = useSearchParams();
   const [items, setItems] = useState<RaidRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,13 +35,19 @@ export default function PortfolioRaid({ embedded = false }: { embedded?: boolean
   useEffect(() => {
     if (companyLoading) return;
     setLoading(true);
-    api.get(withCompany('/portfolio/raid', companyId))
+    api.get(withCompany(programId ? `/portfolio/raid?programId=${programId}` : '/portfolio/raid', companyId))
       .then(setItems).catch(() => {}).finally(() => setLoading(false));
-  }, [companyId, companyLoading]);
+  }, [companyId, companyLoading, programId]);
 
-  // 5×5 probability × impact heatmap of OPEN RISK counts.
-  const heatmap = Array.from({ length: 5 }, () => Array.from({ length: 5 }, () => 0));
-  for (const i of items) if (i.type === 'RISK' && i.status === 'OPEN') heatmap[i.probability - 1][i.impact - 1]++;
+  // Open-risk counts per severity band, worst band first. Severity is the 5×5
+  // probability × impact score; the bands map it to ratings (badges use the
+  // same bands, so the chart and the list can never disagree).
+  const effectiveBands = bands.length ? bands : FALLBACK_BANDS;
+  const openRisks = items.filter((i) => i.type === 'RISK' && i.status === 'OPEN');
+  const bandRows = [...effectiveBands]
+    .sort((a, b) => b.minScore - a.minScore)
+    .map((band) => ({ band, count: openRisks.filter((r) => r.severity >= band.minScore && r.severity <= band.maxScore).length }));
+  const bandMax = Math.max(1, ...bandRows.map((r) => r.count));
 
   const cols: SheetCol<RaidRow>[] = [
     {
@@ -75,33 +84,32 @@ export default function PortfolioRaid({ embedded = false }: { embedded?: boolean
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-        <SectionCard title="Open-risk heatmap (probability × impact)">
-          <div className="flex">
-            <div className="text-xs text-[#a3a3a3] flex flex-col justify-around pr-2 text-right" style={{ height: 200 }}>
-              <span>5</span><span>4</span><span>3</span><span>2</span><span>1</span>
-            </div>
-            <div className="flex-1">
-              <div className="grid grid-cols-5 gap-0.5" style={{ height: 200 }}>
-                {[5, 4, 3, 2, 1].map((p) => [1, 2, 3, 4, 5].map((i) => {
-                  const sev = p * i;
-                  const count = heatmap[p - 1][i - 1];
-                  const bg = sev >= 16 ? 'bg-[#be123c]' : sev >= 9 ? 'bg-[#f59e0b]' : 'bg-[#10b981]';
-                  return (
-                    <div key={`${p}-${i}`} className={`${bg} flex items-center justify-center text-white font-bold text-xs rounded`} title={`Prob ${p} × Impact ${i} = ${sev}`}>
-                      {count > 0 ? count : ''}
-                    </div>
-                  );
-                }))}
+        <SectionCard title="Open risks by severity">
+          <div className="space-y-3">
+            {bandRows.map(({ band, count }) => (
+              <div
+                key={band.id}
+                className="flex items-center gap-3"
+                title={`${band.label}: probability × impact score ${band.minScore}–${band.maxScore}${band.description ? ` — ${band.description}` : ''}`}
+              >
+                <div className="w-20 flex-shrink-0">
+                  <div className="text-xs font-semibold" style={{ color: band.color }}>{band.label}</div>
+                  <div className="text-[10px] text-[#a3a3a3] tnum">{band.minScore}–{band.maxScore}</div>
+                </div>
+                <div className="flex-1 h-5 bg-[#f5f5f5] rounded overflow-hidden">
+                  <div className="h-full rounded" style={{ width: `${(count / bandMax) * 100}%`, backgroundColor: band.color, minWidth: count ? 2 : 0 }} />
+                </div>
+                <div className="w-8 text-right text-sm font-semibold text-[#171717] tnum flex-shrink-0">{count}</div>
               </div>
-              <div className="flex justify-between text-xs text-[#a3a3a3] mt-1"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
-              <div className="text-center text-xs text-[#a3a3a3] mt-1">Impact →</div>
-            </div>
+            ))}
           </div>
-          <div className="text-xs text-[#a3a3a3] mt-2">↑ Probability</div>
+          <p className="text-xs text-[#a3a3a3] mt-4 pt-3 border-t border-[#f5f5f5]">
+            Severity = probability × impact on the 5×5 matrix. Bands are set in Data Admin → Initiatives → Risk scoring bands.
+          </p>
         </SectionCard>
 
         <div className="lg:col-span-2">
-          <SectionCard title="Across the portfolio">
+          <SectionCard title={programId ? 'Across this program' : 'Across the portfolio'}>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {/* Open only — must agree with the Home RAID widget and the
                   default-filtered list below (one number per click path). */}

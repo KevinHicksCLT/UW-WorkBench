@@ -21,13 +21,13 @@ export const MODES: AiMode[] = [
     key: 'assistant',
     label: 'AI Assistant',
     short: 'Assist',
-    desc: 'In-the-moment help — people ask AI to draft, summarise, look up and explain as they work.',
+    desc: 'In-the-moment help — users ask AI to draft, summarise, look up and explain as they work.',
   },
   {
     key: 'augmented',
     label: 'AI Augmented',
     short: 'Augment',
-    desc: 'AI drafts whole work products (letters, assessments, reports); the person reviews and approves.',
+    desc: 'AI drafts whole work products (letters, assessments, reports); a reviewer checks and approves.',
   },
   {
     key: 'workflow',
@@ -39,7 +39,7 @@ export const MODES: AiMode[] = [
     key: 'agent',
     label: 'Autonomous Agent',
     short: 'Autonomous',
-    desc: 'A multi-step agent handles a whole sub-process within authority; people approve the outcomes.',
+    desc: 'A multi-step agent handles a whole sub-process within authority; users approve the outcomes.',
   },
 ];
 

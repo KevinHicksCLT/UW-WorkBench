@@ -11,8 +11,6 @@
 //      lead roles; no randomness), all flagged illustrative=true. User-approved
 //      approach: the workbook marks these sheets PLACEHOLDER, but the sidebar
 //      should show the lens for every step until real data replaces it.
-//   5. Applies "Cap – People" capacity fields (FTE, net available hrs) to
-//      existing persons via their primary role assignment.
 //
 // Idempotent: wipes+rebuilds only StepAppUsage/StepDeliverable. Run:
 //   npx tsx scripts/seed-step-lens.ts "../AI Transformation Bridge Input.xlsx"
@@ -238,27 +236,6 @@ async function main() {
   for (let i = 0; i < usageRows.length; i += 500) await prisma.stepAppUsage.createMany({ data: usageRows.slice(i, i + 500) });
   for (let i = 0; i < delivRows.length; i += 500) await prisma.stepDeliverable.createMany({ data: delivRows.slice(i, i + 500) });
   console.log(`Illustrative coverage: +${usageRows.length} app usages, +${delivRows.length} deliverables.`);
-
-  // ── 5. Cap – People capacity fields by primary role ───────────────────
-  const cap = new Map<string, { fte: number; net: number }>();
-  for (const row of grid('Cap – People')) {
-    if (!/^P-\d+$/.test(str(row[0]))) continue;
-    const role = str(row[2]);
-    const fte = Number(row[4]), net = Number(row[7]);
-    if (role && Number.isFinite(fte) && Number.isFinite(net) && !cap.has(role)) cap.set(role, { fte, net });
-  }
-  let people = 0;
-  for (const [roleName, v] of cap) {
-    const role = roles.find((r) => r.name === roleName);
-    if (!role) continue;
-    const assignments = await prisma.assignment.findMany({ where: { roleId: role.id, isPrimary: true }, select: { personId: true, allocationPct: true } });
-    for (const a of assignments) {
-      const frac = (a.allocationPct ?? 100) / 100;
-      await prisma.person.update({ where: { id: a.personId }, data: { fte: v.fte * frac, netAvailableHrs: Math.round(v.net * frac * 10) / 10 } });
-      people++;
-    }
-  }
-  console.log(`Capacity fields applied to ${people} person rows from ${cap.size} Cap roles.`);
   await prisma.$disconnect();
 }
 

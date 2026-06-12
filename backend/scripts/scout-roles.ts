@@ -26,14 +26,13 @@ async function main() {
   const deptRoleIds = new Set(divisions.flatMap((d) => d.departments.flatMap((x) => x.roles.map((r) => r.id))));
   const orphans = allRoles.filter((r) => !deptRoleIds.has(r.id));
 
-  const [checklists, roleTasks, rvs, assignments] = await Promise.all([
+  const [checklists, roleTasks, rvs] = await Promise.all([
     prisma.checklistItem.groupBy({ by: ['roleId'], _count: { _all: true } }),
     prisma.roleTask.groupBy({ by: ['roleId'], _count: { _all: true } }),
     prisma.roleValueStream.groupBy({ by: ['roleId'], _count: { _all: true } }),
-    prisma.assignment.groupBy({ by: ['roleId'], _count: { _all: true } }),
   ]);
   const cnt = (g: { roleId: string; _count: { _all: number } }[]) => new Map(g.map((x) => [x.roleId, x._count._all]));
-  const cl = cnt(checklists), rt = cnt(roleTasks), vs = cnt(rvs), asg = cnt(assignments);
+  const cl = cnt(checklists), rt = cnt(roleTasks), vs = cnt(rvs);
 
   // Free-text role references in IoItem.keyRoles and ProcessStep.leads/supporting
   const io = await prisma.ioItem.findMany({ select: { keyRoles: true } });
@@ -56,7 +55,6 @@ async function main() {
           (cl.get(r.id) ?? 0) === 0 ? 'no-checklist' : '',
           (rt.get(r.id) ?? 0) === 0 ? 'no-tasks' : '',
           (vs.get(r.id) ?? 0) === 0 ? 'no-VS' : '',
-          (asg.get(r.id) ?? 0) === 0 ? 'no-people' : '',
         ].filter(Boolean);
         return `${r.name}${flags.length ? ` [${flags.join(',')}]` : ''}`;
       });

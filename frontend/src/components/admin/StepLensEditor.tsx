@@ -1,6 +1,6 @@
 // StepLensEditor — the guided "what the map sidebar shows" editor.
 //
-// The map sidebar's step lens (Supporting roles/employees · Deliverables ·
+// The map sidebar's step lens (Supporting roles · Deliverables ·
 // Applications & systems) is assembled at query time from DB rows. This editor
 // is shaped like the sidebar itself AND level-aware like the map: pick a value
 // stream and the stream-level content appears prefilled; drill to a
@@ -333,9 +333,9 @@ export default function StepLensEditor({ companyId, onNavigate }: {
 
           {/* ── Who does the work ─────────────────────────────────────────── */}
           <SectionCard
-            title="Supporting roles & employees"
+            title="Supporting roles"
             accent={ACCENT.who}
-            hint="Comma-separated role names per step. Names resolve to the role inventory; the sidebar shows those roles with their assigned people nested (executive outliers are filtered)."
+            hint="Comma-separated role names per step. Names resolve to the role inventory; the sidebar shows those roles (executive outliers are filtered)."
           >
             <div className="space-y-2">
               {scopeSteps.map((s) => (
@@ -362,7 +362,6 @@ export default function StepLensEditor({ companyId, onNavigate }: {
               ))}
             </div>
             <div className="mt-2 text-[11px] text-[#a3a3a3]">
-              People are managed per role (assignments) — <button className="underline text-[#1d4ed8]" onClick={() => onNavigate?.('people', 'people')}>People</button>.
               Tasks &amp; checklists come from the role definitions — <button className="underline text-[#1d4ed8]" onClick={() => onNavigate?.('organization', 'roles')}>Roles &amp; responsibilities</button>.
             </div>
           </SectionCard>
