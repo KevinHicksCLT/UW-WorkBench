@@ -136,10 +136,9 @@ function ServiceNode({ data }: NodeProps) {
 }
 
 function HeaderNode({ data }: NodeProps) {
-  const d = data as { title: string; appId?: string; center?: boolean; w?: number };
+  const d = data as { title: string; appId?: string };
   return (
-    <div className={`text-[19px] font-bold text-[#171717] leading-tight truncate${d.center ? ' text-center' : ''}`}
-      style={d.center ? { width: d.w } : { maxWidth: 270 }}>
+    <div className="text-[19px] font-bold text-[#171717] leading-tight truncate" style={{ maxWidth: 270 }}>
       {d.title}
     </div>
   );
@@ -469,14 +468,11 @@ export default function ApplicationRationalization({ embedded = false }: { embed
     }
     const keptCountByLayer = (layer: Layer) => detail.findings.filter((f) => f.layer === layer && belongsHere(f.capdan)).length;
 
-    // Headers — section labels on the top row ("Brown-field" once, centered over
-    // both legacy columns), app names on the row below; all the same style.
-    nodes.push({ id: 'hdr:cap', type: 'header', position: { x: X.capdan, y: -92 }, data: { title: 'CAPDAN — Normalize' }, ...lock });
-    nodes.push({ id: 'hdr:svc', type: 'header', position: { x: X.service, y: -92 }, data: { title: 'Green-field' }, ...lock });
+    // Headers — one top row: the legacy app names (no "Brown-field" section
+    // label) followed by the CAPDAN and Green-field labels; all the same style.
+    nodes.push({ id: 'hdr:cap', type: 'header', position: { x: X.capdan, y: -54 }, data: { title: 'CAPDAN — Normalize' }, ...lock });
+    nodes.push({ id: 'hdr:svc', type: 'header', position: { x: X.service, y: -54 }, data: { title: 'Green-field' }, ...lock });
     const headApps = detail.apps.slice(0, 2);
-    if (headApps.length > 0) {
-      nodes.push({ id: 'hdr:brown', type: 'header', position: { x: appX[0], y: -92 }, data: { title: 'Brown-field', center: true, w: appX[headApps.length - 1] + 250 - appX[0] }, ...lock });
-    }
     headApps.forEach((a, i) => {
       nodes.push({ id: `hdr:${a.id}`, type: 'header', position: { x: appX[i], y: -54 }, data: { title: a.name, appId: a.id }, ...lock });
     });
