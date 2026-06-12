@@ -122,8 +122,11 @@ export default function App() {
         <Route path="/portfolio/programs/:id" element={<PortfolioDetailRedirect base="programs" />} />
         <Route path="/portfolio/initiatives/:id" element={<PortfolioDetailRedirect base="initiatives" />} />
         <Route path="/portfolio/raid" element={<Navigate to="/raid" replace />} />
-        {/* Deliverables & Tasks — standalone work tracker (banner + filters + table). */}
-        <Route path="/work" element={<Work />} />
+        {/* Deliverables / Tasks — standalone work tracker, one top-level tab
+            each. Old /work links land on Deliverables. */}
+        <Route path="/deliverables" element={<Work tab="deliverables" />} />
+        <Route path="/tasks" element={<Work tab="tasks" />} />
+        <Route path="/work" element={<Navigate to="/deliverables" replace />} />
         {/* Regulations — 50-state insurance regulatory baseline (states /
             requirements / coverage lenses) + per-state detail by USPS code. */}
         <Route path="/regulations" element={<Regulations />} />

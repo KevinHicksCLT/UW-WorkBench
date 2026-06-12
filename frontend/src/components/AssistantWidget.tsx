@@ -52,7 +52,12 @@ const SUGGESTIONS_BY_SCREEN: [prefix: string, suggestions: string[]][] = [
     'How does application TCO break down by primary division?',
     'Which value streams are linked to the most applications?',
   ]],
-  ['/work', [
+  ['/deliverables', [
+    'Which roles are named on the most deliverables and outputs?',
+    'Which L4 processes have the most inputs and outputs?',
+    'Which process steps involve external participants?',
+  ]],
+  ['/tasks', [
     'Which roles are named on the most deliverables and outputs?',
     'Which L4 processes have the most inputs and outputs?',
     'Which process steps involve external participants?',

@@ -144,7 +144,7 @@ const tile = (
 // deeper connective tissue instead of repeating the tiles above it.
 export const FOOTPRINT_STATS: Record<string, { key: string; label: string; to: string }> = {
   subProcesses: { key: 'subProcesses', label: 'Sub-processes', to: '/overview?view=list' },
-  ioItems: { key: 'ioItems', label: 'Inputs & outputs', to: '/work' },
+  ioItems: { key: 'ioItems', label: 'Inputs & outputs', to: '/deliverables' },
   externalParties: { key: 'externalParties', label: 'External parties', to: '/external' },
   externalInteractions: { key: 'externalInteractions', label: 'External interactions', to: '/external' },
   standards: { key: 'standards', label: 'Standards', to: '/standards' },
@@ -216,8 +216,8 @@ export const WIDGET_CATALOG: Widget[] = [
   // Home portfolio widgets themselves (D7.2 — /portfolio is now the workspace),
   // and operating-model risks render only in Data Admin.
   tile('tile:initiatives', 'Initiatives', 'initiatives', { source: SRC.initiatives }),
-  tile('tile:deliverables', 'Deliverables', 'deliverables', { to: '/work', source: SRC.work }),
-  tile('tile:tasks', 'Tasks', 'tasks', { to: '/work', source: SRC.work }),
+  tile('tile:deliverables', 'Deliverables', 'deliverables', { to: '/deliverables', source: SRC.work }),
+  tile('tile:tasks', 'Tasks', 'tasks', { to: '/tasks', source: SRC.work }),
   tile('tile:departments', 'Departments', 'departments', { to: '/roles?view=departments', source: SRC.org }),
   tile('tile:domains', 'Domains', 'domains', { to: '/overview', source: SRC.vs }),
   tile('tile:applications', 'Applications', 'applications', { to: '/applications', source: SRC.apps }),
