@@ -47,7 +47,7 @@ const DELIVERABLE_STATUS = ['Not Started', 'In Progress', 'In Progress', 'In Pro
 const classifyType = (n: string) => /report|summary|notice|statement|confirmation|disclosure/i.test(n) ? 'Report' : /record|file|register/i.test(n) ? 'Document' : 'Document';
 
 async function main() {
-  const data = JSON.parse(readFileSync(new URL('../../life-streams-content.json', import.meta.url), 'utf8'));
+  const data = JSON.parse(readFileSync(new URL('../../documents/life-streams-content.json', import.meta.url), 'utf8'));
   const designs: Design[] = data.streamDesigns;
   const exec = data.execOffice as { departments: { name: string; roles: ExecRole[] }[] } | null;
   const company = await prisma.company.findFirst({ select: { id: true, tenantId: true } });
