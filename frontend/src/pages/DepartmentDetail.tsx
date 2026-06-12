@@ -8,11 +8,11 @@ const PART_CLASS: Record<string, string> = { Lead: 'part-lead', Core: 'part-core
 type Participation = { valueStreamId: string; valueStreamName: string; domain: string | null; participationType: string; l3: string | null; l4: string | null };
 type Role = {
   id: string; name: string; roleLevel: string | null; roleFamily: string | null; description: string | null;
-  peopleCount: number; valueStreamCount: number; checklistCount: number; taskCount: number; participations: Participation[];
+  valueStreamCount: number; checklistCount: number; taskCount: number; participations: Participation[];
 };
 type Data = {
   id: string; name: string; company: { id: string; name: string }; division: { id: string; name: string; higherCategory: string | null };
-  totals: { roles: number; people: number }; roles: Role[];
+  totals: { roles: number }; roles: Role[];
 };
 
 export default function DepartmentDetail() {
@@ -29,7 +29,7 @@ export default function DepartmentDetail() {
     <div>
       <PageHeader
         title={d.name}
-        subtitle={`${d.totals.roles} roles · ${d.totals.people} people`}
+        subtitle={`${d.totals.roles} roles`}
       />
 
       <div className="card p-0 overflow-hidden">
@@ -44,7 +44,6 @@ export default function DepartmentDetail() {
                   <th className="text-left font-semibold px-2 py-2.5">Role</th>
                   <th className="text-left font-semibold px-2 py-2.5">Level</th>
                   <th className="text-left font-semibold px-2 py-2.5">Family</th>
-                  <th className="text-right font-semibold px-2 py-2.5">People</th>
                   <th className="text-left font-semibold px-2 py-2.5 w-[36%]">Value streams</th>
                   <th className="text-right font-semibold px-2 py-2.5">Resp.</th>
                   <th className="text-right font-semibold px-4 py-2.5">Checks</th>
@@ -81,7 +80,6 @@ function RoleRows({ role: r, isOpen, onToggle }: { role: Role; isOpen: boolean; 
         </td>
         <td className="px-2 py-2.5 text-[#525252]">{r.roleLevel && r.roleLevel !== 'Individual Contributor' ? r.roleLevel : '—'}</td>
         <td className="px-2 py-2.5 text-[#525252]">{r.roleFamily ?? '—'}</td>
-        <td className="px-2 py-2.5 text-right tnum text-[#525252]">{r.peopleCount}</td>
         <td className="px-2 py-2.5">
           {streams.length === 0 ? (
             <span className="text-xs text-[#a3a3a3] italic">None</span>
@@ -100,7 +98,7 @@ function RoleRows({ role: r, isOpen, onToggle }: { role: Role; isOpen: boolean; 
       {isOpen && (
         <tr className="bg-[#fafafa] border-b border-[#f5f5f5]">
           <td />
-          <td colSpan={7} className="px-2 py-3 pr-4">
+          <td colSpan={6} className="px-2 py-3 pr-4">
             {r.description && <p className="text-sm text-[#525252] mb-3 max-w-3xl">{r.description}</p>}
             <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] mb-2">
               Value-stream participation · L1 Domain → L2 Stream → L3 Process Area → L4 Sub-Process

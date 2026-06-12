@@ -67,7 +67,6 @@ model Company {
   stepDeliverables     StepDeliverable[]
   metrics              Metric[]
   initiatives          Initiative[]
-  people               Person[]
   risks                Risk[]
   domains              ValueStreamDomain[]
   standards            Standard[]
@@ -95,18 +94,16 @@ model Company {
 }
 
 // Trackable telemetry signal — one row per signal/metric the Telemetry
-// "Trackable Metrics" catalog renders. Two origins, imported 1:1 by
-// scripts/seed-telemetry-signals.ts: the live workforce signals (isLive=true,
-// per-person readings exist in PersonSignal/PersonMetric — queryType holds which
-// store, 'signal' | 'metric') and the workbook reference catalog
-// (Metric_Catalog_Expanded + External_Metric_Catalog; isLive=false, queryType is
-// the extraction/calculation note). Editable in Data Admin → Telemetry.
+// "Trackable Metrics" catalog renders. Imported by
+// scripts/seed-telemetry-signals.ts from the workbook reference catalog
+// (Metric_Catalog_Expanded + External_Metric_Catalog; queryType is the
+// extraction/calculation note). Editable in Data Admin → Telemetry.
 model TelemetrySignal {
   id          String   @id @default(cuid())
   tenantId    String
   companyId   String
   company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  kind        String // workforce (per-person Viva/M365 telemetry) | system (system-of-record metric)
+  kind        String // system (system-of-record metric) | kpi
   name        String
   description String?
   source      String? // raw source system text, e.g. "Microsoft Viva Insights"
@@ -116,7 +113,7 @@ model TelemetrySignal {
   direction   String   @default("up") // up = higher is better, down = lower is better
   origin      String? // provenance — the workbook sheet the row came from
   queryType   String? // live rows: which store ('signal'|'metric'); catalog rows: how it's calculated
-  isLive      Boolean  @default(false) // true = per-person readings exist (role drill-down works)
+  isLive      Boolean  @default(false) // true = live readings exist in the platform
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -296,7 +293,6 @@ model Role {
   roleTasks            RoleTask[]
   valueStreamLinks     RoleValueStream[]
   externalInteractions ExternalInteraction[]
-  assignments          Assignment[]
   sponsoredInitiatives Initiative[]          @relation("InitiativeSponsor")
   ownedRisks           Risk[]               @relation("RiskOwner")
   ownedStandardItems   StandardItem[]       @relation("StandardItemOwner")
@@ -430,8 +426,6 @@ model RoleTask {
   sourceSheet String?
   sourceRow   Int?
   createdAt   DateTime @default(now())
-
-  personTasks PersonTask[]
 
   @@index([roleId])
   @@index([categoryId])
@@ -776,6 +770,14 @@ model StandardItem {
   relatedRole     String? // "Related Items (Role)" cross-reference
   relatedCategory String? // "Related Items (Category)" cross-reference
   itemsLink       String? // pointer back into the workbook Items sheet
+  // Standards decomposition: workbook rows became GROUPS (description = the
+  // higher-level summary); each semicolon fragment of the old description is
+  // its own child standard. Leaves (children none) are "the standards" wherever
+  // standards are listed or counted. Column added by scripts/decompose-standards.ts
+  // via raw SQL (additive — do not `db push` against the live DB).
+  parentId        String?
+  parent          StandardItem?  @relation("StandardItemChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children        StandardItem[] @relation("StandardItemChildren")
   // Regulatory-compliance traceability (e.g. the GDPR/CCPA/NYDFS packs):
   agentSkill           String? // the SDLC agent skill that enforces this standard (e.g. "gdpr-sdlc-compliance")
   sdlcGates            String? // SDLC phases the standard applies at, e.g. "Requirements; Design"
@@ -787,13 +789,13 @@ model StandardItem {
   @@index([companyId])
   @@index([standardId])
   @@index([ownerRoleId])
+  @@index([parentId])
 }
 
-// ─── Initiatives / People / Tasks / Risks (illustrative) ────────────────
-// Transformation initiatives, the people (employees + contractors) who staff
-// roles, their live tasks + performance metrics, and first-class risks. All
-// synthesized for now (illustrative=true); replaced by real/authored/connected
-// data in later phases. These power the deep levels of the explorer drill.
+// ─── Initiatives / Risks (illustrative) ─────────────────────────────────
+// Transformation initiatives and first-class risks. All synthesized for now
+// (illustrative=true); replaced by real/authored/connected data in later
+// phases. These power the deep levels of the explorer drill.
 
 model Initiative {
   id            String   @id @default(cuid())
@@ -817,7 +819,6 @@ model Initiative {
 
   valueStreamLinks InitiativeValueStream[]
   divisionLinks    InitiativeDivision[]
-  assignments      Assignment[]
   risks            Risk[]
 
   @@unique([tenantId, companyId, name])
@@ -855,136 +856,6 @@ model InitiativeDivision {
   @@unique([initiativeId, divisionId])
   @@index([initiativeId])
   @@index([divisionId])
-}
-
-model Person {
-  id             String   @id @default(cuid())
-  tenantId       String
-  companyId      String
-  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  name           String
-  email          String?
-  employmentType String   @default("badged") // badged | contractor | si_partner
-  vendor         String? // set for contractor / si_partner
-  location       String?
-  region         String? // Onshore | Nearshore | Offshore
-  title          String?
-  // Bridge Input "Cap – People" capacity fields (per-role defaults applied).
-  fte             Float?
-  netAvailableHrs Float? // per period (month): Std×FTE − leave/holiday
-  illustrative   Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  assignments Assignment[]
-  tasks       PersonTask[]
-  metrics     PersonMetric[]
-  signals     PersonSignal[]
-  appUsage    PersonAppUsage[]
-
-  @@index([companyId])
-  @@index([companyId, employmentType])
-}
-
-// Digital-productivity signals for an individual (time online, code activity,
-// collaboration). ILLUSTRATIVE: the workbook has no such telemetry, so these are
-// synthesized to show how individual activity would surface. Monthly time-series.
-model PersonSignal {
-  id           String   @id @default(cuid())
-  tenantId     String
-  personId     String
-  person       Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
-  period       String // YYYY-MM
-  name         String // Time online | GitHub activity | Team messages | Focus hours | Meetings
-  value        Float
-  unit         String // hrs/day | commits/mo | msgs/wk | hrs/wk
-  illustrative Boolean  @default(true)
-  createdAt    DateTime @default(now())
-
-  @@unique([personId, period, name])
-  @@index([personId])
-}
-
-// Application usage mix for an individual (the "most used app" signal). One row
-// per app, ranked by share of active time. ILLUSTRATIVE.
-model PersonAppUsage {
-  id           String   @id @default(cuid())
-  tenantId     String
-  personId     String
-  person       Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
-  appName      String
-  category     String? // IDE | Comms | Analytics | Domain | Productivity
-  usagePct     Int // share of active time (0–100)
-  rank         Int // 1 = most used
-  illustrative Boolean  @default(true)
-  createdAt    DateTime @default(now())
-
-  @@index([personId])
-}
-
-model Assignment {
-  id             String      @id @default(cuid())
-  tenantId       String
-  personId       String
-  person         Person      @relation(fields: [personId], references: [id], onDelete: Cascade)
-  roleId         String
-  role           Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  initiativeId   String?
-  initiative     Initiative? @relation(fields: [initiativeId], references: [id], onDelete: SetNull)
-  employmentType String      @default("badged") // denormalized for fast filtering
-  allocationPct  Int         @default(100)
-  isPrimary      Boolean     @default(true)
-  startDate      DateTime?
-  endDate        DateTime?
-  illustrative   Boolean     @default(true)
-  createdAt      DateTime    @default(now())
-
-  tasks PersonTask[]
-
-  @@index([roleId])
-  @@index([personId])
-  @@index([initiativeId])
-  @@index([initiativeId, employmentType])
-}
-
-model PersonTask {
-  id           String      @id @default(cuid())
-  tenantId     String
-  personId     String
-  person       Person      @relation(fields: [personId], references: [id], onDelete: Cascade)
-  assignmentId String?
-  assignment   Assignment? @relation(fields: [assignmentId], references: [id], onDelete: SetNull)
-  roleTaskId   String?
-  roleTask     RoleTask?   @relation(fields: [roleTaskId], references: [id], onDelete: SetNull)
-  title        String
-  status       String      @default("In Progress") // To Do | In Progress | Blocked | Done
-  priority     String      @default("Medium") // High | Medium | Low
-  dueDate      DateTime?
-  illustrative Boolean     @default(true)
-  createdAt    DateTime    @default(now())
-
-  @@index([personId])
-  @@index([personId, status])
-  @@index([assignmentId])
-}
-
-model PersonMetric {
-  id           String   @id @default(cuid())
-  tenantId     String
-  personId     String
-  person       Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
-  period       String // YYYY-MM
-  name         String // Throughput | Quality | Utilization | Cycle time
-  value        Float
-  unit         String // % | /mo | days | score
-  target       Float?
-  direction    String   @default("up") // up | down
-  illustrative Boolean  @default(true)
-  createdAt    DateTime @default(now())
-
-  @@unique([personId, period, name])
-  @@index([personId])
-  @@index([personId, period])
 }
 
 model Risk {
@@ -1395,12 +1266,11 @@ model InitiativeObjective {
   @@unique([initiativeId, objectiveId])
 }
 
-// Resource demand on an initiative (I6): a named person or an unnamed role.
+// Resource demand on an initiative (I6): a named role-based demand line.
 model InitiativeResource {
   id            String              @id @default(cuid())
   initiativeId  String
   initiative    PortfolioInitiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
-  personId      String?
   roleName      String?
   name          String
   allocationPct Int                 @default(50)

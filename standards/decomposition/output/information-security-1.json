@@ -1,0 +1,433 @@
+{
+  "department": "Information Security",
+  "items": [
+    {
+      "category": "Application Security",
+      "name": "API Security Standards",
+      "summary": "Governs how every API exposed or consumed by the carrier is authenticated, throttled, and hardened, so that policy, claims, and customer data served over APIs cannot be enumerated, abused, or leaked in transit.",
+      "subs": [
+        {
+          "title": "OAuth 2.0/OIDC for API Authentication",
+          "description": "Every API must authenticate callers using OAuth 2.0 flows with OpenID Connect for identity assertion; API keys alone, basic auth, or home-grown token schemes are not acceptable. Tokens are scoped to the minimum claims required, short-lived, and validated on every request at the gateway and the service."
+        },
+        {
+          "title": "Rate Limiting",
+          "description": "APIs enforce per-client and per-endpoint rate limits at the gateway to blunt credential stuffing, quote-engine scraping, and denial-of-service attempts. Limits are tuned to legitimate business volumes (e.g., agent portal and partner integration traffic) and breaches generate security telemetry."
+        },
+        {
+          "title": "Input Validation",
+          "description": "All API request payloads, parameters, and headers are validated against a defined schema before processing, with strict type, length, and range checks. Requests that fail validation are rejected with generic errors so internal structure is not disclosed, protecting downstream policy administration and claims systems from injection."
+        },
+        {
+          "title": "No Sensitive Data in URLs",
+          "description": "Policy numbers, SSNs, claim identifiers, tokens, and any other sensitive or personal data must never appear in URL paths or query strings, where they would persist in proxy logs, browser history, and referrer headers. Such values are carried only in request bodies or headers over TLS."
+        }
+      ]
+    },
+    {
+      "category": "Application Security",
+      "name": "Container Security",
+      "summary": "Defines the controls applied to container images and runtimes across the carrier's platforms, ensuring workloads are built from trusted sources and run with the least privilege needed.",
+      "subs": [
+        {
+          "title": "Base Images from Approved Registry Only",
+          "description": "Container builds may pull base images only from the enterprise-approved registry, where images are curated, signed, and maintained by the platform team. Direct pulls from public registries into build pipelines or clusters are blocked at the network and admission-controller level."
+        },
+        {
+          "title": "Mandatory Image Scanning",
+          "description": "Every image is scanned for vulnerabilities and misconfigurations in the CI pipeline and again in the registry on a recurring schedule. Images with unremediated critical findings cannot be promoted, and running workloads are flagged when new vulnerabilities are disclosed against their layers."
+        },
+        {
+          "title": "No Root Containers",
+          "description": "Containers must run as a non-root user, with admission policies rejecting workloads that request UID 0, privileged mode, or host-level capabilities. This limits the blast radius if an application processing policyholder data is compromised at runtime."
+        }
+      ]
+    },
+    {
+      "category": "Application Security",
+      "name": "DAST (Dynamic Analysis)",
+      "summary": "Requires runtime security testing of applications before they reach production, validating that deployed behavior — not just source code — is resistant to the attack classes most likely to expose customer and policy data.",
+      "subs": [
+        {
+          "title": "Pre-Production DAST Scans",
+          "description": "Dynamic application security testing is executed against a running instance of the application in a pre-production environment before each production release. Authenticated scans are required for portals handling policyholder, agent, or claims data, and unresolved high-severity findings block the release."
+        },
+        {
+          "title": "Mandatory OWASP Top 10 Coverage",
+          "description": "Scan profiles must demonstrably cover the current OWASP Top 10 categories, including injection, broken access control, and security misconfiguration. Coverage gaps in the tooling are documented and compensated with targeted manual testing."
+        }
+      ]
+    },
+    {
+      "category": "Application Security",
+      "name": "SAST (Static Analysis)",
+      "summary": "Embeds static code analysis into the development workflow so insecure code is caught at the source, before it can be merged or shipped into systems that process insurance and customer data.",
+      "subs": [
+        {
+          "title": "SAST Scan Required Before Merge",
+          "description": "All code changes must pass a static analysis scan as a required check in the pull-request pipeline; merges are blocked until the scan completes. Scanner rulesets are centrally managed by Information Security and may not be weakened by individual teams."
+        },
+        {
+          "title": "Critical/High Findings Block Deployment",
+          "description": "Any unresolved critical or high-severity SAST finding prevents the build from being deployed to production. Suppressions require a documented justification and follow the security exception process, with the finding tracked to remediation."
+        }
+      ]
+    },
+    {
+      "category": "Application Security",
+      "name": "SCA (Dependency Scanning)",
+      "summary": "Governs the security of open-source and third-party components in the carrier's software supply chain, keeping known-vulnerable libraries out of systems that underpin policy administration, claims, and customer channels.",
+      "subs": [
+        {
+          "title": "Vulnerability Scanning of Third-Party Libraries",
+          "description": "Software composition analysis runs in every build pipeline, inventorying all direct and transitive dependencies and matching them against known CVE data. Each application maintains a current software bill of materials so newly disclosed vulnerabilities can be traced to affected systems quickly."
+        },
+        {
+          "title": "No Critical CVEs in Production",
+          "description": "Components with unpatched critical CVEs may not run in production. When a critical CVE is disclosed against a deployed dependency, the owning team must upgrade, patch, or apply a documented compensating control within the remediation SLA, or take the exposure through the exception process."
+        }
+      ]
+    },
+    {
+      "category": "Application Security",
+      "name": "Secrets Management",
+      "summary": "Establishes how credentials, keys, and tokens are stored and consumed across the application estate, eliminating hard-coded secrets that could expose core insurance systems if a repository or build artifact is compromised.",
+      "subs": [
+        {
+          "title": "No Secrets in Code",
+          "description": "Passwords, API keys, certificates, and connection strings must never be committed to source control, embedded in container images, or stored in plaintext configuration. Automated secret-detection scanning runs on repositories and pipelines, and any detected secret is treated as compromised and rotated immediately."
+        },
+        {
+          "title": "Use of Approved Vault Platforms",
+          "description": "Applications retrieve secrets at runtime from an approved enterprise vault — HashiCorp Vault, Azure Key Vault, or AWS Secrets Manager — using workload identity rather than long-lived credentials. Vault access is least-privilege, audited, and secrets are rotated on a defined schedule."
+        }
+      ]
+    },
+    {
+      "category": "Application Security",
+      "name": "Secure SDLC Requirements",
+      "summary": "Defines how security is built into the software delivery lifecycle itself, so that every system released across the P&C, Life & Retirement, and group benefits businesses passes defined security checkpoints with accountable ownership inside the delivery teams.",
+      "subs": [
+        {
+          "title": "Security Gates at Design, Code, Test, and Deploy Phases",
+          "description": "Each delivery phase carries a defined security gate: threat modeling and architecture review at design, static analysis and secure code review at code, dynamic and dependency testing at test, and configuration and deployment verification at release. A system cannot advance past a gate with unresolved blocking findings."
+        },
+        {
+          "title": "Security Champion in Each Squad",
+          "description": "Every delivery squad designates a trained security champion who acts as the first point of contact for security questions, triages findings, and represents the squad in the security community of practice. Champions receive ongoing training and are accountable for the squad's adherence to the gate requirements."
+        }
+      ]
+    },
+    {
+      "category": "Compliance",
+      "name": "Risk Register",
+      "summary": "Ensures security risk is managed as part of the carrier's enterprise risk framework rather than tracked informally, giving the CISO, ERM function, and board committees a single, current view of the security risk position.",
+      "subs": [
+        {
+          "title": "All Security Risks Documented in Enterprise Risk Register",
+          "description": "Every identified security risk — from audit findings, assessments, incidents, or exceptions — is recorded in the enterprise risk register with an owner, inherent and residual ratings, and a treatment plan. Security risks use the same taxonomy and scoring scales as other enterprise risks so they can be aggregated and compared."
+        },
+        {
+          "title": "Quarterly Review",
+          "description": "The security portion of the register is formally reviewed each quarter to reassess ratings, confirm treatment progress, and retire closed items. Material changes and overdue treatments are escalated to the CISO and reported through enterprise risk governance."
+        }
+      ]
+    },
+    {
+      "category": "Compliance",
+      "name": "Security Controls Matrix",
+      "summary": "Maintains a documented mapping between the carrier's security control framework and the systems it protects, providing the traceability that regulators, auditors, and examiners expect from a multi-line insurer.",
+      "subs": [
+        {
+          "title": "NIST CSF or ISO 27001 Controls Mapped to Systems",
+          "description": "Security controls are organized against NIST CSF or ISO 27001 and mapped to the in-scope systems and platforms each control protects. The matrix identifies the control owner, implementation status, and evidence source for every system, and is updated as systems are onboarded or retired."
+        },
+        {
+          "title": "Annual Control Attestation",
+          "description": "Control owners formally attest each year that their controls are operating as designed, supported by evidence rather than assertion alone. Failed or partially effective controls generate findings that feed the risk register and remediation tracking."
+        }
+      ]
+    },
+    {
+      "category": "Compliance",
+      "name": "Security Exception Process",
+      "summary": "Establishes a single governed path for deviating from any security standard: every exception must carry a formal risk acceptance by the accountable business owner, documented compensating controls that reduce the residual exposure, and explicit CISO approval, with a defined expiry and re-review date so exceptions cannot become permanent.",
+      "subs": []
+    },
+    {
+      "category": "Compliance",
+      "name": "Vendor Security Assessment",
+      "summary": "Governs the security due diligence applied to third parties before and during their engagement, protecting the carrier from inheriting risk through TPAs, MGAs, software vendors, and other service providers that touch its data or systems.",
+      "subs": [
+        {
+          "title": "Pre-Engagement Vendor Assessment",
+          "description": "No third party may receive company data or system access until it has completed a security assessment proportionate to the sensitivity of the engagement, covering its security program, data handling, and incident obligations. Assessment results inform contract security terms and any conditions of approval."
+        },
+        {
+          "title": "Annual Reassessment of Critical Vendors",
+          "description": "Vendors classified as critical — including those processing policyholder data or supporting core insurance operations — are reassessed at least annually. Reassessment validates that the vendor's posture has not degraded, reviews incidents and subcontractor changes, and refreshes the risk rating used in vendor governance."
+        }
+      ]
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Annual Cybersecurity Audit",
+      "summary": "Requires the company to undergo an independent cybersecurity audit each year under the CPPA's audit regulations and to certify completion to the agency on the revenue-phased timetable — for businesses over $100M in revenue, the first certification is due April 1, 2028 covering calendar 2027, with annual certifications thereafter.",
+      "subs": []
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Automated Decision-Making Technology (ADMT) Rights",
+      "summary": "Implements the CPPA's ADMT regulations for processing where automated technology substantially replaces human decision-making in significant decisions — directly relevant to automated underwriting, pricing, and claims handling — requiring pre-use notices, opt-out rights, access to information about the logic and outcome, and an appeal path, with a documented crosswalk to GDPR Article 22 and the EU AI Act so overlapping obligations are handled consistently.",
+      "subs": []
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Business Applicability & GLBA-Exemption Analysis",
+      "summary": "Requires a documented determination of whether the company qualifies as a CCPA 'business' under any applicability threshold, together with a data-level analysis of which personal information is exempt as GLBA-covered. Because the GLBA exemption applies to the information, not the entity, non-GLBA personal information — web visitors, prospects, marketing lists, employees and applicants, and B2B contacts — remains fully in scope and must be governed under the CCPA program.",
+      "subs": []
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Consumer Request Recordkeeping",
+      "summary": "Governs the evidentiary record behind the consumer rights program, ensuring the company can demonstrate to the regulator how every privacy request was received, verified, and resolved.",
+      "subs": [
+        {
+          "title": "24-Month Retention of Request Records",
+          "description": "Records of each consumer request — including the request date, nature, verification steps, response, and outcome — are retained for at least 24 months. Records are kept in a form that supports regulatory inquiry without being repurposed for unrelated uses."
+        },
+        {
+          "title": "Request Metrics Compilation and Disclosure for Large Processors",
+          "description": "If the company meets the large-processor threshold (buying, selling, or sharing the personal information of 10 million or more consumers in a year), it must compile annual metrics on requests to know, delete, correct, and opt out — counts received, complied with, and denied, plus median response times — and disclose them in or via the privacy policy."
+        }
+      ]
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Data Minimization & Purpose Limitation",
+      "summary": "Anchors the privacy program in the CPRA's proportionality principle, constraining what personal information the company collects and what it may later be used for across underwriting, claims, marketing, and analytics.",
+      "subs": [
+        {
+          "title": "Reasonably Necessary and Proportionate Processing",
+          "description": "Collection, use, retention, and sharing of personal information must be limited to what is reasonably necessary and proportionate to the purposes disclosed to the consumer at collection. New data elements or processing activities require a purpose review before launch rather than after the fact."
+        },
+        {
+          "title": "No Incompatible Secondary Use Without Notice",
+          "description": "Personal information collected for one disclosed purpose may not be used for a further purpose that is incompatible with the original context — for example, repurposing claims data for unrelated marketing — unless the consumer first receives notice consistent with the regulations. Proposed secondary uses are assessed and documented by the privacy function."
+        }
+      ]
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Minors' Data Opt-In",
+      "summary": "Reverses the default opt-out model for minors: the company may not sell or share the personal information of consumers it knows to be under 16 without affirmative opt-in consent, a constraint that matters for juvenile life products, beneficiary records, and household marketing data.",
+      "subs": [
+        {
+          "title": "Opt-In Consent from Consumers Aged 13 to 15",
+          "description": "For consumers known to be at least 13 but under 16, the consumer themselves must affirmatively authorize any sale or sharing of their personal information before it occurs. The consent action, its scope, and its date are recorded, and the right to later opt out is preserved."
+        },
+        {
+          "title": "Parent or Guardian Consent for Children Under 13",
+          "description": "Where the consumer is under 13, sale or sharing requires verifiable consent from a parent or guardian rather than the child. The company must use a reasonable method to confirm the consenting adult's authority and retain evidence of the verification."
+        }
+      ]
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Non-Discrimination & Financial Incentives",
+      "summary": "Protects consumers who exercise CCPA rights from retaliation in price or service, while defining the narrow conditions under which the company may operate loyalty or incentive programs tied to personal information.",
+      "subs": [
+        {
+          "title": "No Discrimination for Exercising Rights",
+          "description": "The company may not deny coverage or service, charge different rates, or degrade quality because a consumer exercised a CCPA right such as deletion or opt-out. Underwriting and pricing outcomes must be traceable to permissible rating factors, never to a consumer's privacy choices."
+        },
+        {
+          "title": "Permitted, Disclosed, and Value-Related Financial Incentives",
+          "description": "Any financial incentive or price or service difference connected to the collection, retention, sale, or sharing of personal information must be lawful, disclosed through a notice of financial incentive, entered into only with opt-in consent, and reasonably related to the value the consumer's data provides to the business. Programs such as telematics or wellness discounts are reviewed against this test with a documented value calculation."
+        }
+      ]
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Notice at Collection",
+      "summary": "Requires that at or before the point of collection — on quote forms, claims intake, telematics enrollment, and every other channel — consumers receive a notice identifying the categories of personal and sensitive personal information collected, the purposes of collection, the retention period for each category, and whether the information is sold or shared.",
+      "subs": []
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Opt-Out Preference Signals (Global Privacy Control)",
+      "summary": "Requires the company's web properties to detect browser- and device-level opt-out preference signals such as Global Privacy Control and treat them as a valid consumer request to opt out of sale and sharing, applied automatically to that browser or device and, where the visitor is identifiable, to the associated consumer profile — honoring the signal is mandatory, not optional.",
+      "subs": []
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Personal & Sensitive PI Classification",
+      "summary": "Establishes the data inventory and classification foundation for the entire CCPA program: all personal information is cataloged and the specific sensitive-PI categories — SSNs and government identifiers, financial account credentials, precise geolocation, health, biometric data, sexual orientation, and the rest — are flagged at the field level, so that notice, opt-out, limit-use, security, and retention controls can be accurately scoped to the data they govern.",
+      "subs": []
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Privacy Policy",
+      "summary": "Requires the company to maintain a comprehensive public privacy policy describing consumers' CCPA rights and how to exercise them, the categories of personal information collected, the purposes of processing, and the categories of disclosures to service providers and third parties, with the policy reviewed and updated at least once every 12 months and dated to show its last revision.",
+      "subs": []
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Privacy Risk Assessments",
+      "summary": "Implements the CPPA's risk assessment regulations so high-risk processing is evaluated and documented before it begins, and the resulting documentation is ready for submission to the regulator on the prescribed schedule.",
+      "subs": [
+        {
+          "title": "Written Risk Assessment Before High-Risk Processing",
+          "description": "A written risk assessment weighing benefits against risks to consumers is completed and approved before the company sells or shares personal information, processes sensitive PI, uses ADMT for significant decisions such as underwriting or claims, trains ADMT, or automates inference of sensitive characteristics. The assessment is refreshed when the processing materially changes."
+        },
+        {
+          "title": "CPPA Submission from April 1, 2028",
+          "description": "Beginning April 1, 2028, the company submits risk assessment documentation to the California Privacy Protection Agency as required by the regulations, including the attestation and summary filings on the prescribed cadence. The privacy office maintains a submission calendar and an inventory of assessments eligible for filing."
+        }
+      ]
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Reasonable Security & Breach Liability",
+      "summary": "Requires security procedures and practices appropriate to the nature of the personal information held, with the explicit understanding that the CCPA grants consumers a private right of action — statutory damages of $100 to $750 per consumer per incident — for breaches of nonencrypted or nonredacted personal information caused by a failure to maintain reasonable security, making encryption and redaction of in-scope data a direct litigation-exposure control for the carrier.",
+      "subs": []
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Right to Correct",
+      "summary": "Requires the company to correct inaccurate personal information upon a verifiable consumer request using commercially reasonable efforts, taking into account the nature of the information and the purpose of the processing — particularly important where data inaccuracies could affect underwriting decisions, claims outcomes, or policy servicing.",
+      "subs": []
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Right to Delete",
+      "summary": "Requires deletion of a consumer's personal information upon a verifiable request, with corresponding instructions to service providers and contractors to delete it from their systems, subject to the statutory exceptions — which for an insurer commonly include completing the transaction, legal and regulatory record-retention obligations, and defense of legal claims. Denials based on an exception must be documented and scoped to the data the exception actually covers.",
+      "subs": []
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Right to Know / Access",
+      "summary": "Operationalizes the consumer's right to learn what the company holds and does with their personal information, requiring the privacy operations team to assemble accurate disclosures from policy, claims, and marketing systems within statutory deadlines.",
+      "subs": [
+        {
+          "title": "Disclosure of Categories, Specific Pieces, Sources, Purposes, and Recipients",
+          "description": "On a verifiable request, the company discloses the categories and specific pieces of personal information collected about the consumer, the categories of sources, the business or commercial purposes, and the categories of third parties and recipients. Specific pieces are delivered in a portable, readily usable format."
+        },
+        {
+          "title": "Look-Back of at Least 12 Months",
+          "description": "Disclosures must cover at minimum the 12-month period preceding the request, and consumers may request information beyond 12 months for data collected on or after January 1, 2022 unless doing so proves impossible or involves disproportionate effort. Retrieval processes must therefore reach archived as well as active systems."
+        },
+        {
+          "title": "45-Day Response Deadline",
+          "description": "A substantive response is delivered within 45 calendar days of receiving the verifiable request. Where additional time is reasonably necessary, the deadline may be extended once by a further 45 days with notice to the consumer explaining the reason."
+        }
+      ]
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Right to Limit Use of Sensitive PI",
+      "summary": "Requires a conspicuous 'Limit the Use of My Sensitive Personal Information' mechanism through which consumers can restrict the company's use and disclosure of sensitive PI to what is necessary to provide the requested goods or services and the other limited purposes the regulations permit — significant for an insurer whose products routinely involve health, financial, and precise-geolocation data that might otherwise feed analytics or marketing.",
+      "subs": []
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Right to Opt-Out of Sale/Sharing",
+      "summary": "Requires a clear and conspicuous 'Do Not Sell or Share My Personal Information' mechanism and the operational ability to stop selling or sharing a consumer's data promptly on request. Because 'sharing' specifically covers disclosures for cross-context behavioral advertising, the company's ad-tech pixels, audience matching, and retargeting arrangements fall squarely within the opt-out even when no money changes hands.",
+      "subs": []
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Sensitive PI Handling",
+      "summary": "Defines the operational regime for sensitive personal information across its lifecycle at the carrier, pairing consumer limit-use rights with internal restrictions and stronger protection for the high-sensitivity data classes insurance processing depends on.",
+      "subs": [
+        {
+          "title": "SPI Identification, Limit-Use Compliance, and Secondary-Use Restriction",
+          "description": "Sensitive PI is identified and tagged wherever it is collected or stored, consumer limit-use elections are propagated to every consuming system, and secondary uses beyond what is necessary to deliver the requested product or service are restricted by default. New uses of SPI require privacy review before implementation."
+        },
+        {
+          "title": "Heightened Safeguards for Health, Biometric, Financial, and Precise-Geolocation Data",
+          "description": "The SPI categories most prevalent in insurance operations — health information from underwriting and claims, biometric identifiers, financial account data, and precise geolocation from telematics — receive elevated controls such as encryption, restricted access roles, and enhanced monitoring. Safeguard adequacy for these categories is reviewed as part of the security control attestation cycle."
+        }
+      ]
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Service Provider / Contractor / Third-Party Contracts",
+      "summary": "Requires that every service provider, contractor, and third party receiving personal information is bound by a written contract containing the CCPA-mandated terms: limiting processing to the specified business purposes, prohibiting unauthorized sale or sharing and combination with other data, requiring deletion and flow-down of obligations to subcontractors, and granting the company the right to verify compliance — without these terms, a disclosure to a TPA, MGA, or analytics vendor risks being treated as a sale.",
+      "subs": []
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Storage Limitation & Retention Disclosure",
+      "summary": "Connects the public retention commitments made in privacy notices to enforced disposal practices inside the company's systems, so stated retention periods for personal and sensitive PI are real rather than aspirational.",
+      "subs": [
+        {
+          "title": "Disclosed and Enforced Retention Periods per Category",
+          "description": "Retention periods, or the criteria used to determine them, are defined and disclosed for each category of personal and sensitive personal information at collection. Retention schedules are implemented in the underlying systems with automated disposition where feasible, and adherence is evidenced for audit."
+        },
+        {
+          "title": "No Retention Beyond Reasonable Necessity",
+          "description": "Personal information may not be kept longer than is reasonably necessary for the disclosed purpose, even when storage is cheap or the data might someday be useful. Where insurance statutes or litigation holds require longer retention, the legal basis is documented and the data is locked from other processing rather than left in general circulation."
+        }
+      ]
+    },
+    {
+      "category": "Data Privacy (CCPA/CPRA)",
+      "name": "Verifiable Consumer Requests & Timelines",
+      "summary": "Defines the intake and response machinery for consumer rights requests: the company offers at least two designated request methods, verifies the requester's identity to a degree of certainty appropriate to the sensitivity of the request, confirms receipt within 10 business days, and delivers a substantive response with the required disclosures within 45 calendar days, extendable once by a further 45 days with notice to the consumer.",
+      "subs": []
+    },
+    {
+      "category": "Data Privacy (GDPR)",
+      "name": "Accountability & Audit Evidence",
+      "summary": "Implements the GDPR accountability principle (Article 5(2)): it is not enough to comply — the company must be able to demonstrate compliance with every privacy control through documented policies, recorded decisions, and audit-ready evidence, captured automatically by systems wherever possible so that proof exists as a by-product of operations rather than a scramble at examination time.",
+      "subs": []
+    },
+    {
+      "category": "Data Privacy (GDPR)",
+      "name": "Accuracy & Rectification",
+      "summary": "Gives effect to the GDPR accuracy principle and the Article 16 right to rectification: the company maintains mechanisms that keep personal data accurate and up to date across policy, claims, and customer systems, and corrects inaccurate or incomplete data without undue delay — at most within one month of a data subject's request — with corrections propagated to recipients of the data.",
+      "subs": []
+    },
+    {
+      "category": "Data Privacy (GDPR)",
+      "name": "Automated Decision-Making & Profiling",
+      "summary": "Governs GDPR Article 22 obligations for decisions based solely on automated processing that produce legal or similarly significant effects — automated underwriting, pricing, and claims triage being the carrier's primary exposure. Such processing requires an established lawful ground, meaningful information to the data subject about the logic involved, and the right to obtain human review and contest the decision, with a documented crosswalk to the EU AI Act's high-risk system obligations covering the same models.",
+      "subs": []
+    },
+    {
+      "category": "Data Privacy (GDPR)",
+      "name": "Consent Management",
+      "summary": "Defines how the company obtains and administers consent where it is the lawful basis for processing, ensuring consents collected through quote journeys, marketing channels, and customer portals would withstand supervisory scrutiny.",
+      "subs": [
+        {
+          "title": "Freely-Given, Specific, Informed, Unambiguous Opt-In",
+          "description": "Consent is captured through a clear affirmative action that is freely given, specific to each distinct purpose, informed by plain-language notice, and unambiguous. Pre-ticked boxes, bundled consents, and consent made a condition of unrelated services do not meet the standard and are prohibited."
+        },
+        {
+          "title": "Consent Records with Timestamp and Notice Version",
+          "description": "Every consent is recorded with the data subject's identity, the timestamp, the scope of purposes, the capture channel, and the exact version of the notice presented. These records constitute the evidence that valid consent existed at the time of processing and are retained for as long as the consent is relied upon."
+        },
+        {
+          "title": "Withdrawal as Easy as Granting",
+          "description": "Data subjects can withdraw consent through a mechanism at least as accessible as the one used to give it, and withdrawal takes effect promptly across all systems relying on that consent. Processing based on the withdrawn consent stops, while the lawfulness of processing performed before withdrawal is unaffected."
+        }
+      ]
+    },
+    {
+      "category": "Data Privacy (GDPR)",
+      "name": "Data Protection Impact Assessment (DPIA)",
+      "summary": "Embeds Article 35 impact assessments into the delivery lifecycle so high-risk processing — common in insurance through large-scale profiling, health data, and automated decisioning — is evaluated and approved before systems are built, with the regulator engaged when risk cannot be brought down.",
+      "subs": [
+        {
+          "title": "DPIA Completed and Signed Off Before Build",
+          "description": "For processing likely to result in high risk to individuals, a DPIA describing the processing, its necessity and proportionality, the risks, and the mitigating measures is completed and formally signed off before development begins. Projects may not proceed past the design gate without the approved assessment, and the DPIA is revisited when the processing changes materially."
+        },
+        {
+          "title": "Prior Consultation with the Supervisory Authority (Art. 36)",
+          "description": "Where the DPIA concludes that residual risk remains high despite planned mitigations, the company consults the supervisory authority under Article 36 before commencing the processing. The consultation submission, the authority's response, and any conditions imposed are documented and tracked to implementation."
+        }
+      ]
+    }
+  ]
+}

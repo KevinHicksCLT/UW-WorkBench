@@ -7,15 +7,15 @@ import PageHeader from '../components/PageHeader';
 import RoleDrawer from '../components/RoleDrawer';
 
 // ── Box drill-down: Divisions → Teams (departments) → Roles ─────────────────
-// The org spine is L2 Division → L3 Department → L4 Role → L5 Person. We start
-// with every division as a box (grouped by its CEO-facing segment), drill into a
+// The org spine is L2 Division → L3 Department → L4 Role. We start with every
+// division as a box (grouped by its CEO-facing segment), drill into a
 // division's teams, then a team's roles. Clicking a role opens the RoleDrawer
-// slide-over (the standalone role/person detail pages were retired into it).
+// slide-over (the standalone role detail page was retired into it).
 
-type RoleLite = { id: string; name: string; roleLevel: string | null; roleFamily: string | null; peopleCount: number; valueStreamCount: number };
-type Dept = { id: string; name: string; roles: RoleLite[]; roleCount: number; peopleCount: number };
-type Division = { id: string; name: string; segment: string; departments: Dept[]; looseRoles: RoleLite[]; roleCount: number; peopleCount: number };
-type Segment = { name: string; divisions: Division[]; divisionCount: number; roleCount: number; peopleCount: number };
+type RoleLite = { id: string; name: string; roleLevel: string | null; roleFamily: string | null; valueStreamCount: number };
+type Dept = { id: string; name: string; roles: RoleLite[]; roleCount: number };
+type Division = { id: string; name: string; segment: string; departments: Dept[]; looseRoles: RoleLite[]; roleCount: number };
+type Segment = { name: string; divisions: Division[]; divisionCount: number; roleCount: number };
 type OrgData = { company: { id: string; name: string }; totals: Record<string, number>; segments: Segment[] };
 
 const LOOSE = '__loose'; // sentinel department id for roles reporting directly to a division
@@ -54,7 +54,7 @@ export default function OrgTable() {
   }, [data]);
 
   // Flattened roles (with their division/department context) for the search bar —
-  // scope is roles only, not people / value streams / other entities.
+  // scope is roles only, not value streams / other entities.
   const allRoles = useMemo(() => {
     if (!data) return [] as (RoleLite & { divisionId: string; divisionName: string; departmentId: string | null; departmentName: string | null; segment: string })[];
     const out: (RoleLite & { divisionId: string; divisionName: string; departmentId: string | null; departmentName: string | null; segment: string })[] = [];
@@ -109,7 +109,7 @@ export default function OrgTable() {
             title={deptOverview ? 'Departments' : 'Organization'}
             subtitle={deptOverview
               ? `${t.departments} teams across ${t.divisions} divisions`
-              : `${t.divisions} divisions · ${t.departments} teams · ${t.roles} roles · ${t.people} people`}
+              : `${t.divisions} divisions · ${t.departments} teams · ${t.roles} roles`}
           />
           <RoleSearch value={query} onChange={setQuery} />
           {q ? (
@@ -134,7 +134,7 @@ export default function OrgTable() {
             <Grid>
               {allDepartments.map((dp) => (
                 <Box key={dp.id} title={dp.name}
-                  meta={`${dp.divisionName} · ${dp.roleCount} roles · ${dp.peopleCount} people`}
+                  meta={`${dp.divisionName} · ${dp.roleCount} roles`}
                   onClick={() => { setDivId(dp.divisionId); setDeptId(dp.id); }} />
               ))}
             </Grid>
@@ -142,11 +142,11 @@ export default function OrgTable() {
             <section key={seg.name} className="mb-8">
               <div className="flex items-center gap-2 mb-3">
                 <h2 className="text-sm font-semibold text-[#171717]">{seg.name}</h2>
-                <span className="text-xs text-[#a3a3a3]">{seg.divisionCount} divisions · {seg.roleCount} roles · {seg.peopleCount} people</span>
+                <span className="text-xs text-[#a3a3a3]">{seg.divisionCount} divisions · {seg.roleCount} roles</span>
               </div>
               <Grid>
                 {seg.divisions.map((dv) => (
-                  <Box key={dv.id} title={dv.name} meta={`${dv.roleCount} roles · ${dv.peopleCount} people`} onClick={() => setDivId(dv.id)} />
+                  <Box key={dv.id} title={dv.name} meta={`${dv.roleCount} roles`} onClick={() => setDivId(dv.id)} />
                 ))}
               </Grid>
             </section>
@@ -155,13 +155,13 @@ export default function OrgTable() {
       ) : !deptId ? (
         // ── Level 2: teams (departments) within a division ───────────────────
         <>
-          <PageHeader title={division.name} subtitle={`${division.departments.length} teams · ${division.roleCount} roles · ${division.peopleCount} people`} />
+          <PageHeader title={division.name} subtitle={`${division.departments.length} teams · ${division.roleCount} roles`} />
           {division.departments.length === 0 && division.looseRoles.length === 0 ? (
             <div className="card text-sm text-slate-500 italic">No teams or roles in this division.</div>
           ) : (
             <Grid>
               {division.departments.map((dp) => (
-                <Box key={dp.id} title={dp.name} meta={`${dp.roleCount} roles · ${dp.peopleCount} people`} onClick={() => setDeptId(dp.id)} />
+                <Box key={dp.id} title={dp.name} meta={`${dp.roleCount} roles`} onClick={() => setDeptId(dp.id)} />
               ))}
               {division.looseRoles.length > 0 && (
                 <Box title="Direct to division" tag={<span className="chip-soft">No team</span>}
@@ -181,7 +181,7 @@ export default function OrgTable() {
               {rolesInView.map((r) => (
                 <Box key={r.id} title={r.name}
                   tag={r.roleLevel && r.roleLevel !== 'Individual Contributor' ? <span className="chip-soft">{r.roleLevel}</span> : undefined}
-                  meta={`${r.peopleCount} people · ${r.valueStreamCount} value streams`}
+                  meta={`${r.valueStreamCount} value streams`}
                   onClick={() => setRoleId(r.id)} />
               ))}
             </Grid>

@@ -622,24 +622,8 @@ router.delete('/initiatives/objectives/:linkId', async (req: Request, res: Respo
 });
 
 // ─── Resources (I6) ─────────────────────────────────────────────────────────
-// Company-scoped people list for the resource picker.
-router.get('/people', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const companyId = await activeCompanyId(req, res);
-    if (!companyId) return;
-    const people = await prisma.person.findMany({
-      where: { companyId },
-      select: { id: true, name: true, title: true },
-      orderBy: { name: 'asc' },
-      take: 800,
-    });
-    res.json(people);
-  } catch (e) { next(e); }
-});
-
 const resourceCreateSchema = z.object({
   name: z.string().min(1),
-  personId: z.string().nullable().optional(),
   roleName: z.string().nullable().optional(),
   allocationPct: z.number().int().min(1).max(100),
   startDate: z.string(),
@@ -655,7 +639,6 @@ router.post('/initiatives/:id/resources', async (req: Request, res: Response, ne
       data: {
         initiativeId: req.params.id,
         name: data.name,
-        personId: data.personId ?? null,
         roleName: data.roleName ?? null,
         allocationPct: data.allocationPct,
         startDate: new Date(data.startDate),

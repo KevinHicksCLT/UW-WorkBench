@@ -55,7 +55,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       nodes, partLinks, counts,
       initiatives, risks, applications, metrics, scenarios,
       deliverables, tasks,
-      empGroups, regionGroups, statusGroups,
+      statusGroups,
       severityGroups, kindGroups,
       scenarioSum, tcoSum, companies,
     ] = await Promise.all([
@@ -72,8 +72,6 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       prisma.scenario.count({ where: w }),
       prisma.deliverable.count({ where: w }),
       prisma.task.count({ where: w }),
-      prisma.person.groupBy({ by: ['employmentType'], where: w, _count: { _all: true } }),
-      prisma.person.groupBy({ by: ['region'], where: w, _count: { _all: true } }),
       prisma.portfolioInitiative.groupBy({ by: ['status'], where: w, _count: { _all: true } }),
       prisma.risk.groupBy({ by: ['severity'], where: { ...w, status: 'Open' }, _count: { _all: true } }),
       prisma.application.groupBy({ by: ['kind'], where: w, _count: { _all: true } }),
@@ -85,7 +83,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     // Deeper-model counts for the (configurable) Model footprint card — data
     // that is NOT already a headline tile: the model's connective tissue.
     const [standardsCount, programsCount, objectivesCount, openRaidCount, connectionsCount, signalsCount, externalInteractionsCount] = await Promise.all([
-      prisma.standardItem.count({ where: w }),
+      // Leaf standards only — decomposed group rows are containers, not standards.
+      prisma.standardItem.count({ where: { ...w, children: { none: {} } } }),
       prisma.program.count({ where: w }),
       prisma.strategicObjective.count({ where: { tenantId, companyId } }),
       prisma.raidItem.count({ where: { status: 'OPEN', initiative: { companyId } } }),
@@ -117,7 +116,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     void ioCount; // reserved for a future tile
 
     // Headline counts come from the ONE shared canonical function (X1/X2).
-    const { divisions, departments, roles, valueStreams, steps: processSteps, people } = counts;
+    const { divisions, departments, roles, valueStreams, steps: processSteps } = counts;
     const domains = counts.segments;
 
     // Divisions grouped by their parent Segment node (the ONE shared grouping).
@@ -147,7 +146,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       .slice(0, 8);
 
     // ── Transformation command-center rollups (D1 Home widgets) ──────────────
-    const [programs, objectives, latestSignal, topRisksRaw, raidOpenGroups] = await Promise.all([
+    const [programs, topRisksRaw, openRaidRaw] = await Promise.all([
       // Programs → workstreams → initiatives (+ their milestones): one query
       // feeds both the portfolio rollup widget and the Gantt timeline.
       prisma.program.findMany({
@@ -167,32 +166,29 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
           },
         },
       }),
-      prisma.strategicObjective.findMany({
-        where: { tenantId, companyId },
-        orderBy: [{ weight: 'desc' }, { createdAt: 'asc' }],
-        select: { id: true, name: true, weight: true, links: { select: { impact: true, initiative: { select: { stage: true } } } } },
-      }),
-      prisma.personSignal.aggregate({ where: { person: { companyId } }, _max: { period: true } }),
       prisma.raidItem.findMany({
         where: { type: 'RISK', status: 'OPEN', initiative: { companyId } },
         orderBy: { severity: 'desc' },
         take: 5,
         select: { id: true, title: true, severity: true, status: true, initiative: { select: { id: true, name: true } } },
       }),
-      prisma.raidItem.groupBy({ by: ['type'], where: { status: 'OPEN', initiative: { companyId } }, _count: { _all: true } }),
+      // Open RAID items with their program — feeds both the portfolio-wide
+      // open counts and the per-program RAID summary widget.
+      prisma.raidItem.findMany({
+        where: { status: 'OPEN', initiative: { companyId } },
+        select: { type: true, initiative: { select: { workstream: { select: { programId: true } } } } },
+      }),
     ]);
 
-    // Viva-style workforce rollup: company-wide averages of the per-person
-    // digital-productivity signals for the most recent period seeded.
-    const signalPeriod = latestSignal._max.period;
-    const signalRows = signalPeriod
-      ? await prisma.personSignal.groupBy({
-          by: ['name', 'unit'],
-          where: { period: signalPeriod, person: { companyId } },
-          _avg: { value: true },
-          _count: { _all: true },
-        })
-      : [];
+    const raidOpen: Record<string, number> = {};
+    const raidOpenByProgram = new Map<string, Record<string, number>>();
+    for (const r of openRaidRaw) {
+      raidOpen[r.type] = (raidOpen[r.type] ?? 0) + 1;
+      const programId = r.initiative.workstream.programId;
+      const counts = raidOpenByProgram.get(programId) ?? {};
+      counts[r.type] = (counts[r.type] ?? 0) + 1;
+      raidOpenByProgram.set(programId, counts);
+    }
 
     const transformation = {
       programs: programs.map((p) => {
@@ -213,31 +209,14 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
           milestones: inits.flatMap((i) =>
             i.milestones.map((m) => ({ id: m.id, name: m.name, dueDate: m.dueDate, status: m.status, initiativeName: i.name })),
           ),
+          raidOpen: raidOpenByProgram.get(p.id) ?? {},
         };
       }),
-      // Objective achievement = impact-weighted delivery progress of the linked
-      // initiatives (the portfolio has no separate key-result table; the
-      // InitiativeObjective links ARE the key results being delivered).
-      okrs: objectives.map((o) => {
-        const impactSum = o.links.reduce((a, l) => a + l.impact, 0);
-        return {
-          id: o.id, name: o.name, weight: o.weight, initiatives: o.links.length,
-          achievement: impactSum
-            ? Math.round((o.links.reduce((a, l) => a + l.impact * (STAGE_PROGRESS[l.initiative.stage] ?? 0), 0) / impactSum) * 100)
-            : 0,
-        };
-      }),
-      workforceSignals: {
-        period: signalPeriod,
-        signals: signalRows
-          .map((r) => ({ name: r.name, unit: r.unit, value: Math.round((r._avg.value ?? 0) * 10) / 10, people: r._count._all }))
-          .sort((a, b) => a.name.localeCompare(b.name)),
-      },
       topRisks: topRisksRaw.map((r) => ({
         id: r.id, title: r.title, severity: r.severity, status: r.status,
         initiativeId: r.initiative.id, initiativeName: r.initiative.name,
       })),
-      raidOpen: Object.fromEntries(raidOpenGroups.map((g) => [g.type, g._count._all])),
+      raidOpen,
     };
 
     // Portfolio status (ON_TRACK | AT_RISK | OFF_TRACK) → friendly label + RAG health.
@@ -247,16 +226,23 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const initiativesByStatus = STATUS_LABEL.map(([s, label]) => ({ key: label, count: statusCount(s) }));
     const initiativesByHealth = STATUS_HEALTH.map(([health, s]) => ({ key: health, count: statusCount(s) }));
 
+    // The chosen Home layout (ordered widget ids); null → the frontend default
+    // (which carries the RAID log). Every company gets a RAID log on Home, so a
+    // saved layout missing card:raidSummary gets it appended at read time.
+    const savedWidgets = (active.dashboardConfig as { widgets?: string[] } | null)?.widgets ?? null;
+    const layout = savedWidgets && !savedWidgets.includes('card:raidSummary')
+      ? [...savedWidgets, 'card:raidSummary']
+      : savedWidgets;
+
     res.json({
       company: { id: active.id, name: active.name, count: companies },
-      // The chosen Home layout (ordered widget ids); null → the frontend default.
-      layout: (active.dashboardConfig as { widgets?: string[] } | null)?.widgets ?? null,
+      layout,
       // Which stats the Model footprint card lists; null → the frontend default.
       footprintStats: (active.dashboardConfig as { footprintStats?: string[] } | null)?.footprintStats ?? null,
       // Per-widget custom display titles; missing ids use the catalog default.
       widgetTitles: (active.dashboardConfig as { widgetTitles?: Record<string, string> } | null)?.widgetTitles ?? null,
       totals: {
-        divisions, departments, roles, valueStreams, domains, people,
+        divisions, departments, roles, valueStreams, domains,
         initiatives, risks, applications, metrics, scenarios, processSteps,
         deliverables, tasks,
         // Footprint-card extras (not headline tiles)
@@ -266,10 +252,6 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         externalInteractions: externalInteractionsCount,
       },
       divisionsByCategory,
-      workforce: {
-        byType: ordered(empGroups, 'employmentType', ['badged', 'contractor', 'si_partner']),
-        byRegion: ordered(regionGroups, 'region', ['Onshore', 'Nearshore', 'Offshore']),
-      },
       initiativesByStatus,
       initiativesByHealth,
       risksBySeverity: ordered(severityGroups, 'severity', ['Critical', 'High', 'Medium', 'Low']),

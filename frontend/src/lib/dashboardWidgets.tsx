@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { fmt } from './format';
 import {
-  PortfolioRollup, ProgramGantt, OkrList, TopRisks, RaidSummary, WorkforceSignals,
+  PortfolioRollup, ProgramGantt, TopRisks, RaidSummary, RaidByProgram,
   type TransformationData,
 } from '../components/home/TransformationWidgets';
 
@@ -22,7 +22,6 @@ export type Dashboard = {
   widgetTitles: Record<string, string> | null; // per-widget custom display titles
   totals: Record<string, number>;
   divisionsByCategory: Group[];
-  workforce: { byType: Group[]; byRegion: Group[] };
   initiativesByStatus: Group[];
   initiativesByHealth: Group[];
   risksBySeverity: Group[];
@@ -31,7 +30,7 @@ export type Dashboard = {
   topValueStreams: { id: string; name: string; domain: string | null; roles: number }[];
   topDivisions: { id: string; name: string; higherCategory: string | null; roles: number }[];
   // Transformation command-center slice (D1) — programs→initiatives rollup,
-  // Gantt, OKRs, risks/RAID, workforce signals. Optional so older payloads
+  // Gantt, OKRs, risks/RAID. Optional so older payloads
   // (or a backend mid-deploy) degrade gracefully.
   transformation?: TransformationData | null;
 };
@@ -105,16 +104,6 @@ function Card({ title, children, to, toLabel }: { title: string; children: React
   );
 }
 
-// Workforce mix is presented in two buckets: badged headcount as "Employees",
-// and contractors + SI partners merged into "Contingent Workers".
-function workforceBuckets(byType: Group[]): Group[] {
-  const count = (k: string) => byType.find((g) => g.key === k)?.count ?? 0;
-  return [
-    { key: 'Employees', count: count('badged') },
-    { key: 'Contingent Workers', count: count('contractor') + count('si_partner') },
-  ];
-}
-
 const HEALTH_COLOR = (k: string) => ({ Green: '#16a34a', Amber: '#d97706', Red: '#dc2626' }[k] ?? '#94a3b8');
 const SEVERITY_COLOR = (k: string) => ({ Critical: '#dc2626', High: '#ea580c', Medium: '#d97706', Low: '#65a30d' }[k] ?? '#94a3b8');
 
@@ -124,7 +113,6 @@ const SRC = {
   vs: { tab: 'valueStreams', section: 'levels', label: 'Value Streams' },
   initiatives: { tab: 'initiatives', section: 'workstreams', label: 'Workspace' },
   work: { tab: 'work', section: 'deliverables', label: 'Deliverables & Tasks' },
-  people: { tab: 'people', section: 'people', label: 'People' },
   apps: { tab: 'telemetry', section: 'apps', label: 'Metrics' },
   metrics: { tab: 'telemetry', section: 'metrics', label: 'Metrics' },
   risks: { tab: 'initiatives', section: 'risks', label: 'Workspace' },
@@ -194,15 +182,6 @@ export const WIDGET_CATALOG: Widget[] = [
     ),
   },
   {
-    id: 'card:okrs', title: 'Objectives & key results', kind: 'card', source: SRC.initiatives,
-    desc: 'Strategic objectives with delivery-weighted achievement bars',
-    render: (d) => (
-      <Card title={wt(d, 'card:okrs', 'Objectives & key results')}>
-        {txn(d, (t) => <OkrList t={t} />)}
-      </Card>
-    ),
-  },
-  {
     id: 'card:openRisks', title: 'Open risks', kind: 'card', source: SRC.risks,
     desc: 'Top open portfolio risks by severity',
     render: (d) => (
@@ -212,7 +191,7 @@ export const WIDGET_CATALOG: Widget[] = [
     ),
   },
   {
-    id: 'card:raidSummary', title: 'RAID log', kind: 'card', source: SRC.risks,
+    id: 'card:raidSummary', title: 'RAID log', kind: 'wide', source: SRC.risks,
     desc: 'Open RAID counts — risks, issues, assumptions, decisions',
     render: (d) => (
       <Card title={wt(d, 'card:raidSummary', 'RAID log')} to="/raid" toLabel="RAID log">
@@ -221,15 +200,14 @@ export const WIDGET_CATALOG: Widget[] = [
     ),
   },
   {
-    id: 'card:workforceSignals', title: 'Workforce signals', kind: 'card', source: SRC.people,
-    desc: 'Viva-style rollup — focus hours, meeting load, collaboration averages',
+    id: 'card:raidByProgram', title: 'RAID by program', kind: 'wide', source: SRC.risks,
+    desc: 'A RAID-log box per program — open counts click through to the program RAID tab',
     render: (d) => (
-      <Card title={wt(d, 'card:workforceSignals', 'Workforce signals')} to="/metrics" toLabel="Metrics">
-        {txn(d, (t) => <WorkforceSignals t={t} />)}
+      <Card title={wt(d, 'card:raidByProgram', 'RAID by program')} to="/raid" toLabel="RAID log">
+        {txn(d, (t) => <RaidByProgram t={t} />)}
       </Card>
     ),
   },
-
   // Headline count tiles
   tile('tile:divisions', 'Divisions', 'divisions', { hint: (t) => `${t.departments} departments`, to: '/roles', source: SRC.org }),
   tile('tile:roles', 'Roles', 'roles', { to: '/roles', source: SRC.org }),
@@ -240,7 +218,6 @@ export const WIDGET_CATALOG: Widget[] = [
   tile('tile:initiatives', 'Initiatives', 'initiatives', { source: SRC.initiatives }),
   tile('tile:deliverables', 'Deliverables', 'deliverables', { to: '/work', source: SRC.work }),
   tile('tile:tasks', 'Tasks', 'tasks', { to: '/work', source: SRC.work }),
-  tile('tile:people', 'People', 'people', { to: '/roles', source: SRC.people }),
   tile('tile:departments', 'Departments', 'departments', { to: '/roles?view=departments', source: SRC.org }),
   tile('tile:domains', 'Domains', 'domains', { to: '/overview', source: SRC.vs }),
   tile('tile:applications', 'Applications', 'applications', { to: '/applications', source: SRC.apps }),
@@ -250,20 +227,6 @@ export const WIDGET_CATALOG: Widget[] = [
   tile('tile:processSteps', 'Process Steps', 'processSteps', { to: '/overview?view=list', source: SRC.vs }),
 
   // Cards
-  {
-    id: 'card:workforce', title: 'Workforce mix', desc: 'People by employment type and region', kind: 'card', source: SRC.people,
-    render: (d) => {
-      const total = d.workforce.byType.reduce((a, g) => a + g.count, 0);
-      return (
-        <Card title={wt(d, 'card:workforce', 'Workforce mix')} to="/roles" toLabel="Roles">
-          <div className="text-xs text-[#a3a3a3] mb-2 tnum">{fmt.number(total)} people</div>
-          <BarList groups={workforceBuckets(d.workforce.byType)} color="#4f46e5" />
-          <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mt-4 mb-2">By region</div>
-          <BarList groups={d.workforce.byRegion} color="#0d9488" />
-        </Card>
-      );
-    },
-  },
   {
     id: 'card:modelFootprint', title: 'Model footprint', desc: 'Deeper model counts (sub-processes, I/O, standards…) — pick via its Edit', kind: 'card', source: SRC.vs,
     render: (d) => {
@@ -366,9 +329,9 @@ export const WIDGET_MAP: Map<string, Widget> = new Map(WIDGET_CATALOG.map((w) =>
 // (Companies with a SAVED layout get the new widgets merged in by
 // backend/scripts/seed-baseline-plan.ts — keep its NEW_WIDGETS list in sync.)
 export const DEFAULT_LAYOUT: string[] = [
-  'card:portfolioRollup', 'card:gantt', 'card:okrs', 'card:openRisks', 'card:raidSummary', 'card:workforceSignals',
+  'card:portfolioRollup', 'card:gantt', 'card:raidSummary', 'card:raidByProgram',
   'tile:divisions', 'tile:roles', 'tile:valueStreams', 'tile:initiatives', 'tile:deliverables', 'tile:tasks',
-  'card:workforce', 'card:modelFootprint',
+  'card:modelFootprint',
 ];
 
 // Tailwind span for a widget within the 6-col responsive dashboard grid.

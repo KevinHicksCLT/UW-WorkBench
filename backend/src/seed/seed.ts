@@ -283,7 +283,7 @@ async function main() {
 
   console.log(`   spine: ${spine.domains.length} domains, ${spine.divisions.length} divisions, ${spine.roles.length} roles (${mgrUpdates.length} reporting links), ${spine.valueStreams.length} value streams, ${l3Rows.length} L3 / ${l4Rows.length} L4 / ${l5Rows.length} L5 sub-streams, ${spine.metrics.length} KPIs, ${spine.processSteps.length} steps, ${spine.ioItems.length} I/O, ${spine.standards.length} standards, ${spine.scenarios.length} scenarios`);
 
-  // ── Illustrative systems + deep levels (people, initiatives, tasks, metrics, risks) ──
+  // ── Illustrative systems + deep levels (initiatives, risks) ──
   const allVsForSeed = await prisma.valueStream.findMany({ where: { companyId: c }, select: { id: true, name: true } });
   await seedIllustrative(prisma, { tenantId: t, companyId: c, valueStreams: allVsForSeed });
   await seedRealApplications(prisma, { tenantId: t, companyId: c, valueStreams: allVsForSeed });

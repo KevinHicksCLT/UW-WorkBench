@@ -163,7 +163,7 @@ export default function ListExplorer({ focusVsId = null }: { companyName?: strin
   const [sort, setSort] = useState<Sort>({ col: 'vs', dir: 1 });
 
   // Right-hand metrics panel (identical to the map). `base` = the cell clicked
-  // in the sheet; `ovStack` = in-panel drills (role → person → …).
+  // in the sheet; `ovStack` = in-panel drills (e.g. role).
   const [base, setBase] = useState<{ level: string; id: string } | null>(null);
   const [ovStack, setOvStack] = useState<{ level: string; id: string }[]>([]);
   const [dash, setDash] = useState<Dashboard | null>(null);
@@ -353,7 +353,7 @@ export default function ListExplorer({ focusVsId = null }: { companyName?: strin
             {!loading && !error && (
               <>
                 <span className="text-[11px] text-[#737373] tnum">
-                  {totals.vs} value streams · {totals.subs} sub-processes · {totals.steps} steps · {rows.length} rows
+                  {totals.vs} value streams · {totals.subs} sub-processes · {totals.steps} steps
                 </span>
                 {anyFilter && <button onClick={clear} className="text-[11px] font-medium text-[#1d4ed8] hover:underline">Clear filters</button>}
               </>

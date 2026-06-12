@@ -2,9 +2,11 @@ import pg from 'pg';
 
 // ─── Read-only database access for the AI assistant ────────────────────────
 // A DEDICATED Postgres connection, separate from Prisma, that uses the
-// `chatbot_ro` role (DATABASE_URL_RO). That role has SELECT-only grants on the
-// `operating_model` schema and NO access to `public` — so the assistant can
-// never read the User table (password hashes) and can never write anything.
+// `chatbot_ro` role (DATABASE_URL_RO) against the SAME database that feeds the
+// app (the `public` Prisma schema on the production branch). The role has
+// SELECT-only grants, with the "User" table (password hashes) and
+// _prisma_migrations explicitly revoked — so the assistant can never read
+// credentials and can never write anything. Setup: scripts/chatbot-ro-setup.sql.
 //
 // Defense-in-depth, in order of strength:
 //   1. The `chatbot_ro` role simply lacks INSERT/UPDATE/DELETE/DDL grants.
@@ -14,7 +16,7 @@ import pg from 'pg';
 
 const { Pool } = pg;
 
-const SCHEMA = process.env.CHATBOT_SCHEMA ?? 'operating_model';
+const SCHEMA = process.env.CHATBOT_SCHEMA ?? 'public';
 if (!/^[a-z_][a-z0-9_]*$/.test(SCHEMA)) {
   throw new Error(`Invalid CHATBOT_SCHEMA: ${SCHEMA}`);
 }

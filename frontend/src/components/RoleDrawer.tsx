@@ -4,15 +4,12 @@ import { api } from '../lib/api';
 import { PARTICIPATION_CLASS } from '../lib/format';
 
 // RoleDrawer — the role's full detail (inputs & deliverables, process tasks,
-// responsibilities, value-stream participation and the people in the role),
-// rendered as a wide slide-over wherever the user already is. Replaces the
-// retired role page (OrgTable's RoleDetailView): role links across the app and
-// the sidebar's "View full details" button open this instead of navigating.
-// Clicking a person swaps the drawer to their detail (back button returns) —
-// the person view that previously lived behind the role page.
+// responsibilities and value-stream participation), rendered as a wide
+// slide-over wherever the user already is. Replaces the retired role page
+// (OrgTable's RoleDetailView): role links across the app and the sidebar's
+// "View full details" button open this instead of navigating.
 
 // ── Shapes (from GET /roles/:id — same payload the old page consumed) ─────────
-type Person = { id: string; name: string; title: string | null; region: string | null; employmentType: string; vendor: string | null; allocationPct: number; isPrimary: boolean };
 type RoleParticipation = { valueStreamId: string; valueStreamName: string; participationType: string; subStream: string | null; inputs: string | null; outputs: string | null };
 type Grouped = { category: string; items: string[] };
 type ServerIoRow = { valueStreamId: string; valueStreamName: string; domain: string | null; l3: string | null; l4: string | null; inputs: string[]; deliverables: string[] };
@@ -20,20 +17,8 @@ type ProcTask = { valueStreamId: string; valueStreamName: string; l3: string | n
 type RoleDetailData = {
   id: string; name: string; roleFamily: string | null; roleLevel: string | null;
   division?: { id: string; name: string }; department?: { id: string; name: string };
-  participation: RoleParticipation[]; people: Person[]; responsibilities: Grouped[];
+  participation: RoleParticipation[]; responsibilities: Grouped[];
   ioRows?: ServerIoRow[]; deliverableCount?: number; inputCount?: number; processTasks?: ProcTask[];
-};
-
-// ── Person detail shapes (from GET /explorer/person/:id) ──────────────────────
-type PersonMetric = { name: string; unit: string; target: number | null; direction: string; latest: number | null; latestPeriod: string | null; onTarget: boolean | null; history: { period: string; value: number }[] };
-type PersonSignal = { name: string; unit: string; latest: number | null; latestPeriod: string | null; history: { period: string; value: number }[] };
-type AppUsage = { appName: string; category: string | null; usagePct: number; rank: number };
-type PersonData = {
-  person: { id: string; name: string; title: string | null; location: string | null; region: string | null; employmentType: string; vendor: string | null };
-  valueStreams: { id: string; name: string; participationType: string }[];
-  metrics: PersonMetric[];
-  signals: PersonSignal[];
-  apps: AppUsage[];
 };
 
 // Split a workbook I/O field (comma / semicolon / newline separated) into the
@@ -87,160 +72,20 @@ function DocIcon() {
   );
 }
 
-function Chevron() {
-  return (
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M9 6l6 6-6 6" />
-    </svg>
-  );
-}
-
-// 6-month sparkline of a metric's readings.
-function MiniTrend({ history }: { history: { period: string; value: number }[] }) {
-  if (history.length < 2) return <div className="w-20 flex-shrink-0" />;
-  const vals = history.map((h) => h.value);
-  const min = Math.min(...vals), max = Math.max(...vals);
-  const span = max - min || 1;
-  return (
-    <div className="w-20 h-8 flex items-end gap-0.5 flex-shrink-0" title={history.map((h) => `${h.period}: ${h.value}`).join('\n')}>
-      {history.map((h, i) => (
-        <div key={i} className="flex-1 bg-[#e5e5e5] rounded-sm" style={{ height: `${20 + ((h.value - min) / span) * 80}%` }} />
-      ))}
-    </div>
-  );
-}
-
-function DRow({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <div className="flex justify-between gap-3">
-      <dt className="text-slate-500 flex-shrink-0">{label}</dt>
-      <dd className="font-medium text-slate-800 text-right">{value}</dd>
-    </div>
-  );
-}
-
 const Skeleton = () => (
   <div className="space-y-2">
     {Array.from({ length: 5 }).map((_, i) => <div key={i} className="skeleton rounded-md" style={{ height: 48 }} />)}
   </div>
 );
 
-// ── Person view (in-drawer) — everything the old person page showed ──────────
-function PersonBody({ d }: { d: PersonData }) {
-  return (
-    <>
-      {/* Location & employment */}
-      <div className="mb-6">
-        <SectionLabel>Location</SectionLabel>
-        <dl className="text-sm space-y-2">
-          <DRow label="Location" value={d.person.location || '—'} />
-          <DRow label="Region" value={d.person.region || '—'} />
-          <DRow label="Employment" value={d.person.employmentType === 'badged' ? 'Badged employee' : (d.person.employmentType === 'si_partner' ? 'SI partner' : 'Contractor')} />
-          {d.person.vendor && <DRow label="Vendor" value={d.person.vendor} />}
-        </dl>
-      </div>
-
-      {/* Digital productivity signals (illustrative) */}
-      <div className="mb-6">
-        <SectionLabel>Digital Productivity · latest {d.signals[0]?.latestPeriod ?? ''}</SectionLabel>
-        {d.signals.length === 0 ? <Empty text="No signals." /> : (
-          <div className="space-y-3">
-            {d.signals.map((s) => (
-              <div key={s.name} className="flex items-center gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm text-[#171717] truncate">{s.name}</div>
-                  <div className="text-xs text-[#a3a3a3]">{s.unit}</div>
-                </div>
-                <MiniTrend history={s.history} />
-                <div className="w-12 text-right text-sm font-semibold text-[#171717] tnum flex-shrink-0">{s.latest ?? '—'}</div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Performance vs the role's relevant KPIs */}
-      <div className="mb-6">
-        <SectionLabel>Performance Metrics ({d.metrics.length}) · latest {d.metrics[0]?.latestPeriod ?? ''}</SectionLabel>
-        {d.metrics.length === 0 ? <Empty text="No performance metrics tracked." /> : (
-          <div className="space-y-3">
-            {d.metrics.map((m) => (
-              <div key={m.name} className="flex items-center gap-3 border-b border-slate-100 last:border-0 pb-3 last:pb-0">
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm text-[#171717] truncate">{m.name}</div>
-                  <div className="text-xs text-[#a3a3a3]">
-                    {m.target != null ? `Target ${m.direction === 'down' ? '≤' : '≥'} ${m.target}${m.unit === '%' ? '%' : ` ${m.unit}`}` : 'No target'}
-                  </div>
-                </div>
-                <MiniTrend history={m.history} />
-                <div className="w-24 text-right flex-shrink-0">
-                  <div className="text-sm font-semibold text-[#171717] tnum">{m.latest != null ? `${m.latest}${m.unit === '%' ? '%' : ` ${m.unit}`}` : '—'}</div>
-                  {m.onTarget != null && (
-                    <span className={m.onTarget ? 'pill-green' : 'pill-red'}>{m.onTarget ? 'On target' : 'Off target'}</span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Most used apps */}
-      {d.apps.length > 0 && (
-        <div className="mb-6">
-          <SectionLabel>Most Used Apps</SectionLabel>
-          <div className="space-y-2">
-            {d.apps.map((a) => (
-              <div key={a.appName}>
-                <div className="flex items-center justify-between gap-2 text-sm mb-0.5">
-                  <span className="text-[#171717] truncate flex items-center gap-1.5">{a.appName}{a.rank === 1 && <span className="chip-soft">Top</span>}</span>
-                  <span className="tnum text-xs text-[#a3a3a3] flex-shrink-0">{a.usagePct}%</span>
-                </div>
-                <div className="h-1.5 rounded-full bg-[#f0f0f0] overflow-hidden">
-                  <div className="h-full rounded-full bg-[#2563eb]" style={{ width: `${a.usagePct}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Value streams this person works in */}
-      {d.valueStreams.length > 0 && (
-        <div>
-          <SectionLabel>Value Streams</SectionLabel>
-          <div className="space-y-1.5">
-            {d.valueStreams.map((v) => (
-              <div key={v.id} className="flex items-center justify-between gap-2 text-sm">
-                <Link to={`/overview?focus=${v.id}`} className="text-[#171717] hover:underline truncate">{v.name}</Link>
-                <span className={`${PARTICIPATION_CLASS[v.participationType] || 'pill-slate'} flex-shrink-0`}>{v.participationType}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
-
 export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClose: () => void }) {
   const [r, setR] = useState<RoleDetailData | null>(null);
   const [error, setError] = useState('');
-  // In-drawer person drill: set = show that person's detail, back returns to the role.
-  const [personId, setPersonId] = useState<string | null>(null);
-  const [person, setPerson] = useState<PersonData | null>(null);
-  const [personError, setPersonError] = useState('');
 
   useEffect(() => {
-    setR(null); setError(''); setPersonId(null);
+    setR(null); setError('');
     api.get(`/roles/${roleId}`).then(setR).catch((e: Error) => setError(e.message));
   }, [roleId]);
-
-  useEffect(() => {
-    if (!personId) { setPerson(null); return; }
-    setPerson(null); setPersonError('');
-    api.get(`/explorer/person/${personId}`).then(setPerson).catch((e: Error) => setPersonError(e.message));
-  }, [personId]);
 
   // Inputs & deliverables, related per (value stream, sub-process), at the LOWEST
   // level. Prefer the server's role-resolved I/O inventory (one row per L4
@@ -269,8 +114,6 @@ export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClos
   const processTaskCount = r?.processTasks?.length ?? 0;
   const respCount = r?.responsibilities.reduce((a, g) => a + g.items.length, 0) ?? 0;
 
-  const personMode = personId !== null;
-
   return (
     <div className="absolute inset-0 z-30 flex justify-end" role="dialog" aria-modal="true">
       {/* Backdrop dims the canvas; click to dismiss. */}
@@ -280,21 +123,13 @@ export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClos
         {/* Header */}
         <div className="px-5 py-4 border-b border-[#eaeaea] flex items-start justify-between gap-3 flex-shrink-0">
           <div className="min-w-0 flex items-start gap-2.5">
-            {personMode && (
-              <button onClick={() => setPersonId(null)} aria-label="Back to role" title="Back to role"
-                className="mt-0.5 flex-shrink-0 text-[#525252] hover:text-[#171717] w-6 h-6 rounded-md hover:bg-[#fafafa] flex items-center justify-center">
-                <svg width="15" height="15" viewBox="0 0 13 13" fill="none"><path d="M11 6.5H2M6 2.5l-4 4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              </button>
-            )}
             <div className="min-w-0">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3]">{personMode ? 'Individual' : 'Role'}</div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3]">Role</div>
               <div className="text-[15px] font-bold text-[#171717] leading-snug">
-                {personMode ? (person?.person.name ?? 'Loading…') : (r?.name ?? 'Loading…')}
+                {r?.name ?? 'Loading…'}
               </div>
               <div className="text-[11px] text-[#a3a3a3] mt-0.5">
-                {personMode
-                  ? [person?.person.title, person && (person.person.employmentType !== 'badged' ? (person.person.vendor ?? person.person.employmentType) : 'Employee')].filter(Boolean).join(' · ')
-                  : [r?.roleFamily, r?.department?.name, r?.division?.name].filter(Boolean).join(' · ')}
+                {[r?.roleFamily, r?.department?.name, r?.division?.name].filter(Boolean).join(' · ')}
               </div>
             </div>
           </div>
@@ -305,11 +140,7 @@ export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClos
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-5">
-          {personMode ? (
-            personError ? <div className="text-sm text-[#be123c]">{personError}</div>
-            : !person ? <Skeleton />
-            : <PersonBody d={person} />
-          ) : error ? (
+          {error ? (
             <div className="text-sm text-[#be123c]">{error}</div>
           ) : !r ? (
             <Skeleton />
@@ -329,30 +160,6 @@ export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClos
                         </div>
                         <span className={`${PARTICIPATION_CLASS[p.participationType] || 'pill-slate'} flex-shrink-0`}>{p.participationType}</span>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* People in the role — click through to their in-drawer detail. */}
-              <div className="mb-6">
-                <SectionLabel>Users in Role ({r.people.length})</SectionLabel>
-                {r.people.length === 0 ? <Empty text="No people assigned yet." /> : (
-                  <div className="space-y-0.5">
-                    {r.people.map((pp) => (
-                      <button key={pp.id} onClick={() => setPersonId(pp.id)}
-                        className="w-full flex items-center justify-between gap-2 text-sm py-1 px-1.5 -mx-1.5 rounded-md hover:bg-[#fafafa] transition-colors duration-150 text-left group">
-                        <span className="min-w-0">
-                          <span className="text-[#171717] truncate group-hover:underline">{pp.name}</span>
-                          {pp.title && <span className="block text-xs text-[#a3a3a3] truncate">{pp.title}</span>}
-                        </span>
-                        <span className="flex items-center gap-1.5 flex-shrink-0 text-[11px] text-[#a3a3a3]">
-                          {pp.employmentType !== 'badged' && <span className="chip-soft">{pp.vendor ?? pp.employmentType}</span>}
-                          {pp.region && <span>{pp.region}</span>}
-                          <span className="tnum">{pp.allocationPct}%</span>
-                          <Chevron />
-                        </span>
-                      </button>
                     ))}
                   </div>
                 )}

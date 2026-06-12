@@ -19,7 +19,7 @@ const STATUS: Record<Check['status'], { dot: string; badge: string; ring: string
 
 // entity slug → admin tab key, so a sample can deep-link to where it's edited.
 const ENTITY_TAB: Record<string, string> = {
-  person: 'people', role: 'organization', portfolioInitiative: 'initiatives',
+  role: 'organization', portfolioInitiative: 'initiatives',
 };
 
 export default function ValidationPanel({

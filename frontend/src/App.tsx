@@ -90,7 +90,7 @@ export default function App() {
         <Route path="/overview" element={<Explorer />} />
         <Route path="/n/*" element={<Explorer />} />
         <Route path="/explorer" element={<Navigate to="/overview" replace />} />
-        {/* Roles & people — interactive table (org groupings → person, value-stream cross-link). */}
+        {/* Organization — interactive table (org groupings → role, value-stream cross-link). */}
         <Route path="/roles" element={<Organization />} />
         {/* Detail pages remain as deep-link targets from inspector + search. */}
         <Route path="/divisions/:id" element={<DivisionDetail />} />

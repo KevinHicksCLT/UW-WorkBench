@@ -1,0 +1,517 @@
+{
+  "department": "Enterprise & Solution Architecture",
+  "items": [
+    {
+      "category": "Cloud Architecture",
+      "name": "Cost Management",
+      "summary": "Governs how cloud spend is attributed, monitored, and optimized across ABC Insurance Group's subscriptions, ensuring every workload's cost is traceable to a business owner and that the architecture function can demonstrate ongoing efficiency to finance.",
+      "subs": [
+        {
+          "title": "Resource Tagging for Cost Allocation",
+          "description": "Every provisioned cloud resource must carry the mandatory cost-allocation tags so that spend can be charged back to the owning business unit, product line, or transformation initiative. Untagged resources are flagged by policy and remediated within the billing cycle, keeping showback and chargeback reports accurate for P&C, Life & Retirement, and group benefits workloads."
+        },
+        {
+          "title": "Monthly Rightsizing Reviews",
+          "description": "Architecture and platform teams review utilization telemetry each month to identify over-provisioned compute, storage, and database tiers. Recommendations are tracked to closure, and persistent low-utilization resources must be downsized, rescheduled, or decommissioned with the application owner's sign-off."
+        },
+        {
+          "title": "Reserved Instances for Steady-State Workloads",
+          "description": "Workloads with stable, predictable demand, such as core policy administration and claims systems, must be covered by reserved instances or savings plans rather than on-demand pricing. Commitment levels are reviewed against the application roadmap so reservations are not purchased for systems slated for retirement or migration."
+        }
+      ]
+    },
+    {
+      "category": "Cloud Architecture",
+      "name": "Disaster Recovery",
+      "summary": "Establishes the disaster recovery posture for cloud-hosted systems so that the carrier can continue issuing policies, paying claims, and meeting regulatory obligations after a regional outage or major failure event.",
+      "subs": [
+        {
+          "title": "Documented DR Strategy (Pilot Light, Warm Standby, Active-Active)",
+          "description": "Each production application must declare and document one of the approved recovery patterns: Pilot Light, Warm Standby, or Active-Active, matched to its business criticality tier. The selected pattern, failover procedure, and dependencies are recorded in the architecture repository and approved at solution design review."
+        },
+        {
+          "title": "Quarterly DR Testing",
+          "description": "Disaster recovery plans are exercised at least once per quarter, with failover and failback executed against the documented procedure. Test results, gaps, and remediation actions are recorded, and material failures are escalated to the Architecture Review Board and business continuity management."
+        }
+      ]
+    },
+    {
+      "category": "Cloud Architecture",
+      "name": "High Availability",
+      "summary": "Defines the resilience baseline for production systems so that customer-facing and core insurance operations remain available through infrastructure failures and demand spikes, with recovery expectations agreed in advance with the business.",
+      "subs": [
+        {
+          "title": "Multi-AZ Deployment Required for Production",
+          "description": "All production workloads must be deployed across multiple availability zones so that the loss of a single zone does not interrupt service. Single-zone production deployments require a formal exception with a documented risk acceptance from the application owner."
+        },
+        {
+          "title": "RPO/RTO Documented",
+          "description": "Each system records its recovery point objective and recovery time objective, agreed with the owning business area and aligned to its criticality classification. These targets drive the choice of replication, backup, and failover design, and are validated during DR tests."
+        },
+        {
+          "title": "Auto-Scaling Configured",
+          "description": "Production services must be configured with auto-scaling policies that absorb predictable peaks, such as open enrollment, renewal cycles, and catastrophe-driven claims surges, without manual intervention. Scaling thresholds and limits are documented and tuned based on observed load."
+        }
+      ]
+    },
+    {
+      "category": "Cloud Architecture",
+      "name": "Infrastructure as Code",
+      "summary": "Requires that all cloud infrastructure be defined, changed, and audited through code so environments are reproducible, reviewable, and free of undocumented configuration, supporting both operational reliability and audit evidence for regulators.",
+      "subs": [
+        {
+          "title": "Terraform Preferred or Bicep",
+          "description": "Infrastructure definitions must be authored in Terraform as the preferred tool, with Bicep accepted for Azure-native teams. Other provisioning tools require an Architecture Review Board exception, and modules should be drawn from the shared, certified module library where one exists."
+        },
+        {
+          "title": "No Manual Changes",
+          "description": "Direct changes to cloud resources through portals or CLIs are prohibited in managed environments. Any emergency manual intervention must be back-ported into the code base immediately so the declared state remains the single source of truth."
+        },
+        {
+          "title": "GitOps Workflow",
+          "description": "All infrastructure changes flow through version-controlled repositories with peer-reviewed pull requests and pipeline-driven deployment. The Git history serves as the change record for audit and incident forensics, and only the pipeline identity holds write access to managed environments."
+        },
+        {
+          "title": "Drift Detection Enabled",
+          "description": "Automated drift detection runs against all managed environments to surface divergence between deployed resources and their declared definitions. Detected drift is triaged, and unauthorized changes are either reverted or formally incorporated into code with review."
+        }
+      ]
+    },
+    {
+      "category": "Cloud Architecture",
+      "name": "Landing Zone Standards",
+      "summary": "Defines the enterprise landing zone that every new cloud workload inherits, so applications across the carrier start from a consistent, pre-secured foundation rather than bespoke environment builds.",
+      "subs": [
+        {
+          "title": "Standard Subscription Structure",
+          "description": "Subscriptions and accounts are organized according to the enterprise hierarchy, separating production from non-production and aligning to business domains and management groups. New subscriptions are vended through the standard process rather than created ad hoc, preserving consistent governance scopes."
+        },
+        {
+          "title": "Network Topology",
+          "description": "Landing zones connect to the enterprise network through the standard topology, including approved address space allocation, routing to shared connectivity hubs, and DNS integration. Workload teams consume the pre-built network rather than designing their own connectivity."
+        },
+        {
+          "title": "Identity Integration",
+          "description": "Every landing zone is integrated with the enterprise identity provider at provisioning time, with role-based access granted through standard groups and privileged access managed via just-in-time elevation. Local or standalone identity stores are not permitted."
+        },
+        {
+          "title": "Policy Guardrails",
+          "description": "Preventive and audit policies are applied to all landing zones at creation, enforcing baseline controls such as allowed regions, encryption requirements, and prohibited services. Guardrails are managed centrally so workload teams operate within compliant boundaries by default."
+        }
+      ]
+    },
+    {
+      "category": "Cloud Architecture",
+      "name": "Network Architecture",
+      "summary": "Sets the network design rules for cloud environments, minimizing the carrier's exposed surface while keeping connectivity between applications, data platforms, and on-premises systems predictable and inspectable.",
+      "subs": [
+        {
+          "title": "Hub-Spoke Topology",
+          "description": "Cloud networks follow a hub-spoke design in which shared services, inspection, and hybrid connectivity reside in central hubs and application workloads occupy isolated spokes. Spoke-to-spoke traffic transits the hub so it can be inspected and controlled."
+        },
+        {
+          "title": "Private Endpoints",
+          "description": "Platform services such as databases, storage, and messaging must be consumed over private endpoints within the virtual network rather than public service endpoints. This keeps policyholder and claims data off the public internet path even when the service itself is cloud-managed."
+        },
+        {
+          "title": "No Public IPs Except Load Balancers",
+          "description": "Direct public IP assignment to compute resources is prohibited; internet-facing traffic enters only through approved load balancers and application gateways with web application firewall protection. Any other public exposure requires a security-approved exception."
+        },
+        {
+          "title": "NSG/Firewall Rules Documented",
+          "description": "All network security group and firewall rules must be documented with their business justification, owner, and review date, and managed as code where supported. Periodic recertification removes stale rules so the effective network policy stays aligned with what is recorded."
+        }
+      ]
+    },
+    {
+      "category": "Cloud Architecture",
+      "name": "Resource Naming Convention",
+      "summary": "Standardizes how cloud resources are named and tagged across the enterprise so any engineer, auditor, or cost analyst can identify a resource's purpose, environment, and owner at a glance, and so automation can operate reliably on resource metadata.",
+      "subs": [
+        {
+          "title": "Standard Naming Pattern {env}-{region}-{app}-{resource}-{instance}",
+          "description": "Resources are named using the mandated pattern of environment, region, application, resource type, and instance, using the approved abbreviation lists for each segment. The convention is enforced through provisioning policy so non-conforming names are rejected before deployment."
+        },
+        {
+          "title": "Required Tags: Owner, CostCenter, Environment",
+          "description": "Every resource must carry at minimum the Owner, CostCenter, and Environment tags, populated with valid values from the enterprise reference data. These tags underpin cost allocation, incident routing, and lifecycle decisions, and missing or invalid tags are reported for remediation."
+        }
+      ]
+    },
+    {
+      "category": "Data Architecture",
+      "name": "Analytics Architecture",
+      "summary": "Defines the reference architecture for the carrier's analytics estate, ensuring actuarial, underwriting, and finance teams work from consistently refined data while retaining the freedom to explore within governed boundaries.",
+      "subs": [
+        {
+          "title": "Medallion Architecture (Bronze/Silver/Gold)",
+          "description": "Analytics platforms organize data into Bronze raw, Silver conformed, and Gold consumption layers, with defined quality and transformation expectations at each tier. Consumers such as pricing models and regulatory reports draw from Gold, while data engineering work progresses data through the layers under version control."
+        },
+        {
+          "title": "Semantic Layer for BI",
+          "description": "Business intelligence tools connect through a governed semantic layer that defines certified measures, dimensions, and business logic once, including insurance-specific calculations like loss ratio and earned premium. This prevents divergent metric definitions from appearing across departmental dashboards."
+        },
+        {
+          "title": "Governed Self-Service",
+          "description": "Analysts may build their own datasets and reports within sanctioned workspaces, using cataloged sources and subject to access controls and certification before broad sharing. Self-service content that becomes business-critical must be promoted into managed, supported assets."
+        }
+      ]
+    },
+    {
+      "category": "Data Architecture",
+      "name": "Data Catalog",
+      "summary": "Mandates a complete, searchable inventory of the enterprise's data assets so that users across underwriting, claims, and finance can find, understand, and trust the data they consume, with clear accountability for each asset.",
+      "subs": [
+        {
+          "title": "All Datasets Registered",
+          "description": "Every production dataset, including warehouse tables, lake assets, and key application extracts, must be registered in the enterprise data catalog before it is consumed by downstream users. Unregistered data sources are not approved for reporting or model development."
+        },
+        {
+          "title": "Business Glossary Linked",
+          "description": "Catalog entries are linked to business glossary terms so technical assets are explained in the carrier's own vocabulary, such as written premium, incurred loss, and in-force policy. Glossary terms are owned by business stewards and changes follow the glossary governance process."
+        },
+        {
+          "title": "Stewardship Assigned",
+          "description": "Each cataloged asset has a named data steward and owning domain accountable for its definition, quality, and access decisions. Stewardship assignments are kept current as organizational changes occur, so no critical dataset is left without an accountable party."
+        },
+        {
+          "title": "Searchable Metadata",
+          "description": "Technical and business metadata, including schemas, descriptions, classifications, and quality indicators, must be populated and indexed so users can locate assets by keyword, domain, or term. Sparse or stale metadata is treated as a catalog quality defect and remediated by the steward."
+        }
+      ]
+    },
+    {
+      "category": "Data Architecture",
+      "name": "Data Lineage",
+      "summary": "Requires that the movement and transformation of data be traceable from source systems through to reports and models, supporting impact analysis, regulatory inquiries, and confidence in figures presented to management and regulators.",
+      "subs": [
+        {
+          "title": "End-to-End Lineage Captured",
+          "description": "Lineage must be recorded from originating systems, such as policy administration and claims platforms, through integration and transformation layers to final consumption in reports, dashboards, and models. Critical regulatory and financial reporting flows are prioritized for full coverage."
+        },
+        {
+          "title": "Automated Discovery Preferred",
+          "description": "Lineage should be harvested automatically from pipelines, SQL, and orchestration metadata wherever tooling permits, with manual documentation reserved for gaps the scanners cannot reach. Manually maintained lineage must identify an owner responsible for keeping it current."
+        },
+        {
+          "title": "Lineage Published to Catalog",
+          "description": "Captured lineage is published into the enterprise data catalog so analysts and auditors can trace any asset's upstream sources and downstream consumers from a single interface. Lineage views are kept synchronized with pipeline changes through the deployment process."
+        }
+      ]
+    },
+    {
+      "category": "Data Architecture",
+      "name": "Data Modeling Standards",
+      "summary": "Governs how data structures are designed and documented across projects so that models for policies, claims, customers, and products are consistent, reviewable, and intelligible to teams beyond their original authors.",
+      "subs": [
+        {
+          "title": "Conceptual, Logical, and Physical Models Required",
+          "description": "Significant data initiatives must produce models at all three levels of abstraction: a conceptual model agreed with the business, a logical model defining entities and relationships, and a physical model reflecting the implemented schema. Each level is reviewed at the appropriate design gate."
+        },
+        {
+          "title": "ERD in Approved Tool",
+          "description": "Entity-relationship diagrams must be authored and maintained in the enterprise-approved modeling tool rather than ad hoc drawing applications, so models remain versioned, shareable, and connected to the metadata repository. Exported snapshots in documents are reference copies only."
+        },
+        {
+          "title": "Naming Conventions Enforced",
+          "description": "Entity, attribute, table, and column names follow the published enterprise naming standards, including approved abbreviations and class words. Conformance is checked at model review and through automated schema linting where available, preventing divergent vocabularies across the data estate."
+        }
+      ]
+    },
+    {
+      "category": "Data Architecture",
+      "name": "Data Quality Standards",
+      "summary": "Establishes how data quality is defined, measured, and remediated across the enterprise so that decisions on pricing, reserving, and customer service rest on data whose fitness is known rather than assumed.",
+      "subs": [
+        {
+          "title": "Quality Rules Defined",
+          "description": "Each critical data element carries documented quality rules covering dimensions such as completeness, validity, accuracy, and timeliness, agreed with the data steward and the consuming business areas. Rules are versioned and traceable to the business requirement they protect."
+        },
+        {
+          "title": "Automated Profiling",
+          "description": "Datasets are profiled on an automated schedule, with quality rules executed in pipelines rather than through periodic manual checks. New sources are profiled before onboarding so structural surprises are caught ahead of production use."
+        },
+        {
+          "title": "DQ Scores Published",
+          "description": "Quality scores for governed datasets are published to the data catalog and steward dashboards, making fitness-for-purpose visible to consumers before they build on a dataset. Trends are reviewed by the data governance forum to direct improvement effort."
+        },
+        {
+          "title": "Remediation SLAs",
+          "description": "Quality defects are triaged by severity and remediated within defined service levels, with breaches of SLA on critical elements escalated to the owning steward and domain leadership. Root-cause fixes at the source system are preferred over repeated downstream cleansing."
+        }
+      ]
+    },
+    {
+      "category": "Data Architecture",
+      "name": "ETL/ELT Standards",
+      "summary": "Sets the engineering rules for data movement and transformation pipelines so that feeds between core insurance systems, the analytics platform, and downstream consumers are reliable, restartable, and resilient to change.",
+      "subs": [
+        {
+          "title": "ELT Preferred for Cloud",
+          "description": "On cloud analytics platforms, pipelines should load raw data first and transform within the target platform, exploiting its scalable compute and preserving the unmodified source for reprocessing. Traditional ETL patterns are reserved for cases with a documented justification, such as in-flight masking requirements."
+        },
+        {
+          "title": "Idempotent Pipelines",
+          "description": "Pipelines must be safe to re-run without producing duplicates or corrupting state, using techniques such as merge logic, deterministic keys, and watermarking. This allows failed loads of policy, claims, or billing data to be replayed during incident recovery without manual cleanup."
+        },
+        {
+          "title": "Schema Evolution Handled",
+          "description": "Pipelines must tolerate additive source schema changes without failure and detect breaking changes explicitly rather than silently dropping or corrupting fields. Schema change handling behavior is documented per pipeline and validated in testing."
+        },
+        {
+          "title": "Data Contracts Enforced",
+          "description": "Interfaces between producing and consuming teams are governed by explicit data contracts specifying schema, semantics, quality expectations, and delivery cadence. Contract changes follow a versioned, communicated process so downstream actuarial and reporting consumers are never broken without notice."
+        }
+      ]
+    },
+    {
+      "category": "Data Architecture",
+      "name": "Master Data Management",
+      "summary": "Governs how the carrier maintains a single trusted version of its most shared business entities, eliminating the conflicting customer, policy, claim, and product records that arise from operating multiple administration systems across business lines.",
+      "subs": [
+        {
+          "title": "Golden Records for Customer, Policy, Claim, and Product",
+          "description": "Authoritative golden records are maintained for the Customer, Policy, Claim, and Product domains, with defined survivorship rules determining which source attributes win when systems disagree. Consuming applications and analytics draw these entities from the mastered source rather than reconciling them locally."
+        },
+        {
+          "title": "MDM Hub for Cross-Domain Resolution",
+          "description": "A central MDM hub performs matching, merging, and identity resolution across source systems and business lines, linking, for example, a household's P&C policies with their life and retirement holdings. Match rules and thresholds are governed, and steward workflows handle records the engine cannot resolve automatically."
+        }
+      ]
+    },
+    {
+      "category": "Documentation",
+      "name": "Architecture Diagram Standards",
+      "summary": "Standardizes the notation, tooling, and lifecycle of architecture diagrams so that designs are communicated consistently across teams and remain trustworthy as systems evolve.",
+      "subs": [
+        {
+          "title": "C4 Model (Context, Container, Component, Code)",
+          "description": "Architecture diagrams follow the C4 model, presenting systems at the Context, Container, Component, and where useful Code levels of zoom. Each solution design includes at minimum the Context and Container views so reviewers can see both the business landscape and the deployable structure."
+        },
+        {
+          "title": "Draw.io or LucidChart",
+          "description": "Diagrams are produced in draw.io or LucidChart, the two approved tools, using the shared enterprise shape libraries and templates. Restricting tooling keeps diagrams editable by any architect and avoids stranded artifacts in unsupported formats."
+        },
+        {
+          "title": "Version Controlled",
+          "description": "Diagram source files are stored under version control alongside or referenced from the owning system's repository, so changes are attributable and earlier states recoverable. Static image exports without an editable, versioned source do not satisfy the standard."
+        }
+      ]
+    },
+    {
+      "category": "Documentation",
+      "name": "Architecture Repository",
+      "summary": "Defines where architecture knowledge lives and how it is kept current, giving engineers, auditors, and new joiners one reliable place to find the documented state of the carrier's systems.",
+      "subs": [
+        {
+          "title": "Confluence for Documentation",
+          "description": "Narrative architecture documentation, including solution designs, decision records, and standards, resides in the enterprise Confluence space using the approved page templates. Documentation scattered in personal drives or email does not count as the system of record."
+        },
+        {
+          "title": "Git for Diagrams-as-Code",
+          "description": "Diagrams expressed as code, such as PlantUML, Mermaid, or Structurizr definitions, are stored in Git repositories where they can be reviewed, versioned, and rendered in pipelines. This keeps machine-readable architecture artifacts adjacent to the systems they describe."
+        },
+        {
+          "title": "Searchable and Maintained",
+          "description": "Repository content must be organized and labeled so material is discoverable by search, and owners review their pages on a defined cadence to archive or update stale content. Pages without a current owner or review date are flagged during periodic repository hygiene sweeps."
+        }
+      ]
+    },
+    {
+      "category": "Documentation",
+      "name": "Non-Functional Requirements",
+      "summary": "Every project must capture its non-functional requirements as a formal deliverable, documenting expectations for performance, scalability, availability, security, and compliance before design is approved. This ensures qualities critical to an insurance carrier, such as regulatory compliance and peak-season resilience, are engineered in from the start rather than discovered as gaps in production.",
+      "subs": []
+    },
+    {
+      "category": "Documentation",
+      "name": "Runbook Requirements",
+      "summary": "Ensures every production system is accompanied by current operational documentation, so support teams can execute routine procedures and respond to incidents without depending on the original build team's tribal knowledge.",
+      "subs": [
+        {
+          "title": "Operational Runbooks Required Before Go-Live",
+          "description": "No system enters production without runbooks covering startup and shutdown, health checks, common failure modes, escalation paths, and recovery procedures. Runbook completeness is a gate in the production readiness review."
+        },
+        {
+          "title": "Stored in Wiki",
+          "description": "Runbooks are published in the enterprise wiki at the standard location for the owning service, linked from monitoring alerts where possible, and accessible to on-call staff at all hours. Copies held only in local files or chat threads do not meet the standard."
+        },
+        {
+          "title": "Reviewed Quarterly",
+          "description": "Each runbook is reviewed at least quarterly by the owning team and updated to reflect architectural, tooling, and procedural changes, with the review date recorded on the document. Runbooks found inaccurate during an incident trigger an immediate out-of-cycle update."
+        }
+      ]
+    },
+    {
+      "category": "Documentation",
+      "name": "Sequence Diagrams",
+      "summary": "Governs when and how interaction flows are diagrammed, so that multi-system behaviors such as quote-to-bind or first notice of loss are explicitly documented and stay synchronized with the code that implements them.",
+      "subs": [
+        {
+          "title": "Required for Complex Flows",
+          "description": "Sequence diagrams must be produced for flows involving multiple services, asynchronous messaging, or intricate error handling, such as claims intake spanning core systems, payment, and correspondence platforms. Simple single-service request paths do not require one."
+        },
+        {
+          "title": "PlantUML or Mermaid",
+          "description": "Diagrams are authored in PlantUML or Mermaid text notation rather than drawing tools, so they can be diffed, reviewed in pull requests, and rendered automatically in documentation sites."
+        },
+        {
+          "title": "Stored with Code",
+          "description": "Sequence diagram sources live in the repository of the service whose behavior they describe, and updates accompany the code changes that alter the flow. Keeping the diagram in the same change set prevents documentation from drifting behind the implementation."
+        }
+      ]
+    },
+    {
+      "category": "Technology Stack",
+      "name": "Approved Cloud Platforms",
+      "summary": "Defines which public cloud providers the enterprise builds on, concentrating skills, tooling, and security controls on a deliberately narrow footprint rather than allowing each project to choose its own platform.",
+      "subs": [
+        {
+          "title": "Azure Primary, AWS Secondary for Specific Workloads",
+          "description": "Microsoft Azure is the default platform for new workloads, where the enterprise landing zones, identity integration, and operational tooling are most mature. AWS is sanctioned only for the specific workload categories where it is the established or superior fit, as documented in the platform selection guidance."
+        },
+        {
+          "title": "Multi-Cloud by Exception Only",
+          "description": "Architectures spanning both clouds, or introducing any additional provider, require an explicit Architecture Review Board exception supported by a business case covering the added operational, security, and skills cost. Vendor-imposed hosting, such as a SaaS product running on a particular cloud, is recorded but does not constitute approval for custom multi-cloud builds."
+        }
+      ]
+    },
+    {
+      "category": "Technology Stack",
+      "name": "Approved Databases",
+      "summary": "Specifies the sanctioned database technologies by workload type, so teams pick from a supported, secured set with established backup, licensing, and operational practices instead of proliferating one-off data stores.",
+      "subs": [
+        {
+          "title": "PostgreSQL and SQL Server for OLTP",
+          "description": "Transactional applications, including policy, billing, and claims services, use PostgreSQL or SQL Server as their system of record. The choice between them follows the application's ecosystem and licensing posture, and both are consumed as managed cloud services rather than self-hosted installs where possible."
+        },
+        {
+          "title": "Snowflake and Databricks for Analytics",
+          "description": "Analytical and data science workloads run on Snowflake or Databricks, which host the governed warehouse and lakehouse layers respectively. Building analytics directly against OLTP databases or standing up alternative warehouse engines requires an architecture exception."
+        },
+        {
+          "title": "Redis for Caching",
+          "description": "Redis is the standard technology for application caching, session state, and similar low-latency lookup needs. It is treated as ephemeral by design, and authoritative data must never reside solely in the cache."
+        },
+        {
+          "title": "MongoDB for Document Stores",
+          "description": "Where a document model genuinely fits, such as flexible product configuration or content-style payloads, MongoDB is the approved document database. Teams must justify the document model choice at design review rather than defaulting to it to avoid schema design."
+        }
+      ]
+    },
+    {
+      "category": "Technology Stack",
+      "name": "Approved Integration",
+      "summary": "Names the sanctioned integration technologies and the role each plays, ensuring connections between modern services, legacy insurance platforms, and digital channels are built on supported patterns rather than point-to-point improvisation.",
+      "subs": [
+        {
+          "title": "Azure API Management for API Gateway",
+          "description": "All APIs exposed beyond their owning team are published through Azure API Management, which provides the standard policies for authentication, throttling, versioning, and analytics. Direct consumer connections that bypass the gateway are not permitted for shared or external-facing APIs."
+        },
+        {
+          "title": "MuleSoft for Legacy Integration",
+          "description": "Connectivity to legacy estate systems, such as mainframe policy administration and older claims platforms, is implemented through MuleSoft, which encapsulates legacy protocols and data formats behind reusable APIs. New direct couplings to legacy interfaces outside MuleSoft require an exception."
+        },
+        {
+          "title": "GraphQL for BFF Patterns",
+          "description": "Backend-for-frontend layers serving web and mobile experiences may use GraphQL to aggregate multiple downstream services into channel-shaped queries. GraphQL is scoped to the BFF tier and is not the standard for service-to-service or system-of-record APIs."
+        }
+      ]
+    },
+    {
+      "category": "Technology Stack",
+      "name": "Approved Languages",
+      "summary": "Constrains application development to a curated set of languages and minimum versions, keeping the carrier's codebase maintainable, securable, and staffable across teams and over the long lifespans typical of insurance systems.",
+      "subs": [
+        {
+          "title": "Java 17+, Python 3.10+, TypeScript/Node.js 18+, C# .NET 6+",
+          "description": "New development uses Java 17 or later, Python 3.10 or later, TypeScript on Node.js 18 or later, or C# on .NET 6 or later. The version floors ensure supported runtimes with current security patching, and existing systems below these versions carry upgrade plans on their technology roadmaps."
+        },
+        {
+          "title": "Exceptions Require ARB Approval",
+          "description": "Use of any other language, or of an approved language below its minimum version, requires a documented exception approved by the Architecture Review Board. Approvals record the justification, scope, and expiry so exceptions are revisited rather than becoming permanent."
+        }
+      ]
+    },
+    {
+      "category": "Technology Stack",
+      "name": "Approved Messaging",
+      "summary": "Directs teams to the sanctioned messaging and event-streaming technologies while managing the retirement of legacy middleware, so asynchronous integration across the carrier converges on a supportable footprint.",
+      "subs": [
+        {
+          "title": "Azure Service Bus and Kafka for Event Streaming",
+          "description": "Azure Service Bus is the standard for enterprise queuing and pub-sub command-style messaging, while Kafka serves high-volume event streaming such as telematics feeds, claims event propagation, and integration event backbones. Teams select between them based on documented pattern guidance rather than preference."
+        },
+        {
+          "title": "RabbitMQ Deprecated",
+          "description": "RabbitMQ is deprecated for new use, and existing brokers may continue only under a managed migration plan with a target decommission date. Enhancements to RabbitMQ-based integrations should be redirected to the approved platforms wherever feasible."
+        },
+        {
+          "title": "No New TIBCO Implementations",
+          "description": "No new integrations may be built on TIBCO; the existing estate is in run-down and is replaced opportunistically as connected systems are modernized. Any change to a TIBCO flow must first evaluate migrating that flow to MuleSoft, Service Bus, or Kafka."
+        }
+      ]
+    },
+    {
+      "category": "Technology Stack",
+      "name": "Approved Observability",
+      "summary": "Defines the enterprise observability toolchain and the role each product plays, so production health across the application estate is monitored, logged, alerted, and visualized through one coherent stack rather than per-team tool choices.",
+      "subs": [
+        {
+          "title": "Azure Monitor and Dynatrace for APM",
+          "description": "Application performance monitoring is delivered through Azure Monitor for platform-level telemetry and Dynatrace for deep application tracing and dependency mapping. Production services must emit telemetry into this stack, instrumented to the enterprise standard, before go-live."
+        },
+        {
+          "title": "Splunk for Logs",
+          "description": "Application and infrastructure logs are centralized in Splunk with the standard retention, indexing, and access controls, supporting both operational troubleshooting and the audit retention obligations of a regulated insurer. Logs must follow the structured logging standard and exclude unmasked policyholder PII."
+        },
+        {
+          "title": "PagerDuty for Alerting",
+          "description": "Actionable alerts route through PagerDuty, where on-call schedules, escalation policies, and acknowledgment tracking are maintained per service. Alert definitions must map to runbook entries so responders know the expected action when paged."
+        },
+        {
+          "title": "Grafana for Dashboards",
+          "description": "Operational dashboards are built in Grafana against the approved telemetry sources, using shared templates for service health views. Each production service maintains at least a standard golden-signals dashboard accessible to its support team."
+        }
+      ]
+    },
+    {
+      "category": "Technology Stack",
+      "name": "CI/CD Tooling",
+      "summary": "Standardizes the build and delivery toolchain so every team ships software through the same governed pipelines, with quality and provenance controls applied uniformly from commit to production.",
+      "subs": [
+        {
+          "title": "Azure DevOps or GitHub Actions for Pipelines",
+          "description": "Build and deployment pipelines run on Azure DevOps or GitHub Actions, using the shared enterprise pipeline templates that embed security scanning and approval gates. Self-hosted or unsanctioned CI systems are not permitted for code that reaches production."
+        },
+        {
+          "title": "SonarQube for Quality Gates",
+          "description": "Every pipeline executes SonarQube analysis, and builds must pass the enterprise quality gate covering code coverage, maintainability, and security hotspots before promotion. Gate thresholds are set centrally, and waivers are time-boxed and tracked."
+        },
+        {
+          "title": "Artifactory for Artifacts",
+          "description": "All build artifacts, container images, and third-party dependencies are stored in and resolved from Artifactory, providing a single controlled supply chain with vulnerability scanning and immutable release versions. Pulling dependencies directly from public registries in production builds is prohibited."
+        }
+      ]
+    },
+    {
+      "category": "Technology Stack",
+      "name": "Container Platforms",
+      "summary": "Establishes the standard container runtime, development, and packaging stack so containerized workloads are built and operated the same way across the enterprise, from a developer's laptop to production clusters.",
+      "subs": [
+        {
+          "title": "AKS (Kubernetes) for Container Orchestration",
+          "description": "Production container workloads run on Azure Kubernetes Service clusters provisioned through the enterprise landing zone, inheriting standard policies for networking, identity, and admission control. Teams deploy onto shared or dedicated AKS clusters per the platform team's tenancy model rather than operating their own orchestrators."
+        },
+        {
+          "title": "Docker for Local Development",
+          "description": "Developers use Docker for building and running containers locally, working from the approved base images maintained by the platform team. Local images must be rebuilt from the same Dockerfiles the pipeline uses, keeping development parity with what ships to AKS."
+        },
+        {
+          "title": "Helm for Packaging",
+          "description": "Kubernetes applications are packaged and released as Helm charts following the enterprise chart conventions for values, secrets references, and resource limits. Charts are versioned and published to the artifact repository so deployments are repeatable across environments."
+        }
+      ]
+    }
+  ]
+}

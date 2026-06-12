@@ -153,10 +153,10 @@ const WORKSPACES: Workspace[] = [
           C('Submission capture', 'In Analysis', 'Rebuild as one React submission experience for agents and brokers.', 'Both portals capture the same new-business data.', 'L', 'High', [
             { name: 'New-business wizard', code1: 'newbus.asp', code2: 'NewBusWizard.xhtml' },
             { name: 'Document upload', code1: 'upload.asp', code2: 'UploadBean.java' }]),
-          R('Business validations', 'Integration', 'In Analysis', 'Move channel checks to gateway request validation.', 'Licensing and appetite checks belong at the service boundary.', 'M', 'Medium', [
+          R('Business validations', 'Business Service', 'In Analysis', 'Enforce licensing and appetite checks in the producer domain service.', 'Regulated channel checks must live server-side in the domain service.', 'M', 'Medium', [
             { name: 'License & appointment check', code1: 'newbus.asp : CheckLicense()', code2: 'AgentValidator.java : license()' },
             { name: 'Appetite pre-screen', code1: 'newbus.asp : PreScreen()', code2: 'SubmitBean.java : preScreen()' }]),
-          E('Session state', 'Identified', 'Replace with client state + stateless APIs.', 'Server-session wizard state blocks scale-out and resume.', 'M', 'Medium', [
+          R('Session state', 'Integration', 'Identified', 'Move wizard state behind the gateway as resumable submission sessions.', 'Server-session wizard state blocks scale-out — it belongs in the integration tier.', 'M', 'Medium', [
             { name: 'Server-side wizard state', code1: 'Session("wizard")', code2: 'HttpSession : wizardState' }]),
         ],
       },

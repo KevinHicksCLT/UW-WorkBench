@@ -281,7 +281,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
     return null;
   }, [level, focusedSubStep, focusedStep?.id, focusedVs?.id]);
 
-  // Sidebar-internal drill stack for role → person (these aren't map nodes, so
+  // Sidebar-internal drill stack (e.g. department — these aren't map nodes, so
   // they navigate inside the dashboard rather than the canvas).
   const [ovStack, setOvStack] = useState<{ level: string; id: string }[]>([]);
   const dashTarget = ovStack.length ? ovStack[ovStack.length - 1] : metricTarget;
@@ -767,12 +767,12 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
   }, [onCompanyClick, onDomainClick, onDivisionClick, onVsClick, onStepClick, onSubStepClick]);
 
   // ── Dashboard drill-down ────────────────────────────────────────────────────
-  // Map levels move the canvas; role/person drill inside the sidebar (stack).
+  // Map levels move the canvas; departments drill inside the sidebar (stack).
   const onDrill = useCallback((lvl: string, id: string) => {
     // Roles are the leaf of the sidebar drill — clicking one leaves the map and
     // opens the dedicated role page rather than an in-sidebar role dashboard.
     if (lvl === 'role') { navigate(`/roles/${id}`); return; }
-    if (lvl === 'person' || lvl === 'department') { setOvStack((s) => [...s, { level: lvl, id }]); return; }
+    if (lvl === 'department') { setOvStack((s) => [...s, { level: lvl, id }]); return; }
     setOvStack([]);
     if (lvl === 'domain') onDomainClick(id as Category);
     else if (lvl === 'division') onDivisionClick(id);

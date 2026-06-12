@@ -205,17 +205,15 @@ async function main() {
       const role = str(g[i][2]);
       if (role) capRoles.set(role, (capRoles.get(role) ?? 0) + 1);
     }
-    const dbRoles = await prisma.role.findMany({ where: { companyId: c }, select: { name: true, assignments: { select: { personId: true } } } });
-    const byName = new Map(dbRoles.map((r) => [r.name, r] as const));
-    const noRole: string[] = [], noPerson: string[] = [];
+    const dbRoles = await prisma.role.findMany({ where: { companyId: c }, select: { name: true } });
+    const byName = new Set(dbRoles.map((r) => r.name));
+    const noRole: string[] = [];
     for (const role of capRoles.keys()) {
-      const r = byName.get(role);
-      if (!r) { noRole.push(role); continue; }
-      if (!r.assignments.length) noPerson.push(role);
+      if (!byName.has(role)) noRole.push(role);
     }
-    report('Cap – People (role coverage)', !noRole.length && !noPerson.length,
-      `cap rows ${[...capRoles.values()].reduce((a, b) => a + b, 0)} across ${capRoles.size} roles — unknown roles ${noRole.length}, roles with no assigned person ${noPerson.length}`,
-      [...noRole.map((x) => `Cap role not in db: ${x}`), ...noPerson.map((x) => `No person assigned: ${x}`)]);
+    report('Cap – People (role coverage)', !noRole.length,
+      `cap rows ${[...capRoles.values()].reduce((a, b) => a + b, 0)} across ${capRoles.size} roles — unknown roles ${noRole.length}`,
+      noRole.map((x) => `Cap role not in db: ${x}`));
   }
 
   // ── 13. Cap bridge sheets vs step-lens tables ─────────────────────────

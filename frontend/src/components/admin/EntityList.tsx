@@ -101,7 +101,7 @@ export default function EntityList({
           message: (
             <>
               This permanently deletes <span className="font-medium text-[#171717]">{name}</span> and{' '}
-              <span className="font-medium">all of its data</span> — divisions, departments, roles, people, value
+              <span className="font-medium">all of its data</span> — divisions, departments, roles, value
               streams, applications, initiatives, deliverables, tasks, and everything else scoped to it. This cascades
               and <span className="font-medium">cannot be undone</span>.
             </>

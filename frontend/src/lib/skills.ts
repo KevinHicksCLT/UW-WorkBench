@@ -1,19 +1,21 @@
-// Friendly display names for SDLC compliance agent skills. The underlying skill
+// Friendly display names for compliance agent skills. The underlying skill
 // identifier (and folder / DB value) stays the kebab-case slug; this is purely
-// how we present it in the UI.
+// how we present it in the UI. "sdlc" is dropped from display names — the slugs
+// keep it ("actuarial-sdlc-compliance" → "Actuarial Compliance").
 
 const SKILL_LABELS: Record<string, string> = {
-  'gdpr-sdlc-compliance': 'GDPR SDLC Compliance',
-  'ccpa-cpra-sdlc-compliance': 'CCPA/CPRA SDLC Compliance',
-  'nydfs-500-sdlc-compliance': 'NYDFS 500 SDLC Compliance',
+  'gdpr-sdlc-compliance': 'GDPR Compliance',
+  'ccpa-cpra-sdlc-compliance': 'CCPA/CPRA Compliance',
+  'nydfs-500-sdlc-compliance': 'NYDFS 500 Compliance',
 };
 
-const ACRONYMS = new Set(['gdpr', 'ccpa', 'cpra', 'nydfs', 'sdlc', 'iso', 'soc', 'pci', 'hipaa', 'dora']);
+const ACRONYMS = new Set(['gdpr', 'ccpa', 'cpra', 'nydfs', 'iso', 'soc', 'pci', 'hipaa', 'dora']);
 
 export function skillLabel(slug: string): string {
   if (SKILL_LABELS[slug]) return SKILL_LABELS[slug];
   return slug
     .split('-')
+    .filter((w) => w !== 'sdlc')
     .map((w) => (ACRONYMS.has(w) ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1)))
     .join(' ');
 }

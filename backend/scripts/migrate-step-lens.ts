@@ -12,8 +12,6 @@ const DDL = [
   `ALTER TABLE public."SubValueStream" ADD COLUMN IF NOT EXISTS "code" TEXT`,
   `ALTER TABLE public."Application" ADD COLUMN IF NOT EXISTS "code" TEXT`,
   `ALTER TABLE public."Application" ADD COLUMN IF NOT EXISTS "systemOfRecord" BOOLEAN`,
-  `ALTER TABLE public."Person" ADD COLUMN IF NOT EXISTS "fte" DOUBLE PRECISION`,
-  `ALTER TABLE public."Person" ADD COLUMN IF NOT EXISTS "netAvailableHrs" DOUBLE PRECISION`,
   `CREATE TABLE IF NOT EXISTS public."StepAppUsage" (
      "id"            TEXT NOT NULL,
      "tenantId"      TEXT NOT NULL,

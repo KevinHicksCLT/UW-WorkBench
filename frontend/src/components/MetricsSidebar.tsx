@@ -9,8 +9,8 @@ import { useNavigate } from 'react-router-dom';
 
 export type Fmt = 'money' | 'years' | 'number';
 // `href` links out to an app page (e.g. /applications); `children` nests items
-// for `tree` sections (deliverable → role → task → checklist → application →
-// person); `tag` names what the row IS so it renders with a consistent color + chip.
+// for `tree` sections (deliverable → role → task → checklist → application);
+// `tag` names what the row IS so it renders with a consistent color + chip.
 export type MetricItem = { label: string; value: number; hint?: string; sub?: string; format?: Fmt; illustrative?: boolean; drill?: { level: string; id: string }; href?: string; children?: MetricItem[]; tag?: string; trail?: string };
 // A `hidden` section never renders inline — it backs a tile's consolidated
 // drawer (tile.drawer names the section). An `expanded` tree opens every level
@@ -28,7 +28,7 @@ export type Dashboard = {
 
 const LEVEL_LABEL: Record<string, string> = {
   company: 'Enterprise', domain: '', division: 'Division', department: 'Department',
-  valueStream: 'Process Level 3', step: 'Process Level 4', leafStep: 'Process Level 5', role: 'Role', person: 'Individual',
+  valueStream: 'Process Level 3', step: 'Process Level 4', leafStep: 'Process Level 5', role: 'Role',
 };
 
 const BAR = '#2563eb';
@@ -51,30 +51,27 @@ function fmt(n: number, f?: Fmt) {
 
 // ── Nested tree rows (kind: 'tree') ─────────────────────────────────────────
 // Deliverable → responsible role → task → checklist → where the work is done
-// (application → person), color-coded by `tag`. Top-level deliverables render
+// (application), color-coded by `tag`. Top-level deliverables render
 // as accent cards; nested levels hang off an indent guide. `defaultOpen`
 // (section.expanded) opens the whole chain.
 
 // Per-tag visual identity: accent color, chip styling, and chip label. One
 // clean hue per level — Capgemini blue (deliverable) → emerald (role) →
-// violet (task) → green check (checklist) → blue (application) → indigo
-// (person) — so the hierarchy reads at a glance.
+// violet (task) → green check (checklist) → blue (application) — so the
+// hierarchy reads at a glance.
 const TAGS: Record<string, { accent: string; chip: string; label: string }> = {
   deliverable: { accent: '#0070AD', chip: 'bg-[#eff6ff] text-[#0070AD] border border-[#bfdbfe]', label: 'Deliverable' },
   task:        { accent: '#7c3aed', chip: 'bg-[#f5f3ff] text-[#6d28d9] border border-[#ddd6fe]', label: 'Task' },
   role:        { accent: '#059669', chip: 'bg-[#ecfdf5] text-[#047857] border border-[#a7f3d0]', label: 'Role' },
   checklist:   { accent: '#16a34a', chip: 'bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0]', label: 'Checklist' },
-  person:      { accent: '#4f46e5', chip: 'bg-[#eef2ff] text-[#4f46e5] border border-[#e0e7ff]', label: 'Person' },
   step:        { accent: '#0284c7', chip: 'bg-[#f0f9ff] text-[#0369a1] border border-[#bae6fd]', label: 'L5 step' },
   app:         { accent: '#0070AD', chip: 'bg-[#eaf1ff] text-[#0070AD] border border-[#cdddff]', label: 'Application' },
 };
 
-const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
-
 // ── Chain legend ─────────────────────────────────────────────────────────────
 // The connection order, spelled out above the chain so the nesting reads as a
-// flow: Deliverable → Role → Task → Checklist → Application → Person.
-const CHAIN_ORDER: (keyof typeof TAGS)[] = ['deliverable', 'role', 'task', 'checklist', 'app', 'person'];
+// flow: Deliverable → Role → Task → Checklist → Application.
+const CHAIN_ORDER: (keyof typeof TAGS)[] = ['deliverable', 'role', 'task', 'checklist', 'app'];
 function ChainLegend({ wide }: { wide?: boolean }) {
   return (
     <div className={`flex items-center flex-wrap gap-y-1 ${wide ? 'mb-3' : 'mb-2.5'}`}>
@@ -104,7 +101,6 @@ const GROUP_LABEL: Record<string, string> = {
   task: 'Tasks',
   checklist: 'Checklist',
   app: 'Supporting application',
-  person: 'Supporting employee',
   step: 'Produced by step',
 };
 
@@ -161,20 +157,14 @@ function TreeRow({ item, depth, wide, defaultOpen, trail = [], onDrill, onNaviga
   const jump = item.drill ? () => onDrill(item.drill!.level, item.drill!.id) : item.href ? () => onNavigate(item.href!) : undefined;
   // Row body click: inspect in the drawer when available; else jump; else toggle.
   const body = onInspect ? () => onInspect(item, trail) : jump ?? (kids.length ? () => setOpen((o) => !o) : undefined);
-  const tag = item.tag ? TAGS[item.tag] : undefined;
   const panel = item.tag ? PANEL[item.tag] : undefined;
   const text = wide ? 'text-[13.5px]' : 'text-[12px]';
 
   const isRole = item.tag === 'role';
-  const isPerson = item.tag === 'person';
   const isCheck = item.tag === 'checklist';
 
   // Lead marker: role rows show participation as a colored dot, not a tag chip.
-  const marker = isPerson ? (
-    <span className="mt-[1px] w-[18px] h-[18px] rounded-full bg-[#eef2ff] border border-[#e0e7ff] text-[#4f46e5] text-[8px] font-bold flex items-center justify-center flex-shrink-0" aria-hidden>
-      {initials(item.label)}
-    </span>
-  ) : isCheck ? (
+  const marker = isCheck ? (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-[3px] flex-shrink-0" aria-hidden><path d="M20 6L9 17l-5-5" /></svg>
   ) : isRole ? (
     <span
@@ -205,9 +195,6 @@ function TreeRow({ item, depth, wide, defaultOpen, trail = [], onDrill, onNaviga
           {kids.length > 0 && <span className="text-[#a3a3a3] font-normal"> ({kids.length})</span>}
         </span>
         <span className="flex items-center gap-1 flex-wrap mt-0.5 empty:hidden">
-          {tag && !isPerson && (
-            <span className={`text-[8.5px] font-semibold uppercase tracking-wide rounded px-1.5 py-px ${tag.chip}`}>{tag.label}</span>
-          )}
           {item.hint && !isRole && (
             <span className="text-[9.5px] font-medium text-[#525252] bg-[#f4f4f5] border border-[#e4e4e7] rounded px-1.5 py-px">{item.hint}</span>
           )}
@@ -227,7 +214,7 @@ function TreeRow({ item, depth, wide, defaultOpen, trail = [], onDrill, onNaviga
   );
 
   // Panel levels are boxes inside boxes — tinted background + colored left
-  // rail per kind; plain rows (checklist/person/step) sit inside them.
+  // rail per kind; plain rows (checklist/step) sit inside them.
   if (panel) {
     return (
       <div
@@ -436,11 +423,11 @@ function SidebarSection({ section, dashTitle, onDrill, onNavigate, onViewAll }: 
       <button
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className={`w-full flex items-center gap-1.5 text-left text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] hover:text-[#525252] ${open ? 'mb-2.5' : ''}`}
+        className={`w-full flex items-center gap-1.5 text-left text-[10px] font-semibold uppercase tracking-[0.10em] text-[#171717] ${open ? 'mb-2.5' : ''}`}
       >
         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0" style={{ transform: open ? 'rotate(90deg)' : undefined, transition: 'transform 120ms' }}><path d="M9 6l6 6-6 6" /></svg>
         {section.title}
-        <span className="font-normal tabular-nums">({section.items.length})</span>
+        <span className="font-normal tabular-nums text-[#737373]">({section.items.length})</span>
       </button>
 
       {open && (section.items.length === 0 ? (
