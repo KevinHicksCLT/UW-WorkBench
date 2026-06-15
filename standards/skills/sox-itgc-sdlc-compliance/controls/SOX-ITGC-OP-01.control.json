@@ -1,0 +1,120 @@
+{
+  "control_id": "SOX-ITGC-OP-01",
+  "control_name": "Financially-relevant batch jobs are monitored and failures resolved",
+  "framework": "SOX",
+  "control_family": "ITGC-Operations",
+  "domain": "Job Scheduling and Monitoring",
+  "control_objective": "Financially-relevant batch jobs are monitored, their failures raise alerts, and every failure is resolved, so that financial data is processed completely and accurately on schedule.",
+  "risk_addressed": "Unmonitored or unresolved failures of financially-relevant batch jobs can leave financial transactions unprocessed, duplicated, or incomplete, misstating the financial statements and breaking downstream automated controls.",
+  "regulatory_mapping": {
+    "framework": "SOX",
+    "citation": ["SOX 404", "COSO Principle 11 (technology general controls)", "ITGC-Operations"],
+    "owner_role": "IT Operations Manager",
+    "sdlc_gates": ["Run"],
+    "applies_to_value_streams": ["Technology Delivery & Change"],
+    "agent_skill": "sox-itgc-sdlc-compliance"
+  },
+  "scope": {
+    "applies_to": ["Financially-relevant batch jobs"],
+    "in_scope_systems": ["General Ledger", "Policy Admin", "Claims", "Billing"],
+    "assessment_cycle": "Quarterly",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Quarterly",
+  "control_owner": {
+    "primary_role": "IT Operations Manager",
+    "supporting_roles": ["Batch Operations Analyst"],
+    "approval_role": "Controller"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Job Scheduler Logs (SIEM)",
+      "system_type": "SIEM/Logging",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "siem.logging",
+      "system_of_record": "Splunk",
+      "location_uri": "https://siem.meridian.local/services/search/jobs",
+      "refresh_cadence": "Continuous"
+    },
+    {
+      "source_name": "Incident Tickets (ServiceNow)",
+      "system_type": "ITSM",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "itsm.servicenow",
+      "system_of_record": "ServiceNow",
+      "location_uri": "https://meridian.service-now.com/api/now/table/incident",
+      "refresh_cadence": "Daily"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "job_run", "business_definition": "An execution of a financially-relevant batch job, including completion status.", "source_name": "Job Scheduler Logs (SIEM)", "grain": "job run", "data_type": "record", "required": true },
+    { "field_name": "failure_resolution", "business_definition": "The incident ticket and resolution record for a failed job run.", "source_name": "Incident Tickets (ServiceNow)", "grain": "incident", "data_type": "record", "required": true }
+  ],
+  "method": {
+    "summary": "Inspect financially-relevant job runs to confirm failures raised alerts and were resolved through to closure.",
+    "steps": [
+      "Pull all financially-relevant job runs in the period from the scheduler logs.",
+      "Identify failed runs and confirm an alert was raised for each failure.",
+      "Match each failure to a resolution ticket and confirm closure.",
+      "Count unresolved failures and compute the failure-alerting rate."
+    ],
+    "fallback_logic": "If either source is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any unresolved failure of a financially-relevant job is a control exception; missing alerting is a warning.",
+    "pass_tolerance": "0 unresolved failures",
+    "warning_threshold": "Job-failure alerting below 100%",
+    "escalation_threshold": "1 or more unresolved failures"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["No unresolved failures of financially-relevant jobs."],
+    "warning_criteria": ["Not all job failures raised an alert."],
+    "fail_criteria": ["One or more financially-relevant job failures remain unresolved.", "Job run population cannot be evidenced."],
+    "exception_handling": ["Drive open failures to resolution.", "Open a SOX deficiency issue if any financially-relevant failure is unresolved."]
+  },
+  "validation": {
+    "assertion_id": "SOX-ITGC-OP-01-A",
+    "automation_level": "Full",
+    "check_type": "threshold",
+    "test_script": "tests/SOX-ITGC-OP-01.test.mjs",
+    "assertions": [
+      { "metric": "failed_jobs_unresolved", "operator": "eq", "value": 0, "severity": "fail", "description": "No unresolved failures of financially-relevant jobs." },
+      { "metric": "job_failure_alerting_pct", "operator": "gte", "value": 100, "severity": "warn", "description": "All job failures raise an alert." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["job_schedule_export", "failure_alert_log", "resolution_tickets"],
+    "evidence_repository": "sharepoint://controls/sox/itgc-operations",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": true,
+    "target_artifact_types": ["ICFR Assertion", "404 Control Matrix Row"],
+    "target_systems": ["GRC"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each quarter before §302 certification."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open SOX deficiency issue", "Notify IT Operations Manager and Controller"],
+    "issue_ticket_type": "SOX Deficiency",
+    "notification_roles": ["IT Operations Manager", "Controller"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of job run population", "Alerting coverage", "Failure resolution closure"]
+  },
+  "tags": ["sox", "itgc", "operations", "batch"],
+  "status": "Active",
+  "version": "1.0.0"
+}

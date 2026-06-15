@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://transform-platform/schemas/unified-registry.schema.json",
+  "title": "Unified Control Registry Schema (framework-agnostic)",
+  "description": "One canonical object model that preserves relationships across design-time control definitions and run-time execution evidence, plus the technical-debt backlog derived from them. Generalized from the Actuarial Loss Analysis unified registry. Supports portfolio queries: which runs failed for a control, which issue blocks a downstream artifact, which evidence supports an approval, and what technical debt the framework surfaced.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["registry_id", "framework", "generated_at", "control_definitions", "control_runs", "summary"],
+  "properties": {
+    "registry_id": { "type": "string" },
+    "framework": { "type": "string" },
+    "client": { "type": "string" },
+    "generated_at": { "type": "string" },
+    "generated_by": { "type": "string" },
+    "control_definitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["control_id", "control_name", "control_family"],
+        "properties": {
+          "control_id": { "type": "string" },
+          "control_name": { "type": "string" },
+          "control_family": { "type": "string" },
+          "version": { "type": "string" },
+          "status": { "type": "string" },
+          "automation_level": { "type": "string" }
+        }
+      }
+    },
+    "control_runs": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["issue_id", "control_id", "status", "severity"],
+        "properties": {
+          "issue_id": { "type": "string" },
+          "control_id": { "type": "string" },
+          "run_id": { "type": "string" },
+          "status": { "type": "string" },
+          "severity": { "type": "string" },
+          "owner": { "type": "string" },
+          "summary": { "type": "string" },
+          "blocks_downstream_artifact_ids": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "evidence_index": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["artifact_id", "control_id"],
+        "properties": {
+          "artifact_id": { "type": "string" },
+          "control_id": { "type": "string" },
+          "run_id": { "type": "string" },
+          "artifact_type": { "type": "string" },
+          "repository": { "type": "string" },
+          "uri": { "type": "string" },
+          "present": { "type": "boolean" }
+        }
+      }
+    },
+    "technical_debt": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["debt_id", "control_id", "category", "severity", "description"],
+        "properties": {
+          "debt_id": { "type": "string" },
+          "control_id": { "type": "string" },
+          "category": {
+            "type": "string",
+            "enum": ["Missing Source", "Manual Control", "Failed Control", "Missing Evidence", "Stale Downstream", "No Test", "Unmapped Citation"]
+          },
+          "severity": { "type": "string", "enum": ["Low", "Medium", "High", "Critical"] },
+          "description": { "type": "string" },
+          "recommended_action": { "type": "string" },
+          "source_system": { "type": "string" },
+          "access_method": { "type": "string" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total_controls", "passed", "warned", "failed"],
+      "properties": {
+        "total_controls": { "type": "integer" },
+        "passed": { "type": "integer" },
+        "warned": { "type": "integer" },
+        "failed": { "type": "integer" },
+        "not_run": { "type": "integer" },
+        "automation_coverage_pct": { "type": "number" },
+        "evidence_coverage_pct": { "type": "number" },
+        "open_issues": { "type": "integer" },
+        "technical_debt_items": { "type": "integer" }
+      }
+    }
+  }
+}

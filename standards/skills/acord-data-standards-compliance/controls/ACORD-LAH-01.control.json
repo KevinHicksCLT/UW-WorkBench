@@ -1,0 +1,118 @@
+{
+  "control_id": "ACORD-LAH-01",
+  "control_name": "Life & Annuity messages conform to ACORD TXLife",
+  "framework": "ACORD",
+  "control_family": "Message-Conformance",
+  "domain": "Life & Annuity Integration Messaging",
+  "control_objective": "Every Life & Annuity message exchanged over the integration platform validates against the ACORD TXLife standard, so that new-business, in-force, and distribution partners exchange structurally conformant Life & Annuity transactions.",
+  "risk_addressed": "Life & Annuity messages that fail TXLife validation are rejected or mis-parsed by carriers, BGAs, and distribution platforms, stalling new-business submissions and in-force transactions and creating settlement and suitability exposure.",
+  "regulatory_mapping": {
+    "framework": "ACORD",
+    "citation": ["ACORD Life & Annuity Data Standard", "TXLife"],
+    "owner_role": "Integration Architect",
+    "sdlc_gates": ["Development", "Testing", "Run"],
+    "applies_to_value_streams": ["Technology Strategy, Architecture & Delivery", "Technology Delivery & Change"],
+    "agent_skill": "acord-data-standards-compliance"
+  },
+  "scope": {
+    "applies_to": ["Life & Annuity messages"],
+    "in_scope_systems": ["Integration Bus", "Schema Registry"],
+    "assessment_cycle": "2026-Q2",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Continuous",
+  "control_owner": {
+    "primary_role": "Integration Architect",
+    "supporting_roles": ["Integration Engineer"],
+    "approval_role": "Chief Architect"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Integration Bus",
+      "system_type": "Integration/ESB",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "esb.integration",
+      "system_of_record": "Enterprise Integration Bus",
+      "location_uri": "https://esb.meridian.example/api/v1/messages/lah",
+      "refresh_cadence": "Continuous"
+    },
+    {
+      "source_name": "Schema Registry",
+      "system_type": "Schema Registry",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "schema.registry",
+      "system_of_record": "ACORD Schema Registry",
+      "location_uri": "https://schema-registry.meridian.example/api/v1/schemas/txlife",
+      "refresh_cadence": "On change"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "txlife_message_payload", "business_definition": "The full TXLife message payload flowing through the integration bus.", "source_name": "Integration Bus", "grain": "message", "data_type": "xml", "required": true },
+    { "field_name": "txlife_schema_version", "business_definition": "The version of the TXLife schema against which the message is validated.", "source_name": "Schema Registry", "grain": "schema", "data_type": "string", "required": true }
+  ],
+  "method": {
+    "summary": "Validate a sampled population of Life & Annuity messages against the registered TXLife schema and count any validation failures.",
+    "steps": [
+      "Sample Life & Annuity messages from the integration bus over the assessment period.",
+      "Resolve the current TXLife schema version from the schema registry.",
+      "Validate each sampled message against TXLife.",
+      "Count messages that fail TXLife validation."
+    ],
+    "sampling_rule": "Sample all Life & Annuity messages where volume permits; otherwise a representative sample across transaction types.",
+    "fallback_logic": "If the bus or schema registry is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any Life & Annuity message that fails TXLife validation is a conformance exception.",
+    "pass_tolerance": "0 TXLife validation failures",
+    "escalation_threshold": "1 or more TXLife validation failures"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["No sampled Life & Annuity messages fail TXLife validation."],
+    "fail_criteria": ["One or more sampled Life & Annuity messages fail TXLife validation."],
+    "exception_handling": ["Open an integration conformance issue.", "Quarantine the offending message flow and re-test before resuming."]
+  },
+  "validation": {
+    "assertion_id": "ACORD-LAH-01-A",
+    "automation_level": "Full",
+    "check_type": "schema",
+    "test_script": "tests/ACORD-LAH-01.test.mjs",
+    "assertions": [
+      { "metric": "txlife_validation_failures", "operator": "eq", "value": 0, "severity": "fail", "description": "No TXLife messages fail validation." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["txlife_validation_report", "message_sample_set"],
+    "evidence_repository": "confluence://standards/acord/message-conformance",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": false,
+    "target_artifact_types": ["Carrier Integration Certification"],
+    "target_systems": ["Integration Platform"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each assessment cycle."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open integration conformance issue", "Notify Integration Architect and Chief Architect"],
+    "issue_ticket_type": "Integration Conformance Defect",
+    "notification_roles": ["Integration Architect", "Chief Architect"],
+    "sla_days": 5
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of message population", "TXLife version currency", "Evidence integrity"]
+  },
+  "tags": ["acord", "life-annuity", "txlife", "message-conformance"],
+  "status": "Active",
+  "version": "1.0.0"
+}

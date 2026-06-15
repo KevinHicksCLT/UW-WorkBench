@@ -1,0 +1,119 @@
+{
+  "control_id": "SOX-APP-02",
+  "control_name": "System interfaces reconcile on control totals",
+  "framework": "SOX",
+  "control_family": "Application-Control",
+  "domain": "Interface Reconciliation",
+  "control_objective": "Data transmitted across in-scope system interfaces is reconciled on record counts and control totals between the sending and receiving systems, so that no financially-significant records are lost, duplicated, or altered in transit.",
+  "risk_addressed": "Interface failures, dropped messages, or duplicate processing can cause financially-significant records to be incompletely or inaccurately transferred between systems, misstating the general ledger.",
+  "regulatory_mapping": {
+    "framework": "SOX",
+    "citation": ["SOX 404", "COSO Principle 13 (relevant information)", "Automated Application Control"],
+    "owner_role": "Financial Systems Analyst",
+    "sdlc_gates": ["Design", "Development", "Testing", "Run"],
+    "applies_to_value_streams": ["Finance, Actuarial & Risk", "Technology Delivery & Change"],
+    "agent_skill": "sox-itgc-sdlc-compliance"
+  },
+  "scope": {
+    "applies_to": ["Financially-significant system interfaces"],
+    "in_scope_systems": ["Integration Bus", "General Ledger"],
+    "assessment_cycle": "2026-Q2",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Monthly",
+  "control_owner": {
+    "primary_role": "Financial Systems Analyst",
+    "supporting_roles": ["Integration Operations Lead"],
+    "approval_role": "Controller"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Integration Bus",
+      "system_type": "Integration/ESB",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "esb.integration",
+      "system_of_record": "Enterprise Integration Bus",
+      "location_uri": "https://<instance>.esb.meridian.example/api/v1/interface-runs",
+      "refresh_cadence": "Daily"
+    },
+    {
+      "source_name": "General Ledger",
+      "system_type": "GL/ERP",
+      "authoritative": true,
+      "access_method": "SQL",
+      "connector_ref": "gl.erp",
+      "system_of_record": "Corporate General Ledger",
+      "location_uri": "gl_prod.fin.interface_postings",
+      "refresh_cadence": "Daily"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "interface_run", "business_definition": "A transmission run for an in-scope interface, including source record counts and control totals.", "source_name": "Integration Bus", "grain": "interface_run", "data_type": "record", "required": true },
+    { "field_name": "gl_received_total", "business_definition": "The record count and control total received and recorded by the general ledger for the corresponding interface run.", "source_name": "General Ledger", "grain": "interface_run", "data_type": "record", "required": true }
+  ],
+  "method": {
+    "summary": "For each in-scope interface, compare source record counts and control totals to the totals received by the general ledger, confirming zero unreconciled records and zero control-total variance.",
+    "steps": [
+      "Enumerate the in-scope interfaces and their transmission runs for the period.",
+      "Pull source-side record counts and control totals from the integration bus.",
+      "Pull receiving-side record counts and control totals from the general ledger.",
+      "Reconcile each interface run, identifying any unreconciled records or control-total variance.",
+      "Document resolution for any exception and confirm tie-out across all in-scope interfaces."
+    ],
+    "fallback_logic": "If either the integration bus or the general ledger is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any unreconciled record or control-total variance on an in-scope interface is a control exception.",
+    "pass_tolerance": "0 unreconciled records and $0 control-total variance",
+    "escalation_threshold": "Any unreconciled record or control-total variance"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["No unreconciled records exist across in-scope interfaces.", "Interface control totals tie out to zero variance."],
+    "fail_criteria": ["One or more interface records are unreconciled.", "An interface control-total variance exists."],
+    "exception_handling": ["Open a SOX deficiency issue.", "Resolve the interface exception and re-reconcile before relying on the control."]
+  },
+  "validation": {
+    "assertion_id": "SOX-APP-02-A",
+    "automation_level": "Full",
+    "check_type": "reconciliation",
+    "test_script": "tests/SOX-APP-02.test.mjs",
+    "assertions": [
+      { "metric": "unreconciled_interface_records", "operator": "eq", "value": 0, "severity": "fail", "description": "No unreconciled records across in-scope interfaces." },
+      { "metric": "control_total_variance", "operator": "lte", "value": 0, "severity": "fail", "description": "Interface control totals tie out." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["interface_control_totals", "reconciliation_report", "exception_resolution_log"],
+    "evidence_repository": "sharepoint://controls/sox/application-controls",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": true,
+    "target_artifact_types": ["ICFR Assertion", "404 Control Matrix Row"],
+    "target_systems": ["GRC"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each cycle before §302 certification."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open SOX deficiency issue", "Notify Financial Systems Analyst and Controller"],
+    "issue_ticket_type": "SOX Deficiency",
+    "notification_roles": ["Financial Systems Analyst", "Controller"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of interface population", "Control-total tie-out", "Exception resolution and evidence integrity"]
+  },
+  "tags": ["sox", "application-control", "interface", "reconciliation"],
+  "status": "Active",
+  "version": "1.0.0"
+}

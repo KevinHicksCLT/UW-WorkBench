@@ -1,0 +1,118 @@
+{
+  "control_id": "ACORD-RI-01",
+  "control_name": "Reinsurance messaging conforms to ACORD GRLC",
+  "framework": "ACORD",
+  "control_family": "Reinsurance",
+  "domain": "Reinsurance Message Conformance",
+  "control_objective": "Every reinsurance message exchanged with brokers, cedents, and reinsurers conforms to the ACORD Global Reinsurance and Large Commercial (GRLC) standard so that placements, bordereaux, and technical accounts process straight-through.",
+  "risk_addressed": "Reinsurance messages that fail GRLC conformance are rejected by counterparty platforms, forcing manual rekeying, delaying technical accounting and claims advices, and increasing leakage on large-commercial and reinsurance treaties.",
+  "regulatory_mapping": {
+    "framework": "ACORD",
+    "citation": ["ACORD Global Reinsurance and Large Commercial (GRLC)", "ACORD Reinsurance Standards"],
+    "owner_role": "Integration Architect",
+    "sdlc_gates": ["Design", "Testing", "Run"],
+    "applies_to_value_streams": ["Technology Strategy, Architecture & Delivery", "Technology Delivery & Change"],
+    "agent_skill": "acord-data-standards-compliance"
+  },
+  "scope": {
+    "applies_to": ["Reinsurance and large-commercial messages"],
+    "in_scope_systems": ["Integration/ESB", "Schema Registry"],
+    "assessment_cycle": "2026-Q2",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Continuous",
+  "control_owner": {
+    "primary_role": "Integration Architect",
+    "supporting_roles": ["Reinsurance Systems Analyst"],
+    "approval_role": "Chief Architect"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Integration Bus",
+      "system_type": "Integration/ESB",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "esb.integration",
+      "system_of_record": "Enterprise Integration Bus",
+      "location_uri": "https://esb.meridian.internal/api/messages/reinsurance",
+      "refresh_cadence": "Continuous"
+    },
+    {
+      "source_name": "Schema Registry",
+      "system_type": "Schema Registry",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "schema.registry",
+      "system_of_record": "Confluent Schema Registry",
+      "location_uri": "https://schema-registry.meridian.internal/subjects",
+      "refresh_cadence": "Continuous"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "reinsurance_message", "business_definition": "A reinsurance or large-commercial message traversing the integration bus.", "source_name": "Integration Bus", "grain": "message", "data_type": "record", "required": true },
+    { "field_name": "grlc_schema_version", "business_definition": "The GRLC schema version against which the message is validated, sourced from the schema registry.", "source_name": "Schema Registry", "grain": "schema", "data_type": "string", "required": true }
+  ],
+  "method": {
+    "summary": "Validate a sample of reinsurance messages against the registered ACORD GRLC schemas and count conformance failures.",
+    "steps": [
+      "Sample reinsurance and large-commercial messages from the integration bus over the period.",
+      "Resolve the applicable GRLC schema version from the schema registry for each message.",
+      "Validate each sampled message against its GRLC schema.",
+      "Count messages that fail GRLC conformance."
+    ],
+    "sampling_rule": "Sample reinsurance messages across counterparties and message types over the assessment period.",
+    "fallback_logic": "If either source is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any GRLC conformance failure on a reinsurance message is a conformance exception.",
+    "pass_tolerance": "0 GRLC message failures",
+    "escalation_threshold": "1 or more GRLC message failures"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["No reinsurance messages fail GRLC conformance.", "Sampled population validates against registered GRLC schemas."],
+    "fail_criteria": ["One or more reinsurance messages fail GRLC conformance."],
+    "exception_handling": ["Open a GRLC conformance issue.", "Correct the message construction or mapping and re-validate before relying on the control."]
+  },
+  "validation": {
+    "assertion_id": "ACORD-RI-01-A",
+    "automation_level": "Full",
+    "check_type": "schema",
+    "test_script": "tests/ACORD-RI-01.test.mjs",
+    "assertions": [
+      { "metric": "grlc_message_failures", "operator": "eq", "value": 0, "severity": "fail", "description": "No reinsurance messages fail GRLC conformance." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["grlc_validation_report", "reinsurance_message_set"],
+    "evidence_repository": "sharepoint://controls/acord/reinsurance",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": false,
+    "target_artifact_types": ["Reinsurance Technical Account"],
+    "target_systems": ["Reinsurance Admin"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Continuous validation; evidence snapshot retained each assessment cycle."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open GRLC conformance issue", "Notify Integration Architect and Reinsurance Systems Analyst"],
+    "issue_ticket_type": "ACORD Conformance Issue",
+    "notification_roles": ["Integration Architect", "Reinsurance Systems Analyst"],
+    "sla_days": 15
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Sampling representativeness", "GRLC schema version currency", "Evidence integrity"]
+  },
+  "tags": ["acord", "reinsurance", "grlc", "conformance"],
+  "status": "Active",
+  "version": "1.0.0"
+}

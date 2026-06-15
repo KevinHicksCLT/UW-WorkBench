@@ -1,0 +1,120 @@
+{
+  "control_id": "ACORD-API-02",
+  "control_name": "Message schemas are registered and version-pinned",
+  "framework": "ACORD",
+  "control_family": "API",
+  "domain": "Schema Registration & Pinning",
+  "control_objective": "Every message schema used by policy and partner integrations is registered in the schema registry and pinned to an explicit version so that producers and consumers evolve compatibly.",
+  "risk_addressed": "Unregistered or unpinned message schemas allow undetected breaking changes to propagate to consumers, causing message validation failures, data loss, and integration outages across the carrier and agency estate.",
+  "regulatory_mapping": {
+    "framework": "ACORD",
+    "citation": ["ACORD XML", "ACORD Reference Architecture"],
+    "owner_role": "API Product Owner",
+    "sdlc_gates": ["Design", "Development", "Testing"],
+    "applies_to_value_streams": ["Technology Strategy, Architecture & Delivery", "Technology Delivery & Change"],
+    "agent_skill": "acord-data-standards-compliance"
+  },
+  "scope": {
+    "applies_to": ["Message schemas for policy and partner integrations"],
+    "in_scope_systems": ["Schema Registry", "API Gateway"],
+    "assessment_cycle": "2026-Q2",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Each release",
+  "control_owner": {
+    "primary_role": "API Product Owner",
+    "supporting_roles": ["Integration Architect"],
+    "approval_role": "Chief Architect"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Schema Registry",
+      "system_type": "Schema Registry",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "schema.registry",
+      "system_of_record": "Confluent Schema Registry",
+      "location_uri": "https://schema-registry.meridian.internal/subjects",
+      "refresh_cadence": "Continuous"
+    },
+    {
+      "source_name": "API Gateway",
+      "system_type": "API Gateway",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "apigw.gateway",
+      "system_of_record": "Enterprise API Gateway",
+      "location_uri": "https://apigw.meridian.internal/admin/apis",
+      "refresh_cadence": "Each release"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "message_schema_subject", "business_definition": "A message schema subject registered for a policy or partner integration.", "source_name": "Schema Registry", "grain": "schema", "data_type": "record", "required": true },
+    { "field_name": "schema_version_pin", "business_definition": "The explicit version to which a consuming or producing integration pins a message schema.", "source_name": "API Gateway", "grain": "schema", "data_type": "string", "required": true }
+  ],
+  "method": {
+    "summary": "Confirm every message schema in use is registered and pinned to an explicit version.",
+    "steps": [
+      "Enumerate message schemas referenced by policy and partner integrations.",
+      "Confirm each schema is registered in the schema registry.",
+      "Confirm each integration pins the schema to an explicit version.",
+      "Report unregistered schemas and the percentage of schemas version-pinned."
+    ],
+    "fallback_logic": "If either source is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any unregistered or unpinned message schema is a conformance exception.",
+    "pass_tolerance": "0 unregistered schemas; 100% version-pinned",
+    "warning_threshold": "Any schema not yet version-pinned",
+    "escalation_threshold": "1 or more unregistered schemas"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["All message schemas are registered.", "All schemas are version-pinned."],
+    "warning_criteria": ["Some schemas are registered but not yet version-pinned."],
+    "fail_criteria": ["One or more message schemas are not registered."],
+    "exception_handling": ["Open a schema-governance issue.", "Register and version-pin the affected schemas and re-test."]
+  },
+  "validation": {
+    "assertion_id": "ACORD-API-02-A",
+    "automation_level": "Full",
+    "check_type": "presence",
+    "test_script": "tests/ACORD-API-02.test.mjs",
+    "assertions": [
+      { "metric": "unregistered_message_schemas", "operator": "eq", "value": 0, "severity": "fail", "description": "All message schemas are registered." },
+      { "metric": "schemas_version_pinned_pct", "operator": "gte", "value": 100, "severity": "warn", "description": "All schemas are version-pinned." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["schema_registry_export", "version_pin_report"],
+    "evidence_repository": "sharepoint://controls/acord/api",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": false,
+    "target_artifact_types": ["Schema Governance Attestation"],
+    "target_systems": ["Schema Registry"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each release before schemas are promoted to production."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open schema-governance issue", "Notify API Product Owner and Integration Architect"],
+    "issue_ticket_type": "ACORD Conformance Issue",
+    "notification_roles": ["API Product Owner", "Integration Architect"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of schema inventory", "Version-pin coverage", "Evidence integrity"]
+  },
+  "tags": ["acord", "api", "schema", "version-pinning"],
+  "status": "Active",
+  "version": "1.0.0"
+}

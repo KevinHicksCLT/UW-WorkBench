@@ -1,0 +1,118 @@
+{
+  "control_id": "SOX-ITGC-OP-02",
+  "control_name": "Backups succeed and restores are periodically tested",
+  "framework": "SOX",
+  "control_family": "ITGC-Operations",
+  "domain": "Backup and Recovery",
+  "control_objective": "Backups of financially-significant systems succeed on schedule and restores are periodically tested, so that financial data can be recovered intact in the event of loss or corruption.",
+  "risk_addressed": "Failed backups or untested restores can leave financially-significant data unrecoverable after a loss or corruption event, threatening the integrity and availability of financial records and the financial statements.",
+  "regulatory_mapping": {
+    "framework": "SOX",
+    "citation": ["SOX 404", "COSO Principle 11 (technology general controls)", "ITGC-Operations-Backup"],
+    "owner_role": "IT Operations Manager",
+    "sdlc_gates": ["Run"],
+    "applies_to_value_streams": ["Cybersecurity, Identity & Resilience", "Technology Delivery & Change"],
+    "agent_skill": "sox-itgc-sdlc-compliance"
+  },
+  "scope": {
+    "applies_to": ["Backups of financially-significant systems"],
+    "in_scope_systems": ["General Ledger", "Policy Admin", "Claims", "Billing"],
+    "assessment_cycle": "Quarterly",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Quarterly",
+  "control_owner": {
+    "primary_role": "IT Operations Manager",
+    "supporting_roles": ["Backup Administrator"],
+    "approval_role": "CISO"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Backup Job Logs (SIEM)",
+      "system_type": "SIEM/Logging",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "siem.logging",
+      "system_of_record": "Splunk",
+      "location_uri": "https://siem.meridian.local/services/search/jobs",
+      "refresh_cadence": "Continuous"
+    },
+    {
+      "source_name": "Restore Test Records (SharePoint)",
+      "system_type": "Document Repository",
+      "authoritative": true,
+      "access_method": "SharePoint",
+      "connector_ref": "docs.sharepoint",
+      "system_of_record": "SharePoint",
+      "location_uri": "https://meridian.sharepoint.com/sites/itops/restore-tests",
+      "refresh_cadence": "Quarterly"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "backup_job_result", "business_definition": "The completion status of an in-scope backup job in the period.", "source_name": "Backup Job Logs (SIEM)", "grain": "backup job", "data_type": "record", "required": true },
+    { "field_name": "restore_test_record", "business_definition": "The documented result of a restore test performed during the cycle.", "source_name": "Restore Test Records (SharePoint)", "grain": "restore test", "data_type": "record", "required": true }
+  ],
+  "method": {
+    "summary": "Confirm all in-scope backups succeeded in the period and that at least one restore test was performed and documented this cycle.",
+    "steps": [
+      "Pull all in-scope backup job results for the period from the backup logs.",
+      "Compute the backup success rate across the in-scope population.",
+      "Confirm a documented restore test was performed during the cycle.",
+      "Flag any backup failure and any cycle without a restore test."
+    ],
+    "fallback_logic": "If either source is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any in-scope backup failure or absence of a restore test in the cycle is a control exception.",
+    "pass_tolerance": "100% backup success and 1 restore test performed",
+    "escalation_threshold": "Any backup failure or no restore test in the cycle"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["All in-scope backups succeeded.", "A restore test was performed and documented this cycle."],
+    "fail_criteria": ["One or more in-scope backups failed.", "No restore test was performed this cycle.", "Backup population cannot be evidenced."],
+    "exception_handling": ["Re-run failed backups and confirm success.", "Schedule and document a restore test.", "Open a SOX deficiency issue if a backup failed or no restore test was performed."]
+  },
+  "validation": {
+    "assertion_id": "SOX-ITGC-OP-02-A",
+    "automation_level": "Partial",
+    "check_type": "presence",
+    "test_script": "tests/SOX-ITGC-OP-02.test.mjs",
+    "assertions": [
+      { "metric": "backup_success_rate_pct", "operator": "gte", "value": 100, "severity": "fail", "description": "All in-scope backups succeeded." },
+      { "metric": "restore_test_performed", "operator": "eq", "value": 1, "severity": "fail", "description": "A restore test was performed this cycle." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["backup_job_log", "restore_test_record"],
+    "evidence_repository": "sharepoint://controls/sox/itgc-operations",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": true,
+    "target_artifact_types": ["ICFR Assertion", "404 Control Matrix Row"],
+    "target_systems": ["GRC"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each quarter before §302 certification."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open SOX deficiency issue", "Notify IT Operations Manager and CISO"],
+    "issue_ticket_type": "SOX Deficiency",
+    "notification_roles": ["IT Operations Manager", "CISO"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Backup success completeness", "Restore test evidence", "Restore test recency"]
+  },
+  "tags": ["sox", "itgc", "operations", "backup", "recovery"],
+  "status": "Active",
+  "version": "1.0.0"
+}

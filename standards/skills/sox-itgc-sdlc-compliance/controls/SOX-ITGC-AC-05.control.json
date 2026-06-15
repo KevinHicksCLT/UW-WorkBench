@@ -1,0 +1,120 @@
+{
+  "control_id": "SOX-ITGC-AC-05",
+  "control_name": "Timely deprovisioning of terminated users",
+  "framework": "SOX",
+  "control_family": "ITGC-Access",
+  "domain": "Joiner-Mover-Leaver",
+  "control_objective": "Access for terminated personnel is revoked from financially-significant systems within the defined service-level agreement so that no former employee retains the ability to transact.",
+  "risk_addressed": "Active accounts for terminated staff provide an unmonitored path to initiate unauthorized transactions or exfiltrate data, defeating the control environment and misstating the financial statements.",
+  "regulatory_mapping": {
+    "framework": "SOX",
+    "citation": ["SOX 404", "COSO Principle 11 (technology general controls)", "ITGC-Access-Deprovisioning"],
+    "owner_role": "Access Administrator",
+    "sdlc_gates": ["Run"],
+    "applies_to_value_streams": ["Cybersecurity, Identity & Resilience", "Technology Delivery & Change"],
+    "agent_skill": "sox-itgc-sdlc-compliance"
+  },
+  "scope": {
+    "applies_to": ["Financially-significant applications"],
+    "in_scope_systems": ["General Ledger", "Policy Admin", "Claims", "Billing"],
+    "assessment_cycle": "Quarterly",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Quarterly",
+  "control_owner": {
+    "primary_role": "Access Administrator",
+    "supporting_roles": ["IT Security Manager"],
+    "approval_role": "IT Security Manager"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Identity Governance (Entra ID)",
+      "system_type": "IAM",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "iam.entra",
+      "system_of_record": "Microsoft Entra ID",
+      "location_uri": "https://graph.microsoft.com/v1.0/users",
+      "refresh_cadence": "Daily"
+    },
+    {
+      "source_name": "HR Termination Feed (ServiceNow)",
+      "system_type": "ITSM",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "itsm.servicenow",
+      "system_of_record": "ServiceNow HR",
+      "location_uri": "https://meridian.service-now.com/api/now/table/hr_termination",
+      "refresh_cadence": "Daily"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "termination_event", "business_definition": "A recorded employee termination with an effective date from the HR feed.", "source_name": "HR Termination Feed (ServiceNow)", "grain": "employee", "data_type": "record", "required": true },
+    { "field_name": "account_status", "business_definition": "The current enabled/disabled state and last revocation timestamp of a user's access on in-scope systems.", "source_name": "Identity Governance (Entra ID)", "grain": "account", "data_type": "record", "required": true }
+  ],
+  "method": {
+    "summary": "Reconcile HR terminations to IAM revocations and confirm every leaver was de-provisioned within SLA with no accounts left open.",
+    "steps": [
+      "Pull the population of terminations effective in the period from the HR feed.",
+      "Pull account status and revocation timestamps for those identities from Identity Governance.",
+      "Compute the percentage of leavers whose access was revoked within the defined SLA.",
+      "Count accounts still active for terminated staff (open leaver accounts).",
+      "Flag any leaver not revoked within SLA or any account still open."
+    ],
+    "fallback_logic": "If either source is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any active account for a terminated user, or any revocation outside SLA, is a control exception.",
+    "pass_tolerance": "100% revoked within SLA, 0 open leaver accounts",
+    "warning_threshold": "Revocation within SLA below 100% with no account still open",
+    "escalation_threshold": "1 or more open leaver accounts"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["All leavers de-provisioned within SLA.", "No active accounts remain for terminated staff."],
+    "fail_criteria": ["One or more leavers not de-provisioned within SLA.", "One or more accounts remain active for terminated staff."],
+    "exception_handling": ["Open a SOX deficiency issue.", "Immediately revoke any open account and re-test before relying on the control."]
+  },
+  "validation": {
+    "assertion_id": "SOX-ITGC-AC-05-A",
+    "automation_level": "Full",
+    "check_type": "reconciliation",
+    "test_script": "tests/SOX-ITGC-AC-05.test.mjs",
+    "assertions": [
+      { "metric": "leaver_access_revoked_within_sla_pct", "operator": "gte", "value": 100, "severity": "fail", "description": "All leavers de-provisioned within SLA." },
+      { "metric": "open_leaver_accounts", "operator": "eq", "value": 0, "severity": "fail", "description": "No active accounts for terminated staff." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["termination_feed_export", "revocation_evidence", "exception_log"],
+    "evidence_repository": "sharepoint://controls/sox/itgc-access",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": true,
+    "target_artifact_types": ["ICFR Assertion", "404 Control Matrix Row"],
+    "target_systems": ["GRC"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each quarter before §302 certification."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open SOX deficiency issue", "Notify Access Administrator and IT Security Manager"],
+    "issue_ticket_type": "SOX Deficiency",
+    "notification_roles": ["Access Administrator", "IT Security Manager"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of termination population", "Revocation timeliness against SLA", "Evidence integrity"]
+  },
+  "tags": ["sox", "itgc", "access", "deprovisioning"],
+  "status": "Active",
+  "version": "1.0.0"
+}

@@ -1,0 +1,117 @@
+{
+  "control_id": "ACORD-DICT-02",
+  "control_name": "ACORD code lists are version-current across systems",
+  "framework": "ACORD",
+  "control_family": "Data-Dictionary",
+  "domain": "Code-List Version Currency",
+  "control_objective": "Every ACORD code list referenced by registered schemas and mapping specifications is pinned to a current ACORD code-list version so that enumerations remain interoperable across systems.",
+  "risk_addressed": "Outdated ACORD code-list versions cause valid enumeration values to be rejected or misinterpreted, producing message validation failures and silent data corruption across carrier and agency integrations.",
+  "regulatory_mapping": {
+    "framework": "ACORD",
+    "citation": ["ACORD Code Lists", "ACORD Data Dictionary"],
+    "owner_role": "Data Architect",
+    "sdlc_gates": ["Design", "Development", "Run"],
+    "applies_to_value_streams": ["Technology Strategy, Architecture & Delivery", "Technology Delivery & Change"],
+    "agent_skill": "acord-data-standards-compliance"
+  },
+  "scope": {
+    "applies_to": ["ACORD code lists referenced in production"],
+    "in_scope_systems": ["Schema Registry", "Document Repository"],
+    "assessment_cycle": "2026-Q2",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Quarterly",
+  "control_owner": {
+    "primary_role": "Data Architect",
+    "supporting_roles": ["Data Steward"],
+    "approval_role": "Enterprise Architect"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Schema Registry",
+      "system_type": "Schema Registry",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "schema.registry",
+      "system_of_record": "Confluent Schema Registry",
+      "location_uri": "https://schema-registry.meridian.internal/subjects",
+      "refresh_cadence": "Continuous"
+    },
+    {
+      "source_name": "Mapping Specs (Confluence)",
+      "system_type": "Document Repository",
+      "authoritative": true,
+      "access_method": "Confluence",
+      "connector_ref": "docs.confluence",
+      "system_of_record": "Confluence Mapping Space",
+      "location_uri": "https://meridian.atlassian.net/wiki/spaces/ACORD/code-lists",
+      "refresh_cadence": "Quarterly"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "codelist_reference", "business_definition": "A reference to an ACORD code list from a registered schema or mapping specification, with its pinned version.", "source_name": "Schema Registry", "grain": "code-list", "data_type": "record", "required": true },
+    { "field_name": "current_codelist_version", "business_definition": "The current ACORD-published version for the referenced code list.", "source_name": "Mapping Specs (Confluence)", "grain": "code-list", "data_type": "string", "required": true }
+  ],
+  "method": {
+    "summary": "Compare each referenced ACORD code-list version against the current ACORD publication and flag any outdated version.",
+    "steps": [
+      "Enumerate ACORD code lists referenced by registered schemas and mapping specifications.",
+      "Resolve the current ACORD-published version for each code list.",
+      "Flag any code-list reference pinned to a superseded version.",
+      "Report the count of outdated code-list versions in use."
+    ],
+    "fallback_logic": "If either source is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any outdated ACORD code-list version in use is a conformance exception.",
+    "pass_tolerance": "0 outdated code-list versions",
+    "escalation_threshold": "1 or more outdated code-list versions in use"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["No outdated ACORD code-list versions are in use.", "All code-list references reconcile to current ACORD publications."],
+    "fail_criteria": ["One or more ACORD code-list references are pinned to a superseded version."],
+    "exception_handling": ["Open a code-list currency issue.", "Upgrade affected references to the current ACORD code-list version and re-test."]
+  },
+  "validation": {
+    "assertion_id": "ACORD-DICT-02-A",
+    "automation_level": "Full",
+    "check_type": "policy",
+    "test_script": "tests/ACORD-DICT-02.test.mjs",
+    "assertions": [
+      { "metric": "codelist_versions_outdated", "operator": "eq", "value": 0, "severity": "fail", "description": "No outdated ACORD code-list versions in use." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["codelist_inventory", "version_check_report"],
+    "evidence_repository": "confluence://controls/acord/code-lists",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": false,
+    "target_artifact_types": ["Code-List Conformance Attestation"],
+    "target_systems": ["Data Governance"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each quarter as ACORD publishes new code-list versions."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open code-list currency issue", "Notify Data Architect and Data Steward"],
+    "issue_ticket_type": "ACORD Conformance Issue",
+    "notification_roles": ["Data Architect", "Data Steward"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of code-list inventory", "Version reconciliation", "Evidence integrity"]
+  },
+  "tags": ["acord", "data-dictionary", "code-lists", "version"],
+  "status": "Active",
+  "version": "1.0.0"
+}

@@ -1,0 +1,120 @@
+{
+  "control_id": "ACORD-API-01",
+  "control_name": "Policy APIs align to the ACORD reference model (ADAPT)",
+  "framework": "ACORD",
+  "control_family": "API",
+  "domain": "API Reference-Model Alignment",
+  "control_objective": "Every policy API endpoint exposed by the organization aligns to the ACORD reference model and the ACORD ADAPT API patterns so that partners can integrate against standard, predictable insurance entities.",
+  "risk_addressed": "Policy API endpoints that diverge from the ACORD reference model force partners into bespoke integrations, fragment the canonical entity model, and accumulate integration debt that slows partner onboarding and increases defect rates.",
+  "regulatory_mapping": {
+    "framework": "ACORD",
+    "citation": ["ACORD Reference Architecture", "ACORD ADAPT (API)"],
+    "owner_role": "API Product Owner",
+    "sdlc_gates": ["Design", "Development", "Testing"],
+    "applies_to_value_streams": ["Technology Strategy, Architecture & Delivery", "Technology Delivery & Change"],
+    "agent_skill": "acord-data-standards-compliance"
+  },
+  "scope": {
+    "applies_to": ["Policy API endpoints"],
+    "in_scope_systems": ["API Gateway", "Schema Registry"],
+    "assessment_cycle": "2026-Q2",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Preventive / Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Each release",
+  "control_owner": {
+    "primary_role": "API Product Owner",
+    "supporting_roles": ["Integration Architect"],
+    "approval_role": "Chief Architect"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "API Gateway",
+      "system_type": "API Gateway",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "apigw.gateway",
+      "system_of_record": "Enterprise API Gateway",
+      "location_uri": "https://apigw.meridian.internal/admin/apis",
+      "refresh_cadence": "Each release"
+    },
+    {
+      "source_name": "Schema Registry",
+      "system_type": "Schema Registry",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "schema.registry",
+      "system_of_record": "Confluent Schema Registry",
+      "location_uri": "https://schema-registry.meridian.internal/subjects",
+      "refresh_cadence": "Continuous"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "api_endpoint_definition", "business_definition": "A published policy API endpoint and its request/response contract from the API gateway.", "source_name": "API Gateway", "grain": "endpoint", "data_type": "record", "required": true },
+    { "field_name": "acord_entity_mapping", "business_definition": "The mapping from an API endpoint and its payload to ACORD reference-model entities.", "source_name": "Schema Registry", "grain": "endpoint", "data_type": "record", "required": true }
+  ],
+  "method": {
+    "summary": "Compare every policy API endpoint against the ACORD reference model and confirm each maps to ACORD entities with no divergence.",
+    "steps": [
+      "Enumerate published policy API endpoints from the API gateway.",
+      "Resolve each endpoint's mapping to ACORD reference-model entities.",
+      "Flag endpoints that diverge from the ACORD reference model.",
+      "Compute the percentage of endpoints mapped to ACORD entities."
+    ],
+    "fallback_logic": "If either source is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any endpoint diverging from the ACORD reference model is a conformance exception.",
+    "pass_tolerance": "0 nonconformant endpoints",
+    "warning_threshold": "Any endpoint not yet mapped to ACORD entities",
+    "escalation_threshold": "1 or more nonconformant endpoints"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["No endpoints diverge from the ACORD reference model.", "All endpoints map to ACORD entities."],
+    "warning_criteria": ["Some endpoints are not yet mapped to ACORD entities."],
+    "fail_criteria": ["One or more endpoints diverge from the ACORD reference model."],
+    "exception_handling": ["Open an API conformance issue.", "Refactor the endpoint contract to the ACORD reference model and re-test."]
+  },
+  "validation": {
+    "assertion_id": "ACORD-API-01-A",
+    "automation_level": "Full",
+    "check_type": "schema",
+    "test_script": "tests/ACORD-API-01.test.mjs",
+    "assertions": [
+      { "metric": "nonconformant_api_endpoints", "operator": "eq", "value": 0, "severity": "fail", "description": "No endpoints diverge from the ACORD reference model." },
+      { "metric": "endpoints_mapped_to_acord_pct", "operator": "gte", "value": 100, "severity": "warn", "description": "All endpoints mapped to ACORD entities." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["api_spec_export", "acord_alignment_matrix"],
+    "evidence_repository": "sharepoint://controls/acord/api",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": false,
+    "target_artifact_types": ["API Conformance Attestation"],
+    "target_systems": ["API Gateway"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each release before partner-facing APIs are promoted."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open API conformance issue", "Notify API Product Owner and Integration Architect"],
+    "issue_ticket_type": "ACORD Conformance Issue",
+    "notification_roles": ["API Product Owner", "Integration Architect"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of endpoint inventory", "Reference-model alignment", "Evidence integrity"]
+  },
+  "tags": ["acord", "api", "adapt", "reference-model"],
+  "status": "Active",
+  "version": "1.0.0"
+}

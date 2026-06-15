@@ -1,0 +1,200 @@
+{
+  "run_id": "run-SOX-ELC-404-02-LIVE",
+  "control_reference": {
+    "control_id": "SOX-ELC-404-02",
+    "control_name": "Control-deficiency remediation is tracked to closure with owner and due date",
+    "control_version": "1.0.0",
+    "framework": "SOX",
+    "control_family": "Entity-Level",
+    "execution_mode": "AI Validate"
+  },
+  "run_status": "Failed",
+  "execution": {
+    "started_at": "2026-06-15T10:23:14.565Z",
+    "completed_at": "2026-06-15T10:23:14.565Z",
+    "duration_seconds": 0,
+    "executor_identity": {
+      "executor_type": "AI Agent",
+      "name_or_service_id": "transform-control-runner",
+      "orchestrator": "Cascade Control Framework",
+      "model_or_tool_version": "run-control-v1"
+    },
+    "environment": {
+      "environment_name": "Demo",
+      "tenant_or_workspace": "kevin-hicks"
+    }
+  },
+  "input_context": {
+    "assessment_cycle": "LIVE",
+    "as_of_date": "2026-06-15",
+    "scope_note": "LIVE — Linear (MCP) @ 2026-06-15T0",
+    "dataset_snapshots": [
+      {
+        "source_name": "Remediation Tracker (Linear)",
+        "snapshot_id": "snap-SOX-ELC-404-02-LIVE-1",
+        "access_method": "MCP",
+        "location_uri": "https://linear.app/kevin-hicks",
+        "extract_timestamp": "2026-06-15T10:23:14.565Z",
+        "available": true
+      }
+    ]
+  },
+  "calculated_metrics": [
+    {
+      "metric_name": "remediation_items_total",
+      "metric_value": 4
+    },
+    {
+      "metric_name": "items_without_owner",
+      "metric_value": 4
+    },
+    {
+      "metric_name": "items_without_priority",
+      "metric_value": 4
+    },
+    {
+      "metric_name": "items_without_due_date",
+      "metric_value": 4
+    },
+    {
+      "metric_name": "overdue_items",
+      "metric_value": 0
+    }
+  ],
+  "threshold_comparison": [
+    {
+      "test_name": "Every open remediation item has an accountable owner.",
+      "metric_name": "items_without_owner",
+      "actual_value": 4,
+      "threshold_operator": "eq",
+      "threshold_value": 0,
+      "severity": "fail",
+      "status": "Fail",
+      "rationale": "Observed 4 violates eq 0"
+    },
+    {
+      "test_name": "Every open remediation item has a committed due date.",
+      "metric_name": "items_without_due_date",
+      "actual_value": 4,
+      "threshold_operator": "eq",
+      "threshold_value": 0,
+      "severity": "fail",
+      "status": "Fail",
+      "rationale": "Observed 4 violates eq 0"
+    },
+    {
+      "test_name": "No remediation item is overdue.",
+      "metric_name": "overdue_items",
+      "actual_value": 0,
+      "threshold_operator": "eq",
+      "threshold_value": 0,
+      "severity": "fail",
+      "status": "Pass",
+      "rationale": "Within tolerance"
+    },
+    {
+      "test_name": "Every open remediation item is prioritized.",
+      "metric_name": "items_without_priority",
+      "actual_value": 4,
+      "threshold_operator": "eq",
+      "threshold_value": 0,
+      "severity": "warn",
+      "status": "Warn",
+      "rationale": "Observed 4 violates eq 0"
+    }
+  ],
+  "evidence_links": [
+    {
+      "artifact_type": "remediation_register_export",
+      "artifact_id": "SOX-ELC-404-02-LIVE-ev1",
+      "artifact_name": "remediation register export",
+      "repository": "sharepoint://controls/sox/entity-level",
+      "uri": "sharepoint://controls/sox/entity-level/SOX-ELC-404-02/remediation_register_export",
+      "created_at": "2026-06-15T10:23:14.565Z",
+      "immutable": true,
+      "present": true
+    },
+    {
+      "artifact_type": "owner_assignment_log",
+      "artifact_id": "SOX-ELC-404-02-LIVE-ev2",
+      "artifact_name": "owner assignment log",
+      "repository": "sharepoint://controls/sox/entity-level",
+      "uri": "sharepoint://controls/sox/entity-level/SOX-ELC-404-02/owner_assignment_log",
+      "created_at": "2026-06-15T10:23:14.565Z",
+      "immutable": true,
+      "present": false
+    },
+    {
+      "artifact_type": "due_date_report",
+      "artifact_id": "SOX-ELC-404-02-LIVE-ev3",
+      "artifact_name": "due date report",
+      "repository": "sharepoint://controls/sox/entity-level",
+      "uri": "sharepoint://controls/sox/entity-level/SOX-ELC-404-02/due_date_report",
+      "created_at": "2026-06-15T10:23:14.565Z",
+      "immutable": true,
+      "present": false
+    }
+  ],
+  "approval": {
+    "approval_required": true,
+    "approver": {
+      "approver_role": "Controller",
+      "approval_status": "Pending"
+    },
+    "override": {
+      "override_applied": false
+    }
+  },
+  "downstream_artifacts": [
+    {
+      "artifact_type": "404 Assessment",
+      "artifact_id": "assess-live-SOX-ELC-404-02",
+      "artifact_name": "assess-live-SOX-ELC-404-02",
+      "target_system": "GRC",
+      "link_status": "Blocked",
+      "staleness_check_result": "Current"
+    }
+  ],
+  "audit_trail": {
+    "event_log": [
+      {
+        "event_time": "2026-06-15T10:23:14.565Z",
+        "event_type": "RUN_STARTED",
+        "actor": "control-runner",
+        "description": "Run started for SOX-ELC-404-02"
+      },
+      {
+        "event_time": "2026-06-15T10:23:14.565Z",
+        "event_type": "RUN_FAILED",
+        "actor": "control-runner",
+        "description": "Run failed (3 of 4 assertions not passing)"
+      },
+      {
+        "event_time": "2026-06-15T10:23:14.565Z",
+        "event_type": "ISSUE_OPENED",
+        "actor": "control-runner",
+        "description": "Issue opened for SOX-ELC-404-02",
+        "linked_artifact_id": "ISS-SOX-ELC-404-02-LIVE"
+      }
+    ],
+    "immutable_log_reference": "ledger://controls/SOX/SOX-ELC-404-02/LIVE"
+  },
+  "notes": "Remediate before relying on dependent artifacts.",
+  "remediation_workflow": {
+    "remediation_required": true,
+    "issue_id": "ISS-SOX-ELC-404-02-LIVE",
+    "issue_status": "Open",
+    "severity": "High",
+    "owner": "SOX Program Manager",
+    "opened_at": "2026-06-15T10:23:14.565Z",
+    "target_due_date": "",
+    "root_cause": "Observed 4 violates eq 0; Observed 4 violates eq 0; Observed 4 violates eq 0",
+    "corrective_actions": [
+      "Assign an owner and due date.",
+      "Escalate overdue items to the Controller."
+    ],
+    "downstream_impact_assessment": "Blocks: assess-live-SOX-ELC-404-02",
+    "retest_required": true,
+    "retest_run_id": ""
+  }
+}

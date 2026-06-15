@@ -1,0 +1,119 @@
+{
+  "control_id": "SOX-ELC-302-01",
+  "control_name": "Quarterly sub-certifications support the §302 certification",
+  "framework": "SOX",
+  "control_family": "Entity-Level",
+  "domain": "Disclosure Certification (Section 302)",
+  "control_objective": "All required sub-certifiers complete and sign their quarterly sub-certifications on time, providing the documented basis on which the CEO and CFO rely to make the §302 disclosure certification.",
+  "risk_addressed": "Missing or overdue sub-certifications undermine the support for the §302 certification, increasing the risk that a material weakness or disclosure deficiency goes unreported by the certifying officers.",
+  "regulatory_mapping": {
+    "framework": "SOX",
+    "citation": ["SOX 302", "SEC Rule 13a-14", "Disclosure Controls and Procedures"],
+    "owner_role": "Controller",
+    "sdlc_gates": ["Run"],
+    "applies_to_value_streams": ["Finance, Actuarial & Risk", "Governance, Risk & Compliance"],
+    "agent_skill": "sox-itgc-sdlc-compliance"
+  },
+  "scope": {
+    "applies_to": ["Quarterly sub-certification process"],
+    "in_scope_systems": ["Sub-certification Workflow", "Signed Certifications"],
+    "assessment_cycle": "2026-Q2",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Quarterly",
+  "control_owner": {
+    "primary_role": "Controller",
+    "supporting_roles": ["SOX Program Manager"],
+    "approval_role": "CFO"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Sub-certification Workflow (ServiceNow)",
+      "system_type": "ITSM",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "itsm.servicenow",
+      "system_of_record": "ServiceNow",
+      "location_uri": "https://<instance>.service-now.com/api/now/table/u_subcertification",
+      "refresh_cadence": "Daily"
+    },
+    {
+      "source_name": "Signed Certifications (SharePoint)",
+      "system_type": "Document Repository",
+      "authoritative": true,
+      "access_method": "SharePoint",
+      "connector_ref": "docs.sharepoint",
+      "system_of_record": "SharePoint Document Library",
+      "location_uri": "https://meridian.sharepoint.com/sites/SOX/SubCertifications",
+      "refresh_cadence": "Quarterly"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "subcertification_assignment", "business_definition": "A sub-certification questionnaire assigned to a required sub-certifier for the period.", "source_name": "Sub-certification Workflow (ServiceNow)", "grain": "assignment", "data_type": "record", "required": true },
+    { "field_name": "signed_subcertification", "business_definition": "The completed and signed sub-certification submitted by the sub-certifier.", "source_name": "Signed Certifications (SharePoint)", "grain": "document", "data_type": "record", "required": true }
+  ],
+  "method": {
+    "summary": "Confirm that every required sub-certifier in the population has submitted a signed sub-certification on time, with no outstanding or overdue items, supporting the §302 certification.",
+    "steps": [
+      "Determine the required sub-certifier population for the period from the workflow system.",
+      "Confirm receipt of a signed sub-certification for each required sub-certifier.",
+      "Identify any sub-certifications that are outstanding or past their due date.",
+      "Compute received percentage and overdue count.",
+      "Confirm disclosure committee review of sub-certification results."
+    ],
+    "fallback_logic": "If either the workflow source or the signed-certification repository is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any required sub-certification not received, or received late, is a control exception.",
+    "pass_tolerance": "100% received and 0 overdue",
+    "escalation_threshold": "Any sub-certification not received or overdue"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["All required sub-certifications are received.", "No sub-certifications are overdue."],
+    "fail_criteria": ["One or more required sub-certifications are not received.", "One or more sub-certifications are overdue."],
+    "exception_handling": ["Open a SOX deficiency issue.", "Escalate outstanding sub-certifications to the disclosure committee before §302 certification."]
+  },
+  "validation": {
+    "assertion_id": "SOX-ELC-302-01-A",
+    "automation_level": "Full",
+    "check_type": "presence",
+    "test_script": "tests/SOX-ELC-302-01.test.mjs",
+    "assertions": [
+      { "metric": "subcertifications_received_pct", "operator": "gte", "value": 100, "severity": "fail", "description": "All required sub-certifications received." },
+      { "metric": "subcertifications_overdue", "operator": "eq", "value": 0, "severity": "fail", "description": "No overdue sub-certifications." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["subcertification_questionnaire", "signed_subcertifications", "disclosure_committee_minutes"],
+    "evidence_repository": "sharepoint://controls/sox/entity-level/302",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": true,
+    "target_artifact_types": ["302 Certification"],
+    "target_systems": ["GRC"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each quarter before §302 certification."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open SOX deficiency issue", "Notify Controller and CFO"],
+    "issue_ticket_type": "SOX Deficiency",
+    "notification_roles": ["Controller", "CFO"],
+    "sla_days": 15
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of sub-certifier population", "Timeliness of submissions", "Evidence integrity of signed certifications"]
+  },
+  "tags": ["sox", "entity-level", "302", "sub-certification", "disclosure"],
+  "status": "Active",
+  "version": "1.0.0"
+}

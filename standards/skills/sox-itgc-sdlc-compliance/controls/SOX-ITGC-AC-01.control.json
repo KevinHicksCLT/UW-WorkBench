@@ -1,0 +1,118 @@
+{
+  "control_id": "SOX-ITGC-AC-01",
+  "control_name": "Access provisioning is approved before grant",
+  "framework": "SOX",
+  "control_family": "ITGC-Access",
+  "domain": "Logical Access Management",
+  "control_objective": "Every grant of access to a financially-significant application is authorized by an appropriate approver before the access is provisioned, so that only properly authorized users can transact.",
+  "risk_addressed": "Unauthorized or excessive access to financially-significant systems allows fraudulent or erroneous transactions to bypass the control environment, misstating the financial statements.",
+  "regulatory_mapping": {
+    "framework": "SOX",
+    "citation": ["SOX 404", "COSO Principle 11 (technology general controls)", "ITGC-Access-Provisioning"],
+    "owner_role": "IT Security Manager",
+    "sdlc_gates": ["Design", "Development", "Run"],
+    "applies_to_value_streams": ["Cybersecurity, Identity & Resilience", "Technology Delivery & Change"],
+    "agent_skill": "sox-itgc-sdlc-compliance"
+  },
+  "scope": {
+    "applies_to": ["Financially-significant applications"],
+    "in_scope_systems": ["General Ledger", "Policy Admin", "Claims", "Billing"],
+    "assessment_cycle": "Quarterly",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Quarterly",
+  "control_owner": {
+    "primary_role": "IT Security Manager",
+    "supporting_roles": ["Access Administrator"],
+    "approval_role": "CISO"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Identity Governance (Entra ID)",
+      "system_type": "IAM",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "iam.entra",
+      "system_of_record": "Microsoft Entra ID",
+      "location_uri": "https://graph.microsoft.com/v1.0/auditLogs/directoryAudits",
+      "refresh_cadence": "Daily"
+    },
+    {
+      "source_name": "Access Request Tickets (ServiceNow)",
+      "system_type": "ITSM",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "itsm.servicenow",
+      "system_of_record": "ServiceNow",
+      "location_uri": "https://<instance>.service-now.com/api/now/table/sc_req_item",
+      "refresh_cadence": "Daily"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "access_grant_event", "business_definition": "A provisioning event granting a user a role/entitlement on an in-scope system.", "source_name": "Identity Governance (Entra ID)", "grain": "event", "data_type": "record", "required": true },
+    { "field_name": "approval_ticket", "business_definition": "The approved access-request ticket authorizing the grant.", "source_name": "Access Request Tickets (ServiceNow)", "grain": "ticket", "data_type": "record", "required": true }
+  ],
+  "method": {
+    "summary": "Reconcile every in-scope provisioning event to an approved access request dated on or before the grant.",
+    "steps": [
+      "Pull all grant events for in-scope systems in the period from the IAM source.",
+      "Pull approved access-request tickets from ITSM.",
+      "Match each grant to an approval with approval timestamp <= grant timestamp.",
+      "Count grants with no matching prior approval (exceptions)."
+    ],
+    "fallback_logic": "If either source is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any unapproved grant to a financially-significant system is a control exception.",
+    "pass_tolerance": "0 unapproved grants",
+    "escalation_threshold": "1 or more unapproved grants"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["100% of in-scope grants trace to a prior approval.", "Approval evidence captured for the population."],
+    "fail_criteria": ["One or more grants lack a prior approval.", "Approval population cannot be evidenced."],
+    "exception_handling": ["Open a SOX deficiency issue.", "Remediate access and re-test before relying on the control."]
+  },
+  "validation": {
+    "assertion_id": "SOX-ITGC-AC-01-A",
+    "automation_level": "Full",
+    "check_type": "reconciliation",
+    "test_script": "tests/SOX-ITGC-AC-01.test.mjs",
+    "assertions": [
+      { "metric": "unapproved_grant_count", "operator": "eq", "value": 0, "severity": "fail", "description": "No in-scope grants without a prior approval." },
+      { "metric": "approval_coverage_pct", "operator": "gte", "value": 100, "severity": "fail", "description": "All in-scope grants are approval-backed." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["grant_event_population", "approval_ticket_export", "reconciliation_exception_log"],
+    "evidence_repository": "sharepoint://controls/sox/itgc-access",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": true,
+    "target_artifact_types": ["ICFR Assertion", "404 Control Matrix Row"],
+    "target_systems": ["GRC"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each quarter before §302 certification."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open SOX deficiency issue", "Notify IT Security Manager and Controller"],
+    "issue_ticket_type": "SOX Deficiency",
+    "notification_roles": ["IT Security Manager", "Controller"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of grant population", "Approval timestamp precedence", "Evidence integrity"]
+  },
+  "tags": ["sox", "itgc", "access", "provisioning"],
+  "status": "Active",
+  "version": "1.0.0"
+}
