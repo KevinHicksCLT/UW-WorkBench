@@ -1,0 +1,120 @@
+{
+  "control_id": "ACORD-PC-01",
+  "control_name": "P&C policy messages validate against the ACORD P&C XML schema",
+  "framework": "ACORD",
+  "control_family": "Message-Conformance",
+  "domain": "P&C Integration Messaging",
+  "control_objective": "Every outbound and inbound P&C policy message exchanged over the integration platform validates cleanly against the published ACORD P&C XML (XSD) schema, so that carrier and agency partners receive structurally conformant transactions.",
+  "risk_addressed": "Non-conformant P&C messages that violate the ACORD XSD cause downstream parsing failures, rejected submissions, and silent data loss at carrier and agency endpoints, breaking straight-through processing and creating reconciliation and E&O exposure.",
+  "regulatory_mapping": {
+    "framework": "ACORD",
+    "citation": ["ACORD P&C Data Standard", "ACORD XML"],
+    "owner_role": "Integration Architect",
+    "sdlc_gates": ["Development", "Testing", "Run"],
+    "applies_to_value_streams": ["Technology Strategy, Architecture & Delivery", "Technology Delivery & Change"],
+    "agent_skill": "acord-data-standards-compliance"
+  },
+  "scope": {
+    "applies_to": ["P&C policy messages"],
+    "in_scope_systems": ["Integration Bus", "Schema Registry"],
+    "assessment_cycle": "2026-Q2",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Continuous",
+  "control_owner": {
+    "primary_role": "Integration Architect",
+    "supporting_roles": ["Integration Engineer"],
+    "approval_role": "Chief Architect"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Integration Bus",
+      "system_type": "Integration/ESB",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "esb.integration",
+      "system_of_record": "Enterprise Integration Bus",
+      "location_uri": "https://esb.meridian.example/api/v1/messages/pc",
+      "refresh_cadence": "Continuous"
+    },
+    {
+      "source_name": "Schema Registry",
+      "system_type": "Schema Registry",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "schema.registry",
+      "system_of_record": "ACORD Schema Registry",
+      "location_uri": "https://schema-registry.meridian.example/api/v1/schemas/acord-pc",
+      "refresh_cadence": "On change"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "pc_message_payload", "business_definition": "The full XML payload of a P&C policy message flowing through the integration bus.", "source_name": "Integration Bus", "grain": "message", "data_type": "xml", "required": true },
+    { "field_name": "acord_pc_xsd_version", "business_definition": "The version of the ACORD P&C XSD against which the message is validated.", "source_name": "Schema Registry", "grain": "schema", "data_type": "string", "required": true }
+  ],
+  "method": {
+    "summary": "Validate a sampled population of P&C messages against the registered ACORD P&C XSD and count any validation failures.",
+    "steps": [
+      "Sample P&C policy messages from the integration bus over the assessment period.",
+      "Resolve the current ACORD P&C XSD version from the schema registry.",
+      "Validate each sampled message against the XSD.",
+      "Count messages that fail XSD validation and compute the percentage validated."
+    ],
+    "sampling_rule": "Sample all P&C messages where volume permits; otherwise a statistically representative sample across message types.",
+    "fallback_logic": "If the bus or schema registry is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any P&C message that fails ACORD XSD validation is a conformance exception.",
+    "pass_tolerance": "0 schema validation failures",
+    "escalation_threshold": "1 or more schema validation failures"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["No sampled P&C messages fail ACORD XSD validation.", "All sampled messages were schema-validated."],
+    "warning_criteria": ["Fewer than 100% of sampled messages were schema-validated."],
+    "fail_criteria": ["One or more sampled P&C messages fail ACORD XSD validation."],
+    "exception_handling": ["Open an integration conformance issue.", "Quarantine the offending message flow and re-test before resuming straight-through processing."]
+  },
+  "validation": {
+    "assertion_id": "ACORD-PC-01-A",
+    "automation_level": "Full",
+    "check_type": "schema",
+    "test_script": "tests/ACORD-PC-01.test.mjs",
+    "assertions": [
+      { "metric": "schema_validation_failures", "operator": "eq", "value": 0, "severity": "fail", "description": "No P&C messages fail ACORD XSD validation." },
+      { "metric": "messages_validated_pct", "operator": "gte", "value": 100, "severity": "warn", "description": "All sampled messages were schema-validated." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["xsd_validation_report", "message_sample_set", "schema_version_record"],
+    "evidence_repository": "confluence://standards/acord/message-conformance",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": true,
+    "target_artifact_types": ["Carrier Integration Certification"],
+    "target_systems": ["Integration Platform"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each assessment cycle before recertifying carrier integrations."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open integration conformance issue", "Notify Integration Architect and Chief Architect"],
+    "issue_ticket_type": "Integration Conformance Defect",
+    "notification_roles": ["Integration Architect", "Chief Architect"],
+    "sla_days": 5
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of message population", "XSD version currency", "Evidence integrity"]
+  },
+  "tags": ["acord", "p&c", "message-conformance", "xsd"],
+  "status": "Active",
+  "version": "1.0.0"
+}

@@ -1,0 +1,110 @@
+{
+  "control_id": "ACORD-FORM-02",
+  "control_name": "ACORD forms in use are on the current release version",
+  "framework": "ACORD",
+  "control_family": "Forms",
+  "domain": "Standard Forms Currency",
+  "control_objective": "Every ACORD form rendered, ingested, or filed by the organization is on the current ACORD release version so that downstream carriers, agents, and regulators receive standard-conformant document layouts.",
+  "risk_addressed": "Use of superseded ACORD form versions produces non-conformant submissions that are rejected by carrier and regulator intake, delays filings, and erodes straight-through processing across the agency-carrier integration estate.",
+  "regulatory_mapping": {
+    "framework": "ACORD",
+    "citation": ["ACORD Forms", "ACORD Forms Release Bulletin"],
+    "owner_role": "Integration Architect",
+    "sdlc_gates": ["Design", "Testing", "Run"],
+    "applies_to_value_streams": ["Technology Strategy, Architecture & Delivery", "Technology Delivery & Change"],
+    "agent_skill": "acord-data-standards-compliance"
+  },
+  "scope": {
+    "applies_to": ["ACORD standard forms in active production use"],
+    "in_scope_systems": ["Forms Library", "Document Repository", "Policy Admin"],
+    "assessment_cycle": "2026-Q2",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Quarterly",
+  "control_owner": {
+    "primary_role": "Integration Architect",
+    "supporting_roles": ["Forms Librarian"],
+    "approval_role": "Chief Architect"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Forms Library (SharePoint)",
+      "system_type": "Document Repository",
+      "authoritative": true,
+      "access_method": "SharePoint",
+      "connector_ref": "docs.sharepoint",
+      "system_of_record": "SharePoint Forms Library",
+      "location_uri": "https://meridian.sharepoint.com/sites/forms/acord-library",
+      "refresh_cadence": "Quarterly"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "form_version_record", "business_definition": "The ACORD form identifier and version currently published in the active forms inventory.", "source_name": "Forms Library (SharePoint)", "grain": "form", "data_type": "record", "required": true },
+    { "field_name": "acord_release_version", "business_definition": "The latest ACORD release version for the corresponding form per the ACORD Forms Release Bulletin.", "source_name": "Forms Library (SharePoint)", "grain": "form", "data_type": "string", "required": true }
+  ],
+  "method": {
+    "summary": "Compare every in-use ACORD form against the current ACORD Forms Release Bulletin and flag any form on a superseded version.",
+    "steps": [
+      "Enumerate all ACORD forms in the active forms inventory.",
+      "Resolve the current release version for each form from the ACORD Forms Release Bulletin.",
+      "Flag any form whose in-use version is superseded by a newer ACORD release.",
+      "Compute the percentage of forms on the latest version."
+    ],
+    "fallback_logic": "If the forms library is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any superseded ACORD form in active use is a conformance exception.",
+    "pass_tolerance": "0 superseded form versions in use",
+    "warning_threshold": "Any form not yet on the latest release",
+    "escalation_threshold": "1 or more superseded form versions in use"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["No superseded ACORD form versions remain in use.", "All active forms reconcile to the current ACORD release."],
+    "warning_criteria": ["Some forms are not yet on the latest ACORD release version."],
+    "fail_criteria": ["One or more superseded ACORD form versions remain in active use."],
+    "exception_handling": ["Open a forms-currency remediation issue.", "Retire superseded forms and republish on the current release before re-testing."]
+  },
+  "validation": {
+    "assertion_id": "ACORD-FORM-02-A",
+    "automation_level": "Full",
+    "check_type": "policy",
+    "test_script": "tests/ACORD-FORM-02.test.mjs",
+    "assertions": [
+      { "metric": "superseded_form_versions_in_use", "operator": "eq", "value": 0, "severity": "fail", "description": "No superseded ACORD form versions remain in use." },
+      { "metric": "forms_on_latest_version_pct", "operator": "gte", "value": 100, "severity": "warn", "description": "All forms are on the latest ACORD release." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["form_version_inventory", "acord_release_bulletin"],
+    "evidence_repository": "sharepoint://controls/acord/forms",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": true,
+    "target_artifact_types": ["Filing Package"],
+    "target_systems": ["SERFF"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each quarter before forms filings are submitted."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open forms-currency remediation issue", "Notify Integration Architect and Forms Librarian"],
+    "issue_ticket_type": "ACORD Conformance Issue",
+    "notification_roles": ["Integration Architect", "Forms Librarian"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of forms inventory", "Release-version reconciliation", "Evidence integrity"]
+  },
+  "tags": ["acord", "forms", "version", "currency"],
+  "status": "Active",
+  "version": "1.0.0"
+}

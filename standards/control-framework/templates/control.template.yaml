@@ -1,0 +1,113 @@
+# Control authoring template (YAML for readability; convert to <CONTROL_ID>.control.json).
+# Validate with: node standards/control-framework/cli/validate.mjs <pack>
+# Every field maps 1:1 to control.schema.json.
+
+control_id: FRAMEWORK-FAMILY-NN        # e.g. SOX-ITGC-AC-01
+control_name: Short human name
+framework: SOX                         # the standard/regulation
+control_family: ITGC-Access            # grouping within the framework
+domain: Logical Access                 # free-text sub-area
+control_objective: What this control ensures (>= 10 chars).
+risk_addressed: The risk it mitigates if absent (>= 10 chars).
+
+regulatory_mapping:
+  framework: SOX
+  citation: ["SOX 404", "COSO Principle 11", "ITGC-Access"]
+  owner_role: IT Security Manager
+  sdlc_gates: [Design, Development, Run]   # Requirements|Design|Development|Testing|Run
+  applies_to_value_streams: ["Cybersecurity, Identity & Resilience"]
+  agent_skill: sox-itgc-sdlc-compliance
+
+scope:
+  applies_to: ["Financially-significant applications"]
+  in_scope_systems: ["GL", "Policy Admin", "Claims"]
+  assessment_cycle: Quarterly
+  as_of_date: "2026-06-30"
+
+test_type: Detective                   # Preventive|Detective|Monitoring|Preventive / Detective
+execution_mode: AI Validate            # AI Execute|AI Validate|Hybrid
+control_frequency: Quarterly
+
+control_owner:
+  primary_role: IT Security Manager
+  supporting_roles: [Access Administrator]
+  approval_role: CISO
+
+required_data_sources:
+  - source_name: Identity Governance
+    system_type: IAM                   # see schema enum
+    authoritative: true
+    access_method: API                 # SQL|API|MCP|Git|SharePoint|Confluence|Cowork|EDI|SFTP|File|Manual Upload|BI Extract|Other
+    connector_ref: iam.entra           # key into lib/source-connectors.mjs
+    system_of_record: Entra ID
+    location_uri: "https://graph.microsoft.com/v1.0/..."
+    refresh_cadence: Daily
+
+required_data_elements:
+  - field_name: access_grant
+    business_definition: A user-to-role assignment on an in-scope system.
+    source_name: Identity Governance
+    grain: user x system
+    data_type: record
+    required: true
+
+method:
+  summary: How the control is performed.
+  steps:
+    - Pull the population from the authoritative source.
+    - Compute the metric(s).
+    - Compare to threshold(s).
+  fallback_logic: What to do if a source is unavailable.
+
+thresholds:
+  materiality_basis: Any exception is material for ITGC.
+  pass_tolerance: "0 exceptions"
+
+pass_fail_logic:
+  pass_criteria: ["Metric within tolerance and evidence captured."]
+  fail_criteria: ["Any exception, or evidence missing."]
+  exception_handling: ["Open remediation issue.", "Block reliance until fixed."]
+
+validation:                            # what makes the control machine-testable
+  assertion_id: FRAMEWORK-FAMILY-NN-A
+  automation_level: Full               # Full|Partial|Manual
+  check_type: threshold                # schema|threshold|presence|reconciliation|policy|query|sampling
+  test_script: tests/FRAMEWORK-FAMILY-NN.test.mjs
+  assertions:
+    - metric: exception_count
+      operator: eq                     # eq|ne|gt|gte|lt|lte|between|in|exists|matches
+      value: 0
+      severity: fail                   # fail|warn
+      description: No access exceptions.
+
+required_evidence:
+  artifacts: [population_export, exception_log, approval_record]
+  evidence_repository: "sharepoint://controls/sox"
+  linkage_required: true
+  retention_period: "7 years"
+  review_signoff_required: true
+  timestamp_required: true
+
+downstream_linkage:
+  required: true
+  target_artifact_types: [ICFR Assertion]
+  target_systems: [GRC]
+  link_fields: [control_run_id]
+  staleness_rule: Re-evidence each quarter.
+
+workflow:
+  actions_on_fail: ["Open issue", "Notify owner"]
+  issue_ticket_type: SOX Deficiency
+  notification_roles: [IT Security Manager, CISO]
+  sla_days: 30
+
+audit:
+  reproducible: true
+  version_controlled: true
+  independent_review_required: true
+  override_allowed: false
+  audit_focus: [Completeness of population, Evidence integrity]
+
+tags: [sox, itgc]
+status: Active
+version: 1.0.0

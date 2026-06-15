@@ -1,0 +1,120 @@
+{
+  "control_id": "ACORD-DICT-01",
+  "control_name": "Internal data fields map to the ACORD data dictionary",
+  "framework": "ACORD",
+  "control_family": "Data-Dictionary",
+  "domain": "Canonical Field Mapping",
+  "control_objective": "Every internal data field that participates in carrier, agency, or regulatory exchange is mapped to a corresponding element in the ACORD data dictionary so that semantics are preserved across the integration estate.",
+  "risk_addressed": "Internal fields with no ACORD mapping introduce semantic drift, force bespoke point-to-point transforms, and cause data-quality and reconciliation failures when policy, claim, and billing data cross system boundaries.",
+  "regulatory_mapping": {
+    "framework": "ACORD",
+    "citation": ["ACORD Data Dictionary", "ACORD Reference Architecture"],
+    "owner_role": "Data Architect",
+    "sdlc_gates": ["Requirements", "Design", "Development"],
+    "applies_to_value_streams": ["Technology Strategy, Architecture & Delivery", "Technology Delivery & Change"],
+    "agent_skill": "acord-data-standards-compliance"
+  },
+  "scope": {
+    "applies_to": ["Internal data fields in exchange-bound entities"],
+    "in_scope_systems": ["Schema Registry", "Document Repository", "Policy Admin"],
+    "assessment_cycle": "2026-Q2",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Quarterly",
+  "control_owner": {
+    "primary_role": "Data Architect",
+    "supporting_roles": ["Data Steward"],
+    "approval_role": "Enterprise Architect"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Mapping Specs (Confluence)",
+      "system_type": "Document Repository",
+      "authoritative": true,
+      "access_method": "Confluence",
+      "connector_ref": "docs.confluence",
+      "system_of_record": "Confluence Mapping Space",
+      "location_uri": "https://meridian.atlassian.net/wiki/spaces/ACORD/mapping-specs",
+      "refresh_cadence": "Quarterly"
+    },
+    {
+      "source_name": "Schema Registry",
+      "system_type": "Schema Registry",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "schema.registry",
+      "system_of_record": "Confluent Schema Registry",
+      "location_uri": "https://schema-registry.meridian.internal/subjects",
+      "refresh_cadence": "Continuous"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "internal_field_definition", "business_definition": "An internal data field registered in the schema registry for an exchange-bound entity.", "source_name": "Schema Registry", "grain": "field", "data_type": "record", "required": true },
+    { "field_name": "acord_dictionary_mapping", "business_definition": "The documented mapping from an internal field to its ACORD data-dictionary element.", "source_name": "Mapping Specs (Confluence)", "grain": "field", "data_type": "record", "required": true }
+  ],
+  "method": {
+    "summary": "Reconcile registered internal fields against documented ACORD data-dictionary mappings and flag any unmapped field.",
+    "steps": [
+      "Enumerate internal fields for exchange-bound entities from the schema registry.",
+      "Load the documented ACORD data-dictionary mappings from the mapping specifications.",
+      "Identify internal fields with no ACORD data-dictionary mapping.",
+      "Compute dictionary mapping coverage as a percentage of internal fields."
+    ],
+    "fallback_logic": "If either source is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any unmapped internal field weakens canonical semantics across exchanges.",
+    "pass_tolerance": "0 unmapped internal fields",
+    "warning_threshold": "Any internal field lacking an ACORD mapping",
+    "escalation_threshold": "Mapping coverage below the agreed canonical baseline"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["Every internal field maps to an ACORD element.", "Full data-dictionary mapping coverage is achieved."],
+    "warning_criteria": ["Some internal fields are not yet mapped to the ACORD data dictionary."],
+    "fail_criteria": ["Mapping evidence cannot be produced for the field population."],
+    "exception_handling": ["Open a data-dictionary mapping gap issue.", "Author the missing mappings and re-test."]
+  },
+  "validation": {
+    "assertion_id": "ACORD-DICT-01-A",
+    "automation_level": "Partial",
+    "check_type": "presence",
+    "test_script": "tests/ACORD-DICT-01.test.mjs",
+    "assertions": [
+      { "metric": "unmapped_internal_fields", "operator": "eq", "value": 0, "severity": "warn", "description": "Every internal field maps to an ACORD element." },
+      { "metric": "dictionary_mapping_coverage_pct", "operator": "gte", "value": 100, "severity": "warn", "description": "Full data-dictionary mapping coverage." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["mapping_specification", "coverage_report"],
+    "evidence_repository": "confluence://controls/acord/data-dictionary",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": true,
+    "target_artifact_types": ["Canonical Model Mapping"],
+    "target_systems": ["Data Governance"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each quarter as the canonical model evolves."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open data-dictionary mapping gap issue", "Notify Data Architect and Data Steward"],
+    "issue_ticket_type": "ACORD Conformance Issue",
+    "notification_roles": ["Data Architect", "Data Steward"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of field population", "Mapping coverage", "Evidence integrity"]
+  },
+  "tags": ["acord", "data-dictionary", "mapping", "canonical"],
+  "status": "Active",
+  "version": "1.0.0"
+}

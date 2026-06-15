@@ -1,0 +1,121 @@
+{
+  "control_id": "ACORD-FORM-01",
+  "control_name": "Certificates of insurance use the current ACORD 25 form",
+  "framework": "ACORD",
+  "control_family": "Forms",
+  "domain": "Certificate Forms Governance",
+  "control_objective": "Every certificate of liability insurance issued uses the current revision of the standard ACORD 25 form, so that certificate holders, agencies, and carriers exchange legally compliant, up-to-date certificates.",
+  "risk_addressed": "Certificates issued on superseded or non-standard ACORD 25 revisions can omit required disclosures and carry stale legal language, exposing the organization to regulatory findings, certificate-holder disputes, and E&O claims.",
+  "regulatory_mapping": {
+    "framework": "ACORD",
+    "citation": ["ACORD Forms", "ACORD 25 (Certificate of Liability Insurance)"],
+    "owner_role": "Data Architect",
+    "sdlc_gates": ["Design", "Run"],
+    "applies_to_value_streams": ["Technology Strategy, Architecture & Delivery", "Technology Delivery & Change"],
+    "agent_skill": "acord-data-standards-compliance"
+  },
+  "scope": {
+    "applies_to": ["Certificates of liability insurance"],
+    "in_scope_systems": ["Forms Library (SharePoint)", "Policy Admin System"],
+    "assessment_cycle": "2026-Q2",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Preventive / Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Quarterly",
+  "control_owner": {
+    "primary_role": "Data Architect",
+    "supporting_roles": ["Forms Administrator"],
+    "approval_role": "Enterprise Architect"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Forms Library (SharePoint)",
+      "system_type": "Document Repository",
+      "authoritative": true,
+      "access_method": "SharePoint",
+      "connector_ref": "docs.sharepoint",
+      "system_of_record": "Enterprise Forms Library",
+      "location_uri": "https://sharepoint.meridian.example/sites/forms/acord",
+      "refresh_cadence": "On change"
+    },
+    {
+      "source_name": "Policy Admin System",
+      "system_type": "Policy Admin",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "policy.admin",
+      "system_of_record": "Policy Administration System",
+      "location_uri": "https://policyadmin.meridian.example/api/v1/certificates",
+      "refresh_cadence": "Daily"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "coi_form_revision", "business_definition": "The ACORD 25 form revision used to issue a certificate of insurance.", "source_name": "Policy Admin System", "grain": "certificate", "data_type": "string", "required": true },
+    { "field_name": "current_acord25_revision", "business_definition": "The current ACORD 25 revision registered in the forms library.", "source_name": "Forms Library (SharePoint)", "grain": "form", "data_type": "string", "required": true }
+  ],
+  "method": {
+    "summary": "Compare the ACORD 25 revision used on issued certificates against the current revision in the forms library, counting non-current issuances and computing the share of COIs using the standard ACORD 25 form.",
+    "steps": [
+      "Resolve the current ACORD 25 revision from the forms library.",
+      "Pull issued certificates from policy administration over the period.",
+      "Compare each certificate's form revision against the current revision.",
+      "Count non-current form issuances and compute the percentage of COIs using ACORD 25."
+    ],
+    "sampling_rule": "Assess all certificates issued in the assessment period.",
+    "fallback_logic": "If the forms library or policy admin source is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any certificate issued on a non-current ACORD 25 revision is a forms-governance exception.",
+    "pass_tolerance": "0 non-current form issuances",
+    "warning_threshold": "Fewer than 100% of COIs use the standard ACORD 25 form",
+    "escalation_threshold": "1 or more non-current form issuances"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["No certificates issued on a non-current ACORD 25 revision.", "All COIs use the standard ACORD 25 form."],
+    "warning_criteria": ["Fewer than 100% of COIs use the standard ACORD 25 form."],
+    "fail_criteria": ["One or more certificates issued on a non-current ACORD 25 revision."],
+    "exception_handling": ["Open a forms-governance issue.", "Retire the superseded revision from issuance and reissue affected certificates."]
+  },
+  "validation": {
+    "assertion_id": "ACORD-FORM-01-A",
+    "automation_level": "Full",
+    "check_type": "presence",
+    "test_script": "tests/ACORD-FORM-01.test.mjs",
+    "assertions": [
+      { "metric": "noncurrent_form_issuances", "operator": "eq", "value": 0, "severity": "fail", "description": "No certificates issued on a non-current ACORD 25 revision." },
+      { "metric": "coi_uses_acord25_pct", "operator": "gte", "value": 100, "severity": "warn", "description": "All COIs use the standard ACORD 25 form." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["forms_inventory", "coi_sample_set"],
+    "evidence_repository": "sharepoint://standards/acord/forms",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": false,
+    "target_artifact_types": ["Forms Compliance Attestation"],
+    "target_systems": ["Forms Library"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each quarter against the latest ACORD 25 revision."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open forms-governance issue", "Notify Data Architect and Forms Administrator"],
+    "issue_ticket_type": "Forms Governance Defect",
+    "notification_roles": ["Data Architect", "Forms Administrator"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of certificate population", "ACORD 25 revision currency", "Evidence integrity"]
+  },
+  "tags": ["acord", "forms", "acord-25", "certificate-of-insurance"],
+  "status": "Active",
+  "version": "1.0.0"
+}
