@@ -15,7 +15,7 @@ Two layers work together here:
 | `skills/gdpr-sdlc-compliance/` | `gdpr-sdlc-compliance` | Information Security › Data Privacy (GDPR) | 21 | DPO / ISO Security Architect | skill |
 | `skills/ccpa-cpra-sdlc-compliance/` | `ccpa-cpra-sdlc-compliance` | Information Security › Data Privacy (CCPA/CPRA) | 22 | Privacy Officer / ISO Security Architect | skill |
 | `skills/nydfs-500-sdlc-compliance/` | `nydfs-500-sdlc-compliance` | Information Security › NYDFS 23 NYCRR 500 | 22 | CISO / ISO Security Architect | skill |
-| `skills/sox-itgc-sdlc-compliance/` | `sox-itgc-sdlc-compliance` | Finance & Accounting › Sarbanes-Oxley (ITGC & ICFR) | 15 | CFO / Controller; CISO | skill **+ control library** |
+| `skills/sox-itgc-sdlc-compliance/` | `sox-itgc-sdlc-compliance` | Finance & Accounting › Sarbanes-Oxley (ITGC & ICFR) | 16 | CFO / Controller; CISO | skill **+ control library** |
 | `skills/acord-data-standards-compliance/` | `acord-data-standards-compliance` | Enterprise & Solution Architecture › ACORD Data Standards | 12 | CTO / Enterprise Architect | skill **+ control library** |
 
 The first three are SDLC-skill-only. **SOX** and **ACORD** additionally carry a full control library

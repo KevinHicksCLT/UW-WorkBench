@@ -8,7 +8,7 @@
 
 | Controls | Passed | Warning | Failed | Automation coverage | Evidence coverage | Open issues |
 |---|---|---|---|---|---|---|
-| 15 | 12 | 2 | 1 | 87% | 98% | 3 |
+| 16 | 13 | 2 | 1 | 88% | 98% | 3 |
 
 ## ✅ SOX-APP-01 — Automated premium-to-GL posting is complete and accurate
 
@@ -109,6 +109,32 @@
 
   **Open issue ISS-SOX-ELC-404-01-2026-Q2** (Medium) — Observed 96 violates gte 100; Observed 2 violates eq 0
   - Downstream impact: No downstream artifacts blocked.
+
+## ✅ SOX-ELC-404-02 — Control-deficiency remediation is tracked to closure with owner and due date
+
+- **Family / framework:** Entity-Level — SOX
+- **Citation:** SOX 404; PCAOB AS 2201; COSO Principle 17 (evaluates and communicates deficiencies)
+- **Objective:** Every open control-deficiency remediation item is tracked in the issue system with an accountable owner, a priority, and a committed due date, and none are overdue, so that identified ICFR weaknesses are demonstrably driven to closure.
+- **Owner:** SOX Program Manager (approver: Controller)
+- **Frequency / type:** Monthly · Detective · automation: Full
+- **Run status:** Passed
+
+  **Assertions tested**
+
+  | Test | Actual | Operator | Threshold | Result |
+  |---|---|---|---|---|
+  | Every open remediation item has an accountable owner. | 0 | eq | 0 | Pass |
+  | Every open remediation item has a committed due date. | 0 | eq | 0 | Pass |
+  | No remediation item is overdue. | 0 | eq | 0 | Pass |
+  | Every open remediation item is prioritized. | 0 | eq | 0 | Pass |
+
+  **Evidence**
+
+  - remediation_register_export: `sharepoint://controls/sox/entity-level/SOX-ELC-404-02/remediation_register_export` (immutable)
+  - owner_assignment_log: `sharepoint://controls/sox/entity-level/SOX-ELC-404-02/owner_assignment_log` (immutable)
+  - due_date_report: `sharepoint://controls/sox/entity-level/SOX-ELC-404-02/due_date_report` (immutable)
+  - Source systems: Remediation Tracker (Linear) [MCP]
+  - Retention: 7 years
 
 ## ✅ SOX-ITGC-AC-01 — Access provisioning is approved before grant
 

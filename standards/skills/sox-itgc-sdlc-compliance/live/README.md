@@ -1,8 +1,13 @@
-# Live evidence — SOX-ITGC-CM-02 bound to a real source
+# Live evidence — controls bound to real sources
 
-This folder holds the output of binding **SOX-ITGC-CM-02** ("developers cannot approve or deploy
-their own changes") to a **live source** instead of a synthetic fixture — a worked example of the
-acquire → evaluate → evidence → surface-debt loop running against real data.
+This folder holds worked examples of binding controls to **live sources** instead of synthetic
+fixtures — the acquire → evaluate → evidence → surface-debt loop running against real data. Two
+bindings ship here:
+
+- **SOX-ITGC-CM-02** → local **Git** history (SCM/Git).
+- **SOX-ELC-404-02** → **Linear** via the Linear **MCP** (ITSM) — see the section at the bottom.
+
+## SOX-ITGC-CM-02 ("developers cannot approve or deploy their own changes") → Git
 
 ## What's here
 
@@ -48,3 +53,34 @@ GH_TOKEN=<token> node standards/control-framework/cli/collect-git.mjs sox SOX-IT
 
 (In production this is the **GitHub MCP** server — same data, no token handling. The connector is
 catalogued as `scm.github` in `control-framework/source-connectors.md`.)
+
+---
+
+## SOX-ELC-404-02 ("remediation tracked to closure with owner and due date") → Linear (MCP)
+
+A second live binding, this time to an **authenticated MCP** rather than git.
+
+| File | What it is |
+|---|---|
+| `SOX-ELC-404-02.linear-raw.json` | Immutable capture of the Linear `list_issues` result (the raw evidence as returned by the MCP). |
+| `SOX-ELC-404-02.snapshot.json` | Derived evidence snapshot: per-item owner / due-date / priority + provenance. |
+| `SOX-ELC-404-02.live-run.json` | The schema-valid control run produced from the live data. |
+
+How it was produced (the agent performs the MCP acquisition; the deterministic transform is code):
+
+```bash
+# 1. Agent calls the Linear MCP (list_issues) and captures the result to
+#    live/SOX-ELC-404-02.linear-raw.json  (the immutable evidence)
+# 2. Derive metrics + live fixture from that capture:
+node standards/control-framework/cli/collect-linear.mjs sox SOX-ELC-404-02
+# 3. Evaluate:
+node standards/control-framework/cli/run-one.mjs sox SOX-ELC-404-02 fixtures/SOX-ELC-404-02.live.fixture.json
+```
+
+Collector: [`control-framework/lib/collectors/linear-remediation.mjs`](../../../control-framework/lib/collectors/linear-remediation.mjs)
+(`deriveMetrics()` is pure and unit-tested). Connector: `itsm.linear`.
+
+**The real finding:** the live Linear workspace has 4 open items, **none with an owner, priority, or
+due date** → the control **fails** (`items_without_owner = 4`, `items_without_due_date = 4`),
+opening an issue and blocking the downstream §404 assessment. An honest deficiency-tracking gap,
+evidenced straight from the authenticated MCP.

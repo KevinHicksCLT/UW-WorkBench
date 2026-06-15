@@ -27,6 +27,7 @@ Confluence · Cowork · EDI · SFTP · File · Manual Upload · BI Extract · Ot
 | `iam.ad` | Active Directory | SQL | — | group membership, privileged-group deltas |
 | `itsm.servicenow` | ServiceNow | API | ServiceNow | change records, approvals, CAB minutes, incidents |
 | `itsm.jira` | Jira | MCP | Atlassian | change/issue tickets, approval transitions, releases |
+| `itsm.linear` | Linear | MCP | Linear | remediation/issue records, owner & due-date fields, status transitions, SLA timers |
 | `scm.github` | GitHub | Git | GitHub | PR approvals, branch protection, merges, CODEOWNERS, CI logs |
 | `cicd.pipeline` | CI/CD pipeline | API | — | build/deploy logs, gate results, artifact provenance |
 | `gl.erp` | General Ledger / ERP | SQL | — | journal entries, reconciliations, posting logs, control totals |

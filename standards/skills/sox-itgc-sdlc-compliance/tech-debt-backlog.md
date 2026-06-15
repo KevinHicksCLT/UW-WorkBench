@@ -1,6 +1,6 @@
 # Technical-Debt Backlog — SOX
 
-Generated 2026-06-30T02:00:00Z by the Cascade Control Framework from 15 controls.
+Generated 2026-06-30T02:00:00Z by the Cascade Control Framework from 16 controls.
 **7 debt items** — Critical: 1, High: 2, Medium: 2, Low: 2.
 
 Each item is a concrete, ownable unit of work that, once closed, raises automation or evidence coverage and moves a control from "asserted" to "continuously evidenced".

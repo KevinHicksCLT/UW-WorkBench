@@ -16,6 +16,7 @@ export const CONNECTORS = {
   // ── ITSM / change ────────────────────────────────────────────────────
   'itsm.servicenow': { label: 'ServiceNow', access_method: 'API', mcp: 'servicenow-mcp', evidence: ['change records', 'approvals', 'CAB minutes', 'incident tickets'] },
   'itsm.jira': { label: 'Jira', access_method: 'MCP', mcp: 'atlassian', evidence: ['change/issue tickets', 'approval transitions', 'release tickets'] },
+  'itsm.linear': { label: 'Linear', access_method: 'MCP', mcp: 'linear', evidence: ['remediation/issue records', 'owner & due-date fields', 'status transitions', 'SLA timers'] },
 
   // ── Source control / CI-CD ───────────────────────────────────────────
   'scm.github': { label: 'GitHub', access_method: 'Git', mcp: 'github', evidence: ['PR approvals', 'branch protection', 'merge history', 'CODEOWNERS', 'CI run logs'] },

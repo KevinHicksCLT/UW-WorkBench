@@ -38,6 +38,14 @@
       "automation_level": "Partial"
     },
     {
+      "control_id": "SOX-ELC-404-02",
+      "control_name": "Control-deficiency remediation is tracked to closure with owner and due date",
+      "control_family": "Entity-Level",
+      "version": "1.0.0",
+      "status": "Active",
+      "automation_level": "Full"
+    },
+    {
       "control_id": "SOX-ITGC-AC-01",
       "control_name": "Access provisioning is approved before grant",
       "control_family": "ITGC-Access",
@@ -788,6 +796,182 @@
         "retest_required": true,
         "retest_run_id": ""
       }
+    },
+    {
+      "run_id": "run-SOX-ELC-404-02-2026-Q2",
+      "control_reference": {
+        "control_id": "SOX-ELC-404-02",
+        "control_name": "Control-deficiency remediation is tracked to closure with owner and due date",
+        "control_version": "1.0.0",
+        "framework": "SOX",
+        "control_family": "Entity-Level",
+        "execution_mode": "AI Validate"
+      },
+      "run_status": "Passed",
+      "execution": {
+        "started_at": "2026-06-30T02:00:00Z",
+        "completed_at": "2026-06-30T02:00:00Z",
+        "duration_seconds": 0,
+        "executor_identity": {
+          "executor_type": "AI Agent",
+          "name_or_service_id": "transform-control-runner",
+          "orchestrator": "Cascade Control Framework",
+          "model_or_tool_version": "run-control-v1"
+        },
+        "environment": {
+          "environment_name": "Demo",
+          "tenant_or_workspace": "Meridian Insurance Group"
+        }
+      },
+      "input_context": {
+        "assessment_cycle": "2026-Q2",
+        "as_of_date": "2026-06-30",
+        "scope_note": "Every open control-deficiency remediation item is tracked in the issue system with an accountable owner, a priority, and a committed due date, and none are overdue, so that identified ICFR weaknesses are demonstrably driven to closure.",
+        "dataset_snapshots": [
+          {
+            "source_name": "Remediation Tracker (Linear)",
+            "snapshot_id": "snap-SOX-ELC-404-02-2026-Q2-1",
+            "access_method": "MCP",
+            "location_uri": "https://linear.app/kevin-hicks",
+            "extract_timestamp": "2026-06-30T02:00:00Z",
+            "available": true
+          }
+        ]
+      },
+      "calculated_metrics": [
+        {
+          "metric_name": "remediation_items_total",
+          "metric_value": 9
+        },
+        {
+          "metric_name": "items_without_owner",
+          "metric_value": 0
+        },
+        {
+          "metric_name": "items_without_priority",
+          "metric_value": 0
+        },
+        {
+          "metric_name": "items_without_due_date",
+          "metric_value": 0
+        },
+        {
+          "metric_name": "overdue_items",
+          "metric_value": 0
+        }
+      ],
+      "threshold_comparison": [
+        {
+          "test_name": "Every open remediation item has an accountable owner.",
+          "metric_name": "items_without_owner",
+          "actual_value": 0,
+          "threshold_operator": "eq",
+          "threshold_value": 0,
+          "severity": "fail",
+          "status": "Pass",
+          "rationale": "Within tolerance"
+        },
+        {
+          "test_name": "Every open remediation item has a committed due date.",
+          "metric_name": "items_without_due_date",
+          "actual_value": 0,
+          "threshold_operator": "eq",
+          "threshold_value": 0,
+          "severity": "fail",
+          "status": "Pass",
+          "rationale": "Within tolerance"
+        },
+        {
+          "test_name": "No remediation item is overdue.",
+          "metric_name": "overdue_items",
+          "actual_value": 0,
+          "threshold_operator": "eq",
+          "threshold_value": 0,
+          "severity": "fail",
+          "status": "Pass",
+          "rationale": "Within tolerance"
+        },
+        {
+          "test_name": "Every open remediation item is prioritized.",
+          "metric_name": "items_without_priority",
+          "actual_value": 0,
+          "threshold_operator": "eq",
+          "threshold_value": 0,
+          "severity": "warn",
+          "status": "Pass",
+          "rationale": "Within tolerance"
+        }
+      ],
+      "evidence_links": [
+        {
+          "artifact_type": "remediation_register_export",
+          "artifact_id": "SOX-ELC-404-02-2026-Q2-ev1",
+          "artifact_name": "remediation register export",
+          "repository": "sharepoint://controls/sox/entity-level",
+          "uri": "sharepoint://controls/sox/entity-level/SOX-ELC-404-02/remediation_register_export",
+          "created_at": "2026-06-30T02:00:00Z",
+          "immutable": true,
+          "present": true
+        },
+        {
+          "artifact_type": "owner_assignment_log",
+          "artifact_id": "SOX-ELC-404-02-2026-Q2-ev2",
+          "artifact_name": "owner assignment log",
+          "repository": "sharepoint://controls/sox/entity-level",
+          "uri": "sharepoint://controls/sox/entity-level/SOX-ELC-404-02/owner_assignment_log",
+          "created_at": "2026-06-30T02:00:00Z",
+          "immutable": true,
+          "present": true
+        },
+        {
+          "artifact_type": "due_date_report",
+          "artifact_id": "SOX-ELC-404-02-2026-Q2-ev3",
+          "artifact_name": "due date report",
+          "repository": "sharepoint://controls/sox/entity-level",
+          "uri": "sharepoint://controls/sox/entity-level/SOX-ELC-404-02/due_date_report",
+          "created_at": "2026-06-30T02:00:00Z",
+          "immutable": true,
+          "present": true
+        }
+      ],
+      "approval": {
+        "approval_required": true,
+        "approver": {
+          "approver_role": "Controller",
+          "approval_status": "Approved"
+        },
+        "override": {
+          "override_applied": false
+        }
+      },
+      "downstream_artifacts": [
+        {
+          "artifact_type": "404 Assessment",
+          "artifact_id": "assess-2026Q2-elc40402",
+          "artifact_name": "assess-2026Q2-elc40402",
+          "target_system": "GRC",
+          "link_status": "Linked",
+          "staleness_check_result": "Current"
+        }
+      ],
+      "audit_trail": {
+        "event_log": [
+          {
+            "event_time": "2026-06-30T02:00:00Z",
+            "event_type": "RUN_STARTED",
+            "actor": "control-runner",
+            "description": "Run started for SOX-ELC-404-02"
+          },
+          {
+            "event_time": "2026-06-30T02:00:00Z",
+            "event_type": "RUN_PASSED",
+            "actor": "control-runner",
+            "description": "Run passed (0 of 4 assertions not passing)"
+          }
+        ],
+        "immutable_log_reference": "ledger://controls/SOX/SOX-ELC-404-02/2026-Q2"
+      },
+      "notes": "Control passed; evidence captured."
     },
     {
       "run_id": "run-SOX-ITGC-AC-01-2026-Q2",
@@ -2704,6 +2888,33 @@
       "present": true
     },
     {
+      "artifact_id": "SOX-ELC-404-02-2026-Q2-ev1",
+      "control_id": "SOX-ELC-404-02",
+      "run_id": "run-SOX-ELC-404-02-2026-Q2",
+      "artifact_type": "remediation_register_export",
+      "repository": "sharepoint://controls/sox/entity-level",
+      "uri": "sharepoint://controls/sox/entity-level/SOX-ELC-404-02/remediation_register_export",
+      "present": true
+    },
+    {
+      "artifact_id": "SOX-ELC-404-02-2026-Q2-ev2",
+      "control_id": "SOX-ELC-404-02",
+      "run_id": "run-SOX-ELC-404-02-2026-Q2",
+      "artifact_type": "owner_assignment_log",
+      "repository": "sharepoint://controls/sox/entity-level",
+      "uri": "sharepoint://controls/sox/entity-level/SOX-ELC-404-02/owner_assignment_log",
+      "present": true
+    },
+    {
+      "artifact_id": "SOX-ELC-404-02-2026-Q2-ev3",
+      "control_id": "SOX-ELC-404-02",
+      "run_id": "run-SOX-ELC-404-02-2026-Q2",
+      "artifact_type": "due_date_report",
+      "repository": "sharepoint://controls/sox/entity-level",
+      "uri": "sharepoint://controls/sox/entity-level/SOX-ELC-404-02/due_date_report",
+      "present": true
+    },
+    {
       "artifact_id": "SOX-ITGC-AC-01-2026-Q2-ev1",
       "control_id": "SOX-ITGC-AC-01",
       "run_id": "run-SOX-ITGC-AC-01-2026-Q2",
@@ -3051,12 +3262,12 @@
     }
   ],
   "summary": {
-    "total_controls": 15,
-    "passed": 12,
+    "total_controls": 16,
+    "passed": 13,
     "warned": 2,
     "failed": 1,
     "not_run": 0,
-    "automation_coverage_pct": 87,
+    "automation_coverage_pct": 88,
     "evidence_coverage_pct": 98,
     "open_issues": 3,
     "technical_debt_items": 7
