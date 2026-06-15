@@ -37,7 +37,7 @@ const classifyType = (n: string) => /report|opinion|assessment|summary|analysis|
 const NOTES = 'Added from external industry research (deep-research, 2026-06-11)';
 
 async function main() {
-  const data = JSON.parse(readFileSync(new URL('../../vs-research-final.json', import.meta.url), 'utf8'));
+  const data = JSON.parse(readFileSync(new URL('../../documents/vs-research-final.json', import.meta.url), 'utf8'));
   const additions: Addition[] = data.additions;
   const company = await prisma.company.findFirst({ select: { id: true, tenantId: true } });
   if (!company) throw new Error('No company');

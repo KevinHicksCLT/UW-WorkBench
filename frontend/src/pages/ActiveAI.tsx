@@ -64,10 +64,12 @@ const fmtMonth = (d: string | null) =>
 // Compact headline stat — small padding/type (D6.2: no oversized boxes).
 function Stat({ label, value, hint, color }: { label: string; value: string | number; hint?: string; color?: string }) {
   return (
-    <div className="card-elevated px-3 py-2">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</div>
-      <div className="text-lg font-semibold tnum leading-snug" style={{ color: color ?? '#171717' }}>{value}</div>
-      {hint && <div className="text-[10px] text-[#a3a3a3]">{hint}</div>}
+    <div className="card-elevated px-3 py-1.5 flex items-baseline gap-2 flex-wrap">
+      <span className="text-lg font-semibold tnum leading-snug" style={{ color: color ?? '#171717' }}>{value}</span>
+      <span className="min-w-0">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</span>
+        {hint && <span className="text-[10px] text-[#a3a3a3]"> · {hint}</span>}
+      </span>
     </div>
   );
 }
@@ -129,13 +131,13 @@ export default function ActiveAI() {
       />
 
       {/* Sub-view switcher — AI adoption vs the trackable-signal catalog. */}
-      <div className="border-b border-[#eaeaea] mb-4 flex gap-1">
+      <div className="border-b border-[#eaeaea] mb-2.5 flex gap-1">
         {([['adoption', 'AI Adoption'], ['signals', 'Trackable Metrics']] as const).map(([v, label]) => (
           <button
             key={v}
             onClick={() => setView(v)}
             className={
-              'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors duration-150 ' +
+              'px-4 py-1.5 text-sm font-medium border-b-2 -mb-px transition-colors duration-150 ' +
               (view === v ? 'text-[#171717] border-[#171717]' : 'text-[#a3a3a3] border-transparent hover:text-[#525252]')
             }
           >
@@ -153,11 +155,11 @@ export default function ActiveAI() {
       ) : (
       <>
       {/* ── Stage 1 · Analysis coverage ──────────────────────────────────────── */}
-      <div className="card-elevated overflow-hidden mb-4">
-        <div className="px-4 py-2.5 border-b border-[#eaeaea]">
+      <div className="card-elevated overflow-hidden mb-2.5">
+        <div className="px-4 py-1.5 border-b border-[#eaeaea] flex items-baseline gap-2 flex-wrap">
           <h2 className="text-sm font-semibold text-[#171717]">Stage 1 · Analysis coverage</h2>
-          <p className="text-[11px] text-[#666666] mt-0.5">
-            Before adoption comes analysis — how much of the operating model has been assessed for AI opportunity, and whether the remaining work is on plan.
+          <p className="text-[11px] text-[#666666] min-w-0 truncate" title="In-progress fill shows analyses underway. Analysis status per value stream / org group / role is edited in Data Admin → Analysis Status.">
+            How much of the operating model has been assessed for AI opportunity, and whether the remaining work is on plan.
           </p>
         </div>
         <table className="w-full border-collapse">
@@ -174,17 +176,17 @@ export default function ActiveAI() {
           <tbody>
             {(summary?.coverage ?? []).map((c) => (
               <tr key={c.type} className="border-b border-[#f5f5f5] last:border-0">
-                <td className="px-4 py-2 text-sm font-medium text-[#171717]">{c.label}</td>
-                <td className="px-2 py-2 text-sm text-[#525252] tnum whitespace-nowrap">{c.complete}/{c.total}</td>
-                <td className="px-2 py-2">
+                <td className="px-4 py-1 text-sm font-medium text-[#171717]">{c.label}</td>
+                <td className="px-2 py-1 text-sm text-[#525252] tnum whitespace-nowrap">{c.complete}/{c.total}</td>
+                <td className="px-2 py-1">
                   <div className="h-3 rounded bg-[#f5f5f5] overflow-hidden flex" title={`${c.complete} complete · ${c.inProgress} in progress · ${c.notStarted} not started`}>
                     <div style={{ width: `${(100 * c.complete) / Math.max(1, c.total)}%`, backgroundColor: '#16a34a' }} />
                     <div style={{ width: `${(100 * c.inProgress) / Math.max(1, c.total)}%`, backgroundColor: '#bbf7d0' }} />
                   </div>
                 </td>
-                <td className="px-2 py-2 text-sm text-[#171717] tnum text-right">{c.pctComplete}%</td>
-                <td className="px-2 py-2 text-sm text-[#525252] tnum text-right whitespace-nowrap">{fmtMonth(c.expectedFinish)}</td>
-                <td className="px-4 py-2 text-right">
+                <td className="px-2 py-1 text-sm text-[#171717] tnum text-right">{c.pctComplete}%</td>
+                <td className="px-2 py-1 text-sm text-[#525252] tnum text-right whitespace-nowrap">{fmtMonth(c.expectedFinish)}</td>
+                <td className="px-4 py-1 text-right">
                   {c.onPlan ? (
                     <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ backgroundColor: '#bbf7d0', color: '#15803d' }}>On plan</span>
                   ) : (
@@ -197,18 +199,15 @@ export default function ActiveAI() {
             ))}
           </tbody>
         </table>
-        <p className="px-4 py-1.5 text-[10px] text-[#a3a3a3] border-t border-[#f5f5f5]">
-          In-progress fill shows analyses underway. Analysis status per value stream / org group / role is edited in Data Admin → Analysis Status.
-        </p>
       </div>
 
       {/* ── Stage 2 · AI adoption ────────────────────────────────────────────── */}
-      <div className="card-elevated overflow-hidden mb-4">
-        <div className="px-4 py-2.5 border-b border-[#eaeaea] flex items-center justify-between gap-4 flex-wrap">
-          <div>
+      <div className="card-elevated overflow-hidden mb-2.5">
+        <div className="px-4 py-1.5 border-b border-[#eaeaea] flex items-baseline justify-between gap-4 flex-wrap">
+          <div className="flex items-baseline gap-2 flex-wrap min-w-0">
             <h2 className="text-sm font-semibold text-[#171717]">Stage 2 · AI adoption</h2>
-            <p className="text-[11px] text-[#666666] mt-0.5">
-              What happened to the work after analysis — of {summary?.adoption.totalTasks.toLocaleString() ?? 0} tasks, how many were automated, AI-augmented or discarded outright.
+            <p className="text-[11px] text-[#666666] min-w-0 truncate" title="Computed from the canonical Task table (aiDisposition per task) — the same rows as Deliverables & Tasks; edited in Data Admin → Task.">
+              Of {summary?.adoption.totalTasks.toLocaleString() ?? 0} tasks, how many were automated, AI-augmented or discarded outright.
             </p>
           </div>
           <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
@@ -222,7 +221,7 @@ export default function ActiveAI() {
         </div>
 
         {/* Compact headline stats (D6.2) */}
-        <div className="px-4 py-3 grid grid-cols-2 sm:grid-cols-4 gap-2 border-b border-[#f5f5f5]">
+        <div className="px-4 py-2 grid grid-cols-2 sm:grid-cols-4 gap-2 border-b border-[#f5f5f5]">
           <Stat label="Tasks automated" value={`${summary?.adoption.pct.automated ?? 0}%`} hint={`${summary?.adoption.counts.automated.toLocaleString()} tasks`} color="#15803d" />
           <Stat label="Tasks discarded" value={`${summary?.adoption.pct.discarded ?? 0}%`} hint={`${summary?.adoption.counts.discarded.toLocaleString()} eliminated`} color="#b45309" />
           <Stat label="AI augmented" value={`${summary?.adoption.pct.augmented ?? 0}%`} hint={`${summary?.adoption.counts.augmented.toLocaleString()} tasks`} />
@@ -230,13 +229,13 @@ export default function ActiveAI() {
         </div>
 
         {/* Breakdown dimension switcher */}
-        <div className="px-4 pt-2 flex gap-1 flex-wrap border-b border-[#f5f5f5]">
+        <div className="px-4 pt-1 flex gap-1 flex-wrap border-b border-[#f5f5f5]">
           {DIMENSIONS.map(([key, label]) => (
             <button
               key={key}
               onClick={() => setDimension(key)}
               className={
-                'px-3 py-1.5 text-[11px] font-medium border-b-2 -mb-px transition-colors duration-150 ' +
+                'px-3 py-1 text-[11px] font-medium border-b-2 -mb-px transition-colors duration-150 ' +
                 (dimension === key ? 'text-[#171717] border-[#171717]' : 'text-[#a3a3a3] border-transparent hover:text-[#525252]')
               }
             >
@@ -272,9 +271,6 @@ export default function ActiveAI() {
             <div className="py-6 text-sm text-[#a3a3a3] italic">No assessed tasks yet for this breakdown.</div>
           )}
         </div>
-        <p className="px-4 py-1.5 text-[10px] text-[#a3a3a3] border-t border-[#f5f5f5]">
-          Computed from the canonical Task table (aiDisposition per task) — the same rows as Deliverables &amp; Tasks; edited in Data Admin → Task.
-        </p>
       </div>
 
       {/* ── Value-stream × AI-mode heat map ────────────────────────────────── */}

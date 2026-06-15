@@ -23,7 +23,7 @@ import { prisma } from '../src/db/prisma.js';
 import { buildRoleResolver, resolveRoleCell } from '../src/lib/roleMatch.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const WORKBOOK = process.argv[2] || resolve(HERE, '../../AI Transformation Bridge Input.xlsx');
+const WORKBOOK = process.argv[2] || resolve(HERE, '../../documents/AI Transformation Bridge Input.xlsx');
 const SPINE = resolve(HERE, '../data/seed/spine.json');
 
 const wb = XLSX.read(readFileSync(WORKBOOK), { cellDates: true });

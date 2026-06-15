@@ -113,6 +113,11 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         const step = (pool.length > 1 && t.owner
           ? pool.find((s) => cellNames(s.leads).some((n) => norm(n) === norm(t.owner!)))
           : null) ?? pool[0] ?? null;
+        // Role-sourced tasks have no L5 step — fall back to the process of the
+        // deliverable they feed (its source output/deliverable I/O row).
+        const dEntry = !step && t.deliverable?.valueStreamId
+          ? ioByKey.get(`${t.deliverable.valueStreamId}␟${norm(t.deliverable.title)}`)
+          : undefined;
         const p = step ? step.l4 ?? step.l3 : null;
         // Role-sourced tasks have no L5 step; their owner IS the role.
         const stepRoles = step ? [...new Set([...cellNames(step.leads), ...cellNames(step.supporting)])].sort() : [];
@@ -120,10 +125,76 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
           id: t.id, title: t.title, owner: t.owner, status: t.status, priority: t.priority, dueDate: t.dueDate,
           source: t.source, deliverableId: t.deliverableId, deliverableTitle: t.deliverable?.title ?? null,
           roles: stepRoles.length ? stepRoles : (t.owner ? [t.owner] : []),
-          processes: p ? [p] : [],
+          processes: p ? [p] : [...(dEntry?.processes ?? [])].sort(),
         };
       }),
       valueStreams,
+    });
+  } catch (e) { next(e); }
+});
+
+// ── Checklist grain: one row per checklist item ───────────────────────────────
+// Checklist items hang off ROLES (with a category). The Tasks tab's checklist
+// view ties each item to a parent task: the role's task in the same category
+// (falling back to any of the role's tasks), matched back to the seeded Task
+// row by (owner = role name, title = role-task text) — the same identity the
+// work seeder used, so the row can deep-link into the task drill-down.
+router.get('/checklist', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const companyId = await activeCompanyId(req, res);
+    if (!companyId) return;
+    const tenantId = req.tenantId;
+
+    const [items, roleTasks, tasks, valueStreams] = await Promise.all([
+      prisma.checklistItem.findMany({
+        where: { role: { companyId } },
+        select: {
+          id: true, text: true, roleId: true, categoryId: true,
+          role: { select: { name: true } }, category: { select: { name: true } },
+        },
+        orderBy: { id: 'asc' },
+      }),
+      prisma.roleTask.findMany({
+        where: { role: { companyId } },
+        select: { roleId: true, categoryId: true, text: true },
+        orderBy: { id: 'asc' },
+      }),
+      prisma.task.findMany({
+        where: { tenantId, companyId, source: 'role' },
+        select: { id: true, title: true, owner: true, deliverable: { select: { valueStreamId: true } } },
+        orderBy: { createdAt: 'asc' },
+      }),
+      prisma.valueStream.findMany({ where: { companyId }, select: { id: true, name: true } }),
+    ]);
+    const vsName = new Map(valueStreams.map((v) => [v.id, v.name] as const));
+
+    // First role-task text per role+category (then per role) — the parent task.
+    const rtByRoleCat = new Map<string, string>();
+    const rtByRole = new Map<string, string>();
+    for (const rt of roleTasks) {
+      const kc = `${rt.roleId}␟${rt.categoryId ?? ''}`;
+      if (!rtByRoleCat.has(kc)) rtByRoleCat.set(kc, rt.text);
+      if (!rtByRole.has(rt.roleId)) rtByRole.set(rt.roleId, rt.text);
+    }
+    // Seeded Task row per (owner role name, title) — first occurrence wins.
+    const taskByKey = new Map<string, (typeof tasks)[number]>();
+    for (const t of tasks) {
+      const k = `${norm(t.owner ?? '')}␟${norm(t.title)}`;
+      if (!taskByKey.has(k)) taskByKey.set(k, t);
+    }
+
+    res.json({
+      items: items.map((ci) => {
+        const text = rtByRoleCat.get(`${ci.roleId}␟${ci.categoryId ?? ''}`) ?? rtByRole.get(ci.roleId) ?? null;
+        const task = text ? taskByKey.get(`${norm(ci.role.name)}␟${norm(text)}`) ?? null : null;
+        return {
+          id: ci.id, text: ci.text,
+          roleId: ci.roleId, roleName: ci.role.name,
+          category: ci.category?.name ?? null,
+          taskId: task?.id ?? null, taskTitle: task?.title ?? text,
+          valueStreamName: task?.deliverable?.valueStreamId ? vsName.get(task.deliverable.valueStreamId) ?? null : null,
+        };
+      }),
     });
   } catch (e) { next(e); }
 });
@@ -245,6 +316,17 @@ router.get('/task/:id', async (req: Request, res: Response, next: NextFunction) 
     };
     const step = (pool.length > 1 && t.owner ? pool.find(ownerMatch) : null) ?? pool[0] ?? null;
 
+    // Role-sourced tasks have no L5 step — fall back to the process of the
+    // deliverable they feed (its source output/deliverable I/O row).
+    let dIo: { l3: string | null; l4: string | null } | null = null;
+    if (!step && t.deliverable?.valueStreamId) {
+      const cands = await prisma.ioItem.findMany({
+        where: { valueStreamId: t.deliverable.valueStreamId },
+        select: { name: true, type: true, l3: true, l4: true },
+      });
+      dIo = cands.find((io) => /output|deliver/i.test(io.type) && norm(io.name) === norm(t.deliverable!.title)) ?? null;
+    }
+
     const leadRoles = mergeRoles([step?.leads ?? null], resolve);
     const supportRoles = mergeRoles([step?.supporting ?? null], resolve);
     const outputs = splitItems(step?.outputs ?? null);
@@ -266,7 +348,9 @@ router.get('/task/:id', async (req: Request, res: Response, next: NextFunction) 
       kind: 'task',
       id: t.id, title: t.title, owner: t.owner, priority: t.priority, jiraKey: t.jiraKey,
       valueStream: vs,
-      subProcess: step ? [step.l3, step.l4].filter(Boolean).join(' · ') || null : null,
+      subProcess: step
+        ? [step.l3, step.l4].filter(Boolean).join(' · ') || null
+        : dIo ? [dIo.l3, dIo.l4].filter(Boolean).join(' · ') || null : null,
       leadRoles: leadRoles.roles, leadExtra: leadRoles.unresolved,
       supportRoles: supportRoles.roles, supportExtra: supportRoles.unresolved,
       outputs,
