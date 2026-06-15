@@ -1,0 +1,192 @@
+{
+  "run_id": "run-SOX-ITGC-CM-02-LIVE",
+  "control_reference": {
+    "control_id": "SOX-ITGC-CM-02",
+    "control_name": "Developers cannot approve or deploy their own changes",
+    "control_version": "1.0.0",
+    "framework": "SOX",
+    "control_family": "ITGC-Change",
+    "execution_mode": "AI Validate"
+  },
+  "run_status": "Failed",
+  "execution": {
+    "started_at": "2026-06-15T10:14:23.523Z",
+    "completed_at": "2026-06-15T10:14:23.523Z",
+    "duration_seconds": 0,
+    "executor_identity": {
+      "executor_type": "AI Agent",
+      "name_or_service_id": "transform-control-runner",
+      "orchestrator": "Cascade Control Framework",
+      "model_or_tool_version": "run-control-v1"
+    },
+    "environment": {
+      "environment_name": "Demo",
+      "tenant_or_workspace": "KevinHicksCLT/transform-platform"
+    }
+  },
+  "input_context": {
+    "assessment_cycle": "LIVE",
+    "as_of_date": "2026-06-15",
+    "scope_note": "LIVE — local git history @ 778ff8fa694f",
+    "dataset_snapshots": [
+      {
+        "source_name": "Source Control (GitHub)",
+        "snapshot_id": "snap-SOX-ITGC-CM-02-LIVE-1",
+        "access_method": "Git",
+        "location_uri": "https://api.github.com/repos/meridian/{repo}/pulls",
+        "extract_timestamp": "2026-06-15T10:14:23.523Z",
+        "available": true
+      },
+      {
+        "source_name": "Deployment Pipeline",
+        "snapshot_id": "snap-SOX-ITGC-CM-02-LIVE-2",
+        "access_method": "API",
+        "location_uri": "https://api.github.com/repos/meridian/{repo}/deployments",
+        "extract_timestamp": "2026-06-15T10:14:23.523Z",
+        "available": false
+      }
+    ]
+  },
+  "calculated_metrics": [
+    {
+      "metric_name": "production_deploys",
+      "metric_value": 13
+    },
+    {
+      "metric_name": "production_merges",
+      "metric_value": 13
+    },
+    {
+      "metric_name": "self_approved_merges",
+      "metric_value": 13
+    },
+    {
+      "metric_name": "self_deploys",
+      "metric_value": 13
+    },
+    {
+      "metric_name": "distinct_contributors",
+      "metric_value": 1
+    },
+    {
+      "metric_name": "merges_with_independent_approval",
+      "metric_value": 0
+    }
+  ],
+  "threshold_comparison": [
+    {
+      "test_name": "No self-approved merges to protected branches.",
+      "metric_name": "self_approved_merges",
+      "actual_value": 13,
+      "threshold_operator": "eq",
+      "threshold_value": 0,
+      "severity": "fail",
+      "status": "Fail",
+      "rationale": "Observed 13 violates eq 0"
+    },
+    {
+      "test_name": "No author-deployed production releases.",
+      "metric_name": "self_deploys",
+      "actual_value": 13,
+      "threshold_operator": "eq",
+      "threshold_value": 0,
+      "severity": "fail",
+      "status": "Fail",
+      "rationale": "Observed 13 violates eq 0"
+    }
+  ],
+  "evidence_links": [
+    {
+      "artifact_type": "branch_protection_config",
+      "artifact_id": "SOX-ITGC-CM-02-LIVE-ev1",
+      "artifact_name": "branch protection config",
+      "repository": "sharepoint://controls/sox/itgc-change",
+      "uri": "sharepoint://controls/sox/itgc-change/SOX-ITGC-CM-02/branch_protection_config",
+      "created_at": "2026-06-15T10:14:23.523Z",
+      "immutable": true,
+      "present": false
+    },
+    {
+      "artifact_type": "merge_approver_log",
+      "artifact_id": "SOX-ITGC-CM-02-LIVE-ev2",
+      "artifact_name": "merge approver log",
+      "repository": "sharepoint://controls/sox/itgc-change",
+      "uri": "sharepoint://controls/sox/itgc-change/SOX-ITGC-CM-02/merge_approver_log",
+      "created_at": "2026-06-15T10:14:23.523Z",
+      "immutable": true,
+      "present": true
+    },
+    {
+      "artifact_type": "deploy_actor_log",
+      "artifact_id": "SOX-ITGC-CM-02-LIVE-ev3",
+      "artifact_name": "deploy actor log",
+      "repository": "sharepoint://controls/sox/itgc-change",
+      "uri": "sharepoint://controls/sox/itgc-change/SOX-ITGC-CM-02/deploy_actor_log",
+      "created_at": "2026-06-15T10:14:23.523Z",
+      "immutable": true,
+      "present": false
+    }
+  ],
+  "approval": {
+    "approval_required": true,
+    "approver": {
+      "approver_role": "Engineering Director",
+      "approval_status": "Pending"
+    },
+    "override": {
+      "override_applied": false
+    }
+  },
+  "downstream_artifacts": [
+    {
+      "artifact_type": "ICFR Assertion",
+      "artifact_id": "icfr-live-SOX-ITGC-CM-02",
+      "artifact_name": "icfr-live-SOX-ITGC-CM-02",
+      "target_system": "GRC",
+      "link_status": "Blocked",
+      "staleness_check_result": "Current"
+    }
+  ],
+  "audit_trail": {
+    "event_log": [
+      {
+        "event_time": "2026-06-15T10:14:23.523Z",
+        "event_type": "RUN_STARTED",
+        "actor": "control-runner",
+        "description": "Run started for SOX-ITGC-CM-02"
+      },
+      {
+        "event_time": "2026-06-15T10:14:23.523Z",
+        "event_type": "RUN_FAILED",
+        "actor": "control-runner",
+        "description": "Run failed (2 of 2 assertions not passing)"
+      },
+      {
+        "event_time": "2026-06-15T10:14:23.523Z",
+        "event_type": "ISSUE_OPENED",
+        "actor": "control-runner",
+        "description": "Issue opened for SOX-ITGC-CM-02",
+        "linked_artifact_id": "ISS-SOX-ITGC-CM-02-LIVE"
+      }
+    ],
+    "immutable_log_reference": "ledger://controls/SOX/SOX-ITGC-CM-02/LIVE"
+  },
+  "notes": "Remediate before relying on dependent artifacts.",
+  "remediation_workflow": {
+    "remediation_required": true,
+    "issue_id": "ISS-SOX-ITGC-CM-02-LIVE",
+    "issue_status": "Open",
+    "severity": "High",
+    "owner": "Release Manager",
+    "opened_at": "2026-06-15T10:14:23.523Z",
+    "target_due_date": "",
+    "root_cause": "Observed 13 violates eq 0; Observed 13 violates eq 0",
+    "corrective_actions": [
+      "Open a SOX deficiency issue.",
+      "Review the affected change for independent re-approval and re-test before relying on the control."
+    ],
+    "downstream_impact_assessment": "Blocks: icfr-live-SOX-ITGC-CM-02",
+    "retest_required": true,
+    "retest_run_id": ""
+  }
+}
