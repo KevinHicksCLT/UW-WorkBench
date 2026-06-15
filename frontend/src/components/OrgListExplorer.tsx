@@ -3,6 +3,7 @@ import { DOMAIN_HEX } from '../viz/model';
 import { api } from '../lib/api';
 import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from './MetricsSidebar';
 import RoleDrawer from './RoleDrawer';
+import { HeaderComboFilter } from './Sheet';
 
 // Org List view (R2 rework) — a FLAT spreadsheet of the org spine, the mirror
 // image of the Value Streams list (ListExplorer). No tree, no expand/collapse:
@@ -61,77 +62,8 @@ function SortToggle({ col, sort, onSort }: { col: Col; sort: Sort; onSort: (c: C
   );
 }
 
-const HeaderLabel = ({ children }: { children: React.ReactNode }) => (
-  <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1 whitespace-nowrap">{children}</div>
-);
-
-// Searchable dropdown filter — every column uses this (type-ahead handles the
-// long option lists). Closes on outside click; 'All' clears.
-function HeaderComboFilter({ label, value, onChange, options, sort }: {
-  label: string; value: string; onChange: (v: string) => void; options: string[]; sort?: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  const ref = useRef<HTMLDivElement>(null);
-  const active = value !== 'All';
-
-  useEffect(() => {
-    if (!open) return;
-    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, [open]);
-
-  const q = query.trim().toLowerCase();
-  const filtered = options.filter((o) => o === 'All' || o.toLowerCase().includes(q));
-  function pick(o: string) { onChange(o); setOpen(false); setQuery(''); }
-
-  return (
-    <div ref={ref} className="px-2 py-1 min-w-0 relative">
-      <HeaderLabel>{label}{sort}</HeaderLabel>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className={'flex items-center justify-between gap-1 w-full rounded border bg-white pl-2 pr-1.5 py-0.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150 '
-          + (active ? 'border-[#171717] text-[#171717] font-medium' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4]')}
-      >
-        <span className="truncate">{value}</span>
-        <svg className={'flex-shrink-0 text-[#a3a3a3] transition-transform duration-150 ' + (open ? 'rotate-180' : '')} width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </button>
-      {open && (
-        <div className="absolute z-30 left-2 mt-1 w-[260px] rounded-md border border-[#eaeaea] bg-white shadow-lg">
-          <div className="p-1.5 border-b border-[#f5f5f5]">
-            <input
-              autoFocus
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search…"
-              aria-label={`Filter by ${label.toLowerCase()}`}
-              className="w-full rounded border border-[#eaeaea] bg-white px-2 py-1 text-xs text-[#171717] placeholder:text-[#a3a3a3] focus:outline-none focus:ring-1 focus:ring-[#171717]"
-            />
-          </div>
-          <div className="max-h-56 overflow-y-auto py-1">
-            {filtered.length === 0 ? (
-              <div className="px-2.5 py-1.5 text-xs text-[#a3a3a3]">No matches</div>
-            ) : filtered.map((o) => (
-              <button
-                key={o}
-                type="button"
-                onClick={() => pick(o)}
-                className={'block w-full truncate text-left px-2.5 py-1 text-xs hover:bg-[#fafafa] transition-colors duration-100 '
-                  + (o === value ? 'text-[#171717] font-medium bg-[#fafafa]' : 'text-[#525252]')}
-              >
-                {o}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+// Header combobox filters are the shared multi-select version from Sheet.tsx
+// (plain click = single pick; ctrl/shift-click = toggle multiple).
 
 // One spreadsheet cell. Clickable cells underline on hover and open the
 // metrics panel for exactly that level (stopPropagation so the row's default
@@ -159,11 +91,11 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Header filters — one combobox selection per column; 'All' = no constraint.
-  const [domainSel, setDomainSel] = useState('All');
-  const [divisionSel, setDivisionSel] = useState('All');
-  const [deptSel, setDeptSel] = useState('All');
-  const [roleSel, setRoleSel] = useState('All');
+  // Header filters — a multi-selection per column; [] = no constraint (All).
+  const [domainSel, setDomainSel] = useState<string[]>([]);
+  const [divisionSel, setDivisionSel] = useState<string[]>([]);
+  const [deptSel, setDeptSel] = useState<string[]>([]);
+  const [roleSel, setRoleSel] = useState<string[]>([]);
   const [sort, setSort] = useState<Sort>({ col: 'domain', dir: 1 });
 
   // Right-hand metrics panel — identical to the map / value-stream list.
@@ -234,16 +166,16 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
   useEffect(() => {
     if (!focusRoleId || !flat.length) return;
     const name = flat.find((r) => r.roleId === focusRoleId)?.roleName;
-    if (name) { setRoleSel(name); setDomainSel('All'); setDivisionSel('All'); setDeptSel('All'); }
+    if (name) { setRoleSel([name]); setDomainSel([]); setDivisionSel([]); setDeptSel([]); }
   }, [focusRoleId, flat]);
 
   // A row passes the filters; `skip` exempts one column so each combobox can
   // list the distinct values among rows passing the OTHER filters (Excel-style).
   const matches = (r: FlatRow, skip?: Col) =>
-    (skip === 'domain' || domainSel === 'All' || r.domain === domainSel)
-    && (skip === 'division' || divisionSel === 'All' || r.divName === divisionSel)
-    && (skip === 'dept' || deptSel === 'All' || r.deptName === deptSel)
-    && (skip === 'role' || roleSel === 'All' || r.roleName === roleSel);
+    (skip === 'domain' || domainSel.length === 0 || domainSel.includes(r.domain))
+    && (skip === 'division' || divisionSel.length === 0 || divisionSel.includes(r.divName))
+    && (skip === 'dept' || deptSel.length === 0 || deptSel.includes(r.deptName))
+    && (skip === 'role' || roleSel.length === 0 || roleSel.includes(r.roleName));
 
   const selDeps = [flat, domainSel, divisionSel, deptSel, roleSel]; // eslint-disable-line
   const optionList = (vals: Iterable<string>) => ['All', ...[...new Set([...vals].filter(Boolean))].sort()];
@@ -254,11 +186,15 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
   const roleOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'role')).map((r) => r.roleName)), selDeps);
   /* eslint-enable react-hooks/exhaustive-deps */
 
-  // A pick can be invalidated by a later pick in another column — clear it.
-  useEffect(() => { if (domainSel !== 'All' && !domainOptions.includes(domainSel)) setDomainSel('All'); }, [domainOptions, domainSel]);
-  useEffect(() => { if (divisionSel !== 'All' && !divisionOptions.includes(divisionSel)) setDivisionSel('All'); }, [divisionOptions, divisionSel]);
-  useEffect(() => { if (deptSel !== 'All' && !deptOptions.includes(deptSel)) setDeptSel('All'); }, [deptOptions, deptSel]);
-  useEffect(() => { if (roleSel !== 'All' && !roleOptions.includes(roleSel)) setRoleSel('All'); }, [roleOptions, roleSel]);
+  // A pick can be invalidated by a later pick in another column — drop it.
+  const prune = (sel: string[], options: string[], set: (v: string[]) => void) => {
+    const kept = sel.filter((v) => options.includes(v));
+    if (kept.length !== sel.length) set(kept);
+  };
+  useEffect(() => { prune(domainSel, domainOptions, setDomainSel); }, [domainOptions, domainSel]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { prune(divisionSel, divisionOptions, setDivisionSel); }, [divisionOptions, divisionSel]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { prune(deptSel, deptOptions, setDeptSel); }, [deptOptions, deptSel]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { prune(roleSel, roleOptions, setRoleSel); }, [roleOptions, roleSel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Visible rows: filters + sort (chain order as the tie-break).
   const rows = useMemo(() => {
@@ -290,8 +226,8 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
     return { domains: domains.size, divisions: divisions.size, departments: depts.size, roles };
   }, [rows]);
 
-  const anyFilter = domainSel !== 'All' || divisionSel !== 'All' || deptSel !== 'All' || roleSel !== 'All';
-  const clear = () => { setDomainSel('All'); setDivisionSel('All'); setDeptSel('All'); setRoleSel('All'); };
+  const anyFilter = domainSel.length > 0 || divisionSel.length > 0 || deptSel.length > 0 || roleSel.length > 0;
+  const clear = () => { setDomainSel([]); setDivisionSel([]); setDeptSel([]); setRoleSel([]); };
 
   const toggleSort = (col: Col) => setSort((s) => (s.col === col ? { col, dir: s.dir === 1 ? -1 : 1 } : { col, dir: 1 }));
 

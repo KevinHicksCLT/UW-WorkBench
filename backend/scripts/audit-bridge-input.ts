@@ -15,7 +15,7 @@ import { prisma } from '../src/db/prisma.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SPINE = resolve(HERE, '../data/seed/spine.json');
-const WORKBOOK = process.argv[2] || resolve(HERE, '../../AI Transformation Bridge Input.xlsx');
+const WORKBOOK = process.argv[2] || resolve(HERE, '../../documents/AI Transformation Bridge Input.xlsx');
 const OUT = resolve(HERE, '../../docs/bridge-input-audit.md');
 const CAP = 15; // max detail rows listed per finding
 

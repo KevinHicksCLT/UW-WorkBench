@@ -26,7 +26,7 @@ function nameRank(name: string): number {
 const PART_BY_RANK = ['Oversight', 'Oversight', 'Lead', 'Core'];
 
 async function main() {
-  const generated: GenRole[] = JSON.parse(readFileSync(new URL('../../gap-fill-content.json', import.meta.url), 'utf8'));
+  const generated: GenRole[] = JSON.parse(readFileSync(new URL('../../documents/gap-fill-content.json', import.meta.url), 'utf8'));
   const company = await prisma.company.findFirst({ select: { id: true, tenantId: true, name: true } });
   if (!company) throw new Error('No company found.');
   const { id: companyId, tenantId } = company;
