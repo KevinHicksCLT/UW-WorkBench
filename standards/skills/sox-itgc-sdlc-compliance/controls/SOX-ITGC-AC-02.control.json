@@ -1,0 +1,121 @@
+{
+  "control_id": "SOX-ITGC-AC-02",
+  "control_name": "Periodic user access recertification",
+  "framework": "SOX",
+  "control_family": "ITGC-Access",
+  "domain": "Access Recertification",
+  "control_objective": "On a quarterly basis, application owners review and formally recertify all user access to financially-significant systems so that access remains commensurate with current job responsibilities.",
+  "risk_addressed": "Accumulated or stale access that is never re-reviewed allows users to retain entitlements beyond their role, enabling unauthorized transactions that misstate the financial statements.",
+  "regulatory_mapping": {
+    "framework": "SOX",
+    "citation": ["SOX 404", "COSO Principle 11 (technology general controls)", "ITGC-Access-Recertification"],
+    "owner_role": "IT Security Manager",
+    "sdlc_gates": ["Run"],
+    "applies_to_value_streams": ["Cybersecurity, Identity & Resilience", "Technology Delivery & Change"],
+    "agent_skill": "sox-itgc-sdlc-compliance"
+  },
+  "scope": {
+    "applies_to": ["Financially-significant applications"],
+    "in_scope_systems": ["General Ledger", "Policy Admin", "Claims", "Billing"],
+    "assessment_cycle": "Quarterly",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Quarterly",
+  "control_owner": {
+    "primary_role": "IT Security Manager",
+    "supporting_roles": ["Access Administrator"],
+    "approval_role": "Application Owner"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Identity Governance (Entra ID)",
+      "system_type": "IAM",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "iam.entra",
+      "system_of_record": "Microsoft Entra ID",
+      "location_uri": "https://graph.microsoft.com/v1.0/identityGovernance/accessReviews/definitions",
+      "refresh_cadence": "Daily"
+    },
+    {
+      "source_name": "Recertification Sign-off Library (SharePoint)",
+      "system_type": "Document Repository",
+      "authoritative": true,
+      "access_method": "SharePoint",
+      "connector_ref": "docs.sharepoint",
+      "system_of_record": "SharePoint Online",
+      "location_uri": "https://meridian.sharepoint.com/sites/controls/sox/itgc-access/recertification",
+      "refresh_cadence": "Per campaign"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "access_review_population", "business_definition": "The full population of in-scope user-entitlement assignments selected for recertification in the cycle.", "source_name": "Identity Governance (Entra ID)", "grain": "user-entitlement", "data_type": "record", "required": true },
+    { "field_name": "reviewer_decision", "business_definition": "The application owner's recorded certify/revoke decision for each assignment in the campaign.", "source_name": "Identity Governance (Entra ID)", "grain": "user-entitlement", "data_type": "record", "required": true },
+    { "field_name": "signoff_artifact", "business_definition": "The signed attestation evidencing completion of the recertification campaign.", "source_name": "Recertification Sign-off Library (SharePoint)", "grain": "campaign", "data_type": "document", "required": true }
+  ],
+  "method": {
+    "summary": "Confirm that every in-scope access review in the quarterly recertification campaign was completed, signed off, and has no overdue items.",
+    "steps": [
+      "Pull the access-review campaign population for in-scope systems from Identity Governance.",
+      "Determine the percentage of reviews completed (a certify or revoke decision recorded) against the population.",
+      "Count reviews still open past their due date as overdue certifications.",
+      "Confirm a signed reviewer attestation exists in the SharePoint sign-off library for each campaign.",
+      "Confirm revocations resulting from the campaign were actioned and logged."
+    ],
+    "fallback_logic": "If either source is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any incomplete or overdue recertification of access to a financially-significant system is a control exception.",
+    "pass_tolerance": "100% completed, 0 overdue",
+    "warning_threshold": "Completion below 100% with no item yet past due",
+    "escalation_threshold": "1 or more overdue certifications"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["100% of in-scope access reviews are completed.", "Zero recertifications are overdue.", "Reviewer sign-off captured for the population."],
+    "fail_criteria": ["One or more in-scope reviews remain incomplete.", "One or more recertifications are overdue."],
+    "exception_handling": ["Open a SOX deficiency issue.", "Escalate overdue reviews to the Application Owner and re-test before relying on the control."]
+  },
+  "validation": {
+    "assertion_id": "SOX-ITGC-AC-02-A",
+    "automation_level": "Full",
+    "check_type": "presence",
+    "test_script": "tests/SOX-ITGC-AC-02.test.mjs",
+    "assertions": [
+      { "metric": "certifications_completed_pct", "operator": "gte", "value": 100, "severity": "fail", "description": "All in-scope access reviews completed." },
+      { "metric": "overdue_certifications", "operator": "eq", "value": 0, "severity": "fail", "description": "No overdue recertifications." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["recertification_campaign_export", "reviewer_signoff", "revocation_log"],
+    "evidence_repository": "sharepoint://controls/sox/itgc-access",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": true,
+    "target_artifact_types": ["ICFR Assertion", "404 Control Matrix Row"],
+    "target_systems": ["GRC"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each quarter before §302 certification."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open SOX deficiency issue", "Notify IT Security Manager and Application Owner"],
+    "issue_ticket_type": "SOX Deficiency",
+    "notification_roles": ["IT Security Manager", "Application Owner"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of review population", "Timeliness of reviewer decisions", "Evidence integrity"]
+  },
+  "tags": ["sox", "itgc", "access", "recertification"],
+  "status": "Active",
+  "version": "1.0.0"
+}

@@ -1,0 +1,111 @@
+{
+  "control_id": "SOX-ELC-404-02",
+  "control_name": "Control-deficiency remediation is tracked to closure with owner and due date",
+  "framework": "SOX",
+  "control_family": "Entity-Level",
+  "domain": "Deficiency Remediation Tracking",
+  "control_objective": "Every open control-deficiency remediation item is tracked in the issue system with an accountable owner, a priority, and a committed due date, and none are overdue, so that identified ICFR weaknesses are demonstrably driven to closure.",
+  "risk_addressed": "Control deficiencies that are not assigned, prioritized, and date-bound are not reliably remediated, allowing ICFR weaknesses to persist undetected across reporting periods.",
+  "regulatory_mapping": {
+    "framework": "SOX",
+    "citation": ["SOX 404", "PCAOB AS 2201", "COSO Principle 17 (evaluates and communicates deficiencies)"],
+    "owner_role": "SOX Program Manager",
+    "sdlc_gates": ["Run"],
+    "applies_to_value_streams": ["Technology Strategy, Architecture & Delivery", "Risk & Compliance"],
+    "agent_skill": "sox-itgc-sdlc-compliance"
+  },
+  "scope": {
+    "applies_to": ["ICFR control-deficiency remediation items"],
+    "in_scope_systems": ["Remediation tracker"],
+    "assessment_cycle": "Monthly",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Monthly",
+  "control_owner": {
+    "primary_role": "SOX Program Manager",
+    "supporting_roles": ["Control Owners"],
+    "approval_role": "Controller"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Remediation Tracker (Linear)",
+      "system_type": "ITSM",
+      "authoritative": true,
+      "access_method": "MCP",
+      "connector_ref": "itsm.linear",
+      "system_of_record": "Linear",
+      "location_uri": "https://linear.app/kevin-hicks",
+      "refresh_cadence": "Continuous"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "remediation_item", "business_definition": "An open issue tracking remediation of a control deficiency.", "source_name": "Remediation Tracker (Linear)", "grain": "issue", "data_type": "record", "required": true },
+    { "field_name": "assignee", "business_definition": "The accountable owner of the remediation item.", "source_name": "Remediation Tracker (Linear)", "grain": "issue", "data_type": "string", "required": true },
+    { "field_name": "due_date", "business_definition": "The committed remediation completion date.", "source_name": "Remediation Tracker (Linear)", "grain": "issue", "data_type": "date", "required": true }
+  ],
+  "method": {
+    "summary": "Pull all open remediation items from the tracker and confirm each has an owner, a priority, and a due date, and that none are past due.",
+    "steps": [
+      "List open (non-completed, non-canceled) remediation items via the Linear MCP.",
+      "Count items missing an owner, a priority, or a due date.",
+      "Count items whose due date has passed.",
+      "Fail if any required attribute is missing or any item is overdue."
+    ],
+    "fallback_logic": "If the tracker is unreachable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any untracked or overdue remediation item is a control-monitoring exception.",
+    "pass_tolerance": "0 items missing owner/due-date and 0 overdue",
+    "warning_threshold": "Items missing a priority"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["Every open remediation item has an owner and a due date.", "No remediation item is overdue."],
+    "fail_criteria": ["Any open item lacks an owner or due date.", "Any open item is overdue."],
+    "exception_handling": ["Assign an owner and due date.", "Escalate overdue items to the Controller."]
+  },
+  "validation": {
+    "assertion_id": "SOX-ELC-404-02-A",
+    "automation_level": "Full",
+    "check_type": "presence",
+    "test_script": "tests/SOX-ELC-404-02.test.mjs",
+    "assertions": [
+      { "metric": "items_without_owner", "operator": "eq", "value": 0, "severity": "fail", "description": "Every open remediation item has an accountable owner." },
+      { "metric": "items_without_due_date", "operator": "eq", "value": 0, "severity": "fail", "description": "Every open remediation item has a committed due date." },
+      { "metric": "overdue_items", "operator": "eq", "value": 0, "severity": "fail", "description": "No remediation item is overdue." },
+      { "metric": "items_without_priority", "operator": "eq", "value": 0, "severity": "warn", "description": "Every open remediation item is prioritized." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["remediation_register_export", "owner_assignment_log", "due_date_report"],
+    "evidence_repository": "sharepoint://controls/sox/entity-level",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": true,
+    "target_artifact_types": ["404 Assessment"],
+    "target_systems": ["GRC"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Re-evidenced monthly; feeds the quarterly §404 assessment."
+  },
+  "workflow": {
+    "actions_on_fail": ["Assign owner and due date", "Notify SOX Program Manager and Controller"],
+    "issue_ticket_type": "SOX Monitoring Exception",
+    "notification_roles": ["SOX Program Manager", "Controller"],
+    "sla_days": 15
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of the remediation population", "Owner and due-date assignment", "Overdue aging"]
+  },
+  "tags": ["sox", "entity-level", "remediation", "itsm", "live"],
+  "status": "Active",
+  "version": "1.0.0"
+}

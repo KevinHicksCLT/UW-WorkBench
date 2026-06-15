@@ -1,0 +1,123 @@
+{
+  "control_id": "SOX-ELC-404-01",
+  "control_name": "ICFR control matrix is complete and key controls are tested",
+  "framework": "SOX",
+  "control_family": "Entity-Level",
+  "domain": "ICFR Assessment (Section 404)",
+  "control_objective": "The ICFR control matrix is complete with a named owner for every key control, all key controls are tested within the assessment cycle, and identified deficiencies are remediated, supporting management's §404 assessment of internal control over financial reporting.",
+  "risk_addressed": "An incomplete control matrix, untested key controls, or unremediated deficiencies can cause management's §404 assessment to be unsupported, leaving a material weakness undetected and undisclosed.",
+  "regulatory_mapping": {
+    "framework": "SOX",
+    "citation": ["SOX 404", "PCAOB AS 2201", "COSO 2013 Framework"],
+    "owner_role": "SOX Program Manager",
+    "sdlc_gates": ["Run"],
+    "applies_to_value_streams": ["Finance, Actuarial & Risk", "Governance, Risk & Compliance"],
+    "agent_skill": "sox-itgc-sdlc-compliance"
+  },
+  "scope": {
+    "applies_to": ["ICFR control matrix and key control testing"],
+    "in_scope_systems": ["GRC Control Matrix", "Test Workpapers"],
+    "assessment_cycle": "2026-Q2",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Quarterly",
+  "control_owner": {
+    "primary_role": "SOX Program Manager",
+    "supporting_roles": ["Internal Audit Lead"],
+    "approval_role": "CFO"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "GRC Control Matrix (SharePoint)",
+      "system_type": "Document Repository",
+      "authoritative": true,
+      "access_method": "SharePoint",
+      "connector_ref": "docs.sharepoint",
+      "system_of_record": "SharePoint Document Library",
+      "location_uri": "https://meridian.sharepoint.com/sites/SOX/ControlMatrix",
+      "refresh_cadence": "Quarterly"
+    },
+    {
+      "source_name": "Test Workpapers (Confluence)",
+      "system_type": "Document Repository",
+      "authoritative": true,
+      "access_method": "Confluence",
+      "connector_ref": "docs.confluence",
+      "system_of_record": "Confluence",
+      "location_uri": "https://meridian.atlassian.net/wiki/spaces/SOX/TestWorkpapers",
+      "refresh_cadence": "Quarterly"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "key_control", "business_definition": "A key control in the ICFR control matrix, including its assigned owner.", "source_name": "GRC Control Matrix (SharePoint)", "grain": "control", "data_type": "record", "required": true },
+    { "field_name": "test_result", "business_definition": "The documented testing result for a key control in the assessment cycle.", "source_name": "Test Workpapers (Confluence)", "grain": "test", "data_type": "record", "required": true },
+    { "field_name": "deficiency", "business_definition": "An identified control deficiency and its remediation status.", "source_name": "GRC Control Matrix (SharePoint)", "grain": "deficiency", "data_type": "record", "required": true }
+  ],
+  "method": {
+    "summary": "Assess completeness of the ICFR control matrix, confirm every key control has a named owner and has been tested in the cycle, and confirm there are no unremediated deficiencies.",
+    "steps": [
+      "Pull the key control population from the GRC control matrix.",
+      "Confirm each key control has a named owner.",
+      "Reconcile each key control to a documented test result for the cycle.",
+      "Pull the deficiency log and confirm remediation status.",
+      "Compute controls without owner, tested percentage, and unremediated deficiency count."
+    ],
+    "fallback_logic": "If the control matrix or test workpaper source is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any key control without an owner is a control exception; untested key controls and unremediated deficiencies are tracked as warnings pending remediation.",
+    "pass_tolerance": "0 key controls without owner; 100% tested; 0 unremediated deficiencies",
+    "warning_threshold": "Any untested key control or unremediated deficiency",
+    "escalation_threshold": "Any key control without a named owner"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["Every key control has a named owner.", "All key controls are tested this cycle.", "No unremediated deficiencies remain."],
+    "warning_criteria": ["One or more key controls are not yet tested this cycle.", "One or more deficiencies remain unremediated."],
+    "fail_criteria": ["One or more key controls lack a named owner.", "The control matrix population cannot be evidenced."],
+    "exception_handling": ["Open a SOX deficiency issue for controls without an owner.", "Track untested controls and unremediated deficiencies to completion before §404 assessment sign-off."]
+  },
+  "validation": {
+    "assertion_id": "SOX-ELC-404-01-A",
+    "automation_level": "Partial",
+    "check_type": "presence",
+    "test_script": "tests/SOX-ELC-404-01.test.mjs",
+    "assertions": [
+      { "metric": "key_controls_without_owner", "operator": "eq", "value": 0, "severity": "fail", "description": "Every key control has a named owner." },
+      { "metric": "key_controls_tested_pct", "operator": "gte", "value": 100, "severity": "warn", "description": "All key controls tested this cycle." },
+      { "metric": "unremediated_deficiencies", "operator": "eq", "value": 0, "severity": "warn", "description": "No unremediated deficiencies." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["control_matrix", "test_workpapers", "deficiency_log"],
+    "evidence_repository": "sharepoint://controls/sox/entity-level/404",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": true,
+    "target_artifact_types": ["404 Assessment"],
+    "target_systems": ["GRC"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each quarter before §404 assessment sign-off."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open SOX deficiency issue", "Notify SOX Program Manager and CFO"],
+    "issue_ticket_type": "SOX Deficiency",
+    "notification_roles": ["SOX Program Manager", "CFO"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of key control population", "Ownership assignment", "Test coverage and deficiency remediation"]
+  },
+  "tags": ["sox", "entity-level", "404", "icfr", "control-matrix"],
+  "status": "Active",
+  "version": "1.0.0"
+}

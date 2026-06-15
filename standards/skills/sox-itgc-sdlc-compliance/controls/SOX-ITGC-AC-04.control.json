@@ -1,0 +1,121 @@
+{
+  "control_id": "SOX-ITGC-AC-04",
+  "control_name": "Segregation of duties enforced on financial roles",
+  "framework": "SOX",
+  "control_family": "ITGC-Access",
+  "domain": "Segregation of Duties",
+  "control_objective": "Conflicting financial duties are prevented or mitigated by enforcing a segregation-of-duties ruleset across role assignments so that no single user can both initiate and conceal an erroneous or fraudulent transaction.",
+  "risk_addressed": "A user holding conflicting entitlements can execute and approve the same financial transaction, defeating the control environment and misstating the financial statements.",
+  "regulatory_mapping": {
+    "framework": "SOX",
+    "citation": ["SOX 404", "COSO Principle 11 (technology general controls)", "ITGC-Access-SoD"],
+    "owner_role": "IT Security Manager",
+    "sdlc_gates": ["Design", "Run"],
+    "applies_to_value_streams": ["Cybersecurity, Identity & Resilience", "Technology Delivery & Change"],
+    "agent_skill": "sox-itgc-sdlc-compliance"
+  },
+  "scope": {
+    "applies_to": ["Financially-significant applications"],
+    "in_scope_systems": ["General Ledger", "Policy Admin", "Claims", "Billing"],
+    "assessment_cycle": "Quarterly",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Preventive / Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Quarterly",
+  "control_owner": {
+    "primary_role": "IT Security Manager",
+    "supporting_roles": ["Access Administrator"],
+    "approval_role": "Controller"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Okta Role Assignments",
+      "system_type": "IAM",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "iam.okta",
+      "system_of_record": "Okta",
+      "location_uri": "https://meridian.okta.com/api/v1/users",
+      "refresh_cadence": "Daily"
+    },
+    {
+      "source_name": "General Ledger Roles",
+      "system_type": "GL/ERP",
+      "authoritative": true,
+      "access_method": "SQL",
+      "connector_ref": "gl.erp",
+      "system_of_record": "Meridian General Ledger",
+      "location_uri": "gl-erp.meridian.local.dbo.user_role_assignments",
+      "refresh_cadence": "Daily"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "role_assignment", "business_definition": "A user-to-role assignment evaluated against the SoD ruleset.", "source_name": "Okta Role Assignments", "grain": "user-role", "data_type": "record", "required": true },
+    { "field_name": "gl_role", "business_definition": "A financial role granted in the general ledger that participates in SoD rules.", "source_name": "General Ledger Roles", "grain": "user-role", "data_type": "record", "required": true },
+    { "field_name": "sod_rule", "business_definition": "A defined pair of conflicting duties that must not co-exist on one user without mitigation.", "source_name": "Okta Role Assignments", "grain": "rule", "data_type": "record", "required": true }
+  ],
+  "method": {
+    "summary": "Evaluate combined IAM and GL role assignments against the approved SoD ruleset and confirm all conflicts are within tolerance and fully mitigated.",
+    "steps": [
+      "Pull user-role assignments from Okta and from the general ledger.",
+      "Evaluate the combined assignment set against the approved SoD ruleset.",
+      "Count total SoD conflicts identified across the population.",
+      "Cross-reference each conflict to a documented mitigation in the mitigation log.",
+      "Count conflicts that have no approved mitigation (unmitigated)."
+    ],
+    "fallback_logic": "If either source is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any unmitigated segregation-of-duties conflict on a financially-significant system is a control exception.",
+    "pass_tolerance": "0 unmitigated conflicts, total conflicts within tolerance",
+    "warning_threshold": "Total conflicts above tolerance though all mitigated",
+    "escalation_threshold": "1 or more unmitigated conflicts"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["No unmitigated SoD conflicts exist.", "Total SoD conflicts are within tolerance.", "Each conflict traces to an approved mitigation."],
+    "fail_criteria": ["One or more SoD conflicts are unmitigated.", "Mitigation evidence cannot be produced for an open conflict."],
+    "exception_handling": ["Open a SOX deficiency issue.", "Remove the conflicting access or approve a documented mitigation before relying on the control."]
+  },
+  "validation": {
+    "assertion_id": "SOX-ITGC-AC-04-A",
+    "automation_level": "Full",
+    "check_type": "policy",
+    "test_script": "tests/SOX-ITGC-AC-04.test.mjs",
+    "assertions": [
+      { "metric": "sod_conflicts_unmitigated", "operator": "eq", "value": 0, "severity": "fail", "description": "No unmitigated SoD conflicts." },
+      { "metric": "sod_conflicts_total", "operator": "lte", "value": 5, "severity": "warn", "description": "Total SoD conflicts within tolerance." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["sod_ruleset", "conflict_report", "mitigation_log"],
+    "evidence_repository": "sharepoint://controls/sox/itgc-access",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": true,
+    "target_artifact_types": ["ICFR Assertion", "404 Control Matrix Row"],
+    "target_systems": ["GRC"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each quarter before §302 certification."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open SOX deficiency issue", "Notify IT Security Manager and Controller"],
+    "issue_ticket_type": "SOX Deficiency",
+    "notification_roles": ["IT Security Manager", "Controller"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of SoD ruleset", "Conflict detection accuracy", "Mitigation evidence integrity"]
+  },
+  "tags": ["sox", "itgc", "access", "sod"],
+  "status": "Active",
+  "version": "1.0.0"
+}

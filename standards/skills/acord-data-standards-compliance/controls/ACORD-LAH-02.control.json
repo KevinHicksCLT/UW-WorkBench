@@ -1,0 +1,121 @@
+{
+  "control_id": "ACORD-LAH-02",
+  "control_name": "Life OLI_LU code lists are valid and current",
+  "framework": "ACORD",
+  "control_family": "Data-Dictionary",
+  "domain": "Life & Annuity Code Governance",
+  "control_objective": "Every coded value carried on a Life & Annuity message uses a valid OLI_LU code drawn from the current ACORD OLI code list, so that enumerated values are interpreted consistently across carriers, BGAs, and distribution platforms.",
+  "risk_addressed": "Invalid or stale OLI_LU codes cause downstream consumers to misinterpret enumerated values or reject transactions, producing incorrect product, status, and party classifications and breaking automated processing of Life & Annuity business.",
+  "regulatory_mapping": {
+    "framework": "ACORD",
+    "citation": ["ACORD OLI Code Lists", "ACORD Life & Annuity Data Standard"],
+    "owner_role": "Data Architect",
+    "sdlc_gates": ["Design", "Development", "Run"],
+    "applies_to_value_streams": ["Technology Strategy, Architecture & Delivery", "Technology Delivery & Change"],
+    "agent_skill": "acord-data-standards-compliance"
+  },
+  "scope": {
+    "applies_to": ["Life & Annuity coded values"],
+    "in_scope_systems": ["Data Dictionary (Confluence)", "Schema Registry"],
+    "assessment_cycle": "2026-Q2",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Quarterly",
+  "control_owner": {
+    "primary_role": "Data Architect",
+    "supporting_roles": ["Integration Engineer"],
+    "approval_role": "Enterprise Architect"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Data Dictionary (Confluence)",
+      "system_type": "Document Repository",
+      "authoritative": true,
+      "access_method": "Confluence",
+      "connector_ref": "docs.confluence",
+      "system_of_record": "Enterprise Data Dictionary",
+      "location_uri": "https://confluence.meridian.example/display/DATA/ACORD-OLI-Code-Lists",
+      "refresh_cadence": "Quarterly"
+    },
+    {
+      "source_name": "Schema Registry",
+      "system_type": "Schema Registry",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "schema.registry",
+      "system_of_record": "ACORD Schema Registry",
+      "location_uri": "https://schema-registry.meridian.example/api/v1/codelists/oli",
+      "refresh_cadence": "On change"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "oli_code_usage", "business_definition": "An OLI_LU coded value used on a Life & Annuity message.", "source_name": "Schema Registry", "grain": "code-usage", "data_type": "string", "required": true },
+    { "field_name": "oli_codelist_version", "business_definition": "The version of the ACORD OLI code list registered in the data dictionary.", "source_name": "Data Dictionary (Confluence)", "grain": "codelist", "data_type": "string", "required": true }
+  ],
+  "method": {
+    "summary": "Check OLI_LU code usages against the current ACORD OLI code list, counting invalid usages and confirming the registered code list version is current.",
+    "steps": [
+      "Resolve the current ACORD OLI code list version from the data dictionary.",
+      "Extract OLI_LU code usages from registered Life & Annuity schemas.",
+      "Validate each code usage against the current OLI code list.",
+      "Count invalid OLI code usages and confirm the code list version is current."
+    ],
+    "sampling_rule": "Check all OLI_LU code usages present in the registered Life & Annuity schemas.",
+    "fallback_logic": "If the data dictionary or schema registry is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any invalid OLI_LU code usage is a data-dictionary exception; a non-current code list version is a warning.",
+    "pass_tolerance": "0 invalid OLI codes and current code list",
+    "warning_threshold": "OLI code list version not current",
+    "escalation_threshold": "1 or more invalid OLI code usages"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["No invalid OLI_LU code usages.", "OLI code list version is current."],
+    "warning_criteria": ["OLI code list version is not current."],
+    "fail_criteria": ["One or more invalid OLI_LU code usages."],
+    "exception_handling": ["Open a data-dictionary issue.", "Refresh the OLI code list to the current ACORD release and re-validate."]
+  },
+  "validation": {
+    "assertion_id": "ACORD-LAH-02-A",
+    "automation_level": "Full",
+    "check_type": "policy",
+    "test_script": "tests/ACORD-LAH-02.test.mjs",
+    "assertions": [
+      { "metric": "invalid_oli_codes", "operator": "eq", "value": 0, "severity": "fail", "description": "No invalid OLI_LU code usages." },
+      { "metric": "oli_codelist_current", "operator": "eq", "value": 1, "severity": "warn", "description": "OLI code list version is current." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["oli_code_validation", "codelist_version_record"],
+    "evidence_repository": "confluence://standards/acord/data-dictionary",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": false,
+    "target_artifact_types": ["Data Quality Scorecard"],
+    "target_systems": ["Data Governance"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each quarter against the latest ACORD OLI release."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open data-dictionary issue", "Notify Data Architect and Enterprise Architect"],
+    "issue_ticket_type": "Data Dictionary Defect",
+    "notification_roles": ["Data Architect", "Enterprise Architect"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of code-usage population", "OLI code list version currency", "Evidence integrity"]
+  },
+  "tags": ["acord", "life-annuity", "oli", "data-dictionary", "code-lists"],
+  "status": "Active",
+  "version": "1.0.0"
+}

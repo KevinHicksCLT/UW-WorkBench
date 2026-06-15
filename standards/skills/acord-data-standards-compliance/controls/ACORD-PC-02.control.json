@@ -1,0 +1,107 @@
+{
+  "control_id": "ACORD-PC-02",
+  "control_name": "ACORD transaction envelopes are well-formed and conformant",
+  "framework": "ACORD",
+  "control_family": "Message-Conformance",
+  "domain": "Transaction Envelope Integrity",
+  "control_objective": "Every ACORD transaction exchanged over the integration platform is wrapped in a well-formed, conformant ACORD transaction envelope, so that routing, correlation, and acknowledgement metadata are reliably interpreted by partner endpoints.",
+  "risk_addressed": "Malformed or non-conformant transaction envelopes break message routing, correlation, and acknowledgement handling, causing lost or duplicated transactions, failed acknowledgements, and orphaned in-flight policy changes.",
+  "regulatory_mapping": {
+    "framework": "ACORD",
+    "citation": ["ACORD Transaction Standards", "ACORD XML"],
+    "owner_role": "Integration Architect",
+    "sdlc_gates": ["Development", "Testing", "Run"],
+    "applies_to_value_streams": ["Technology Strategy, Architecture & Delivery", "Technology Delivery & Change"],
+    "agent_skill": "acord-data-standards-compliance"
+  },
+  "scope": {
+    "applies_to": ["ACORD transaction envelopes"],
+    "in_scope_systems": ["Integration Bus"],
+    "assessment_cycle": "2026-Q2",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Continuous",
+  "control_owner": {
+    "primary_role": "Integration Architect",
+    "supporting_roles": ["Integration Engineer"],
+    "approval_role": "Chief Architect"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Integration Bus",
+      "system_type": "Integration/ESB",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "esb.integration",
+      "system_of_record": "Enterprise Integration Bus",
+      "location_uri": "https://esb.meridian.example/api/v1/transactions",
+      "refresh_cadence": "Continuous"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "transaction_envelope", "business_definition": "The ACORD transaction envelope wrapping a message, including header, control, and acknowledgement metadata.", "source_name": "Integration Bus", "grain": "transaction", "data_type": "xml", "required": true }
+  ],
+  "method": {
+    "summary": "Inspect a sampled population of ACORD transaction envelopes for well-formedness and conformance to the ACORD envelope structure and count any conformance failures.",
+    "steps": [
+      "Sample ACORD transactions from the integration bus over the assessment period.",
+      "Parse each transaction envelope and check well-formedness.",
+      "Validate the envelope structure against the ACORD transaction envelope definition.",
+      "Count envelopes that fail conformance."
+    ],
+    "sampling_rule": "Sample all transactions where volume permits; otherwise a representative sample across transaction types.",
+    "fallback_logic": "If the bus is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any envelope that fails the ACORD envelope structure is a conformance exception.",
+    "pass_tolerance": "0 envelope conformance failures",
+    "escalation_threshold": "1 or more envelope conformance failures"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["All sampled transaction envelopes conform to the ACORD envelope structure."],
+    "fail_criteria": ["One or more sampled transaction envelopes fail conformance."],
+    "exception_handling": ["Open an integration conformance issue.", "Quarantine the offending transaction flow and re-test before resuming."]
+  },
+  "validation": {
+    "assertion_id": "ACORD-PC-02-A",
+    "automation_level": "Full",
+    "check_type": "schema",
+    "test_script": "tests/ACORD-PC-02.test.mjs",
+    "assertions": [
+      { "metric": "envelope_conformance_failures", "operator": "eq", "value": 0, "severity": "fail", "description": "All transaction envelopes conform to the ACORD envelope structure." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["envelope_conformance_report", "transaction_log"],
+    "evidence_repository": "confluence://standards/acord/message-conformance",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": false,
+    "target_artifact_types": ["Carrier Integration Certification"],
+    "target_systems": ["Integration Platform"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each assessment cycle."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open integration conformance issue", "Notify Integration Architect and Chief Architect"],
+    "issue_ticket_type": "Integration Conformance Defect",
+    "notification_roles": ["Integration Architect", "Chief Architect"],
+    "sla_days": 5
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of transaction population", "Envelope well-formedness", "Evidence integrity"]
+  },
+  "tags": ["acord", "transaction", "envelope", "message-conformance"],
+  "status": "Active",
+  "version": "1.0.0"
+}

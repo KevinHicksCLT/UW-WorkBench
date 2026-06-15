@@ -1,0 +1,121 @@
+{
+  "control_id": "SOX-RET-802-01",
+  "control_name": "Financial records retention and legal holds are enforced",
+  "framework": "SOX",
+  "control_family": "Records-Retention",
+  "domain": "Records Retention (Section 802)",
+  "control_objective": "In-scope financial records are retained under an enforced retention policy that meets the statutory minimum, legal holds are applied where required, and no records are prematurely deleted, satisfying the §802 records-retention requirements.",
+  "risk_addressed": "Failure to retain financial records for the required period, or premature deletion of records subject to a legal hold, exposes the company to spoliation, regulatory penalties, and criminal liability under §802.",
+  "regulatory_mapping": {
+    "framework": "SOX",
+    "citation": ["SOX 802", "SOX 103", "17 CFR 210.2-06"],
+    "owner_role": "Records Manager",
+    "sdlc_gates": ["Design", "Run"],
+    "applies_to_value_streams": ["Governance, Risk & Compliance", "Legal & Regulatory"],
+    "agent_skill": "sox-itgc-sdlc-compliance"
+  },
+  "scope": {
+    "applies_to": ["In-scope financial records repositories"],
+    "in_scope_systems": ["Records Repository", "Deletion Audit"],
+    "assessment_cycle": "2026-Q2",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Preventive / Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Annual",
+  "control_owner": {
+    "primary_role": "Records Manager",
+    "supporting_roles": ["Compliance Analyst"],
+    "approval_role": "General Counsel"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Records Repository (SharePoint)",
+      "system_type": "Document Repository",
+      "authoritative": true,
+      "access_method": "SharePoint",
+      "connector_ref": "docs.sharepoint",
+      "system_of_record": "SharePoint Records Center",
+      "location_uri": "https://meridian.sharepoint.com/sites/Records/Financial",
+      "refresh_cadence": "Continuous"
+    },
+    {
+      "source_name": "Deletion Audit (SIEM)",
+      "system_type": "SIEM/Logging",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "siem.logging",
+      "system_of_record": "Enterprise SIEM",
+      "location_uri": "https://<instance>.siem.meridian.example/api/v1/deletion-events",
+      "refresh_cadence": "Daily"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "retention_policy_binding", "business_definition": "The retention policy applied to an in-scope records repository, including configured retention period.", "source_name": "Records Repository (SharePoint)", "grain": "repository", "data_type": "record", "required": true },
+    { "field_name": "legal_hold", "business_definition": "A legal hold placed on records, suspending disposition until released.", "source_name": "Records Repository (SharePoint)", "grain": "hold", "data_type": "record", "required": true },
+    { "field_name": "deletion_event", "business_definition": "A logged deletion event for an in-scope record, used to detect premature deletions.", "source_name": "Deletion Audit (SIEM)", "grain": "event", "data_type": "record", "required": true }
+  ],
+  "method": {
+    "summary": "Confirm the retention policy is applied to all in-scope repositories, meets the 7-year statutory minimum, that legal holds are enforced, and that no in-scope records were prematurely deleted.",
+    "steps": [
+      "Enumerate in-scope financial records repositories.",
+      "Confirm a retention policy is applied to each repository and capture its configured retention period.",
+      "Confirm the configured retention period meets the 7-year statutory minimum.",
+      "Reconcile the legal hold register to held records and confirm enforcement.",
+      "Analyze deletion audit logs to identify any premature deletion of in-scope records."
+    ],
+    "fallback_logic": "If the records repository or deletion audit source is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any in-scope repository without an applied policy, any retention period below the statutory minimum, or any premature deletion is a control exception.",
+    "pass_tolerance": "100% policy applied; retention period >= 7 years; 0 premature deletions",
+    "escalation_threshold": "Any unapplied policy, sub-minimum retention period, or premature deletion"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["Retention policy is applied to all in-scope repositories.", "Configured retention period meets the 7-year minimum.", "No premature deletions of in-scope records occurred."],
+    "fail_criteria": ["One or more in-scope repositories lack an applied retention policy.", "A retention period is below the 7-year minimum.", "One or more in-scope records were prematurely deleted."],
+    "exception_handling": ["Open a SOX deficiency issue.", "Restore or re-secure affected records and remediate policy configuration before relying on the control."]
+  },
+  "validation": {
+    "assertion_id": "SOX-RET-802-01-A",
+    "automation_level": "Full",
+    "check_type": "policy",
+    "test_script": "tests/SOX-RET-802-01.test.mjs",
+    "assertions": [
+      { "metric": "retention_policy_applied_pct", "operator": "gte", "value": 100, "severity": "fail", "description": "Retention policy applied to all in-scope repositories." },
+      { "metric": "premature_deletions", "operator": "eq", "value": 0, "severity": "fail", "description": "No premature deletions of in-scope records." },
+      { "metric": "retention_period_years", "operator": "gte", "value": 7, "severity": "fail", "description": "Retention period meets the 7-year minimum." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["retention_policy", "legal_hold_register", "deletion_audit_log"],
+    "evidence_repository": "sharepoint://controls/sox/records-retention",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": true,
+    "target_artifact_types": ["Records Compliance Attestation"],
+    "target_systems": ["GRC"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced annually before the records compliance attestation."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open SOX deficiency issue", "Notify Records Manager and General Counsel"],
+    "issue_ticket_type": "SOX Deficiency",
+    "notification_roles": ["Records Manager", "General Counsel"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of in-scope repository population", "Retention period adequacy", "Legal hold enforcement and deletion integrity"]
+  },
+  "tags": ["sox", "records-retention", "802", "legal-hold", "policy"],
+  "status": "Active",
+  "version": "1.0.0"
+}

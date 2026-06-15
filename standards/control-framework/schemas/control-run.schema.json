@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://transform-platform/schemas/control-run.schema.json",
+  "title": "Control Run Schema (framework-agnostic)",
+  "description": "Runtime execution result of a single control. Generalized from the Actuarial Loss Analysis run schema. Captures who/what ran it, the inputs (dataset snapshots), calculated metrics, the assertion-by-assertion threshold comparison, immutable evidence links, approval/override, remediation workflow, downstream impact, and an immutable audit trail. One of these is produced by lib/run-control.mjs per control per cycle.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["run_id", "control_reference", "run_status", "execution", "threshold_comparison", "evidence_links", "audit_trail"],
+  "properties": {
+    "run_id": { "type": "string" },
+    "control_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["control_id", "control_version", "framework"],
+      "properties": {
+        "control_id": { "type": "string" },
+        "control_name": { "type": "string" },
+        "control_version": { "type": "string" },
+        "framework": { "type": "string" },
+        "control_family": { "type": "string" },
+        "execution_mode": { "type": "string" }
+      }
+    },
+    "run_status": { "type": "string", "enum": ["Passed", "Warning", "Failed", "Error", "Not Run"] },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["started_at", "completed_at", "executor_identity"],
+      "properties": {
+        "started_at": { "type": "string" },
+        "completed_at": { "type": "string" },
+        "duration_seconds": { "type": "number" },
+        "executor_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["executor_type", "name_or_service_id"],
+          "properties": {
+            "executor_type": { "type": "string", "enum": ["AI Agent", "Human", "Scheduled Job", "Hybrid"] },
+            "name_or_service_id": { "type": "string" },
+            "orchestrator": { "type": "string" },
+            "model_or_tool_version": { "type": "string" }
+          }
+        },
+        "environment": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "environment_name": { "type": "string" },
+            "tenant_or_workspace": { "type": "string" },
+            "pipeline_id": { "type": "string" },
+            "job_id": { "type": "string" }
+          }
+        }
+      }
+    },
+    "input_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "assessment_cycle": { "type": "string" },
+        "as_of_date": { "type": "string" },
+        "scope_note": { "type": "string" },
+        "dataset_snapshots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["source_name", "snapshot_id"],
+            "properties": {
+              "source_name": { "type": "string" },
+              "snapshot_id": { "type": "string" },
+              "access_method": { "type": "string" },
+              "location_uri": { "type": "string" },
+              "extract_timestamp": { "type": "string" },
+              "record_count": { "type": "integer" },
+              "checksum": { "type": "string" },
+              "available": { "type": "boolean" }
+            }
+          }
+        },
+        "sampling_applied": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "sampling_method": { "type": "string" },
+            "sample_size": { "type": "integer" },
+            "population_size": { "type": "integer" },
+            "sampling_rationale": { "type": "string" }
+          }
+        }
+      }
+    },
+    "calculated_metrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["metric_name", "metric_value"],
+        "properties": {
+          "metric_name": { "type": "string" },
+          "metric_value": {},
+          "metric_unit": { "type": "string" },
+          "slice_key": { "type": "string" }
+        }
+      }
+    },
+    "threshold_comparison": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["test_name", "metric_name", "actual_value", "threshold_operator", "threshold_value", "status"],
+        "properties": {
+          "test_name": { "type": "string" },
+          "metric_name": { "type": "string" },
+          "actual_value": {},
+          "threshold_operator": { "type": "string" },
+          "threshold_value": {},
+          "severity": { "type": "string", "enum": ["fail", "warn"] },
+          "status": { "type": "string", "enum": ["Pass", "Warn", "Fail"] },
+          "rationale": { "type": "string" }
+        }
+      }
+    },
+    "evidence_links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["artifact_type", "artifact_id", "repository"],
+        "properties": {
+          "artifact_type": { "type": "string" },
+          "artifact_id": { "type": "string" },
+          "artifact_name": { "type": "string" },
+          "repository": { "type": "string" },
+          "uri": { "type": "string" },
+          "created_at": { "type": "string" },
+          "immutable": { "type": "boolean" },
+          "present": { "type": "boolean" }
+        }
+      }
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "approval_required": { "type": "boolean" },
+        "approver": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "approver_name": { "type": "string" },
+            "approver_role": { "type": "string" },
+            "approval_status": { "type": "string", "enum": ["Pending", "Approved", "Rejected", "Not Required"] },
+            "approval_comments": { "type": "string" }
+          }
+        },
+        "override": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "override_applied": { "type": "boolean" },
+            "override_reason": { "type": "string" },
+            "override_approver": { "type": "string" }
+          }
+        }
+      }
+    },
+    "remediation_workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "remediation_required": { "type": "boolean" },
+        "issue_id": { "type": "string" },
+        "issue_status": { "type": "string" },
+        "severity": { "type": "string" },
+        "owner": { "type": "string" },
+        "opened_at": { "type": "string" },
+        "target_due_date": { "type": "string" },
+        "root_cause": { "type": "string" },
+        "corrective_actions": { "type": "array", "items": { "type": "string" } },
+        "downstream_impact_assessment": { "type": "string" },
+        "retest_required": { "type": "boolean" },
+        "retest_run_id": { "type": "string" }
+      }
+    },
+    "downstream_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["artifact_type", "artifact_id", "link_status"],
+        "properties": {
+          "artifact_type": { "type": "string" },
+          "artifact_id": { "type": "string" },
+          "artifact_name": { "type": "string" },
+          "target_system": { "type": "string" },
+          "link_status": { "type": "string", "enum": ["Linked", "Blocked", "Stale", "Not Linked"] },
+          "staleness_check_result": { "type": "string" }
+        }
+      }
+    },
+    "audit_trail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_log"],
+      "properties": {
+        "event_log": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["event_time", "event_type", "actor"],
+            "properties": {
+              "event_time": { "type": "string" },
+              "event_type": { "type": "string" },
+              "actor": { "type": "string" },
+              "description": { "type": "string" },
+              "linked_artifact_id": { "type": "string" }
+            }
+          }
+        },
+        "immutable_log_reference": { "type": "string" }
+      }
+    },
+    "notes": { "type": "string" }
+  }
+}

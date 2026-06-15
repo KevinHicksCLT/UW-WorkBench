@@ -1,0 +1,118 @@
+{
+  "control_id": "SOX-ITGC-CM-01",
+  "control_name": "Changes are approved before promotion to production",
+  "framework": "SOX",
+  "control_family": "ITGC-Change",
+  "domain": "Change Management",
+  "control_objective": "Every change promoted to a financially-significant production system is formally approved before deployment, so that only authorized, reviewed changes affect the financial reporting environment.",
+  "risk_addressed": "Unapproved changes to financially-significant systems can introduce unauthorized logic, errors, or fraud into the control environment, misstating the financial statements or undermining dependent automated controls.",
+  "regulatory_mapping": {
+    "framework": "SOX",
+    "citation": ["SOX 404", "COSO Principle 11 (technology general controls)", "ITGC-Change"],
+    "owner_role": "Release Manager",
+    "sdlc_gates": ["Development", "Testing", "Run"],
+    "applies_to_value_streams": ["Technology Delivery & Change"],
+    "agent_skill": "sox-itgc-sdlc-compliance"
+  },
+  "scope": {
+    "applies_to": ["Production changes to financially-significant applications"],
+    "in_scope_systems": ["General Ledger", "Policy Admin", "Claims", "Billing"],
+    "assessment_cycle": "Quarterly",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Quarterly",
+  "control_owner": {
+    "primary_role": "Release Manager",
+    "supporting_roles": ["DevOps Engineer"],
+    "approval_role": "Change Advisory Board"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Change Tickets (Jira)",
+      "system_type": "ITSM",
+      "authoritative": true,
+      "access_method": "MCP",
+      "connector_ref": "itsm.jira",
+      "system_of_record": "Jira",
+      "location_uri": "https://meridian.atlassian.net/rest/api/3/search",
+      "refresh_cadence": "Daily"
+    },
+    {
+      "source_name": "Source Control (GitHub)",
+      "system_type": "SCM/Git",
+      "authoritative": true,
+      "access_method": "Git",
+      "connector_ref": "scm.github",
+      "system_of_record": "GitHub Enterprise",
+      "location_uri": "https://api.github.com/repos/meridian/{repo}/pulls",
+      "refresh_cadence": "Daily"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "production_change", "business_definition": "A change deployed to a financially-significant production system in the period.", "source_name": "Change Tickets (Jira)", "grain": "change", "data_type": "record", "required": true },
+    { "field_name": "change_approval", "business_definition": "The recorded approval (CAB decision or PR approval) authorizing the change, dated on or before promotion.", "source_name": "Source Control (GitHub)", "grain": "approval", "data_type": "record", "required": true }
+  ],
+  "method": {
+    "summary": "Reconcile every production change in the period to a recorded approval dated on or before its promotion.",
+    "steps": [
+      "Enumerate all production changes to in-scope systems for the period from the change-ticket source.",
+      "Pull associated pull-request approvals and CAB decisions from source control and the change record.",
+      "Match each change to an approval with an approval timestamp on or before the promotion timestamp.",
+      "Count changes with no matching prior approval and compute approval coverage."
+    ],
+    "fallback_logic": "If either source is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any production change to a financially-significant system without prior approval is a control exception.",
+    "pass_tolerance": "0 unapproved changes",
+    "escalation_threshold": "1 or more unapproved changes"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["100% of in-scope production changes trace to a prior approval.", "Approval evidence captured for the change population."],
+    "fail_criteria": ["One or more production changes lack a prior approval.", "Approval population cannot be evidenced."],
+    "exception_handling": ["Open a SOX deficiency issue.", "Roll back or retroactively review the change and re-test before relying on the control."]
+  },
+  "validation": {
+    "assertion_id": "SOX-ITGC-CM-01-A",
+    "automation_level": "Full",
+    "check_type": "reconciliation",
+    "test_script": "tests/SOX-ITGC-CM-01.test.mjs",
+    "assertions": [
+      { "metric": "changes_without_approval", "operator": "eq", "value": 0, "severity": "fail", "description": "Every production change had a prior approval." },
+      { "metric": "approval_coverage_pct", "operator": "gte", "value": 100, "severity": "fail", "description": "100% change-approval coverage." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["change_ticket_export", "pr_approval_log", "cab_minutes"],
+    "evidence_repository": "sharepoint://controls/sox/itgc-change",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": true,
+    "target_artifact_types": ["ICFR Assertion", "404 Control Matrix Row"],
+    "target_systems": ["GRC"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each quarter before §302 certification."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open SOX deficiency issue", "Notify Release Manager and Controller"],
+    "issue_ticket_type": "SOX Deficiency",
+    "notification_roles": ["Release Manager", "Controller"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of change population", "Approval timestamp precedence", "Evidence integrity"]
+  },
+  "tags": ["sox", "itgc", "change", "approval"],
+  "status": "Active",
+  "version": "1.0.0"
+}

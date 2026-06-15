@@ -1,0 +1,118 @@
+{
+  "control_id": "SOX-ITGC-CM-02",
+  "control_name": "Developers cannot approve or deploy their own changes",
+  "framework": "SOX",
+  "control_family": "ITGC-Change",
+  "domain": "Change Segregation of Duties",
+  "control_objective": "No individual can both author and approve, or both author and deploy, a change to a financially-significant production system, enforcing segregation of duties across the change lifecycle.",
+  "risk_addressed": "If a developer can approve or deploy their own change, a single individual can introduce and promote unauthorized or fraudulent logic to a financially-significant system without independent review, defeating change controls and misstating the financial statements.",
+  "regulatory_mapping": {
+    "framework": "SOX",
+    "citation": ["SOX 404", "COSO Principle 11 (technology general controls)", "ITGC-Change-SoD"],
+    "owner_role": "Release Manager",
+    "sdlc_gates": ["Development", "Testing", "Run"],
+    "applies_to_value_streams": ["Technology Delivery & Change"],
+    "agent_skill": "sox-itgc-sdlc-compliance"
+  },
+  "scope": {
+    "applies_to": ["Production changes to financially-significant applications"],
+    "in_scope_systems": ["General Ledger", "Policy Admin", "Claims", "Billing"],
+    "assessment_cycle": "Quarterly",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Preventive / Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Quarterly",
+  "control_owner": {
+    "primary_role": "Release Manager",
+    "supporting_roles": ["DevOps Engineer"],
+    "approval_role": "Engineering Director"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Source Control (GitHub)",
+      "system_type": "SCM/Git",
+      "authoritative": true,
+      "access_method": "Git",
+      "connector_ref": "scm.github",
+      "system_of_record": "GitHub Enterprise",
+      "location_uri": "https://api.github.com/repos/meridian/{repo}/pulls",
+      "refresh_cadence": "Daily"
+    },
+    {
+      "source_name": "Deployment Pipeline",
+      "system_type": "CI/CD",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "cicd.pipeline",
+      "system_of_record": "GitHub Actions",
+      "location_uri": "https://api.github.com/repos/meridian/{repo}/deployments",
+      "refresh_cadence": "Daily"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "merge_event", "business_definition": "A merge of a change into a protected branch, with author and approver identities.", "source_name": "Source Control (GitHub)", "grain": "merge", "data_type": "record", "required": true },
+    { "field_name": "deploy_event", "business_definition": "A production deployment record with the deploying actor and the change author.", "source_name": "Deployment Pipeline", "grain": "deployment", "data_type": "record", "required": true }
+  ],
+  "method": {
+    "summary": "Inspect merges to protected branches and production deployments to confirm the author is never the approver or the deployer.",
+    "steps": [
+      "Pull merges to protected branches with author and approver identities from source control.",
+      "Pull production deployments with deploying actor and originating change author from the pipeline.",
+      "Flag any merge where the approver equals the author (self-approval).",
+      "Flag any deployment where the deploying actor equals the change author (self-deploy)."
+    ],
+    "fallback_logic": "If either source is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any self-approval or self-deploy to a financially-significant system is a segregation-of-duties exception.",
+    "pass_tolerance": "0 self-approvals and 0 self-deploys",
+    "escalation_threshold": "1 or more self-approvals or self-deploys"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["No self-approved merges to protected branches.", "No author-deployed production releases."],
+    "fail_criteria": ["One or more merges were approved by their author.", "One or more production releases were deployed by their author."],
+    "exception_handling": ["Open a SOX deficiency issue.", "Review the affected change for independent re-approval and re-test before relying on the control."]
+  },
+  "validation": {
+    "assertion_id": "SOX-ITGC-CM-02-A",
+    "automation_level": "Full",
+    "check_type": "policy",
+    "test_script": "tests/SOX-ITGC-CM-02.test.mjs",
+    "assertions": [
+      { "metric": "self_approved_merges", "operator": "eq", "value": 0, "severity": "fail", "description": "No self-approved merges to protected branches." },
+      { "metric": "self_deploys", "operator": "eq", "value": 0, "severity": "fail", "description": "No author-deployed production releases." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["branch_protection_config", "merge_approver_log", "deploy_actor_log"],
+    "evidence_repository": "sharepoint://controls/sox/itgc-change",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": true,
+    "target_artifact_types": ["ICFR Assertion", "404 Control Matrix Row"],
+    "target_systems": ["GRC"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each quarter before §302 certification."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open SOX deficiency issue", "Notify Release Manager and Engineering Director"],
+    "issue_ticket_type": "SOX Deficiency",
+    "notification_roles": ["Release Manager", "Engineering Director"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Branch protection enforcement", "Approver-author independence", "Deployer-author independence"]
+  },
+  "tags": ["sox", "itgc", "change", "segregation-of-duties"],
+  "status": "Active",
+  "version": "1.0.0"
+}

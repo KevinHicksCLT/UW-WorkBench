@@ -1,0 +1,110 @@
+{
+  "control_id": "SOX-ITGC-CM-03",
+  "control_name": "Emergency changes follow retroactive governance",
+  "framework": "SOX",
+  "control_family": "ITGC-Change",
+  "domain": "Emergency Change",
+  "control_objective": "Every emergency change to a financially-significant system is logged, retroactively approved, and subject to a post-implementation review, so that expedited changes remain governed even when normal pre-approval is bypassed.",
+  "risk_addressed": "Emergency changes that skip normal pre-approval can leave unauthorized or defective logic in financially-significant systems undetected if they are not retroactively reviewed and approved, misstating the financial statements.",
+  "regulatory_mapping": {
+    "framework": "SOX",
+    "citation": ["SOX 404", "COSO Principle 11 (technology general controls)", "ITGC-Change-Emergency"],
+    "owner_role": "Release Manager",
+    "sdlc_gates": ["Development", "Run"],
+    "applies_to_value_streams": ["Technology Delivery & Change"],
+    "agent_skill": "sox-itgc-sdlc-compliance"
+  },
+  "scope": {
+    "applies_to": ["Emergency production changes to financially-significant applications"],
+    "in_scope_systems": ["General Ledger", "Policy Admin", "Claims", "Billing"],
+    "assessment_cycle": "Quarterly",
+    "as_of_date": "2026-06-30"
+  },
+  "test_type": "Detective",
+  "execution_mode": "AI Validate",
+  "control_frequency": "Quarterly",
+  "control_owner": {
+    "primary_role": "Release Manager",
+    "supporting_roles": ["DevOps Engineer"],
+    "approval_role": "Change Advisory Board"
+  },
+  "required_data_sources": [
+    {
+      "source_name": "Change Tickets (ServiceNow)",
+      "system_type": "ITSM",
+      "authoritative": true,
+      "access_method": "API",
+      "connector_ref": "itsm.servicenow",
+      "system_of_record": "ServiceNow",
+      "location_uri": "https://meridian.service-now.com/api/now/table/change_request",
+      "refresh_cadence": "Daily"
+    }
+  ],
+  "required_data_elements": [
+    { "field_name": "emergency_change", "business_definition": "A change recorded as emergency/expedited that bypassed normal pre-approval on an in-scope system.", "source_name": "Change Tickets (ServiceNow)", "grain": "change", "data_type": "record", "required": true },
+    { "field_name": "post_implementation_review", "business_definition": "The recorded post-implementation review and retroactive approval for the emergency change.", "source_name": "Change Tickets (ServiceNow)", "grain": "review", "data_type": "record", "required": true }
+  ],
+  "method": {
+    "summary": "Inspect all emergency changes in the period to confirm each has a post-implementation review and a retroactive approval.",
+    "steps": [
+      "Pull all emergency/expedited changes for in-scope systems in the period from the change-ticket source.",
+      "For each emergency change, confirm a post-implementation review record is present.",
+      "Confirm a retroactive approval is recorded for each emergency change.",
+      "Count emergency changes lacking a post-implementation review and compute the retroactive-approval rate."
+    ],
+    "fallback_logic": "If the source is unavailable, mark Not Run and raise a Missing Source item rather than passing."
+  },
+  "thresholds": {
+    "materiality_basis": "Any emergency change without a post-implementation review is a control exception; incomplete retroactive approval is a warning.",
+    "pass_tolerance": "0 emergency changes without a post-implementation review",
+    "warning_threshold": "Retroactive-approval coverage below 100%",
+    "escalation_threshold": "1 or more emergency changes without a post-implementation review"
+  },
+  "pass_fail_logic": {
+    "pass_criteria": ["Every emergency change has a post-implementation review."],
+    "warning_criteria": ["Not all emergency changes were retroactively approved by the time of assessment."],
+    "fail_criteria": ["One or more emergency changes lack a post-implementation review.", "Emergency change population cannot be evidenced."],
+    "exception_handling": ["Chase outstanding retroactive approvals to closure.", "Open a SOX deficiency issue if any emergency change lacks a post-implementation review."]
+  },
+  "validation": {
+    "assertion_id": "SOX-ITGC-CM-03-A",
+    "automation_level": "Full",
+    "check_type": "presence",
+    "test_script": "tests/SOX-ITGC-CM-03.test.mjs",
+    "assertions": [
+      { "metric": "emergency_changes_without_postreview", "operator": "eq", "value": 0, "severity": "fail", "description": "Every emergency change had a post-implementation review." },
+      { "metric": "emergency_changes_retro_approved_pct", "operator": "gte", "value": 100, "severity": "warn", "description": "All emergency changes retroactively approved." }
+    ]
+  },
+  "required_evidence": {
+    "artifacts": ["emergency_change_log", "retro_approval", "post_implementation_review"],
+    "evidence_repository": "sharepoint://controls/sox/itgc-change",
+    "linkage_required": true,
+    "retention_period": "7 years",
+    "review_signoff_required": true,
+    "timestamp_required": true
+  },
+  "downstream_linkage": {
+    "required": true,
+    "target_artifact_types": ["ICFR Assertion", "404 Control Matrix Row"],
+    "target_systems": ["GRC"],
+    "link_fields": ["control_run_id", "assessment_cycle"],
+    "staleness_rule": "Must be re-evidenced each quarter before §302 certification."
+  },
+  "workflow": {
+    "actions_on_fail": ["Open SOX deficiency issue", "Notify Release Manager and Controller"],
+    "issue_ticket_type": "SOX Deficiency",
+    "notification_roles": ["Release Manager", "Controller"],
+    "sla_days": 30
+  },
+  "audit": {
+    "reproducible": true,
+    "version_controlled": true,
+    "independent_review_required": true,
+    "override_allowed": false,
+    "audit_focus": ["Completeness of emergency change population", "Post-implementation review presence", "Retroactive approval timeliness"]
+  },
+  "tags": ["sox", "itgc", "change", "emergency"],
+  "status": "Active",
+  "version": "1.0.0"
+}
