@@ -5,6 +5,7 @@ import { useCompany } from '../lib/company';
 import PageHeader from '../components/PageHeader';
 import { withCompany } from '../lib/portfolio';
 import { Sheet, SheetCell, type SheetCol } from '../components/Sheet';
+import { AutomatableMeter, SCORE_LABEL, SCORE_DESC } from '../lib/automatable';
 
 // Deliverables / Tasks — the standalone work tracker, now two top-level tabs
 // (/deliverables and /tasks) rendering this same page with a `tab` prop:
@@ -22,6 +23,8 @@ type Task = {
   id: string; title: string; owner: string | null; status: string; priority: string; dueDate: string | null;
   source: string; deliverableId: string | null; deliverableTitle: string | null;
   roles: string[]; processes: string[];
+  division: string | null;
+  agentScore: number | null; agentRationale: string | null;
 };
 type WorkData = { deliverables: Deliverable[]; tasks: Task[]; valueStreams: { id: string; name: string }[] };
 // One checklist item (GET /work/checklist) — the finest grain of work. Each
@@ -46,7 +49,8 @@ type DeliverableDetail = {
 };
 type TaskDetail = {
   kind: 'task'; id: string; title: string; owner: string | null; priority: string;
-  jiraKey: string | null;
+  ownerRole: RoleRef | null;
+  jiraKey: string | null; agentScore: number | null; agentRationale: string | null;
   valueStream: { id: string; name: string } | null; subProcess: string | null;
   leadRoles: RoleRef[]; leadExtra: string[]; supportRoles: RoleRef[]; supportExtra: string[];
   outputs: string[];
@@ -119,6 +123,22 @@ function DetailBody({ detail }: { detail: Detail }) {
         </div>
       </div>
 
+      {/* Agent-automatability assessment (tasks only) */}
+      {detail.kind === 'task' && (
+        <div className="rounded-lg border border-[#eaeaea] p-3">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-1.5">AI automatable</div>
+          {typeof detail.agentScore === 'number' ? (
+            <>
+              <AutomatableMeter score={detail.agentScore} rationale={detail.agentRationale} />
+              <p className="text-xs text-[#666666] mt-2">{SCORE_DESC[detail.agentScore]}</p>
+              {detail.agentRationale && <p className="text-sm text-[#171717] mt-1.5 italic">“{detail.agentRationale}”</p>}
+            </>
+          ) : (
+            <span className="text-sm text-[#a3a3a3]">Not yet scored</span>
+          )}
+        </div>
+      )}
+
       {/* Where it lives in the operating model */}
       <div className="grid grid-cols-2 gap-4">
         <Field label="Process Level 3">
@@ -133,14 +153,14 @@ function DetailBody({ detail }: { detail: Detail }) {
         </Field>
       </div>
 
-      {/* Roles this is assigned to */}
+      {/* Roles — deliverables list every assigned role; a task shows just its
+          single owning role. */}
       {detail.kind === 'deliverable' ? (
         <Field label="Assigned roles"><RoleChips roles={detail.assignedRoles} extra={detail.assignedExtra} /></Field>
       ) : (
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Lead roles"><RoleChips roles={detail.leadRoles} extra={detail.leadExtra} /></Field>
-          <Field label="Supporting roles"><RoleChips roles={detail.supportRoles} extra={detail.supportExtra} /></Field>
-        </div>
+        <Field label="Role">
+          <RoleChips roles={detail.ownerRole ? [detail.ownerRole] : []} extra={!detail.ownerRole && detail.owner ? [detail.owner] : []} />
+        </Field>
       )}
 
       {/* Linked work */}
@@ -200,30 +220,31 @@ function DetailBody({ detail }: { detail: Detail }) {
         </Field>
       )}
 
-      {/* Downstream impact */}
-      <div>
-        <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-2">
-          Downstream impact ({detail.downstream.length})
-        </div>
-        {detail.downstream.length === 0 ? (
-          <div className="text-sm text-[#a3a3a3]">Not consumed elsewhere in the operating model.</div>
-        ) : (
-          <div className="space-y-2">
-            {detail.downstream.map((ds, i) => (
-              <div key={i} className="rounded-lg border border-[#eaeaea] p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium text-[#171717]">{ds.valueStreamName}</span>
-                  {'item' in ds && <span className="text-xs text-[#a3a3a3]">consumes {ds.item}</span>}
-                </div>
-                {ds.subProcess && <div className="text-xs text-[#a3a3a3] mt-0.5">{ds.subProcess}</div>}
-                {(ds.roles.roles.length > 0 || ds.roles.unresolved.length > 0) && (
-                  <div className="mt-2"><RoleChips roles={ds.roles.roles} extra={ds.roles.unresolved} /></div>
-                )}
-              </div>
-            ))}
+      {/* Downstream impact — deliverables only (where a work product flows next). */}
+      {detail.kind === 'deliverable' && (
+        <div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-2">
+            Downstream impact ({detail.downstream.length})
           </div>
-        )}
-      </div>
+          {detail.downstream.length === 0 ? (
+            <div className="text-sm text-[#a3a3a3]">Not consumed elsewhere in the operating model.</div>
+          ) : (
+            <div className="space-y-2">
+              {detail.downstream.map((ds, i) => (
+                <div key={i} className="rounded-lg border border-[#eaeaea] p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium text-[#171717]">{ds.valueStreamName}</span>
+                  </div>
+                  {ds.subProcess && <div className="text-xs text-[#a3a3a3] mt-0.5">{ds.subProcess}</div>}
+                  {(ds.roles.roles.length > 0 || ds.roles.unresolved.length > 0) && (
+                    <div className="mt-2"><RoleChips roles={ds.roles.roles} extra={ds.roles.unresolved} /></div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -265,7 +286,6 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
     () => new Map(deliverables.map((d) => [d.id, d.valueStreamName ?? DASH])),
     [deliverables],
   );
-
   const rolesCell = (roles: string[]) => {
     const joined = (roles ?? []).join(', ');
     return <SheetCell text={joined || DASH} dim title={joined || undefined} />;
@@ -284,10 +304,18 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
   ], []);
 
   const tCols = useMemo<SheetCol<Task>[]>(() => [
-    { key: 'title', label: 'Task', width: 'minmax(0,1.5fr)', value: (t) => t.title },
+    { key: 'title', label: 'Task', width: 'minmax(0,1.4fr)', value: (t) => t.title },
+    { key: 'role', label: 'Role', width: 'minmax(0,1.1fr)', value: (t) => t.owner ?? DASH, dim: true },
+    { key: 'division', label: 'Division', width: 'minmax(0,0.9fr)', value: (t) => t.division ?? DASH, dim: true },
     { key: 'deliverable', label: 'Deliverable', width: 'minmax(0,1fr)', value: (t) => t.deliverableTitle ?? DASH, dim: true },
-    { key: 'valueStream', label: 'Value Stream', width: 'minmax(0,1fr)', value: (t) => (t.deliverableId ? vsByDeliverable.get(t.deliverableId) ?? DASH : DASH), dim: true },
+    { key: 'valueStream', label: 'Value Stream', width: 'minmax(0,0.9fr)', value: (t) => (t.deliverableId ? vsByDeliverable.get(t.deliverableId) ?? DASH : DASH), dim: true },
     { key: 'process', label: 'Process', width: 'minmax(0,0.9fr)', values: (t) => t.processes ?? [], dim: true },
+    {
+      key: 'automatable', label: 'AI automatable', width: '150px',
+      // Filter by band ("1 · Agent-ready" … "5 · Human-only"); leading digit sorts numerically.
+      value: (t) => (typeof t.agentScore === 'number' ? `${t.agentScore} · ${SCORE_LABEL[t.agentScore]}` : 'Not scored'),
+      render: (t) => <AutomatableMeter score={t.agentScore} rationale={t.agentRationale} />,
+    },
   ], [vsByDeliverable]);
 
   const cCols = useMemo<SheetCol<ChecklistRow>[]>(() => [

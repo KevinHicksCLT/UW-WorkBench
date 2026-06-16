@@ -39,7 +39,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     if (!companyId) return;
     const tenantId = req.tenantId;
 
-    const [deliverables, tasks, valueStreams, ioItems, steps, roles] = await Promise.all([
+    const [deliverables, tasks, valueStreams, ioItems, steps, roles, divisions] = await Promise.all([
       prisma.deliverable.findMany({
         where: { tenantId, companyId },
         include: { _count: { select: { tasks: true } } },
@@ -59,11 +59,16 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         where: { valueStream: { companyId } },
         select: { name: true, l3: true, l4: true, leads: true, supporting: true, valueStreamId: true },
       }),
-      prisma.role.findMany({ where: { companyId }, select: { id: true, name: true, itemRole: true } }),
+      prisma.role.findMany({ where: { companyId }, select: { id: true, name: true, itemRole: true, divisionId: true } }),
+      prisma.division.findMany({ where: { companyId }, select: { id: true, name: true } }),
     ]);
 
     // Resolve deliverable value-stream links to display names in one pass.
     const vsName = new Map(valueStreams.map((v) => [v.id, v.name] as const));
+    // Owner → division (org group) for the task table column, reached from the
+    // free-text owner via the same resolver used below.
+    const roleById = new Map(roles.map((r) => [r.id, r] as const));
+    const divisionName = new Map(divisions.map((d) => [d.id, d.name] as const));
 
     // Per-row Role / Process enrichment for the header filters — same joins the
     // drill-down endpoints use, computed once across all rows. Deliverables key
@@ -121,11 +126,17 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         const p = step ? step.l4 ?? step.l3 : null;
         // Role-sourced tasks have no L5 step; their owner IS the role.
         const stepRoles = step ? [...new Set([...cellNames(step.leads), ...cellNames(step.supporting)])].sort() : [];
+        // Owner → role attributes for the table columns (family, level, division).
+        const ownerRole = t.owner ? resolve(t.owner) : null;
+        const rec = ownerRole ? roleById.get(ownerRole.id) : null;
         return {
           id: t.id, title: t.title, owner: t.owner, status: t.status, priority: t.priority, dueDate: t.dueDate,
           source: t.source, deliverableId: t.deliverableId, deliverableTitle: t.deliverable?.title ?? null,
           roles: stepRoles.length ? stepRoles : (t.owner ? [t.owner] : []),
           processes: p ? [p] : [...(dEntry?.processes ?? [])].sort(),
+          division: rec?.divisionId ? divisionName.get(rec.divisionId) ?? null : null,
+          agentScore: t.agentScore ?? null,
+          agentRationale: t.agentRationale ?? null,
         };
       }),
       valueStreams,
@@ -301,6 +312,8 @@ router.get('/task/:id', async (req: Request, res: Response, next: NextFunction) 
       prisma.valueStream.findMany({ where: { companyId }, select: { id: true, name: true } }),
     ]);
     const resolve = buildRoleResolver(roles);
+    // The task's single owning role, resolved to a linkable role where possible.
+    const ownerRole = t.owner ? resolve(t.owner) : null;
     const vsMap = new Map(vsList.map((v) => [v.id, v] as const));
     const nameN = norm(t.title);
 
@@ -347,6 +360,8 @@ router.get('/task/:id', async (req: Request, res: Response, next: NextFunction) 
     res.json({
       kind: 'task',
       id: t.id, title: t.title, owner: t.owner, priority: t.priority, jiraKey: t.jiraKey,
+      ownerRole: ownerRole ? { id: ownerRole.id, name: ownerRole.name } : null,
+      agentScore: t.agentScore ?? null, agentRationale: t.agentRationale ?? null,
       valueStream: vs,
       subProcess: step
         ? [step.l3, step.l4].filter(Boolean).join(' · ') || null
