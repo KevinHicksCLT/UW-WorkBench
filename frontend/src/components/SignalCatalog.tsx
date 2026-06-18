@@ -62,7 +62,6 @@ export default function SignalCatalog({ companyId }: { companyId: string | null 
       ),
     },
     { key: 'type', label: 'Type', width: '90px', value: (s) => s.type, dim: true },
-    { key: 'source', label: 'Source', width: '150px', values: (s) => s.sourceTokens, dim: true },
     { key: 'category', label: 'Category', width: '150px', value: (s) => s.category ?? '', dim: true },
     {
       // 'Role' is dropped from the chips — it isn't a tracking level here.
@@ -109,6 +108,7 @@ export default function SignalCatalog({ companyId }: { companyId: string | null 
         cols={cols}
         rowKey={(s) => s.id}
         loading={loading}
+        unit="metrics"
         summarize={(v) => `${v.filter((s) => s.kind === 'kpi').length} KPIs · ${v.filter((s) => s.kind === 'system').length} system`}
         expand={(s) => (
           <div className="space-y-1 text-[12px] text-[#525252]">

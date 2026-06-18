@@ -44,8 +44,22 @@ type Overview = {
   valueStreams: VsOption[];
 };
 
-const TABS = ['States', 'Requirements', 'Coverage'] as const;
+const TABS = ['Federal', 'States', 'Requirements', 'Coverage'] as const;
 type Tab = (typeof TABS)[number];
+
+// Federal / national lens shapes (GET /regulations/federal).
+type FederalReq = {
+  id: string; title: string; category: string; requirement: string;
+  citation: string | null; citationUrl: string | null; obligationType: string;
+  lineOfBusiness: string; confidence: string; valueStreamLinks: VsLink[];
+};
+type FederalRegulator = {
+  id: string; code: string; name: string; regulatorName: string;
+  regulatorWebsite: string | null; level: string; summary: string | null;
+  lastVerifiedAt: string | null; updatedAt: string;
+  requirements: FederalReq[];
+};
+type FederalGroup = { country: string; countryCode: string; regulators: FederalRegulator[] };
 
 // Flag display helpers — normalized token → short label + pill tone.
 const FLAG_PILL: Record<string, string> = {
@@ -84,10 +98,11 @@ export default function Regulations() {
   const { user } = useAuth();
   const { companyId } = useCompany();
   const canEdit = user?.role === 'ADMIN' || user?.role === 'MANAGER';
-  const [tab, setTab] = useState<Tab>('States');
+  const [tab, setTab] = useState<Tab>('Federal');
 
   const { data: overview } = useApi<Overview>(companyId ? withCompany('/regulations/overview', companyId) : null);
   const { data: jurisdictions, loading: jLoading } = useApi<JurisdictionRow[]>(companyId ? withCompany('/regulations/jurisdictions', companyId) : null);
+  const { data: federal, loading: fLoading } = useApi<{ groups: FederalGroup[] }>(companyId ? withCompany('/regulations/federal', companyId) : null);
 
   // Requirements are edited in place (VS links), so they live in state.
   const [requirements, setRequirements] = useState<RequirementRow[] | null>(null);
@@ -102,7 +117,7 @@ export default function Regulations() {
     <div>
       <PageHeader
         title="Regulations"
-        subtitle="The 50-state (+DC) insurance regulatory baseline — regulators, obligations, filing systems, and where each requirement applies in the operating model."
+        subtitle="The 50-state (+DC) insurance regulatory baseline plus the federal/national regime (FINRA/SEC/MSRB) — regulators, obligations, filing systems, and where each requirement applies in the operating model."
       />
 
       {/* Headline tiles */}
@@ -136,6 +151,7 @@ export default function Regulations() {
       {tab === 'States' && (
         <StatesLens rows={jurisdictions ?? []} loading={jLoading} onOpen={(code) => navigate(`/regulations/${code}`)} />
       )}
+      {tab === 'Federal' && <FederalLens groups={federal?.groups ?? []} loading={fLoading} onOpen={(code) => navigate(`/regulations/${code}`)} />}
       {tab === 'Requirements' && (
         <RequirementsLens
           rows={requirements ?? []}
@@ -183,10 +199,59 @@ function StatesLens({ rows, loading, onOpen }: { rows: JurisdictionRow[]; loadin
       cols={cols}
       rowKey={(r) => r.id}
       loading={loading}
+      unit="states"
       onRowClick={(r) => onOpen(r.code)}
       summarize={(v) => `${v.filter((r) => r.priorityTier === 'PRIORITY').length} priority states`}
     />
   );
+}
+
+// ── Federal / National lens ───────────────────────────────────────────────────
+// National / supranational regulators (FINRA/SEC/MSRB today). They carry no
+// state taxonomy flags, so the grid mirrors the States lens (one row per
+// regulator, click → the regulator's detail page) with federal-appropriate
+// columns. Their requirements also flow into the Requirements / Coverage lenses
+// (same regulatoryRequirement rows, jurisdiction = the regulator).
+type FederalRow = FederalRegulator & { country: string };
+
+function FederalLens({ groups, loading, onOpen }: { groups: FederalGroup[]; loading: boolean; onOpen: (code: string) => void }) {
+  const rows: FederalRow[] = groups.flatMap((g) => g.regulators.map((r) => ({ ...r, country: g.country })));
+  const cols: SheetCol<FederalRow>[] = [
+    {
+      key: 'regulator', label: 'Regulator', width: 'minmax(0,1.2fr)', value: (r) => r.regulatorName,
+      render: (r) => (
+        <>
+          <span className="truncate text-[12px] font-medium text-[#171717]">{r.regulatorName}</span>
+          <span className="text-[11px] text-[#a3a3a3] tnum flex-shrink-0">{r.code}</span>
+        </>
+      ),
+    },
+    { key: 'level', label: 'Level', width: 'minmax(0,1fr)', value: (r) => r.level, render: (r) => <span className="pill-slate">{r.level}</span> },
+    { key: 'country', label: 'Country', width: '150px', value: (r) => r.country, dim: true },
+    {
+      key: 'reqs', label: 'Reqs', width: '60px', value: (r) => String(r.requirements.length), filterable: false,
+      render: (r) => <span className="text-[12px] text-[#737373] tnum">{r.requirements.length}</span>,
+    },
+    { key: 'updated', label: 'Last updated', width: '110px', value: (r) => federalUpdated(r), filterable: false, sortable: false, dim: true },
+  ];
+  return (
+    <Sheet
+      rows={rows}
+      cols={cols}
+      rowKey={(r) => r.id}
+      loading={loading}
+      unit="regulators"
+      emptyText="No federal / national regulators on file."
+      onRowClick={(r) => onOpen(r.code)}
+      summarize={(v) => `${v.reduce((s, r) => s + r.requirements.length, 0)} requirements`}
+    />
+  );
+}
+
+// Mirrors the States "Last updated" cell: stored lastVerifiedAt, else updatedAt.
+function federalUpdated(r: FederalRow) {
+  const d = new Date(r.lastVerifiedAt ?? r.updatedAt);
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString();
 }
 
 // ── Requirements lens ─────────────────────────────────────────────────────────
@@ -199,7 +264,7 @@ function RequirementsLens({ rows, valueStreams, canEdit, onLinksSaved, onOpenSta
 }) {
   const cols: SheetCol<RequirementRow>[] = [
     {
-      key: 'state', label: 'State', width: '80px', value: (r) => r.jurisdiction.code,
+      key: 'state', label: 'Jurisdiction', width: '90px', value: (r) => r.jurisdiction.code,
       render: (r) => <SheetCell text={r.jurisdiction.code} title={r.jurisdiction.name} onClick={() => onOpenState(r.jurisdiction.code)} />,
     },
     { key: 'title', label: 'Requirement', width: 'minmax(0,1.6fr)', value: (r) => r.title },
@@ -230,6 +295,7 @@ function RequirementsLens({ rows, valueStreams, canEdit, onLinksSaved, onOpenSta
       rows={rows}
       cols={cols}
       rowKey={(r) => r.id}
+      unit="requirements"
       summarize={(v) => `${new Set(v.map((r) => r.jurisdiction.code)).size} states · ${v.filter((r) => !r.valueStreamLinks.length).length} unmapped`}
       expand={(r) => <RequirementExpand r={r} valueStreams={valueStreams} canEdit={canEdit} onLinksSaved={onLinksSaved} />}
     />

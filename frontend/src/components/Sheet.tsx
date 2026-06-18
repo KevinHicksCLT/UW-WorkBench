@@ -153,7 +153,7 @@ export function SheetCell({ text, onClick, dim, title }: { text: string; onClick
 }
 
 export function Sheet<R>({
-  rows, cols, rowKey, defaultSort, defaultFilters, summarize, loading, emptyText,
+  rows, cols, rowKey, defaultSort, defaultFilters, summarize, unit, loading, emptyText,
   onRowClick, expand, selectedKey, scrollToKey, leading,
 }: {
   rows: R[];
@@ -164,6 +164,8 @@ export function Sheet<R>({
   // Extra entity totals for the strip (e.g. "13 areas · 96 categories"); the
   // row count is always appended.
   summarize?: (visible: R[]) => string;
+  // Noun for the appended row count (e.g. "tasks", "deliverables"); default "rows".
+  unit?: string;
   loading?: boolean;
   emptyText?: string;
   onRowClick?: (r: R) => void;
@@ -259,7 +261,7 @@ export function Sheet<R>({
         {!loading && (
           <>
             <span className="text-[11px] text-[#737373] tnum">
-              {summarize ? summarize(visible) + ' · ' : ''}{visible.length} rows
+              {summarize ? summarize(visible) + ' · ' : ''}{visible.length} {unit ?? 'rows'}
             </span>
             {anyFilter && <button onClick={clear} className="text-[11px] font-medium text-[#1d4ed8] hover:underline">Clear filters</button>}
           </>

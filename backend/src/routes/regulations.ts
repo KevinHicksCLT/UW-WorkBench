@@ -39,7 +39,7 @@ router.get('/overview', async (req: Request, res: Response, next: NextFunction) 
     const companyId = await activeCompanyId(req, res);
     if (!companyId) return;
     const [jurisdictions, reqByCategory, reqByConfidence, requirementCount, mappedCount, bulletinCount, ruleCount, sourceCount, coverage] = await Promise.all([
-      prisma.jurisdiction.findMany({ where: { companyId }, select: { filingPortal: true, compactStatus: true, autoVerification: true, workersCompModel: true, apcd: true, sbs: true, priorityTier: true, profileDepth: true, lastVerifiedAt: true } }),
+      prisma.jurisdiction.findMany({ where: { companyId, regulatorType: { not: 'FEDERAL_SECURITIES' } }, select: { filingPortal: true, compactStatus: true, autoVerification: true, workersCompModel: true, apcd: true, sbs: true, priorityTier: true, profileDepth: true, lastVerifiedAt: true } }),
       prisma.regulatoryRequirement.groupBy({ by: ['category'], where: { companyId, status: 'ACTIVE' }, _count: true }),
       prisma.regulatoryRequirement.groupBy({ by: ['confidence'], where: { companyId, status: 'ACTIVE' }, _count: true }),
       prisma.regulatoryRequirement.count({ where: { companyId, status: 'ACTIVE' } }),
@@ -88,7 +88,10 @@ router.get('/jurisdictions', async (req: Request, res: Response, next: NextFunct
     const companyId = await activeCompanyId(req, res);
     if (!companyId) return;
     const q = req.query;
-    const where: Record<string, unknown> = { companyId };
+    // States lens covers state insurance regulators only — federal securities
+    // regulators (FINRA/SEC/MSRB) carry no state flags and surface in the
+    // Requirements/Coverage lenses instead.
+    const where: Record<string, unknown> = { companyId, regulatorType: { not: 'FEDERAL_SECURITIES' } };
     for (const f of ['filingPortal', 'compactStatus', 'autoVerification', 'workersCompModel', 'apcd', 'sbs', 'priorityTier', 'profileDepth'] as const) {
       const vals = list(q[f]);
       if (vals) where[f] = vals.length === 1 ? vals[0] : { in: vals };
@@ -138,6 +141,50 @@ router.get('/jurisdictions/:idOrCode', async (req: Request, res: Response, next:
     });
     if (!jur) return res.status(404).json({ error: 'Not found' });
     res.json(jur);
+  } catch (e) { next(e); }
+});
+
+// ── Federal / National lens ───────────────────────────────────────────────────
+// National / supranational regulators carry no state taxonomy flags, so they are
+// excluded from the States lens. Here they are organized by country/union so the
+// federal securities regime (FINRA/SEC/MSRB, E-02) is findable. The map is keyed
+// by regulatorType so other countries/unions (EU, UK, …) can be added later.
+const FEDERAL_GROUP: Record<string, { country: string; countryCode: string; level: string }> = {
+  FEDERAL_SECURITIES: { country: 'United States', countryCode: 'US', level: 'Federal — Securities & Markets' },
+};
+router.get('/federal', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const companyId = await activeCompanyId(req, res);
+    if (!companyId) return;
+    const rows = await prisma.jurisdiction.findMany({
+      where: { companyId, regulatorType: { in: Object.keys(FEDERAL_GROUP) } },
+      orderBy: { code: 'asc' },
+      select: {
+        id: true, code: true, name: true, regulatorName: true, regulatorWebsite: true,
+        regulatorType: true, summaryRegulator: true, lastVerifiedAt: true, updatedAt: true,
+        requirements: {
+          where: { status: 'ACTIVE' },
+          orderBy: [{ category: 'asc' }, { title: 'asc' }],
+          select: {
+            id: true, title: true, category: true, requirement: true, citation: true, citationUrl: true,
+            obligationType: true, lineOfBusiness: true, confidence: true,
+            valueStreamLinks: { include: { valueStream: { select: { id: true, name: true } } } },
+          },
+        },
+      },
+    });
+    const byCountry = new Map<string, { country: string; countryCode: string; regulators: unknown[] }>();
+    for (const j of rows) {
+      const g = FEDERAL_GROUP[j.regulatorType] ?? { country: 'Other', countryCode: 'XX', level: 'National' };
+      if (!byCountry.has(g.country)) byCountry.set(g.country, { country: g.country, countryCode: g.countryCode, regulators: [] });
+      byCountry.get(g.country)!.regulators.push({
+        id: j.id, code: j.code, name: j.name, regulatorName: j.regulatorName,
+        regulatorWebsite: j.regulatorWebsite, level: g.level, summary: j.summaryRegulator,
+        lastVerifiedAt: j.lastVerifiedAt, updatedAt: j.updatedAt,
+        requirements: j.requirements,
+      });
+    }
+    res.json({ groups: [...byCountry.values()] });
   } catch (e) { next(e); }
 });
 

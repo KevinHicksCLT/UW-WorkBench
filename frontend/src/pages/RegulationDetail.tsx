@@ -21,7 +21,7 @@ type Requirement = {
   sourceNote: string | null; valueStreamLinks: VsLink[];
 };
 type Detail = {
-  id: string; code: string; name: string;
+  id: string; code: string; name: string; regulatorType: string;
   regulatorName: string; regulatorWebsite: string | null;
   filingPortal: string; filingPortalDetail: string | null; compactStatus: string;
   autoVerification: string; autoVerificationDetail: string | null;
@@ -75,6 +75,10 @@ export default function RegulationDetail() {
   const patchLinks = (id: string, links: VsLink[]) =>
     setDetail((prev) => prev && { ...prev, requirements: prev.requirements.map((r) => (r.id === id ? { ...r, valueStreamLinks: links } : r)) });
 
+  // Federal / national regulators carry no state taxonomy flags or state-only
+  // sections (integrations, bulletins, rules, monitored sources) — hide them.
+  const isFederal = detail.regulatorType === 'FEDERAL_SECURITIES';
+
   return (
     <div>
       <PageHeader
@@ -94,23 +98,27 @@ export default function RegulationDetail() {
               </a>
             )}
             <Link to="/regulations" className="rounded-md border border-[#eaeaea] bg-white px-3 py-1.5 text-xs font-medium text-[#171717] hover:border-[#d4d4d4] transition-colors duration-150">
-              All states
+              {isFederal ? 'All regulations' : 'All states'}
             </Link>
           </div>
         }
       />
 
-      {/* Flag strip */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-6 text-xs text-[#666666]">
-        {detail.priorityTier === 'PRIORITY' && <span className="pill-amber">Priority state</span>}
-        {detail.profileDepth === 'FULL_PROFILE' && <span className="pill-blue">Full compliance profile</span>}
-        <span className="flex items-center gap-1.5">Filing portal <FlagPill value={detail.filingPortal} detail={detail.filingPortalDetail} /></span>
-        <span className="flex items-center gap-1.5">Compact <FlagPill value={detail.compactStatus} /></span>
-        <span className="flex items-center gap-1.5">Auto verify <FlagPill value={detail.autoVerification} detail={detail.autoVerificationDetail} /></span>
-        <span className="flex items-center gap-1.5">Workers' comp <FlagPill value={detail.workersCompModel} detail={detail.workersCompDetail} /></span>
-        <span className="flex items-center gap-1.5">APCD <FlagPill value={detail.apcd} /></span>
-        <span className="flex items-center gap-1.5">SBS <FlagPill value={detail.sbs} /></span>
-      </div>
+      {/* Flag strip — state taxonomy flags (states only). */}
+      {isFederal ? (
+        detail.summaryRegulator && <div className="mb-6 text-sm text-[#525252] leading-relaxed">{detail.summaryRegulator}</div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-6 text-xs text-[#666666]">
+          {detail.priorityTier === 'PRIORITY' && <span className="pill-amber">Priority state</span>}
+          {detail.profileDepth === 'FULL_PROFILE' && <span className="pill-blue">Full compliance profile</span>}
+          <span className="flex items-center gap-1.5">Filing portal <FlagPill value={detail.filingPortal} detail={detail.filingPortalDetail} /></span>
+          <span className="flex items-center gap-1.5">Compact <FlagPill value={detail.compactStatus} /></span>
+          <span className="flex items-center gap-1.5">Auto verify <FlagPill value={detail.autoVerification} detail={detail.autoVerificationDetail} /></span>
+          <span className="flex items-center gap-1.5">Workers' comp <FlagPill value={detail.workersCompModel} detail={detail.workersCompDetail} /></span>
+          <span className="flex items-center gap-1.5">APCD <FlagPill value={detail.apcd} /></span>
+          <span className="flex items-center gap-1.5">SBS <FlagPill value={detail.sbs} /></span>
+        </div>
+      )}
 
       <div className="space-y-5">
         {detail.executiveSummary && (
@@ -165,6 +173,7 @@ export default function RegulationDetail() {
           </div>
         </SectionCard>
 
+        {!isFederal && (
         <SectionCard title={`Integration & electronic systems (${detail.integrations.length})`}>
           <div className="overflow-x-auto -mx-5 px-5">
             <table className="w-full text-sm">
@@ -193,6 +202,7 @@ export default function RegulationDetail() {
             </table>
           </div>
         </SectionCard>
+        )}
 
         {detail.summaryIntegration && (
           <SectionCard title="Integration narrative (from the baseline document)">
@@ -205,6 +215,7 @@ export default function RegulationDetail() {
           </SectionCard>
         )}
 
+        {!isFederal && (<>
         <SectionCard title={`Bulletins (${detail.bulletins.length})`}>
           {detail.bulletins.length === 0 && <div className="text-sm text-[#a3a3a3]">No bulletins on file for this state yet — the baseline document named only a handful; the Phase 2 pipeline appends here continuously.</div>}
           <div className="divide-y divide-[#f5f5f5]">
@@ -256,6 +267,7 @@ export default function RegulationDetail() {
             ))}
           </div>
         </SectionCard>
+        </>)}
       </div>
     </div>
   );

@@ -132,6 +132,7 @@ export default function PortfolioRaid({ embedded = false, programId }: { embedde
         cols={cols}
         rowKey={(r) => r.id}
         loading={loading}
+        unit="items"
         defaultFilters={{ status: 'OPEN', ...(TYPES.includes(linkedType) ? { type: linkedType } : {}) }}
         summarize={(v) => TYPES.map((t) => `${v.filter((r) => r.type === t).length} ${t.toLowerCase()}${v.filter((r) => r.type === t).length === 1 ? '' : 's'}`).join(' · ')}
         expand={(r) => (

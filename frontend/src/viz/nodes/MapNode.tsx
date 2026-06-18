@@ -345,6 +345,8 @@ const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
         >
           {d.step}
         </span>
+        {/* 3-line clamp: the sub-process tag chip was removed, so the name can
+            use the full card height. */}
         <span style={{ fontSize: 11.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35, ...CLAMP3 }}>
           {sentenceCase(d.name)}
         </span>

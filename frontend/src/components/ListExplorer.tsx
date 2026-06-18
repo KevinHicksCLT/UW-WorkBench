@@ -81,7 +81,7 @@ const EmptyRow = ({ text }: { text: string }) => (
   <div className="py-1.5 px-3 text-[11px] text-[#a3a3a3] italic">{text}</div>
 );
 
-export default function ListExplorer({ focusVsId = null }: { companyName?: string; divisions?: DivisionSummary[]; streams?: number; focusVsId?: string | null }) {
+export default function ListExplorer({ focusVsId = null, focusVsName = null }: { companyName?: string; divisions?: DivisionSummary[]; streams?: number; focusVsId?: string | null; focusVsName?: string | null }) {
   const [tree, setTree] = useState<Tree | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -199,6 +199,25 @@ export default function ListExplorer({ focusVsId = null }: { companyName?: strin
       .catch(() => {});
     return () => { cancelled = true; };
   }, [focusVsId, flat]);
+
+  // Name-based focus (Third-Parties drawer → "?vs=<name>"): pre-apply the Value
+  // stream filter, clearing other columns. The incoming string can be a single
+  // clean stream name OR a free-text, multi-value label (e.g. "Delegated
+  // Authority; Submission-to-Bind"), so split on ; , / and match each token to
+  // the tree streams (exact, or substring for tokens long enough to be safe).
+  useEffect(() => {
+    if (!focusVsName || !flat.length) return;
+    const tokens = focusVsName.split(/[;,/]/).map((t) => t.toLowerCase().trim()).filter(Boolean);
+    const names = new Set<string>();
+    for (const r of flat) {
+      const n = r.vsName.toLowerCase().trim();
+      if (tokens.some((t) => n === t || (t.length >= 4 && (n.includes(t) || t.includes(n))))) names.add(r.vsName);
+    }
+    if (!names.size) return;
+    setVsSel([...names]); setDomainSel([]); setDivisionSel([]); setSubSel([]); setStepSel([]);
+    const first = flat.find((r) => names.has(r.vsName));
+    if (first) openMetrics('valueStream', first.vsId);
+  }, [focusVsName, flat]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // A row passes the filters; `skip` exempts one column so each combobox can
   // list the distinct values among rows passing the OTHER filters (Excel-style).

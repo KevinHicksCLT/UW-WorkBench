@@ -39,7 +39,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     if (!companyId) return;
     const tenantId = req.tenantId;
 
-    const [deliverables, tasks, valueStreams, ioItems, steps, roles, divisions] = await Promise.all([
+    const [deliverables, tasks, valueStreams, ioItems, steps, roles, divisions, departments] = await Promise.all([
       prisma.deliverable.findMany({
         where: { tenantId, companyId },
         include: { _count: { select: { tasks: true } } },
@@ -47,7 +47,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       }),
       prisma.task.findMany({
         where: { tenantId, companyId },
-        include: { deliverable: { select: { id: true, title: true, valueStreamId: true } } },
+        include: { deliverable: { select: { id: true, title: true, description: true, valueStreamId: true } } },
         orderBy: [{ source: 'asc' }, { dueDate: 'asc' }, { createdAt: 'asc' }],
       }),
       prisma.valueStream.findMany({ where: { companyId }, select: { id: true, name: true }, orderBy: { name: 'asc' } }),
@@ -59,8 +59,9 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         where: { valueStream: { companyId } },
         select: { name: true, l3: true, l4: true, leads: true, supporting: true, valueStreamId: true },
       }),
-      prisma.role.findMany({ where: { companyId }, select: { id: true, name: true, itemRole: true, divisionId: true } }),
+      prisma.role.findMany({ where: { companyId }, select: { id: true, name: true, itemRole: true, divisionId: true, departmentId: true } }),
       prisma.division.findMany({ where: { companyId }, select: { id: true, name: true } }),
+      prisma.department.findMany({ where: { companyId }, select: { id: true, name: true } }),
     ]);
 
     // Resolve deliverable value-stream links to display names in one pass.
@@ -69,6 +70,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     // free-text owner via the same resolver used below.
     const roleById = new Map(roles.map((r) => [r.id, r] as const));
     const divisionName = new Map(divisions.map((d) => [d.id, d.name] as const));
+    const departmentName = new Map(departments.map((d) => [d.id, d.name] as const));
 
     // Per-row Role / Process enrichment for the header filters — same joins the
     // drill-down endpoints use, computed once across all rows. Deliverables key
@@ -105,7 +107,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
           status: d.status, dueDate: d.dueDate, taskCount: d._count.tasks,
           valueStreamId: d.valueStreamId, valueStreamName: d.valueStreamId ? vsName.get(d.valueStreamId) ?? null : null,
           roles: [...(e?.roles ?? [])].sort(),
-          processes: [...(e?.processes ?? [])].sort(),
+          processes: e?.processes.size ? [...e.processes].sort() : d.description ? [d.description.split(' · ').pop()!.trim()] : [],
         };
       }),
       tasks: tasks.map((t) => {
@@ -124,6 +126,10 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
           ? ioByKey.get(`${t.deliverable.valueStreamId}␟${norm(t.deliverable.title)}`)
           : undefined;
         const p = step ? step.l4 ?? step.l3 : null;
+        // Final fallback so EVERY task with a deliverable shows a process: the
+        // deliverable's own L3 · L4 path (its `description`), last segment = L4.
+        // Covers supplemental deliverables that have no source Output I/O row.
+        const delivProcess = t.deliverable?.description ? t.deliverable.description.split(' · ').pop()!.trim() : null;
         // Role-sourced tasks have no L5 step; their owner IS the role.
         const stepRoles = step ? [...new Set([...cellNames(step.leads), ...cellNames(step.supporting)])].sort() : [];
         // Owner → role attributes for the table columns (family, level, division).
@@ -133,8 +139,11 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
           id: t.id, title: t.title, owner: t.owner, status: t.status, priority: t.priority, dueDate: t.dueDate,
           source: t.source, deliverableId: t.deliverableId, deliverableTitle: t.deliverable?.title ?? null,
           roles: stepRoles.length ? stepRoles : (t.owner ? [t.owner] : []),
-          processes: p ? [p] : [...(dEntry?.processes ?? [])].sort(),
+          processes: p ? [p] : dEntry?.processes.size ? [...dEntry.processes].sort() : delivProcess ? [delivProcess] : [],
           division: rec?.divisionId ? divisionName.get(rec.divisionId) ?? null : null,
+          department: rec?.departmentId ? departmentName.get(rec.departmentId) ?? null : null,
+          roleName: rec?.name ?? null,
+          valueStreamName: t.deliverable?.valueStreamId ? vsName.get(t.deliverable.valueStreamId) ?? null : null,
           agentScore: t.agentScore ?? null,
           agentRationale: t.agentRationale ?? null,
         };

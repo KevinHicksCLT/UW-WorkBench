@@ -52,15 +52,22 @@ export default function Explorer() {
   // Lift it into state and clear the param so it doesn't linger or re-fire.
   const [searchParams, setSearchParams] = useSearchParams();
   const [focusVsId, setFocusVsId] = useState<string | null>(null);
+  // `?vs=<name>` focuses the LIST by value-stream NAME (used where the caller
+  // only knows the name, e.g. the Third-Parties drawer) — pre-applies the Value
+  // stream filter without needing the stream's id.
+  const [focusVsName, setFocusVsName] = useState<string | null>(null);
 
   useEffect(() => {
     const f = searchParams.get('focus');
+    const vsName = searchParams.get('vs');
     const v = searchParams.get('view');
-    if (!f && v !== 'list' && v !== 'map') return;
+    if (!f && !vsName && v !== 'list' && v !== 'map') return;
     if (f) { setFocusVsId(f); setView(v === 'map' ? 'map' : 'list'); }
+    else if (vsName) { setFocusVsName(vsName); setView('list'); }
     else if (v === 'list' || v === 'map') setView(v);
     const next = new URLSearchParams(searchParams);
     next.delete('focus');
+    next.delete('vs');
     next.delete('view');
     setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
@@ -103,7 +110,7 @@ export default function Explorer() {
         <ViewToggle view={view} onChange={setView} />
 
         {view === 'list' ? (
-          <ListExplorer divisions={divisions} companyName={companyName} streams={streams} focusVsId={focusVsId} />
+          <ListExplorer divisions={divisions} companyName={companyName} streams={streams} focusVsId={focusVsId} focusVsName={focusVsName} />
         ) : loading ? (
           <div className="h-full grid place-items-center">
             <div className="text-sm text-[#a3a3a3] animate-pulse">Loading operating model…</div>
