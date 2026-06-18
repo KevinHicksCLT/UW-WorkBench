@@ -451,15 +451,24 @@ router.get('/division/:id/flow', async (req: Request, res: Response, next: NextF
 
     let selected: any = null;
     if (selectedVs) {
-      // Sub-processes (the flow row) and their process steps.
-      const l4 = await prisma.node.findMany({ where: { parentId: selectedVs.id, typeKey: 'sub_process' }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, attributes: true } });
-      const l5 = await prisma.node.findMany({ where: { typeKey: 'step', parentId: { in: l4.map((x) => x.id) } }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, parentId: true } });
-      const l5ByParent = new Map<string, typeof l5>();
-      for (const s of l5) { if (!s.parentId) continue; if (!l5ByParent.has(s.parentId)) l5ByParent.set(s.parentId, []); l5ByParent.get(s.parentId)!.push(s); }
-      const steps = l4.map((s, i) => ({
-        id: s.id, step: i + 1, name: s.name,
-        subSteps: (l5ByParent.get(s.id) ?? []).map((x, k) => ({ id: x.id, name: x.name, step: k + 1, l5: [] as { id: string; name: string; step: number }[] })),
-        inputs: ((s.attributes as any) ?? {}).inputs ?? null, outputs: ((s.attributes as any) ?? {}).outputs ?? null, upstream: null, downstream: null,
+      // The chevron flow is the value stream's L3 PROCESS AREAS (not the L4s) so
+      // it stays navigable; each L3 → its L4 sub-processes (subSteps) → its L5
+      // process steps (l5). Read the SubValueStream (L3/L4) + ProcessStep (L5)
+      // backbone every stream shares (the value_stream node's `code` is the
+      // ValueStream id).
+      const vsCode = (await prisma.node.findUnique({ where: { id: selectedVs.id }, select: { code: true } }))?.code ?? null;
+      const [l3rows, l4rows, psrows] = vsCode ? await Promise.all([
+        prisma.subValueStream.findMany({ where: { valueStreamId: vsCode, level: 3 }, orderBy: [{ sourceRow: 'asc' }, { createdAt: 'asc' }], select: { id: true, name: true } }),
+        prisma.subValueStream.findMany({ where: { valueStreamId: vsCode, level: 4 }, orderBy: [{ sourceRow: 'asc' }, { createdAt: 'asc' }], select: { id: true, name: true, parentId: true } }),
+        prisma.processStep.findMany({ where: { valueStreamId: vsCode }, orderBy: { stepNumber: 'asc' }, select: { name: true, l3: true, l4: true } }),
+      ]) : [[] as { id: string; name: string }[], [] as { id: string; name: string; parentId: string | null }[], [] as { name: string; l3: string | null; l4: string | null }[]];
+      const steps = l3rows.map((area, i) => ({
+        id: area.id, step: i + 1, name: area.name,
+        subSteps: l4rows.filter((l4) => l4.parentId === area.id).map((l4, j) => ({
+          id: l4.id, name: l4.name, step: j + 1,
+          l5: psrows.filter((p) => p.l3 === area.name && p.l4 === l4.name).map((p, k) => ({ id: `${l4.id}::${k}`, name: p.name, step: k + 1 })),
+        })),
+        inputs: null, outputs: null, upstream: null, downstream: null,
         roles: [] as string[], categories: [] as string[], primaryCategory: higherCategory,
         crossDomain: false, unowned: false,
       }));
