@@ -1,0 +1,41 @@
+flowchart TB
+  subgraph ORG["ORG  (top)"]
+    direction RL
+    Company["Company<br/>1"] ==>|"1 : N"| Division["Division<br/>15"] ==>|"1 : N"| Department["Department<br/>99"] ==>|"1 : N"| Role["Role<br/>299"]
+  end
+  subgraph WORK["WORK  (middle)"]
+    direction RL
+    Deliverable["Deliverable<br/>688"] ~~~ ChecklistItem["Checklist Item<br/>5,604"] ~~~ Application["Application<br/>56"] ~~~ Standard["Standard<br/>13"] ~~~ Reg["Regulatory Req.<br/>314"]
+  end
+  subgraph CONN["CONNECTION TABLES  (red = wiped → rebuild)"]
+    direction RL
+    c_deliv["StepDeliverable"]:::wiped ~~~ c_chk["Checklist↔Step<br/>(new)"]:::newl ~~~ c_app["StepAppUsage"]:::wiped ~~~ c_std["Standard↔L4<br/>(new)"]:::newl ~~~ c_reg["RequirementValueStream"]:::wiped ~~~ c_role["RoleValueStream"]:::wiped ~~~ c_cr["ChecklistItem.roleId ✓"]:::intact
+  end
+  subgraph VS["VALUE STREAMS  (bottom)"]
+    direction RL
+    Seg["L1 Segment<br/>(ValueStreamDomain)<br/>7 → 3 ⚠"] ==>|"1 : N"| DivVS["L2 Division<br/>(ValueStream)<br/>132 → 17 ⚠"] ==>|"1 : N"| L3Process["L3 Process<br/>(SubValueStream·L3)<br/>0 → 135 ⚠"] ==>|"1 : N"| L4Sub["L4 Sub-Process<br/>(SubValueStream·L4)<br/>868 → 867 ✓"] ==>|"1 : N"| L5Step["L5 Step = Task<br/>(ProcessStep)<br/>8,355 ✓"]
+  end
+  subgraph PARK["Parked — separate for now"]
+    direction RL
+    Initiative["Initiative<br/>6"] ~~~ Metric["Metric<br/>EMPTY"] ~~~ AI["AI adoption"]
+  end
+  Company ==>|"1 : N"| Seg
+  %% dotted connectors pass THROUGH the connection-table boxes
+  L3Process -.->|"1 : N"| c_deliv -.-> Deliverable
+  L5Step   -.->|"1 : N"| c_chk   -.-> ChecklistItem
+  L5Step   -.->|"N : N"| c_app   -.-> Application
+  L4Sub    -.->|"1 : N"| c_std   -.-> Standard
+  L3Process -.->|"1 : N"| c_reg  -.-> Reg
+  L3Process -.->|"N : N"| c_role -.-> Role
+  Role     -.->|"1 : N"| c_cr    -.-> ChecklistItem
+  classDef org fill:#EAF2F8,stroke:#5499C7,color:#1A5276;
+  classDef vs fill:#FEF5E7,stroke:#E67E22,stroke-width:2px,color:#7E4A12;
+  classDef work fill:#E9F7EF,stroke:#27AE60,color:#196F3D;
+  classDef park fill:#F2F3F4,stroke:#AEB6BF,color:#566573;
+  classDef wiped fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#C0392B;
+  classDef newl fill:#FCF3CF,stroke:#B7950B,stroke-dasharray:5 3,color:#7D6608;
+  classDef intact fill:#E9F7EF,stroke:#1E8449,color:#196F3D;
+  class Company,Division,Department,Role org;
+  class Seg,DivVS,L3Process,L4Sub,L5Step vs;
+  class Deliverable,ChecklistItem,Application,Standard,Reg work;
+  class Initiative,Metric,AI park;

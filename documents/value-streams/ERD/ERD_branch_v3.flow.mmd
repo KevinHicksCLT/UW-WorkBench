@@ -1,0 +1,52 @@
+flowchart TB
+  P0["<b>P0 — Decide &amp; lock scope</b><br/>recursive vs fixed (DECIDED: recursive)<br/>parked = Initiative/Metric · People = P5<br/>branch + rollback tag · master untouched<br/><i>verify: sign-off recorded</i>"]:::p0
+
+  subgraph P1["P1 — Core spines"]
+    direction LR
+    p1a["OrgLevelType · OrgUnit(+Closure)<br/>Role · RoleOrgAssignment · managerRoleId"]:::e
+    p1b["ProcessLevelType · ProcessNode(+Closure)"]:::e
+    p1c["Key/FK audit<br/>Role→lowest level · composite keys"]:::chk
+  end
+  P1v["<i>verify:</i> seed 4-level &amp; 6-level company; add 'Team' level via DATA only · round-trip L1–L5 (L3 135 / L4 867 / L5 ~8,355) · every FK resolves"]:::v
+
+  subgraph P2["P2 — Work, control &amp; connections"]
+    direction LR
+    p2a["Deliverable · Checklist/Item · Standard<br/>RegulatoryReq · Application · TestingTemplate"]:::e
+    p2b["Node* link tables (level-flexible)<br/>RoleDeliverable · RegulationApplication"]:::e
+    p2c["automatability on Task &amp; Deliverable"]:::e
+  end
+  P2v["<i>verify:</i> attach 1 deliverable at 2 levels · 1 reg → N streams AND N apps · mark task automated / deliverable augmented · capture 1 verification template"]:::v
+
+  subgraph P3["P3 — Hydrate &amp; gap-fill (data, no schema)"]
+    direction LR
+    p3a["Load company → L5 from existing analysis"]:::d
+    p3b["Find gaps → loop research to fill"]:::d
+  end
+  P3v["<i>verify:</i> row counts reconcile to source · spot-check 10 streams vs the six questions · tracked gap list shrinks"]:::v
+
+  subgraph P4["P4 — Admin UX &amp; views"]
+    direction LR
+    p4a["Terminology (relabel) · AuditEntry (change log)"]:::e
+    p4b["Data-admin: add/edit/relabel · drag-drop move<br/>with inheritance · admin-vs-preference split"]:::ux
+    p4c["Read VIEWS (flattened L1–L5 · role→deliv→task)"]:::view
+  end
+  P4v["<i>verify:</i> move mid-level node → descendants/connections follow · relabel a level → reporting updates, no structural change · flattened export matches tree"]:::v
+
+  subgraph P5["P5 — Chargeback"]
+    direction LR
+    p5a["AppChargeback (cost allocation by org/process/usage)"]:::e
+  end
+  P5v["<i>verify:</i> allocate 1 app cost across 2 businesses by usage, totals reconcile"]:::v
+
+  P6["<b>P6 — Demo</b><br/>'ABC Insurance' organized by the six questions<br/>markdown output · rollback rehearsed<br/><i>verify: dry run, 'organized = trustworthy' bar met</i>"]:::p6
+
+  P0 --> P1 --> P1v --> P2 --> P2v --> P3 --> P3v --> P4 --> P4v --> P5 --> P5v --> P6
+
+  classDef p0 fill:#EAF2F8,stroke:#2E86C1,stroke-width:2px,color:#1A5276;
+  classDef p6 fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655;
+  classDef e fill:#FEF5E7,stroke:#E67E22,color:#7E4A12;
+  classDef d fill:#F4ECF7,stroke:#8E44AD,color:#5B2C6F;
+  classDef ux fill:#FDEDEC,stroke:#C0392B,color:#922B21;
+  classDef view fill:#EBF5FB,stroke:#2980B9,color:#1B4F72;
+  classDef chk fill:#FCF3CF,stroke:#B7950B,color:#7D6608;
+  classDef v fill:#E9F7EF,stroke:#1E8449,color:#196F3D,font-style:italic;
