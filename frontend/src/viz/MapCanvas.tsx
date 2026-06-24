@@ -12,8 +12,8 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   ReactFlow, Background, Controls, ReactFlowProvider,
-  useReactFlow,
-  type Node, type Edge, type NodeMouseHandler,
+  useReactFlow, applyNodeChanges,
+  type Node, type Edge, type NodeMouseHandler, type OnNodeDrag, type OnNodesChange,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -25,7 +25,9 @@ import { DOMAIN_HEX } from './model';
 import type { NodeFocusState, DivisionSummary, DivisionFlow, FlowStep, FlowValueStream } from './model';
 import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from '../components/MetricsSidebar';
 import ValueStreamDrawer from '../components/ValueStreamDrawer';
+import TestingTemplateModal from '../components/TestingTemplateModal';
 import { api } from '../lib/api';
+import { useCompany } from '../lib/company';
 
 // ── Layout constants ─────────────────────────────────────────────────────────
 
@@ -38,27 +40,29 @@ const SHOW_METRICS_SIDEBAR: boolean = true;
 // Every card is the same size (MAP_CARD_W × MAP_CARD_H, from MapNode.tsx) so the
 // whole map reads as one consistent grid. The per-level aliases below keep the
 // layout math readable but all resolve to the same dimensions.
+// Spacing matches the Organization map (OrgMapCanvas): siblings sit GAP_X = 12
+// apart, and each child block drops ROW_GAP_Y = 32 below its parent row.
 const COMPANY_H        = MAP_CARD_H;
-const DOMAIN_TOP_OFFSET = 40;  // y offset from company bottom to the domain row
+const DOMAIN_TOP_OFFSET = 32;  // y offset from company bottom to the domain row
 const CORE_W          = MAP_CARD_W;
 const CORE_H          = MAP_CARD_H;
 const DIV_W           = MAP_CARD_W;
 const DIV_H           = MAP_CARD_H;
-const DIV_GAP_X       = 16;    // horizontal gap between divisions in the L2 row
-const COL_GAP_X       = 120;   // horizontal gap between column centers
-const DIV_TOP_OFFSET  = 36;    // y offset from domain bottom to first division top
+const DIV_GAP_X       = 12;    // horizontal gap between divisions in the L2 row
+const COL_GAP_X       = 12;    // horizontal gap between column centers
+const DIV_TOP_OFFSET  = 32;    // y offset from domain bottom to first division top
 const VS_W            = MAP_CARD_W;
 const VS_H            = MAP_CARD_H;
 const VS_GAP_X        = 12;
-const VS_TOP_OFFSET   = 24;    // gap between focused-division bottom and VS row top
+const VS_TOP_OFFSET   = 32;    // gap between focused-division bottom and VS row top
 const STEP_W          = MAP_CARD_W;
 const STEP_H          = MAP_CARD_H;
-const STEP_GAP_X      = 12;
-const STEP_TOP_OFFSET = 24;    // gap between focused-VS bottom and step row top
-const SUBSTEP_GAP_X     = 12;
-const SUBSTEP_TOP_OFFSET = 24; // gap between focused-step bottom and sub-process row top
-const LEAF_GAP_X        = 12;
-const LEAF_TOP_OFFSET   = 24;  // gap between focused-sub-process bottom and L5 step row top
+const STEP_GAP_X      = 12;    // horizontal gap between ordered L4 process steps (left→right row)
+const STEP_TOP_OFFSET = 32;    // gap between focused-VS bottom and step row top
+const SUBSTEP_GAP_Y     = 12;  // vertical gap between ordered L5 sub-processes (top→bottom column)
+const SUBSTEP_TOP_OFFSET = 32; // vertical offset of the L5 column below its focused L4 step
+const LEAF_GAP_Y        = 12;  // vertical gap between ordered L5 (leaf) steps
+const LEAF_TOP_OFFSET   = 32;  // vertical offset of the leaf column below its focused sub-process
 
 // Compact map breadcrumb (defect backlog 02, D3.5) — the shared .focus-crumb-*
 // chips render at 14px; the map path runs five levels deep, so override down
@@ -83,11 +87,30 @@ function categoriesOf(divisions: DivisionSummary[]): Category[] {
 
 // ── Inner canvas ─────────────────────────────────────────────────────────────
 
-type Props = { divisions: DivisionSummary[]; companyName: string; breadcrumbSlot?: HTMLElement | null; focusVsId?: string | null };
+type Props = { divisions: DivisionSummary[]; companyName: string; breadcrumbSlot?: HTMLElement | null; focusVsId?: string | null; onMoved?: () => void };
 
-function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: Props) {
+function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onMoved }: Props) {
   const rf = useReactFlow();
   const navigate = useNavigate();
+  const { companyId } = useCompany();
+
+  // ── Edit mode (Apple-home-screen drag-to-reparent) ───────────────────────────
+  // OFF by default → the map is pixel-identical to the read-only view (drag
+  // disabled, click-to-drill active). ON → process nodes (L3 value stream, L4
+  // sub-process, L5 task) become draggable; dropping one onto a node exactly one
+  // level above (e.g. an L4 onto a different L3, including a different value
+  // stream) re-parents the whole subtree via PATCH /builder/nodes/:id.
+  const [editMode, setEditMode] = useState(false);
+  // The currently-hovered valid drop target while dragging (Apple-folder ring).
+  const [dropTargetId, setDropTargetId] = useState<string | null>(null);
+  // Transient feedback banner (success / invalid-move), auto-dismisses.
+  const [moveFlash, setMoveFlash] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  const flashTimer = useRef<number | null>(null);
+  const flash = useCallback((kind: 'ok' | 'err', text: string) => {
+    if (flashTimer.current) window.clearTimeout(flashTimer.current);
+    setMoveFlash({ kind, text });
+    flashTimer.current = window.setTimeout(() => setMoveFlash(null), 2600);
+  }, []);
 
   // Top-of-map gating: company → domains → divisions. The company starts open by
   // default so the three domains are visible on load (drill begins one level in).
@@ -114,6 +137,8 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
   // Value-stream full detail, shown as an in-place drawer (the standalone page
   // was retired — the map is the only home for this content now).
   const [vsDetailId, setVsDetailId] = useState<string | null>(null);
+  // Testing-template modal for the focused process node (value stream / step).
+  const [testingNodeId, setTestingNodeId] = useState<string | null>(null);
 
   // Fetch helpers
   const fetchFlow = useCallback(async (divId: string) => {
@@ -134,6 +159,29 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
       setVsFlowData(data);
     } catch { /* ignore */ }
     finally { setVsFlowLoading(false); }
+  }, []);
+
+  // ── Edit-mode drag/drop config ───────────────────────────────────────────────
+  // Only process nodes that have a real, on-canvas parent one level above are
+  // draggable. division (L2) is excluded: its parent (L1 domain) is keyed by
+  // category NAME on the map, not a draggable node id. leaf (L6) is display-only.
+  // For each draggable type, VALID_PARENT_TYPE names the node type a drop must
+  // land on (exactly one level up). The dashed-outline + ring affordance and the
+  // hit-test both key off this table.
+  const DRAGGABLE_TYPES = useMemo(() => new Set(['valueStreamNode', 'stepNode', 'subStepNode']), []);
+  const VALID_PARENT_TYPE: Record<string, string> = useMemo(() => ({
+    valueStreamNode: 'divisionNode', // L3 → moves under an L2 value stream (a different one)
+    stepNode: 'valueStreamNode',     // L4 → moves under an L3 process area
+    subStepNode: 'stepNode',         // L5 → moves under an L4 sub-process
+  }), []);
+  const PARENT_LABEL: Record<string, string> = useMemo(() => ({
+    valueStreamNode: 'value stream',
+    stepNode: 'process area',
+    subStepNode: 'sub-process',
+  }), []);
+  // Strip the map's id prefix to recover the raw ProcessNode id (vs:/step:/substep:).
+  const rawNodeId = useCallback((node: Node): string => {
+    return node.id.replace(/^(vs|step|substep|leaf):/, '');
   }, []);
 
   // Reset everything below the domain level.
@@ -454,6 +502,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
               position: { x: vsX, y: vsY },
               data: {
                 name: vs.name,
+                category: cat,
                 participationType: vs.participationType,
                 focusState: vsFs,
                 pieceIndex: vi,
@@ -476,14 +525,19 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
             });
 
             // ── If this VS is focused, insert step block below it ─────────────
+            // The L4 process steps render as an ORDERED HORIZONTAL ROW (step 1
+            // leftmost), since a process flow that has an order must be drawn in
+            // that order. The row is centered horizontally under the VS; each
+            // step increases in X at a constant Y. Connectors run l→r (left
+            // handle of one card to the right handle of the previous), so the
+            // arrows read left-to-right.
             if (isVsFocused && vsFlowData && steps.length > 0) {
               const stepsTop = vsY + VS_H + STEP_TOP_OFFSET;
 
-              // Center the whole step row exactly under the focused VS so the
-              // process reads as one perpendicular band beneath it.
+              // Single row, centered under the focused VS.
               const vsCenterX = vsX + VS_W / 2;
-              const totalStepsWidth = steps.length * STEP_W + (steps.length - 1) * STEP_GAP_X;
-              const stepsLeft = vsCenterX - totalStepsWidth / 2;
+              const totalStepRowWidth = steps.length * STEP_W + (steps.length - 1) * STEP_GAP_X;
+              const stepsLeft = vsCenterX - totalStepRowWidth / 2;
 
               steps.forEach((step, si) => {
                 const stepNodeId = `step:${step.id}`;
@@ -492,13 +546,17 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
                   : isStepFocused ? 'focused'
                   : 'dimmed';
 
+                const stepX = stepsLeft + si * (STEP_W + STEP_GAP_X);
+                const stepY = stepsTop;
+
                 ns.push({
                   id: stepNodeId,
                   type: 'stepNode',
-                  position: { x: stepsLeft + si * (STEP_W + STEP_GAP_X), y: stepsTop },
+                  position: { x: stepX, y: stepY },
                   data: {
                     step: step.step,
                     name: step.name,
+                    category: cat,
                     primaryCategory: step.primaryCategory,
                     categories: step.categories,
                     subStepCount: step.subSteps.length,
@@ -509,7 +567,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
                   draggable: false,
                 });
 
-                // Edge: step[i-1] → step[i]
+                // Edge: step[i-1] → step[i] (horizontal: right → left)
                 if (si > 0) {
                   es.push({
                     id: `e:step${steps[si - 1].id}->step${step.id}`,
@@ -522,14 +580,15 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
                   });
                 }
 
-                // ── If this step is focused, insert its L4 sub-process row below ─
+                // ── If this step is focused, drop its L5 sub-process column
+                //    DOWN from it (centered under the step card, increasing Y) so
+                //    it doesn't collide with the rest of the L4 row, ordered
+                //    top-to-bottom. ──
                 if (isStepFocused && step.subSteps.length > 0) {
-                  const subStepX = stepsLeft + si * (STEP_W + STEP_GAP_X);
-                  const stepCenterX = subStepX + STEP_W / 2;
-                  const subTop = stepsTop + STEP_H + SUBSTEP_TOP_OFFSET;
+                  const stepCenterX = stepX + STEP_W / 2;
+                  const subLeft = stepCenterX - MAP_CARD_W / 2;
+                  const subTop = stepY + STEP_H + SUBSTEP_TOP_OFFSET;
                   const subs = step.subSteps;
-                  const totalSubWidth = subs.length * MAP_CARD_W + (subs.length - 1) * SUBSTEP_GAP_X;
-                  const subLeft = stepCenterX - totalSubWidth / 2;
 
                   subs.forEach((sub, sj) => {
                     const subNodeId = `substep:${sub.id}`;
@@ -537,86 +596,89 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
                     const subFs: NodeFocusState = level < 4 ? 'neutral'
                       : isSubFocused ? 'focused'
                       : 'dimmed';
-                    const subX = subLeft + sj * (MAP_CARD_W + SUBSTEP_GAP_X);
+                    const subY = subTop + sj * (MAP_CARD_H + SUBSTEP_GAP_Y);
 
                     ns.push({
                       id: subNodeId,
                       type: 'subStepNode',
-                      position: { x: subX, y: subTop },
+                      position: { x: subLeft, y: subY },
                       data: { step: sub.step, name: sub.name, l5Count: sub.l5.length, focusState: subFs, pieceIndex: sj } satisfies SubStepNodeData,
                       draggable: false,
                     });
 
-                    // Edge: subStep[j-1] → subStep[j]
+                    // Edge: subStep[j-1] → subStep[j] (vertical: bottom → top)
                     if (sj > 0) {
                       es.push({
                         id: `e:substep${subs[sj - 1].id}->substep${sub.id}`,
                         source: `substep:${subs[sj - 1].id}`,
                         target: subNodeId,
-                        sourceHandle: 'r',
-                        targetHandle: 'l',
+                        sourceHandle: 'b',
+                        targetHandle: 't',
                         type: 'smoothstep',
                         style: { stroke: accent, strokeWidth: 2, strokeOpacity: 0.9 },
                       });
                     }
 
-                    // ── If this sub-process is focused, insert its L5 step row ──
+                    // ── If this sub-process is focused, drop its L5 step column
+                    //    DOWN from it, ordered top-to-bottom. (Vestigial: L5 is a
+                    //    leaf so sub.l5 is empty, but kept for completeness.) ──
                     if (isSubFocused && sub.l5.length > 0) {
-                      const subCenterX = subX + MAP_CARD_W / 2;
-                      const leafTop = subTop + MAP_CARD_H + LEAF_TOP_OFFSET;
+                      const subCenterX = subLeft + MAP_CARD_W / 2;
+                      const leafLeft = subCenterX - MAP_CARD_W / 2;
+                      const leafTop = subY + MAP_CARD_H + LEAF_TOP_OFFSET;
                       const l5 = sub.l5;
-                      const totalLeafWidth = l5.length * MAP_CARD_W + (l5.length - 1) * LEAF_GAP_X;
-                      const leafLeft = subCenterX - totalLeafWidth / 2;
 
                       l5.forEach((leaf, lk) => {
                         const leafNodeId = `leaf:${leaf.id}`;
                         ns.push({
                           id: leafNodeId,
                           type: 'leafStepNode',
-                          position: { x: leafLeft + lk * (MAP_CARD_W + LEAF_GAP_X), y: leafTop },
+                          position: { x: leafLeft, y: leafTop + lk * (MAP_CARD_H + LEAF_GAP_Y) },
                           data: { step: leaf.step, name: leaf.name, focusState: 'neutral', pieceIndex: lk } satisfies LeafStepNodeData,
                           draggable: false,
                           selectable: false,
                         });
-                        // Edge: leaf[k-1] → leaf[k]
+                        // Edge: leaf[k-1] → leaf[k] (vertical: bottom → top)
                         if (lk > 0) {
                           es.push({
                             id: `e:leaf${l5[lk - 1].id}->leaf${leaf.id}`,
                             source: `leaf:${l5[lk - 1].id}`,
                             target: leafNodeId,
-                            sourceHandle: 'r',
-                            targetHandle: 'l',
+                            sourceHandle: 'b',
+                            targetHandle: 't',
                             type: 'smoothstep',
                             style: { stroke: accent, strokeWidth: 2, strokeOpacity: 0.9 },
                           });
                         }
                       });
 
-                      // Edge: sub-process → first L5 step
+                      // Edge: sub-process → first L5 step (top → bottom, into the column)
                       es.push({
                         id: `e:${subNodeId}->leaf:${l5[0].id}`,
                         source: subNodeId,
                         target: `leaf:${l5[0].id}`,
                         sourceHandle: 'b',
                         targetHandle: 't',
+                        type: 'smoothstep',
                         style: { stroke: accent, strokeWidth: 2, strokeOpacity: 0.8 },
                       });
                     }
                   });
 
-                  // Edge: step → first sub-process
+                  // Edge: step → first sub-process (top → bottom, into the column)
                   es.push({
                     id: `e:${stepNodeId}->substep:${subs[0].id}`,
                     source: stepNodeId,
                     target: `substep:${subs[0].id}`,
                     sourceHandle: 'b',
                     targetHandle: 't',
+                    type: 'smoothstep',
                     style: { stroke: accent, strokeWidth: 2, strokeOpacity: 0.8 },
                   });
                 }
               });
 
-              // Edge: VS → first step
+              // Edge: VS → first step (left of the row)
               es.push({
                 id: `e:${vsNodeId}->step:${steps[0].id}`,
                 source: vsNodeId,
@@ -638,16 +700,87 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
     flowData, valueStreams, vsFlowData, steps,
   ]);
 
+  // Overlay edit-mode affordances onto the laid-out nodes WITHOUT touching the
+  // layout memo (which `onNodeDragStop` reads for snap-back). In edit mode the
+  // three process levels become draggable and get the grab/dashed style; the
+  // hovered valid parent gets the drop-target ring. In normal view this is a
+  // shallow pass-through (no draggable, no affordance) so the map is unchanged.
+  const displayNodes = useMemo<Node[]>(() => {
+    if (!editMode) return nodes;
+    return nodes.map((n) => {
+      const draggable = DRAGGABLE_TYPES.has(n.type ?? '');
+      const isTarget = dropTargetId === n.id;
+      if (!draggable && !isTarget) return n;
+      return {
+        ...n,
+        draggable,
+        data: { ...n.data, editable: draggable, dropTarget: isTarget },
+      };
+    });
+  }, [nodes, editMode, dropTargetId, DRAGGABLE_TYPES]);
+
+  // ── React Flow controlled nodes — EDIT MODE ONLY (so drag moves the cards) ───
+  // React Flow v12 only commits drag position deltas to nodes that flow through
+  // its store via onNodesChange. So edit-mode drag needs a controlled `rfNodes`
+  // state + onNodesChange to paint the in-progress drag.
+  //
+  // BUT in VIEW mode that controlled path is pure jank: the sync effect re-seeds
+  // `rfNodes` on every `displayNodes` change (every focus/level transition), and
+  // those extra state updates re-measure/re-render the whole graph mid-camera-
+  // animation, producing the reset/flicker. View mode never drags, so it doesn't
+  // need the controlled store at all — we pass the stable, memoized `displayNodes`
+  // straight to <ReactFlow> and skip the sync churn entirely. The machinery below
+  // only engages when editMode is true.
+  const [rfNodes, setRfNodes] = useState<Node[]>(displayNodes);
+  // While a node is mid-drag, its live (dragged) position must survive any
+  // re-seed from `displayNodes` — and a re-seed DOES happen mid-drag, because
+  // `onNodeDrag` updates `dropTargetId`, which recomputes `displayNodes`. So we
+  // remember which node is being dragged and keep its current position when
+  // re-seeding; everything else snaps to the freshly-computed layout.
+  const draggingIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!editMode) return; // view mode renders displayNodes directly — no re-seed
+    setRfNodes((prev) => {
+      const dragId = draggingIdRef.current;
+      if (!dragId) return displayNodes;
+      const live = prev.find((n) => n.id === dragId);
+      if (!live) return displayNodes;
+      return displayNodes.map((n) => (n.id === dragId ? { ...n, position: live.position } : n));
+    });
+  }, [displayNodes, editMode]);
+  const onNodesChange: OnNodesChange = useCallback(
+    (changes) => setRfNodes((nds) => applyNodeChanges(changes, nds)),
+    [],
+  );
+  // The node set handed to <ReactFlow>: controlled state in edit mode (drag),
+  // the stable memoized layout in view mode (smooth, no re-seed churn).
+  const flowNodes = editMode ? rfNodes : displayNodes;
+
   // ── Camera helpers ────────────────────────────────────────────────────────
   // Fit a specific set of nodes in frame (used to frame the whole process row).
-  const fitNodes = useCallback((nodeIds: string[], padding = 0.28) => {
-    // Defer past a frame + a tick so freshly-added nodes are measured before we
-    // frame them — otherwise fitView frames a stale/partial set and clips boxes.
-    requestAnimationFrame(() => setTimeout(() => {
-      const present = nodeIds.filter((id) => rf.getNode(id) && rf.getNode(id)!.measured?.width);
-      if (!present.length) return;
-      rf.fitView({ nodes: present.map((id) => ({ id })), padding, duration: 460, maxZoom: 1 });
-    }, 130));
+  const fitNodes = useCallback((nodeIds: string[], padding = 0.18) => {
+    // Every map card is a known fixed size (MAP_CARD_W×MAP_CARD_H), so we don't
+    // wait on xyflow to MEASURE freshly-added nodes (that was clipping long
+    // columns whose bottom hadn't measured yet). Instead, once the nodes exist
+    // in the store (positions known), compute the exact bounding box and fitBounds
+    // it — the whole requested set lands completely in frame, deterministically.
+    let tries = 0;
+    const attempt = () => {
+      const nodes = nodeIds.map((id) => rf.getNode(id)).filter((n): n is NonNullable<typeof n> => !!n);
+      if (nodes.length < nodeIds.length && tries++ < 12) { requestAnimationFrame(attempt); return; }
+      if (!nodes.length) return;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const n of nodes) {
+        const w = n.measured?.width ?? n.width ?? MAP_CARD_W;
+        const h = n.measured?.height ?? n.height ?? MAP_CARD_H;
+        minX = Math.min(minX, n.position.x);
+        minY = Math.min(minY, n.position.y);
+        maxX = Math.max(maxX, n.position.x + w);
+        maxY = Math.max(maxY, n.position.y + h);
+      }
+      rf.fitBounds({ x: minX, y: minY, width: maxX - minX, height: maxY - minY }, { padding, duration: 460 });
+    };
+    requestAnimationFrame(attempt);
   }, [rf]);
 
   // Fit the whole visible graph, then pin its top edge near the top of the
@@ -725,8 +858,8 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
     }
   }, [vsFlowData]); // eslint-disable-line
 
-  // Camera: L3 → focus step. If the spreadsheet has a sub-process flow for it,
-  // frame the step plus its full left-to-right sub-process row; else center it.
+  // Camera: L4 focused → frame the clicked step PLUS its full L5 task column, so
+  // the step stays in view and every task is completely framed (nothing clipped).
   useEffect(() => {
     if (level < 3 || !focusedStepId) return;
     const step = steps.find((s) => s.id === focusedStepId);
@@ -748,8 +881,88 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
     }
   }, [focusedSubStepId]); // eslint-disable-line
 
+  // ── Edit-mode drag → reparent ────────────────────────────────────────────────
+  // Hit-test the dragged node's center against every other node's measured box;
+  // return the id of the first valid-parent node it overlaps (or null).
+  const findDropTarget = useCallback((dragged: Node): string | null => {
+    const parentType = VALID_PARENT_TYPE[dragged.type ?? ''];
+    if (!parentType) return null;
+    // The dragged node's CURRENT parent (the focused node one level above) — skip
+    // it so dropping back where it started isn't treated as a (no-op) move.
+    const currentParentId =
+      dragged.type === 'valueStreamNode' ? focusedDivisionId
+      : dragged.type === 'stepNode' ? (focusedVsId ? `vs:${focusedVsId}` : null)
+      : dragged.type === 'subStepNode' ? (focusedStepId ? `step:${focusedStepId}` : null)
+      : null;
+    const w = dragged.measured?.width ?? MAP_CARD_W;
+    const h = dragged.measured?.height ?? MAP_CARD_H;
+    const cx = dragged.position.x + w / 2;
+    const cy = dragged.position.y + h / 2;
+    for (const n of rf.getNodes()) {
+      if (n.id === dragged.id || n.id === currentParentId) continue;
+      if (n.type !== parentType) continue;
+      const nw = n.measured?.width ?? MAP_CARD_W;
+      const nh = n.measured?.height ?? MAP_CARD_H;
+      if (cx >= n.position.x && cx <= n.position.x + nw && cy >= n.position.y && cy <= n.position.y + nh) {
+        return n.id;
+      }
+    }
+    return null;
+  }, [rf, VALID_PARENT_TYPE, focusedDivisionId, focusedVsId, focusedStepId]);
+
+  const onNodeDrag: OnNodeDrag = useCallback((_e, node) => {
+    if (!editMode || !DRAGGABLE_TYPES.has(node.type ?? '')) return;
+    draggingIdRef.current = node.id; // protect its live position from layout re-seeds
+    const target = findDropTarget(node);
+    setDropTargetId((prev) => (prev === target ? prev : target));
+  }, [editMode, DRAGGABLE_TYPES, findDropTarget]);
+
+  const onNodeDragStop: OnNodeDrag = useCallback(async (_e, node) => {
+    draggingIdRef.current = null; // drag finished — layout re-seeds may resume
+    if (!editMode || !DRAGGABLE_TYPES.has(node.type ?? '')) return;
+    const target = findDropTarget(node);
+    setDropTargetId(null);
+    // Snap the dragged node back to its computed slot regardless of outcome —
+    // the layout is fully derived, so we never persist free positions. On a
+    // successful move the parent refetch re-lays everything out. We reset our
+    // own controlled state (rfNodes) so the snap-back actually paints.
+    const resetPositions = () => setRfNodes((ns) => ns.map((n) => {
+      if (n.id !== node.id) return n;
+      const original = displayNodes.find((o) => o.id === n.id);
+      return original ? { ...n, position: original.position } : n;
+    }));
+
+    if (!target) {
+      resetPositions();
+      return;
+    }
+    if (!companyId) { resetPositions(); flash('err', 'No active company.'); return; }
+
+    const nodeId = rawNodeId(node);
+    const newParentId = rawNodeId({ id: target } as Node);
+    try {
+      await api.patch(`/builder/nodes/${nodeId}?companyId=${encodeURIComponent(companyId)}`, { parentId: newParentId });
+      flash('ok', 'Moved — children followed.');
+      // Refetch the current flow(s) so the moved subtree re-lays out under its
+      // new parent (the layout is fully derived from this data). Both the L3
+      // value-stream row and the focused L4/L5 flow come from these two calls.
+      if (focusedDivisionId) fetchFlow(focusedDivisionId);
+      if (focusedDivisionId && focusedVsId) fetchVsFlow(focusedDivisionId, focusedVsId);
+      onMoved?.();
+    } catch (e) {
+      const label = PARENT_LABEL[node.type ?? ''] ?? 'parent';
+      const msg = (e as Error)?.message;
+      resetPositions();
+      flash('err', msg && !/HTTP/.test(msg) ? msg : `Can only move under a ${label}.`);
+    }
+  }, [editMode, DRAGGABLE_TYPES, findDropTarget, companyId, rawNodeId, displayNodes, flash, onMoved, PARENT_LABEL, focusedDivisionId, focusedVsId, fetchFlow, fetchVsFlow]);
+
   // ── Node click handler ────────────────────────────────────────────────────
   const onNodeClick: NodeMouseHandler = useCallback((_e, node) => {
+    // In edit mode, suppress click-to-drill on draggable nodes so a drag never
+    // also fires a navigation. Non-draggable nodes (company/domain/division)
+    // stay interactive so the user can still open the path they want to edit.
+    if (editMode && DRAGGABLE_TYPES.has(node.type ?? '')) return;
     if (node.type === 'companyNode') {
       onCompanyClick();
     } else if (node.type === 'coreNode') {
@@ -764,7 +977,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
       onSubStepClick(node.id.replace(/^substep:/, ''));
     }
     // leafStepNode (L5) is display-only (non-interactive)
-  }, [onCompanyClick, onDomainClick, onDivisionClick, onVsClick, onStepClick, onSubStepClick]);
+  }, [editMode, DRAGGABLE_TYPES, onCompanyClick, onDomainClick, onDivisionClick, onVsClick, onStepClick, onSubStepClick]);
 
   // ── Dashboard drill-down ────────────────────────────────────────────────────
   // Map levels move the canvas; departments drill inside the sidebar (stack).
@@ -866,11 +1079,14 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
           the initial camera instead. */}
       <div className="rf-stage rf-stage--map" style={{ flex: 1, position: 'relative' }}>
         <ReactFlow
-          nodes={nodes}
+          nodes={flowNodes}
           edges={edges}
           nodeTypes={mapNodeTypes}
+          onNodesChange={editMode ? onNodesChange : undefined}
           onNodeClick={onNodeClick}
-          nodesDraggable={false}
+          onNodeDrag={onNodeDrag}
+          onNodeDragStop={onNodeDragStop}
+          nodesDraggable={editMode}
           nodesConnectable={false}
           minZoom={0.05}
           maxZoom={2}
@@ -879,6 +1095,59 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
           <Background color="#e5e5e5" gap={20} size={1} />
           <Controls showInteractive={false} position="bottom-left" />
         </ReactFlow>
+
+        {/* Edit button — top-right of the canvas (the view toggle owns top-left).
+            Toggles Apple-home-screen drag mode: process cards become draggable and
+            can be dropped onto a node one level above to re-home the whole subtree. */}
+        <div className="absolute top-3 right-4 z-20 flex items-center gap-2">
+          {editMode && (
+            <span className="hidden sm:inline-flex items-center rounded-full bg-white/90 backdrop-blur border border-[#eaeaea] px-2.5 py-1 text-[11px] text-[#525252] shadow-sm">
+              Drag a process onto another to move it — children follow.
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => { setEditMode((v) => !v); setDropTargetId(null); }}
+            aria-pressed={editMode}
+            className={
+              'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm transition-colors duration-150 ' +
+              (editMode
+                ? 'bg-[#0d9488] text-white hover:bg-[#0f766e]'
+                : 'border border-[#eaeaea] bg-white/90 backdrop-blur text-[#525252] hover:text-[#171717]')
+            }
+          >
+            {editMode ? (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                Done
+              </>
+            ) : (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                </svg>
+                Edit
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Move feedback — small ephemeral banner, bottom-center (never a window.alert). */}
+        {moveFlash && (
+          <div
+            className="absolute bottom-16 left-1/2 -translate-x-1/2 z-30 rounded-lg px-3.5 py-2 text-xs font-medium shadow-md backdrop-blur"
+            style={
+              moveFlash.kind === 'ok'
+                ? { background: 'rgba(13,148,136,0.95)', color: '#fff' }
+                : { background: 'rgba(190,18,60,0.95)', color: '#fff' }
+            }
+            role="status"
+          >
+            {moveFlash.text}
+          </div>
+        )}
 
         {/* Comprehensive "view all" drawer — overlays the canvas; closing it leaves
             the map (and its breadcrumb) exactly where the user left it. */}
@@ -893,6 +1162,9 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
 
         {/* Value-stream full detail — slides over the canvas in place. */}
         {vsDetailId && <ValueStreamDrawer valueStreamId={vsDetailId} onClose={() => setVsDetailId(null)} />}
+
+        {/* Testing templates for the focused process node — slides over the canvas. */}
+        {testingNodeId && <TestingTemplateModal nodeId={testingNodeId} onClose={() => setTestingNodeId(null)} />}
       </div>
 
       {/* Right metrics dashboard — same panel and behavior as the list view
@@ -906,6 +1178,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
           onBack={ovStack.length ? onDashBack : undefined}
           onViewAll={setDrawerSection}
           onViewDetail={dashTarget?.level === 'valueStream' && dashTarget.id ? () => setVsDetailId(dashTarget.id) : undefined}
+          onTestingTemplate={(dashTarget?.level === 'valueStream' || dashTarget?.level === 'step') && dashTarget.id ? () => setTestingNodeId(dashTarget.id) : undefined}
         />
       )}
     </div>
@@ -914,10 +1187,10 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId }: P
 
 // ── Provider wrapper ──────────────────────────────────────────────────────────
 
-export default function MapCanvas({ divisions, companyName, breadcrumbSlot, focusVsId }: Props) {
+export default function MapCanvas({ divisions, companyName, breadcrumbSlot, focusVsId, onMoved }: Props) {
   return (
     <ReactFlowProvider>
-      <MapCanvasInner divisions={divisions} companyName={companyName} breadcrumbSlot={breadcrumbSlot} focusVsId={focusVsId} />
+      <MapCanvasInner divisions={divisions} companyName={companyName} breadcrumbSlot={breadcrumbSlot} focusVsId={focusVsId} onMoved={onMoved} />
     </ReactFlowProvider>
   );
 }

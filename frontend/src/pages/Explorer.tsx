@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useHeaderBreadcrumbSlot } from '../lib/breadcrumbs';
@@ -72,11 +72,11 @@ export default function Explorer() {
     setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
 
-  useEffect(() => {
-    let cancelled = false;
+  // Load the map bootstrap (domains + L2 divisions). Exposed as a callback so the
+  // map can re-run it after an edit-mode move (an L2 row could have changed).
+  const loadOverview = useCallback(() => {
     api.get('/explorer/overview')
       .then((overview) => {
-        if (cancelled) return;
         // overview.divisions shape: { id, name, higherCategory, roles }
         // Null higherCategory → fold into "Core Business"
         const divs: DivisionSummary[] = (overview.divisions ?? []).map((d: any) => ({
@@ -91,13 +91,12 @@ export default function Explorer() {
         setLoading(false);
       })
       .catch((e) => {
-        if (!cancelled) {
-          setError(e.message ?? 'Failed to load');
-          setLoading(false);
-        }
+        setError(e.message ?? 'Failed to load');
+        setLoading(false);
       });
-    return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => { loadOverview(); }, [loadOverview]);
 
   // In map view the drill breadcrumb claims the GLOBAL header bar (Layout's
   // BreadcrumbBar) and MapCanvas portals into it — no in-page header strip.
@@ -120,7 +119,7 @@ export default function Explorer() {
             <div className="text-sm text-[#be123c]">{error}</div>
           </div>
         ) : (
-          <MapCanvas divisions={divisions} companyName={companyName} breadcrumbSlot={crumbSlot} focusVsId={focusVsId} />
+          <MapCanvas divisions={divisions} companyName={companyName} breadcrumbSlot={crumbSlot} focusVsId={focusVsId} onMoved={loadOverview} />
         )}
       </div>
     </div>

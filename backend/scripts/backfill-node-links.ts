@@ -4,7 +4,6 @@
 // this company's NodeLinks + external_party nodes. Run AFTER backfill-nodes.ts.
 // See docs/operating-model-architecture.md.
 import { prisma } from '../src/db/prisma.js';
-import { canonicalVs } from '../src/lib/vsMapping.js';
 
 // Split a free-text role field into candidate role names.
 function parseRoles(s: string | null | undefined): string[] {
@@ -38,7 +37,7 @@ async function main() {
     const vsLegacyName = new Map(vsLegacy.map((v) => [v.id, v.name]));
     for (const r of await prisma.roleValueStream.findMany({ where: { valueStream: { companyId } }, select: { roleId: true, valueStreamId: true, participationType: true } })) {
       const from = roleByLegacyId.get(r.roleId);
-      const to = vsByName.get(canonicalVs(vsLegacyName.get(r.valueStreamId) ?? ''));
+      const to = vsByName.get(vsLegacyName.get(r.valueStreamId) ?? '');
       if (from && to) { links.push({ fromId: from, toId: to, relationType: 'PARTICIPATES_IN', attributes: { participationType: r.participationType } }); log.rvs++; }
       else log.rvsUnmatched++;
     }

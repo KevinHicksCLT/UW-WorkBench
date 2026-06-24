@@ -36,10 +36,8 @@ const LOOSE = '__loose'; // sentinel "team" for roles reporting directly to a di
 
 // ── Layout constants ─────────────────────────────────────────────────────────
 
-const GAP_X      = 12;  // horizontal gap between sibling cards
-const ROW_GAP_Y  = 32;  // vertical gap between a parent row and its child block
-const WRAP_AT    = 8;   // children per visual row before wrapping into a grid
-const WRAP_GAP_Y = 14;  // vertical gap between wrapped rows of one child block
+const GAP_X     = 12;  // horizontal gap between sibling cards
+const ROW_GAP_Y = 32;  // vertical gap between a parent row and its child block
 
 // Compact map breadcrumb — same 11px override as the Value Streams map.
 const CRUMB: CSSProperties     = { fontSize: 11, padding: '2px 7px' };
@@ -85,23 +83,17 @@ const cardBase: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'center',
+  alignItems: 'center',
+  textAlign: 'center',
   gap: 4,
 };
-
-function CountChip({ text }: { text: string }) {
-  return (
-    <span className="chip-soft" style={{ fontSize: 9, padding: '2px 6px', alignSelf: 'flex-start' }}>
-      {text}
-    </span>
-  );
-}
 
 // ── Node components ──────────────────────────────────────────────────────────
 
 type OrgCompanyData = { name: string; focusState?: NodeFocusState };
 type OrgSegmentData = { name: string; divisionCount: number; focusState?: NodeFocusState; pieceIndex?: number };
 type OrgDivisionData = { name: string; segment: string; teamCount: number; roleCount: number; focusState?: NodeFocusState; pieceIndex?: number };
-type OrgDeptData = { name: string; roleCount: number; focusState?: NodeFocusState; pieceIndex?: number };
+type OrgDeptData = { name: string; segment: string; roleCount: number; focusState?: NodeFocusState; pieceIndex?: number };
 type OrgRoleData = { name: string; focusState?: NodeFocusState; pieceIndex?: number };
 
 const delayStyle = (i?: number) => (i != null ? { animationDelay: `${i * 40}ms` } : undefined);
@@ -151,7 +143,6 @@ const OrgSegmentNode = memo(function OrgSegmentNode({ data }: NodeProps) {
       <div style={{ fontSize: 12, fontWeight: 600, color: text, letterSpacing: '-0.011em', lineHeight: 1.25, ...CLAMP2 }}>
         {sentenceCase(d.name)}
       </div>
-      <CountChip text={`${d.divisionCount} division${d.divisionCount === 1 ? '' : 's'} ›`} />
       <VHandles />
     </div>
   );
@@ -174,7 +165,6 @@ const OrgDivisionNode = memo(function OrgDivisionNode({ data }: NodeProps) {
       <div style={{ fontSize: 11.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.3, ...CLAMP2 }}>
         {sentenceCase(d.name)}
       </div>
-      <CountChip text={`${d.teamCount} team${d.teamCount === 1 ? '' : 's'} · ${d.roleCount} role${d.roleCount === 1 ? '' : 's'} ›`} />
       <VHandles />
     </div>
   );
@@ -182,20 +172,20 @@ const OrgDivisionNode = memo(function OrgDivisionNode({ data }: NodeProps) {
 
 const OrgDeptNode = memo(function OrgDeptNode({ data }: NodeProps) {
   const d = data as OrgDeptData;
+  const hex = DOMAIN_HEX[d.segment] ?? '#94a3b8'; // domain color, not gray
   return (
     <div
       className={`animate-piece-arrive ${focusClass(d.focusState)}`}
       style={{
         ...cardBase,
         border: '1px solid #eaeaea',
-        borderLeft: '3px solid #64748b',
+        borderLeft: `3px solid ${hex}`,
         ...delayStyle(d.pieceIndex),
       }}
     >
       <div style={{ fontSize: 11.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.3, ...CLAMP2 }}>
         {sentenceCase(d.name)}
       </div>
-      <CountChip text={`${d.roleCount} role${d.roleCount === 1 ? '' : 's'} ›`} />
       <VHandles />
     </div>
   );
@@ -230,26 +220,22 @@ const orgNodeTypes = {
   orgRole:     OrgRoleNode,
 };
 
-// ── Grid layout helpers ──────────────────────────────────────────────────────
-// A child block wraps into rows of WRAP_AT cards; every visual row is centered
-// on the parent's center-x so long role lists read as a compact grid, not a
-// kilometer-wide strip.
+// ── Row layout helpers ───────────────────────────────────────────────────────
+// A child block is a SINGLE horizontal row, centered on the parent's center-x —
+// every level reads straight left-to-right, never wrapped or stacked. The canvas
+// pans/zooms, so a long row just extends sideways.
 
 function gridPositions(n: number, centerX: number, top: number): { x: number; y: number }[] {
+  const totalW = n * MAP_CARD_W + Math.max(0, n - 1) * GAP_X;
+  const left = centerX - totalW / 2;
   const out: { x: number; y: number }[] = [];
-  for (let i = 0; i < n; i += WRAP_AT) {
-    const count = Math.min(WRAP_AT, n - i);
-    const totalW = count * MAP_CARD_W + (count - 1) * GAP_X;
-    const left = centerX - totalW / 2;
-    const rowY = top + (i / WRAP_AT) * (MAP_CARD_H + WRAP_GAP_Y);
-    for (let j = 0; j < count; j++) out.push({ x: left + j * (MAP_CARD_W + GAP_X), y: rowY });
-  }
+  for (let i = 0; i < n; i++) out.push({ x: left + i * (MAP_CARD_W + GAP_X), y: top });
   return out;
 }
 
-function gridHeight(n: number): number {
-  const rows = Math.max(1, Math.ceil(n / WRAP_AT));
-  return rows * MAP_CARD_H + (rows - 1) * WRAP_GAP_Y;
+// One row is always one card tall (kept as a function so callers read cleanly).
+function gridHeight(_n: number): number {
+  return MAP_CARD_H;
 }
 
 // ── Inner canvas ─────────────────────────────────────────────────────────────
@@ -454,7 +440,7 @@ function OrgMapCanvasInner({ data, breadcrumbSlot }: Props & { data: OrgData }) 
         id,
         type: 'orgDept',
         position: deptPos[i],
-        data: { name: t.name, roleCount: t.roles.length, focusState: fs, pieceIndex: i } satisfies OrgDeptData,
+        data: { name: t.name, segment: selSegName ?? '', roleCount: t.roles.length, focusState: fs, pieceIndex: i } satisfies OrgDeptData,
         draggable: false,
       });
       es.push({

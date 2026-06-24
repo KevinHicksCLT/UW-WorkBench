@@ -2,30 +2,39 @@ import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
-import { buildRoleResolver } from '../lib/roleMatch.js';
+import { ancestorNames } from '../lib/resolvers/index.js';
 
 // Metrics tab (D6.3) — the two stages of the AI program, computed server-side
-// from the canonical tables (no parallel copies):
+// from the canonical erd_v5 tables (no parallel copies):
 //   Stage 1 "Analysis coverage": AnalysisStatus rows (one per value-stream /
-//     division / role NODE of the unified graph) vs the node totals — how much
-//     of the operating model has been analyzed, when we expect to finish, and
-//     whether the incomplete work is still on plan.
-//   Stage 2 "Adoption": Task.aiDisposition (Automated | Discarded | Augmented |
-//     Manual) aggregated over the Task table, broken down by org group
-//     (division), role (task owner), task category, deliverable type and value
-//     stream. Both stores are edited in Data Admin (AnalysisStatus / Task).
+//     division / role subject) vs the spine totals — how much of the operating
+//     model has been analyzed, when we expect to finish, and whether the
+//     incomplete work is still on plan.
+//   Stage 2 "Adoption": each L5 task ProcessNode's `automatability`
+//     (automated | augmented | manual) aggregated over the task tree, broken
+//     down by value stream, division, role (task owner), task category and
+//     deliverable. Replaces the dropped Task.aiDisposition model.
 
 const router = Router();
 router.use(requireAuth);
 
+// subjectType (AnalysisStatus) → process/org level used for the denominator.
 const SUBJECT_TYPES = [
-  { type: 'valueStream', typeKey: 'value_stream', label: 'Value streams' },
-  { type: 'division', typeKey: 'division', label: 'Org groups' },
-  { type: 'role', typeKey: 'role', label: 'Roles' },
+  { type: 'valueStream', spine: 'process', level: 2, label: 'Value streams' },
+  { type: 'division', spine: 'org', level: 2, label: 'Org groups' },
+  { type: 'role', spine: 'role', level: 0, label: 'Roles' },
 ] as const;
 
 const DISPOSITIONS = ['Automated', 'Discarded', 'Augmented', 'Manual'] as const;
 type Disposition = (typeof DISPOSITIONS)[number];
+
+// ProcessNode.automatability → adoption disposition. (There is no "Discarded"
+// source in the workbook, so that bucket stays at 0.)
+function dispositionOf(automatability: string | null): Disposition {
+  if (automatability === 'automated') return 'Automated';
+  if (automatability === 'augmented') return 'Augmented';
+  return 'Manual';
+}
 
 // Coarse task "category" (meta summary) — a pure, deterministic function of the
 // canonical task title (the workbook does not classify tasks), so it is compute,
@@ -44,10 +53,10 @@ type Bucket = { name: string; total: number } & Record<Lowercase<Disposition>, n
 function newBucket(name: string): Bucket {
   return { name, total: 0, automated: 0, discarded: 0, augmented: 0, manual: 0 };
 }
-function tally(map: Map<string, Bucket>, name: string, disposition: Disposition | null) {
+function tally(map: Map<string, Bucket>, name: string, disposition: Disposition) {
   const b = map.get(name) ?? map.set(name, newBucket(name)).get(name)!;
   b.total++;
-  if (disposition) b[disposition.toLowerCase() as Lowercase<Disposition>]++;
+  b[disposition.toLowerCase() as Lowercase<Disposition>]++;
 }
 const sorted = (map: Map<string, Bucket>, limit?: number) => {
   const rows = [...map.values()].sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
@@ -63,46 +72,53 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
       orderBy: { createdAt: 'asc' }, select: { id: true },
     });
     if (!company) return res.status(404).json({ error: 'No company' });
+    const companyId = company.id;
     const now = new Date();
 
-    const [nodes, statuses, tasks, deliverables, valueStreams, roles] = await Promise.all([
-      prisma.node.findMany({
-        where: { companyId: company.id, typeKey: { in: SUBJECT_TYPES.map((s) => s.typeKey) } },
-        select: { id: true, typeKey: true },
-      }),
+    const [statuses, processLevels, orgLevels, roleCount, tasks] = await Promise.all([
       prisma.analysisStatus.findMany({
-        where: { companyId: company.id },
+        where: { companyId },
         select: { subjectType: true, subjectId: true, status: true, plannedDate: true },
       }),
-      prisma.task.findMany({
-        where: { companyId: company.id },
-        select: { title: true, owner: true, aiDisposition: true, deliverableId: true },
-      }),
-      prisma.deliverable.findMany({
-        where: { companyId: company.id },
-        select: { id: true, type: true, valueStreamId: true },
-      }),
-      prisma.valueStream.findMany({ where: { companyId: company.id }, select: { id: true, name: true } }),
-      prisma.role.findMany({
-        where: { companyId: company.id },
-        select: { id: true, name: true, itemRole: true, division: { select: { name: true } } },
+      // counts per process level (value-stream denominator)
+      prisma.processNode.groupBy({ by: ['processLevelTypeId'], where: { companyId }, _count: { _all: true } }),
+      prisma.orgUnit.groupBy({ by: ['orgLevelTypeId'], where: { companyId }, _count: { _all: true } }),
+      prisma.role.count({ where: { companyId } }),
+      // L5 task nodes + their owning role (for division/role breakdowns).
+      prisma.processNode.findMany({
+        where: { companyId, isTask: true },
+        select: {
+          id: true, displayValue: true, automatability: true,
+          nodeRoles: {
+            where: { role_: 'Owner' },
+            select: { role: { select: { id: true, displayValue: true, orgUnit: { select: { displayValue: true } } } } },
+          },
+          nodeDeliverables: { select: { id: true } },
+        },
       }),
     ]);
 
+    // level-type id → levelNumber maps for the coverage denominators.
+    const [pTypes, oTypes] = await Promise.all([
+      prisma.processLevelType.findMany({ where: { companyId }, select: { id: true, levelNumber: true } }),
+      prisma.orgLevelType.findMany({ where: { companyId }, select: { id: true, levelNumber: true } }),
+    ]);
+    const pLevelOf = new Map(pTypes.map((t) => [t.id, t.levelNumber]));
+    const oLevelOf = new Map(oTypes.map((t) => [t.id, t.levelNumber]));
+    const totalForType = (s: (typeof SUBJECT_TYPES)[number]): number => {
+      if (s.spine === 'role') return roleCount;
+      if (s.spine === 'process') return processLevels.filter((g) => pLevelOf.get(g.processLevelTypeId) === s.level).reduce((a, g) => a + g._count._all, 0);
+      return orgLevels.filter((g) => oLevelOf.get(g.orgLevelTypeId) === s.level).reduce((a, g) => a + g._count._all, 0);
+    };
+
     // ── Stage 1: analysis coverage per subject type ─────────────────────────
-    const nodeIds = new Map(SUBJECT_TYPES.map((s) => [s.type, new Set<string>()] as const));
-    for (const n of nodes) {
-      const s = SUBJECT_TYPES.find((x) => x.typeKey === n.typeKey)!;
-      nodeIds.get(s.type)!.add(n.id);
-    }
-    const coverage = SUBJECT_TYPES.map(({ type, label }) => {
-      const ids = nodeIds.get(type)!;
-      // Only statuses whose subject still exists in the node tree count.
-      const rows = statuses.filter((r) => r.subjectType === type && ids.has(r.subjectId));
+    const coverage = SUBJECT_TYPES.map((s) => {
+      const { type, label } = s;
+      const rows = statuses.filter((r) => r.subjectType === type);
       const complete = rows.filter((r) => r.status === 'Complete').length;
       const inProgress = rows.filter((r) => r.status === 'In Progress').length;
-      const total = ids.size;
-      const notStarted = total - complete - inProgress; // includes subjects with no row yet
+      const total = totalForType(s);
+      const notStarted = Math.max(0, total - complete - inProgress);
       const open = rows.filter((r) => r.status !== 'Complete' && r.plannedDate);
       const overdue = open.filter((r) => r.plannedDate! < now).length;
       const expectedFinish = open.length
@@ -115,11 +131,9 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
       };
     });
 
-    // ── Stage 2: adoption breakdowns over the Task table ────────────────────
-    const resolveRole = buildRoleResolver(roles);
-    const divisionOf = new Map(roles.map((r) => [r.id, r.division?.name ?? 'Unassigned'] as const));
-    const delivById = new Map(deliverables.map((d) => [d.id, d] as const));
-    const vsName = new Map(valueStreams.map((v) => [v.id, v.name] as const));
+    // ── Stage 2: adoption breakdowns over the L5 task tree ──────────────────
+    // value-stream (L2) name per task, resolved once via the closure.
+    const vsByTask = await ancestorNames(tasks.map((t) => t.id));
 
     const counts: Record<Lowercase<Disposition>, number> = { automated: 0, discarded: 0, augmented: 0, manual: 0 };
     const byDivision = new Map<string, Bucket>();
@@ -129,15 +143,14 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
     const byValueStream = new Map<string, Bucket>();
 
     for (const t of tasks) {
-      const d = DISPOSITIONS.includes(t.aiDisposition as Disposition) ? (t.aiDisposition as Disposition) : null;
-      if (d) counts[d.toLowerCase() as Lowercase<Disposition>]++;
-      const role = t.owner ? resolveRole(t.owner) : null;
-      tally(byDivision, role ? divisionOf.get(role.id)! : 'Unassigned', d);
-      tally(byRole, role?.name ?? t.owner ?? 'Unassigned', d);
-      tally(byCategory, taskCategory(t.title), d);
-      const deliv = t.deliverableId ? delivById.get(t.deliverableId) : undefined;
-      tally(byDeliverableType, deliv?.type ?? 'No deliverable', d);
-      tally(byValueStream, (deliv?.valueStreamId && vsName.get(deliv.valueStreamId)) || 'Unassigned', d);
+      const d = dispositionOf(t.automatability);
+      counts[d.toLowerCase() as Lowercase<Disposition>]++;
+      const owner = t.nodeRoles[0]?.role ?? null;
+      tally(byDivision, owner?.orgUnit?.displayValue ?? 'Unassigned', d);
+      tally(byRole, owner?.displayValue ?? 'Unassigned', d);
+      tally(byCategory, taskCategory(t.displayValue), d);
+      tally(byDeliverableType, t.nodeDeliverables.length ? 'Deliverable' : 'No deliverable', d);
+      tally(byValueStream, vsByTask.get(t.id)?.valueStreamName ?? 'Unassigned', d);
     }
 
     const totalTasks = tasks.length;

@@ -70,8 +70,9 @@ const TAGS: Record<string, { accent: string; chip: string; label: string }> = {
 
 // ── Chain legend ─────────────────────────────────────────────────────────────
 // The connection order, spelled out above the chain so the nesting reads as a
-// flow: Deliverable → Role → Task → Checklist → Application.
-const CHAIN_ORDER: (keyof typeof TAGS)[] = ['deliverable', 'role', 'task', 'checklist', 'app'];
+// flow: Deliverable → Role → Checklist → Application. (The task concept was
+// dropped — checklist items now hang directly under each role.)
+const CHAIN_ORDER: (keyof typeof TAGS)[] = ['deliverable', 'role', 'checklist', 'app'];
 function ChainLegend({ wide }: { wide?: boolean }) {
   return (
     <div className={`flex items-center flex-wrap gap-y-1 ${wide ? 'mb-3' : 'mb-2.5'}`}>
@@ -235,7 +236,7 @@ function TreeRow({ item, depth, wide, defaultOpen, trail = [], onDrill, onNaviga
 }
 
 export default function MetricsSidebar({
-  dash, loading, onDrill, onBack, onClose, onViewAll, onViewDetail, startExpanded, accent,
+  dash, loading, onDrill, onBack, onClose, onViewAll, onViewDetail, onTestingTemplate, startExpanded, accent,
 }: {
   dash: Dashboard | null;
   loading: boolean;
@@ -247,6 +248,9 @@ export default function MetricsSidebar({
   onViewAll?: (section: MetricSection) => void;
   // When provided (value-stream level), renders the full-detail drawer button.
   onViewDetail?: () => void;
+  // When provided (value-stream / step levels), renders the testing-template
+  // modal button for the focused node.
+  onTestingTemplate?: () => void;
   // List views open the panel immediately (a thin rail next to a spreadsheet
   // reads as nothing happening); the map keeps the rail-first default so the
   // canvas isn't covered.
@@ -335,16 +339,29 @@ export default function MetricsSidebar({
         {dash?.subtitle && !loading && (
           <div className="text-[11px] text-[#a3a3a3] mt-0.5">{dash.subtitle}</div>
         )}
-        {onViewDetail && !loading && (
-          <button
-            onClick={onViewDetail}
-            className="mt-2.5 inline-flex items-center gap-1 rounded-md border border-[#dbe7ff] bg-[#f5f8ff] px-2.5 py-1.5 text-[11.5px] font-semibold text-[#1d4ed8] hover:bg-[#eaf1ff] transition-colors duration-150"
-          >
-            View full details
-            <svg width="11" height="11" viewBox="0 0 13 13" fill="none" className="flex-shrink-0">
-              <path d="M2 6.5h9M6.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
+        {(onViewDetail || onTestingTemplate) && !loading && (
+          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+            {onViewDetail && (
+              <button
+                onClick={onViewDetail}
+                className="inline-flex items-center gap-1 rounded-md border border-[#dbe7ff] bg-[#f5f8ff] px-2.5 py-1.5 text-[11.5px] font-semibold text-[#1d4ed8] hover:bg-[#eaf1ff] transition-colors duration-150"
+              >
+                View full details
+                <svg width="11" height="11" viewBox="0 0 13 13" fill="none" className="flex-shrink-0">
+                  <path d="M2 6.5h9M6.5 2.5l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            )}
+            {onTestingTemplate && (
+              <button
+                onClick={onTestingTemplate}
+                className="inline-flex items-center gap-1 rounded-md border border-[#eaeaea] bg-white px-2.5 py-1.5 text-[11.5px] font-semibold text-[#525252] hover:bg-[#fafafa] hover:text-[#171717] transition-colors duration-150"
+              >
+                Testing template
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0"><path d="M9 11l3 3 8-8M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" /></svg>
+              </button>
+            )}
+          </div>
         )}
       </div>
 

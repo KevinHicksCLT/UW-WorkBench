@@ -3,6 +3,7 @@ import { DOMAIN_HEX, type DivisionSummary } from '../viz/model';
 import { api } from '../lib/api';
 import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from './MetricsSidebar';
 import ValueStreamDrawer from './ValueStreamDrawer';
+import TestingTemplateModal from './TestingTemplateModal';
 import { HeaderComboFilter } from './Sheet';
 
 // List view (R2 rework) — a FLAT spreadsheet of the operating model. No tree,
@@ -103,6 +104,7 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
   const [drawerSection, setDrawerSection] = useState<MetricSection | null>(null);
   // Value-stream full detail drawer (the standalone page was retired).
   const [vsDetailId, setVsDetailId] = useState<string | null>(null);
+  const [testingNodeId, setTestingNodeId] = useState<string | null>(null);
   const target = ovStack.length ? ovStack[ovStack.length - 1] : base;
 
   const openMetrics = (level: string, id: string) => { setBase({ level, id }); setOvStack([]); };
@@ -378,6 +380,7 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
             dash={dash} loading={dashLoading} onDrill={onDrill} startExpanded
             onBack={ovStack.length ? onBack : undefined} onClose={closeMetrics} onViewAll={setDrawerSection}
             onViewDetail={target?.level === 'valueStream' && target.id ? () => setVsDetailId(target.id) : undefined}
+            onTestingTemplate={(target?.level === 'valueStream' || target?.level === 'step') && target.id ? () => setTestingNodeId(target.id) : undefined}
           />
         )}
 
@@ -393,6 +396,9 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
 
         {/* Value-stream full detail — slides over the list in place. */}
         {vsDetailId && <ValueStreamDrawer valueStreamId={vsDetailId} onClose={() => setVsDetailId(null)} />}
+
+        {/* Testing templates for the focused process node — slides over the list. */}
+        {testingNodeId && <TestingTemplateModal nodeId={testingNodeId} onClose={() => setTestingNodeId(null)} />}
       </div>
     </>
   );

@@ -1,52 +1,25 @@
 import type { PrismaClient } from '@prisma/client';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { resolveSpineRefs, type SpineRefs } from './resolveSpineRefs.js';
 
-// Illustrative systems + value-stream metrics — the "Where" (systems) and
-// "How well" (metrics) lenses of the operating-model explorer. The v12 workbook
-// has neither, so these are synthesized; every row carries illustrative=true and
-// is badged in the UI. Replaced by real data via the Phase 8 connector framework.
+// erd_v5 illustrative peripherals — re-pointed onto the master spine by FK.
+//
+//   seedRealApplications  — enrich master Applications with a 6-bucket TCO
+//                           breakdown where names match (else upsert the 6 real
+//                           apps). No ApplicationValueStream (dropped) — VS reach
+//                           is via NodeAppUsage / orgUnitId.
+//   metricReading         — KPI-target → numeric reading helper (unchanged).
+//   seedDeepLevels        — illustrative Initiative + NodeInitiative; value-stream
+//                           KPI Metric rows (processNodeId); NodeAiAdoption per VS
+//                           node; AnalysisStatus coverage rows. The old standalone
+//                           Risk model is GONE → illustrative risk lives in
+//                           portfolio RaidItem now, so it is omitted here.
+//   seedExternalParties   — ExternalParty + ExternalInteraction from spine.json.
 
-type App = {
-  name: string;
-  kind: string;
-  category: string;
-  vendor?: string;
-  criticality: string;
-  systemRole: string;
-  streams: string[]; // case-insensitive substrings matched against value-stream names
-};
-
-const APPS: App[] = [
-  { name: 'Guidewire PolicyCenter', kind: 'Core', category: 'Policy', vendor: 'Guidewire', criticality: 'High', systemRole: 'System of Record', streams: ['Policy Administration', 'Submission-to-Bind'] },
-  { name: 'Guidewire ClaimCenter', kind: 'Core', category: 'Claims', vendor: 'Guidewire', criticality: 'High', systemRole: 'System of Record', streams: ['Claims Intake', 'Claims Recoveries'] },
-  { name: 'Guidewire BillingCenter', kind: 'Core', category: 'Billing', vendor: 'Guidewire', criticality: 'High', systemRole: 'System of Record', streams: ['Billing'] },
-  { name: 'Earnix Rating & Pricing', kind: 'SaaS', category: 'Policy', vendor: 'Earnix', criticality: 'High', systemRole: 'Supporting', streams: ['Submission-to-Bind', 'Actuarial Pricing', 'Product & Proposition'] },
-  { name: 'Salesforce FSC', kind: 'SaaS', category: 'Distribution', vendor: 'Salesforce', criticality: 'High', systemRole: 'Channel', streams: ['Distribution', 'Customer Service', 'Marketing'] },
-  { name: 'Duck Creek Distribution', kind: 'SaaS', category: 'Distribution', vendor: 'Duck Creek', criticality: 'Medium', systemRole: 'Channel', streams: ['Distribution', 'Delegated Authority'] },
-  { name: 'Customer Self-Service Portal', kind: 'Internal', category: 'Distribution', criticality: 'Medium', systemRole: 'Channel', streams: ['Customer Service', 'Policy Administration'] },
-  { name: 'SAP S/4HANA (GL)', kind: 'Core', category: 'Finance', vendor: 'SAP', criticality: 'High', systemRole: 'System of Record', streams: ['Finance', 'Investment', 'Billing'] },
-  { name: 'BlackRock Aladdin', kind: 'SaaS', category: 'Finance', vendor: 'BlackRock', criticality: 'Medium', systemRole: 'Supporting', streams: ['Investment'] },
-  { name: 'Moody’s RMS (Cat Model)', kind: 'SaaS', category: 'Data', vendor: 'Moody’s', criticality: 'High', systemRole: 'Analytics', streams: ['Actuarial Pricing', 'Reinsurance'] },
-  { name: 'SAS Actuarial Platform', kind: 'SaaS', category: 'Data', vendor: 'SAS', criticality: 'Medium', systemRole: 'Analytics', streams: ['Actuarial Pricing'] },
-  { name: 'Reinsurance Management System', kind: 'Internal', category: 'Policy', criticality: 'Medium', systemRole: 'System of Record', streams: ['Reinsurance'] },
-  { name: 'Snowflake Data Cloud', kind: 'SaaS', category: 'Data', vendor: 'Snowflake', criticality: 'High', systemRole: 'Analytics', streams: ['Data, Analytics', 'Marketing'] },
-  { name: 'Databricks Lakehouse', kind: 'SaaS', category: 'Data', vendor: 'Databricks', criticality: 'Medium', systemRole: 'Analytics', streams: ['Data, Analytics'] },
-  { name: 'OpenText Document Mgmt', kind: 'SaaS', category: 'Policy', vendor: 'OpenText', criticality: 'Medium', systemRole: 'Supporting', streams: ['Policy Administration', 'Claims Intake'] },
-  { name: 'ServiceNow ITSM', kind: 'SaaS', category: 'Infra', vendor: 'ServiceNow', criticality: 'Medium', systemRole: 'Supporting', streams: ['Service Operations', 'Technology Delivery'] },
-  { name: 'Azure Cloud Platform', kind: 'Platform', category: 'Infra', vendor: 'Microsoft', criticality: 'High', systemRole: 'Supporting', streams: ['Technology Delivery', 'Technology Strategy', 'Service Operations'] },
-  { name: 'CrowdStrike Falcon', kind: 'SaaS', category: 'Security', vendor: 'CrowdStrike', criticality: 'High', systemRole: 'Supporting', streams: ['Cybersecurity'] },
-  { name: 'SailPoint IGA', kind: 'SaaS', category: 'Security', vendor: 'SailPoint', criticality: 'Medium', systemRole: 'Supporting', streams: ['Cybersecurity'] },
-  { name: 'Workday HCM', kind: 'SaaS', category: 'Finance', vendor: 'Workday', criticality: 'Medium', systemRole: 'System of Record', streams: ['Talent'] },
-  { name: 'Archer GRC', kind: 'SaaS', category: 'Security', vendor: 'Archer', criticality: 'Medium', systemRole: 'Supporting', streams: ['Risk, Compliance', 'Audit & Assurance', 'Legal'] },
-  { name: 'FRISS Fraud Detection', kind: 'SaaS', category: 'Claims', vendor: 'FRISS', criticality: 'Medium', systemRole: 'Analytics', streams: ['Claims Intake', 'Risk, Compliance'] },
-  // External / third-party systems (dependencies outside the company boundary)
-  { name: 'Broker & Agent Portal', kind: 'External', category: 'Distribution', vendor: 'Partner network', criticality: 'High', systemRole: 'Channel', streams: ['Distribution', 'Submission-to-Bind', 'Delegated Authority'] },
-  { name: 'Payment Gateway', kind: 'External', category: 'Billing', vendor: 'Stripe/ACI', criticality: 'High', systemRole: 'Channel', streams: ['Billing'] },
-  { name: 'Bank & Treasury Network', kind: 'External', category: 'Finance', vendor: 'SWIFT/Banks', criticality: 'High', systemRole: 'Supporting', streams: ['Finance', 'Investment', 'Billing'] },
-  { name: 'Reinsurer Exchange', kind: 'External', category: 'Policy', vendor: 'RI markets', criticality: 'Medium', systemRole: 'Supporting', streams: ['Reinsurance'] },
-  { name: 'Regulatory Filing Portal', kind: 'External', category: 'Security', vendor: 'Regulators', criticality: 'High', systemRole: 'Channel', streams: ['Risk, Compliance', 'Audit', 'Actuarial'] },
-  { name: 'Credit Bureau & Data Services', kind: 'External', category: 'Data', vendor: 'Experian/LexisNexis', criticality: 'Medium', systemRole: 'Analytics', streams: ['Submission-to-Bind', 'Claims Intake'] },
-  { name: 'Catastrophe Data Provider', kind: 'External', category: 'Data', vendor: 'Verisk/Moody’s', criticality: 'Medium', systemRole: 'Analytics', streams: ['Actuarial', 'Reinsurance'] },
-];
+const SPINE = resolve(dirname(fileURLToPath(import.meta.url)), '../../data/seed/spine.json');
+const ADOPTION = resolve(dirname(fileURLToPath(import.meta.url)), '../../data/ai-adoption-usecases.json');
 
 // Deterministic pseudo-values, so re-seeds are stable.
 function hash(s: string): number {
@@ -55,265 +28,247 @@ function hash(s: string): number {
   return Math.abs(h);
 }
 
-// Turn a v13 KPI definition (real target text) into a numeric target + unit +
-// direction + an illustrative current actual near the target. The DEFINITION is
-// real; only the plotted reading is synthesized (illustrative=true).
+// Turn a KPI definition (real target text) into a numeric target + unit +
+// direction + an illustrative current actual near the target.
 export function metricReading(def: { name: string; target: string | null; notes: string | null; category: string | null }) {
   const t = (def.target ?? '').trim();
   const lower = `${def.target ?? ''} ${def.notes ?? ''} ${def.name}`.toLowerCase();
   const unit = /%|percent/.test(t) ? '%' : /day/.test(t) ? 'days' : /hour|hr/.test(t) ? 'hrs' : /\$|usd/.test(t) ? '$' : /month|\/mo/.test(t) ? '/mo' : /ratio|x\b/.test(t) ? 'x' : 'score';
-  // numbers in the target (handles "30-45", ">99", "<5", "95%", "4.5")
   const nums = (t.match(/\d+(?:\.\d+)?/g) ?? []).map(Number);
   let target: number | null = nums.length ? (nums.length >= 2 ? (nums[0] + nums[1]) / 2 : nums[0]) : (/zero|0 /.test(lower) ? 0 : null);
-  // direction: lower-is-better signals
   const down = /lower is better|<|reduce|days|cycle|time|cost|dso|backlog|defect|leakage|loss|turnover|breach|incident|outage|complaint|aging/.test(lower) && !/>|higher is better/.test(lower);
   const direction = down ? 'down' : 'up';
-  // illustrative actual near target (some above, some below for insight)
   const h = hash(`${def.name}:${def.target}`);
-  const jitter = ((h % 1000) / 1000 - 0.45) * 0.35; // ~ -16% .. +19%
+  const jitter = ((h % 1000) / 1000 - 0.45) * 0.35;
   let value: number;
   if (target != null) {
     value = target === 0 ? Math.round((h % 5)) : Math.round(target * (1 + jitter) * 10) / 10;
   } else {
-    value = Math.round((40 + (h % 60)) * 10) / 10; // unitless score 40-100
-    // No parseable number in the target text (qualitative goal like "Downward
-    // trend" / "Within tolerance"). Synthesize a numeric target near the reading
-    // using the same jitter family, so every KPI has a computable target.
+    value = Math.round((40 + (h % 60)) * 10) / 10;
     target = Math.round((value / (1 + jitter)) * 10) / 10;
   }
   if (unit === '%') value = Math.max(0, Math.min(100, value));
   return { value, unit, target, direction };
 }
 
-export async function seedIllustrative(
-  prisma: PrismaClient,
-  ctx: { tenantId: string; companyId: string; valueStreams: { id: string; name: string }[] }
-) {
-  const { tenantId, companyId, valueStreams } = ctx;
-
-  for (const a of APPS) {
-    const app = await prisma.application.create({
-      data: { tenantId, companyId, name: a.name, kind: a.kind, category: a.category, vendor: a.vendor ?? null, criticality: a.criticality, illustrative: true },
-    });
-    const links = valueStreams.filter((vs) => a.streams.some((s) => vs.name.toLowerCase().includes(s.toLowerCase())));
-    if (links.length > 0) {
-      await prisma.applicationValueStream.createMany({
-        data: links.map((vs) => ({ tenantId, applicationId: app.id, valueStreamId: vs.id, systemRole: a.systemRole, illustrative: true })),
-        skipDuplicates: true,
-      });
-    }
-  }
-
-  console.log(`   + ${APPS.length} illustrative systems`);
-}
-
-// ─── Deep levels: initiatives, risks ────────────────────────────────────────
-
-const INITIATIVES = [
-  { code: 'CLM-TX', name: 'Claims Transformation', stage: 'Build', health: 'Amber', budget: 14_000_000, vs: ['Claims'], div: ['Claims'] },
-  { code: 'UW-MOD', name: 'Underwriting Modernization', stage: 'Pilot', health: 'Green', budget: 9_500_000, vs: ['Submission-to-Bind', 'Actuarial Pricing'], div: ['Underwriting'] },
-  { code: 'BILL-1', name: 'Billing Consolidation', stage: 'Rollout', health: 'Green', budget: 4_200_000, vs: ['Billing'], div: ['Finance'] },
-  { code: 'DATA-PLT', name: 'Data & AI Platform Build-out', stage: 'Build', health: 'Amber', budget: 11_000_000, vs: ['Data, Analytics'], div: ['Data'] },
-  { code: 'CYBER', name: 'Cyber Resilience Program', stage: 'Build', health: 'Red', budget: 7_800_000, vs: ['Cybersecurity'], div: ['Cybersecurity'] },
-  { code: 'DIST-SS', name: 'Distribution Self-Service', stage: 'Discovery', health: 'Green', budget: 3_600_000, vs: ['Distribution', 'Customer Service'], div: ['Sales'] },
-];
-
-const pickFrom = <T>(seed: number, arr: T[]): T => arr[seed % arr.length];
-
-export async function seedDeepLevels(prisma: PrismaClient, ctx: { tenantId: string; companyId: string; clear?: boolean }) {
-  const { tenantId, companyId, clear = true } = ctx;
-
-  // Idempotent rebuild: clear this company's deep levels first. Deleting
-  // initiatives cascades to value-stream/division links. Harmless no-op
-  // during a full re-seed (the company was just recreated, so these are empty).
-  // Pass clear:false to run as a purely additive fill onto empty tables.
-  if (clear) {
-    await prisma.risk.deleteMany({ where: { companyId } });
-    await prisma.initiative.deleteMany({ where: { companyId } });
-  }
-
-  const [divisions, roles, valueStreams] = await Promise.all([
-    prisma.division.findMany({ where: { companyId }, select: { id: true, name: true } }),
-    prisma.role.findMany({ where: { companyId }, select: { id: true, name: true, roleFamily: true, divisionId: true } }),
-    prisma.valueStream.findMany({ where: { companyId }, select: { id: true, name: true } }),
-  ]);
-
-  // Initiatives + value-stream/division links.
-  const initRows: any[] = [], ivsRows: any[] = [], idivRows: any[] = [];
-  for (const ini of INITIATIVES) {
-    const id = `init_${ini.code}`;
-    const matchDivs = divisions.filter((d) => ini.div.some((s) => d.name.toLowerCase().includes(s.toLowerCase())));
-    const matchVs = valueStreams.filter((v) => ini.vs.some((s) => v.name.toLowerCase().includes(s.toLowerCase())));
-    const home = matchDivs[0];
-    const sponsor = home && (roles.find((r) => r.divisionId === home.id && /chief|head|director/i.test(r.name)) ?? roles.find((r) => r.divisionId === home.id));
-    initRows.push({ id, tenantId, companyId, name: ini.name, code: ini.code, status: 'In Progress', stage: ini.stage, health: ini.health, budget: ini.budget, sponsorRoleId: sponsor?.id ?? null, illustrative: true });
-    for (const v of matchVs) ivsRows.push({ tenantId, initiativeId: id, valueStreamId: v.id, impactType: 'Transforms', illustrative: true });
-    for (const d of matchDivs) idivRows.push({ tenantId, initiativeId: id, divisionId: d.id, role: 'Sponsoring', illustrative: true });
-  }
-  await prisma.initiative.createMany({ data: initRows });
-  await prisma.initiativeValueStream.createMany({ data: ivsRows, skipDuplicates: true });
-  await prisma.initiativeDivision.createMany({ data: idivRows, skipDuplicates: true });
-
-  // Risks: per initiative + a few per value stream.
-  const SEV = ['Critical', 'High', 'Medium', 'Low'], STATUS = ['Open', 'Mitigating', 'Accepted', 'Open'];
-  const CAT = ['Delivery', 'Compliance', 'Security', 'Operational', 'Vendor', 'Financial'];
-  const risks: any[] = [];
-  for (const ini of INITIATIVES) {
-    const n = 3 + (hash(ini.code) % 3);
-    for (let i = 0; i < n; i++) {
-      const h = hash(`risk_${ini.code}_${i}`);
-      risks.push({ tenantId, companyId, initiativeId: `init_${ini.code}`, title: `${pickFrom(h, CAT)} risk on ${ini.name}`, category: pickFrom(h, CAT), severity: pickFrom(h >> 2, SEV), likelihood: pickFrom(h >> 4, ['Possible', 'Likely', 'Unlikely']), status: pickFrom(h >> 6, STATUS), illustrative: true });
-    }
-  }
-  for (const v of valueStreams) {
-    const h = hash(`vsr_${v.id}`);
-    if (h % 3 !== 0) continue;
-    risks.push({ tenantId, companyId, valueStreamId: v.id, title: `Control gap in ${v.name}`, category: 'Compliance', severity: pickFrom(h, SEV), likelihood: 'Possible', status: 'Open', illustrative: true });
-  }
-  await prisma.risk.createMany({ data: risks });
-
-  console.log(`   + ${initRows.length} initiatives, ${risks.length} risks`);
-}
-
-// ─── Real Application TCO records (from v15 Application TCO sheet) ─────────
-// 6 real apps with full 6-bucket TCO breakdown (illustrative=false).
-// Each is upserted by name so re-seeding is idempotent.
-// Division match via primaryDivisionName; value stream match by exact name.
+// ─── Real Application TCO records (6 apps, full 6-bucket breakdown) ─────────
+// Enriches a same-named master Application in place where possible, else creates
+// a standalone illustrative=false app. orgUnit set from primaryDivisionName.
 
 type TcoApp = {
   name: string;
   ownershipModel: string;
   primaryDivisionName: string;
-  linkedValueStreamName: string;
-  licenseCost: number;
-  laborCost: number;
-  vendorServicesCost: number;
-  infraCost: number;
-  depreciationCost: number;
-  overheadCost: number;
-  totalTco: number;
-  kind: string;
-  criticality: string;
+  licenseCost: number; laborCost: number; vendorServicesCost: number;
+  infraCost: number; depreciationCost: number; overheadCost: number; totalTco: number;
+  kind: string; criticality: string;
 };
 
 const REAL_APPS: TcoApp[] = [
-  {
-    name: 'Claims Management Platform',
-    ownershipModel: 'Hybrid',
-    primaryDivisionName: 'Claims',
-    linkedValueStreamName: 'Claims',
-    licenseCost: 210000, laborCost: 340000, vendorServicesCost: 180000,
-    infraCost: 145000, depreciationCost: 60000, overheadCost: 50000,
-    totalTco: 985000,
-    kind: 'Core', criticality: 'High',
-  },
-  {
-    name: 'Policy Administration Platform',
-    ownershipModel: 'In-house',
-    primaryDivisionName: 'Operations & Customer Service',
-    linkedValueStreamName: 'Policy Administration',
-    licenseCost: 0, laborCost: 620000, vendorServicesCost: 280000,
-    infraCost: 215000, depreciationCost: 80000, overheadCost: 50000,
-    totalTco: 1245000,
-    kind: 'Core', criticality: 'High',
-  },
-  {
-    name: 'Finance ERP',
-    ownershipModel: 'Hybrid',
-    primaryDivisionName: 'Finance & Investments',
-    linkedValueStreamName: 'Finance',
-    licenseCost: 320000, laborCost: 280000, vendorServicesCost: 160000,
-    infraCost: 130000, depreciationCost: 45000, overheadCost: 50000,
-    totalTco: 985000,
-    kind: 'Core', criticality: 'High',
-  },
-  {
-    name: 'IAM Platform',
-    ownershipModel: 'SaaS',
-    primaryDivisionName: 'Cybersecurity & IAM',
-    linkedValueStreamName: 'Cybersecurity',
-    licenseCost: 480000, laborCost: 80000, vendorServicesCost: 60000,
-    infraCost: 45000, depreciationCost: 20000, overheadCost: 20000,
-    totalTco: 705000,
-    kind: 'SaaS', criticality: 'High',
-  },
-  {
-    name: 'Data Analytics Platform',
-    ownershipModel: 'Hybrid',
-    primaryDivisionName: 'Data & AI',
-    linkedValueStreamName: 'Data, Analytics',
-    licenseCost: 290000, laborCost: 220000, vendorServicesCost: 130000,
-    infraCost: 105000, depreciationCost: 40000, overheadCost: 30000,
-    totalTco: 815000,
-    kind: 'SaaS', criticality: 'High',
-  },
-  {
-    name: 'Broker / Distribution Portal',
-    ownershipModel: 'SaaS',
-    primaryDivisionName: 'Sales, Distribution & Marketing',
-    linkedValueStreamName: 'Distribution',
-    licenseCost: 360000, laborCost: 80000, vendorServicesCost: 60000,
-    infraCost: 50000, depreciationCost: 25000, overheadCost: 25000,
-    totalTco: 600000,
-    kind: 'SaaS', criticality: 'Medium',
-  },
+  { name: 'Claims Management Platform', ownershipModel: 'Hybrid', primaryDivisionName: 'Claims', licenseCost: 210000, laborCost: 340000, vendorServicesCost: 180000, infraCost: 145000, depreciationCost: 60000, overheadCost: 50000, totalTco: 985000, kind: 'SystemOfRecord', criticality: 'High' },
+  { name: 'Policy Administration Platform', ownershipModel: 'In-house', primaryDivisionName: 'Business Operations', licenseCost: 0, laborCost: 620000, vendorServicesCost: 280000, infraCost: 215000, depreciationCost: 80000, overheadCost: 50000, totalTco: 1245000, kind: 'SystemOfRecord', criticality: 'High' },
+  { name: 'Finance ERP', ownershipModel: 'Hybrid', primaryDivisionName: 'Finance & Investments', licenseCost: 320000, laborCost: 280000, vendorServicesCost: 160000, infraCost: 130000, depreciationCost: 45000, overheadCost: 50000, totalTco: 985000, kind: 'SystemOfRecord', criticality: 'High' },
+  { name: 'IAM Platform', ownershipModel: 'SaaS', primaryDivisionName: 'Cybersecurity & IAM', licenseCost: 480000, laborCost: 80000, vendorServicesCost: 60000, infraCost: 45000, depreciationCost: 20000, overheadCost: 20000, totalTco: 705000, kind: 'Service', criticality: 'High' },
+  { name: 'Data Analytics Platform', ownershipModel: 'Hybrid', primaryDivisionName: 'Data & AI', licenseCost: 290000, laborCost: 220000, vendorServicesCost: 130000, infraCost: 105000, depreciationCost: 40000, overheadCost: 30000, totalTco: 815000, kind: 'Service', criticality: 'High' },
+  { name: 'Broker / Distribution Portal', ownershipModel: 'SaaS', primaryDivisionName: 'Sales, Distribution & Marketing', licenseCost: 360000, laborCost: 80000, vendorServicesCost: 60000, infraCost: 50000, depreciationCost: 25000, overheadCost: 25000, totalTco: 600000, kind: 'Tool', criticality: 'Medium' },
 ];
 
 export async function seedRealApplications(
   prisma: PrismaClient,
-  ctx: { tenantId: string; companyId: string; valueStreams: { id: string; name: string }[] }
+  ctx: { tenantId: string; companyId: string; refs?: SpineRefs },
 ) {
-  const { tenantId, companyId, valueStreams } = ctx;
-  let created = 0;
+  const { companyId } = ctx;
+  const refs = ctx.refs ?? (await resolveSpineRefs(prisma, companyId));
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const existing = await prisma.application.findMany({ where: { companyId }, select: { id: true, name: true } });
+  const byNorm = new Map(existing.map((a) => [norm(a.name), a.id] as const));
 
+  let enriched = 0, created = 0;
   for (const a of REAL_APPS) {
-    const app = await prisma.application.upsert({
-      where: { tenantId_companyId_name: { tenantId, companyId, name: a.name } },
-      update: {
-        illustrative: false,
-        ownershipModel: a.ownershipModel,
-        primaryDivisionName: a.primaryDivisionName,
-        licenseCost: a.licenseCost,
-        laborCost: a.laborCost,
-        vendorServicesCost: a.vendorServicesCost,
-        infraCost: a.infraCost,
-        depreciationCost: a.depreciationCost,
-        overheadCost: a.overheadCost,
-        totalTco: a.totalTco,
-        kind: a.kind,
-        criticality: a.criticality,
-      },
-      create: {
-        tenantId, companyId, name: a.name, kind: a.kind, criticality: a.criticality,
-        illustrative: false,
-        ownershipModel: a.ownershipModel,
-        primaryDivisionName: a.primaryDivisionName,
-        licenseCost: a.licenseCost,
-        laborCost: a.laborCost,
-        vendorServicesCost: a.vendorServicesCost,
-        infraCost: a.infraCost,
-        depreciationCost: a.depreciationCost,
-        overheadCost: a.overheadCost,
-        totalTco: a.totalTco,
-      },
-    });
-    created++;
+    const orgUnitId = refs.orgUnitByName(a.primaryDivisionName);
+    const tco = {
+      illustrative: false, ownershipModel: a.ownershipModel, orgUnitId,
+      licenseCost: a.licenseCost, laborCost: a.laborCost, vendorServicesCost: a.vendorServicesCost,
+      infraCost: a.infraCost, depreciationCost: a.depreciationCost, overheadCost: a.overheadCost,
+      totalTco: a.totalTco, kind: a.kind, criticality: a.criticality,
+    };
+    const hit = byNorm.get(norm(a.name));
+    if (hit) {
+      await prisma.application.update({ where: { id: hit }, data: tco });
+      enriched++;
+    } else {
+      await prisma.application.create({ data: { companyId, name: a.name, ...tco } });
+      created++;
+    }
+  }
+  console.log(`   + real TCO applications: enriched ${enriched}, created ${created}`);
+}
 
-    // Link to value stream by name (case-insensitive substring)
-    const matchedStreams = valueStreams.filter((vs) =>
-      vs.name.toLowerCase().includes(a.linkedValueStreamName.toLowerCase()) ||
-      a.linkedValueStreamName.toLowerCase().includes(vs.name.toLowerCase())
-    );
-    if (matchedStreams.length > 0) {
-      await prisma.applicationValueStream.createMany({
-        data: matchedStreams.map((vs) => ({
-          tenantId, applicationId: app.id, valueStreamId: vs.id,
-          systemRole: 'System of Record', illustrative: false,
-        })),
-        skipDuplicates: true,
-      });
+// ─── Deep levels: illustrative initiatives, KPI metrics, AI-adoption, analysis ──
+
+const INITIATIVES = [
+  { code: 'CLM-TX', name: 'Claims Transformation', stage: 'Build', vs: 'Claims' },
+  { code: 'UW-MOD', name: 'Underwriting Modernization', stage: 'Pilot', vs: 'Underwriting' },
+  { code: 'BILL-1', name: 'Billing Consolidation', stage: 'Rollout', vs: 'Business Operations' },
+  { code: 'DATA-PLT', name: 'Data & AI Platform Build-out', stage: 'Build', vs: 'Data & AI' },
+  { code: 'CYBER', name: 'Cyber Resilience Program', stage: 'Build', vs: 'Cybersecurity & IAM' },
+  { code: 'DIST-SS', name: 'Distribution Self-Service', stage: 'Discovery', vs: 'Sales, Distribution & Marketing' },
+];
+
+const ADOPTION_LEVELS = ['not_used', 'pilot', 'emerging', 'scaling', 'embedded'];
+type UseCase = { title: string; persona: string; detail: string };
+type ModeProfile = { level: number; useCases: UseCase[] };
+type StreamProfile = { assistant: ModeProfile; augmented: ModeProfile; workflow: ModeProfile; agent: ModeProfile };
+
+function addDays(d: Date, n: number) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+
+export async function seedDeepLevels(
+  prisma: PrismaClient,
+  ctx: { tenantId: string; companyId: string; refs?: SpineRefs },
+) {
+  const { companyId } = ctx;
+  const refs = ctx.refs ?? (await resolveSpineRefs(prisma, companyId));
+
+  // ── Illustrative initiatives + value-stream links (Initiative + NodeInitiative) ──
+  await prisma.initiative.deleteMany({ where: { companyId } });
+  let initN = 0, nodeInitN = 0;
+  for (const ini of INITIATIVES) {
+    const vsNodeId = refs.nodeByName(ini.vs);
+    const init = await prisma.initiative.create({ data: { companyId, name: ini.name, state: ini.stage } });
+    initN++;
+    if (vsNodeId) {
+      await prisma.nodeInitiative.create({ data: { companyId, processNodeId: vsNodeId, initiativeId: init.id } });
+      nodeInitN++;
     }
   }
 
-  console.log(`   + ${created} real TCO application records (illustrative=false)`);
+  // ── Value-stream KPI Metrics (processNodeId, kind=kpi) from the spine KPIs ──
+  await prisma.metric.deleteMany({ where: { companyId, kind: 'kpi' } });
+  const spine = JSON.parse(readFileSync(SPINE, 'utf8')) as {
+    metrics: { valueStreamName: string; name: string; target: string | null; notes: string | null; category: string | null; frequency: string | null }[];
+  };
+  const metricRows: { companyId: string; processNodeId: string; name: string; value: number; unit: string; period: string | null; kind: string }[] = [];
+  for (const m of spine.metrics) {
+    const nodeId = refs.nodeByName(m.valueStreamName);
+    if (!nodeId) continue;
+    const r = metricReading({ name: m.name, target: m.target, notes: m.notes, category: m.category });
+    metricRows.push({ companyId, processNodeId: nodeId, name: m.name, value: r.value, unit: r.unit, period: m.frequency, kind: 'kpi' });
+  }
+  for (let i = 0; i < metricRows.length; i += 1000) {
+    await prisma.metric.createMany({ data: metricRows.slice(i, i + 1000) });
+  }
+
+  // ── NodeAiAdoption per value-stream node (levels + use cases) ──
+  const profiles: Record<string, StreamProfile> = JSON.parse(readFileSync(ADOPTION, 'utf8'));
+  const vsNodes = await prisma.processNode.findMany({
+    where: { companyId, processLevelType: { levelNumber: { in: [2, 3] } } },
+    select: { id: true, dbValue: true, aiAdoption: { select: { id: true } } },
+  });
+  // Resolve each authored profile name → a VS node id (alias/fuzzy). One node
+  // wins per profile; first writer keeps the node (skip if already adopted).
+  const claimed = new Set<string>();
+  let adoptN = 0;
+  for (const [name, p] of Object.entries(profiles)) {
+    const nodeId = refs.nodeIdQuiet(name);
+    if (!nodeId || claimed.has(nodeId)) continue;
+    claimed.add(nodeId);
+    const node = vsNodes.find((n) => n.id === nodeId);
+    if (!node || node.aiAdoption) continue;
+    await prisma.nodeAiAdoption.create({
+      data: {
+        processNodeId: nodeId,
+        aiAssist: ADOPTION_LEVELS[p.assistant?.level ?? 0],
+        aiAugment: ADOPTION_LEVELS[p.augmented?.level ?? 0],
+        aiWorkflow: ADOPTION_LEVELS[p.workflow?.level ?? 0],
+        aiAutonomous: ADOPTION_LEVELS[p.agent?.level ?? 0],
+        useCases: { assistant: p.assistant?.useCases ?? [], augmented: p.augmented?.useCases ?? [], workflow: p.workflow?.useCases ?? [], agent: p.agent?.useCases ?? [] },
+      },
+    });
+    adoptN++;
+  }
+
+  // ── AnalysisStatus coverage rows over VS nodes, divisions, roles ──
+  await prisma.analysisStatus.deleteMany({ where: { companyId } });
+  const [l2nodes, divisions, roles] = await Promise.all([
+    prisma.processNode.findMany({ where: { companyId, processLevelType: { levelNumber: 2 } }, select: { id: true, dbValue: true } }),
+    prisma.orgUnit.findMany({ where: { companyId, orgLevelType: { levelNumber: 2 } }, select: { id: true, dbValue: true } }),
+    prisma.role.findMany({ where: { companyId }, select: { id: true, dbValue: true } }),
+  ]);
+  const today = new Date();
+  const subjects: { subjectType: string; id: string; name: string }[] = [
+    ...l2nodes.map((n) => ({ subjectType: 'valueStream', id: n.id, name: n.dbValue })),
+    ...divisions.map((d) => ({ subjectType: 'division', id: d.id, name: d.dbValue })),
+    ...roles.map((r) => ({ subjectType: 'role', id: r.id, name: r.dbValue })),
+  ];
+  const analysisRows = subjects.map((s) => {
+    const h = hash(`${s.subjectType}:${s.name}`);
+    const bucket = h % 100;
+    if (bucket < 60) {
+      const completed = addDays(today, -(7 + (h % 90)));
+      return { tenantId: ctx.tenantId, companyId, subjectType: s.subjectType, subjectId: s.id, status: 'Complete', plannedDate: addDays(completed, (h >> 3) % 10), completedDate: completed };
+    }
+    if (bucket < 80) {
+      const planned = (h >> 2) % 9 === 0 ? addDays(today, -(3 + (h % 10))) : addDays(today, 5 + (h % 40));
+      return { tenantId: ctx.tenantId, companyId, subjectType: s.subjectType, subjectId: s.id, status: 'In Progress', plannedDate: planned, completedDate: null };
+    }
+    return { tenantId: ctx.tenantId, companyId, subjectType: s.subjectType, subjectId: s.id, status: 'Not Started', plannedDate: addDays(today, 30 + (h % 120)), completedDate: null };
+  });
+  for (let i = 0; i < analysisRows.length; i += 500) {
+    await prisma.analysisStatus.createMany({ data: analysisRows.slice(i, i + 500), skipDuplicates: true });
+  }
+
+  console.log(`   + ${initN} initiatives (${nodeInitN} VS links), ${metricRows.length} KPI metrics, ${adoptN} AI-adoption profiles, ${analysisRows.length} analysis-coverage rows`);
+}
+
+// ─── External parties & interactions (Third-Parties tab) ────────────────────
+// From spine.json externalInteractions[]: distinct ExternalParty (by externalRole)
+// + an ExternalInteraction per row (internalRole→roleId, relatedValueStream→VS node).
+
+const PARTY_TYPE_MAP: Record<string, string> = {
+  Customer: 'Insured', 'Distribution Partner': 'Broker', Broker: 'Broker', Agent: 'Agent',
+  Regulator: 'Regulator', Vendor: 'Vendor', Reinsurer: 'Vendor', 'Service Provider': 'Vendor',
+  Partner: 'Vendor', 'System Integrator': 'SystemIntegrator',
+};
+
+export async function seedExternalParties(
+  prisma: PrismaClient,
+  ctx: { tenantId: string; companyId: string; refs?: SpineRefs },
+) {
+  const { companyId } = ctx;
+  const refs = ctx.refs ?? (await resolveSpineRefs(prisma, companyId));
+  await prisma.externalParty.deleteMany({ where: { companyId } });
+
+  const spine = JSON.parse(readFileSync(SPINE, 'utf8')) as {
+    externalInteractions: {
+      partyType: string; externalRole: string; internalRoleName: string | null; internalRoleOwner: string | null;
+      interactionType: string | null; relatedValueStream: string | null;
+    }[];
+  };
+
+  const partyIdByName = new Map<string, string>();
+  let partyN = 0, interN = 0;
+  for (const e of spine.externalInteractions) {
+    const partyName = e.externalRole || e.partyType;
+    let partyId = partyIdByName.get(partyName);
+    if (!partyId) {
+      const party = await prisma.externalParty.create({
+        data: { companyId, name: partyName, partyType: PARTY_TYPE_MAP[e.partyType] ?? 'Vendor' },
+      });
+      partyId = party.id;
+      partyIdByName.set(partyName, partyId);
+      partyN++;
+    }
+    // first related value stream (cell can be "A; B; C")
+    const firstVs = (e.relatedValueStream ?? '').split(/[;,]/)[0]?.trim() || null;
+    await prisma.externalInteraction.create({
+      data: {
+        externalPartyId: partyId,
+        roleId: refs.roleResolver(e.internalRoleName) ?? refs.roleResolver(e.internalRoleOwner),
+        processNodeId: refs.nodeByName(firstVs),
+        nature: (e.interactionType ?? 'handoff').slice(0, 80),
+      },
+    });
+    interN++;
+  }
+  console.log(`   + ${partyN} external parties, ${interN} external interactions`);
 }

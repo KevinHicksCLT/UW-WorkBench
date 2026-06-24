@@ -6,6 +6,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.js';
 import { recomputeInitiative, summarizeProgram } from '../services/portfolioRollup.js';
 import { applyWorkflowAction } from '../services/portfolioWorkflow.js';
+import { linkNames } from '../lib/resolvers/index.js';
 
 // Initiative Tracker API — the strategic-portfolio module behind the
 // "Initiatives" tab. Everything is scoped to tenant (from the JWT) + the active
@@ -54,34 +55,38 @@ function withHealthRollup<P extends { status: string; workstreams: (W & { initia
 
 // Resolve the operating-model links (value stream / division / owner+sponsor
 // role) on a set of initiatives into display names, in one batched pass.
-async function resolveLinks(inits: { valueStreamId: string | null; divisionId: string | null; ownerRoleId: string | null; sponsorRoleId: string | null }[]) {
-  const vsIds = new Set<string>(), divIds = new Set<string>(), roleIds = new Set<string>();
+// erd_v5: the FK columns are valueStreamNodeId → ProcessNode, orgUnitId → OrgUnit,
+// owner/sponsorRoleId → Role. The frontend still wants the legacy display keys
+// (valueStreamName / divisionName / ownerRoleName / sponsorRoleName), so this maps
+// the new FKs through the spine displayValue and exposes the old key names.
+type InitLinks = { valueStreamNodeId: string | null; orgUnitId: string | null; ownerRoleId: string | null; sponsorRoleId: string | null };
+async function resolveLinks(inits: InitLinks[]) {
+  const vsIds: (string | null)[] = [], orgIds: (string | null)[] = [], roleIds: (string | null)[] = [];
   for (const i of inits) {
-    if (i.valueStreamId) vsIds.add(i.valueStreamId);
-    if (i.divisionId) divIds.add(i.divisionId);
-    if (i.ownerRoleId) roleIds.add(i.ownerRoleId);
-    if (i.sponsorRoleId) roleIds.add(i.sponsorRoleId);
+    vsIds.push(i.valueStreamNodeId);
+    orgIds.push(i.orgUnitId);
+    roleIds.push(i.ownerRoleId, i.sponsorRoleId);
   }
-  const [vs, divs, roles] = await Promise.all([
-    vsIds.size ? prisma.valueStream.findMany({ where: { id: { in: [...vsIds] } }, select: { id: true, name: true } }) : [],
-    divIds.size ? prisma.division.findMany({ where: { id: { in: [...divIds] } }, select: { id: true, name: true } }) : [],
-    roleIds.size ? prisma.role.findMany({ where: { id: { in: [...roleIds] } }, select: { id: true, name: true } }) : [],
+  const [valueStream, division, role] = await Promise.all([
+    linkNames(prisma, vsIds, 'processNode'),
+    linkNames(prisma, orgIds, 'orgUnit'),
+    linkNames(prisma, roleIds, 'role'),
   ]);
-  return {
-    valueStream: new Map(vs.map((x) => [x.id, x.name])),
-    division: new Map(divs.map((x) => [x.id, x.name])),
-    role: new Map(roles.map((x) => [x.id, x.name])),
-  };
+  return { valueStream, division, role };
 }
 
-function withLinkNames<T extends { valueStreamId: string | null; divisionId: string | null; ownerRoleId: string | null; sponsorRoleId: string | null }>(
+function withLinkNames<T extends InitLinks>(
   i: T,
   maps: Awaited<ReturnType<typeof resolveLinks>>,
 ) {
+  // Expose BOTH the new FK columns (already on the row via ...i) and the legacy
+  // display aliases the frontend reads.
   return {
     ...i,
-    valueStreamName: i.valueStreamId ? maps.valueStream.get(i.valueStreamId) ?? null : null,
-    divisionName: i.divisionId ? maps.division.get(i.divisionId) ?? null : null,
+    valueStreamId: i.valueStreamNodeId,
+    divisionId: i.orgUnitId,
+    valueStreamName: i.valueStreamNodeId ? maps.valueStream.get(i.valueStreamNodeId) ?? null : null,
+    divisionName: i.orgUnitId ? maps.division.get(i.orgUnitId) ?? null : null,
     ownerRoleName: i.ownerRoleId ? maps.role.get(i.ownerRoleId) ?? null : null,
     sponsorRoleName: i.sponsorRoleId ? maps.role.get(i.sponsorRoleId) ?? null : null,
   };
@@ -92,13 +97,16 @@ router.get('/links', async (req: Request, res: Response, next: NextFunction) => 
   try {
     const companyId = await activeCompanyId(req, res);
     if (!companyId) return;
-    const where = { companyId };
-    const [valueStreams, divisions, roles] = await Promise.all([
-      prisma.valueStream.findMany({ where, select: { id: true, name: true }, orderBy: { name: 'asc' } }),
-      prisma.division.findMany({ where, select: { id: true, name: true }, orderBy: { name: 'asc' } }),
-      prisma.role.findMany({ where, select: { id: true, name: true }, orderBy: { name: 'asc' } }),
+    // Value streams = ProcessNode at level 2; divisions = OrgUnit at level 2; roles
+    // = Role. Each spine entity's editable displayValue is exposed as `name` to
+    // keep the dropdown option shape ({ id, name }) the frontend consumes.
+    const [vsNodes, orgUnits, roles] = await Promise.all([
+      prisma.processNode.findMany({ where: { companyId, processLevelType: { levelNumber: 2 } }, select: { id: true, displayValue: true }, orderBy: { displayValue: 'asc' } }),
+      prisma.orgUnit.findMany({ where: { companyId, orgLevelType: { levelNumber: 2 } }, select: { id: true, displayValue: true }, orderBy: { displayValue: 'asc' } }),
+      prisma.role.findMany({ where: { companyId }, select: { id: true, displayValue: true }, orderBy: { displayValue: 'asc' } }),
     ]);
-    res.json({ valueStreams, divisions, roles });
+    const toOpt = (rows: { id: string; displayValue: string }[]) => rows.map((r) => ({ id: r.id, name: r.displayValue }));
+    res.json({ valueStreams: toOpt(vsNodes), divisions: toOpt(orgUnits), roles: toOpt(roles) });
   } catch (e) { next(e); }
 });
 
@@ -360,13 +368,15 @@ router.get('/initiatives/:id', async (req: Request, res: Response, next: NextFun
         milestones: { orderBy: { dueDate: 'asc' } },
         raidItems: { orderBy: { severity: 'desc' } },
         objectives: { include: { objective: { select: { id: true, name: true, weight: true } } }, orderBy: { createdAt: 'asc' } },
-        resources: { orderBy: { startDate: 'asc' } },
+        resources: { orderBy: { startDate: 'asc' }, include: { role: { select: { displayValue: true } } } },
         activities: { orderBy: [{ startDate: 'asc' }, { sortOrder: 'asc' }] },
       },
     });
     if (!init) return res.status(404).json({ error: 'Not found' });
     const maps = await resolveLinks([init]);
-    res.json(withLinkNames(init, maps));
+    // Expose the legacy resource.roleName (resolved from the linked Role).
+    const resources = init.resources.map(({ role, ...r }) => ({ ...r, roleName: role?.displayValue ?? null }));
+    res.json({ ...withLinkNames(init, maps), resources });
   } catch (e) { next(e); }
 });
 
@@ -396,8 +406,9 @@ router.post('/initiatives', async (req: Request, res: Response, next: NextFuncti
         description: data.description,
         startDate: new Date(data.startDate),
         dueDate: new Date(data.dueDate),
-        valueStreamId: data.valueStreamId ?? null,
-        divisionId: data.divisionId ?? null,
+        // Frontend still sends the legacy keys; map to the erd_v5 FK columns.
+        valueStreamNodeId: data.valueStreamId ?? null,
+        orgUnitId: data.divisionId ?? null,
         ownerRoleId: data.ownerRoleId ?? null,
         sponsorRoleId: data.sponsorRoleId ?? null,
       },
@@ -429,6 +440,10 @@ router.patch('/initiatives/:id', async (req: Request, res: Response, next: NextF
     const patch: Record<string, unknown> = { ...data };
     if (data.startDate) patch.startDate = new Date(data.startDate);
     if (data.dueDate) patch.dueDate = new Date(data.dueDate);
+    // Translate the legacy link keys to the erd_v5 FK columns (and drop the
+    // legacy keys, which are not columns on PortfolioInitiative).
+    if ('valueStreamId' in data) { patch.valueStreamNodeId = data.valueStreamId ?? null; delete patch.valueStreamId; }
+    if ('divisionId' in data) { patch.orgUnitId = data.divisionId ?? null; delete patch.divisionId; }
     const updated = await prisma.portfolioInitiative.update({ where: { id: req.params.id }, data: patch });
     logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: req.params.id, action: 'UPDATE', diff: data });
     res.json(updated);
@@ -635,11 +650,13 @@ router.post('/initiatives/:id/resources', async (req: Request, res: Response, ne
     const init = await ownInitiative(req.params.id, req.tenantId);
     if (!init) return res.status(404).json({ error: 'Not found' });
     const data = resourceCreateSchema.parse(req.body);
+    // erd_v5 InitiativeResource has no free-text roleName column (role is now an
+    // optional Role FK). The legacy free-text roleName is accepted but not stored;
+    // reads resolve roleName from the linked Role's displayValue.
     const resource = await prisma.initiativeResource.create({
       data: {
         initiativeId: req.params.id,
         name: data.name,
-        roleName: data.roleName ?? null,
         allocationPct: data.allocationPct,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
@@ -662,6 +679,8 @@ router.patch('/initiatives/resources/:rid', async (req: Request, res: Response, 
     const patch: Record<string, unknown> = { ...data };
     if (data.startDate) patch.startDate = new Date(data.startDate);
     if (data.endDate) patch.endDate = new Date(data.endDate);
+    // roleName is not an erd_v5 column — never write it through.
+    delete patch.roleName;
     const updated = await prisma.initiativeResource.update({ where: { id: req.params.rid }, data: patch });
     logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'InitiativeResource', entityId: req.params.rid, action: 'UPDATE', diff: data });
     res.json(updated);
@@ -685,7 +704,7 @@ router.get('/programs/:id/resources', async (req: Request, res: Response, next: 
     if (!program) return res.status(404).json({ error: 'Not found' });
     const resources = await prisma.initiativeResource.findMany({
       where: { initiative: { workstream: { programId: req.params.id } } },
-      include: { initiative: { select: { id: true, name: true } } },
+      include: { initiative: { select: { id: true, name: true } }, role: { select: { displayValue: true } } },
       orderBy: { name: 'asc' },
     });
     const today = new Date();
@@ -695,8 +714,10 @@ router.get('/programs/:id/resources', async (req: Request, res: Response, next: 
     };
     const byName = new Map<string, Row>();
     for (const r of resources) {
-      const row = byName.get(r.name) ?? { name: r.name, roleName: r.roleName, totalAllocationPct: 0, assignments: [] };
-      if (!row.roleName && r.roleName) row.roleName = r.roleName;
+      // roleName is resolved from the linked Role (erd_v5 dropped the free-text column).
+      const roleName = r.role?.displayValue ?? null;
+      const row = byName.get(r.name) ?? { name: r.name, roleName, totalAllocationPct: 0, assignments: [] };
+      if (!row.roleName && roleName) row.roleName = roleName;
       row.assignments.push({ initiativeId: r.initiative.id, initiativeName: r.initiative.name, allocationPct: r.allocationPct, startDate: r.startDate, endDate: r.endDate });
       if (r.startDate <= today && r.endDate >= today) row.totalAllocationPct += r.allocationPct;
       byName.set(r.name, row);

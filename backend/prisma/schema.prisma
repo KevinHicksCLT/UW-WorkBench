@@ -1,11 +1,13 @@
-// Strata — Operating-Model Data Spine (Phase 1)
-// One governed model of a company's operating model:
-//   Company → Division → Department → Role
-//   ValueStream → SubValueStream (L3→L4 self-relation)
-//   Role ↔ ValueStream (participation), Role → ChecklistItem / RoleTask,
-//   Category, ExternalInteraction.
-// Seeded from IT_Roles_Analytics_v12.xlsx. Every spine record carries inline
-// provenance (sourceSheet/sourceRow) back to the workbook.
+// Strata / Cascade — Operating-Model Data Spine (erd_v5)
+// Clean generic typed-graph. Org spine (OrgLevelType → OrgUnit → Role) and the
+// value-stream spine (ProcessLevelType → ProcessNode) are both level-typed,
+// recursive, and closure-backed. Named spine entities carry dbValue (canonical
+// system name) + displayValue (admin-editable label); catalog entities carry one
+// canonical name and relabel via the Terminology override table. Junctions get a
+// surrogate id PLUS a @@unique on the natural key. Peripheral modules (Portfolio,
+// Regulations, Rationalization, Scenario, Telemetry, AI-adoption) are re-modeled
+// in the same style with their operating-model links as real FK relations.
+// Implements documents/value-streams/Master Documentation/erd_v5.mmd.
 
 generator client {
   provider      = "prisma-client-js"
@@ -18,7 +20,7 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ─── Tenancy & Identity (reusable infra, carried from Cascade) ──────────
+// ─── Tenancy & Identity (reusable infra) ────────────────────────────────
 
 model Tenant {
   id           String       @id @default(cuid())
@@ -41,79 +43,800 @@ model User {
   createdAt DateTime @default(now())
 }
 
-// ─── Operating-model spine ──────────────────────────────────────────────
+// ─── Company ────────────────────────────────────────────────────────────
 
 model Company {
-  id        String   @id @default(cuid())
-  tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id])
-  name      String
-  slug      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+  name         String
+  slug         String
+  // Named-spine convention: dbValue = canonical system name, displayValue = label.
+  dbValue      String?
+  displayValue String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  // Home-dashboard layout chosen in Data Admin → Home. Shape: { widgets: string[] }
-  // (ordered widget ids from the frontend catalog). Null = the default layout.
+  // Home-dashboard layout chosen in Data Admin → Home. Shape: { widgets: string[] }.
   dashboardConfig Json?
 
-  divisions            Division[]
-  departments          Department[]
-  roles                Role[]
-  categories           Category[]
-  valueStreams         ValueStream[]
-  externalInteractions ExternalInteraction[]
-  applications         Application[]
-  stepAppUsages        StepAppUsage[]
-  stepDeliverables     StepDeliverable[]
-  metrics              Metric[]
-  initiatives          Initiative[]
-  risks                Risk[]
-  domains              ValueStreamDomain[]
-  standards            Standard[]
-  standardItems        StandardItem[]
-  scenarios            Scenario[]
+  // Org spine
+  orgLevelTypes             OrgLevelType[]
+  orgUnits                  OrgUnit[]
+  roles                     Role[]
+  // Value-stream spine
+  processLevelTypes         ProcessLevelType[]
+  processNodes              ProcessNode[]
+  // Work & control
+  deliverables              Deliverable[]
+  checklists                Checklist[]
+  standards                 Standard[]
+  applications              Application[]
+  integrationSources        IntegrationSource[]
+  // Initiative & metric
+  initiatives               Initiative[]
+  metrics                   Metric[]
+  // External parties / agent enablement
+  externalParties           ExternalParty[]
+  knowledgeBases            KnowledgeBase[]
+  // Admin & cross-cutting
+  terminology               Terminology[]
+  // Portfolio SPM
+  programs                  Program[]
+  workstreams               Workstream[]
+  portfolioInitiatives      PortfolioInitiative[]
+  strategicObjectives       StrategicObjective[]
+  riskScoringBands          RiskScoringBand[]
+  // Regulations
+  jurisdictions             Jurisdiction[]
+  integrationSystems        IntegrationSystem[]
+  regulatoryRequirements    RegulatoryRequirement[]
+  regulatoryBulletins       RegulatoryBulletin[]
+  complianceRules           ComplianceRule[]
+  regulatorySources         RegulatorySource[]
+  // App Rationalization
   rationalizationWorkspaces RationalizationWorkspace[]
-  levels               Level[]
-  orgLevels            OrgLevel[]
-  programs             Program[]
-  workstreams          Workstream[]
-  portfolioInitiatives PortfolioInitiative[]
-  deliverables         Deliverable[]
-  tasks                Task[]
-  nodes                Node[]
-  telemetrySignals     TelemetrySignal[]
-  analysisStatuses     AnalysisStatus[]
-  jurisdictions          Jurisdiction[]
-  integrationSystems     IntegrationSystem[]
-  regulatoryRequirements RegulatoryRequirement[]
-  regulatoryBulletins    RegulatoryBulletin[]
-  complianceRules        ComplianceRule[]
-  regulatorySources      RegulatorySource[]
+  // Scenario / telemetry / analysis
+  scenarios                 Scenario[]
+  telemetrySignals          TelemetrySignal[]
+  analysisStatuses          AnalysisStatus[]
 
   @@unique([tenantId, slug])
 }
 
-// Trackable telemetry signal — one row per signal/metric the Telemetry
-// "Trackable Metrics" catalog renders. Imported by
-// scripts/seed-telemetry-signals.ts from the workbook reference catalog
-// (Metric_Catalog_Expanded + External_Metric_Catalog; queryType is the
-// extraction/calculation note). Editable in Data Admin → Telemetry.
+// ─── ORG SPINE (generic, level-typed) ───────────────────────────────────
+
+model OrgLevelType {
+  id           String   @id @default(cuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  levelNumber  Int
+  dbValue      String // "L1 L2 L3 ..."
+  displayValue String // EDITABLE: Division, Department, Team ...
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  orgUnits OrgUnit[]
+
+  @@unique([companyId, levelNumber])
+  @@index([companyId])
+}
+
+model OrgUnit {
+  id             String       @id @default(cuid())
+  companyId      String
+  company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  orgLevelTypeId String
+  orgLevelType   OrgLevelType @relation(fields: [orgLevelTypeId], references: [id])
+  parentId       String?
+  parent         OrgUnit?     @relation("OrgUnitTree", fields: [parentId], references: [id])
+  children       OrgUnit[]    @relation("OrgUnitTree")
+  dbValue        String
+  displayValue   String // EDITABLE label
+  sortOrder      Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  // Closure (both directions)
+  ancestorEdges   OrgUnitClosure[] @relation("OrgUnitClosureAncestor")
+  descendantEdges OrgUnitClosure[] @relation("OrgUnitClosureDescendant")
+
+  // Things scoped to / homed at this org unit
+  roles                Role[]
+  roleAssignments      RoleOrgAssignment[]
+  applications         Application[]
+  metrics              Metric[]
+  portfolioInitiatives PortfolioInitiative[]
+  scenarios            Scenario[]
+
+  @@index([companyId, orgLevelTypeId])
+  @@index([parentId])
+}
+
+// DERIVED — fast subtree (move-with-children, rollups).
+model OrgUnitClosure {
+  ancestorId   String
+  ancestor     OrgUnit @relation("OrgUnitClosureAncestor", fields: [ancestorId], references: [id], onDelete: Cascade)
+  descendantId String
+  descendant   OrgUnit @relation("OrgUnitClosureDescendant", fields: [descendantId], references: [id], onDelete: Cascade)
+  depth        Int
+
+  @@id([ancestorId, descendantId])
+  @@index([descendantId, depth])
+  @@index([ancestorId, depth])
+}
+
+model Role {
+  id            String   @id @default(cuid())
+  companyId     String
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  orgUnitId     String? // primary home
+  orgUnit       OrgUnit? @relation(fields: [orgUnitId], references: [id])
+  managerRoleId String?
+  manager       Role?    @relation("RoleReports", fields: [managerRoleId], references: [id])
+  reports       Role[]   @relation("RoleReports")
+  dbValue       String
+  displayValue  String // EDITABLE label
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  orgAssignments                RoleOrgAssignment[]
+  checklistItems                ChecklistItem[]
+  roleDeliverables              RoleDeliverable[]
+  nodeRoles                     NodeRole[]
+  roleStandards                 RoleStandard[]
+  ownedStandards                Standard[]                   @relation("StandardOwnerRole")
+  externalInteractions          ExternalInteraction[]
+  metrics                       Metric[]
+  auditEntries                  AuditEntry[]
+  userPreferences               UserPreference[]
+  // Portfolio links
+  ownedPortfolioInitiatives     PortfolioInitiative[]         @relation("PortfolioInitiativeOwner")
+  sponsoredPortfolioInitiatives PortfolioInitiative[]         @relation("PortfolioInitiativeSponsor")
+  raidItems                     RaidItem[]
+  initiativeResources           InitiativeResource[]
+  rationalizationMicroservices  RationalizationMicroservice[] @relation("RationalizationMicroserviceOwner")
+  rationalizationPlanSteps      RationalizationPlanStep[]     @relation("RationalizationPlanStepOwner")
+
+  @@unique([companyId, dbValue])
+  @@index([companyId])
+  @@index([orgUnitId])
+  @@index([managerRoleId])
+}
+
+// NEW — role at multiple levels (M:N).
+model RoleOrgAssignment {
+  id        String  @id @default(cuid())
+  roleId    String
+  role      Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  orgUnitId String
+  orgUnit   OrgUnit @relation(fields: [orgUnitId], references: [id], onDelete: Cascade)
+  isPrimary Boolean @default(false)
+
+  @@unique([roleId, orgUnitId])
+  @@index([roleId])
+  @@index([orgUnitId])
+}
+
+// ─── VALUE-STREAM SPINE (generic recursive) ─────────────────────────────
+
+model ProcessLevelType {
+  id           String   @id @default(cuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  levelNumber  Int
+  dbValue      String // "L1 L2 L3 L4 L5"
+  displayValue String // EDITABLE: Domain, Value Stream, Process, Step
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  processNodes ProcessNode[]
+
+  @@unique([companyId, levelNumber])
+  @@index([companyId])
+}
+
+// VALUE STREAM = ProcessNode at L2; L5/isTask = Task.
+model ProcessNode {
+  id                 String           @id @default(cuid())
+  companyId          String
+  company            Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  processLevelTypeId String
+  processLevelType   ProcessLevelType @relation(fields: [processLevelTypeId], references: [id])
+  parentId           String?
+  parent             ProcessNode?     @relation("ProcessNodeTree", fields: [parentId], references: [id])
+  children           ProcessNode[]    @relation("ProcessNodeTree")
+  dbValue            String
+  displayValue       String // EDITABLE label
+  isTask             Boolean          @default(false)
+  automatability     String? // manual | augmented | automated
+  sortOrder          Int              @default(0)
+  code               String?
+  attributes         Json?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  // Closure (both directions)
+  ancestorEdges   ProcessNodeClosure[] @relation("ProcessNodeClosureAncestor")
+  descendantEdges ProcessNodeClosure[] @relation("ProcessNodeClosureDescendant")
+
+  // Junctions / links off a process node
+  nodeDeliverables          NodeDeliverable[]
+  nodeRoles                 NodeRole[]
+  nodeRegulations           NodeRegulation[]
+  nodeStandards             NodeStandard[]
+  nodeAppUsages             NodeAppUsage[]
+  nodeChecklists            NodeChecklist[]
+  nodeInitiatives           NodeInitiative[]
+  testingTemplates          TestingTemplate[] // task-level (secondary tie)
+  metrics                   Metric[]
+  externalInteractions      ExternalInteraction[]
+  agentSkills               AgentSkill[]
+  auditEntries              AuditEntry[]
+  aiAdoption                NodeAiAdoption?
+  // Portfolio / peripheral links
+  portfolioInitiatives      PortfolioInitiative[]
+  scenarios                 Scenario[]
+  rationalizationWorkspaces RationalizationWorkspace[]
+
+  @@index([companyId, processLevelTypeId])
+  @@index([parentId])
+}
+
+// DERIVED — fast subtree (move-with-children, rollups).
+model ProcessNodeClosure {
+  ancestorId   String
+  ancestor     ProcessNode @relation("ProcessNodeClosureAncestor", fields: [ancestorId], references: [id], onDelete: Cascade)
+  descendantId String
+  descendant   ProcessNode @relation("ProcessNodeClosureDescendant", fields: [descendantId], references: [id], onDelete: Cascade)
+  depth        Int
+
+  @@id([ancestorId, descendantId])
+  @@index([descendantId, depth])
+  @@index([ancestorId, depth])
+}
+
+// ─── WORK & CONTROL ENTITIES ────────────────────────────────────────────
+
+model Deliverable {
+  id             String   @id @default(cuid())
+  companyId      String
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  title          String
+  automatability String? // manual | augmented | automated
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  nodeDeliverables       NodeDeliverable[]
+  roleDeliverables       RoleDeliverable[]
+  testingTemplates       TestingTemplate[]
+  standardDeliverables   StandardDeliverable[]
+  regulationDeliverables RegulationDeliverable[]
+
+  @@index([companyId])
+}
+
+// Group over items (codified manual checklist).
+model Checklist {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items ChecklistItem[]
+
+  @@index([companyId])
+}
+
+model ChecklistItem {
+  id          String    @id @default(cuid())
+  checklistId String
+  checklist   Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  roleId      String?
+  role        Role?     @relation(fields: [roleId], references: [id])
+  text        String
+  createdAt   DateTime  @default(now())
+
+  nodeChecklists NodeChecklist[]
+
+  @@index([checklistId])
+  @@index([roleId])
+}
+
+// CHANGED v3 — agent-teaching / automated verification (≠ manual checklist).
+// PRIMARY tie = Deliverable; secondary tie = task-level ProcessNode.
+model TestingTemplate {
+  id            String       @id @default(cuid())
+  deliverableId String
+  deliverable   Deliverable  @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  taskNodeId    String?
+  taskNode      ProcessNode? @relation(fields: [taskNodeId], references: [id])
+  system        String?
+  location      String?
+  checkType     String? // presence | absence
+  expected      String?
+  createdAt     DateTime     @default(now())
+
+  @@index([deliverableId])
+  @@index([taskNodeId])
+}
+
+// Behaves as a task group.
+model Standard {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Standards-tab display fields (area → leaf item structure).
+  isArea                Boolean    @default(false) // true = department charter, false = leaf standard
+  parentId              String? // leaf → its area Standard (or group → area; group children → group)
+  parent                Standard?  @relation("StandardTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children              Standard[] @relation("StandardTree")
+  department            String? // area department name (denormalized onto every row for the flat sheet)
+  category              String? // leaf regulatory category
+  description           String?
+  buildRun              String? // Build | Run
+  ownerRoleId           String? // resolved accountable role
+  ownerRole             Role?      @relation("StandardOwnerRole", fields: [ownerRoleId], references: [id])
+  appliesToValueStreams String? // raw VS reference text (also materialized as NodeStandard links)
+  link                  String? // area: source sheet link
+  mission               String? // area charter mission
+  scope                 String? // area charter scope (newline-bulleted)
+  charterIncluded       Boolean? // area: charter present in the sheet
+  ownerLabel            String? // area/leaf: raw owner text (CISO, Chief Actuary, …)
+  relatedRole           String? // leaf: accountable/governance role text
+  relatedCategory       String?
+  agentSkill            String?
+  sdlcGates             String?
+  regCitation           String?
+
+  nodeStandards        NodeStandard[]
+  roleStandards        RoleStandard[]
+  standardDeliverables StandardDeliverable[]
+
+  @@index([companyId])
+  @@index([companyId, isArea])
+  @@index([parentId])
+  @@index([ownerRoleId])
+}
+
+// CHANGED v3 — internal/external, org-scoped, source-fed.
+model Application {
+  id                 String             @id @default(cuid())
+  companyId          String
+  company            Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  orgUnitId          String? // owning org (real usage M:N via NodeAppUsage)
+  orgUnit            OrgUnit?           @relation(fields: [orgUnitId], references: [id])
+  sourceId           String? // PRIMARY source (apps may appear in many)
+  source             IntegrationSource? @relation(fields: [sourceId], references: [id])
+  name               String
+  kind               String             @default("Tool") // SystemOfRecord | Tool | Service
+  isInternal         Boolean            @default(true)
+  // Preserved TCO / catalog fields (from the legacy Application model).
+  ownershipModel     String? // Hybrid | In-house | SaaS
+  licenseCost        Float?
+  laborCost          Float?
+  vendorServicesCost Float?
+  infraCost          Float?
+  depreciationCost   Float?
+  overheadCost       Float?
+  totalTco           Float?
+  code               String?
+  systemOfRecord     Boolean?
+  criticality        String             @default("Medium") // High | Medium | Low
+  category           String? // Policy | Claims | Billing | Distribution | Data | Finance | Security | Infra
+  vendor             String?
+  illustrative       Boolean            @default(true)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  nodeAppUsages          NodeAppUsage[]
+  regulationApplications RegulationApplication[]
+  metrics                Metric[]
+
+  @@index([companyId])
+  @@index([orgUnitId])
+  @@index([sourceId])
+}
+
+// NEW v3 — systems-of-record sync + delta tracking.
+model IntegrationSource {
+  id              String    @id @default(cuid())
+  companyId       String
+  company         Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name            String
+  kind            String // ServiceNow | ITAM | CMDB | RCM | Finance | Other
+  syncDirection   String?   @default("in") // in | bidirectional
+  changeDetection String?   @default("delta") // delta | snapshot
+  lastSyncAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  applications Application[]
+
+  @@index([companyId])
+}
+
+// ─── CONNECTIONS (junctions, bind at ANY level) ─────────────────────────
+
+model NodeDeliverable {
+  id            String      @id @default(cuid())
+  companyId     String
+  processNodeId String
+  processNode   ProcessNode @relation(fields: [processNodeId], references: [id], onDelete: Cascade)
+  deliverableId String
+  deliverable   Deliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+
+  @@unique([processNodeId, deliverableId])
+  @@index([processNodeId])
+  @@index([deliverableId])
+  @@index([companyId, processNodeId])
+}
+
+model RoleDeliverable {
+  id            String      @id @default(cuid())
+  companyId     String
+  roleId        String
+  role          Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  deliverableId String
+  deliverable   Deliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  role_         String // "Owner|Contributor" (named `role_` — `role` is the relation)
+
+  @@unique([roleId, deliverableId, role_])
+  @@index([roleId])
+  @@index([deliverableId])
+  @@index([companyId, roleId])
+}
+
+// NEW v4 — CRITICAL: task owner/participant (role ↔ ProcessNode).
+model NodeRole {
+  id            String      @id @default(cuid())
+  companyId     String
+  processNodeId String
+  processNode   ProcessNode @relation(fields: [processNodeId], references: [id], onDelete: Cascade)
+  roleId        String
+  role          Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  role_         String // "Owner|Participant" (named `role_` — `role` is the relation)
+  ownerLevel    String?
+
+  @@unique([processNodeId, roleId, role_])
+  @@index([processNodeId])
+  @@index([roleId])
+  @@index([companyId, processNodeId])
+}
+
+model NodeAppUsage {
+  id            String      @id @default(cuid())
+  companyId     String
+  processNodeId String
+  processNode   ProcessNode @relation(fields: [processNodeId], references: [id], onDelete: Cascade)
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  usageType     String // performed | memorialized
+
+  @@unique([processNodeId, applicationId, usageType])
+  @@index([processNodeId])
+  @@index([applicationId])
+  @@index([companyId, processNodeId])
+}
+
+model NodeChecklist {
+  id              String        @id @default(cuid())
+  companyId       String
+  processNodeId   String
+  processNode     ProcessNode   @relation(fields: [processNodeId], references: [id], onDelete: Cascade)
+  checklistItemId String
+  checklistItem   ChecklistItem @relation(fields: [checklistItemId], references: [id], onDelete: Cascade)
+
+  @@unique([processNodeId, checklistItemId])
+  @@index([processNodeId])
+  @@index([checklistItemId])
+  @@index([companyId, processNodeId])
+}
+
+model NodeStandard {
+  id            String      @id @default(cuid())
+  companyId     String
+  processNodeId String
+  processNode   ProcessNode @relation(fields: [processNodeId], references: [id], onDelete: Cascade)
+  standardId    String
+  standard      Standard    @relation(fields: [standardId], references: [id], onDelete: Cascade)
+
+  @@unique([processNodeId, standardId])
+  @@index([processNodeId])
+  @@index([standardId])
+  @@index([companyId, processNodeId])
+}
+
+model RoleStandard {
+  id         String   @id @default(cuid())
+  companyId  String
+  roleId     String
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  standardId String
+  standard   Standard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, standardId])
+  @@index([roleId])
+  @@index([standardId])
+  @@index([companyId, roleId])
+}
+
+model StandardDeliverable {
+  id            String      @id @default(cuid())
+  companyId     String
+  standardId    String
+  standard      Standard    @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  deliverableId String
+  deliverable   Deliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+
+  @@unique([standardId, deliverableId])
+  @@index([standardId])
+  @@index([deliverableId])
+  @@index([companyId, standardId])
+}
+
+// was RequirementValueStream (now points at ProcessNode + RegulatoryRequirement).
+model NodeRegulation {
+  id            String                @id @default(cuid())
+  companyId     String
+  processNodeId String
+  processNode   ProcessNode           @relation(fields: [processNodeId], references: [id], onDelete: Cascade)
+  regId         String
+  regulation    RegulatoryRequirement @relation(fields: [regId], references: [id], onDelete: Cascade)
+  relationship  String                @default("GOVERNS") // GOVERNS | REQUIRES_INTEGRATION | INFORMS
+  notes         String?
+  createdAt     DateTime              @default(now())
+
+  @@unique([processNodeId, regId])
+  @@index([processNodeId])
+  @@index([regId])
+  @@index([companyId, processNodeId])
+}
+
+// NEW — reg → apps + evidence.
+model RegulationApplication {
+  id            String                @id @default(cuid())
+  companyId     String
+  regId         String
+  regulation    RegulatoryRequirement @relation(fields: [regId], references: [id], onDelete: Cascade)
+  applicationId String
+  application   Application           @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  evidenceRef   String?
+
+  @@unique([regId, applicationId])
+  @@index([regId])
+  @@index([applicationId])
+  @@index([companyId, regId])
+}
+
+// NEW v3 — reg evidence as a deliverable.
+model RegulationDeliverable {
+  id            String                @id @default(cuid())
+  companyId     String
+  regId         String
+  regulation    RegulatoryRequirement @relation(fields: [regId], references: [id], onDelete: Cascade)
+  deliverableId String
+  deliverable   Deliverable           @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+
+  @@unique([regId, deliverableId])
+  @@index([regId])
+  @@index([deliverableId])
+  @@index([companyId, regId])
+}
+
+// ─── INITIATIVE & METRIC ────────────────────────────────────────────────
+
+model Initiative {
+  id         String    @id @default(cuid())
+  companyId  String
+  company    Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name       String
+  state      String?
+  startDate  DateTime?
+  targetDate DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  nodeInitiatives NodeInitiative[]
+
+  @@index([companyId])
+}
+
+// NEW — initiative → value-stream nodes (any level).
+model NodeInitiative {
+  id            String      @id @default(cuid())
+  companyId     String
+  processNodeId String
+  processNode   ProcessNode @relation(fields: [processNodeId], references: [id], onDelete: Cascade)
+  initiativeId  String
+  initiative    Initiative  @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+
+  @@unique([processNodeId, initiativeId])
+  @@index([processNodeId])
+  @@index([initiativeId])
+  @@index([companyId, processNodeId])
+}
+
+// UNPARKED — polymorphic target by kind (exactly one of the *Id set).
+model Metric {
+  id            String       @id @default(cuid())
+  companyId     String
+  company       Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  processNodeId String?
+  processNode   ProcessNode? @relation(fields: [processNodeId], references: [id], onDelete: SetNull)
+  orgUnitId     String?
+  orgUnit       OrgUnit?     @relation(fields: [orgUnitId], references: [id], onDelete: SetNull)
+  roleId        String?
+  role          Role?        @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  applicationId String?
+  application   Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  name          String
+  value         Float?
+  unit          String?
+  period        String?
+  kind          String // workforce | system | kpi
+  createdAt     DateTime     @default(now())
+
+  @@index([companyId])
+  @@index([processNodeId])
+  @@index([orgUnitId])
+  @@index([roleId])
+  @@index([applicationId])
+}
+
+// ─── EXTERNAL PARTIES (operating-model boundary) ────────────────────────
+
+model ExternalParty {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name      String
+  partyType String // Agent | Broker | Regulator | MGA | Insured | Vendor | SaaS | SystemIntegrator
+  createdAt DateTime @default(now())
+
+  interactions ExternalInteraction[]
+
+  @@index([companyId])
+}
+
+// NEW — dependency on parties you don't control (wait-time).
+model ExternalInteraction {
+  id              String        @id @default(cuid())
+  roleId          String?
+  role            Role?         @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  externalPartyId String
+  externalParty   ExternalParty @relation(fields: [externalPartyId], references: [id], onDelete: Cascade)
+  processNodeId   String?
+  processNode     ProcessNode?  @relation(fields: [processNodeId], references: [id], onDelete: SetNull)
+  nature          String // handoff | approval | data | service
+  createdAt       DateTime      @default(now())
+
+  @@index([roleId])
+  @@index([externalPartyId])
+  @@index([processNodeId])
+}
+
+// ─── AGENT ENABLEMENT ───────────────────────────────────────────────────
+
+model KnowledgeBase {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name      String
+  domain    String?
+  createdAt DateTime @default(now())
+
+  skills AgentSkill[]
+
+  @@index([companyId])
+}
+
+// UNPARKED — KB tied to app/task; powers automation.
+model AgentSkill {
+  id              String        @id @default(cuid())
+  knowledgeBaseId String
+  knowledgeBase   KnowledgeBase @relation(fields: [knowledgeBaseId], references: [id], onDelete: Cascade)
+  taskNodeId      String?
+  taskNode        ProcessNode?  @relation(fields: [taskNodeId], references: [id], onDelete: SetNull)
+  name            String
+  createdAt       DateTime      @default(now())
+
+  @@index([knowledgeBaseId])
+  @@index([taskNodeId])
+}
+
+// ─── ADMIN & CROSS-CUTTING ──────────────────────────────────────────────
+
+// NEW — display override over db value (any entity); taxonomy/dictionary/ontology.
+model Terminology {
+  id           String   @id @default(cuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  entity       String
+  dbValue      String
+  displayValue String // EDITABLE
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([companyId, entity, dbValue])
+  @@index([companyId])
+}
+
+// CHANGED v3 — tie to process/role, not just company.
+model AuditEntry {
+  id            String       @id @default(cuid())
+  tenantId      String
+  tenant        Tenant       @relation(fields: [tenantId], references: [id])
+  actorRoleId   String?
+  actorRole     Role?        @relation(fields: [actorRoleId], references: [id], onDelete: SetNull)
+  processNodeId String?
+  processNode   ProcessNode? @relation(fields: [processNodeId], references: [id], onDelete: SetNull)
+  entityType    String
+  entityId      String
+  action        String
+  actorEmail    String
+  diff          String? // JSON
+  createdAt     DateTime     @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorRoleId])
+  @@index([processNodeId])
+}
+
+// NEW — end-user prefs (col order) vs admin config.
+model UserPreference {
+  id        String   @id @default(cuid())
+  roleId    String? // actor proxy (People removed)
+  role      Role?    @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  scope     String
+  prefsJson Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([roleId])
+}
+
+// ─── AI-ADOPTION per ProcessNode (Telemetry / Active AI) ────────────────
+// 1:1 with a value-stream ProcessNode. Replaces NodeAiAdoption/LevelAiAdoption.
+model NodeAiAdoption {
+  id            String      @id @default(cuid())
+  processNodeId String      @unique
+  processNode   ProcessNode @relation(fields: [processNodeId], references: [id], onDelete: Cascade)
+  aiAssist      String      @default("not_used")
+  aiAugment     String      @default("not_used")
+  aiWorkflow    String      @default("not_used")
+  aiAutonomous  String      @default("not_used")
+  useCases      Json?
+  // Per-mode adoption statistics shown on the Active AI drill-in.
+  stats         Json?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// ─── TELEMETRY SIGNAL CATALOG (kept as-is) ──────────────────────────────
+
 model TelemetrySignal {
   id          String   @id @default(cuid())
   tenantId    String
   companyId   String
   company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  kind        String // system (system-of-record metric) | kpi
+  kind        String // system | kpi
   name        String
   description String?
-  source      String? // raw source system text, e.g. "Microsoft Viva Insights"
+  source      String?
   category    String?
-  unit        String? // unit or data type, e.g. "hrs/wk", "Percent / score"
+  unit        String?
   frequency   String?
-  direction   String   @default("up") // up = higher is better, down = lower is better
-  origin      String? // provenance — the workbook sheet the row came from
-  queryType   String? // live rows: which store ('signal'|'metric'); catalog rows: how it's calculated
-  isLive      Boolean  @default(false) // true = live readings exist in the platform
+  direction   String   @default("up")
+  origin      String?
+  queryType   String?
+  isLive      Boolean  @default(false)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -121,970 +844,58 @@ model TelemetrySignal {
   @@index([companyId])
 }
 
-// ─── Configurable Level hierarchy (value-stream rebuild) ────────────────
-// A single, fully-configurable, self-referential level tree that backs the
-// "Levels" editor in Data Admin and (next) the value-stream list + map.
-// `levelNumber` is the depth (0 Company · 1 Domain · 2 Division · 3 Value Stream
-// · 4 Sub-Process · 5 Process Step) and `parentId` connects each node to the one
-// above it. L0–L2 mirror the org spine (sourceType/sourceRefId point back to the
-// Company/Division record); L3–L5 are imported from the E2E Process Flows catalog.
-// The detail fields carry the L5 step metadata shown in the metrics sidebar.
-model Level {
-  id          String  @id @default(cuid())
-  tenantId    String
-  companyId   String
-  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  levelNumber Int
-  parentId    String?
-  parent      Level?  @relation("LevelTree", fields: [parentId], references: [id], onDelete: Cascade)
-  children    Level[] @relation("LevelTree")
-  name        String
-  sortOrder   Int     @default(0)
+// ─── SCENARIO INPUTS (change-impact economics) ──────────────────────────
 
-  // L5 step detail (also generic). From the E2E catalog: G description, H+I roles,
-  // J inputs, K outputs, M external participants, L notes.
-  description          String?
-  leads                String?
-  supporting           String?
-  inputs               String?
-  outputs              String?
-  externalParticipants String?
-  notes                String?
-
-  // Provenance. sourceType ∈ company | domain | division | catalog; sourceRefId
-  // points at the org record for L0–L2 nodes mirrored from the spine.
-  sourceType  String?
-  sourceRefId String?
-
-  // AI-adoption (Telemetry) for value-stream nodes (levelNumber = 3). Optional 1:1.
-  aiAdoption LevelAiAdoption?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([companyId, levelNumber])
-  @@index([parentId])
-}
-
-// AI-adoption levels for a value-stream Level node (audit D3/D7/U2/A1). One row per
-// value-stream node; columns are the four AI autonomy modes. Values:
-// not_used | pilot | emerging | scaling | embedded. `useCases` holds the authored
-// per-mode use-case detail (JSON) shown on the value-stream detail / Telemetry.
-model LevelAiAdoption {
-  id           String   @id @default(cuid())
-  levelId      String   @unique
-  level        Level    @relation(fields: [levelId], references: [id], onDelete: Cascade)
-  aiAssist     String   @default("not_used")
-  aiAugment    String   @default("not_used")
-  aiWorkflow   String   @default("not_used")
-  aiAutonomous String   @default("not_used")
-  useCases     Json?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-// Organization level tree — the SEPARATE configurable hierarchy for the org side
-// (Company · Domain · Division · Department · Role …). Kept distinct from `Level`
-// (value streams) so configuring one never touches the other or the live
-// operating data (IoItem/ProcessStep/etc.). Same shape as Level for a shared editor.
-model OrgLevel {
-  id          String  @id @default(cuid())
-  tenantId    String
-  companyId   String
-  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  levelNumber Int
-  parentId    String?
-  parent      OrgLevel?  @relation("OrgLevelTree", fields: [parentId], references: [id], onDelete: Cascade)
-  children    OrgLevel[] @relation("OrgLevelTree")
-  name        String
-  sortOrder   Int     @default(0)
-
-  description          String?
-  leads                String?
-  supporting           String?
-  inputs               String?
-  outputs              String?
-  externalParticipants String?
-  notes                String?
-
-  sourceType  String?
-  sourceRefId String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([companyId, levelNumber])
-  @@index([parentId])
-}
-
-model Division {
-  id        String  @id @default(cuid())
-  tenantId  String
-  companyId String
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  code      String
-  name      String
-  // Top-level CEO grouping from Org Chart View 2 "Higher-Level Category" column.
-  // One of: "Core Business" | "IT" | "Corporate Function"
-  higherCategory String?
-
-  sourceSheet String?
-  sourceRow   Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  departments     Department[]
-  roles           Role[]
-  initiativeLinks InitiativeDivision[]
-
-  @@unique([tenantId, companyId, name])
-  @@index([companyId])
-}
-
-model Department {
-  id         String   @id @default(cuid())
-  tenantId   String
-  companyId  String
-  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  divisionId String
-  division   Division @relation(fields: [divisionId], references: [id], onDelete: Cascade)
-  name       String
-
-  sourceSheet String?
-  sourceRow   Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  roles Role[]
-
-  @@unique([divisionId, name])
-  @@index([companyId])
-  @@index([divisionId])
-}
-
-model Role {
-  id           String      @id @default(cuid())
-  tenantId     String
-  companyId    String
-  company      Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  divisionId   String?
-  division     Division?   @relation(fields: [divisionId], references: [id])
-  departmentId String?
-  department   Department? @relation(fields: [departmentId], references: [id])
-  name         String // canonical display name
-  itemRole     String? // name used by the Items / Aligned Role Tasks sheets (join key)
-  roleFamily   String?
-  // v13 extended attributes (reporting hierarchy + role profile)
-  roleLevel          String? // Executive | Leadership | Manager | Individual Contributor
-  description        String?
-  responsibilities   String?
-  status             String? // New (Extended Role Inventory) | null (org-chart roster)
-  primaryDomain      String?
-  primaryValueStream String?
-  managerRoleId      String?
-  manager            Role?   @relation("RoleReports", fields: [managerRoleId], references: [id])
-  reports            Role[]  @relation("RoleReports")
-  sourceSheet  String?
-  sourceRow    Int?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-
-  checklistItems       ChecklistItem[]
-  roleTasks            RoleTask[]
-  valueStreamLinks     RoleValueStream[]
-  externalInteractions ExternalInteraction[]
-  sponsoredInitiatives Initiative[]          @relation("InitiativeSponsor")
-  ownedRisks           Risk[]               @relation("RiskOwner")
-  ownedStandardItems   StandardItem[]       @relation("StandardItemOwner")
-  approvedDeliverables StepDeliverable[]
-
-  @@unique([tenantId, companyId, name])
-  @@index([companyId])
-  @@index([departmentId])
-  @@index([managerRoleId])
-}
-
-model Category {
-  id        String   @id @default(cuid())
-  tenantId  String
-  companyId String
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  name      String
-  createdAt DateTime @default(now())
-
-  checklistItems ChecklistItem[]
-  roleTasks      RoleTask[]
-
-  @@unique([tenantId, companyId, name])
-  @@index([companyId])
-}
-
-model ValueStream {
-  id        String  @id @default(cuid())
-  tenantId  String
-  companyId String
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  name      String
-  domain    String? // raw domain label (also linked via domainId below)
-  domainId  String?
-  domainRef ValueStreamDomain? @relation(fields: [domainId], references: [id])
-
-  sourceSheet String?
-  sourceRow   Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  subStreams       SubValueStream[]
-  roleLinks        RoleValueStream[]
-  applicationLinks ApplicationValueStream[]
-  metrics          Metric[]
-  initiativeLinks  InitiativeValueStream[]
-  risks            Risk[]
-  processSteps     ProcessStep[]
-  ioItems          IoItem[]
-  requirementLinks RequirementValueStream[]
-
-  @@unique([tenantId, companyId, name])
-  @@index([companyId])
-  @@index([domainId])
-}
-
-// v13 value-stream DOMAINS — the top of the "how the business operates" axis
-// (Core Insurance, Technology, Finance, Risk & Control, …). Groups value streams.
-model ValueStreamDomain {
-  id           String        @id @default(cuid())
-  tenantId     String
-  companyId    String
-  company      Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  name         String
-  illustrative Boolean       @default(false)
-  createdAt    DateTime      @default(now())
-  valueStreams ValueStream[]
-
-  @@unique([companyId, name])
-  @@index([companyId])
-}
-
-// L3 (Process Area), L4 (Sub-Process), and L5 (Process Step) nodes. Each level
-// points at its parent via parentId (self-relation), queried by recursive CTE.
-// L5 steps (v15) carry their brief description in `notes`; ordered by sourceRow.
-model SubValueStream {
-  id            String           @id @default(cuid())
-  tenantId      String
-  valueStreamId String
-  valueStream   ValueStream      @relation(fields: [valueStreamId], references: [id], onDelete: Cascade)
-  parentId      String?
-  parent        SubValueStream?  @relation("SubStreamTree", fields: [parentId], references: [id], onDelete: Cascade)
-  children      SubValueStream[] @relation("SubStreamTree")
-  level         Int // 3 = Process Area, 4 = Sub-Process, 5 = Process Step
-  name          String
-  // Bridge Input L4 Process ID (CI-01-01) on level-4 rows.
-  code          String?
-  inputs        String?
-  outputs       String?
-  upstream      String?
-  downstream    String?
-  notes         String?
-
-  sourceSheet String?
-  sourceRow   Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@unique([valueStreamId, parentId, name])
-  @@index([valueStreamId])
-  @@index([parentId])
-}
-
-model ChecklistItem {
-  id         String    @id @default(cuid())
-  tenantId   String
-  roleId     String
-  role       Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  categoryId String?
-  category   Category? @relation(fields: [categoryId], references: [id])
-  text       String
-  crossRole  Boolean   @default(false)
-
-  sourceSheet String?
-  sourceRow   Int?
-  createdAt   DateTime @default(now())
-
-  @@index([roleId])
-  @@index([categoryId])
-}
-
-model RoleTask {
-  id         String    @id @default(cuid())
-  tenantId   String
-  roleId     String
-  role       Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  categoryId String?
-  category   Category? @relation(fields: [categoryId], references: [id])
-  text       String
-
-  sourceSheet String?
-  sourceRow   Int?
-  createdAt   DateTime @default(now())
-
-  @@index([roleId])
-  @@index([categoryId])
-}
-
-// Role ↔ ValueStream participation (one row per role/stream/sub-stream).
-model RoleValueStream {
-  id                String      @id @default(cuid())
-  tenantId          String
-  roleId            String
-  role              Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  valueStreamId     String
-  valueStream       ValueStream @relation(fields: [valueStreamId], references: [id], onDelete: Cascade)
-  subStream         String?
-  participationType String // Lead | Core | Support | Oversight | Control
-  inputs            String?
-  outputs           String?
-  upstream          String?
-  downstream        String?
-  notes             String?
-
-  sourceSheet String?
-  sourceRow   Int?
-  createdAt   DateTime @default(now())
-
-  @@unique([roleId, valueStreamId, subStream])
-  @@index([roleId])
-  @@index([valueStreamId])
-}
-
-model ExternalInteraction {
-  id                 String  @id @default(cuid())
-  tenantId           String
-  companyId          String
-  company            Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  partyType          String
-  externalRole       String
-  internalRoleId     String?
-  internalRole       Role?   @relation(fields: [internalRoleId], references: [id])
-  internalRoleOwner  String? // raw owner text (may name multiple roles)
-  divisionFunction   String?
-  interactionType    String?
-  inputs             String?
-  outputs            String?
-  relatedValueStream String?
-  dependencyType     String?
-  frequency          String?
-  notes              String?
-
-  sourceSheet String?
-  sourceRow   Int?
-  createdAt   DateTime @default(now())
-
-  @@index([companyId])
-  @@index([internalRoleId])
-}
-
-// v15 Scenario Inputs — operating-model change-impact economics. Each row is a
-// modeled change (automation, rationalization, control uplift, …) with its
-// one-time cost, recurring benefit/added-cost, net impact, and confidence,
-// linked to a division + value stream. Real workbook data ("Scenario Inputs").
 model Scenario {
-  id              String   @id @default(cuid())
+  id              String       @id @default(cuid())
   tenantId        String
   companyId       String
-  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company         Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   name            String
-  changeType      String? // Automation | Application rationalization | Control uplift | SaaS replacement | Digital enablement
-  impactScope     String? // Cross-functional | Finance-led | …
-  divisionName    String? // raw; joins to Division by name
-  valueStreamName String? // raw; joins to ValueStream by name
+  changeType      String?
+  impactScope     String?
+  // Operating-model links as real FKs (were divisionName / valueStreamName).
+  orgUnitId       String?
+  orgUnit         OrgUnit?     @relation(fields: [orgUnitId], references: [id], onDelete: SetNull)
+  processNodeId   String?
+  processNode     ProcessNode? @relation(fields: [processNodeId], references: [id], onDelete: SetNull)
   application     String?
   roleImpact      String?
   oneTimeCost     Float?
   annualBenefit   Float?
   annualAddedCost Float?
   annualNetImpact Float?
-  confidence      String? // High | Medium | Low
-
-  sourceSheet String?
-  sourceRow   Int?
-  createdAt   DateTime @default(now())
+  confidence      String?
+  createdAt       DateTime     @default(now())
 
   @@index([companyId])
+  @@index([orgUnitId])
+  @@index([processNodeId])
 }
 
-// ─── Audit log (reusable infra, carried from Cascade) ───────────────────
-
-model AuditEntry {
-  id         String   @id @default(cuid())
-  tenantId   String
-  tenant     Tenant   @relation(fields: [tenantId], references: [id])
-  entityType String
-  entityId   String
-  action     String
-  actorEmail String
-  diff       String? // JSON
-  createdAt  DateTime @default(now())
-
-  @@index([entityType, entityId])
-}
-
-// ─── Systems & metrics (illustrative — the "Where" and "How well" lenses) ──
-// Synthesized data, flagged `illustrative`, until real systems/metrics arrive
-// via the Phase 8 connector framework.
-
-model Application {
-  id           String  @id @default(cuid())
-  tenantId     String
-  companyId    String
-  company      Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  name         String
-  kind         String  @default("Internal") // Core | SaaS | Internal | External | Platform
-  category     String? // Policy | Claims | Billing | Distribution | Data | Finance | Security | Infra
-  vendor       String?
-  criticality  String  @default("Medium") // High | Medium | Low
-  description  String?
-  illustrative Boolean @default(true)
-  // v15 Application TCO fields (null for illustrative apps; populated for the 6 real apps)
-  ownershipModel      String? // Hybrid | In-house | SaaS
-  primaryDivisionName String? // raw string from TCO sheet; joins to Division by name
-  licenseCost         Float?  // License / Subscription
-  laborCost           Float?  // Internal Labor
-  vendorServicesCost  Float?  // Vendor Services
-  infraCost           Float?  // Infrastructure / Platform
-  depreciationCost    Float?  // Depreciation / Amortization
-  overheadCost        Float?  // Allocated Overhead
-  totalTco            Float?  // Total Annual TCO
-  // Bridge Input "Cap – Application Catalog" stable key (APP-001) + SoR flag.
-  code           String?
-  systemOfRecord Boolean?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  valueStreamLinks     ApplicationValueStream[]
-  stepUsages           StepAppUsage[]
-  sorDeliverables      StepDeliverable[] @relation("DeliverableSorApp")
-  approvalDeliverables StepDeliverable[] @relation("DeliverableApprovalApp")
-
-  @@unique([tenantId, companyId, name])
-  @@index([companyId])
-}
-
-model ApplicationValueStream {
-  id            String      @id @default(cuid())
-  tenantId      String
-  applicationId String
-  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  valueStreamId String
-  valueStream   ValueStream @relation(fields: [valueStreamId], references: [id], onDelete: Cascade)
-  systemRole    String      @default("Supporting") // System of Record | Supporting | Channel | Analytics
-  illustrative  Boolean     @default(true)
-  createdAt     DateTime    @default(now())
-
-  @@unique([applicationId, valueStreamId])
-  @@index([applicationId])
-  @@index([valueStreamId])
-}
-
-// Value-stream KPI. v13 supplies a real DEFINITION (category, formula, target
-// text, owner, framework); `value` is an illustrative current actual plotted
-// against the parsed numeric `target` (so the definition is real, the reading
-// is synthesized → illustrative=true).
-model Metric {
-  id            String       @id @default(cuid())
+// ─── ANALYSIS STATUS (Metrics coverage) ─────────────────────────────────
+// One row per analyzed operating-model subject. subjectId references a node id
+// (ProcessNode / OrgUnit / Role) by string — kept a plain indexed string because
+// it can point at any of the three spines (no single FK target).
+model AnalysisStatus {
+  id            String    @id @default(cuid())
   tenantId      String
   companyId     String
-  company       Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  valueStreamId String?
-  valueStream   ValueStream? @relation(fields: [valueStreamId], references: [id], onDelete: Cascade)
-  l3            String? // process area the KPI measures
-  category      String? // Financial | Operational | Quality | DORA | …
-  name          String
-  description   String?
-  formula       String?
-  targetText    String? // raw target/benchmark, e.g. "30-45 days", ">99%"
-  measurementLevel String?
-  frequency     String?
-  ownerRole     String?
-  framework     String?
-  notes         String?
-  value         Float
-  unit          String // % | days | /mo | score
-  target        Float?
-  direction     String  @default("up") // up = higher is better, down = lower is better
-  illustrative  Boolean @default(true)
-  createdAt     DateTime @default(now())
+  company       Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  subjectType   String // valueStream | division | role
+  subjectId     String // ProcessNode / OrgUnit / Role id of the analyzed subject
+  status        String    @default("Not Started") // Not Started | In Progress | Complete
+  plannedDate   DateTime?
+  completedDate DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
+  @@unique([companyId, subjectType, subjectId])
   @@index([companyId])
-  @@index([valueStreamId])
+  @@index([subjectId])
 }
 
-// v13 E2E process flow — sequenced steps for a value stream (optionally scoped
-// to an L3 process area / L4 sub-process). The "how the work flows" axis.
-model ProcessStep {
-  id                   String      @id @default(cuid())
-  tenantId             String
-  valueStreamId        String
-  valueStream          ValueStream @relation(fields: [valueStreamId], references: [id], onDelete: Cascade)
-  l3                   String?
-  l4                   String?
-  stepNumber           Int
-  name                 String
-  description          String?
-  leads                String?
-  supporting           String?
-  inputs               String?
-  outputs              String?
-  notes                String?
-  externalParticipants String?
-  illustrative         Boolean     @default(false)
-  // Bridge Input workbook stable keys: L5 Step ID (CI-01-01-S03) and its L4
-  // Parent Process ID (CI-01-01) — join keys for the step-lens bridges.
-  code                 String?
-  parentProcessId      String?
-  createdAt            DateTime    @default(now())
-
-  appUsages    StepAppUsage[]
-  deliverables StepDeliverable[]
-
-  @@index([valueStreamId])
-  @@index([valueStreamId, stepNumber])
-  @@index([code])
-}
-
-// Step lens (Bridge Input "Cap – App Usage by Step"): which application is used
-// at which L4/L5 step, and how. activityCode is the workbook Activity ID
-// (CI-01-01 for an L4, CI-01-01-S03 for an L5 step); processStepId is resolved
-// for L5 codes. Real workbook rows carry illustrative=false.
-model StepAppUsage {
-  id            String       @id @default(cuid())
-  tenantId      String
-  companyId     String
-  company       Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  activityCode  String
-  processStepId String?
-  processStep   ProcessStep? @relation(fields: [processStepId], references: [id], onDelete: Cascade)
-  applicationId String
-  application   Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  usageType     String // Execution | System of Record | Approval | Reporting | Support
-  isPrimary     Boolean      @default(false)
-  notes         String?
-  illustrative  Boolean      @default(true)
-  createdAt     DateTime     @default(now())
-
-  @@index([companyId])
-  @@index([activityCode])
-  @@index([processStepId])
-  @@index([applicationId])
-}
-
-// Step lens (Bridge Input "Cap – Deliverables & Approvals"): the deliverable a
-// step produces, where it is memorialized (system of record) and how/by whom
-// it is approved.
-model StepDeliverable {
-  id                    String       @id @default(cuid())
-  tenantId              String
-  companyId             String
-  company               Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  code                  String? // D-nnnn for real workbook rows
-  activityCode          String
-  processStepId         String?
-  processStep           ProcessStep? @relation(fields: [processStepId], references: [id], onDelete: Cascade)
-  name                  String
-  sorApplicationId      String?
-  sorApplication        Application? @relation("DeliverableSorApp", fields: [sorApplicationId], references: [id], onDelete: SetNull)
-  approverRoleId        String?
-  approverRole          Role?        @relation(fields: [approverRoleId], references: [id], onDelete: SetNull)
-  approverRoleRaw       String? // workbook cell as written (kept when unresolved)
-  approvalApplicationId String?
-  approvalApplication   Application? @relation("DeliverableApprovalApp", fields: [approvalApplicationId], references: [id], onDelete: SetNull)
-  approvalType          String? // System Workflow | Manual Sign-off | E-Signature | …
-  notes                 String?
-  illustrative          Boolean      @default(true)
-  createdAt             DateTime     @default(now())
-
-  @@index([companyId])
-  @@index([activityCode])
-  @@index([processStepId])
-}
-
-// v13 Inputs/Outputs/Deliverables inventory + their data elements.
-model IoItem {
-  id            String      @id @default(cuid())
-  tenantId      String
-  valueStreamId String
-  valueStream   ValueStream @relation(fields: [valueStreamId], references: [id], onDelete: Cascade)
-  l3            String?
-  l4            String?
-  type          String // Input | Output | Deliverable
-  name          String
-  keyRoles      String?
-  dataElements  String?
-  illustrative  Boolean     @default(false)
-  createdAt     DateTime    @default(now())
-
-  @@index([valueStreamId])
-  @@index([valueStreamId, type])
-}
-
-// v13 department standards index (count, charter, owner) — governance signal.
-// `count` is the number of individual StandardItem rows in the area; `mission`
-// and `scope` come from the per-department Standards sheet's charter block.
-model Standard {
-  id              String   @id @default(cuid())
-  tenantId        String
-  companyId       String
-  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  department      String
-  count           Int      @default(0)
-  charterIncluded Boolean  @default(false)
-  owner           String?
-  link            String?
-  mission         String?
-  scope           String? // newline-joined scope bullets from the charter block
-  illustrative    Boolean  @default(false)
-  createdAt       DateTime @default(now())
-
-  items           StandardItem[]
-
-  @@index([companyId])
-}
-
-// Individual standard / guideline within a department standards area. Real,
-// authored data from the workbook's per-department Standards sheets. `ownerRole`
-// is the accountable role as written; `ownerRoleId` resolves it to a roster Role
-// when one matches (left null otherwise — the raw text still displays).
-model StandardItem {
-  id              String   @id @default(cuid())
-  tenantId        String
-  companyId       String
-  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  standardId      String
-  standard        Standard @relation(fields: [standardId], references: [id], onDelete: Cascade)
-  category        String // grouping within the area, e.g. "Encryption"
-  name            String // the standard / guideline title
-  description     String
-  buildRun        String? // Build | Run | Build/Run — lifecycle phase it applies in
-  ownerRole       String? // accountable role, raw text from the sheet
-  ownerRoleId     String?
-  ownerRoleRef    Role?    @relation("StandardItemOwner", fields: [ownerRoleId], references: [id])
-  relatedRole     String? // "Related Items (Role)" cross-reference
-  relatedCategory String? // "Related Items (Category)" cross-reference
-  itemsLink       String? // pointer back into the workbook Items sheet
-  // Standards decomposition: workbook rows became GROUPS (description = the
-  // higher-level summary); each semicolon fragment of the old description is
-  // its own child standard. Leaves (children none) are "the standards" wherever
-  // standards are listed or counted. Column added by scripts/decompose-standards.ts
-  // via raw SQL (additive — do not `db push` against the live DB).
-  parentId        String?
-  parent          StandardItem?  @relation("StandardItemChildren", fields: [parentId], references: [id], onDelete: Cascade)
-  children        StandardItem[] @relation("StandardItemChildren")
-  // Regulatory-compliance traceability (e.g. the GDPR/CCPA/NYDFS packs):
-  agentSkill           String? // the SDLC agent skill that enforces this standard (e.g. "gdpr-sdlc-compliance")
-  sdlcGates            String? // SDLC phases the standard applies at, e.g. "Requirements; Design"
-  regCitation          String? // regulatory article/section reference, e.g. "Art. 6; Art. 5(1)(a)"
-  appliesToValueStreams String? // value streams the standard applies to (raw, "; "-joined)
-  sourceRow       Int?
-  createdAt       DateTime @default(now())
-
-  @@index([companyId])
-  @@index([standardId])
-  @@index([ownerRoleId])
-  @@index([parentId])
-}
-
-// ─── Initiatives / Risks (illustrative) ─────────────────────────────────
-// Transformation initiatives and first-class risks. All synthesized for now
-// (illustrative=true); replaced by real/authored/connected data in later
-// phases. These power the deep levels of the explorer drill.
-
-model Initiative {
-  id            String   @id @default(cuid())
-  tenantId      String
-  companyId     String
-  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  name          String
-  code          String?
-  description   String?
-  status        String   @default("In Progress") // Proposed | In Progress | On Hold | Delivered | Cancelled
-  stage         String? // Discovery | Build | Pilot | Rollout | BAU
-  health        String   @default("Green") // Green | Amber | Red
-  sponsorRoleId String?
-  sponsorRole   Role?    @relation("InitiativeSponsor", fields: [sponsorRoleId], references: [id])
-  budget        Float?
-  startDate     DateTime?
-  targetDate    DateTime?
-  illustrative  Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  valueStreamLinks InitiativeValueStream[]
-  divisionLinks    InitiativeDivision[]
-  risks            Risk[]
-
-  @@unique([tenantId, companyId, name])
-  @@index([companyId])
-  @@index([sponsorRoleId])
-}
-
-model InitiativeValueStream {
-  id            String      @id @default(cuid())
-  tenantId      String
-  initiativeId  String
-  initiative    Initiative  @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
-  valueStreamId String
-  valueStream   ValueStream @relation(fields: [valueStreamId], references: [id], onDelete: Cascade)
-  impactType    String      @default("Transforms") // Transforms | Enables | Depends-on
-  illustrative  Boolean     @default(true)
-  createdAt     DateTime    @default(now())
-
-  @@unique([initiativeId, valueStreamId])
-  @@index([initiativeId])
-  @@index([valueStreamId])
-}
-
-model InitiativeDivision {
-  id           String     @id @default(cuid())
-  tenantId     String
-  initiativeId String
-  initiative   Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
-  divisionId   String
-  division     Division   @relation(fields: [divisionId], references: [id], onDelete: Cascade)
-  role         String     @default("Sponsoring") // Sponsoring | Contributing | Impacted
-  illustrative Boolean    @default(true)
-  createdAt    DateTime   @default(now())
-
-  @@unique([initiativeId, divisionId])
-  @@index([initiativeId])
-  @@index([divisionId])
-}
-
-model Risk {
-  id            String       @id @default(cuid())
-  tenantId      String
-  companyId     String
-  company       Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  valueStreamId String?
-  valueStream   ValueStream? @relation(fields: [valueStreamId], references: [id], onDelete: SetNull)
-  initiativeId  String?
-  initiative    Initiative?  @relation(fields: [initiativeId], references: [id], onDelete: SetNull)
-  ownerRoleId   String?
-  ownerRole     Role?        @relation("RiskOwner", fields: [ownerRoleId], references: [id])
-  title         String
-  category      String       @default("Operational") // Operational | Compliance | Delivery | Security | Financial | Vendor
-  severity      String       @default("Medium") // Critical | High | Medium | Low
-  likelihood    String       @default("Possible") // Rare | Unlikely | Possible | Likely | Almost Certain
-  status        String       @default("Open") // Open | Mitigating | Accepted | Closed
-  mitigation    String?
-  illustrative  Boolean      @default(true)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  @@index([companyId])
-  @@index([valueStreamId])
-  @@index([initiativeId])
-  @@index([ownerRoleId])
-}
-
-// ─── "Evergreen" Portfolio Rationalization ("How") ──────────────────────
-// Decompose overlapping legacy ("brown-field") applications by business-process
-// step AND IT layer, classify each capability as keep vs anti-pattern, normalize
-// the overlap (CAPDAN — Common As Possible, Different As Needed) into target
-// components, and re-constitute onto a green-field microservice architecture.
-// Migration status on every capability/component/microservice rolls up into the
-// workspace's progress. All illustrative until real portfolio data arrives.
-//
-// IT layers are a fixed vocabulary (string, not a table):
-//   UI | Integration | Business Service | Data | Infrastructure
-// migrationStatus is an ordered vocabulary that drives progress %:
-//   Identified | In Analysis | Normalized | In Migration | Migrated | Retired
-
-model RationalizationWorkspace {
-  id              String   @id @default(cuid())
-  tenantId        String
-  companyId       String
-  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  name            String
-  application     String? // the application/platform being rationalized (groups stages into one chevron flow)
-  stageOrder      Int      @default(0) // position in the value-stream chevron flow
-  businessProcess String? // the value-stream stage / business-process this chevron represents
-  description     String?
-  northstar       String? // the green-field / Northstar architecture target statement
-  valueStreamId   String? // optional link to the value stream this process belongs to
-  status          String   @default("In Progress") // Proposed | In Progress | Migrating | Complete
-  illustrative    Boolean  @default(true)
-  layout          Json? // user-curated board overlay: { positions, addedEdges, removedEdges }
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  apps          RationalizationApp[]
-  capabilities  RationalizationCapability[]
-  components    RationalizationComponent[]
-  microservices RationalizationMicroservice[]
-  planSteps     RationalizationPlanStep[]
-
-  @@unique([tenantId, companyId, name])
-  @@index([companyId])
-}
-
-// Brown-field legacy application in a workspace (one grid column).
-model RationalizationApp {
-  id           String                    @id @default(cuid())
-  tenantId     String
-  companyId    String
-  workspaceId  String
-  workspace    RationalizationWorkspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  name         String
-  description  String?
-  disposition  String   @default("Refactor") // Retain | Refactor | Replace | Retire
-  // Application-specific profile of the legacy system being decomposed.
-  techStack    String? // e.g. "C# / .NET Framework 4.7, WCF, SQL Server 2014"
-  vendor       String? // COTS vendor / "In-house"
-  hosting      String? // On-prem | Private cloud | SaaS | Hybrid
-  criticality  String? // High | Medium | Low (business criticality)
-  ageYears     Int?    // years in production
-  annualCost   Float?  // run cost ($/yr)
-  position     Int      @default(0) // left-to-right column order
-  illustrative Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  capabilities RationalizationCapability[]
-
-  @@index([companyId])
-  @@index([workspaceId])
-}
-
-// CAPDAN-normalized target component for one IT layer (one middle-column box).
-// Where the kept capabilities across apps re-constitute, and where they land.
-model RationalizationComponent {
-  id             String                       @id @default(cuid())
-  tenantId       String
-  companyId      String
-  workspaceId    String
-  workspace      RationalizationWorkspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  layer          String // UI | Integration | Business Service | Data | Infrastructure
-  name           String // e.g. "UI Components / Fields"
-  principle      String? // CAPDAN rationale — what is common vs intentionally different
-  pattern        String? // target architecture pattern, e.g. "Strangler facade", "CQRS + event sourcing"
-  targetTech     String? // target technology, e.g. "React + Module Federation", "Spring Boot + Kafka"
-  destination    String? // free-text destination label
-  microserviceId String? // green-field microservice it lands in
-  microservice   RationalizationMicroservice? @relation(fields: [microserviceId], references: [id], onDelete: SetNull)
-  migrationStatus String  @default("Identified")
-  illustrative   Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  capabilities RationalizationCapability[]
-
-  @@index([companyId])
-  @@index([workspaceId])
-  @@index([microserviceId])
-}
-
-// A single decomposed capability (one line inside a grid cell). Classified keep
-// (Retain) vs anti-pattern (Eliminate); kept ones map to a normalized component.
-model RationalizationCapability {
-  id              String                     @id @default(cuid())
-  tenantId        String
-  companyId       String
-  workspaceId     String
-  workspace       RationalizationWorkspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  appId           String
-  app             RationalizationApp         @relation(fields: [appId], references: [id], onDelete: Cascade)
-  layer           String // current layer: UI | Integration | Business Service | Data | Infrastructure
-  name            String // the specific finding (e.g. "Validate premium > 0")
-  category        String? // finding group used for the high-level tag, e.g. "Business validations"
-  capdan          String   @default("Common") // Common | Different | Relocate | Eliminate (CAPDAN classification)
-  targetLayer     String? // when capdan=Relocate: the layer this finding belongs in (drives the relocation line)
-  treatment       String   @default("Retain") // Retain (keep) | Eliminate (anti-pattern) — derived from capdan
-  migrationStatus String   @default("Identified")
-  componentId     String? // normalized target component it folds into (kept capabilities)
-  component       RationalizationComponent?  @relation(fields: [componentId], references: [id], onDelete: SetNull)
-  // Application-specific decomposition detail.
-  codeRef         String? // the specific code identified, e.g. "PolicyForm.aspx.cs : ValidatePremium()"
-  migrationApproach String? // how this finding is migrated / normalized
-  targetTech      String? // where/how it is rebuilt, e.g. "Drools rules service"
-  rationale       String? // why keep / why eliminate (the application-specific reason)
-  effort          String? // S | M | L | XL (rebuild/decommission effort)
-  complexity      String? // Low | Medium | High
-  notes           String?
-  illustrative    Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@index([companyId])
-  @@index([workspaceId])
-  @@index([appId])
-  @@index([componentId])
-}
-
-// Green-field target microservice / application (one right-column box).
-model RationalizationMicroservice {
-  id           String                     @id @default(cuid())
-  tenantId     String
-  companyId    String
-  workspaceId  String
-  workspace    RationalizationWorkspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  name         String
-  kind         String   @default("Microservice") // Microservice | Application
-  description  String?
-  status       String   @default("Planned") // Planned | Building | Live
-  techStack    String? // target runtime/stack, e.g. "Java 21 / Spring Boot, Postgres, Kafka"
-  ownerRole    String? // owning team / role
-  repo         String? // source repository / service slug
-  position     Int      @default(0)
-  illustrative Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  components RationalizationComponent[]
-
-  @@index([companyId])
-  @@index([workspaceId])
-}
-
-// Migration plan — a sequenced wave/step in re-constituting the business process
-// onto the green-field architecture. Gives each initiative an actual roadmap
-// (deliverables, owner, target window, dependencies) with its own status that
-// rolls up alongside the capability-level progress.
-model RationalizationPlanStep {
-  id           String                   @id @default(cuid())
-  tenantId     String
-  companyId    String
-  workspaceId  String
-  workspace    RationalizationWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  wave         Int      @default(1) // grouping (Wave 1, 2, 3 …)
-  sequence     Int      @default(0) // order within the plan
-  name         String
-  description  String?
-  layer        String? // optional IT-layer focus (UI | Integration | …)
-  status       String   @default("Not Started") // Not Started | In Progress | Done | Blocked
-  ownerRole    String?
-  targetWindow String? // e.g. "Q3 2026"
-  effortWeeks  Int?
-  dependsOn    String? // free-text dependency / predecessor
-  deliverables String? // what ships at the end of this step
-  illustrative Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@index([companyId])
-  @@index([workspaceId])
-  @@index([workspaceId, wave, sequence])
-}
-
-// ─── Initiative Tracker (strategic-portfolio management) ─────────────────
-// A self-contained SPM tracker carried over from the Cascade app, surfaced in
-// its own "Initiatives" tab. Hierarchy: Program → Workstream → PortfolioInitiative
-// (named to avoid colliding with the operating-model `Initiative` above). Each
-// initiative carries a stage-gate workflow (IDEA→PLAN→EXECUTE→REALIZE→COMPLETE),
-// time-phased benefit/cost lines (monthly MetricValue rows keyed by dataset),
-// milestones, and a RAID log. It integrates with the operating model through
-// optional scalar links (valueStreamId / divisionId / owner+sponsor roleId);
-// those FKs are enforced at the DB level (see the migration) but are NOT modeled
-// as Prisma relations, so no existing model is touched. Every write is recorded
-// in the shared AuditEntry log. Scoped to tenant + company.
+// ─── PORTFOLIO SPM (Program → Workstream → PortfolioInitiative) ─────────
 
 model Program {
   id          String   @id @default(cuid())
@@ -1126,37 +937,39 @@ model Workstream {
 }
 
 model PortfolioInitiative {
-  id             String     @id @default(cuid())
-  tenantId       String
-  companyId      String
-  company        Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  workstreamId   String
-  workstream     Workstream @relation(fields: [workstreamId], references: [id], onDelete: Cascade)
-  name           String
-  description    String?
+  id                   String       @id @default(cuid())
+  tenantId             String
+  companyId            String
+  company              Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  workstreamId         String
+  workstream           Workstream   @relation(fields: [workstreamId], references: [id], onDelete: Cascade)
+  name                 String
+  description          String?
   // Stage-gate workflow
-  stage          String     @default("IDEA") // IDEA | PLAN | EXECUTE | REALIZE | COMPLETE
-  workflowAction String? // SUBMIT (pending approval) | null
-  state          String     @default("PLANNING") // PLANNING | ACTIVE | DONE
-  status         String     @default("ON_TRACK") // ON_TRACK | AT_RISK | OFF_TRACK
-  statusNote     String?
-  startDate      DateTime
-  dueDate        DateTime
-  // Operating-model integration — optional scalar FKs (constraints in the migration).
-  valueStreamId  String?
-  divisionId     String?
-  ownerRoleId    String?
-  sponsorRoleId  String?
-  // Denormalized rollups, refreshed by the rollup service after benefit/cost writes.
-  cumulativeBenefit    Float @default(0)
-  cumulativeCost       Float @default(0)
-  cumulativeNetBenefit Float @default(0)
-  // Charter / prioritization inputs (I3/I4): complexity is authored, value
-  // score is recomputed from the objective links' impact levels.
-  complexityScore Float @default(5)
-  valueScore      Float @default(0)
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  stage                String       @default("IDEA") // IDEA | PLAN | EXECUTE | REALIZE | COMPLETE
+  workflowAction       String?
+  state                String       @default("PLANNING") // PLANNING | ACTIVE | DONE
+  status               String       @default("ON_TRACK") // ON_TRACK | AT_RISK | OFF_TRACK
+  statusNote           String?
+  startDate            DateTime
+  dueDate              DateTime
+  // Operating-model integration — real FK relations.
+  valueStreamNodeId    String?
+  valueStreamNode      ProcessNode? @relation(fields: [valueStreamNodeId], references: [id], onDelete: SetNull)
+  orgUnitId            String?
+  orgUnit              OrgUnit?     @relation(fields: [orgUnitId], references: [id], onDelete: SetNull)
+  ownerRoleId          String?
+  ownerRole            Role?        @relation("PortfolioInitiativeOwner", fields: [ownerRoleId], references: [id], onDelete: SetNull)
+  sponsorRoleId        String?
+  sponsorRole          Role?        @relation("PortfolioInitiativeSponsor", fields: [sponsorRoleId], references: [id], onDelete: SetNull)
+  // Denormalized rollups, refreshed by the rollup service.
+  cumulativeBenefit    Float        @default(0)
+  cumulativeCost       Float        @default(0)
+  cumulativeNetBenefit Float        @default(0)
+  complexityScore      Float        @default(5)
+  valueScore           Float        @default(0)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
 
   objectives InitiativeObjective[]
   resources  InitiativeResource[]
@@ -1168,8 +981,10 @@ model PortfolioInitiative {
 
   @@index([companyId])
   @@index([workstreamId])
-  @@index([valueStreamId])
-  @@index([divisionId])
+  @@index([companyId, valueStreamNodeId])
+  @@index([companyId, orgUnitId])
+  @@index([ownerRoleId])
+  @@index([sponsorRoleId])
 }
 
 model BenefitLine {
@@ -1177,7 +992,7 @@ model BenefitLine {
   initiativeId String
   initiative   PortfolioInitiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
   name         String
-  category     String? // e.g. Cost Savings, Revenue Uplift, Cost Avoidance
+  category     String?
   startDate    DateTime
   endDate      DateTime
   createdAt    DateTime            @default(now())
@@ -1192,7 +1007,7 @@ model CostLine {
   initiativeId String
   initiative   PortfolioInitiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
   name         String
-  category     String? // OPEX | CAPEX | Resource | Vendor
+  category     String?
   startDate    DateTime
   endDate      DateTime
   createdAt    DateTime            @default(now())
@@ -1210,19 +1025,18 @@ model MetricValue {
   benefitLine   BenefitLine? @relation(fields: [benefitLineId], references: [id], onDelete: Cascade)
   costLine      CostLine?    @relation(fields: [costLineId], references: [id], onDelete: Cascade)
   dataset       String // ACTUAL | TARGET | FORECAST
-  periodStart   DateTime // first day of the month
+  periodStart   DateTime
   amount        Float
 
   @@index([benefitLineId, dataset, periodStart])
   @@index([costLineId, dataset, periodStart])
 }
 
-// Risk-scoring bands: how a 5×5 probability×impact score (1–25) reads as a
-// rating. Data, not code — editable in Data Admin → Initiatives.
 model RiskScoringBand {
   id          String   @id @default(cuid())
   tenantId    String
   companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   label       String
   minScore    Int
   maxScore    Int
@@ -1235,13 +1049,11 @@ model RiskScoringBand {
   @@index([companyId])
 }
 
-// ── Initiative-tracker extensions (gap backlog I3/I4/I6/I9) ─────────────────
-
-// Strategic objectives the portfolio aligns to (I3). Company-scoped via scalar.
 model StrategicObjective {
   id          String   @id @default(cuid())
   tenantId    String
   companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   name        String
   description String?
   weight      Float    @default(1)
@@ -1253,25 +1065,24 @@ model StrategicObjective {
   @@index([companyId])
 }
 
-// Level-of-impact M2M between initiatives and objectives — drives valueScore.
 model InitiativeObjective {
   id           String              @id @default(cuid())
   initiativeId String
   initiative   PortfolioInitiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
   objectiveId  String
   objective    StrategicObjective  @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
-  impact       Int                 @default(3) // 1–5 level of impact
+  impact       Int                 @default(3)
   createdAt    DateTime            @default(now())
 
   @@unique([initiativeId, objectiveId])
 }
 
-// Resource demand on an initiative (I6): a named role-based demand line.
 model InitiativeResource {
   id            String              @id @default(cuid())
   initiativeId  String
   initiative    PortfolioInitiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
-  roleName      String?
+  roleId        String?
+  role          Role?               @relation(fields: [roleId], references: [id], onDelete: SetNull)
   name          String
   allocationPct Int                 @default(50)
   startDate     DateTime
@@ -1279,10 +1090,9 @@ model InitiativeResource {
   createdAt     DateTime            @default(now())
 
   @@index([initiativeId])
+  @@index([roleId])
 }
 
-// Workplan activity (I9): a dated bar on the initiative timeline; optional
-// finish-to-start dependency on another activity.
 model WorkplanActivity {
   id           String              @id @default(cuid())
   initiativeId String
@@ -1307,7 +1117,7 @@ model Milestone {
   name         String
   dueDate      DateTime
   completedAt  DateTime?
-  isGate       Boolean             @default(false) // stage-gate milestone?
+  isGate       Boolean             @default(false)
   status       String              @default("PENDING") // PENDING | DONE | MISSED
   createdAt    DateTime            @default(now())
 
@@ -1321,211 +1131,209 @@ model RaidItem {
   type         String // RISK | ASSUMPTION | ISSUE | DECISION
   title        String
   description  String?
-  probability  Int                 @default(3) // 1–5 (risks)
-  impact       Int                 @default(3) // 1–5
-  severity     Int                 @default(9) // probability * impact
+  probability  Int                 @default(3)
+  impact       Int                 @default(3)
+  severity     Int                 @default(9)
   mitigation   String?
   status       String              @default("OPEN") // OPEN | MITIGATED | CLOSED
-  ownerRoleId  String? // optional link to an operating-model Role (constraint in migration)
+  ownerRoleId  String?
+  ownerRole    Role?               @relation(fields: [ownerRoleId], references: [id], onDelete: SetNull)
   dueDate      DateTime?
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
 
   @@index([initiativeId])
+  @@index([ownerRoleId])
 }
 
-// ─── Deliverables & Tasks (work tracker) ─────────────────────────────────
-// A lightweight, standalone work tracker surfaced in its own "Deliverables &
-// Tasks" tab. A Deliverable is a tangible output (document, system, report …);
-// a Task is a unit of work, optionally rolling up to a Deliverable. Both are
-// scoped to tenant + company and may link to an operating-model ValueStream
-// (DB-level FK with ON DELETE SET NULL, declared in the migration — not modeled
-// as a Prisma relation, so no existing model is touched). Illustrative demo data.
+// ─── APP RATIONALIZATION ("How") ────────────────────────────────────────
 
-model Deliverable {
-  id            String   @id @default(cuid())
-  tenantId      String
-  companyId     String
-  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  title         String
-  description   String?
-  owner         String? // free-text owner / accountable role
-  type          String   @default("Document") // Document | System | Report | Process | Model | Other
-  status        String   @default("Not Started") // Not Started | In Progress | At Risk | Done
-  valueStreamId String? // optional link to an operating-model ValueStream (constraint in migration)
-  jiraKey       String? // external Jira issue key (stub — no live sync yet, D1.7)
-  dueDate       DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model RationalizationWorkspace {
+  id                String       @id @default(cuid())
+  tenantId          String
+  companyId         String
+  company           Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name              String
+  application       String?
+  stageOrder        Int          @default(0)
+  businessProcess   String?
+  description       String?
+  northstar         String?
+  // value-stream link as a real FK (was valueStreamId scalar).
+  valueStreamNodeId String?
+  valueStreamNode   ProcessNode? @relation(fields: [valueStreamNodeId], references: [id], onDelete: SetNull)
+  status            String       @default("In Progress") // Proposed | In Progress | Migrating | Complete
+  illustrative      Boolean      @default(true)
+  layout            Json?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 
-  tasks Task[]
+  apps          RationalizationApp[]
+  capabilities  RationalizationCapability[]
+  components    RationalizationComponent[]
+  microservices RationalizationMicroservice[]
+  planSteps     RationalizationPlanStep[]
 
+  @@unique([tenantId, companyId, name])
   @@index([companyId])
-  @@index([valueStreamId])
+  @@index([valueStreamNodeId])
 }
 
-model Task {
-  id            String       @id @default(cuid())
-  tenantId      String
-  companyId     String
-  company       Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  deliverableId String?
-  deliverable   Deliverable? @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
-  title         String
-  owner         String? // free-text assignee
-  status        String       @default("To Do") // To Do | In Progress | Blocked | Done
-  priority      String       @default("Medium") // High | Medium | Low
-  source        String       @default("process") // process (L5 step) | role (role responsibility)
-  // AI-adoption disposition of the task (Metrics stage 2): Automated | Discarded |
-  // Augmented | Manual | null (not yet assessed). Edited in Data Admin → Task.
-  aiDisposition String?
-  // Agent-automatability assessment (Work tab): how readily an AI agent could
-  // perform this task today, 1 (end-to-end now) … 5 (human-only). Generated by
-  // Claude via scripts/score-agent-automatability.ts; null = not yet scored.
-  agentScore     Int?
-  agentRationale String? // one-line justification for the score
-  agentScoredAt  DateTime?
-  jiraKey       String? // external Jira issue key (stub — no live sync yet, D1.7)
-  dueDate       DateTime?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  @@index([companyId])
-  @@index([deliverableId])
-  @@index([status])
-}
-
-// Metrics stage 1 — analysis coverage. One row per operating-model subject
-// (a value-stream / division / role NODE of the unified graph) recording whether
-// the AI-opportunity analysis for it has been done. subjectId = Node.id (plain
-// string, no FK — the node tree is rebuilt by backfill scripts and the seed
-// re-fills any gaps). status: Not Started | In Progress | Complete. Carries
-// tenantId + companyId so the Data Admin auto-registry surfaces it for editing.
-model AnalysisStatus {
-  id            String    @id @default(cuid())
-  tenantId      String
-  companyId     String
-  company       Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  subjectType   String // valueStream | division | role
-  subjectId     String // Node.id of the analyzed subject
-  status        String    @default("Not Started") // Not Started | In Progress | Complete
-  plannedDate   DateTime?
-  completedDate DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  @@unique([companyId, subjectType, subjectId])
-  @@index([companyId])
-}
-
-// ─── Unified operating-model graph (rework) ──────────────────────────────────
-// See docs/operating-model-architecture.md. One typed-node tree + a link layer
-// replaces Level/OrgLevel/Division/Department/Role/ValueStream/SubValueStream/
-// ValueStreamDomain. Built additively alongside the legacy tables during migration.
-
-// Taxonomy: what the levels are CALLED + their branching rules — data, not code.
-model NodeType {
-  id          String   @id @default(cuid())
-  tenantId    String
-  dimension   String   @default("STRUCTURE")
-  key         String // segment | division | department | role | value_stream | sub_process | step | io_item | external_party
-  label       String
-  pluralLabel String
-  level       Int
-  parentKeys  String[] @default([]) // node-type keys allowed as parent (branching)
-  icon        String?
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@unique([tenantId, key])
-}
-
-// One row per structural concept. "Core Business" is ONE Node; everything points
-// at it by id. provenance: real | illustrative | imported.
-model Node {
-  id          String     @id @default(cuid())
-  companyId   String
-  company     Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  typeKey     String // → NodeType.key (the level + label)
-  parentId    String?
-  parent      Node?      @relation("NodeTree", fields: [parentId], references: [id], onDelete: Cascade)
-  children    Node[]     @relation("NodeTree")
-  name        String
-  code        String? // original legacy id / external code (backfill provenance)
-  description String?
-  sortOrder   Int        @default(0)
-  provenance  String     @default("illustrative")
-  attributes  Json?
-  aiAdoption  NodeAiAdoption?
-  outLinks    NodeLink[] @relation("NodeLinkFrom")
-  inLinks     NodeLink[] @relation("NodeLinkTo")
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  @@index([companyId, typeKey])
-  @@index([parentId])
-}
-
-// Cross-cutting typed edges (the "web"): role↔value-stream, app↔value-stream,
-// step→deliverable, owned-by, etc. The default + extension point; rich, hot-path
-// links also keep their typed junctions (hybrid).
-model NodeLink {
-  id           String   @id @default(cuid())
+model RationalizationApp {
+  id           String                   @id @default(cuid())
+  tenantId     String
   companyId    String
-  fromId       String
-  from         Node     @relation("NodeLinkFrom", fields: [fromId], references: [id], onDelete: Cascade)
-  toId         String
-  to           Node     @relation("NodeLinkTo", fields: [toId], references: [id], onDelete: Cascade)
-  relationType String // PARTICIPATES_IN | SUPPORTS | OWNS | LEADS | PRODUCES | CONSUMES | IMPACTS | REPORTS_TO | ...
-  attributes   Json?
-  createdAt    DateTime @default(now())
+  workspaceId  String
+  workspace    RationalizationWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  disposition  String                   @default("Refactor") // Retain | Refactor | Replace | Retire
+  techStack    String?
+  vendor       String?
+  hosting      String?
+  criticality  String?
+  ageYears     Int?
+  annualCost   Float?
+  position     Int                      @default(0)
+  illustrative Boolean                  @default(true)
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
 
-  @@unique([fromId, toId, relationType])
-  @@index([toId, relationType])
-  @@index([companyId, relationType])
+  capabilities RationalizationCapability[]
+
+  @@index([companyId])
+  @@index([workspaceId])
 }
 
-// AI-adoption per value_stream NODE (replaces LevelAiAdoption as the editable
-// store; the Level-keyed table remains only as a retired legacy copy).
-model NodeAiAdoption {
-  id           String   @id @default(cuid())
-  nodeId       String   @unique
-  node         Node     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
-  aiAssist     String   @default("not_used")
-  aiAugment    String   @default("not_used")
-  aiWorkflow   String   @default("not_used")
-  aiAutonomous String   @default("not_used")
-  useCases     Json?
-  // Per-mode adoption statistics shown on the Active AI drill-in:
-  // { <mode>: { rolesUsingPct, efficiencyGainPct } }
-  stats        Json?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+model RationalizationComponent {
+  id              String                       @id @default(cuid())
+  tenantId        String
+  companyId       String
+  workspaceId     String
+  workspace       RationalizationWorkspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  layer           String // UI | Integration | Business Service | Data | Infrastructure
+  name            String
+  principle       String?
+  pattern         String?
+  targetTech      String?
+  destination     String?
+  microserviceId  String?
+  microservice    RationalizationMicroservice? @relation(fields: [microserviceId], references: [id], onDelete: SetNull)
+  migrationStatus String                       @default("Identified")
+  illustrative    Boolean                      @default(true)
+  createdAt       DateTime                     @default(now())
+  updatedAt       DateTime                     @updatedAt
+
+  capabilities RationalizationCapability[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([microserviceId])
 }
 
-// ─── Regulations module (50-state insurance regulatory baseline) ─────────────
-// Seeded from docs/regulations/50-state-regulations-baseline.md via
-// scripts/extract-regulations-baseline.ts → seed/regulations-baseline.json →
-// src/seed/seedRegulations.ts. Design: docs/regulations (design doc §4).
-// Accuracy metadata (confidence / lastVerifiedAt) is load-bearing: rows start
-// as BASELINE (point-in-time source doc) and are only promoted to VERIFIED by
-// a human-reviewed pipeline change (Phase 2).
+model RationalizationCapability {
+  id                String                    @id @default(cuid())
+  tenantId          String
+  companyId         String
+  workspaceId       String
+  workspace         RationalizationWorkspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  appId             String
+  app               RationalizationApp        @relation(fields: [appId], references: [id], onDelete: Cascade)
+  layer             String
+  name              String
+  category          String?
+  capdan            String                    @default("Common") // Common | Different | Relocate | Eliminate
+  targetLayer       String?
+  treatment         String                    @default("Retain") // Retain | Eliminate
+  migrationStatus   String                    @default("Identified")
+  componentId       String?
+  component         RationalizationComponent? @relation(fields: [componentId], references: [id], onDelete: SetNull)
+  codeRef           String?
+  migrationApproach String?
+  targetTech        String?
+  rationale         String?
+  effort            String?
+  complexity        String?
+  notes             String?
+  illustrative      Boolean                   @default(true)
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
 
-// One row per state + DC (51). Carries the regulator identity, the cross-state
-// taxonomy flags (normalized enum + raw doc text — the doc's values are fuzzy),
-// the narrative blocks, and pipeline governance fields.
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([appId])
+  @@index([componentId])
+}
+
+model RationalizationMicroservice {
+  id           String                   @id @default(cuid())
+  tenantId     String
+  companyId    String
+  workspaceId  String
+  workspace    RationalizationWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name         String
+  kind         String                   @default("Microservice") // Microservice | Application
+  description  String?
+  status       String                   @default("Planned") // Planned | Building | Live
+  techStack    String?
+  // owning team/role as a real FK (was ownerRole text).
+  ownerRoleId  String?
+  ownerRole    Role?                    @relation("RationalizationMicroserviceOwner", fields: [ownerRoleId], references: [id], onDelete: SetNull)
+  repo         String?
+  position     Int                      @default(0)
+  illustrative Boolean                  @default(true)
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+
+  components RationalizationComponent[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([ownerRoleId])
+}
+
+model RationalizationPlanStep {
+  id           String                   @id @default(cuid())
+  tenantId     String
+  companyId    String
+  workspaceId  String
+  workspace    RationalizationWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  wave         Int                      @default(1)
+  sequence     Int                      @default(0)
+  name         String
+  description  String?
+  layer        String?
+  status       String                   @default("Not Started") // Not Started | In Progress | Done | Blocked
+  // owner as a real FK (was ownerRole text).
+  ownerRoleId  String?
+  ownerRole    Role?                    @relation("RationalizationPlanStepOwner", fields: [ownerRoleId], references: [id], onDelete: SetNull)
+  targetWindow String?
+  effortWeeks  Int?
+  dependsOn    String?
+  deliverables String?
+  illustrative Boolean                  @default(true)
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([workspaceId, wave, sequence])
+  @@index([ownerRoleId])
+}
+
+// ─── REGULATIONS (50-state insurance regulatory baseline) ───────────────
+
 model Jurisdiction {
-  id        String  @id @default(cuid())
-  tenantId  String
-  companyId String
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  code      String // USPS code: "AL" … "DC"
-  name      String // "Alabama"
+  id                     String    @id @default(cuid())
+  tenantId               String
+  companyId              String
+  company                Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  code                   String // USPS code: "AL" … "DC"
+  name                   String
   // Regulator
-  regulatorName    String
-  regulatorWebsite String?
-  regulatorType    String  @default("STATE_INSURANCE_REGULATOR")
+  regulatorName          String
+  regulatorWebsite       String?
+  regulatorType          String    @default("STATE_INSURANCE_REGULATOR")
   // Taxonomy flags — normalized token + raw doc text
   filingPortal           String // SERFF | PROPRIETARY | MIXED
   filingPortalDetail     String?
@@ -1537,21 +1345,21 @@ model Jurisdiction {
   apcd                   String // YES | NO | EMERGING
   sbs                    String // YES | NO | PARTIAL | TRANSITIONING
   // Narrative blocks (markdown, from the source doc)
-  statutoryAuthority String?
-  summaryRegulator   String?
-  summaryStatutes    String?
-  summaryIntegration String?
-  executiveSummary   String? // compliance profile (12 FULL_PROFILE states; null otherwise)
-  operatingModel     String? // "State-Specific Operating Model" block (12 states)
-  signalsJson        Json? // that state's signal definitions from the rules YAML (stored once here, not per rule)
+  statutoryAuthority     String?
+  summaryRegulator       String?
+  summaryStatutes        String?
+  summaryIntegration     String?
+  executiveSummary       String?
+  operatingModel         String?
+  signalsJson            Json?
   // Governance / pipeline
-  priorityTier    String    @default("STANDARD") // PRIORITY (FL,TX,NY,CA,NC) | STANDARD
-  profileDepth    String    @default("NARRATIVE") // FULL_PROFILE (12) | NARRATIVE (39)
-  lastReviewedAt  DateTime? // human attestation of the whole jurisdiction
-  lastVerifiedAt  DateTime? // last pipeline verification pass
-  baselineVersion Int       @default(1)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  priorityTier           String    @default("STANDARD") // PRIORITY | STANDARD
+  profileDepth           String    @default("NARRATIVE") // FULL_PROFILE | NARRATIVE
+  lastReviewedAt         DateTime?
+  lastVerifiedAt         DateTime?
+  baselineVersion        Int       @default(1)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   requirements RegulatoryRequirement[]
   sources      RegulatorySource[]
@@ -1563,14 +1371,12 @@ model Jurisdiction {
   @@index([companyId])
 }
 
-// Shared catalog of regulatory filing/reporting systems (SERFF, NIPR, OPTins,
-// IRFS, IAIABC EDI …) — one row per system per company (~15 rows).
 model IntegrationSystem {
   id              String   @id @default(cuid())
   tenantId        String
   companyId       String
   company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  name            String // "SERFF", "NIPR", "OPTins" …
+  name            String
   kind            String // FILING | LICENSING | TAX | DATA_REPORTING | CLAIMS_EDI | VERIFICATION | PAYMENT
   operator        String // NAIC | STATE | VENDOR | COMPACT
   website         String?
@@ -1585,9 +1391,6 @@ model IntegrationSystem {
   @@index([companyId])
 }
 
-// Per-state usage of a shared system (junction; tenant-less — scoped through
-// the jurisdiction, TRANSITIVE set in the admin registry). Answers "every state
-// where we must integrate with something other than SERFF" in one query.
 model JurisdictionIntegration {
   id             String            @id @default(cuid())
   jurisdictionId String
@@ -1595,7 +1398,7 @@ model JurisdictionIntegration {
   systemId       String
   system         IntegrationSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
   usage          String            @default("REQUIRED") // REQUIRED | ACCEPTED | NOT_USED | TRANSITIONING
-  scope          String            @default("all lines") // "all lines", "P&C only", "surplus lines tax" …
+  scope          String            @default("all lines")
   notes          String?
   effectiveDate  DateTime?
   createdAt      DateTime          @default(now())
@@ -1605,8 +1408,8 @@ model JurisdictionIntegration {
   @@index([systemId])
 }
 
-// The core obligation rows — one row per discrete regulatory obligation per
-// state ("what most users mean by a regulation").
+// The core obligation rows — single regulation entity (NodeRegulation /
+// RegulationApplication / RegulationDeliverable all point here).
 model RegulatoryRequirement {
   id             String       @id @default(cuid())
   tenantId       String
@@ -1614,28 +1417,28 @@ model RegulatoryRequirement {
   company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   jurisdictionId String
   jurisdiction   Jurisdiction @relation(fields: [jurisdictionId], references: [id], onDelete: Cascade)
-  category       String // PRODUCT_FILING | LICENSING | PREMIUM_TAX | SURPLUS_LINES | WORKERS_COMP_REPORTING |
-  //                AUTO_VERIFICATION | APCD_REPORTING | FINANCIAL_REPORTING | MARKET_CONDUCT |
-  //                DATA_CALL | CYBERSECURITY | OTHER
-  title          String // "Product filings must be submitted via SERFF"
+  category       String // PRODUCT_FILING | LICENSING | PREMIUM_TAX | ...
+  title          String
   requirement    String // full obligation text (markdown)
-  lineOfBusiness String  @default("ALL") // ALL | P_AND_C | LIFE_ANNUITY | HEALTH | AUTO | WORKERS_COMP | SURPLUS_LINES
-  citation       String? // "Title 27, Code of Alabama"; "TAC §124.107"
+  lineOfBusiness String       @default("ALL")
+  citation       String?
   citationUrl    String?
-  obligationType String  @default("ONGOING") // FILING_GATE | ONGOING | EVENT_DRIVEN | INFORMATIONAL
-  frequency      String? // "monthly", "per filing", "annual"
-  status         String    @default("ACTIVE") // ACTIVE | SUPERSEDED | PENDING (announced, not yet effective)
+  obligationType String       @default("ONGOING")
+  frequency      String?
+  status         String       @default("ACTIVE") // ACTIVE | SUPERSEDED | PENDING
   effectiveDate  DateTime?
-  supersededById String? // self-FK: requirement that replaced this one (history chain)
-  // Accuracy metadata (critical given the stakes)
-  confidence     String    @default("BASELINE") // BASELINE | VERIFIED | DERIVED | STALE
-  sourceNote     String? // provenance: where in the doc / which bulletin
+  supersededById String?
+  // Accuracy metadata
+  confidence     String       @default("BASELINE") // BASELINE | VERIFIED | DERIVED | STALE
+  sourceNote     String?
   lastVerifiedAt DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
-  valueStreamLinks RequirementValueStream[]
-  bulletins        RegulatoryBulletin[]
+  nodeRegulations        NodeRegulation[]
+  regulationApplications RegulationApplication[]
+  regulationDeliverables RegulationDeliverable[]
+  bulletins              RegulatoryBulletin[]
 
   @@index([companyId])
   @@index([jurisdictionId])
@@ -1643,50 +1446,28 @@ model RegulatoryRequirement {
   @@index([companyId, status])
 }
 
-// Where a requirement applies in the company (junction to the operating-model
-// value streams; tenant-less — TRANSITIVE set, scoped through the requirement).
-model RequirementValueStream {
-  id            String                @id @default(cuid())
-  requirementId String
-  requirement   RegulatoryRequirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
-  valueStreamId String
-  valueStream   ValueStream           @relation(fields: [valueStreamId], references: [id], onDelete: Cascade)
-  relationship  String                @default("GOVERNS") // GOVERNS | REQUIRES_INTEGRATION | INFORMS
-  notes         String?
-  createdAt     DateTime              @default(now())
-
-  @@unique([requirementId, valueStreamId])
-  @@index([requirementId])
-  @@index([valueStreamId])
-}
-
-// Individual bulletins/notices per state. The Phase 2 pipeline appends here
-// continuously — this is its most active output.
 model RegulatoryBulletin {
-  id             String       @id @default(cuid())
+  id             String                 @id @default(cuid())
   tenantId       String
   companyId      String
-  company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company        Company                @relation(fields: [companyId], references: [id], onDelete: Cascade)
   jurisdictionId String
-  jurisdiction   Jurisdiction @relation(fields: [jurisdictionId], references: [id], onDelete: Cascade)
-  reference      String // "Bulletin 2026-01"
+  jurisdiction   Jurisdiction           @relation(fields: [jurisdictionId], references: [id], onDelete: Cascade)
+  reference      String
   title          String
   summary        String?
   url            String?
   issuedDate     DateTime?
-  discoveredVia  String       @default("BASELINE") // BASELINE | PIPELINE | MANUAL
-  requirementId  String? // optional: the requirement this bulletin modified
+  discoveredVia  String                 @default("BASELINE") // BASELINE | PIPELINE | MANUAL
+  requirementId  String?
   requirement    RegulatoryRequirement? @relation(fields: [requirementId], references: [id], onDelete: SetNull)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
 
   @@index([companyId])
   @@index([jurisdictionId])
 }
 
-// Machine-readable rules layer from the per-state compliance_rules.yaml
-// artifacts. Stored + displayed in Phase 1; EXECUTING them against operational
-// signals is out of scope (future rules-engine phase).
 model ComplianceRule {
   id             String       @id @default(cuid())
   tenantId       String
@@ -1694,10 +1475,10 @@ model ComplianceRule {
   company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   jurisdictionId String
   jurisdiction   Jurisdiction @relation(fields: [jurisdictionId], references: [id], onDelete: Cascade)
-  ruleCode       String // "GA-FILING-001"
-  category       String // filing_channel | filing_status_control | operational_reporting | bulletin_exception_management | legal_review
+  ruleCode       String
+  category       String
   description    String?
-  ruleJson       Json // the parsed if/require/then structure, verbatim
+  ruleJson       Json
   origin         String       @default("DOCUMENT") // DOCUMENT | TEMPLATE_DERIVED | PIPELINE
   active         Boolean      @default(true)
   createdAt      DateTime     @default(now())
@@ -1708,30 +1489,26 @@ model ComplianceRule {
   @@index([jurisdictionId])
 }
 
-// The monitoring registry — one row per URL the business trusts per state
-// (null jurisdiction = national source: NAIC, SERFF, IIPRC). Owned by Data
-// Admin; the Phase 2 pipeline reads `monitor` rows and writes the health fields.
 model RegulatorySource {
-  id             String        @id @default(cuid())
-  tenantId       String
-  companyId      String
-  company        Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  jurisdictionId String?
-  jurisdiction   Jurisdiction? @relation(fields: [jurisdictionId], references: [id], onDelete: Cascade)
-  name           String
-  url            String
-  sourceType     String // BULLETINS_PAGE | REGULATIONS_PAGE | STATUTES_PAGE | SERFF_PARTICIPATION | NAIC_DIRECTORY | COMPACT_MEMBERSHIP | NEWS | OTHER
-  authority      String        @default("OFFICIAL_REGULATOR") // OFFICIAL_REGULATOR | NAIC | COMPACT | SECONDARY
-  monitor        Boolean       @default(true) // include in pipeline sweeps
-  checkTier      String        @default("WEEKLY") // PRIORITY_DAILY | WEEKLY
-  // Pipeline state (Phase 2 writes these)
+  id                  String        @id @default(cuid())
+  tenantId            String
+  companyId           String
+  company             Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  jurisdictionId      String?
+  jurisdiction        Jurisdiction? @relation(fields: [jurisdictionId], references: [id], onDelete: Cascade)
+  name                String
+  url                 String
+  sourceType          String
+  authority           String        @default("OFFICIAL_REGULATOR")
+  monitor             Boolean       @default(true)
+  checkTier           String        @default("WEEKLY") // PRIORITY_DAILY | WEEKLY
   lastCheckedAt       DateTime?
   lastContentHash     String?
   lastChangedAt       DateTime?
-  consecutiveFailures Int       @default(0)
-  healthStatus        String    @default("OK") // OK | UNREACHABLE | PARSE_ERROR
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  consecutiveFailures Int           @default(0)
+  healthStatus        String        @default("OK") // OK | UNREACHABLE | PARSE_ERROR
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
 
   @@index([companyId])
   @@index([jurisdictionId])

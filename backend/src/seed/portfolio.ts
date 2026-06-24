@@ -1,4 +1,5 @@
 import type { PrismaClient } from '@prisma/client';
+import { resolveSpineRefs, type SpineRefs } from './resolveSpineRefs.js';
 
 // Demo data for the Initiative Tracker, ported in spirit from the Cascade seed
 // and adapted to this company. Builds Program → Workstream → PortfolioInitiative
@@ -227,26 +228,21 @@ function noise(key: string): number {
   return (Math.abs(h) % 1000) / 1000;
 }
 
-export async function seedPortfolio(prisma: PrismaClient, ctx: { tenantId: string; companyId: string }) {
+export async function seedPortfolio(
+  prisma: PrismaClient,
+  ctx: { tenantId: string; companyId: string; refs?: SpineRefs },
+) {
   const { tenantId, companyId } = ctx;
+  const refs = ctx.refs ?? (await resolveSpineRefs(prisma, companyId));
 
   // Fresh rebuild — cascades through workstreams → initiatives → lines/values/milestones/raid.
   await prisma.program.deleteMany({ where: { companyId } });
 
-  // Operating-model lookups for best-effort integration links.
-  const [valueStreams, divisions, roles] = await Promise.all([
-    prisma.valueStream.findMany({ where: { companyId }, select: { id: true, name: true } }),
-    prisma.division.findMany({ where: { companyId }, select: { id: true, name: true } }),
-    prisma.role.findMany({ where: { companyId }, select: { id: true, name: true } }),
-  ]);
-  const findId = (list: { id: string; name: string }[], needle?: string) => {
-    if (!needle) return null;
-    const n = needle.toLowerCase();
-    return (list.find((x) => x.name.toLowerCase().includes(n)) ?? null)?.id ?? null;
-  };
-
+  // Operating-model links now resolve to real erd_v5 FK ids via resolveSpineRefs:
+  //   valueStreamNodeId → ProcessNode (L2), orgUnitId → OrgUnit (L2 division),
+  //   ownerRoleId / sponsorRoleId / RaidItem.ownerRoleId → Role.
   const today = new Date();
-  let programCount = 0, wsCount = 0, initCount = 0, lineCount = 0, valueCount = 0, msCount = 0, raidCount = 0;
+  let programCount = 0, wsCount = 0, initCount = 0, lineCount = 0, valueCount = 0, msCount = 0, raidCount = 0, actCount = 0, resCount = 0;
 
   for (const pdef of PROGRAMS) {
     const program = await prisma.program.create({
@@ -272,15 +268,16 @@ export async function seedPortfolio(prisma: PrismaClient, ctx: { tenantId: strin
         // Cumulative = ACTUAL (past) + FORECAST (future). Compute as we generate.
         let cumulativeBenefit = 0, cumulativeCost = 0;
 
+        const ownerRoleId = refs.roleResolver(idef.ownerRole);
         const init = await prisma.portfolioInitiative.create({
           data: {
             tenantId, companyId, workstreamId: ws.id, name: idef.name, description: idef.description,
             stage: idef.stage, state: STAGE_TO_STATE[idef.stage] ?? 'PLANNING', status: idef.status,
             workflowAction: idef.workflowAction ?? null, startDate, dueDate,
-            valueStreamId: findId(valueStreams, idef.valueStream),
-            divisionId: findId(divisions, idef.division),
-            ownerRoleId: findId(roles, idef.ownerRole),
-            sponsorRoleId: findId(roles, idef.sponsorRole),
+            valueStreamNodeId: refs.nodeByName(idef.valueStream),
+            orgUnitId: refs.orgUnitByName(idef.division),
+            ownerRoleId,
+            sponsorRoleId: refs.roleResolver(idef.sponsorRole),
           },
         });
         initCount++;
@@ -338,14 +335,62 @@ export async function seedPortfolio(prisma: PrismaClient, ctx: { tenantId: strin
               return {
                 initiativeId: init.id, type: r.type, title: r.title, probability, impact,
                 severity: probability * impact, mitigation: r.mitigation ?? null, status: r.status ?? 'OPEN',
+                ownerRoleId, // the initiative owner owns its RAID items
               };
             }),
           });
           raidCount += idef.raid.length;
         }
+
+        // Workplan activities (a small illustrative plan per initiative).
+        await prisma.workplanActivity.createMany({
+          data: [
+            { initiativeId: init.id, name: 'Discovery & design', startDate, endDate: startOfMonth(addMonths(startDate, 2)), status: 'DONE', sortOrder: 0 },
+            { initiativeId: init.id, name: 'Build & integrate', startDate: startOfMonth(addMonths(startDate, 2)), endDate: startOfMonth(addMonths(dueDate, -2)), status: 'IN_PROGRESS', sortOrder: 1 },
+            { initiativeId: init.id, name: 'Rollout & realize', startDate: startOfMonth(addMonths(dueDate, -2)), endDate: dueDate, status: 'PLANNED', sortOrder: 2 },
+          ],
+        });
+        actCount += 3;
+
+        // Resource allocation — the owner role (when resolved) staffed on the initiative.
+        if (ownerRoleId) {
+          await prisma.initiativeResource.create({
+            data: { initiativeId: init.id, roleId: ownerRoleId, name: idef.ownerRole ?? 'Initiative lead', allocationPct: 60, startDate, endDate: dueDate },
+          });
+          resCount++;
+        }
       }
     }
   }
 
-  console.log(`   + ${programCount} programs, ${wsCount} workstreams, ${initCount} initiatives, ${lineCount} benefit/cost lines, ${valueCount} monthly values, ${msCount} milestones, ${raidCount} RAID items`);
+  // ── Strategic objectives + initiative links + risk-scoring bands (company-wide) ──
+  const objectives = [
+    { name: 'Reduce operating cost', description: 'Lower cost-to-serve across the operating model.', weight: 1.5 },
+    { name: 'Accelerate growth', description: 'Grow premium and win-rate through faster, better service.', weight: 1.2 },
+    { name: 'Strengthen resilience & compliance', description: 'Reduce risk, leakage, and regulatory exposure.', weight: 1.0 },
+  ];
+  const objIds: string[] = [];
+  for (const o of objectives) {
+    const row = await prisma.strategicObjective.create({ data: { tenantId, companyId, ...o } });
+    objIds.push(row.id);
+  }
+  // Link every initiative to a deterministic objective with an illustrative impact.
+  const allInits = await prisma.portfolioInitiative.findMany({ where: { companyId }, select: { id: true } });
+  let objLinkCount = 0;
+  for (let i = 0; i < allInits.length; i++) {
+    await prisma.initiativeObjective.create({
+      data: { initiativeId: allInits[i].id, objectiveId: objIds[i % objIds.length], impact: 3 + (i % 3) },
+    });
+    objLinkCount++;
+  }
+
+  const bands = [
+    { label: 'Low', minScore: 1, maxScore: 6, color: '#16a34a', sortOrder: 0 },
+    { label: 'Medium', minScore: 7, maxScore: 12, color: '#f59e0b', sortOrder: 1 },
+    { label: 'High', minScore: 13, maxScore: 20, color: '#dc2626', sortOrder: 2 },
+    { label: 'Critical', minScore: 21, maxScore: 25, color: '#7f1d1d', sortOrder: 3 },
+  ];
+  await prisma.riskScoringBand.createMany({ data: bands.map((b) => ({ tenantId, companyId, ...b })) });
+
+  console.log(`   + ${programCount} programs, ${wsCount} workstreams, ${initCount} initiatives, ${lineCount} benefit/cost lines, ${valueCount} monthly values, ${msCount} milestones, ${raidCount} RAID items, ${actCount} activities, ${resCount} resources, ${objIds.length} objectives (${objLinkCount} links), ${bands.length} risk bands`);
 }

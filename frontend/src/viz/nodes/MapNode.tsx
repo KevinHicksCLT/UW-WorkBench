@@ -18,9 +18,6 @@ export const MAP_CARD_H = 68;
 const CLAMP3: CSSProperties = {
   display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
 };
-const CLAMP2: CSSProperties = {
-  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-};
 
 // ── Display-time casing normalizer (defect backlog 02, D3.4) ─────────────────
 // Node names come from the DB with mixed casing. We normalize at render time
@@ -40,6 +37,29 @@ function focusClass(s: NodeFocusState | undefined): string {
     case 'expanded': return 'node-expanded';
     default:         return 'node-neutral';
   }
+}
+
+// Edit-mode visual overrides for a draggable process card. `editable` → grab
+// cursor + subtle dashed outline; `dropTarget` → a prominent teal ring while a
+// node is being dragged over it (Apple-folder "this is where it'll land" cue).
+// Returns a partial style merged into the card; empty in normal view.
+function editStyle(d: EditAffordance): CSSProperties {
+  if (d.dropTarget) {
+    return {
+      cursor: 'grabbing',
+      outline: '2px solid #0d9488',
+      outlineOffset: 2,
+      boxShadow: '0 0 0 4px rgba(13,148,136,0.18), 0 4px 14px rgba(13,148,136,0.25)',
+    };
+  }
+  if (d.editable) {
+    return {
+      cursor: 'grab',
+      outline: '1.5px dashed #cbd5e1',
+      outlineOffset: 2,
+    };
+  }
+  return {};
 }
 
 // ── Shared handle set (hidden, all four sides) ────────────────────────────────
@@ -76,23 +96,34 @@ export type DivisionNodeData = {
   pieceIndex?: number;
 };
 
+// ── Edit-mode affordance (shared) ─────────────────────────────────────────────
+// In the map's edit mode, draggable process nodes get a "grab" cursor + dashed
+// outline; the node currently hovered as a valid drop target gets an Apple-folder
+// style ring. Both are optional and absent (no visual change) in normal view.
+export type EditAffordance = {
+  editable?: boolean;   // draggable in edit mode → grab cursor + dashed outline
+  dropTarget?: boolean; // currently the hovered valid drop target → ring
+};
+
 export type ValueStreamNodeData = {
   name: string;
+  category: string; // L1 segment of this branch — drives the domain color
   participationType: string;
   focusState?: NodeFocusState;
   pieceIndex?: number;
-};
+} & EditAffordance;
 
 export type StepNodeData = {
   step: number;
   name: string;
+  category: string; // L1 segment — drives the domain color across every level
   primaryCategory: string | null;
   categories: string[];
   subStepCount: number;
   unowned: boolean;
   focusState?: NodeFocusState;
   pieceIndex?: number;
-};
+} & EditAffordance;
 
 export type SubStepNodeData = {
   step: number;
@@ -100,7 +131,7 @@ export type SubStepNodeData = {
   l5Count?: number; // # of L5 process steps that drill open underneath
   focusState?: NodeFocusState;
   pieceIndex?: number;
-};
+} & EditAffordance;
 
 // Deepest flow node — an L5 Process Step (v15) under an L4 sub-process.
 export type LeafStepNodeData = {
@@ -135,6 +166,8 @@ const CompanyNodeImpl = memo(function CompanyNodeImpl({ data }: NodeProps) {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
+        alignItems: 'center',
+        textAlign: 'center',
       }}
     >
       <div style={{ fontSize: 13, fontWeight: 700, color: '#ffffff', lineHeight: 1.25, ...CLAMP3 }}>
@@ -177,6 +210,8 @@ const CoreNodeImpl = memo(function CoreNodeImpl({ data }: NodeProps) {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
+        alignItems: 'center',
+        textAlign: 'center',
         ...animStyle,
       }}
     >
@@ -225,6 +260,8 @@ const DivisionNodeImpl = memo(function DivisionNodeImpl({ data }: NodeProps) {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
+        alignItems: 'center',
+        textAlign: 'center',
         ...animStyle,
       }}
     >
@@ -256,18 +293,12 @@ const DivisionNodeImpl = memo(function DivisionNodeImpl({ data }: NodeProps) {
 
 // ── valueStreamNode ───────────────────────────────────────────────────────────
 
-const PART_COLOR: Record<string, string> = {
-  Lead:  '#0d9488',
-  Core:  '#2563eb',
-  Support: '#64748b',
-  Control: '#d97706',
-  Oversight: '#6b7280',
-};
-
 const ValueStreamNodeImpl = memo(function ValueStreamNodeImpl({ data }: NodeProps) {
   const d = data as ValueStreamNodeData;
   const fc = focusClass(d.focusState);
-  const partColor = PART_COLOR[d.participationType] ?? '#94a3b8';
+  // Domain color (green/orange/blue) applied at every level; only the task leaf
+  // stays gray. (Participation type is still carried in data for tooltips/logic.)
+  const hex = DOMAIN_HEX[d.category] ?? '#94a3b8';
   const animStyle = d.pieceIndex != null ? { animationDelay: `${d.pieceIndex * 40}ms` } : undefined;
 
   return (
@@ -282,11 +313,17 @@ const ValueStreamNodeImpl = memo(function ValueStreamNodeImpl({ data }: NodeProp
         borderRadius: 10,
         background: '#ffffff',
         border: '1px solid #eaeaea',
-        borderLeft: `3px solid ${partColor}`,
+        borderLeft: `3px solid ${hex}`,
         boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
         cursor: 'pointer',
         position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        textAlign: 'center',
         ...animStyle,
+        ...editStyle(d),
       }}
     >
       {/* Name */}
@@ -303,7 +340,9 @@ const ValueStreamNodeImpl = memo(function ValueStreamNodeImpl({ data }: NodeProp
 const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
   const d = data as StepNodeData;
   const fc = focusClass(d.focusState);
-  const accent = d.primaryCategory ? (DOMAIN_HEX[d.primaryCategory] ?? '#a3a3a3') : '#a3a3a3';
+  // Domain color from the L1 segment — consistent green/orange/blue at this level
+  // (was primaryCategory, which fell back to gray when unset).
+  const accent = DOMAIN_HEX[d.category] ?? (d.primaryCategory ? DOMAIN_HEX[d.primaryCategory] : undefined) ?? '#a3a3a3';
   const animStyle = d.pieceIndex != null ? { animationDelay: `${d.pieceIndex * 40}ms` } : undefined;
 
   return (
@@ -322,11 +361,15 @@ const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
         boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
         cursor: 'pointer',
         position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
         ...animStyle,
+        ...editStyle(d),
       }}
     >
       {/* Step number + name */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 6 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <span
           style={{
             flexShrink: 0,
@@ -363,6 +406,8 @@ const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
 const SubStepNodeImpl = memo(function SubStepNodeImpl({ data }: NodeProps) {
   const d = data as SubStepNodeData;
   const fc = focusClass(d.focusState);
+  // This is the L5 task leaf — stays gray on purpose (every higher level carries
+  // the domain color; the task does not).
   const animStyle = d.pieceIndex != null ? { animationDelay: `${d.pieceIndex * 40}ms` } : undefined;
 
   return (
@@ -381,11 +426,15 @@ const SubStepNodeImpl = memo(function SubStepNodeImpl({ data }: NodeProps) {
         boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
         cursor: 'pointer',
         position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
         ...animStyle,
+        ...editStyle(d),
       }}
     >
       {/* Step number + name */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 6 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <span
           style={{
             flexShrink: 0,
@@ -404,8 +453,9 @@ const SubStepNodeImpl = memo(function SubStepNodeImpl({ data }: NodeProps) {
         >
           {d.step}
         </span>
-        {/* 2-line clamp (not 3): leaves room for the count chip below */}
-        <span style={{ fontSize: 11.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35, ...CLAMP2 }}>
+        {/* 3-line clamp — match the other levels. The l5Count chip is vestigial
+            (sub.l5 is always empty), so the name gets the full card height. */}
+        <span style={{ fontSize: 11.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35, ...CLAMP3 }}>
           {sentenceCase(d.name)}
         </span>
       </div>
@@ -444,11 +494,14 @@ const LeafStepNodeImpl = memo(function LeafStepNodeImpl({ data }: NodeProps) {
         boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
         cursor: 'default',
         position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
         ...animStyle,
       }}
     >
       {/* Step number + name */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <span
           style={{
             flexShrink: 0,

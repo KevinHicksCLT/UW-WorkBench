@@ -1,4 +1,5 @@
 import type { PrismaClient } from '@prisma/client';
+import { resolveSpineRefs, type SpineRefs } from './resolveSpineRefs.js';
 
 // "Evergreen" Application Rationalization Workspace — the full CAPDAN view.
 // A company runs many INITIATIVES (one per application/platform being
@@ -270,17 +271,25 @@ const INITIATIVES: Initiative[] = [
   },
 ];
 
-export async function seedRationalization(prisma: PrismaClient, ctx: { tenantId: string; companyId: string }) {
+export async function seedRationalization(
+  prisma: PrismaClient,
+  ctx: { tenantId: string; companyId: string; refs?: SpineRefs },
+) {
   const { tenantId, companyId } = ctx;
+  const refs = ctx.refs ?? (await resolveSpineRefs(prisma, companyId));
   await prisma.rationalizationWorkspace.deleteMany({ where: { companyId } });
 
   const wsRows: any[] = [], appRows: any[] = [], svcRows: any[] = [], compRows: any[] = [], capRows: any[] = [];
 
   for (const initiative of INITIATIVES) {
+    // The workspace's value stream = the initiative's platform mapped to a VS node
+    // ("Underwriting Platform" → Underwriting, "Claims Platform" → Claims).
+    const vsNodeId = refs.nodeByName(initiative.app.replace(/\s*Platform$/i, ''));
     for (const stage of initiative.stages) {
       const wsId = `rw_${stage.key}`;
       wsRows.push({ id: wsId, tenantId, companyId, name: stage.name, application: initiative.app, stageOrder: stage.order,
-        businessProcess: stage.name, description: `Rationalize the "${stage.name}" stage of the ${initiative.app} value stream.`, status: stage.status, illustrative: true });
+        businessProcess: stage.name, description: `Rationalize the "${stage.name}" stage of the ${initiative.app} value stream.`,
+        valueStreamNodeId: vsNodeId, status: stage.status, illustrative: true });
 
       const appIds = stage.apps.map((a, i) => { const id = `rapp_${stage.key}_${i}`; appRows.push({ id, tenantId, companyId, workspaceId: wsId, name: a.name, techStack: a.techStack, disposition: 'Replace', position: i, illustrative: true }); return id; });
 
@@ -291,7 +300,7 @@ export async function seedRationalization(prisma: PrismaClient, ctx: { tenantId:
         const gf = GF[layer];
         const svcId = `rms_${stage.key}_${li}`;
         const gfName = `${stage.name} ${gf.suffix}`;
-        svcRows.push({ id: svcId, tenantId, companyId, workspaceId: wsId, name: gfName, kind: gf.kind, status: gfStatus(advance), techStack: gf.tech, ownerRole: gf.owner, position: li, illustrative: true });
+        svcRows.push({ id: svcId, tenantId, companyId, workspaceId: wsId, name: gfName, kind: gf.kind, status: gfStatus(advance), techStack: gf.tech, ownerRoleId: refs.roleResolver(gf.owner), position: li, illustrative: true });
 
         const compId = `rc_${stage.key}_${li}`;
         compRows.push({ id: compId, tenantId, companyId, workspaceId: wsId, layer, name: def.component,

@@ -33,6 +33,27 @@ const str = (v: unknown) => (typeof v === 'string' && v ? v : undefined);
 // Multi-select filters arrive as comma-separated values.
 const list = (v: unknown) => (typeof v === 'string' && v ? v.split(',').map((s) => s.trim()).filter(Boolean) : undefined);
 
+// erd_v5: requirement ↔ value-stream is NodeRegulation (processNodeId → ProcessNode).
+// The frontend still consumes `valueStreamLinks[]` as { valueStreamId, valueStream:
+// { id, name }, relationship, notes }, so we include the node regulations and alias
+// them through the ProcessNode displayValue.
+const NODE_REG_INCLUDE = { nodeRegulations: { include: { processNode: { select: { id: true, displayValue: true } } } } } as const;
+
+type NodeRegRow = { id: string; processNodeId: string; relationship: string; notes: string | null; processNode: { id: string; displayValue: string } };
+function withValueStreamLinks<T extends { nodeRegulations: NodeRegRow[] }>(r: T) {
+  const { nodeRegulations, ...rest } = r;
+  return {
+    ...rest,
+    valueStreamLinks: nodeRegulations.map((n) => ({
+      id: n.id,
+      valueStreamId: n.processNodeId,
+      relationship: n.relationship,
+      notes: n.notes,
+      valueStream: { id: n.processNode.id, name: n.processNode.displayValue },
+    })),
+  };
+}
+
 // ── Overview ──────────────────────────────────────────────────────────────────
 router.get('/overview', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -43,20 +64,22 @@ router.get('/overview', async (req: Request, res: Response, next: NextFunction) 
       prisma.regulatoryRequirement.groupBy({ by: ['category'], where: { companyId, status: 'ACTIVE' }, _count: true }),
       prisma.regulatoryRequirement.groupBy({ by: ['confidence'], where: { companyId, status: 'ACTIVE' }, _count: true }),
       prisma.regulatoryRequirement.count({ where: { companyId, status: 'ACTIVE' } }),
-      prisma.regulatoryRequirement.count({ where: { companyId, status: 'ACTIVE', valueStreamLinks: { some: {} } } }),
+      prisma.regulatoryRequirement.count({ where: { companyId, status: 'ACTIVE', nodeRegulations: { some: {} } } }),
       prisma.regulatoryBulletin.count({ where: { companyId } }),
       prisma.complianceRule.count({ where: { companyId, active: true } }),
       prisma.regulatorySource.count({ where: { companyId } }),
-      prisma.requirementValueStream.groupBy({ by: ['valueStreamId'], where: { requirement: { companyId, status: 'ACTIVE' } }, _count: true }),
+      prisma.nodeRegulation.groupBy({ by: ['processNodeId'], where: { regulation: { companyId, status: 'ACTIVE' } }, _count: true }),
     ]);
     const tally = (key: keyof (typeof jurisdictions)[number]) => {
       const out: Record<string, number> = {};
       for (const j of jurisdictions) { const v = String(j[key] ?? ''); out[v] = (out[v] ?? 0) + 1; }
       return out;
     };
-    // All company streams (not just linked ones) — the UI's filter dropdown,
-    // link editor, and Coverage lens need the full option list.
-    const valueStreams = await prisma.valueStream.findMany({ where: { companyId }, select: { id: true, name: true }, orderBy: { name: 'asc' } });
+    // All company value-stream NODES (level 2) — the UI's filter dropdown, link
+    // editor, and Coverage lens need the full option list. Exposed as { id, name }
+    // via the editable displayValue.
+    const vsNodes = await prisma.processNode.findMany({ where: { companyId, processLevelType: { levelNumber: 2 } }, select: { id: true, displayValue: true }, orderBy: { displayValue: 'asc' } });
+    const valueStreams = vsNodes.map((v) => ({ id: v.id, name: v.displayValue }));
     const vsName = new Map(valueStreams.map((v) => [v.id, v.name]));
     res.json({
       jurisdictionCount: jurisdictions.length,
@@ -73,7 +96,7 @@ router.get('/overview', async (req: Request, res: Response, next: NextFunction) 
         byConfidence: Object.fromEntries(reqByConfidence.map((r) => [r.confidence, r._count])),
       },
       coverageByValueStream: coverage
-        .map((c) => ({ valueStreamId: c.valueStreamId, valueStream: vsName.get(c.valueStreamId) ?? null, requirementCount: c._count }))
+        .map((c) => ({ valueStreamId: c.processNodeId, valueStream: vsName.get(c.processNodeId) ?? null, requirementCount: c._count }))
         .sort((a, b) => b.requirementCount - a.requirementCount),
       bulletinCount, ruleCount, sourceCount,
       verifiedJurisdictions: jurisdictions.filter((j) => j.lastVerifiedAt).length,
@@ -131,7 +154,7 @@ router.get('/jurisdictions/:idOrCode', async (req: Request, res: Response, next:
       include: {
         requirements: {
           orderBy: [{ category: 'asc' }, { title: 'asc' }],
-          include: { valueStreamLinks: { include: { valueStream: { select: { id: true, name: true } } } } },
+          include: NODE_REG_INCLUDE,
         },
         integrations: { include: { system: true }, orderBy: { system: { name: 'asc' } } },
         bulletins: { orderBy: [{ issuedDate: 'desc' }, { reference: 'desc' }] },
@@ -140,7 +163,7 @@ router.get('/jurisdictions/:idOrCode', async (req: Request, res: Response, next:
       },
     });
     if (!jur) return res.status(404).json({ error: 'Not found' });
-    res.json(jur);
+    res.json({ ...jur, requirements: jur.requirements.map(withValueStreamLinks) });
   } catch (e) { next(e); }
 });
 
@@ -168,7 +191,7 @@ router.get('/federal', async (req: Request, res: Response, next: NextFunction) =
           select: {
             id: true, title: true, category: true, requirement: true, citation: true, citationUrl: true,
             obligationType: true, lineOfBusiness: true, confidence: true,
-            valueStreamLinks: { include: { valueStream: { select: { id: true, name: true } } } },
+            ...NODE_REG_INCLUDE,
           },
         },
       },
@@ -181,7 +204,7 @@ router.get('/federal', async (req: Request, res: Response, next: NextFunction) =
         id: j.id, code: j.code, name: j.name, regulatorName: j.regulatorName,
         regulatorWebsite: j.regulatorWebsite, level: g.level, summary: j.summaryRegulator,
         lastVerifiedAt: j.lastVerifiedAt, updatedAt: j.updatedAt,
-        requirements: j.requirements,
+        requirements: j.requirements.map(withValueStreamLinks),
       });
     }
     res.json({ groups: [...byCountry.values()] });
@@ -202,8 +225,8 @@ router.get('/requirements', async (req: Request, res: Response, next: NextFuncti
     if (!where.status) where.status = 'ACTIVE';
     const states = list(q.state);
     if (states) where.jurisdiction = { code: { in: states.map((s) => s.toUpperCase()) } };
-    if (str(q.valueStreamId)) where.valueStreamLinks = { some: { valueStreamId: String(q.valueStreamId) } };
-    if (q.unmapped === '1') where.valueStreamLinks = { none: {} };
+    if (str(q.valueStreamId)) where.nodeRegulations = { some: { processNodeId: String(q.valueStreamId) } };
+    if (q.unmapped === '1') where.nodeRegulations = { none: {} };
     if (str(q.search)) {
       where.OR = [
         { title: { contains: String(q.search), mode: 'insensitive' } },
@@ -216,10 +239,10 @@ router.get('/requirements', async (req: Request, res: Response, next: NextFuncti
       orderBy: [{ jurisdiction: { name: 'asc' } }, { category: 'asc' }, { title: 'asc' }],
       include: {
         jurisdiction: { select: { id: true, code: true, name: true, priorityTier: true } },
-        valueStreamLinks: { include: { valueStream: { select: { id: true, name: true } } } },
+        ...NODE_REG_INCLUDE,
       },
     });
-    res.json(rows);
+    res.json(rows.map(withValueStreamLinks));
   } catch (e) { next(e); }
 });
 
@@ -301,30 +324,34 @@ router.put('/requirements/:id/value-streams', requireRole('ADMIN', 'MANAGER'), a
   try {
     const companyId = await activeCompanyId(req, res);
     if (!companyId) return;
-    const requirement = await prisma.regulatoryRequirement.findFirst({ where: { id: req.params.id, companyId }, select: { id: true } });
+    const requirement = await prisma.regulatoryRequirement.findFirst({ where: { id: req.params.id, companyId }, select: { id: true, companyId: true } });
     if (!requirement) return res.status(404).json({ error: 'Not found' });
     const { links } = linksSchema.parse(req.body);
-    // Validate every target stream belongs to the company before writing.
+    // Validate every target value-stream NODE belongs to the company before writing.
     const ids = [...new Set(links.map((l) => l.valueStreamId))];
-    const owned = await prisma.valueStream.count({ where: { id: { in: ids }, companyId } });
+    const owned = await prisma.processNode.count({ where: { id: { in: ids }, companyId } });
     if (owned !== ids.length) return res.status(404).json({ error: 'Value stream not found' });
     const result = await prisma.$transaction(async (tx) => {
-      await tx.requirementValueStream.deleteMany({ where: { requirementId: requirement.id } });
+      await tx.nodeRegulation.deleteMany({ where: { regId: requirement.id } });
       for (const l of links) {
-        await tx.requirementValueStream.create({
-          data: { requirementId: requirement.id, valueStreamId: l.valueStreamId, relationship: l.relationship, notes: l.notes ?? null },
+        await tx.nodeRegulation.create({
+          data: { companyId: requirement.companyId, regId: requirement.id, processNodeId: l.valueStreamId, relationship: l.relationship, notes: l.notes ?? null },
         });
       }
-      return tx.requirementValueStream.findMany({
-        where: { requirementId: requirement.id },
-        include: { valueStream: { select: { id: true, name: true } } },
+      return tx.nodeRegulation.findMany({
+        where: { regId: requirement.id },
+        include: { processNode: { select: { id: true, displayValue: true } } },
       });
     });
     logAudit({
       tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'regulatoryRequirement', entityId: requirement.id, action: 'SET_VALUE_STREAMS',
       diff: { links: links.map((l) => ({ valueStreamId: l.valueStreamId, relationship: l.relationship })) },
     });
-    res.json(result);
+    // Return the link rows in the frontend's valueStreamLinks shape.
+    res.json(result.map((n) => ({
+      id: n.id, valueStreamId: n.processNodeId, relationship: n.relationship, notes: n.notes,
+      valueStream: { id: n.processNode.id, name: n.processNode.displayValue },
+    })));
   } catch (e) { next(e); }
 });
 
