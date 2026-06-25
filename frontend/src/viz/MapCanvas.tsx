@@ -23,9 +23,10 @@ import type {
 } from './nodes/MapNode';
 import { DOMAIN_HEX } from './model';
 import type { NodeFocusState, DivisionSummary, DivisionFlow, FlowStep, FlowValueStream } from './model';
-import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from '../components/MetricsSidebar';
+import { MetricsDrawer, type Dashboard, type MetricSection } from '../components/MetricsSidebar';
 import ValueStreamDrawer from '../components/ValueStreamDrawer';
 import TestingTemplateModal from '../components/TestingTemplateModal';
+import Inspector from '../components/Inspector';
 import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
 
@@ -1647,18 +1648,14 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
         {testingNodeId && <TestingTemplateModal nodeId={testingNodeId} onClose={() => setTestingNodeId(null)} />}
       </div>
 
-      {/* Right metrics dashboard — same panel and behavior as the list view
-          (startExpanded; the minimize control collapses it to the rail). */}
-      {SHOW_METRICS_SIDEBAR && dashTarget && (
-        <MetricsSidebar
-          dash={dash}
-          loading={dashLoading}
-          onDrill={onDrill}
-          startExpanded
-          onBack={ovStack.length ? onDashBack : undefined}
-          onViewAll={setDrawerSection}
-          onViewDetail={dashTarget?.level === 'valueStream' && dashTarget.id ? () => setVsDetailId(dashTarget.id) : undefined}
-          onTestingTemplate={(dashTarget?.level === 'valueStream' || dashTarget?.level === 'step') && dashTarget.id ? () => setTestingNodeId(dashTarget.id) : undefined}
+      {/* Right inspector — same component as the list view. Opens collapsed (a
+          rail) so the canvas isn't covered; breadcrumb/child clicks re-target it
+          without moving the map. */}
+      {SHOW_METRICS_SIDEBAR && dashTarget && dashTarget.id && (
+        <Inspector
+          nodeId={dashTarget.id}
+          startCollapsed
+          onRetarget={(id) => setOvStack((s) => [...s, { level: 'node', id }])}
         />
       )}
     </div>

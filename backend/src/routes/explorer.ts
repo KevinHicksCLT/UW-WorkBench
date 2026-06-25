@@ -307,7 +307,9 @@ router.get('/tree', async (req: Request, res: Response, next: NextFunction) => {
     }) : [];
 
     // One batched closure read across all divisions (was two queries per division).
-    const subtrees = await processSubtrees(divisions.map((d) => d.id), { excludeSelf: true });
+    // Only L3/L4/L5 (depths 1–3 below the division) are rendered, so bound the
+    // read there instead of pulling every task/leaf node beneath each division.
+    const subtrees = await processSubtrees(divisions.map((d) => d.id), { excludeSelf: true, maxDepth: 3 });
 
     res.json({
       company: { id: company.id, name: company.name },

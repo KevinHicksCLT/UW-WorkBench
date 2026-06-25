@@ -1,9 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { DOMAIN_HEX, type DivisionSummary } from '../viz/model';
 import { api } from '../lib/api';
-import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from './MetricsSidebar';
-import ValueStreamDrawer from './ValueStreamDrawer';
-import TestingTemplateModal from './TestingTemplateModal';
+import Inspector from './Inspector';
 import { HeaderComboFilter } from './Sheet';
 
 // List view (R2 rework) — a FLAT spreadsheet of the operating model. No tree,
@@ -95,22 +93,12 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
   const [stepSel, setStepSel] = useState<string[]>([]);
   const [sort, setSort] = useState<Sort>({ col: 'vs', dir: 1 });
 
-  // Right-hand metrics panel (identical to the map). `base` = the cell clicked
-  // in the sheet; `ovStack` = in-panel drills (e.g. role).
+  // Right-hand inspector — same component the map docks. `base` = the cell
+  // clicked in the sheet (a process node); the inspector handles its own drill.
   const [base, setBase] = useState<{ level: string; id: string } | null>(null);
-  const [ovStack, setOvStack] = useState<{ level: string; id: string }[]>([]);
-  const [dash, setDash] = useState<Dashboard | null>(null);
-  const [dashLoading, setDashLoading] = useState(false);
-  const [drawerSection, setDrawerSection] = useState<MetricSection | null>(null);
-  // Value-stream full detail drawer (the standalone page was retired).
-  const [vsDetailId, setVsDetailId] = useState<string | null>(null);
-  const [testingNodeId, setTestingNodeId] = useState<string | null>(null);
-  const target = ovStack.length ? ovStack[ovStack.length - 1] : base;
 
-  const openMetrics = (level: string, id: string) => { setBase({ level, id }); setOvStack([]); };
-  const onDrill = (level: string, id: string) => setOvStack((s) => [...s, { level, id }]);
-  const onBack = () => setOvStack((s) => s.slice(0, -1));
-  const closeMetrics = () => { setBase(null); setOvStack([]); };
+  const openMetrics = (level: string, id: string) => setBase({ level, id });
+  const closeMetrics = () => setBase(null);
 
   // Deep-linked focus (value-stream links across the app land here): open the
   // stream's detail in the sidebar; the Value stream filter below narrows the
@@ -126,20 +114,6 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
       .catch((e) => { if (!cancelled) { setError(e.message ?? 'Failed to load'); setLoading(false); } });
     return () => { cancelled = true; };
   }, []);
-
-  useEffect(() => {
-    if (!target) { setDash(null); return; }
-    let cancelled = false; setDashLoading(true); setDash(null);
-    const url = target.id ? `/explorer/roles/${target.level}/${encodeURIComponent(target.id)}` : `/explorer/roles/${target.level}`;
-    api.get(url)
-      .then((d: Dashboard) => { if (!cancelled) setDash(d); })
-      .catch(() => { if (!cancelled) setDash(null); })
-      .finally(() => { if (!cancelled) setDashLoading(false); });
-    return () => { cancelled = true; };
-  }, [target?.level, target?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Changing the focused entity makes the drawer's snapshot stale — close it.
-  useEffect(() => { setDrawerSection(null); }, [target?.level, target?.id]);
 
   // ── Flatten every chain to one row (dedupe streams first — a stream can sit
   // under several divisions, so it carries ALL its divisions/domains). ──
@@ -289,14 +263,66 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
   const toggleSort = (col: Col) => setSort((s) => (s.col === col ? { col, dir: s.dir === 1 ? -1 : 1 } : { col, dir: 1 }));
 
   const activeKey = base ? `${base.level}:${base.id}` : null;
-  // Scroll target for deep-linked focus: the first visible row of that stream.
-  const focusRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (focusVsId && !loading) focusRef.current?.scrollIntoView({ block: 'center' });
-  }, [focusVsId, loading]);
 
-  // Track first row per stream while rendering (for the focus scroll target).
-  const seenVs = new Set<string>();
+  // ── Row virtualization ──────────────────────────────────────────────────────
+  // The sheet can be ~3,800 rows (one per step); rendering them all at once
+  // floods the DOM and hangs/crashes the tab. Rows are a fixed height, so window
+  // to just the slice in view (+ overscan) and pad above/below with spacers. The
+  // markup of each rendered row is unchanged, so the sheet looks identical.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const rowsWrapRef = useRef<HTMLDivElement>(null);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [viewH, setViewH] = useState(0);
+  const [rowsTop, setRowsTop] = useState(0); // rows-area offset from scroll-content top (clears the sticky header)
+  const [rowH, setRowH] = useState(23);       // measured row height
+  const OVERSCAN = 10;
+
+  const measure = () => {
+    const el = scrollRef.current; if (!el) return;
+    setViewH(el.clientHeight);
+    const rw = rowsWrapRef.current;
+    if (rw) setRowsTop(rw.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop);
+  };
+  useLayoutEffect(measure, [loading, rows.length === 0]);
+  // Filtering can shrink the list while scrolled down; the browser clamps the
+  // real scrollTop but our cached value goes stale (no scroll event fires). Re-
+  // read it whenever the row count changes so the window can't point past the end.
+  useLayoutEffect(() => { const el = scrollRef.current; if (el) setScrollTop(el.scrollTop); }, [rows.length]);
+  useEffect(() => {
+    const el = scrollRef.current; if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(measure); ro.observe(el);
+    return () => ro.disconnect();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Measure the live row height from the first rendered row (handles zoom/DPR).
+  const measureRow = (el: HTMLDivElement | null) => {
+    if (el && el.offsetHeight && Math.abs(el.offsetHeight - rowH) > 0.5) setRowH(el.offsetHeight);
+  };
+
+  const ticking = useRef(false);
+  const onScroll = () => {
+    if (ticking.current) return; ticking.current = true;
+    requestAnimationFrame(() => { ticking.current = false; const el = scrollRef.current; if (el) setScrollTop(el.scrollTop); });
+  };
+
+  const rel = Math.max(0, scrollTop - rowsTop);
+  const start = Math.max(0, Math.floor(rel / rowH) - OVERSCAN);
+  const end = viewH > 0 ? Math.min(rows.length, Math.ceil((rel + viewH) / rowH) + OVERSCAN) : Math.min(rows.length, OVERSCAN * 4);
+  const visible = rows.slice(start, end);
+  const padTop = start * rowH;
+  const padBottom = Math.max(0, (rows.length - end) * rowH);
+
+  // Deep-linked focus: jump the scroll to the focused stream's first row (the
+  // row may not be mounted, so scroll by computed offset, not scrollIntoView).
+  const scrolledFocus = useRef<string | null>(null);
+  useLayoutEffect(() => {
+    if (!focusVsId || loading || !rows.length || scrolledFocus.current === focusVsId) return;
+    const idx = rows.findIndex((r) => r.vsId === focusVsId);
+    if (idx < 0) return;
+    const el = scrollRef.current; if (!el) return;
+    el.scrollTop = Math.max(0, rowsTop + idx * rowH - el.clientHeight / 2);
+    setScrollTop(el.scrollTop);
+    scrolledFocus.current = focusVsId;
+  }, [focusVsId, loading, rows, rowsTop, rowH]);
 
   return (
     <>
@@ -316,7 +342,7 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
               </>
             )}
           </div>
-          <div className="flex-1 min-h-0 overflow-auto">
+          <div ref={scrollRef} onScroll={onScroll} className="flex-1 min-h-0 overflow-auto">
           <div className="px-3 sm:px-4 pb-4">
             {loading ? (
               <div className="text-sm text-[#a3a3a3] animate-pulse py-8 text-center">Loading operating model…</div>
@@ -339,11 +365,10 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
                     <HeaderComboFilter label="Step" value={stepSel} onChange={setStepSel} options={stepOptions}
                       sort={<SortToggle col="step" sort={sort} onSort={toggleSort} />} />
                   </div>
-                  <div className="rounded-b-lg overflow-hidden">
+                  <div ref={rowsWrapRef} className="rounded-b-lg overflow-hidden">
                     {rows.length === 0 && <EmptyRow text="No rows match the current filters." />}
-                    {rows.map((r) => {
-                      const firstOfVs = !seenVs.has(r.vsId);
-                      seenVs.add(r.vsId);
+                    {padTop > 0 && <div style={{ height: padTop }} />}
+                    {visible.map((r, vi) => {
                       // Row default click = the most specific entity on the row.
                       const rowTarget: [string, string] = r.stepId ? ['step', r.stepId] : r.areaId ? ['step', r.areaId] : ['valueStream', r.vsId];
                       const selected = activeKey != null && (
@@ -353,7 +378,7 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
                       return (
                         <div
                           key={`${r.vsId}|${r.areaId ?? ''}|${r.stepId ?? ''}`}
-                          ref={firstOfVs && r.vsId === focusVsId ? focusRef : undefined}
+                          ref={vi === 0 ? measureRow : undefined}
                           onClick={() => openMetrics(rowTarget[0], rowTarget[1])}
                           className={GRID_COLS + ' items-stretch divide-x divide-[#f0f0f0] border-b border-[#f5f5f5] last:border-0 cursor-pointer transition-colors duration-100 '
                             + (selected ? 'bg-[#f5f8ff] ' : '') + 'hover:bg-[#fafafa]'}
@@ -366,6 +391,7 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
                         </div>
                       );
                     })}
+                    {padBottom > 0 && <div style={{ height: padBottom }} />}
                   </div>
                 </div>
               </>
@@ -374,31 +400,14 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
           </div>
         </div>
 
-        {/* Right-hand metrics panel — same component as the map, pushes content (no dimming overlay) */}
+        {/* Right-hand inspector — same component as the map; pushes content (no overlay). */}
         {base && (
-          <MetricsSidebar
-            dash={dash} loading={dashLoading} onDrill={onDrill} startExpanded
-            onBack={ovStack.length ? onBack : undefined} onClose={closeMetrics} onViewAll={setDrawerSection}
-            onViewDetail={target?.level === 'valueStream' && target.id ? () => setVsDetailId(target.id) : undefined}
-            onTestingTemplate={(target?.level === 'valueStream' || target?.level === 'step') && target.id ? () => setTestingNodeId(target.id) : undefined}
+          <Inspector
+            nodeId={base.id}
+            onClose={closeMetrics}
+            onRetarget={(id) => openMetrics('node', id)}
           />
         )}
-
-        {/* Comprehensive "view all" drawer — overlays the panel; closing returns the user to exactly where they were. */}
-        {drawerSection && (
-          <MetricsDrawer
-            section={drawerSection}
-            contextTitle={dash?.title ?? ''}
-            onClose={() => setDrawerSection(null)}
-            onDrill={onDrill}
-          />
-        )}
-
-        {/* Value-stream full detail — slides over the list in place. */}
-        {vsDetailId && <ValueStreamDrawer valueStreamId={vsDetailId} onClose={() => setVsDetailId(null)} />}
-
-        {/* Testing templates for the focused process node — slides over the list. */}
-        {testingNodeId && <TestingTemplateModal nodeId={testingNodeId} onClose={() => setTestingNodeId(null)} />}
       </div>
     </>
   );
