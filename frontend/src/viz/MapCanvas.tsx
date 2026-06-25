@@ -7,13 +7,13 @@
 // level is currently focused (company / domain / division / value stream / area)
 // — the SAME panel the list view shows (SHOW_METRICS_SIDEBAR below).
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   ReactFlow, Background, Controls, ReactFlowProvider,
-  useReactFlow, applyNodeChanges,
-  type Node, type Edge, type NodeMouseHandler, type OnNodeDrag, type OnNodesChange,
+  useReactFlow,
+  type Node, type Edge, type NodeMouseHandler,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -85,6 +85,43 @@ function categoriesOf(divisions: DivisionSummary[]): Category[] {
   return seen;
 }
 
+// Each draggable map node TYPE maps to a fixed backend ProcessNode level (the
+// locked taxonomy: 1 = domain, 2 = division / value stream, 3 = process area,
+// 4 = sub-process, 5 = task). A drop re-levels the moved node to target.level+1;
+// the deepest level (MAX_LEVEL) can never be a parent. The server is the authority
+// on the depth cap — the client only blocks the obvious "drop under L5" case.
+const TYPE_LEVEL: Record<string, number> = {
+  coreNode: 1, divisionNode: 2, valueStreamNode: 3, stepNode: 4, subStepNode: 5,
+};
+const MAX_LEVEL = 5;
+const HOVER_DRILL_MS = 800; // hold the cursor directly over a box this long mid-drag → it drills open
+
+// An in-progress custom pointer drag of one process card.
+type DragState = {
+  canvasId: string;      // React Flow node id (vs:.. / step:.. / division id / core:..)
+  rawId: string;         // underlying ProcessNode id
+  type: string;          // node type (coreNode / divisionNode / …)
+  level: number;         // TYPE_LEVEL[type]
+  name: string;
+  cat: string;           // domain category (for the ghost's accent)
+  originParent: string | null; // raw parent id at grab time
+  originOrder: string[];       // raw-id order of the origin row at grab time (for no-op reorder detection)
+  grabDX: number; grabDY: number; // pointer offset within the card (screen px)
+  cardW: number; cardH: number;
+  startX: number; startY: number;  // pointer-down position (screen px) — drag threshold origin
+  px: number; py: number;          // current pointer position (screen px)
+  started: boolean;                // passed the movement threshold → really dragging
+};
+
+// A minimal FlowStep for an L4 node optimistically injected under a new parent
+// (its real children/detail fill in on Save's refetch).
+function synthStep(id: string, name: string): FlowStep {
+  return {
+    id, step: 0, name, subSteps: [], inputs: null, outputs: null, upstream: null,
+    downstream: null, roles: [], categories: [], primaryCategory: null, crossDomain: false, unowned: false,
+  };
+}
+
 // ── Inner canvas ─────────────────────────────────────────────────────────────
 
 type Props = { divisions: DivisionSummary[]; companyName: string; breadcrumbSlot?: HTMLElement | null; focusVsId?: string | null; onMoved?: () => void };
@@ -101,8 +138,19 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
   // level above (e.g. an L4 onto a different L3, including a different value
   // stream) re-parents the whole subtree via PATCH /builder/nodes/:id.
   const [editMode, setEditMode] = useState(false);
-  // The currently-hovered valid drop target while dragging (Apple-folder ring).
-  const [dropTargetId, setDropTargetId] = useState<string | null>(null);
+  // ── Custom pointer-drag state (see the drag lifecycle further down) ──────────
+  // `drag` is the in-progress gesture (ghost follows the cursor); `gap` is the open
+  // insertion slot under the cursor. Declared up here so the display-array memos
+  // can lift the dragged card out of the layout while it's in flight.
+  const dragRef = useRef<DragState | null>(null);
+  const [drag, setDrag] = useState<DragState | null>(null);
+  const [gap, setGap] = useState<{ parent: string; index: number; type: string } | null>(null);
+  // When the cursor is over the CENTRE of a box → that box highlights as a "nest
+  // inside" target (drop makes the dragged card its child, one level deeper). Over a
+  // GAP between boxes → `gap` opens instead (drop beside). nestRef mirrors the state
+  // for the pointer-up handler.
+  const nestRef = useRef<string | null>(null);
+  const [nestTargetId, setNestTargetId] = useState<string | null>(null);
   // Transient feedback banner (success / invalid-move), auto-dismisses.
   const [moveFlash, setMoveFlash] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const flashTimer = useRef<number | null>(null);
@@ -111,6 +159,26 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
     setMoveFlash({ kind, text });
     flashTimer.current = window.setTimeout(() => setMoveFlash(null), 2600);
   }, []);
+
+  // ── Staged edits (Save / Revert) ─────────────────────────────────────────────
+  // Drags never hit the DB directly; they accumulate here until the user Saves
+  // (one atomic /builder/nodes/batch call) or Reverts. A move records its target
+  // parent + whether the node keeps its level: SAME-LEVEL re-homes render
+  // optimistically under the new parent (matching element type); RE-LEVEL moves
+  // just flag the card and reconcile on Save's refetch. A reorder records the new
+  // left-to-right (or top-to-bottom) child order for a parent.
+  type MoveRec = { parent: string; sameLevel: boolean; level: number; name: string; cat: string };
+  const [pendingMoves, setPendingMoves] = useState<Map<string, MoveRec>>(new Map());
+  const [pendingOrder, setPendingOrder] = useState<Map<string, string[]>>(new Map());
+  // Staged inline renames (rawId → new display name).
+  const [pendingRenames, setPendingRenames] = useState<Map<string, string>>(new Map());
+  const [saving, setSaving] = useState(false);
+  const dirty = pendingMoves.size > 0 || pendingOrder.size > 0 || pendingRenames.size > 0;
+  const pendingCount = pendingMoves.size + pendingOrder.size + pendingRenames.size;
+  // Active double-click rename editor (positioned over the box, in screen coords).
+  const [rename, setRename] = useState<{ rawId: string; value: string; x: number; y: number; w: number; h: number; cat: string } | null>(null);
+  const lastClickRef = useRef<{ id: string; time: number } | null>(null);
+  const clickTimerRef = useRef<number | null>(null);
 
   // Top-of-map gating: company → domains → divisions. The company starts open by
   // default so the three domains are visible on load (drill begins one level in).
@@ -168,21 +236,32 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
   // For each draggable type, VALID_PARENT_TYPE names the node type a drop must
   // land on (exactly one level up). The dashed-outline + ring affordance and the
   // hit-test both key off this table.
-  const DRAGGABLE_TYPES = useMemo(() => new Set(['valueStreamNode', 'stepNode', 'subStepNode']), []);
-  const VALID_PARENT_TYPE: Record<string, string> = useMemo(() => ({
-    valueStreamNode: 'divisionNode', // L3 → moves under an L2 value stream (a different one)
-    stepNode: 'valueStreamNode',     // L4 → moves under an L3 process area
-    subStepNode: 'stepNode',         // L5 → moves under an L4 sub-process
-  }), []);
-  const PARENT_LABEL: Record<string, string> = useMemo(() => ({
-    valueStreamNode: 'value stream',
-    stepNode: 'process area',
-    subStepNode: 'sub-process',
-  }), []);
-  // Strip the map's id prefix to recover the raw ProcessNode id (vs:/step:/substep:).
-  const rawNodeId = useCallback((node: Node): string => {
-    return node.id.replace(/^(vs|step|substep|leaf):/, '');
-  }, []);
+  // Every id-backed process level is draggable (L1 domain → L5 sub-process). The
+  // enterprise root + the vestigial L6 leaf stay fixed.
+  const DRAGGABLE_TYPES = useMemo(() => new Set(['coreNode', 'divisionNode', 'valueStreamNode', 'stepNode', 'subStepNode']), []);
+
+  // The map keys L1 domain headers by category NAME (`core:<name>`); the real
+  // ProcessNode id rides on each division as higherCategoryId. These two maps let
+  // the domain header act as an id-backed drag source / drop target.
+  const domainIdByCat = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const d of divisions) { const c = catFor(d); if (d.higherCategoryId && !m.has(c)) m.set(c, d.higherCategoryId); }
+    return m;
+  }, [divisions]);
+  const domainCatById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const [c, id] of domainIdByCat) m.set(id, c);
+    return m;
+  }, [domainIdByCat]);
+
+  // Canvas node id → raw ProcessNode id. Domains resolve via the name→id map; L2
+  // divisions already carry their raw id; deeper nodes strip the level prefix.
+  const rawNodeId = useCallback((node: { id: string }): string | null => {
+    const id = node.id;
+    if (id === 'company') return null;
+    if (id.startsWith('core:')) return domainIdByCat.get(id.slice(5)) ?? null;
+    return id.replace(/^(vs|step|substep|leaf):/, '');
+  }, [domainIdByCat]);
 
   // Reset everything below the domain level.
   const resetBelowDomain = useCallback(() => {
@@ -299,8 +378,35 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
     setSelectedDomain(null); resetBelowDomain();
   }, [resetBelowDomain]);
 
-  // Derived
-  const focusedDivision = divisions.find((d) => d.id === focusedDivisionId) ?? null;
+  // Apply a parent's staged child order (listed ids first, in order; the rest keep
+  // their incoming order).
+  const applyOrder = useCallback(<T,>(parentRaw: string | null, arr: T[], idOf: (t: T) => string): T[] => {
+    if (!parentRaw) return arr;
+    const ord = pendingOrder.get(parentRaw);
+    if (!ord) return arr;
+    const pos = new Map(ord.map((id, i) => [id, i]));
+    return [...arr].sort((a, b) => (pos.get(idOf(a)) ?? Infinity) - (pos.get(idOf(b)) ?? Infinity));
+  }, [pendingOrder]);
+
+  // Derived — pending-aware. SAME-LEVEL re-homes are rendered under their new
+  // parent (removed from the source row, injected into the target row, matching
+  // element type); RE-LEVEL moves stay in place flagged and reconcile on Save.
+
+  // L2 divisions: a same-level re-home to another domain is relabeled into the new
+  // domain's column (the layout groups by higherCategory).
+  const displayDivisions = useMemo<DivisionSummary[]>(() => {
+    if (!dirty) return divisions;
+    return divisions.flatMap((d) => {
+      const rec = pendingMoves.get(d.id);
+      if (rec && !rec.sameLevel) return []; // re-leveled out of L2 → leaves the divisions row
+      if (rec && rec.sameLevel && domainCatById.has(rec.parent)) {
+        return [{ ...d, higherCategory: domainCatById.get(rec.parent)!, higherCategoryId: rec.parent }];
+      }
+      return [d];
+    });
+  }, [divisions, dirty, pendingMoves, domainCatById]);
+  const focusedDivision = displayDivisions.find((d) => d.id === focusedDivisionId) ?? null;
+
   // L3 renders only the value streams this division LEADS (render-only filter; the
   // other participations remain in the DB, just not drawn on the map). Exception:
   // a deep-linked focus VS that this division participates in but doesn't lead is
@@ -310,9 +416,49 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
   const focusedExtra = focusedVsId && !leadStreams.some((vs) => vs.id === focusedVsId)
     ? (flowData?.valueStreams ?? []).find((vs) => vs.id === focusedVsId) ?? null
     : null;
-  const valueStreams: FlowValueStream[] = focusedExtra ? [...leadStreams, focusedExtra] : leadStreams;
+  const leadBase: FlowValueStream[] = focusedExtra ? [...leadStreams, focusedExtra] : leadStreams;
+  const valueStreams = useMemo<FlowValueStream[]>(() => {
+    if (!flowData || !focusedDivisionId) return leadBase;
+    let list = leadBase.filter((vs) => { const r = pendingMoves.get(vs.id); return !(r && r.parent !== focusedDivisionId); });
+    for (const [id, rec] of pendingMoves) {
+      // any box staged to move UNDER this focused division shows as one of its L3s
+      if (rec.parent === focusedDivisionId && !list.some((vs) => vs.id === id)) {
+        list = [...list, { id, name: rec.name, participationType: 'Lead' }];
+      }
+    }
+    return applyOrder(focusedDivisionId, list, (vs) => vs.id);
+  }, [leadBase, flowData, focusedDivisionId, pendingMoves, applyOrder]);
   const focusedVs = valueStreams.find((vs) => vs.id === focusedVsId) ?? null;
-  const steps: FlowStep[] = vsFlowData?.selected?.steps ?? [];
+
+  // L4 steps under the focused VS + L5 sub-steps under the focused step.
+  const stepsBase: FlowStep[] = vsFlowData?.selected?.steps ?? [];
+  const steps = useMemo<FlowStep[]>(() => {
+    if (!vsFlowData) return stepsBase;
+    let list = stepsBase.filter((s) => { const r = pendingMoves.get(s.id); return !(r && r.parent !== focusedVsId); });
+    if (focusedVsId) {
+      for (const [id, rec] of pendingMoves) {
+        // any box staged to move UNDER this focused value stream shows as one of its L4 steps
+        if (rec.parent === focusedVsId && !list.some((s) => s.id === id)) {
+          list = [...list, synthStep(id, rec.name)];
+        }
+      }
+      list = applyOrder(focusedVsId, list, (s) => s.id);
+    }
+    if (focusedStepId) {
+      list = list.map((s) => {
+        if (s.id !== focusedStepId) return s;
+        let subs = s.subSteps.filter((ss) => { const r = pendingMoves.get(ss.id); return !(r && r.parent !== focusedStepId); });
+        for (const [id, rec] of pendingMoves) {
+          if (rec.parent === focusedStepId && !subs.some((ss) => ss.id === id)) {
+            subs = [...subs, { id, name: rec.name, step: 0, l5: [] }];
+          }
+        }
+        subs = applyOrder(focusedStepId, subs, (ss) => ss.id);
+        return { ...s, subSteps: subs };
+      });
+    }
+    return list;
+  }, [stepsBase, vsFlowData, focusedVsId, focusedStepId, pendingMoves, applyOrder]);
   const focusedStep = steps.find((s) => s.id === focusedStepId) ?? null;
   const focusedSubStep = focusedStep?.subSteps.find((s) => s.id === focusedSubStepId) ?? null;
 
@@ -374,9 +520,9 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
 
     // Partition divisions by their segment; the API already delivers them in
     // value-chain order (Node.sortOrder), so each column keeps incoming order.
-    const categories = categoriesOf(divisions);
+    const categories = categoriesOf(displayDivisions);
     const cols: Record<Category, DivisionSummary[]> = {};
-    for (const d of divisions) (cols[catFor(d)] ??= []).push(d);
+    for (const d of displayDivisions) (cols[catFor(d)] ??= []).push(d);
 
     // Column center-x values, left→right in segment order.
     const colWidth = DIV_W + COL_GAP_X;
@@ -437,7 +583,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
       // centered under the domain header.
       if (!isDomainSelected) return;
 
-      const divs = cols[cat];
+      const divs = applyOrder(domainIdByCat.get(cat) ?? null, cols[cat], (d) => d.id);
       const divRowY = domainRowY + CORE_H + DIV_TOP_OFFSET;
       const totalDivRowWidth = divs.length * DIV_W + (divs.length - 1) * DIV_GAP_X;
       const divRowLeft = cx - totalDivRowWidth / 2;
@@ -695,9 +841,9 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
 
     return { nodes: ns, edges: es };
   }, [
-    divisions, companyName, companyOpen, selectedDomain, level,
+    displayDivisions, companyName, companyOpen, selectedDomain, level,
     focusedDivisionId, focusedDivision, focusedVsId, focusedStepId, focusedStep, focusedSubStepId,
-    flowData, valueStreams, vsFlowData, steps,
+    flowData, valueStreams, vsFlowData, steps, applyOrder, domainIdByCat,
   ]);
 
   // Overlay edit-mode affordances onto the laid-out nodes WITHOUT touching the
@@ -707,58 +853,58 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
   // shallow pass-through (no draggable, no affordance) so the map is unchanged.
   const displayNodes = useMemo<Node[]>(() => {
     if (!editMode) return nodes;
-    return nodes.map((n) => {
+    // Lift the dragged card out (a dragged domain/coreNode isn't in the data arrays,
+    // so drop it by id here; L2–L5 are already removed upstream).
+    const liftId = drag?.started ? drag.canvasId : null;
+    let result = liftId ? nodes.filter((n) => n.id !== liftId) : nodes;
+    // Open the insertion slot: every rendered card of the gap's type at/after the
+    // index slides over by one card-width (the CSS transform-transition animates it).
+    if (gap) {
+      const horiz = gap.type !== 'subStepNode';
+      const rowNodes = result.filter((n) => n.type === gap.type)
+        .sort((a, b) => (horiz ? a.position.x - b.position.x : a.position.y - b.position.y));
+      const shiftIds = new Set(rowNodes.slice(gap.index).map((n) => n.id));
+      if (shiftIds.size) {
+        const dx = horiz ? MAP_CARD_W + 12 : 0;
+        const dy = horiz ? 0 : MAP_CARD_H + 12;
+        result = result.map((n) => (shiftIds.has(n.id) ? { ...n, position: { x: n.position.x + dx, y: n.position.y + dy } } : n));
+      }
+    }
+    return result.map((n) => {
       const draggable = DRAGGABLE_TYPES.has(n.type ?? '');
-      const isTarget = dropTargetId === n.id;
-      if (!draggable && !isTarget) return n;
-      return {
-        ...n,
-        draggable,
-        data: { ...n.data, editable: draggable, dropTarget: isTarget },
-      };
+      const raw = rawNodeId(n);
+      const renamed = raw != null ? pendingRenames.get(raw) : undefined;
+      const staged = (raw != null && pendingMoves.has(raw)) || renamed !== undefined;
+      const nestTarget = n.id === nestTargetId; // "nest inside here" highlight
+      if (!draggable && !staged && !nestTarget) return n;
+      const data: Record<string, unknown> = { ...n.data, editable: draggable, staged, dropTarget: nestTarget };
+      if (renamed !== undefined) { if (n.type === 'coreNode') data.label = renamed; else data.name = renamed; }
+      return { ...n, data };
     });
-  }, [nodes, editMode, dropTargetId, DRAGGABLE_TYPES]);
+  }, [nodes, editMode, drag, gap, nestTargetId, DRAGGABLE_TYPES, rawNodeId, pendingMoves, pendingRenames]);
 
-  // ── React Flow controlled nodes — EDIT MODE ONLY (so drag moves the cards) ───
-  // React Flow v12 only commits drag position deltas to nodes that flow through
-  // its store via onNodesChange. So edit-mode drag needs a controlled `rfNodes`
-  // state + onNodesChange to paint the in-progress drag.
-  //
-  // BUT in VIEW mode that controlled path is pure jank: the sync effect re-seeds
-  // `rfNodes` on every `displayNodes` change (every focus/level transition), and
-  // those extra state updates re-measure/re-render the whole graph mid-camera-
-  // animation, producing the reset/flicker. View mode never drags, so it doesn't
-  // need the controlled store at all — we pass the stable, memoized `displayNodes`
-  // straight to <ReactFlow> and skip the sync churn entirely. The machinery below
-  // only engages when editMode is true.
-  const [rfNodes, setRfNodes] = useState<Node[]>(displayNodes);
-  // While a node is mid-drag, its live (dragged) position must survive any
-  // re-seed from `displayNodes` — and a re-seed DOES happen mid-drag, because
-  // `onNodeDrag` updates `dropTargetId`, which recomputes `displayNodes`. So we
-  // remember which node is being dragged and keep its current position when
-  // re-seeding; everything else snaps to the freshly-computed layout.
-  const draggingIdRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!editMode) return; // view mode renders displayNodes directly — no re-seed
-    setRfNodes((prev) => {
-      const dragId = draggingIdRef.current;
-      if (!dragId) return displayNodes;
-      const live = prev.find((n) => n.id === dragId);
-      if (!live) return displayNodes;
-      return displayNodes.map((n) => (n.id === dragId ? { ...n, position: live.position } : n));
-    });
-  }, [displayNodes, editMode]);
-  const onNodesChange: OnNodesChange = useCallback(
-    (changes) => setRfNodes((nds) => applyNodeChanges(changes, nds)),
-    [],
-  );
-  // The node set handed to <ReactFlow>: controlled state in edit mode (drag),
-  // the stable memoized layout in view mode (smooth, no re-seed churn).
-  const flowNodes = editMode ? rfNodes : displayNodes;
+  // While dragging, drop the lifted card's connectors so its line visibly detaches
+  // from its parent (the card itself is hidden in displayNodes; its slot stays so
+  // siblings don't shift and the drop target stays put).
+  const displayEdges = useMemo<Edge[]>(() => {
+    const liftId = drag?.started ? drag.canvasId : null;
+    return liftId ? edges.filter((e) => e.source !== liftId && e.target !== liftId) : edges;
+  }, [edges, drag]);
+
+  // ── Custom pointer-drag (edit mode) ──────────────────────────────────────────
+  // We DON'T use React Flow's node dragging — it moves nodes in pane coords through
+  // a controlled-store round-trip that races the map's frequent re-layouts (focus
+  // changes, hover-drill) and loses the drag. Instead, dragging is a plain screen-
+  // space pointer gesture: a ghost card follows the cursor 1:1, hit-testing uses
+  // getBoundingClientRect, the dragged card is lifted out of the layout (its edges
+  // disconnect), and the row under the cursor opens a gap. Nothing is committed
+  // until pointer-up. React Flow just renders the static `displayNodes`.
+  const flowNodes = displayNodes;
 
   // ── Camera helpers ────────────────────────────────────────────────────────
   // Fit a specific set of nodes in frame (used to frame the whole process row).
   const fitNodes = useCallback((nodeIds: string[], padding = 0.18) => {
+    if (dragRef.current?.started) return; // never move the camera mid-drag (would yank the dragged card away)
     // Every map card is a known fixed size (MAP_CARD_W×MAP_CARD_H), so we don't
     // wait on xyflow to MEASURE freshly-added nodes (that was clipping long
     // columns whose bottom hadn't measured yet). Instead, once the nodes exist
@@ -800,6 +946,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
   }, [rf]);
 
   const moveCameraToNode = useCallback((nodeId: string, yBias = 0.5) => {
+    if (dragRef.current?.started) return; // never move the camera mid-drag
     setTimeout(() => {
       const node = rf.getNode(nodeId);
       if (!node) return;
@@ -881,88 +1028,348 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
     }
   }, [focusedSubStepId]); // eslint-disable-line
 
-  // ── Edit-mode drag → reparent ────────────────────────────────────────────────
-  // Hit-test the dragged node's center against every other node's measured box;
-  // return the id of the first valid-parent node it overlaps (or null).
-  const findDropTarget = useCallback((dragged: Node): string | null => {
-    const parentType = VALID_PARENT_TYPE[dragged.type ?? ''];
-    if (!parentType) return null;
-    // The dragged node's CURRENT parent (the focused node one level above) — skip
-    // it so dropping back where it started isn't treated as a (no-op) move.
-    const currentParentId =
-      dragged.type === 'valueStreamNode' ? focusedDivisionId
-      : dragged.type === 'stepNode' ? (focusedVsId ? `vs:${focusedVsId}` : null)
-      : dragged.type === 'subStepNode' ? (focusedStepId ? `step:${focusedStepId}` : null)
-      : null;
-    const w = dragged.measured?.width ?? MAP_CARD_W;
-    const h = dragged.measured?.height ?? MAP_CARD_H;
-    const cx = dragged.position.x + w / 2;
-    const cy = dragged.position.y + h / 2;
-    for (const n of rf.getNodes()) {
-      if (n.id === dragged.id || n.id === currentParentId) continue;
-      if (n.type !== parentType) continue;
-      const nw = n.measured?.width ?? MAP_CARD_W;
-      const nh = n.measured?.height ?? MAP_CARD_H;
-      if (cx >= n.position.x && cx <= n.position.x + nw && cy >= n.position.y && cy <= n.position.y + nh) {
+  // ── Edit-mode drag → stage a move / reorder ──────────────────────────────────
+  // The raw-id of the row a node currently renders under (its effective parent).
+  const currentParentRaw = useCallback((node: Node): string | null => {
+    switch (node.type) {
+      case 'divisionNode': return domainIdByCat.get((node.data as DivisionNodeData).category) ?? null;
+      case 'valueStreamNode': return focusedDivisionId;
+      case 'stepNode': return focusedVsId;
+      case 'subStepNode': return focusedStepId;
+      default: return null; // domain / company
+    }
+  }, [domainIdByCat, focusedDivisionId, focusedVsId, focusedStepId]);
+
+  // Is `targetRaw` inside the dragged node's on-canvas subtree? Only the focused
+  // chain's descendants are rendered, so that's all we can (and need to) check;
+  // the server's cycle guard is the authoritative backstop.
+  const isVisibleDescendant = useCallback((targetRaw: string, draggedRaw: string): boolean => {
+    const inChainBelowDivision = valueStreams.some((v) => v.id === targetRaw) || steps.some((s) => s.id === targetRaw) || (focusedStep?.subSteps.some((s) => s.id === targetRaw) ?? false);
+    const inChainBelowVs = steps.some((s) => s.id === targetRaw) || (focusedStep?.subSteps.some((s) => s.id === targetRaw) ?? false);
+    if (draggedRaw === focusedDivisionId && inChainBelowDivision) return true;
+    if (draggedRaw === focusedVsId && inChainBelowVs) return true;
+    if (draggedRaw === focusedStepId && (focusedStep?.subSteps.some((s) => s.id === targetRaw) ?? false)) return true;
+    if (domainCatById.has(draggedRaw)) {
+      const cat = domainCatById.get(draggedRaw)!;
+      if (displayDivisions.some((d) => d.id === targetRaw && catFor(d) === cat)) return true;
+    }
+    return false;
+  }, [valueStreams, steps, focusedStep, focusedDivisionId, focusedVsId, focusedStepId, domainCatById, displayDivisions]);
+
+  const nodeName = (n: Node): string => ((n.data as { name?: string; label?: string }).name ?? (n.data as { label?: string }).label ?? '');
+  const arraysEqual = (a: string[], b: string[]) => a.length === b.length && a.every((x, i) => x === b[i]);
+  // Canvas id → node (for parent/level lookups during a drag).
+  const nodeById = useMemo(() => { const m = new Map<string, Node>(); for (const n of nodes) m.set(n.id, n); return m; }, [nodes]);
+  // Rendered left-to-right (or top-to-bottom) raw-id order of a parent's row.
+  const rowOrder = useCallback((parent: string, type: string): string[] =>
+    nodes.filter((n) => n.type === type && currentParentRaw(n) === parent)
+      .sort((a, b) => ((a.data as { pieceIndex?: number }).pieceIndex ?? 0) - ((b.data as { pieceIndex?: number }).pieceIndex ?? 0))
+      .map((n) => rawNodeId(n)).filter((x): x is string => !!x),
+  [nodes, currentParentRaw, rawNodeId]);
+
+  // The card under a screen point. The drag ghost is pointer-events:none so it's
+  // transparent to elementFromPoint.
+  const cardAtPoint = (x: number, y: number): { canvasId: string; type: string } | null => {
+    const el = (document.elementFromPoint(x, y) as HTMLElement | null)?.closest('.react-flow__node') as HTMLElement | null;
+    if (!el) return null;
+    const canvasId = el.getAttribute('data-id'); if (!canvasId) return null;
+    const type = [...el.classList].find((c) => c.startsWith('react-flow__node-'))?.slice('react-flow__node-'.length) ?? '';
+    return { canvasId, type };
+  };
+
+  // ── Hover-to-drill (hold the cursor directly over a box for HOVER_DRILL_MS) ────
+  const hoverDrillRef = useRef<{ id: string | null; timer: number | null }>({ id: null, timer: null });
+  const clearHoverDrill = useCallback(() => {
+    if (hoverDrillRef.current.timer) window.clearTimeout(hoverDrillRef.current.timer);
+    hoverDrillRef.current = { id: null, timer: null };
+  }, []);
+  const scheduleHoverDrill = useCallback((canvasId: string | null, type: string | null) => {
+    if (!canvasId || !type || !['coreNode', 'divisionNode', 'valueStreamNode', 'stepNode'].includes(type)) { clearHoverDrill(); return; }
+    if (hoverDrillRef.current.id === canvasId) return; // already counting down on this exact box
+    if (hoverDrillRef.current.timer) window.clearTimeout(hoverDrillRef.current.timer);
+    hoverDrillRef.current = {
+      id: canvasId,
+      timer: window.setTimeout(() => {
+        if (type === 'coreNode') { const c = canvasId.slice(5); if (selectedDomain !== c) onDomainClick(c as Category); }
+        else if (type === 'divisionNode') { if (focusedDivisionId !== canvasId) onDivisionClick(canvasId); }
+        else if (type === 'valueStreamNode') { const raw = canvasId.slice(3); if (focusedVsId !== raw) onVsClick(raw); }
+        else if (type === 'stepNode') { const raw = canvasId.slice(5); if (focusedStepId !== raw) onStepClick(raw); }
+      }, HOVER_DRILL_MS),
+    };
+  }, [clearHoverDrill, selectedDomain, focusedDivisionId, focusedVsId, focusedStepId, onDomainClick, onDivisionClick, onVsClick, onStepClick]);
+
+  // Screen-space rect of a node from its STABLE layout position (node.position is
+  // pane coords; the live gap-shift only touches displayNodes, not `nodes`, so this
+  // is immune to cards sliding around — hit-testing stays rock-steady under the
+  // cursor).
+  const nodeScreenRect = useCallback((n: Node) => {
+    const p = rf.flowToScreenPosition(n.position);
+    const z = rf.getZoom();
+    return { x: p.x, y: p.y, w: MAP_CARD_W * z, h: MAP_CARD_H * z };
+  }, [rf]);
+
+  // Compute the open insertion slot for the cursor position. The dragged card can
+  // be placed beside the children of ANY rendered row (not just its own level) — so
+  // an L3 can drop between the L4 steps of a value stream you've drilled into. We
+  // pick the rendered card-row whose band the cursor is closest to.
+  const gapRef = useRef<{ parent: string; index: number; type: string } | null>(null);
+  const ROW_TYPES = useMemo(() => ['coreNode', 'divisionNode', 'valueStreamNode', 'stepNode', 'subStepNode'], []);
+  const computeGap = useCallback((d: DragState): { parent: string; index: number; type: string } | null => {
+    type RowRect = { id: string; r: { x: number; y: number; w: number; h: number }; raw: string | null };
+    let best: { type: string; horizontal: boolean; dist: number; rects: RowRect[] } | null = null;
+    for (const type of ROW_TYPES) {
+      const rows = nodes.filter((n) => n.type === type && n.id !== d.canvasId);
+      if (!rows.length) continue;
+      const horizontal = type !== 'subStepNode';
+      const rects: RowRect[] = rows.map((n) => ({ id: n.id, r: nodeScreenRect(n), raw: rawNodeId(n) }));
+      const r0 = rects[0].r;
+      const dist = horizontal ? Math.abs(d.py - (r0.y + r0.h / 2)) : Math.abs(d.px - (r0.x + r0.w / 2));
+      if (dist > (horizontal ? r0.h : r0.w) * 1.4) continue; // cursor not in this row's band
+      if (!best || dist < best.dist) best = { type, horizontal, dist, rects };
+    }
+    if (!best) return null;
+    const sample = nodeById.get(best.rects[0].id);
+    const parent = sample ? currentParentRaw(sample) : null;
+    if (!parent || parent === d.rawId) return null;
+    best.rects.sort((a, b) => (best!.horizontal ? a.r.x - b.r.x : a.r.y - b.r.y));
+    const main = (r: { x: number; y: number; w: number; h: number }) => (best!.horizontal ? r.x + r.w / 2 : r.y + r.h / 2);
+    const ptr = best.horizontal ? d.px : d.py;
+    const index = best.rects.filter((o) => main(o.r) < ptr).length;
+    return { parent, index, type: best.type };
+  }, [nodes, ROW_TYPES, nodeScreenRect, nodeById, currentParentRaw, rawNodeId]);
+
+  // The box whose CENTRE the cursor is over → a "nest inside" target (drop makes the
+  // dragged card its child). Returns null when the cursor is near a card's edge or
+  // in a gap (that's a place-beside), or the target is invalid.
+  const computeNest = useCallback((d: DragState): string | null => {
+    // Cursor over a box (by its STABLE layout rect) → nest into it. Using layout
+    // positions (not the visually-shifted DOM) means the target never slides away
+    // from under the cursor, so nesting is reliable.
+    for (const n of nodes) {
+      if (n.id === d.canvasId) continue;
+      if (!TYPE_LEVEL[n.type ?? '']) continue; // company root / leaf can't be a parent
+      const r = nodeScreenRect(n);
+      if (d.px >= r.x && d.px <= r.x + r.w && d.py >= r.y && d.py <= r.y + r.h) {
+        // Only the CENTRE of a card nests; its left/right edges mean "place beside"
+        // (so the row spreads open). Stable layout coords → no oscillation.
+        const horiz = n.type !== 'subStepNode';
+        const frac = horiz ? (d.px - r.x) / r.w : (d.py - r.y) / r.h;
+        if (frac <= 0.22 || frac >= 0.78) return null; // only the outer ~22% edges mean "place beside"; the rest nests
+        const targetRaw = rawNodeId(n);
+        if (!targetRaw || targetRaw === d.originParent || isVisibleDescendant(targetRaw, d.rawId)) return null;
         return n.id;
       }
     }
     return null;
-  }, [rf, VALID_PARENT_TYPE, focusedDivisionId, focusedVsId, focusedStepId]);
+  }, [nodes, nodeScreenRect, rawNodeId, isVisibleDescendant]);
 
-  const onNodeDrag: OnNodeDrag = useCallback((_e, node) => {
-    if (!editMode || !DRAGGABLE_TYPES.has(node.type ?? '')) return;
-    draggingIdRef.current = node.id; // protect its live position from layout re-seeds
-    const target = findDropTarget(node);
-    setDropTargetId((prev) => (prev === target ? prev : target));
-  }, [editMode, DRAGGABLE_TYPES, findDropTarget]);
+  // The drillable container the cursor is over (stable layout hit-test) — what
+  // hover-hold drills open. Unlike computeNest this allows ANY container (even the
+  // current parent) so you can drill deeper before placing.
+  const containerAtCursor = useCallback((d: DragState): { canvasId: string; type: string } | null => {
+    for (const n of nodes) {
+      if (n.id === d.canvasId) continue;
+      if (!['coreNode', 'divisionNode', 'valueStreamNode', 'stepNode'].includes(n.type ?? '')) continue;
+      const r = nodeScreenRect(n);
+      if (d.px >= r.x && d.px <= r.x + r.w && d.py >= r.y && d.py <= r.y + r.h) return { canvasId: n.id, type: n.type ?? '' };
+    }
+    return null;
+  }, [nodes, nodeScreenRect]);
 
-  const onNodeDragStop: OnNodeDrag = useCallback(async (_e, node) => {
-    draggingIdRef.current = null; // drag finished — layout re-seeds may resume
-    if (!editMode || !DRAGGABLE_TYPES.has(node.type ?? '')) return;
-    const target = findDropTarget(node);
-    setDropTargetId(null);
-    // Snap the dragged node back to its computed slot regardless of outcome —
-    // the layout is fully derived, so we never persist free positions. On a
-    // successful move the parent refetch re-lays everything out. We reset our
-    // own controlled state (rfNodes) so the snap-back actually paints.
-    const resetPositions = () => setRfNodes((ns) => ns.map((n) => {
-      if (n.id !== node.id) return n;
-      const original = displayNodes.find((o) => o.id === n.id);
-      return original ? { ...n, position: original.position } : n;
-    }));
-
-    if (!target) {
-      resetPositions();
+  // ── Commit a drop (pointer-up) → stage a move / reorder ───────────────────────
+  const commitDrop = useCallback(() => {
+    const d = dragRef.current; const g = gapRef.current; const nestId = nestRef.current;
+    dragRef.current = null; gapRef.current = null; nestRef.current = null;
+    clearHoverDrill(); setDrag(null); setGap(null); setNestTargetId(null);
+    if (!d || !d.started) {
+      // A click on a draggable card (no drag). Double-click → inline rename;
+      // single click → drill (deferred ~280ms so a 2nd click can cancel it).
+      if (d) {
+        const drill = () => {
+          if (d.type === 'coreNode') onDomainClick(d.canvasId.slice(5) as Category);
+          else if (d.type === 'divisionNode') onDivisionClick(d.canvasId);
+          else if (d.type === 'valueStreamNode') onVsClick(d.canvasId.slice(3));
+          else if (d.type === 'stepNode') onStepClick(d.canvasId.slice(5));
+          else if (d.type === 'subStepNode') onSubStepClick(d.canvasId.slice(8));
+        };
+        const now = Date.now();
+        const last = lastClickRef.current;
+        if (last && last.id === d.canvasId && now - last.time < 300) {
+          if (clickTimerRef.current) window.clearTimeout(clickTimerRef.current);
+          clickTimerRef.current = null; lastClickRef.current = null;
+          const node = nodeById.get(d.canvasId);
+          if (node) {
+            const r = nodeScreenRect(node);
+            setRename({ rawId: d.rawId, value: pendingRenames.get(d.rawId) ?? d.name, x: r.x, y: r.y, w: r.w, h: r.h, cat: d.cat });
+          }
+        } else {
+          lastClickRef.current = { id: d.canvasId, time: now };
+          if (clickTimerRef.current) window.clearTimeout(clickTimerRef.current);
+          clickTimerRef.current = window.setTimeout(() => { clickTimerRef.current = null; lastClickRef.current = null; drill(); }, 280);
+        }
+      }
       return;
     }
-    if (!companyId) { resetPositions(); flash('err', 'No active company.'); return; }
 
-    const nodeId = rawNodeId(node);
-    const newParentId = rawNodeId({ id: target } as Node);
+    // 0) NEST — dropped on a box's centre → become that box's child (one level
+    //    deeper; the backend auto-creates the level if it doesn't exist yet).
+    if (nestId) {
+      const target = nodeById.get(nestId);
+      const targetRaw = target ? rawNodeId(target) : null;
+      const targetLevel = TYPE_LEVEL[target?.type ?? ''] ?? 0;
+      if (targetRaw && targetLevel) {
+        const sameLevel = targetLevel + 1 === d.level;
+        setPendingMoves((m) => { const next = new Map(m); next.set(d.rawId, { parent: targetRaw, sameLevel, level: d.level, name: d.name, cat: d.cat }); return next; });
+        setPendingOrder((m) => { if (!m.size) return m; const next = new Map(m); for (const [p, ids] of next) { const f = ids.filter((id) => id !== d.rawId); if (f.length !== ids.length) next.set(p, f); } return next; });
+        flash('ok', sameLevel ? 'Staged move — children follow.' : 'Staged — nested inside.');
+        // Open the target so the box lands visibly INSIDE it (no "where did it go?").
+        if (target?.type === 'coreNode') onDomainClick(nestId.slice(5) as Category);
+        else if (target?.type === 'divisionNode') onDivisionClick(nestId);
+        else if (target?.type === 'valueStreamNode') onVsClick(nestId.slice(3));
+        else if (target?.type === 'stepNode') onStepClick(nestId.slice(5));
+      }
+      return;
+    }
+
+    // 1) Dropped within a same-level row → place beside, at that index.
+    if (g) {
+      if (g.parent !== d.originParent && isVisibleDescendant(g.parent, d.rawId)) { flash('err', "Can't drop a box inside its own branch."); return; }
+      const ids = rowOrder(g.parent, g.type).filter((id) => id !== d.rawId);
+      ids.splice(Math.min(g.index, ids.length), 0, d.rawId);
+      if (g.parent === d.originParent) {
+        setPendingOrder((m) => { const next = new Map(m); if (arraysEqual(ids, d.originOrder)) next.delete(g.parent); else next.set(g.parent, ids); return next; });
+      } else {
+        const sameLevel = (TYPE_LEVEL[g.type] ?? 0) === d.level; // dropping into a deeper/shallower row re-levels
+        setPendingMoves((m) => { const next = new Map(m); next.set(d.rawId, { parent: g.parent, sameLevel, level: d.level, name: d.name, cat: d.cat }); return next; });
+        setPendingOrder((m) => { const next = new Map(m); next.set(g.parent, ids); return next; });
+        flash('ok', sameLevel ? 'Staged move — placed among siblings.' : 'Staged — placed inside (re-leveled).');
+      }
+      return;
+    }
+    // else: no-op — the box returns to its row (it was only lifted, never staged).
+  }, [clearHoverDrill, rowOrder, isVisibleDescendant, nodeById, rawNodeId, flash, onDomainClick, onDivisionClick, onVsClick, onStepClick, onSubStepClick, nodeScreenRect, pendingRenames]);
+
+  // Window listeners live only while a drag is in progress; re-subscribe when the
+  // drill/gap callbacks change (focus shifts mid-drag) so they stay fresh.
+  useEffect(() => {
+    if (!drag) return;
+    const onMove = (e: PointerEvent) => {
+      const d = dragRef.current; if (!d) return;
+      const moved = Math.hypot(e.clientX - d.startX, e.clientY - d.startY);
+      const next: DragState = { ...d, px: e.clientX, py: e.clientY, started: d.started || moved >= 4 };
+      dragRef.current = next; setDrag(next);
+      if (!next.started) return;
+      e.preventDefault();
+      // hover-drill on the container under the cursor (stable layout hit-test)
+      const hc = containerAtCursor(next);
+      scheduleHoverDrill(hc?.canvasId ?? null, hc?.type ?? null);
+      // over a box → nest; otherwise → gap (place beside)
+      const nest = computeNest(next);
+      nestRef.current = nest; setNestTargetId(nest);
+      const g = nest ? null : computeGap(next);
+      gapRef.current = g; setGap(g);
+    };
+    const onUp = () => commitDrop();
+    window.addEventListener('pointermove', onMove, { passive: false });
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+    };
+  }, [drag, scheduleHoverDrill, computeGap, computeNest, containerAtCursor, commitDrop]);
+
+  // Start a drag when the pointer goes down on a draggable card (in edit mode).
+  const onStagePointerDown = useCallback((e: ReactPointerEvent) => {
+    if (!editMode || e.button !== 0) return;
+    if ((e.target as HTMLElement).closest('input')) return; // typing in the rename editor
+    const hit = cardAtPoint(e.clientX, e.clientY);
+    if (!hit) {
+      // Empty canvas → custom pan (React Flow's own pan is disabled in edit mode so
+      // it can't fight the card drag; we drive the viewport ourselves here).
+      let lastX = e.clientX, lastY = e.clientY;
+      const onMove = (ev: PointerEvent) => {
+        const vp = rf.getViewport();
+        rf.setViewport({ x: vp.x + (ev.clientX - lastX), y: vp.y + (ev.clientY - lastY), zoom: vp.zoom });
+        lastX = ev.clientX; lastY = ev.clientY;
+      };
+      const onUp = () => {
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+        window.removeEventListener('pointercancel', onUp);
+      };
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+      window.addEventListener('pointercancel', onUp);
+      return;
+    }
+    if (!DRAGGABLE_TYPES.has(hit.type)) return; // non-draggable card (company/leaf) → React Flow click → drill
+    const node = nodeById.get(hit.canvasId);
+    const rawId = node ? rawNodeId(node) : null;
+    if (!node || !rawId) return;
+    const el = (e.target as HTMLElement).closest('.react-flow__node') as HTMLElement;
+    const r = el.getBoundingClientRect();
+    const origin = currentParentRaw(node);
+    dragRef.current = {
+      canvasId: hit.canvasId, rawId, type: hit.type, level: TYPE_LEVEL[hit.type] ?? 0,
+      name: nodeName(node), cat: (node.data as { category?: string }).category ?? selectedDomain ?? '',
+      originParent: origin, originOrder: origin ? rowOrder(origin, hit.type) : [],
+      grabDX: e.clientX - r.x, grabDY: e.clientY - r.y, cardW: r.width, cardH: r.height,
+      startX: e.clientX, startY: e.clientY, px: e.clientX, py: e.clientY, started: false,
+    };
+    setDrag(dragRef.current);
+  }, [editMode, DRAGGABLE_TYPES, nodeById, rawNodeId, currentParentRaw, rowOrder, selectedDomain, rf]);
+
+  // ── Save / Revert staged edits ────────────────────────────────────────────────
+  const onSave = useCallback(async () => {
+    if (!companyId || !dirty || saving) return;
+    const ops: ({ op: 'move'; id: string; newParentId: string } | { op: 'reorder'; parentId: string; orderedIds: string[] } | { op: 'rename'; id: string; name: string })[] = [];
+    for (const [id, rec] of pendingMoves) ops.push({ op: 'move', id, newParentId: rec.parent });
+    for (const [parentId, orderedIds] of pendingOrder) ops.push({ op: 'reorder', parentId, orderedIds });
+    for (const [id, name] of pendingRenames) ops.push({ op: 'rename', id, name });
+    setSaving(true);
     try {
-      await api.patch(`/builder/nodes/${nodeId}?companyId=${encodeURIComponent(companyId)}`, { parentId: newParentId });
-      flash('ok', 'Moved — children followed.');
-      // Refetch the current flow(s) so the moved subtree re-lays out under its
-      // new parent (the layout is fully derived from this data). Both the L3
-      // value-stream row and the focused L4/L5 flow come from these two calls.
+      await api.post(`/builder/nodes/batch?companyId=${encodeURIComponent(companyId)}`, { ops });
+      setPendingMoves(new Map()); setPendingOrder(new Map()); setPendingRenames(new Map());
+      flash('ok', 'Saved.');
       if (focusedDivisionId) fetchFlow(focusedDivisionId);
       if (focusedDivisionId && focusedVsId) fetchVsFlow(focusedDivisionId, focusedVsId);
       onMoved?.();
     } catch (e) {
-      const label = PARENT_LABEL[node.type ?? ''] ?? 'parent';
       const msg = (e as Error)?.message;
-      resetPositions();
-      flash('err', msg && !/HTTP/.test(msg) ? msg : `Can only move under a ${label}.`);
-    }
-  }, [editMode, DRAGGABLE_TYPES, findDropTarget, companyId, rawNodeId, displayNodes, flash, onMoved, PARENT_LABEL, focusedDivisionId, focusedVsId, fetchFlow, fetchVsFlow]);
+      flash('err', msg && !/HTTP/.test(msg) ? msg : 'Save failed — your changes are kept.');
+    } finally { setSaving(false); }
+  }, [companyId, dirty, saving, pendingMoves, pendingOrder, pendingRenames, focusedDivisionId, focusedVsId, fetchFlow, fetchVsFlow, onMoved, flash]);
+
+  const onRevert = useCallback(() => {
+    setPendingMoves(new Map()); setPendingOrder(new Map()); setPendingRenames(new Map());
+    setRename(null);
+    flash('ok', 'Reverted.');
+  }, [flash]);
+
+  // Commit the inline rename editor → stage the new name.
+  const commitRename = useCallback(() => {
+    if (!rename) return;
+    const v = rename.value.trim();
+    if (v) setPendingRenames((m) => { const n = new Map(m); n.set(rename.rawId, v); return n; });
+    setRename(null);
+  }, [rename]);
+
+  const onToggleEdit = useCallback(() => {
+    if (editMode && dirty) { flash('err', 'Save or revert your changes first.'); return; }
+    setEditMode((v) => !v);
+    dragRef.current = null; gapRef.current = null; nestRef.current = null;
+    setDrag(null); setGap(null); setNestTargetId(null); setRename(null);
+    clearHoverDrill();
+  }, [editMode, dirty, flash, clearHoverDrill]);
 
   // ── Node click handler ────────────────────────────────────────────────────
   const onNodeClick: NodeMouseHandler = useCallback((_e, node) => {
-    // In edit mode, suppress click-to-drill on draggable nodes so a drag never
-    // also fires a navigation. Non-draggable nodes (company/domain/division)
-    // stay interactive so the user can still open the path they want to edit.
-    if (editMode && DRAGGABLE_TYPES.has(node.type ?? '')) return;
+    // Click-to-drill stays active in edit mode for every level so the user can
+    // navigate to the branch they want to edit. React Flow fires this only on a
+    // genuine click (a drag goes through onNodeDragStop instead), so click and
+    // drag don't collide.
     if (node.type === 'companyNode') {
       onCompanyClick();
     } else if (node.type === 'coreNode') {
@@ -977,7 +1384,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
       onSubStepClick(node.id.replace(/^substep:/, ''));
     }
     // leafStepNode (L5) is display-only (non-interactive)
-  }, [editMode, DRAGGABLE_TYPES, onCompanyClick, onDomainClick, onDivisionClick, onVsClick, onStepClick, onSubStepClick]);
+  }, [onCompanyClick, onDomainClick, onDivisionClick, onVsClick, onStepClick, onSubStepClick]);
 
   // ── Dashboard drill-down ────────────────────────────────────────────────────
   // Map levels move the canvas; departments drill inside the sidebar (stack).
@@ -1077,17 +1484,19 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
           vertically-CENTERED fit on init that lands after (and overrides) the
           top-pinned fit from fitTopView — the companyOpen mount effect handles
           the initial camera instead. */}
-      <div className="rf-stage rf-stage--map" style={{ flex: 1, position: 'relative' }}>
+      <div
+        className={'rf-stage rf-stage--map' + (editMode ? ' rf-stage--edit' : '')}
+        style={{ flex: 1, position: 'relative' }}
+        onPointerDownCapture={onStagePointerDown}
+      >
         <ReactFlow
           nodes={flowNodes}
-          edges={edges}
+          edges={displayEdges}
           nodeTypes={mapNodeTypes}
-          onNodesChange={editMode ? onNodesChange : undefined}
           onNodeClick={onNodeClick}
-          onNodeDrag={onNodeDrag}
-          onNodeDragStop={onNodeDragStop}
-          nodesDraggable={editMode}
+          nodesDraggable={false}
           nodesConnectable={false}
+          panOnDrag={!editMode}
           minZoom={0.05}
           maxZoom={2}
           proOptions={{ hideAttribution: true }}
@@ -1096,23 +1505,94 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
           <Controls showInteractive={false} position="bottom-left" />
         </ReactFlow>
 
-        {/* Edit button — top-right of the canvas (the view toggle owns top-left).
-            Toggles Apple-home-screen drag mode: process cards become draggable and
-            can be dropped onto a node one level above to re-home the whole subtree. */}
+        {/* Drag ghost — a card-sized chip following the cursor 1:1 (pointer-events
+            off so it's transparent to hit-testing). Only while really dragging. */}
+        {drag?.started && (
+          <div
+            style={{
+              position: 'fixed', left: drag.px - drag.grabDX, top: drag.py - drag.grabDY,
+              width: drag.cardW, height: drag.cardH, zIndex: 50, pointerEvents: 'none',
+              borderRadius: 10, background: '#ffffff',
+              border: '1px solid #eaeaea', borderLeft: `3px solid ${DOMAIN_HEX[drag.cat] ?? '#64748b'}`,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.18)', opacity: 0.95,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: '8px 10px', textAlign: 'center', fontSize: 11.5, fontWeight: 600, color: '#171717',
+            }}
+          >
+            {sentenceCase(drag.name)}
+          </div>
+        )}
+
+        {/* Inline rename editor — double-click a box in edit mode to open it. */}
+        {rename && (
+          <input
+            autoFocus
+            value={rename.value}
+            onChange={(e) => setRename((r) => (r ? { ...r, value: e.target.value } : r))}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              if (e.key === 'Enter') commitRename();
+              else if (e.key === 'Escape') setRename(null);
+            }}
+            onBlur={commitRename}
+            onFocus={(e) => e.currentTarget.select()}
+            style={{
+              position: 'fixed', left: rename.x, top: rename.y, width: rename.w, height: rename.h,
+              zIndex: 60, boxSizing: 'border-box', padding: '6px 8px', borderRadius: 10,
+              border: `2px solid ${DOMAIN_HEX[rename.cat] ?? '#0d9488'}`, background: '#ffffff',
+              fontSize: 11.5, fontWeight: 600, color: '#171717', textAlign: 'center', outline: 'none',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+            }}
+          />
+        )}
+
+        {/* Edit toolbar — top-right of the canvas (the view toggle owns top-left).
+            Edit mode makes every process level (L1 domain → L5 sub-process)
+            draggable; drag onto another box to re-home it (children + associations
+            follow, re-leveling as needed), hold over a box to drill deeper, or drop
+            within a row to reorder. Nothing hits the DB until Save. */}
         <div className="absolute top-3 right-4 z-20 flex items-center gap-2">
           {editMode && (
-            <span className="hidden sm:inline-flex items-center rounded-full bg-white/90 backdrop-blur border border-[#eaeaea] px-2.5 py-1 text-[11px] text-[#525252] shadow-sm">
-              Drag a process onto another to move it — children follow.
+            <span className="hidden md:inline-flex items-center rounded-full bg-white/90 backdrop-blur border border-[#eaeaea] px-2.5 py-1 text-[11px] text-[#525252] shadow-sm">
+              {dirty
+                ? `${pendingCount} unsaved change${pendingCount === 1 ? '' : 's'} — Save or Revert`
+                : 'Drag to move • hold to drill • drop in a row to reorder • double-click to rename'}
             </span>
+          )}
+          {editMode && dirty && (
+            <>
+              <button
+                type="button"
+                onClick={onSave}
+                disabled={saving}
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm transition-colors duration-150 bg-[#0d9488] text-white hover:bg-[#0f766e] disabled:opacity-60"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                {saving ? 'Saving…' : 'Save'}
+              </button>
+              <button
+                type="button"
+                onClick={onRevert}
+                disabled={saving}
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm transition-colors duration-150 border border-[#eaeaea] bg-white/90 backdrop-blur text-[#525252] hover:text-[#171717] disabled:opacity-60"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M3 7v6h6M3 13a9 9 0 1 0 3-7.7L3 7" />
+                </svg>
+                Revert
+              </button>
+            </>
           )}
           <button
             type="button"
-            onClick={() => { setEditMode((v) => !v); setDropTargetId(null); }}
+            onClick={onToggleEdit}
             aria-pressed={editMode}
             className={
               'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm transition-colors duration-150 ' +
               (editMode
-                ? 'bg-[#0d9488] text-white hover:bg-[#0f766e]'
+                ? (dirty ? 'border border-[#eaeaea] bg-white/90 backdrop-blur text-[#a3a3a3]' : 'bg-[#0d9488] text-white hover:bg-[#0f766e]')
                 : 'border border-[#eaeaea] bg-white/90 backdrop-blur text-[#525252] hover:text-[#171717]')
             }
           >

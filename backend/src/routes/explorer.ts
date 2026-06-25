@@ -59,7 +59,7 @@ router.get('/overview', async (req: Request, res: Response, next: NextFunction) 
       company: { id: company.id, name: company.name },
       counts: { domains: domains.length, divisions: divisions.length, valueStreams: divisions.length },
       domains: domains.map((d) => ({ id: d.id, name: d.displayValue, valueStreams: vsByDomain.get(d.id) ?? 0 })),
-      divisions: divisions.map((d) => ({ id: d.id, name: d.displayValue, higherCategory: d.parentId ? domainName.get(d.parentId) ?? null : null, roles: roleDeg.get(d.id) ?? 0 })),
+      divisions: divisions.map((d) => ({ id: d.id, name: d.displayValue, higherCategory: d.parentId ? domainName.get(d.parentId) ?? null : null, higherCategoryId: d.parentId ?? null, roles: roleDeg.get(d.id) ?? 0 })),
     });
   } catch (e) { next(e); }
 });

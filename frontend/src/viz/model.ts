@@ -56,6 +56,9 @@ export type DivisionSummary = {
   id: string;
   name: string;
   higherCategory: string | null;
+  /** The L1 domain (segment) ProcessNode id this division sits under — lets the
+   *  map treat the domain header as an id-backed drag source / drop target. */
+  higherCategoryId?: string | null;
   roles: number;
 };
 

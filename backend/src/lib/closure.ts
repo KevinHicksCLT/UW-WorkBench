@@ -92,6 +92,44 @@ async function moveSubtreeTx(tx: Tx, t: Tables, nodeId: string, newParentId: str
 }
 
 /**
+ * Re-level the moved ProcessNode subtree: rewrite `processLevelTypeId` for every
+ * node in the subtree by its depth below `nodeId`. `levelByDepth` maps the relative
+ * depth (0 = the moved node itself) → the target `ProcessLevelType.id`. The ids are
+ * allow-listed by the caller (resolved from the company's level types) and bound as
+ * parameters — never interpolated. One UPDATE per distinct depth (≤ tree height).
+ */
+async function relevelProcessSubtreeTx(tx: Tx, nodeId: string, levelByDepth: Map<number, string>): Promise<void> {
+  for (const [depth, ltId] of levelByDepth) {
+    await tx.$executeRawUnsafe(
+      `UPDATE "ProcessNode" SET "processLevelTypeId" = $1
+         WHERE "id" IN (
+           SELECT "descendantId" FROM "ProcessNodeClosure" WHERE "ancestorId" = $2 AND "depth" = $3
+         )`,
+      ltId, nodeId, depth,
+    );
+  }
+}
+
+/**
+ * Move a ProcessNode subtree and (optionally) re-level it, on a caller-supplied tx
+ * — so several edits can share one transaction (the canvas's batched Save). When
+ * `levelByDepth` is empty the level is unchanged (same-level re-home).
+ */
+export async function moveProcessSubtreeTx(
+  tx: Tx, nodeId: string, newParentId: string | null, levelByDepth?: Map<number, string>,
+): Promise<void> {
+  await moveSubtreeTx(tx, PROCESS, nodeId, newParentId);
+  if (levelByDepth && levelByDepth.size) await relevelProcessSubtreeTx(tx, nodeId, levelByDepth);
+}
+
+/** Move + re-level a single ProcessNode subtree in its own transaction. */
+export function moveProcessSubtreeWithRelevel(
+  args: { nodeId: string; newParentId: string | null; levelByDepth?: Map<number, string> },
+): Promise<void> {
+  return prisma.$transaction((tx) => moveProcessSubtreeTx(tx, args.nodeId, args.newParentId, args.levelByDepth));
+}
+
+/**
  * Delete the whole subtree rooted at `nodeId`: every descendant node row and the
  * closure rows touching any subtree id. Node deletes cascade their junctions and
  * (via the closure FKs' onDelete:Cascade) most closure rows, but we delete closure

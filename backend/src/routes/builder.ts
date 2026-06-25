@@ -3,7 +3,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.js';
-import { closureFor } from '../lib/closure.js';
+import { closureFor, moveProcessSubtreeTx, moveProcessSubtreeWithRelevel } from '../lib/closure.js';
 import { invalidateStructureCounts } from '../lib/resolvers/index.js';
 
 // Interactive operating-model builder.
@@ -150,6 +150,64 @@ async function levelTypeId(spine: Spine, companyId: string, level: number): Prom
   return lt?.id ?? null;
 }
 
+// Validate + plan a ProcessNode reparent. Unlike OrgUnit, the process tree allows
+// re-leveling: a node can drop under ANY target and adopts level (parentLevel + 1),
+// its whole subtree shifting with it. The drop is CAPPED at the company's deepest
+// configured level — a drop that would nest past it is rejected (we never invent
+// new levels). Returns the depth→levelTypeId map to apply (empty when the level is
+// unchanged) plus the node's resulting level, or an error to surface verbatim.
+type MovePlan = { levelByDepth: Map<number, string>; newRootLevel: number };
+async function planProcessMove(
+  cid: string, nodeId: string, currentLevel: number, newParentId: string | null,
+): Promise<MovePlan | { error: string; status: number }> {
+  if (newParentId === nodeId) return { error: 'A node cannot be its own parent', status: 400 };
+
+  let newRootLevel: number;
+  if (newParentId) {
+    const parent = await prisma.processNode.findFirst({
+      where: { id: newParentId, companyId: cid },
+      select: { processLevelType: { select: { levelNumber: true } } },
+    });
+    if (!parent) return { error: 'Parent not found in this company', status: 400 };
+    // Cycle guard: the new parent must not sit inside this node's own subtree.
+    const inSubtree = await prisma.processNodeClosure.findFirst({
+      where: { ancestorId: nodeId, descendantId: newParentId }, select: { ancestorId: true },
+    });
+    if (inSubtree) return { error: 'Cannot move a node under its own descendant', status: 400 };
+    newRootLevel = parent.processLevelType.levelNumber + 1;
+  } else {
+    newRootLevel = 1; // dropped to root
+  }
+
+  // Deepest relative depth in the moved subtree (0 = the node itself).
+  const depths = await prisma.processNodeClosure.findMany({ where: { ancestorId: nodeId }, select: { depth: true } });
+  const maxDepth = depths.reduce((m, r) => Math.max(m, r.depth), 0);
+
+  let levels = await prisma.processLevelType.findMany({ where: { companyId: cid }, select: { id: true, levelNumber: true } });
+  const maxLevel = levels.reduce((m, l) => Math.max(m, l.levelNumber), 0);
+  // Auto-extend the taxonomy on demand: if nesting goes deeper than the deepest
+  // configured level, create the missing levels (rename them later in Data Admin)
+  // so depth is unlimited — maximum customizability, no hard cap.
+  const neededMax = newRootLevel + maxDepth;
+  if (neededMax > maxLevel) {
+    const toCreate = [];
+    for (let n = maxLevel + 1; n <= neededMax; n++) toCreate.push({ companyId: cid, levelNumber: n, dbValue: `L${n}`, displayValue: `Level ${n}` });
+    await prisma.processLevelType.createMany({ data: toCreate, skipDuplicates: true });
+    levels = await prisma.processLevelType.findMany({ where: { companyId: cid }, select: { id: true, levelNumber: true } });
+  }
+
+  const levelByDepth = new Map<number, string>();
+  if (newRootLevel !== currentLevel) {
+    const byNum = new Map(levels.map((l) => [l.levelNumber, l.id]));
+    for (let d = 0; d <= maxDepth; d++) {
+      const id = byNum.get(newRootLevel + d);
+      if (!id) return { error: `This company has no level ${newRootLevel + d} configured`, status: 400 };
+      levelByDepth.set(d, id);
+    }
+  }
+  return { levelByDepth, newRootLevel };
+}
+
 router.post('/nodes', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const cid = await companyForReq(req);
@@ -215,26 +273,36 @@ router.patch('/nodes/:id', async (req: Request, res: Response, next: NextFunctio
       if (!Number.isInteger(n)) return res.status(400).json({ error: 'sortOrder must be an integer' });
       data.sortOrder = n;
     }
-    // Parent reassignment (same spine, parent one level up). typeKey moves
-    // (re-leveling) are not supported. The reparent itself is applied via
-    // closure.moveSubtree (which sets parentId + rebuilds the subtree edges
-    // transactionally); other field updates go through del.update.
+    // Parent reassignment. The ProcessNode tree supports re-leveling (drop under any
+    // target; the subtree adopts the new depth, capped at the deepest level) via
+    // planProcessMove + moveProcessSubtreeWithRelevel. OrgUnit keeps the stricter
+    // "parent exactly one level up" rule. Either path maintains the closure edges
+    // transactionally; other field updates go through del.update.
     let moveTo: string | null | undefined; // undefined = no move requested
+    let relevel: Map<number, string> | undefined;
+    let newLevel = level;
     if (body.parentId !== undefined) {
       const newParentId: string | null = body.parentId ?? null;
-      if (newParentId === req.params.id) return res.status(400).json({ error: 'A node cannot be its own parent' });
-      if (newParentId) {
-        const parent = await del.findFirst({ where: { id: newParentId, companyId: cid }, select: { id: true, [levelRelationFor(spine)]: { select: { levelNumber: true } } } });
-        if (!parent) return res.status(400).json({ error: 'Parent not found in this company' });
-        if ((parent[levelRelationFor(spine)]?.levelNumber ?? 0) + 1 !== level) {
-          return res.status(400).json({ error: 'Re-leveling (changing a node\'s level) is not supported yet; pick a parent one level above this node.' });
-        }
-        // Cycle guard: the new parent must not be inside this node's own subtree.
-        let cursor: string | null = newParentId;
-        for (let i = 0; i < 64 && cursor; i++) {
-          if (cursor === req.params.id) return res.status(400).json({ error: 'Cannot move a node under its own descendant' });
-          const up: { parentId: string | null } | null = await del.findUnique({ where: { id: cursor }, select: { parentId: true } });
-          cursor = up?.parentId ?? null;
+      if (spine === 'processNode') {
+        const plan = await planProcessMove(cid, req.params.id, level, newParentId);
+        if ('error' in plan) return res.status(plan.status).json({ error: plan.error });
+        relevel = plan.levelByDepth;
+        newLevel = plan.newRootLevel;
+      } else {
+        if (newParentId === req.params.id) return res.status(400).json({ error: 'A node cannot be its own parent' });
+        if (newParentId) {
+          const parent = await del.findFirst({ where: { id: newParentId, companyId: cid }, select: { id: true, [levelRelationFor(spine)]: { select: { levelNumber: true } } } });
+          if (!parent) return res.status(400).json({ error: 'Parent not found in this company' });
+          if ((parent[levelRelationFor(spine)]?.levelNumber ?? 0) + 1 !== level) {
+            return res.status(400).json({ error: 'Re-leveling (changing a node\'s level) is not supported for this tree; pick a parent one level above this node.' });
+          }
+          // Cycle guard: the new parent must not be inside this node's own subtree.
+          let cursor: string | null = newParentId;
+          for (let i = 0; i < 64 && cursor; i++) {
+            if (cursor === req.params.id) return res.status(400).json({ error: 'Cannot move a node under its own descendant' });
+            const up: { parentId: string | null } | null = await del.findUnique({ where: { id: cursor }, select: { parentId: true } });
+            cursor = up?.parentId ?? null;
+          }
         }
       }
       moveTo = newParentId;
@@ -243,12 +311,16 @@ router.patch('/nodes/:id', async (req: Request, res: Response, next: NextFunctio
 
     if (Object.keys(data).length) await del.update({ where: { id: req.params.id }, data });
     if (moveTo !== undefined) {
-      await closureFor(spine).moveSubtree({ nodeId: req.params.id, newParentId: moveTo });
+      if (spine === 'processNode') {
+        await moveProcessSubtreeWithRelevel({ nodeId: req.params.id, newParentId: moveTo, levelByDepth: relevel });
+      } else {
+        await closureFor(spine).moveSubtree({ nodeId: req.params.id, newParentId: moveTo });
+      }
       invalidateStructureCounts(cid);
     }
     const updated = await del.findUnique({ where: { id: req.params.id } });
     audit(req, req.params.id, 'UPDATE', { ...data, ...(moveTo !== undefined ? { parentId: moveTo } : {}) });
-    res.json({ id: updated.id, typeKey: typeKeyFor(spine, level), parentId: updated.parentId, name: updated.displayValue, sortOrder: updated.sortOrder, attributes: spine === 'processNode' ? updated.attributes : null, hidden: (updated.attributes as any)?.hidden === true });
+    res.json({ id: updated.id, typeKey: typeKeyFor(spine, newLevel), parentId: updated.parentId, name: updated.displayValue, sortOrder: updated.sortOrder, attributes: spine === 'processNode' ? updated.attributes : null, hidden: (updated.attributes as any)?.hidden === true });
   } catch (e) { next(e); }
 });
 
@@ -271,6 +343,75 @@ router.delete('/nodes/:id', async (req: Request, res: Response, next: NextFuncti
     invalidateStructureCounts(cid);
     audit(req, req.params.id, 'DELETE', { name: found.name, typeKey: typeKeyFor(found.spine, found.level), children: childCount });
     res.status(204).end();
+  } catch (e) { next(e); }
+});
+
+// Apply an ordered list of move + reorder ops in ONE transaction — the canvas
+// editor's "Save". Process spine only. Everything commits or nothing does, so the
+// client can keep its staged edits on failure. All ops are validated/planned up
+// front (reads) so the transaction body only writes.
+router.post('/nodes/batch', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const cid = await companyForReq(req);
+    if (!cid) return res.status(400).json({ error: 'Valid companyId query parameter is required' });
+    const ops = Array.isArray(req.body?.ops) ? req.body.ops : null;
+    if (!ops) return res.status(400).json({ error: 'ops must be an array' });
+    if (ops.length > 500) return res.status(400).json({ error: 'Too many ops in one batch (max 500)' });
+    if (ops.length === 0) return res.json({ applied: 0 });
+
+    type Planned =
+      | { op: 'move'; id: string; newParentId: string | null; levelByDepth: Map<number, string> }
+      | { op: 'reorder'; orderedIds: string[] }
+      | { op: 'rename'; id: string; name: string };
+    const planned: Planned[] = [];
+    for (const raw of ops) {
+      if (raw?.op === 'rename') {
+        if (typeof raw.id !== 'string' || typeof raw.name !== 'string' || !raw.name.trim()) return res.status(400).json({ error: 'rename op needs an id and a non-empty name' });
+        const node = await prisma.processNode.findFirst({ where: { id: raw.id, companyId: cid }, select: { id: true } });
+        if (!node) return res.status(404).json({ error: `Node not found: ${raw.id}` });
+        planned.push({ op: 'rename', id: raw.id, name: raw.name.trim() });
+      } else if (raw?.op === 'move') {
+        if (typeof raw.id !== 'string') return res.status(400).json({ error: 'move op needs an id' });
+        const node = await prisma.processNode.findFirst({ where: { id: raw.id, companyId: cid }, select: { processLevelType: { select: { levelNumber: true } } } });
+        if (!node) return res.status(404).json({ error: `Node not found: ${raw.id}` });
+        const newParentId: string | null = raw.newParentId ?? null;
+        const plan = await planProcessMove(cid, raw.id, node.processLevelType.levelNumber, newParentId);
+        if ('error' in plan) return res.status(plan.status).json({ error: plan.error });
+        planned.push({ op: 'move', id: raw.id, newParentId, levelByDepth: plan.levelByDepth });
+      } else if (raw?.op === 'reorder') {
+        const ids: unknown[] = Array.isArray(raw.orderedIds) ? raw.orderedIds : [];
+        if (!ids.length || ids.some((x) => typeof x !== 'string')) return res.status(400).json({ error: 'reorder op needs orderedIds: string[]' });
+        const strIds = ids as string[];
+        const count = await prisma.processNode.count({ where: { id: { in: strIds }, companyId: cid } });
+        if (count !== strIds.length) return res.status(404).json({ error: 'reorder references unknown node(s)' });
+        planned.push({ op: 'reorder', orderedIds: strIds });
+      } else {
+        return res.status(400).json({ error: `Unknown op: ${raw?.op}` });
+      }
+    }
+    // Apply moves before reorders so sortOrder assignments land on the final tree.
+    planned.sort((a, b) => (a.op === b.op ? 0 : a.op === 'move' ? -1 : 1));
+
+    await prisma.$transaction(async (tx) => {
+      for (const p of planned) {
+        if (p.op === 'move') {
+          await moveProcessSubtreeTx(tx, p.id, p.newParentId, p.levelByDepth);
+        } else if (p.op === 'rename') {
+          await tx.processNode.update({ where: { id: p.id }, data: { displayValue: p.name } });
+        } else {
+          for (let i = 0; i < p.orderedIds.length; i++) {
+            await tx.processNode.update({ where: { id: p.orderedIds[i] }, data: { sortOrder: i + 1 } });
+          }
+        }
+      }
+    });
+    invalidateStructureCounts(cid);
+    for (const p of planned) {
+      if (p.op === 'move') audit(req, p.id, 'UPDATE', { parentId: p.newParentId, batch: true });
+      else if (p.op === 'rename') audit(req, p.id, 'UPDATE', { name: p.name });
+      else audit(req, p.orderedIds[0], 'UPDATE', { reorder: p.orderedIds });
+    }
+    res.json({ applied: planned.length });
   } catch (e) { next(e); }
 });
 

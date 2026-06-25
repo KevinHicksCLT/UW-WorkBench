@@ -87,14 +87,14 @@ export type CoreNodeData = {
   category: string; // 'Core Business' | 'Corporate Function' | 'IT'
   focusState?: NodeFocusState;
   pieceIndex?: number;
-};
+} & EditAffordance;
 
 export type DivisionNodeData = {
   name: string;
   category: string;
   focusState?: NodeFocusState;
   pieceIndex?: number;
-};
+} & EditAffordance;
 
 // ── Edit-mode affordance (shared) ─────────────────────────────────────────────
 // In the map's edit mode, draggable process nodes get a "grab" cursor + dashed
@@ -103,7 +103,22 @@ export type DivisionNodeData = {
 export type EditAffordance = {
   editable?: boolean;   // draggable in edit mode → grab cursor + dashed outline
   dropTarget?: boolean; // currently the hovered valid drop target → ring
+  staged?: boolean;     // has an unsaved pending move/reorder → amber corner dot
 };
+
+// Small amber corner dot marking a node with unsaved staged edits.
+function StagedDot() {
+  return (
+    <div
+      title="Unsaved change"
+      style={{
+        position: 'absolute', top: -5, right: -5, width: 11, height: 11,
+        borderRadius: '50%', background: '#f59e0b', border: '2px solid #ffffff',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.25)', zIndex: 2,
+      }}
+    />
+  );
+}
 
 export type ValueStreamNodeData = {
   name: string;
@@ -213,6 +228,7 @@ const CoreNodeImpl = memo(function CoreNodeImpl({ data }: NodeProps) {
         alignItems: 'center',
         textAlign: 'center',
         ...animStyle,
+        ...editStyle(d),
       }}
     >
       <div
@@ -227,6 +243,7 @@ const CoreNodeImpl = memo(function CoreNodeImpl({ data }: NodeProps) {
       >
         {sentenceCase(d.label)}
       </div>
+      {d.staged && <StagedDot />}
       <AllHandles />
     </div>
   );
@@ -263,12 +280,14 @@ const DivisionNodeImpl = memo(function DivisionNodeImpl({ data }: NodeProps) {
         alignItems: 'center',
         textAlign: 'center',
         ...animStyle,
+        ...editStyle(d),
       }}
     >
       {/* Name */}
       <div style={{ fontSize: 12, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.3, ...CLAMP3 }}>
         {sentenceCase(d.name)}
       </div>
+      {d.staged && <StagedDot />}
       {/* Arrow affordance */}
       <svg
         width="13"
@@ -330,6 +349,7 @@ const ValueStreamNodeImpl = memo(function ValueStreamNodeImpl({ data }: NodeProp
       <div style={{ fontSize: 11.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35, ...CLAMP3 }}>
         {sentenceCase(d.name)}
       </div>
+      {d.staged && <StagedDot />}
       <AllHandles />
     </div>
   );
@@ -394,6 +414,7 @@ const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
           {sentenceCase(d.name)}
         </span>
       </div>
+      {d.staged && <StagedDot />}
       <AllHandles />
     </div>
   );
@@ -465,6 +486,7 @@ const SubStepNodeImpl = memo(function SubStepNodeImpl({ data }: NodeProps) {
           {d.l5Count} step{d.l5Count === 1 ? '' : 's'} ›
         </span>
       )}
+      {d.staged && <StagedDot />}
       <AllHandles />
     </div>
   );

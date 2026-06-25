@@ -77,12 +77,13 @@ export default function Explorer() {
   const loadOverview = useCallback(() => {
     api.get('/explorer/overview')
       .then((overview) => {
-        // overview.divisions shape: { id, name, higherCategory, roles }
+        // overview.divisions shape: { id, name, higherCategory, higherCategoryId, roles }
         // Null higherCategory → fold into "Core Business"
         const divs: DivisionSummary[] = (overview.divisions ?? []).map((d: any) => ({
           id: d.id,
           name: d.name,
           higherCategory: d.higherCategory ?? 'Core Business',
+          higherCategoryId: d.higherCategoryId ?? null,
           roles: d.roles ?? 0,
         }));
         setDivisions(divs);
