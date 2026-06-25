@@ -844,11 +844,13 @@ router.get('/org-table', async (req: Request, res: Response, next: NextFunction)
     const segments: any[] = segNodes
       .map((s) => {
         const divs = divisionRows.filter((d) => d._segId === s.id).map(({ _segId, ...d }) => d);
-        return { name: s.displayValue, divisions: divs, divisionCount: divs.length, roleCount: divs.reduce((a, x) => a + x.roleCount, 0) };
+        // `id` is the segment's OrgUnit L1 id — lets the map edit/move/rename it.
+        return { id: s.id, name: s.displayValue, divisions: divs, divisionCount: divs.length, roleCount: divs.reduce((a, x) => a + x.roleCount, 0) };
       })
       .filter((s) => s.divisions.length > 0);
     if (unassigned.length) {
       segments.push({
+        id: null,
         name: 'Unassigned',
         divisions: [{ id: '__unassigned', name: 'Unassigned roles', segment: 'Unassigned', departments: [], looseRoles: unassigned, roleCount: unassigned.length }],
         divisionCount: 0, roleCount: unassigned.length,

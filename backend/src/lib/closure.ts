@@ -19,10 +19,13 @@ interface Tables {
   node: '"ProcessNode"' | '"OrgUnit"';
   /** Quoted closure table, e.g. "ProcessNodeClosure". */
   closure: '"ProcessNodeClosure"' | '"OrgUnitClosure"';
+  /** Quoted level-type FK column, e.g. "processLevelTypeId". */
+  levelFk: '"processLevelTypeId"' | '"orgLevelTypeId"';
 }
 
-const PROCESS: Tables = { node: '"ProcessNode"', closure: '"ProcessNodeClosure"' };
-const ORG: Tables = { node: '"OrgUnit"', closure: '"OrgUnitClosure"' };
+const PROCESS: Tables = { node: '"ProcessNode"', closure: '"ProcessNodeClosure"', levelFk: '"processLevelTypeId"' };
+const ORG: Tables = { node: '"OrgUnit"', closure: '"OrgUnitClosure"', levelFk: '"orgLevelTypeId"' };
+const TABLES_FOR = (spine: 'processNode' | 'orgUnit'): Tables => (spine === 'processNode' ? PROCESS : ORG);
 
 // ── Primitive closure operations (run on a given tx + table pair) ────────────
 
@@ -98,12 +101,12 @@ async function moveSubtreeTx(tx: Tx, t: Tables, nodeId: string, newParentId: str
  * allow-listed by the caller (resolved from the company's level types) and bound as
  * parameters — never interpolated. One UPDATE per distinct depth (≤ tree height).
  */
-async function relevelProcessSubtreeTx(tx: Tx, nodeId: string, levelByDepth: Map<number, string>): Promise<void> {
+async function relevelSubtreeTx(tx: Tx, t: Tables, nodeId: string, levelByDepth: Map<number, string>): Promise<void> {
   for (const [depth, ltId] of levelByDepth) {
     await tx.$executeRawUnsafe(
-      `UPDATE "ProcessNode" SET "processLevelTypeId" = $1
+      `UPDATE ${t.node} SET ${t.levelFk} = $1
          WHERE "id" IN (
-           SELECT "descendantId" FROM "ProcessNodeClosure" WHERE "ancestorId" = $2 AND "depth" = $3
+           SELECT "descendantId" FROM ${t.closure} WHERE "ancestorId" = $2 AND "depth" = $3
          )`,
       ltId, nodeId, depth,
     );
@@ -111,23 +114,31 @@ async function relevelProcessSubtreeTx(tx: Tx, nodeId: string, levelByDepth: Map
 }
 
 /**
- * Move a ProcessNode subtree and (optionally) re-level it, on a caller-supplied tx
- * — so several edits can share one transaction (the canvas's batched Save). When
- * `levelByDepth` is empty the level is unchanged (same-level re-home).
+ * Move a subtree and (optionally) re-level it, on a caller-supplied tx — so several
+ * edits can share one transaction (the canvas's batched Save). Works on either spine
+ * (ProcessNode / OrgUnit). When `levelByDepth` is empty the level is unchanged.
  */
-export async function moveProcessSubtreeTx(
-  tx: Tx, nodeId: string, newParentId: string | null, levelByDepth?: Map<number, string>,
+export async function moveSubtreeWithRelevelTx(
+  tx: Tx, spine: 'processNode' | 'orgUnit', nodeId: string, newParentId: string | null, levelByDepth?: Map<number, string>,
 ): Promise<void> {
-  await moveSubtreeTx(tx, PROCESS, nodeId, newParentId);
-  if (levelByDepth && levelByDepth.size) await relevelProcessSubtreeTx(tx, nodeId, levelByDepth);
+  const t = TABLES_FOR(spine);
+  await moveSubtreeTx(tx, t, nodeId, newParentId);
+  if (levelByDepth && levelByDepth.size) await relevelSubtreeTx(tx, t, nodeId, levelByDepth);
 }
 
-/** Move + re-level a single ProcessNode subtree in its own transaction. */
-export function moveProcessSubtreeWithRelevel(
-  args: { nodeId: string; newParentId: string | null; levelByDepth?: Map<number, string> },
+/** Back-compat process-only alias (kept for existing callers). */
+export const moveProcessSubtreeTx = (tx: Tx, nodeId: string, newParentId: string | null, levelByDepth?: Map<number, string>) =>
+  moveSubtreeWithRelevelTx(tx, 'processNode', nodeId, newParentId, levelByDepth);
+
+/** Move + re-level a single subtree in its own transaction (either spine). */
+export function moveSubtreeWithRelevel(
+  args: { spine: 'processNode' | 'orgUnit'; nodeId: string; newParentId: string | null; levelByDepth?: Map<number, string> },
 ): Promise<void> {
-  return prisma.$transaction((tx) => moveProcessSubtreeTx(tx, args.nodeId, args.newParentId, args.levelByDepth));
+  return prisma.$transaction((tx) => moveSubtreeWithRelevelTx(tx, args.spine, args.nodeId, args.newParentId, args.levelByDepth));
 }
+/** Back-compat process-only alias. */
+export const moveProcessSubtreeWithRelevel = (args: { nodeId: string; newParentId: string | null; levelByDepth?: Map<number, string> }) =>
+  moveSubtreeWithRelevel({ spine: 'processNode', ...args });
 
 /**
  * Delete the whole subtree rooted at `nodeId`: every descendant node row and the

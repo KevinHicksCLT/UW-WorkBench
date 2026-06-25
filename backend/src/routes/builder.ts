@@ -3,7 +3,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.js';
-import { closureFor, moveProcessSubtreeTx, moveProcessSubtreeWithRelevel } from '../lib/closure.js';
+import { closureFor, moveProcessSubtreeWithRelevel, moveSubtreeWithRelevelTx } from '../lib/closure.js';
 import { invalidateStructureCounts } from '../lib/resolvers/index.js';
 
 // Interactive operating-model builder.
@@ -150,50 +150,48 @@ async function levelTypeId(spine: Spine, companyId: string, level: number): Prom
   return lt?.id ?? null;
 }
 
-// Validate + plan a ProcessNode reparent. Unlike OrgUnit, the process tree allows
-// re-leveling: a node can drop under ANY target and adopts level (parentLevel + 1),
-// its whole subtree shifting with it. The drop is CAPPED at the company's deepest
-// configured level — a drop that would nest past it is rejected (we never invent
-// new levels). Returns the depth→levelTypeId map to apply (empty when the level is
-// unchanged) plus the node's resulting level, or an error to surface verbatim.
+const closureDelegateFor = (spine: Spine) => (prisma as unknown as Record<string, any>)[spine === 'processNode' ? 'processNodeClosure' : 'orgUnitClosure'];
+
+// Validate + plan a reparent on EITHER spine. The tree allows re-leveling: a node
+// can drop under ANY target and adopts level (parentLevel + 1), its whole subtree
+// shifting with it. If the drop would nest past the deepest configured level we
+// AUTO-CREATE the missing levels (no hard cap) so depth is unlimited. Returns the
+// depth→levelTypeId map to apply (empty when the level is unchanged) plus the node's
+// resulting level, or an error to surface verbatim.
 type MovePlan = { levelByDepth: Map<number, string>; newRootLevel: number };
-async function planProcessMove(
-  cid: string, nodeId: string, currentLevel: number, newParentId: string | null,
+async function planMove(
+  spine: Spine, cid: string, nodeId: string, currentLevel: number, newParentId: string | null,
 ): Promise<MovePlan | { error: string; status: number }> {
   if (newParentId === nodeId) return { error: 'A node cannot be its own parent', status: 400 };
+  const del = delegateFor(spine);
+  const levelDel = levelDelegateFor(spine);
+  const closureDel = closureDelegateFor(spine);
+  const levelRel = levelRelationFor(spine);
 
   let newRootLevel: number;
   if (newParentId) {
-    const parent = await prisma.processNode.findFirst({
-      where: { id: newParentId, companyId: cid },
-      select: { processLevelType: { select: { levelNumber: true } } },
-    });
+    const parent = await del.findFirst({ where: { id: newParentId, companyId: cid }, select: { [levelRel]: { select: { levelNumber: true } } } });
     if (!parent) return { error: 'Parent not found in this company', status: 400 };
     // Cycle guard: the new parent must not sit inside this node's own subtree.
-    const inSubtree = await prisma.processNodeClosure.findFirst({
-      where: { ancestorId: nodeId, descendantId: newParentId }, select: { ancestorId: true },
-    });
+    const inSubtree = await closureDel.findFirst({ where: { ancestorId: nodeId, descendantId: newParentId }, select: { ancestorId: true } });
     if (inSubtree) return { error: 'Cannot move a node under its own descendant', status: 400 };
-    newRootLevel = parent.processLevelType.levelNumber + 1;
+    newRootLevel = (parent[levelRel]?.levelNumber ?? 0) + 1;
   } else {
     newRootLevel = 1; // dropped to root
   }
 
   // Deepest relative depth in the moved subtree (0 = the node itself).
-  const depths = await prisma.processNodeClosure.findMany({ where: { ancestorId: nodeId }, select: { depth: true } });
-  const maxDepth = depths.reduce((m, r) => Math.max(m, r.depth), 0);
+  const depths = await closureDel.findMany({ where: { ancestorId: nodeId }, select: { depth: true } });
+  const maxDepth = depths.reduce((m: number, r: { depth: number }) => Math.max(m, r.depth), 0);
 
-  let levels = await prisma.processLevelType.findMany({ where: { companyId: cid }, select: { id: true, levelNumber: true } });
+  let levels: { id: string; levelNumber: number }[] = await levelDel.findMany({ where: { companyId: cid }, select: { id: true, levelNumber: true } });
   const maxLevel = levels.reduce((m, l) => Math.max(m, l.levelNumber), 0);
-  // Auto-extend the taxonomy on demand: if nesting goes deeper than the deepest
-  // configured level, create the missing levels (rename them later in Data Admin)
-  // so depth is unlimited — maximum customizability, no hard cap.
   const neededMax = newRootLevel + maxDepth;
   if (neededMax > maxLevel) {
     const toCreate = [];
     for (let n = maxLevel + 1; n <= neededMax; n++) toCreate.push({ companyId: cid, levelNumber: n, dbValue: `L${n}`, displayValue: `Level ${n}` });
-    await prisma.processLevelType.createMany({ data: toCreate, skipDuplicates: true });
-    levels = await prisma.processLevelType.findMany({ where: { companyId: cid }, select: { id: true, levelNumber: true } });
+    await levelDel.createMany({ data: toCreate, skipDuplicates: true });
+    levels = await levelDel.findMany({ where: { companyId: cid }, select: { id: true, levelNumber: true } });
   }
 
   const levelByDepth = new Map<number, string>();
@@ -207,6 +205,8 @@ async function planProcessMove(
   }
   return { levelByDepth, newRootLevel };
 }
+const planProcessMove = (cid: string, nodeId: string, currentLevel: number, newParentId: string | null) =>
+  planMove('processNode', cid, nodeId, currentLevel, newParentId);
 
 router.post('/nodes', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -360,31 +360,33 @@ router.post('/nodes/batch', async (req: Request, res: Response, next: NextFuncti
     if (ops.length === 0) return res.json({ applied: 0 });
 
     type Planned =
-      | { op: 'move'; id: string; newParentId: string | null; levelByDepth: Map<number, string> }
-      | { op: 'reorder'; orderedIds: string[] }
-      | { op: 'rename'; id: string; name: string };
+      | { op: 'move'; spine: Spine; id: string; newParentId: string | null; levelByDepth: Map<number, string> }
+      | { op: 'reorder'; spine: Spine; orderedIds: string[] }
+      | { op: 'rename'; spine: Spine; id: string; name: string };
     const planned: Planned[] = [];
     for (const raw of ops) {
       if (raw?.op === 'rename') {
         if (typeof raw.id !== 'string' || typeof raw.name !== 'string' || !raw.name.trim()) return res.status(400).json({ error: 'rename op needs an id and a non-empty name' });
-        const node = await prisma.processNode.findFirst({ where: { id: raw.id, companyId: cid }, select: { id: true } });
-        if (!node) return res.status(404).json({ error: `Node not found: ${raw.id}` });
-        planned.push({ op: 'rename', id: raw.id, name: raw.name.trim() });
+        const found = await findNode(cid, raw.id);
+        if (!found) return res.status(404).json({ error: `Node not found: ${raw.id}` });
+        planned.push({ op: 'rename', spine: found.spine, id: raw.id, name: raw.name.trim() });
       } else if (raw?.op === 'move') {
         if (typeof raw.id !== 'string') return res.status(400).json({ error: 'move op needs an id' });
-        const node = await prisma.processNode.findFirst({ where: { id: raw.id, companyId: cid }, select: { processLevelType: { select: { levelNumber: true } } } });
-        if (!node) return res.status(404).json({ error: `Node not found: ${raw.id}` });
+        const found = await findNode(cid, raw.id);
+        if (!found) return res.status(404).json({ error: `Node not found: ${raw.id}` });
         const newParentId: string | null = raw.newParentId ?? null;
-        const plan = await planProcessMove(cid, raw.id, node.processLevelType.levelNumber, newParentId);
+        const plan = await planMove(found.spine, cid, raw.id, found.level, newParentId);
         if ('error' in plan) return res.status(plan.status).json({ error: plan.error });
-        planned.push({ op: 'move', id: raw.id, newParentId, levelByDepth: plan.levelByDepth });
+        planned.push({ op: 'move', spine: found.spine, id: raw.id, newParentId, levelByDepth: plan.levelByDepth });
       } else if (raw?.op === 'reorder') {
         const ids: unknown[] = Array.isArray(raw.orderedIds) ? raw.orderedIds : [];
         if (!ids.length || ids.some((x) => typeof x !== 'string')) return res.status(400).json({ error: 'reorder op needs orderedIds: string[]' });
         const strIds = ids as string[];
-        const count = await prisma.processNode.count({ where: { id: { in: strIds }, companyId: cid } });
+        const first = await findNode(cid, strIds[0]);
+        if (!first) return res.status(404).json({ error: 'reorder references unknown node(s)' });
+        const count = await delegateFor(first.spine).count({ where: { id: { in: strIds }, companyId: cid } });
         if (count !== strIds.length) return res.status(404).json({ error: 'reorder references unknown node(s)' });
-        planned.push({ op: 'reorder', orderedIds: strIds });
+        planned.push({ op: 'reorder', spine: first.spine, orderedIds: strIds });
       } else {
         return res.status(400).json({ error: `Unknown op: ${raw?.op}` });
       }
@@ -394,13 +396,14 @@ router.post('/nodes/batch', async (req: Request, res: Response, next: NextFuncti
 
     await prisma.$transaction(async (tx) => {
       for (const p of planned) {
+        const txDel = (tx as unknown as Record<string, any>)[p.spine];
         if (p.op === 'move') {
-          await moveProcessSubtreeTx(tx, p.id, p.newParentId, p.levelByDepth);
+          await moveSubtreeWithRelevelTx(tx, p.spine, p.id, p.newParentId, p.levelByDepth);
         } else if (p.op === 'rename') {
-          await tx.processNode.update({ where: { id: p.id }, data: { displayValue: p.name } });
+          await txDel.update({ where: { id: p.id }, data: { displayValue: p.name } });
         } else {
           for (let i = 0; i < p.orderedIds.length; i++) {
-            await tx.processNode.update({ where: { id: p.orderedIds[i] }, data: { sortOrder: i + 1 } });
+            await txDel.update({ where: { id: p.orderedIds[i] }, data: { sortOrder: i + 1 } });
           }
         }
       }
