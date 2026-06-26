@@ -62,10 +62,61 @@ const SUGGESTIONS_BY_SCREEN: [prefix: string, suggestions: string[]][] = [
     'Which L4 processes have the most inputs and outputs?',
     'Which process steps involve external participants?',
   ]],
+  // Workspace / portfolio screens — initiative checks come first since the
+  // longer prefix is matched before the shorter '/portfolio'.
+  ['/initiatives/', [
+    "Summarize this initiative's benefits, costs and net benefit.",
+    'What are the open risks on this initiative?',
+    'Which strategic objectives does this initiative support?',
+  ]],
+  ['/programs/', [
+    'Which initiatives in this program are off track?',
+    'How do benefits and costs roll up across this program?',
+    'Which initiatives carry the most open risk?',
+  ]],
+  ['/portfolio', [
+    'Which initiatives have the highest net benefit?',
+    'How many initiatives are there by stage and by status?',
+    'Which programs are off track?',
+  ]],
+  ['/raid', [
+    'Which open risks have the highest severity?',
+    'How many RAID items are open by type?',
+    'Which initiatives carry the most open issues?',
+  ]],
 ];
 
 function suggestionsFor(pathname: string): string[] {
   return SUGGESTIONS_BY_SCREEN.find(([prefix]) => pathname.startsWith(prefix))?.[1] ?? DEFAULT_SUGGESTIONS;
+}
+
+// Human-readable label for the screen the user is on, sent to the backend as
+// page context so the assistant can interpret "this", "here" and "current"
+// against the right view. Longest/most-specific prefixes first; '/' last.
+const PAGE_LABELS: [prefix: string, label: string][] = [
+  ['/initiatives/', 'an Initiative detail page (Workspace)'],
+  ['/programs/', 'a Program detail page (Workspace)'],
+  ['/portfolio', 'the Workspace portfolio dashboard'],
+  ['/raid', 'the RAID log'],
+  ['/standards', 'the Standards screen'],
+  ['/regulations', 'the Regulations screen'],
+  ['/roles', 'the Organization (roles) screen'],
+  ['/divisions', 'an Organization division'],
+  ['/departments', 'an Organization department'],
+  ['/overview', 'the Value Streams operating-model map'],
+  ['/n/', 'an operating-model node detail'],
+  ['/metrics', 'the Metrics screen'],
+  ['/applications', 'the Applications screen'],
+  ['/external', 'the Third-Parties screen'],
+  ['/deliverables', 'the Deliverables screen'],
+  ['/tasks', 'the Tasks screen'],
+  ['/automatable', 'the Automatable screen'],
+  ['/admin', 'the Data Admin console'],
+  ['/', 'the Home dashboard'],
+];
+
+function pageLabelFor(pathname: string): string {
+  return PAGE_LABELS.find(([prefix]) => pathname.startsWith(prefix))?.[1] ?? 'the app';
 }
 
 export default function AssistantWidget() {
@@ -102,7 +153,7 @@ export default function AssistantWidget() {
     setLoading(true);
     try {
       const history = next.map((m) => ({ role: m.role, content: m.content }));
-      const res = await api.post('/chat', { messages: history });
+      const res = await api.post('/chat', { messages: history, pageContext: { path: pathname, label: pageLabelFor(pathname) } });
       setMessages([...next, { role: 'assistant', content: res.answer, queries: res.queries }]);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
@@ -136,7 +187,7 @@ export default function AssistantWidget() {
       {open && (
         <div
           role="dialog"
-          aria-label="Bridge Assistant"
+          aria-label="Transformation Bridge assistant"
           className={
             'fixed z-40 bg-white border border-[#eaeaea] shadow-2xl flex flex-col ' +
             'inset-x-3 bottom-3 top-16 rounded-2xl ' +
@@ -146,16 +197,14 @@ export default function AssistantWidget() {
         >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-[#eaeaea]">
-            <div className="flex items-center gap-2">
-              <span className="flex items-center justify-center h-7 w-7 rounded-full bg-[#171717] text-white" aria-hidden="true">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-              </span>
-              <div>
-                <div className="text-sm font-semibold text-[#171717] leading-tight">Bridge Assistant</div>
-                <div className="text-[11px] text-[#a3a3a3] leading-tight">Get AI insights on the transformation</div>
+            {/* Brand lockup — identical to the top-left nav wordmark; help text
+                on the line beneath. */}
+            <div>
+              <div className="flex items-baseline gap-2">
+                <img src="/capgemini-wordmark.svg" alt="Capgemini" className="h-[20px] w-auto translate-y-[5.5px]" />
+                <span className="font-semibold text-[#0070AD] text-[15px] tracking-tight whitespace-nowrap -translate-y-[1.5px]">Transformation Bridge</span>
               </div>
+              <div className="text-[11px] text-[#a3a3a3] leading-tight mt-0.5">Get AI insights on the transformation</div>
             </div>
             <div className="flex items-center gap-1">
               {messages.length > 0 && (

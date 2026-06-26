@@ -946,7 +946,7 @@ model PortfolioInitiative {
   name                 String
   description          String?
   // Stage-gate workflow
-  stage                String       @default("IDEA") // IDEA | PLAN | EXECUTE | REALIZE | COMPLETE
+  stage                String       @default("IDEA") // IDEA | PLAN | EXECUTE | COMPLETE
   workflowAction       String?
   state                String       @default("PLANNING") // PLANNING | ACTIVE | DONE
   status               String       @default("ON_TRACK") // ON_TRACK | AT_RISK | OFF_TRACK
@@ -971,13 +971,14 @@ model PortfolioInitiative {
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
 
-  objectives InitiativeObjective[]
-  resources  InitiativeResource[]
-  activities WorkplanActivity[]
-  benefits   BenefitLine[]
-  costs      CostLine[]
-  milestones Milestone[]
-  raidItems  RaidItem[]
+  objectives     InitiativeObjective[]
+  resources      InitiativeResource[]
+  activities     WorkplanActivity[]
+  benefits       BenefitLine[]
+  costs          CostLine[]
+  milestones     Milestone[]
+  raidItems      RaidItem[]
+  changeRequests ChangeRequest[]
 
   @@index([companyId])
   @@index([workstreamId])
@@ -985,6 +986,24 @@ model PortfolioInitiative {
   @@index([companyId, orgUnitId])
   @@index([ownerRoleId])
   @@index([sponsorRoleId])
+}
+
+// FB-27: change-request register for an initiative — who raised it, when, the
+// cost + schedule impact, and an approval status.
+model ChangeRequest {
+  id                 String              @id @default(cuid())
+  initiativeId       String
+  initiative         PortfolioInitiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+  title              String
+  description        String?
+  raisedBy           String
+  costImpact         Float               @default(0)
+  scheduleImpactDays Int                 @default(0)
+  status             String              @default("PENDING") // PENDING | APPROVED | REJECTED
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@index([initiativeId])
 }
 
 model BenefitLine {
@@ -1101,9 +1120,16 @@ model WorkplanActivity {
   startDate    DateTime
   endDate      DateTime
   status       String              @default("PLANNED") // PLANNED | IN_PROGRESS | DONE
+  assignedTo   String?
   dependsOnId  String?
   dependsOn    WorkplanActivity?   @relation("ActivityDep", fields: [dependsOnId], references: [id], onDelete: SetNull)
   dependents   WorkplanActivity[]  @relation("ActivityDep")
+  // Typed dependency (FB-19): TEAM | ROLE | PERSON | PROJECT | CHANGE_APPROVAL.
+  // refId points at the chosen entity when it comes from a list (org unit / role /
+  // program); label is the human-readable value (also used for free-text types).
+  dependencyType  String?
+  dependencyRefId String?
+  dependencyLabel String?
   sortOrder    Int                 @default(0)
   createdAt    DateTime            @default(now())
 

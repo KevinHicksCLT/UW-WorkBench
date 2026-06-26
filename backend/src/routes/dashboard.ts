@@ -23,7 +23,7 @@ function ordered(rows: { _count: { _all: number } }[], field: string, order?: st
 }
 
 // ── Transformation command center (D1) ──────────────────────────────────────
-const STAGE_PROGRESS: Record<string, number> = { IDEA: 0, PLAN: 0.25, EXECUTE: 0.55, REALIZE: 0.8, COMPLETE: 1 };
+const STAGE_PROGRESS: Record<string, number> = { IDEA: 0, PLAN: 0.33, EXECUTE: 0.66, COMPLETE: 1 };
 const STATUS_SEV: Record<string, number> = { ON_TRACK: 0, AT_RISK: 1, OFF_TRACK: 2 };
 const worstStatus = (statuses: string[], fallback: string) =>
   statuses.length ? statuses.reduce((a, s) => ((STATUS_SEV[s] ?? 0) > (STATUS_SEV[a] ?? 0) ? s : a), 'ON_TRACK') : fallback;
@@ -132,6 +132,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
               initiatives: {
                 select: {
                   id: true, name: true, stage: true, status: true, cumulativeNetBenefit: true,
+                  costs: { select: { values: { select: { dataset: true, amount: true } } } },
                   milestones: { select: { id: true, name: true, dueDate: true, status: true }, orderBy: { dueDate: 'asc' } },
                 },
               },
@@ -147,23 +148,43 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       }),
       prisma.raidItem.findMany({
         where: { status: 'OPEN', initiative: { companyId } },
-        select: { type: true, initiative: { select: { workstream: { select: { programId: true } } } } },
+        select: { type: true, createdAt: true, initiative: { select: { workstream: { select: { programId: true } } } } },
       }),
     ]);
 
+    // "New" = open RAID raised in the last 24 hours (FB-31).
+    const NEW_THRESHOLD = Date.now() - 86400000;
     const raidOpen: Record<string, number> = {};
+    const raidNew: Record<string, number> = {};
     const raidOpenByProgram = new Map<string, Record<string, number>>();
+    const raidNewByProgram = new Map<string, Record<string, number>>();
     for (const r of openRaidRaw) {
-      raidOpen[r.type] = (raidOpen[r.type] ?? 0) + 1;
+      const isNew = r.createdAt.getTime() >= NEW_THRESHOLD;
       const programId = r.initiative.workstream.programId;
+      raidOpen[r.type] = (raidOpen[r.type] ?? 0) + 1;
       const c = raidOpenByProgram.get(programId) ?? {};
       c[r.type] = (c[r.type] ?? 0) + 1;
       raidOpenByProgram.set(programId, c);
+      if (isNew) {
+        raidNew[r.type] = (raidNew[r.type] ?? 0) + 1;
+        const n = raidNewByProgram.get(programId) ?? {};
+        n[r.type] = (n[r.type] ?? 0) + 1;
+        raidNewByProgram.set(programId, n);
+      }
     }
+
+    // Cost spend by dataset for one initiative (budget = TARGET, forecast =
+    // FORECAST, actual spend-to-date = ACTUAL) — FB-03 program-card metrics.
+    const costSpend = (i: (typeof programs)[number]['workstreams'][number]['initiatives'][number]) => {
+      const sum = (ds: string) =>
+        i.costs.reduce((a, l) => a + l.values.filter((v) => v.dataset === ds).reduce((x, v) => x + v.amount, 0), 0);
+      return { budget: sum('TARGET'), forecastSpend: sum('FORECAST'), actualSpend: sum('ACTUAL') };
+    };
 
     const transformation = {
       programs: programs.map((p) => {
         const inits = p.workstreams.flatMap((ws) => ws.initiatives);
+        const spend = inits.map(costSpend);
         return {
           id: p.id, name: p.name, status: p.status,
           computedStatus: worstStatus(inits.map((i) => i.status), p.status),
@@ -172,15 +193,20 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
             ? Math.round((inits.reduce((a, i) => a + (STAGE_PROGRESS[i.stage] ?? 0), 0) / inits.length) * 100)
             : 0,
           netBenefit: inits.reduce((a, i) => a + i.cumulativeNetBenefit, 0),
+          budget: spend.reduce((a, s) => a + s.budget, 0),
+          forecastSpend: spend.reduce((a, s) => a + s.forecastSpend, 0),
+          actualSpend: spend.reduce((a, s) => a + s.actualSpend, 0),
           initiatives: inits.map((i) => ({
             id: i.id, name: i.name, stage: i.stage, status: i.status,
             netBenefit: i.cumulativeNetBenefit,
+            ...costSpend(i),
             pctComplete: Math.round((STAGE_PROGRESS[i.stage] ?? 0) * 100),
           })),
           milestones: inits.flatMap((i) =>
             i.milestones.map((m) => ({ id: m.id, name: m.name, dueDate: m.dueDate, status: m.status, initiativeName: i.name })),
           ),
           raidOpen: raidOpenByProgram.get(p.id) ?? {},
+          raidNew: raidNewByProgram.get(p.id) ?? {},
         };
       }),
       topRisks: topRisksRaw.map((r) => ({
@@ -188,6 +214,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         initiativeId: r.initiative.id, initiativeName: r.initiative.name,
       })),
       raidOpen,
+      raidNew,
     };
 
     // Portfolio status → friendly label + RAG health.

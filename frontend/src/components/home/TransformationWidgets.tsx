@@ -14,6 +14,7 @@ import { StatusPill, SeverityCell, makeTimelineScale, TimelineGrid, TimelineAxis
 
 export type HomeInitiative = {
   id: string; name: string; stage: string; status: string; netBenefit: number; pctComplete: number;
+  budget: number; forecastSpend: number; actualSpend: number;
 };
 export type HomeMilestone = {
   id: string; name: string; dueDate: string; status: string; initiativeName: string;
@@ -22,14 +23,17 @@ export type HomeProgram = {
   id: string; name: string; status: string; computedStatus: string;
   startDate: string; endDate: string;
   pctComplete: number; netBenefit: number;
+  budget: number; forecastSpend: number; actualSpend: number;
   initiatives: HomeInitiative[];
   milestones: HomeMilestone[];
   raidOpen?: Record<string, number>; // open RAID counts by type (optional: older payloads)
+  raidNew?: Record<string, number>; // open RAID raised in the last 7 days
 };
 export type TransformationData = {
   programs: HomeProgram[];
   topRisks: { id: string; title: string; severity: number; status: string; initiativeId: string; initiativeName: string }[];
   raidOpen: Record<string, number>;
+  raidNew?: Record<string, number>;
 };
 
 // One color per program (health stays on the StatusPill): the same palette
@@ -37,6 +41,9 @@ export type TransformationData = {
 // initiative's bar — children always match their parent. Cycles past 6.
 const PROGRAM_PALETTE = ['#4f46e5', '#0d9488', '#9333ea', '#0284c7', '#db2777', '#ea580c'];
 const programColor = (idx: number) => PROGRAM_PALETTE[idx % PROGRAM_PALETTE.length];
+
+// % of budget spent (actual ÷ budget). Null when there is no budget to divide by.
+const pctSpent = (budget: number, actual: number) => (budget > 0 ? Math.round((actual / budget) * 100) : null);
 
 function ProgressBar({ pct, color = '#4f46e5' }: { pct: number; color?: string }) {
   return (
@@ -61,8 +68,11 @@ export function PortfolioRollup({ t }: { t: TransformationData }) {
             <th className="text-left py-2 font-semibold">Program</th>
             <th className="text-left py-2 font-semibold w-28">Health</th>
             <th className="text-left py-2 font-semibold w-44">% complete</th>
-            <th className="text-right py-2 font-semibold w-24">Initiatives</th>
-            <th className="text-right py-2 font-semibold w-28">Net benefit</th>
+            <th className="text-right py-2 font-semibold w-20">Initiatives</th>
+            <th className="text-right py-2 font-semibold w-24">Budget</th>
+            <th className="text-right py-2 font-semibold w-24">Forecast</th>
+            <th className="text-right py-2 font-semibold w-24">Actual</th>
+            <th className="text-right py-2 font-semibold w-20">% spent</th>
           </tr>
         </thead>
         <tbody>
@@ -92,18 +102,23 @@ function PortfolioRow({ p, color, open, onToggle }: { p: HomeProgram; color: str
         <td className="py-2.5"><StatusPill status={p.computedStatus} /></td>
         <td className="py-2.5 pr-4"><ProgressBar pct={p.pctComplete} color={color} /></td>
         <td className="py-2.5 text-right tnum">{p.initiatives.length}</td>
-        <td className={'py-2.5 text-right tnum ' + (p.netBenefit < 0 ? 'text-[#be123c]' : 'text-[#171717]')}>{fmt.currency(p.netBenefit, { compact: true })}</td>
+        <td className="py-2.5 text-right tnum text-[#171717]">{fmt.currency(p.budget, { compact: true })}</td>
+        <td className="py-2.5 text-right tnum text-[#525252]">{fmt.currency(p.forecastSpend, { compact: true })}</td>
+        <td className="py-2.5 text-right tnum text-[#171717]">{fmt.currency(p.actualSpend, { compact: true })}</td>
+        <td className="py-2.5 text-right tnum text-[#171717]">{pctSpent(p.budget, p.actualSpend) === null ? '—' : `${pctSpent(p.budget, p.actualSpend)}%`}</td>
       </tr>
       {open && p.initiatives.map((i) => (
         <tr key={i.id} className="border-b border-[#f5f5f5] bg-[#fafafa]">
           <td className="py-2 pl-7">
             <Link to={`/initiatives/${i.id}`} className="text-[#525252] hover:text-[#4f46e5]">{i.name}</Link>
-            <span className="ml-2 text-[10px] uppercase tracking-[0.06em] text-[#a3a3a3]">{i.stage.charAt(0) + i.stage.slice(1).toLowerCase()}</span>
           </td>
           <td className="py-2"><StatusPill status={i.status} /></td>
           <td className="py-2 pr-4"><ProgressBar pct={i.pctComplete} color={color} /></td>
           <td className="py-2" />
-          <td className={'py-2 text-right tnum text-xs ' + (i.netBenefit < 0 ? 'text-[#be123c]' : 'text-[#525252]')}>{fmt.currency(i.netBenefit, { compact: true })}</td>
+          <td className="py-2 text-right tnum text-xs text-[#525252]">{fmt.currency(i.budget, { compact: true })}</td>
+          <td className="py-2 text-right tnum text-xs text-[#a3a3a3]">{fmt.currency(i.forecastSpend, { compact: true })}</td>
+          <td className="py-2 text-right tnum text-xs text-[#525252]">{fmt.currency(i.actualSpend, { compact: true })}</td>
+          <td className="py-2 text-right tnum text-xs text-[#525252]">{pctSpent(i.budget, i.actualSpend) === null ? '—' : `${pctSpent(i.budget, i.actualSpend)}%`}</td>
         </tr>
       ))}
     </>
@@ -216,20 +231,24 @@ const RAID_TYPES = [
 ] as const;
 
 // One count tile (Risks / Issues / Assumptions / Decisions) — shared by the
-// portfolio-wide RaidSummary and the per-program RaidByProgram boxes. Zero
-// counts render muted so hotspots stand out.
-function RaidTile({ rt, n, to }: { rt: (typeof RAID_TYPES)[number]; n: number; to: string }) {
-  const live = n > 0;
+// portfolio-wide RaidSummary and the per-program RaidByProgram boxes. The big
+// number is the TOTAL open count (FB-30); a "N new" link filters to items raised
+// in the last 7 days (FB-31). Zero counts render muted so hotspots stand out.
+function RaidTile({ rt, total, neu, toAll, toNew }: { rt: (typeof RAID_TYPES)[number]; total: number; neu: number; toAll: string; toNew: string }) {
+  const live = total > 0;
   return (
-    <Link
-      to={to}
+    <div
       className="rounded-md border p-3 transition-shadow duration-150 hover:shadow-sm"
       style={{ borderColor: live ? rt.border : '#eeeeee', backgroundColor: live ? rt.bg : '#fafafa' }}
     >
       <div className="text-[10px] font-semibold uppercase tracking-[0.08em]" style={{ color: live ? rt.color : '#a3a3a3' }}>{rt.label}</div>
-      <div className="text-xl font-semibold tnum" style={{ color: live ? rt.color : '#171717' }}>{n}</div>
-      <div className="text-[10px] text-[#a3a3a3] mt-0.5">open</div>
-    </Link>
+      <Link to={toAll} className="block text-xl font-semibold tnum hover:underline" style={{ color: live ? rt.color : '#171717' }}>{total}</Link>
+      <div className="text-[10px] mt-0.5 h-3.5">
+        {neu > 0
+          ? <Link to={toNew} className="font-semibold text-[#4f46e5] hover:underline">{neu} new</Link>
+          : <span className="text-[#a3a3a3]">0 new</span>}
+      </div>
+    </div>
   );
 }
 
@@ -237,7 +256,14 @@ export function RaidSummary({ t }: { t: TransformationData }) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       {RAID_TYPES.map((rt) => (
-        <RaidTile key={rt.type} rt={rt} n={t.raidOpen[rt.type] ?? 0} to={`/raid?type=${rt.type}`} />
+        <RaidTile
+          key={rt.type}
+          rt={rt}
+          total={t.raidOpen[rt.type] ?? 0}
+          neu={t.raidNew?.[rt.type] ?? 0}
+          toAll={`/raid?type=${rt.type}`}
+          toNew={`/raid?type=${rt.type}&new=1`}
+        />
       ))}
     </div>
   );
@@ -257,7 +283,14 @@ export function RaidByProgram({ t }: { t: TransformationData }) {
           </Link>
           <div className="grid grid-cols-2 gap-3">
             {RAID_TYPES.map((rt) => (
-              <RaidTile key={rt.type} rt={rt} n={p.raidOpen?.[rt.type] ?? 0} to={`/programs/${p.id}?tab=RAID&type=${rt.type}`} />
+              <RaidTile
+                key={rt.type}
+                rt={rt}
+                total={p.raidOpen?.[rt.type] ?? 0}
+                neu={p.raidNew?.[rt.type] ?? 0}
+                toAll={`/programs/${p.id}?tab=RAID&type=${rt.type}`}
+                toNew={`/programs/${p.id}?tab=RAID&type=${rt.type}&new=1`}
+              />
             ))}
           </div>
         </div>

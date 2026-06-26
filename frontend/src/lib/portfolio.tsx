@@ -6,7 +6,7 @@ import { STAGE_ORDER, STAGE_LABELS, STATUS_PILL_CLASS, STATUS_LABEL } from './fo
 // separate so the four pages stay lean and visually consistent with the rest of
 // the app (Vercel-clean cards, hairline borders, monochrome bars — no Recharts).
 
-export type Stage = 'IDEA' | 'PLAN' | 'EXECUTE' | 'REALIZE' | 'COMPLETE';
+export type Stage = 'IDEA' | 'PLAN' | 'EXECUTE' | 'COMPLETE';
 export type Status = 'ON_TRACK' | 'AT_RISK' | 'OFF_TRACK';
 
 export type MetricValue = { dataset: string; periodStart: string; amount: number };
@@ -17,7 +17,7 @@ export type Raid = { id: string; type: string; title: string; description: strin
 export type Objective = { id: string; name: string; description: string | null; weight: number; _count?: { links: number } };
 export type ObjectiveLink = { id: string; objectiveId: string; impact: number; objective: { id: string; name: string; weight: number } };
 export type Resource = { id: string; roleName: string | null; name: string; allocationPct: number; startDate: string; endDate: string };
-export type Activity = { id: string; name: string; startDate: string; endDate: string; status: string; dependsOnId: string | null; sortOrder: number };
+export type Activity = { id: string; name: string; startDate: string; endDate: string; status: string; assignedTo: string | null; dependsOnId: string | null; dependencyType: string | null; dependencyRefId: string | null; dependencyLabel: string | null; sortOrder: number };
 
 export type InitiativeLinks = {
   valueStreamId: string | null; divisionId: string | null; ownerRoleId: string | null; sponsorRoleId: string | null;

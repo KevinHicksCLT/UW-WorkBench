@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
-import PageHeader from '../components/PageHeader';
 import { type Dashboard, WIDGET_MAP, DEFAULT_LAYOUT, widgetSpan } from '../lib/dashboardWidgets';
 
 // Executive overview — the landing page. A single-glance summary of one
@@ -10,7 +9,7 @@ import { type Dashboard, WIDGET_MAP, DEFAULT_LAYOUT, widgetSpan } from '../lib/d
 // the widget catalog + rendering live in lib/dashboardWidgets.
 
 export default function Overview() {
-  const { companyId, company, loading: companyLoading } = useCompany();
+  const { companyId, loading: companyLoading } = useCompany();
   const [data, setData] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -36,11 +35,6 @@ export default function Overview() {
 
   return (
     <div>
-      <PageHeader
-        title={company?.name ?? data.company.name}
-        eyebrow={data.company.count > 1 ? `1 of ${data.company.count} companies` : undefined}
-      />
-
       {widgets.length === 0 ? (
         <div className="card-elevated p-8 text-center text-sm text-[#a3a3a3]">
           No dashboard areas are configured. Add some in <span className="text-[#525252]">Data Admin → Home</span>.

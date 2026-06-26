@@ -105,44 +105,49 @@ export default function Layout({ children }: { children: ReactNode }) {
             </span>
           </Link>
 
-          {/* Spacer */}
-          <div className="flex-1" />
+          {/* Center group — active-company switcher + search, centered between the
+              wordmark and the user menu (FB-01). flex-1 keeps it centered and lets it
+              collapse responsively; both controls move into the mobile menu below
+              sm/md, leaving this as empty centering space. */}
+          <div className="flex-1 flex justify-center min-w-0">
+            <div className="flex items-center gap-3 w-full max-w-xl">
+              {/* Active company — every view + edit is scoped to this company. */}
+              {companies.length > 0 && (
+                <div className="hidden sm:block relative flex-shrink-0">
+                  {/* Leading building glyph */}
+                  <svg
+                    className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
+                    width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+                  >
+                    <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4M9 9h.01M9 13h.01M9 17h.01" />
+                  </svg>
+                  <select
+                    aria-label="Active company"
+                    className="appearance-none rounded-lg border border-[#eaeaea] bg-white pl-8 pr-8 py-1.5 text-sm font-medium text-[#171717] max-w-[220px] truncate cursor-pointer hover:border-[#d4d4d4] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150"
+                    value={companyId ?? ''}
+                    onChange={(e) => setCompanyId(e.target.value)}
+                  >
+                    {companies.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                  {/* Custom chevron */}
+                  <svg
+                    className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
+                    width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </div>
+              )}
 
-          {/* Active company — every view + edit is scoped to this company. */}
-          {companies.length > 0 && (
-            <div className="hidden sm:block relative">
-              {/* Leading building glyph */}
-              <svg
-                className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
-                width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
-              >
-                <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4M9 9h.01M9 13h.01M9 17h.01" />
-              </svg>
-              <select
-                aria-label="Active company"
-                className="appearance-none rounded-lg border border-[#eaeaea] bg-white pl-8 pr-8 py-1.5 text-sm font-medium text-[#171717] max-w-[220px] truncate cursor-pointer hover:border-[#d4d4d4] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150"
-                value={companyId ?? ''}
-                onChange={(e) => setCompanyId(e.target.value)}
-              >
-                {companies.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-              {/* Custom chevron */}
-              <svg
-                className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
-                width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
-              >
-                <path d="M6 9l6 6 6-6" />
-              </svg>
+              {/* Search — desktop */}
+              <div className="hidden md:block flex-1 min-w-0">
+                <SearchBox />
+              </div>
             </div>
-          )}
-
-          {/* Search — desktop */}
-          <div className="hidden md:block w-64">
-            <SearchBox />
           </div>
 
           {/* User + sign-out — desktop */}

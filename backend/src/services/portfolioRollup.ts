@@ -45,13 +45,24 @@ export async function recomputeInitiative(initiativeId: string) {
 export async function summarizeProgram(programId: string) {
   const program = await prisma.program.findUnique({
     where: { id: programId },
-    include: { workstreams: { include: { initiatives: true } } },
+    include: { workstreams: { include: { initiatives: { include: { costs: { include: { values: true } } } } } } },
   });
   if (!program) return null;
 
   const initiatives = program.workstreams.flatMap((w) => w.initiatives);
   const totalBenefit = initiatives.reduce((a, i) => a + i.cumulativeBenefit, 0);
   const totalCost = initiatives.reduce((a, i) => a + i.cumulativeCost, 0);
+
+  // Cost-line spend by dataset (FB-03): budget = TARGET, forecast = FORECAST,
+  // actual spend-to-date = ACTUAL — summed across every cost line in the program.
+  const spendByDataset = (ds: string) =>
+    initiatives.reduce(
+      (a, i) => a + i.costs.reduce((b, l) => b + l.values.filter((v) => v.dataset === ds).reduce((c, v) => c + v.amount, 0), 0),
+      0,
+    );
+  const budget = spendByDataset('TARGET');
+  const forecastSpend = spendByDataset('FORECAST');
+  const actualSpend = spendByDataset('ACTUAL');
 
   const tally = (key: 'stage' | 'status') =>
     initiatives.reduce<Record<string, number>>((acc, i) => {
@@ -66,6 +77,9 @@ export async function summarizeProgram(programId: string) {
     totalBenefit,
     totalCost,
     netBenefit: totalBenefit - totalCost,
+    budget,
+    forecastSpend,
+    actualSpend,
     stageDistribution: tally('stage'),
     statusDistribution: tally('status'),
   };

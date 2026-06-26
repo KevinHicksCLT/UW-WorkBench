@@ -15,7 +15,7 @@ import { Sheet, SheetCell, type SheetCol } from '../components/Sheet';
 
 type RaidRow = {
   id: string; type: string; title: string; mitigation: string | null; probability: number; impact: number;
-  severity: number; status: string; dueDate: string | null; initiative: { id: string; name: string };
+  severity: number; status: string; dueDate: string | null; createdAt: string; initiative: { id: string; name: string };
 };
 
 const TYPES = ['RISK', 'ASSUMPTION', 'ISSUE', 'DECISION'];
@@ -31,6 +31,8 @@ export default function PortfolioRaid({ embedded = false, programId }: { embedde
   const [loading, setLoading] = useState(true);
   // ?type=RISK etc. presets the type filter (the Home RAID widget deep-links here).
   const linkedType = params.get('type') ?? '';
+  // ?new=1 narrows the list to items raised in the last 7 days (FB-31).
+  const isNew = params.get('new') === '1';
 
   useEffect(() => {
     if (companyLoading) return;
@@ -42,8 +44,14 @@ export default function PortfolioRaid({ embedded = false, programId }: { embedde
   // Open-risk counts per severity band, worst band first. Severity is the 5×5
   // probability × impact score; the bands map it to ratings (badges use the
   // same bands, so the chart and the list can never disagree).
+  // Apply the "new" (last-7-days) narrowing once, up front; everything below
+  // (band chart, type counts, list) then agrees.
+  const shown = isNew
+    ? items.filter((i) => Date.now() - new Date(i.createdAt).getTime() <= 86400000)
+    : items;
+
   const effectiveBands = bands.length ? bands : FALLBACK_BANDS;
-  const openRisks = items.filter((i) => i.type === 'RISK' && i.status === 'OPEN');
+  const openRisks = shown.filter((i) => i.type === 'RISK' && i.status === 'OPEN');
   const bandRows = [...effectiveBands]
     .sort((a, b) => b.minScore - a.minScore)
     .map((band) => ({ band, count: openRisks.filter((r) => r.severity >= band.minScore && r.severity <= band.maxScore).length }));
@@ -116,7 +124,7 @@ export default function PortfolioRaid({ embedded = false, programId }: { embedde
               {TYPES.map((t) => (
                 <div key={t}>
                   <div className="text-xs text-[#a3a3a3]">{t} open</div>
-                  <div className="text-xl font-semibold text-[#171717] tnum">{items.filter((i) => i.type === t && i.status === 'OPEN').length}</div>
+                  <div className="text-xl font-semibold text-[#171717] tnum">{shown.filter((i) => i.type === t && i.status === 'OPEN').length}</div>
                 </div>
               ))}
             </div>
@@ -127,8 +135,16 @@ export default function PortfolioRaid({ embedded = false, programId }: { embedde
         </div>
       </div>
 
+      {isNew && (
+        <div className="mb-2 flex items-center gap-2 text-xs text-[#525252]">
+          <span className="pill-blue">New only</span>
+          <span>Showing RAID items raised in the last 24 hours.</span>
+          <Link to={programId ? `/programs/${programId}?tab=RAID` : '/raid'} className="text-[#4f46e5] hover:underline">Show all</Link>
+        </div>
+      )}
+
       <Sheet
-        rows={items}
+        rows={shown}
         cols={cols}
         rowKey={(r) => r.id}
         loading={loading}
