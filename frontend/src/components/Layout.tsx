@@ -3,12 +3,29 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { useCompany } from '../lib/company';
 import { api } from '../lib/api';
+import { withCompany } from '../lib/portfolio';
 import { useBreadcrumbHeader } from '../lib/breadcrumbs';
 import SearchBox from './SearchBox';
 import AssistantWidget from './AssistantWidget';
 import BreadcrumbBar from './BreadcrumbBar';
 
 type IndexItem = { id: string; name: string; valueStreams?: number; roles?: number };
+
+// Tab → the page's primary list endpoint, warmed on hover/focus so the page
+// paints instantly on click (api.get dedups, so the warm + the page's own fetch
+// share one round-trip). Company-scoped endpoints must match the page's exact
+// keyed path (withCompany), or the cache key won't match. Returns null to skip.
+const PREFETCH: Record<string, (companyId: string | null) => string | null> = {
+  '/overview':     () => '/explorer/tree',
+  '/roles':        () => '/explorer/org-table',
+  '/standards':    () => '/explorer/standards-flat',
+  '/applications': () => '/applications',
+  '/external':     () => '/external-interactions',
+  '/metrics':      (c) => (c ? withCompany('/explorer/telemetry-catalog', c) : null),
+  '/deliverables': (c) => (c ? withCompany('/work', c) : null),
+  '/tasks':        (c) => (c ? withCompany('/work', c) : null),
+  '/regulations':  (c) => (c ? withCompany('/regulations/jurisdictions', c) : null),
+};
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
@@ -46,11 +63,17 @@ export default function Layout({ children }: { children: ReactNode }) {
 
   // ── Nav link helper ────────────────────────────────────────────────────────
   // Underline-style tab: sits on the nav row's hairline, dark indicator when active.
+  // Hovering/focusing a tab warms its list endpoint's GET cache (api dedups, so a
+  // warm + the page's own fetch share one round-trip) — the page paints instantly
+  // on click instead of waiting on the network.
   const NavLink = ({ to, children: label }: { to: string; children: ReactNode }) => {
     const active = to === '/' ? onHome : location.pathname === to || location.pathname.startsWith(to);
+    const warm = () => { const p = PREFETCH[to]?.(companyId); if (p) api.prefetch(p); };
     return (
       <Link
         to={to}
+        onMouseEnter={warm}
+        onFocus={warm}
         onClick={() => resetToTab(to)}
         aria-current={active ? 'page' : undefined}
         className={

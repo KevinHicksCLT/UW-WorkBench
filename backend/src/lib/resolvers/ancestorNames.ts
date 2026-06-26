@@ -70,24 +70,52 @@ export async function ancestorNames(nodeIds: string[]): Promise<Map<string, Ance
   const ids = [...new Set(nodeIds.filter(Boolean))];
   if (!ids.length) return out;
 
-  // 1. Every ancestor edge for the batch (depth >= 0 so the node itself is in).
-  const edges = await prisma.processNodeClosure.findMany({
-    where: { descendantId: { in: ids } },
-    select: { ancestorId: true, descendantId: true, depth: true },
-  });
+  for (const id of ids) out.set(id, { ...EMPTY });
 
-  // 2. Resolve each distinct ancestor's level + display name in one query.
+  // Two independent ancestry chains, each internally sequential (every step needs
+  // the prior step's ids) but with no dependency on each other, so they run
+  // concurrently — 3 query rounds total instead of 5 serial:
+  //   A) process closure → process nodes        (domain / value stream / l3 / l4)
+  //   B) Owner role → org-unit closure → org units (division / department)
+  //
+  // Round 1: kick off both chains' first query together.
+  const [edges, owners] = await Promise.all([
+    prisma.processNodeClosure.findMany({
+      where: { descendantId: { in: ids } },
+      select: { ancestorId: true, descendantId: true, depth: true },
+    }),
+    prisma.nodeRole.findMany({
+      where: { processNodeId: { in: ids }, role_: 'Owner', role: { orgUnitId: { not: null } } },
+      select: { processNodeId: true, role: { select: { orgUnitId: true } } },
+    }),
+  ]);
+
   const ancestorIds = [...new Set(edges.map((e) => e.ancestorId))];
-  const ancestors = await prisma.processNode.findMany({
-    where: { id: { in: ancestorIds } },
-    select: { id: true, displayValue: true, processLevelType: { select: { levelNumber: true } } },
-  });
+  const orgUnitByNode = new Map<string, string>();
+  for (const o of owners) {
+    if (o.role.orgUnitId && !orgUnitByNode.has(o.processNodeId)) orgUnitByNode.set(o.processNodeId, o.role.orgUnitId);
+  }
+  const orgUnitIds = [...new Set(orgUnitByNode.values())];
+
+  // Round 2: each chain's second query, again in parallel.
+  type OrgEdge = { ancestorId: string; descendantId: string };
+  const [ancestors, orgEdges] = await Promise.all([
+    prisma.processNode.findMany({
+      where: { id: { in: ancestorIds } },
+      select: { id: true, displayValue: true, processLevelType: { select: { levelNumber: true } } },
+    }),
+    orgUnitIds.length
+      ? prisma.orgUnitClosure.findMany({
+          where: { descendantId: { in: orgUnitIds } },
+          select: { ancestorId: true, descendantId: true },
+        })
+      : Promise.resolve([] as OrgEdge[]),
+  ]);
+
+  // Process-side names: pick each node's ancestor at L1/L2/L3/L4 (closest wins).
   const ancById = new Map(
     ancestors.map((a) => [a.id, { name: a.displayValue, level: a.processLevelType.levelNumber }] as const),
   );
-
-  // 3. For each target node, pick the ancestor at L1/L2/L3/L4 (closest one wins).
-  for (const id of ids) out.set(id, { ...EMPTY });
   for (const e of edges) {
     const anc = ancById.get(e.ancestorId);
     if (!anc) continue;
@@ -100,22 +128,8 @@ export async function ancestorNames(nodeIds: string[]): Promise<Map<string, Ance
     }
   }
 
-  // 4. ORG-derived division/department: Owner role homed on the node → role.orgUnit
-  //    ancestors. One NodeRole query (Owner only), one OrgUnitClosure+OrgUnit join.
-  const owners = await prisma.nodeRole.findMany({
-    where: { processNodeId: { in: ids }, role_: 'Owner', role: { orgUnitId: { not: null } } },
-    select: { processNodeId: true, role: { select: { orgUnitId: true } } },
-  });
-  const orgUnitByNode = new Map<string, string>();
-  for (const o of owners) {
-    if (o.role.orgUnitId && !orgUnitByNode.has(o.processNodeId)) orgUnitByNode.set(o.processNodeId, o.role.orgUnitId);
-  }
-  const orgUnitIds = [...new Set(orgUnitByNode.values())];
-  if (orgUnitIds.length) {
-    const orgEdges = await prisma.orgUnitClosure.findMany({
-      where: { descendantId: { in: orgUnitIds } },
-      select: { ancestorId: true, descendantId: true },
-    });
+  // Org-side division/department (Round 3: the org ancestors' names).
+  if (orgEdges.length) {
     const orgAncIds = [...new Set(orgEdges.map((e) => e.ancestorId))];
     const orgAncestors = await prisma.orgUnit.findMany({
       where: { id: { in: orgAncIds } },

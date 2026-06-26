@@ -35,10 +35,35 @@ async function request(path: string, { method = 'GET', body, headers = {} }: Req
   return res.json();
 }
 
+// ── GET response cache ────────────────────────────────────────────────────────
+// Big list screens refetch their full collection on every mount, so navigating
+// away and back re-pays the whole round-trip. Cache the GET promise by path so a
+// repeat visit resolves instantly, and dedupe concurrent requests for the same
+// path. Any mutation (POST/PUT/PATCH/DELETE) clears the cache once it settles, so
+// writes are always followed by fresh reads. A failed GET is evicted to retry.
+const getCache = new Map<string, Promise<any>>();
+
+function cachedGet(path: string): Promise<any> {
+  const hit = getCache.get(path);
+  if (hit) return hit;
+  const p = request(path).catch((e) => { getCache.delete(path); throw e; });
+  getCache.set(path, p);
+  return p;
+}
+
+function mutate(path: string, method: string, body?: unknown) {
+  return request(path, { method, body }).finally(() => getCache.clear());
+}
+
 export const api = {
-  get:    (p: string)                => request(p),
-  post:   (p: string, body?: unknown) => request(p, { method: 'POST', body }),
-  put:    (p: string, body?: unknown) => request(p, { method: 'PUT', body }),
-  patch:  (p: string, body?: unknown) => request(p, { method: 'PATCH', body }),
-  delete: (p: string)                => request(p, { method: 'DELETE' }),
+  get:    (p: string)                => cachedGet(p),
+  post:   (p: string, body?: unknown) => mutate(p, 'POST', body),
+  put:    (p: string, body?: unknown) => mutate(p, 'PUT', body),
+  patch:  (p: string, body?: unknown) => mutate(p, 'PATCH', body),
+  delete: (p: string)                => mutate(p, 'DELETE'),
+  // Warm the cache for a path the user is likely to visit next (e.g. on nav
+  // hover). Fire-and-forget; a failed warm is swallowed and evicted by cachedGet.
+  prefetch: (p: string) => { void cachedGet(p).catch(() => {}); },
+  // Drop cached GETs — one path, or all when omitted.
+  invalidate: (p?: string) => { if (p) getCache.delete(p); else getCache.clear(); },
 };

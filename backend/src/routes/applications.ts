@@ -7,10 +7,12 @@ import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
+import { cacheResponses } from '../lib/responseCache.js';
 import { ancestorNames, rolesForNodes } from '../lib/resolvers/index.js';
 
 const router = Router();
 router.use(requireAuth);
+router.use(cacheResponses(15_000));
 
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {

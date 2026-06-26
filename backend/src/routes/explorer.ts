@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
+import { cacheResponses } from '../lib/responseCache.js';
 import {
   structureCounts, processSubtree, processSubtrees, ancestorNames, streamAncestry, rolesForNodes, appsForNodes,
 } from '../lib/resolvers/index.js';
@@ -18,6 +19,7 @@ import {
 
 const router = Router();
 router.use(requireAuth);
+router.use(cacheResponses(15_000));
 
 async function activeCompany(req: Request, select: { id?: true; name?: true } = { id: true, name: true }) {
   const requested = typeof req.query.companyId === 'string' ? req.query.companyId : '';

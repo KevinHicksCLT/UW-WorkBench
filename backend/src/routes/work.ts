@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
+import { cacheResponses } from '../lib/responseCache.js';
 import { ancestorNames, rolesForNodes } from '../lib/resolvers/index.js';
 
 // Deliverables & Tasks API — the standalone work tracker behind the
@@ -13,6 +14,7 @@ import { ancestorNames, rolesForNodes } from '../lib/resolvers/index.js';
 
 const router = Router();
 router.use(requireAuth);
+router.use(cacheResponses(15_000));
 
 const DEFAULT_TAKE = 5000;
 // ProcessNode.automatability → an illustrative 1-5 agent-automatability score
