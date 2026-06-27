@@ -12,7 +12,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   ReactFlow, Background, Controls, ReactFlowProvider,
-  useReactFlow,
+  useReactFlow, useStore, getViewportForBounds,
   type Node, type Edge, type NodeMouseHandler,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -37,6 +37,11 @@ import { useCompany } from '../lib/company';
 // the deliverable-chain rework restored confidence). Both fetch + render gate
 // on this flag.
 const SHOW_METRICS_SIDEBAR: boolean = true;
+
+// Camera never zooms a drill-fit below this — keeps card text legible even when the
+// whole spine is too tall to fit (deep L5 leaf columns overflow below the fold,
+// pannable, while the company root stays pinned at the top). Cards are 150×68.
+const READABLE_MIN_ZOOM = 0.5;
 
 // Every card is the same size (MAP_CARD_W × MAP_CARD_H, from MapNode.tsx) so the
 // whole map reads as one consistent grid. The per-level aliases below keep the
@@ -129,6 +134,8 @@ type Props = { divisions: DivisionSummary[]; companyName: string; breadcrumbSlot
 
 function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onMoved }: Props) {
   const rf = useReactFlow();
+  const paneW = useStore((s) => s.width);
+  const paneH = useStore((s) => s.height);
   const navigate = useNavigate();
   const { companyId } = useCompany();
 
@@ -913,11 +920,21 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
     // it — the whole requested set lands completely in frame, deterministically.
     let tries = 0;
     const attempt = () => {
-      const nodes = nodeIds.map((id) => rf.getNode(id)).filter((n): n is NonNullable<typeof n> => !!n);
-      if (nodes.length < nodeIds.length && tries++ < 12) { requestAnimationFrame(attempt); return; }
-      if (!nodes.length) return;
+      // Wait until the freshly-opened children exist in the store…
+      // Gate on the freshly-opened children existing in the store…
+      const req = nodeIds.map((id) => rf.getNode(id)).filter((n): n is NonNullable<typeof n> => !!n);
+      if (req.length < nodeIds.length && tries++ < 12) { requestAnimationFrame(attempt); return; }
+      if (!paneW || !paneH) return;
+      // Frame the WHOLE visible spine so the company root is always in bounds, then
+      // pin its TOP near the container top — the company stays LOCKED at the top on
+      // every drill (it must never scroll out of frame). Clamp the zoom to a
+      // readable floor so deep levels (the tall L5 leaf column) don't shrink to an
+      // unreadable size; when the spine is taller than fits, it overflows below the
+      // fold (pannable) rather than zooming out past legibility (backlog item 36).
+      const all = rf.getNodes();
+      if (!all.length) return;
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      for (const n of nodes) {
+      for (const n of all) {
         const w = n.measured?.width ?? n.width ?? MAP_CARD_W;
         const h = n.measured?.height ?? n.height ?? MAP_CARD_H;
         minX = Math.min(minX, n.position.x);
@@ -925,10 +942,18 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
         maxX = Math.max(maxX, n.position.x + w);
         maxY = Math.max(maxY, n.position.y + h);
       }
-      rf.fitBounds({ x: minX, y: minY, width: maxX - minX, height: maxY - minY }, { padding, duration: 460 });
+      const fit = getViewportForBounds(
+        { x: minX, y: minY, width: maxX - minX, height: maxY - minY },
+        paneW, paneH, 0.05, 2, padding,
+      );
+      const zoom = Math.min(Math.max(fit.zoom, READABLE_MIN_ZOOM), 2);
+      const centerX = (minX + maxX) / 2;
+      // x: re-derive horizontal centering for the (possibly clamped) zoom; y: pin the
+      // spine top (company) to ~16px below the container top. One animated setViewport.
+      rf.setViewport({ x: paneW / 2 - centerX * zoom, y: 16 - minY * zoom, zoom }, { duration: 460 });
     };
     requestAnimationFrame(attempt);
-  }, [rf]);
+  }, [rf, paneW, paneH]);
 
   // Fit the whole visible graph, then pin its top edge near the top of the
   // container — fitView alone centers vertically, which left a large empty band
@@ -971,10 +996,12 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
     else if (!selectedDomain && companyOpen) fitTopView();
   }, [selectedDomain]); // eslint-disable-line
 
-  // Camera: division focused → center on it; collapsed back → re-center on its domain
+  // Camera: division collapsed back → re-center on its domain. The drill-IN move is
+  // intentionally NOT here: when a division is focused its value streams are fetched,
+  // and the flowData effect below frames the whole row (top-pinned). Doing an extra
+  // moveCameraToNode here first hard-zoomed to 0.9 → visible zoom-in-then-out glitch.
   useEffect(() => {
-    if (focusedDivisionId) moveCameraToNode(focusedDivisionId, 0.8);
-    else if (selectedDomain) moveCameraToNode(`core:${selectedDomain}`, 1.4);
+    if (!focusedDivisionId && selectedDomain) moveCameraToNode(`core:${selectedDomain}`, 1.4);
   }, [focusedDivisionId]); // eslint-disable-line
 
   // Camera: when the division's value streams arrive, frame the whole row — the
@@ -989,10 +1016,9 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
     }
   }, [flowData]); // eslint-disable-line
 
-  // Camera: L2 → focus VS
-  useEffect(() => {
-    if (level >= 2 && focusedVsId) moveCameraToNode(`vs:${focusedVsId}`, 0.8);
-  }, [focusedVsId]); // eslint-disable-line
+  // Camera: VS drill-IN is framed by the vsFlowData effect below (top-pinned, whole
+  // process row) once the steps arrive. No immediate moveCameraToNode here — it
+  // hard-zoomed to 0.9 before the fit, producing a zoom-in-then-out glitch.
 
   // Camera: when the process steps arrive, frame the whole process — the focused
   // value stream plus its full (centered, perpendicular) step row.

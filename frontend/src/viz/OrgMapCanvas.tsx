@@ -14,7 +14,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   ReactFlow, Background, Controls, ReactFlowProvider,
-  useReactFlow, Handle, Position,
+  useReactFlow, useStore, Handle, Position,
   type Node, type Edge, type NodeMouseHandler, type NodeProps,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -224,6 +224,8 @@ type Props = { breadcrumbSlot?: HTMLElement | null };
 
 function OrgMapCanvasInner({ data, breadcrumbSlot, onSaved }: Props & { data: OrgData; onSaved: () => void }) {
   const rf = useReactFlow();
+  const paneW = useStore((s) => s.width);
+  const paneH = useStore((s) => s.height);
   const navigate = useNavigate();
   const { companyId } = useCompany();
 
@@ -739,14 +741,53 @@ function OrgMapCanvasInner({ data, breadcrumbSlot, onSaved }: Props & { data: Or
   const flowNodes = displayNodes;
 
   // ── Camera helpers (frozen mid-drag, like MapCanvas) ─────────────────────────
-  const fitNodes = useCallback((nodeIds: string[], padding = 0.28) => {
+  const fitNodes = useCallback((nodeIds: string[]) => {
     if (dragRef.current?.started) return;
-    requestAnimationFrame(() => setTimeout(() => {
-      const present = nodeIds.filter((id) => rf.getNode(id) && rf.getNode(id)!.measured?.width);
-      if (!present.length) return;
-      rf.fitView({ nodes: present.map((id) => ({ id })), padding, duration: 460, maxZoom: 1 });
-    }, 130));
-  }, [rf]);
+    // RETRY until the freshly-opened children are present AND measured. The old code
+    // did a single setTimeout(130) and bailed if they weren't ready yet — so the drill
+    // fit silently never applied, leaving the stale company-level fitTopView camera
+    // (scale 0.95) in place and the wide division/department rows cut off. Mirror
+    // MapCanvas: keep re-checking on each animation frame until the nodes exist.
+    let tries = 0;
+    const attempt = () => {
+      if (dragRef.current?.started) return;
+      // Gate on the nodes EXISTING in the store (not on `measured` — React Flow never
+      // populates measured.width for these custom org nodes, which made the old gate
+      // wait forever and bail, leaving the stale company-level camera). Bounds below
+      // fall back to MAP_CARD_W/H when measured is absent, so existence is enough.
+      const req = nodeIds.map((id) => rf.getNode(id)).filter((n) => !!n);
+      if (req.length < nodeIds.length && tries++ < 30) { requestAnimationFrame(attempt); return; }
+      if (!req.length || !paneW || !paneH) return;
+      // Frame the WHOLE visible spine so the company root is always in bounds.
+      const all = rf.getNodes();
+      if (!all.length) return;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const n of all) {
+        const w = n.measured?.width ?? MAP_CARD_W;
+        const h = n.measured?.height ?? MAP_CARD_H;
+        minX = Math.min(minX, n.position.x);
+        minY = Math.min(minY, n.position.y);
+        maxX = Math.max(maxX, n.position.x + w);
+        maxY = Math.max(maxY, n.position.y + h);
+      }
+      // Size the zoom against the ACTUAL top-pinned layout: the company sits TOP_PAD
+      // below the top edge, so the height available for the spine is (paneH - TOP_PAD
+      // - PAD), and the width budget is (paneW - 2·PAD). Taking the smaller of the two
+      // ratios guarantees EVERY box fits — no right-edge or bottom-row cutoff — while
+      // the company stays locked at the top.
+      const TOP_PAD = 16, PAD = 48;
+      const boundsW = Math.max(1, maxX - minX);
+      const boundsH = Math.max(1, maxY - minY);
+      const zoom = Math.max(0.05, Math.min(
+        (paneW - PAD * 2) / boundsW,
+        (paneH - TOP_PAD - PAD) / boundsH,
+        2,
+      ));
+      const centerX = (minX + maxX) / 2;
+      rf.setViewport({ x: paneW / 2 - centerX * zoom, y: TOP_PAD - minY * zoom, zoom }, { duration: 460 });
+    };
+    requestAnimationFrame(attempt);
+  }, [rf, paneW, paneH]);
   const fitTopView = useCallback(() => {
     void rf.fitView({ duration: 0, padding: 0.08, maxZoom: 0.95 }).then((applied) => {
       if (!applied) return;
@@ -767,15 +808,15 @@ function OrgMapCanvasInner({ data, breadcrumbSlot, onSaved }: Props & { data: Or
 
   useEffect(() => { fitTopView(); }, [companyOpen]); // eslint-disable-line
   useEffect(() => {
-    if (selSegName && selSegment) fitNodes([`seg:${selSegName}`, ...displayDivisions.map((d) => `div:${d.id}`)], 0.3);
+    if (selSegName && selSegment) fitNodes([`seg:${selSegName}`, ...displayDivisions.map((d) => `div:${d.id}`)]);
     else if (companyOpen) fitTopView();
   }, [selSegName]); // eslint-disable-line
   useEffect(() => {
-    if (selDivId && selDivision) fitNodes([`div:${selDivId}`, ...teams.map((t) => `dept:${t.id}`)], 0.3);
+    if (selDivId && selDivision) fitNodes([`div:${selDivId}`, ...teams.map((t) => `dept:${t.id}`)]);
     else if (selSegName) moveCameraToNode(`seg:${selSegName}`, 1.2);
   }, [selDivId]); // eslint-disable-line
   useEffect(() => {
-    if (selDeptId && selTeam) fitNodes([`dept:${selDeptId}`, ...roles.map((r) => `role:${r.id}`)], 0.3);
+    if (selDeptId && selTeam) fitNodes([`dept:${selDeptId}`, ...roles.map((r) => `role:${r.id}`)]);
     else if (selDivId) moveCameraToNode(`div:${selDivId}`, 0.8);
   }, [selDeptId]); // eslint-disable-line
 
@@ -894,7 +935,7 @@ function OrgMapCanvasInner({ data, breadcrumbSlot, onSaved }: Props & { data: Or
       </div>
 
       {base && (
-        <MetricsSidebar dash={dash} loading={dashLoading} onDrill={onPanelDrill} startExpanded accent={accentHex}
+        <MetricsSidebar dash={dash} loading={dashLoading} onDrill={onPanelDrill} accent={accentHex}
           onBack={ovStack.length ? onPanelBack : undefined} onClose={closeMetrics} onViewAll={setDrawerSection} />
       )}
       {drawerSection && (

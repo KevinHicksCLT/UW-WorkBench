@@ -210,7 +210,6 @@ export default function StandardArea() {
                             ) : (
                               <div className="text-sm text-[#525252]">
                                 {it.ownerRole ?? <span className="text-[#a3a3a3] italic">Unassigned</span>}
-                                {it.ownerRole && <div className="text-[11px] text-[#a3a3a3] italic mt-0.5">not matched to a role in the inventory</div>}
                               </div>
                             )}
                             {it.relatedRole && it.relatedRole !== it.ownerRole && (
