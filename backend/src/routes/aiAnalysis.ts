@@ -130,7 +130,7 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
         ? open.reduce((max, r) => (r.plannedDate! > max ? r.plannedDate! : max), open[0].plannedDate!)
         : null;
       return {
-        type, label, total, complete, inProgress, notStarted,
+        type: type as string, label: label as string, total, complete, inProgress, notStarted,
         pctComplete: total ? Math.round((100 * complete) / total) : 0,
         expectedFinish, overdue, onPlan: overdue === 0,
       };
