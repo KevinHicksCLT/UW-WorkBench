@@ -75,7 +75,7 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
     const companyId = company.id;
     const now = new Date();
 
-    const [statuses, processLevels, orgLevels, roleCount, tasks] = await Promise.all([
+    const [statuses, processLevels, orgLevels, roleCount, tasks, orgCount, deliverableCount, applicationCount] = await Promise.all([
       prisma.analysisStatus.findMany({
         where: { companyId },
         select: { subjectType: true, subjectId: true, status: true, plannedDate: true },
@@ -96,6 +96,11 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
           nodeDeliverables: { select: { id: true } },
         },
       }),
+      // Baseline-inventory totals (Stage 1 "Current State Analysis"): full counts
+      // of each canonical entity — derived read-time from the spine, never copied.
+      prisma.orgUnit.count({ where: { companyId } }),
+      prisma.deliverable.count({ where: { companyId } }),
+      prisma.application.count({ where: { companyId } }),
     ]);
 
     // level-type id → levelNumber maps for the coverage denominators.
@@ -131,6 +136,17 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
       };
     });
 
+    // Tasks coverage — there is no AnalysisStatus subject for tasks; a task is
+    // "analyzed" once it carries an AI disposition (automatability set). Computed
+    // from the canonical Task tree, no planned dates → no overdue.
+    const tasksAnalyzed = tasks.filter((t) => t.automatability != null).length;
+    coverage.push({
+      type: 'task', label: 'Tasks', total: tasks.length, complete: tasksAnalyzed,
+      inProgress: 0, notStarted: tasks.length - tasksAnalyzed,
+      pctComplete: tasks.length ? Math.round((100 * tasksAnalyzed) / tasks.length) : 0,
+      expectedFinish: null, overdue: 0, onPlan: true,
+    });
+
     // ── Stage 2: adoption breakdowns over the L5 task tree ──────────────────
     // value-stream (L2) name per task, resolved once via the closure.
     const vsByTask = await ancestorNames(tasks.map((t) => t.id));
@@ -153,9 +169,23 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
       tally(byValueStream, vsByTask.get(t.id)?.valueStreamName ?? 'Unassigned', d);
     }
 
+    // ── Baseline inventory: how big the current operating model is ──────────
+    // Value streams = L2 process nodes (the canonical value-stream level, same
+    // denominator as the valueStream coverage subject). Everything else is a
+    // full table count. Pure counts — no analysis tracking implied.
+    const inventory = {
+      orgs: orgCount,
+      valueStreams: totalForType(SUBJECT_TYPES[0]),
+      roles: roleCount,
+      tasks: tasks.length,
+      deliverables: deliverableCount,
+      applications: applicationCount,
+    };
+
     const totalTasks = tasks.length;
     const pct = (n: number) => (totalTasks ? Math.round((1000 * n) / totalTasks) / 10 : 0);
     res.json({
+      inventory,
       coverage,
       adoption: {
         totalTasks,

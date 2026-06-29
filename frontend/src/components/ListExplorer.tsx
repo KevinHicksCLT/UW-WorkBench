@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { DOMAIN_HEX, type DivisionSummary } from '../viz/model';
 import { api } from '../lib/api';
 import Inspector from './Inspector';
-import { HeaderComboFilter } from './Sheet';
+import { HeaderComboFilter, ListSearch } from './Sheet';
 
 // List view (R2 rework) — a FLAT spreadsheet of the operating model. No tree,
 // no expand/collapse: every row is one full process chain read left-to-right
@@ -91,6 +91,7 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
   const [vsSel, setVsSel] = useState<string[]>([]);
   const [subSel, setSubSel] = useState<string[]>([]);
   const [stepSel, setStepSel] = useState<string[]>([]);
+  const [search, setSearch] = useState('');
   const [sort, setSort] = useState<Sort>({ col: 'vs', dir: 1 });
 
   // Right-hand inspector — same component the map docks. `base` = the cell
@@ -228,8 +229,11 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
   // Visible rows: filters + sort. Default sort = value stream, with the
   // process order (sub-process № then step №) as the tie-break so each stream
   // reads top-to-bottom in execution order.
+  const needle = search.trim().toLowerCase();
+  const searchMatch = (r: FlatRow) =>
+    !needle || [r.domain, r.division, r.vsName, r.areaName, r.stepName].some((v) => v.toLowerCase().includes(needle));
   const rows = useMemo(() => {
-    const list = flat.filter((r) => matches(r));
+    const list = flat.filter((r) => matches(r) && searchMatch(r));
     const procOrder = (a: FlatRow, b: FlatRow) =>
       a.vsName.localeCompare(b.vsName)
       || (a.areaNum ?? 0) - (b.areaNum ?? 0)
@@ -243,7 +247,7 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
         : a.stepName.localeCompare(b.stepName);
       return c * sort.dir || procOrder(a, b);
     });
-  }, [flat, domainSel, divisionSel, vsSel, subSel, stepSel, sort]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [flat, domainSel, divisionSel, vsSel, subSel, stepSel, sort, needle]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Totals strip — distinct entities among the visible (filtered) rows.
   const totals = useMemo(() => {
@@ -257,8 +261,8 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
     return { vs: vs.size, subs: subs.size, steps };
   }, [rows]);
 
-  const anyFilter = domainSel.length > 0 || divisionSel.length > 0 || vsSel.length > 0 || subSel.length > 0 || stepSel.length > 0;
-  const clear = () => { setDomainSel([]); setDivisionSel([]); setVsSel([]); setSubSel([]); setStepSel([]); };
+  const anyFilter = domainSel.length > 0 || divisionSel.length > 0 || vsSel.length > 0 || subSel.length > 0 || stepSel.length > 0 || !!needle;
+  const clear = () => { setDomainSel([]); setDivisionSel([]); setVsSel([]); setSubSel([]); setStepSel([]); setSearch(''); };
 
   const toggleSort = (col: Col) => setSort((s) => (s.col === col ? { col, dir: s.dir === 1 ? -1 : 1 } : { col, dir: 1 }));
 
@@ -336,9 +340,11 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
             {!loading && !error && (
               <>
                 <span className="text-[11px] text-[#737373] tnum">
-                  {totals.vs} value streams · {totals.subs} sub-processes · {totals.steps} steps
+                  {totals.vs} value streams · {totals.subs} L4 processes · {totals.steps} L5 processes
                 </span>
                 {anyFilter && <button onClick={clear} className="text-[11px] font-medium text-[#1d4ed8] hover:underline">Clear filters</button>}
+                <div className="flex-1" />
+                <ListSearch value={search} onChange={setSearch} />
               </>
             )}
           </div>
@@ -360,9 +366,9 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
                       sort={<SortToggle col="division" sort={sort} onSort={toggleSort} />} />
                     <HeaderComboFilter label="Value stream" value={vsSel} onChange={setVsSel} options={vsOptions}
                       sort={<SortToggle col="vs" sort={sort} onSort={toggleSort} />} />
-                    <HeaderComboFilter label="Sub-process" value={subSel} onChange={setSubSel} options={subOptions}
+                    <HeaderComboFilter label="L4 Process" value={subSel} onChange={setSubSel} options={subOptions}
                       sort={<SortToggle col="sub" sort={sort} onSort={toggleSort} />} />
-                    <HeaderComboFilter label="Step" value={stepSel} onChange={setStepSel} options={stepOptions}
+                    <HeaderComboFilter label="L5 Process" value={stepSel} onChange={setStepSel} options={stepOptions}
                       sort={<SortToggle col="step" sort={sort} onSort={toggleSort} />} />
                   </div>
                   <div ref={rowsWrapRef} className="rounded-b-lg overflow-hidden">

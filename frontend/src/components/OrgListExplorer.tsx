@@ -3,7 +3,7 @@ import { DOMAIN_HEX } from '../viz/model';
 import { api } from '../lib/api';
 import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from './MetricsSidebar';
 import RoleDrawer from './RoleDrawer';
-import { HeaderComboFilter } from './Sheet';
+import { HeaderComboFilter, ListSearch } from './Sheet';
 
 // Org List view (R2 rework) — a FLAT spreadsheet of the org spine, the mirror
 // image of the Value Streams list (ListExplorer). No tree, no expand/collapse:
@@ -96,6 +96,7 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
   const [divisionSel, setDivisionSel] = useState<string[]>([]);
   const [deptSel, setDeptSel] = useState<string[]>([]);
   const [roleSel, setRoleSel] = useState<string[]>([]);
+  const [search, setSearch] = useState('');
   const [sort, setSort] = useState<Sort>({ col: 'domain', dir: 1 });
 
   // Right-hand metrics panel — identical to the map / value-stream list.
@@ -197,8 +198,11 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
   useEffect(() => { prune(roleSel, roleOptions, setRoleSel); }, [roleOptions, roleSel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Visible rows: filters + sort (chain order as the tie-break).
+  const needle = search.trim().toLowerCase();
+  const searchMatch = (r: FlatRow) =>
+    !needle || [r.domain, r.divName, r.deptName, r.roleName].some((v) => v.toLowerCase().includes(needle));
   const rows = useMemo(() => {
-    const list = flat.filter((r) => matches(r));
+    const list = flat.filter((r) => matches(r) && searchMatch(r));
     const chainOrder = (a: FlatRow, b: FlatRow) =>
       a.domain.localeCompare(b.domain)
       || a.divName.localeCompare(b.divName)
@@ -211,7 +215,7 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
         : a.roleName.localeCompare(b.roleName);
       return c * sort.dir || chainOrder(a, b);
     });
-  }, [flat, domainSel, divisionSel, deptSel, roleSel, sort]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [flat, domainSel, divisionSel, deptSel, roleSel, sort, needle]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Totals strip — distinct entities among the visible (filtered) rows.
   const totals = useMemo(() => {
@@ -226,8 +230,8 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
     return { domains: domains.size, divisions: divisions.size, departments: depts.size, roles };
   }, [rows]);
 
-  const anyFilter = domainSel.length > 0 || divisionSel.length > 0 || deptSel.length > 0 || roleSel.length > 0;
-  const clear = () => { setDomainSel([]); setDivisionSel([]); setDeptSel([]); setRoleSel([]); };
+  const anyFilter = domainSel.length > 0 || divisionSel.length > 0 || deptSel.length > 0 || roleSel.length > 0 || !!needle;
+  const clear = () => { setDomainSel([]); setDivisionSel([]); setDeptSel([]); setRoleSel([]); setSearch(''); };
 
   const toggleSort = (col: Col) => setSort((s) => (s.col === col ? { col, dir: s.dir === 1 ? -1 : 1 } : { col, dir: 1 }));
 
@@ -296,6 +300,8 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
                   {totals.domains} domains · {totals.divisions} divisions · {totals.departments} departments · {totals.roles} roles
                 </span>
                 {anyFilter && <button onClick={clear} className="text-[11px] font-medium text-[#1d4ed8] hover:underline">Clear filters</button>}
+                <div className="flex-1" />
+                <ListSearch value={search} onChange={setSearch} />
               </>
             )}
           </div>

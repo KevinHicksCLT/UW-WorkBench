@@ -48,9 +48,17 @@ erDiagram
     string id PK
     string companyId FK
     string orgUnitId FK "primary home"
-    string managerRoleId FK "self -> Role (reporting)"
+    string managerRoleId FK "self -> Role (solid-line reporting)"
+    string jobDescription "concise purpose & scope (FB-53)"
     string dbValue
     string displayValue "EDITABLE label"
+  }
+  RoleDottedLine {
+    string status "FB-45 — dotted-line reporting (role -> manager role)"
+    string id PK
+    string companyId FK
+    string roleId FK "the reporting role"
+    string managerRoleId FK "the dotted-line manager role"
   }
   RoleOrgAssignment {
     string status "NEW — role at multiple levels (M:N)"
@@ -140,6 +148,8 @@ erDiagram
     string agentSkill
     string sdlcGates
     string regCitation
+    string testProcedure "FB-58 — how to independently verify the leaf"
+    string evidence "FB-58 — evidence artifact the check leaves"
   }
   Application {
     string status "CHANGED v3 — internal/external, org-scoped, source-fed; + TCO fields"
@@ -456,6 +466,16 @@ erDiagram
     string dependsOnId FK "self (nullable)"
     string status
   }
+  ChangeRequest {
+    string status "FB-27 — CR register per initiative (cost + schedule impact)"
+    string id PK
+    string initiativeId FK
+    string title
+    string raisedBy
+    float costImpact
+    int scheduleImpactDays
+    string status_ "PENDING|APPROVED|REJECTED"
+  }
   StrategicObjective {
     string id PK
     string companyId FK
@@ -504,6 +524,7 @@ erDiagram
     string requirement
     string lineOfBusiness
     string confidence "BASELINE|VERIFIED|DERIVED|STALE"
+    string agentSkill "FB-59 — SDLC skill for migrated privacy/cyber regimes"
   }
   RegulatorySource {
     string id PK
@@ -614,6 +635,8 @@ erDiagram
   OrgUnit ||--o{ OrgUnitClosure : "ancestor"
   OrgUnit ||--o{ Role : "primary-home"
   Role ||--o{ Role : "manages"
+  Role ||--o{ RoleDottedLine : "dotted-from"
+  Role ||--o{ RoleDottedLine : "dotted-to"
   Role ||--o{ RoleOrgAssignment : "assigned"
   OrgUnit ||--o{ RoleOrgAssignment : "hosts"
   %% value-stream spine
@@ -706,6 +729,7 @@ erDiagram
   Role |o--o{ RaidItem : "owns"
   PortfolioInitiative ||--o{ WorkplanActivity : "plans"
   WorkplanActivity |o--o{ WorkplanActivity : "depends-on"
+  PortfolioInitiative ||--o{ ChangeRequest : "change-register"
   PortfolioInitiative ||--o{ InitiativeObjective : "aligns"
   StrategicObjective ||--o{ InitiativeObjective : "aligned-by"
   Company ||--o{ StrategicObjective : "defines"
@@ -740,6 +764,7 @@ erDiagram
   %% ================= COLOR CODING =================
   %% red=connection tables · blue=value stream · orange=org · green=work · purple=other · teal=peripheral
   style RoleOrgAssignment fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style RoleDottedLine fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style OrgUnitClosure fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style ProcessNodeClosure fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style NodeDeliverable fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
@@ -791,6 +816,7 @@ erDiagram
   style Milestone fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
   style RaidItem fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
   style WorkplanActivity fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
+  style ChangeRequest fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
   style StrategicObjective fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
   style InitiativeResource fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
   style RiskScoringBand fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655

@@ -60,7 +60,7 @@ router.get('/overview', async (req: Request, res: Response, next: NextFunction) 
     const companyId = await activeCompanyId(req, res);
     if (!companyId) return;
     const [jurisdictions, reqByCategory, reqByConfidence, requirementCount, mappedCount, bulletinCount, ruleCount, sourceCount, coverage] = await Promise.all([
-      prisma.jurisdiction.findMany({ where: { companyId, regulatorType: { not: 'FEDERAL_SECURITIES' } }, select: { filingPortal: true, compactStatus: true, autoVerification: true, workersCompModel: true, apcd: true, sbs: true, priorityTier: true, profileDepth: true, lastVerifiedAt: true } }),
+      prisma.jurisdiction.findMany({ where: { companyId, regulatorType: { notIn: ['FEDERAL_SECURITIES', 'INTERNATIONAL'] } }, select: { filingPortal: true, compactStatus: true, autoVerification: true, workersCompModel: true, apcd: true, sbs: true, priorityTier: true, profileDepth: true, lastVerifiedAt: true } }),
       prisma.regulatoryRequirement.groupBy({ by: ['category'], where: { companyId, status: 'ACTIVE' }, _count: true }),
       prisma.regulatoryRequirement.groupBy({ by: ['confidence'], where: { companyId, status: 'ACTIVE' }, _count: true }),
       prisma.regulatoryRequirement.count({ where: { companyId, status: 'ACTIVE' } }),
@@ -112,9 +112,9 @@ router.get('/jurisdictions', async (req: Request, res: Response, next: NextFunct
     if (!companyId) return;
     const q = req.query;
     // States lens covers state insurance regulators only — federal securities
-    // regulators (FINRA/SEC/MSRB) carry no state flags and surface in the
-    // Requirements/Coverage lenses instead.
-    const where: Record<string, unknown> = { companyId, regulatorType: { not: 'FEDERAL_SECURITIES' } };
+    // (FINRA/SEC/MSRB) and international (EU/GDPR) regulators carry no state flags
+    // and surface in the Federal / International lenses instead.
+    const where: Record<string, unknown> = { companyId, regulatorType: { notIn: ['FEDERAL_SECURITIES', 'INTERNATIONAL'] } };
     for (const f of ['filingPortal', 'compactStatus', 'autoVerification', 'workersCompModel', 'apcd', 'sbs', 'priorityTier', 'profileDepth'] as const) {
       const vals = list(q[f]);
       if (vals) where[f] = vals.length === 1 ? vals[0] : { in: vals };
@@ -211,6 +211,49 @@ router.get('/federal', async (req: Request, res: Response, next: NextFunction) =
   } catch (e) { next(e); }
 });
 
+// ── International lens (FB-60) ─────────────────────────────────────────────────
+// Non-US / supranational regulators (EU/GDPR today). Same regulator-grouped shape
+// as the Federal lens, keyed by regulatorType so other regimes (UK ICO, etc.) can
+// be added later. The migrated GDPR obligations (FB-59) surface here.
+const INTERNATIONAL_GROUP: Record<string, { region: string; regionCode: string; level: string }> = {
+  INTERNATIONAL: { region: 'European Union', regionCode: 'EU', level: 'International — Data Protection' },
+};
+router.get('/international', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const companyId = await activeCompanyId(req, res);
+    if (!companyId) return;
+    const rows = await prisma.jurisdiction.findMany({
+      where: { companyId, regulatorType: { in: Object.keys(INTERNATIONAL_GROUP) } },
+      orderBy: { code: 'asc' },
+      select: {
+        id: true, code: true, name: true, regulatorName: true, regulatorWebsite: true,
+        regulatorType: true, summaryRegulator: true, lastVerifiedAt: true, updatedAt: true,
+        requirements: {
+          where: { status: 'ACTIVE' },
+          orderBy: [{ category: 'asc' }, { title: 'asc' }],
+          select: {
+            id: true, title: true, category: true, requirement: true, citation: true, citationUrl: true,
+            obligationType: true, lineOfBusiness: true, confidence: true, agentSkill: true,
+            ...NODE_REG_INCLUDE,
+          },
+        },
+      },
+    });
+    const byRegion = new Map<string, { country: string; countryCode: string; regulators: unknown[] }>();
+    for (const j of rows) {
+      const g = INTERNATIONAL_GROUP[j.regulatorType] ?? { region: 'Other', regionCode: 'XX', level: 'International' };
+      if (!byRegion.has(g.region)) byRegion.set(g.region, { country: g.region, countryCode: g.regionCode, regulators: [] });
+      byRegion.get(g.region)!.regulators.push({
+        id: j.id, code: j.code, name: j.name, regulatorName: j.regulatorName,
+        regulatorWebsite: j.regulatorWebsite, level: g.level, summary: j.summaryRegulator,
+        lastVerifiedAt: j.lastVerifiedAt, updatedAt: j.updatedAt,
+        requirements: j.requirements.map(withValueStreamLinks),
+      });
+    }
+    res.json({ groups: [...byRegion.values()] });
+  } catch (e) { next(e); }
+});
+
 // ── Requirements lens ─────────────────────────────────────────────────────────
 router.get('/requirements', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -238,7 +281,9 @@ router.get('/requirements', async (req: Request, res: Response, next: NextFuncti
       where,
       orderBy: [{ jurisdiction: { name: 'asc' } }, { category: 'asc' }, { title: 'asc' }],
       include: {
-        jurisdiction: { select: { id: true, code: true, name: true, priorityTier: true } },
+        // Combined-columns merge (FB-61): the requirement row also surfaces its
+        // jurisdiction's key state flags, so include them here.
+        jurisdiction: { select: { id: true, code: true, name: true, priorityTier: true, regulatorType: true, filingPortal: true, compactStatus: true } },
         ...NODE_REG_INCLUDE,
       },
     });

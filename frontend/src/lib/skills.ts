@@ -9,8 +9,10 @@ const SKILL_LABELS: Record<string, string> = {
   'nydfs-500-sdlc-compliance': 'NYDFS 500 Compliance',
 };
 
-const ACRONYMS = new Set(['gdpr', 'ccpa', 'cpra', 'nydfs', 'iso', 'soc', 'pci', 'hipaa', 'dora']);
+const ACRONYMS = new Set(['gdpr', 'ccpa', 'cpra', 'nydfs', 'iso', 'soc', 'pci', 'hipaa', 'dora', 'cat', 'pmo', 'sast', 'dast', 'sca', 'siem', 'mfa', 'rbac', 'pam', 'dpia', 'ropa', 'kpi', 'sla', 'api']);
 
+// Per-grouping skill slugs are the category only (no standards area), e.g.
+// "pricing-sdlc-compliance" → "Pricing Compliance".
 export function skillLabel(slug: string): string {
   if (SKILL_LABELS[slug]) return SKILL_LABELS[slug];
   return slug

@@ -883,7 +883,7 @@ type StdRow = {
   id: string; category: string | null; name: string; description: string | null;
   buildRun: string | null; ownerLabel: string | null; relatedRole: string | null;
   relatedCategory: string | null; link: string | null; agentSkill: string | null;
-  sdlcGates: string | null; regCitation: string | null;
+  sdlcGates: string | null; regCitation: string | null; testProcedure: string | null; evidence: string | null;
   ownerRole: { id: string; displayValue: string } | null;
   nodeStandards: { processNode: { id: string; displayValue: string; parent: { displayValue: string } | null } | null }[];
 };
@@ -905,6 +905,8 @@ function shapeItem(r: StdRow) {
     agentSkill: r.agentSkill,
     sdlcGates: r.sdlcGates,
     regCitation: r.regCitation,
+    testProcedure: r.testProcedure,
+    evidence: r.evidence,
     responsible: r.ownerRole ? { roleId: r.ownerRole.id, roleName: r.ownerRole.displayValue, roleLevel: null as string | null } : null,
     valueStreams,
   };
@@ -913,6 +915,7 @@ function shapeItem(r: StdRow) {
 const STD_ITEM_SELECT = {
   id: true, category: true, name: true, description: true, buildRun: true, ownerLabel: true,
   relatedRole: true, relatedCategory: true, link: true, agentSkill: true, sdlcGates: true, regCitation: true,
+  testProcedure: true, evidence: true,
   ownerRole: { select: { id: true, displayValue: true } },
   nodeStandards: { select: { processNode: { select: { id: true, displayValue: true, parent: { select: { displayValue: true } } } } } },
 } as const;
