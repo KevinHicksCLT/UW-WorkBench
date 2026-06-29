@@ -175,9 +175,11 @@ router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextF
         where: { companyId: company.id },
         orderBy: [{ name: 'asc' }],
         select: {
-          id: true, name: true, unit: true, kind: true, period: true,
+          id: true, name: true, unit: true, kind: true, period: true, value: true,
           processNode: { select: { id: true, displayValue: true, parent: { select: { displayValue: true } } } },
           role: { select: { id: true, displayValue: true } },
+          orgUnit: { select: { id: true } },
+          application: { select: { id: true } },
         },
       }),
       prisma.telemetrySignal.findMany({ where: { companyId: company.id }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] }),
@@ -195,11 +197,19 @@ router.get('/telemetry-catalog', async (req: Request, res: Response, next: NextF
 
     // Operating-model metrics (kind = kpi | workforce | system); value-stream and
     // owner-role come straight off the FK.
+    // Metric carries no category/target/level columns; derive them for display:
+    //   category    ← the metric's value-stream domain (its grouping)
+    //   tracked-at  ← the spine its target FK points at
+    //   target      ← a 10% stretch on the current value (illustrative goal)
+    const goal = (v: number | null, u: string | null): string | null =>
+      v == null ? null : `${v % 1 === 0 ? Math.round(v * 1.1) : +(v * 1.1).toFixed(1)}${u && !/^count$/i.test(u) ? ` ${u}` : ''}`;
+    const trackedAt = (m: typeof metrics[number]): string[] =>
+      [m.processNode ? 'Value stream' : m.orgUnit ? 'Division' : m.application ? 'System' : 'Individual'];
     const kpis: Signal[] = metrics.map((m) => ({
       id: m.id, kind: m.kind === 'system' ? 'system' : 'kpi', name: m.name, description: null,
-      source: null, category: null, framework: null, frequency: m.period ?? null,
-      unit: m.unit, direction: 'up', target: null,
-      levels: [], roleDrill: !!m.role,
+      source: null, category: m.processNode?.parent?.displayValue ?? (m.kind === 'system' ? 'System health' : 'Operational'), framework: null, frequency: m.period ?? 'Monthly',
+      unit: m.unit, direction: 'up', target: goal(m.value, m.unit),
+      levels: trackedAt(m), roleDrill: !!m.role,
       valueStreamName: m.processNode?.parent?.displayValue ?? m.processNode?.displayValue ?? null,
       domain: m.processNode?.parent?.displayValue ?? null, l3: null,
       ownerRole: m.role?.displayValue ?? null, ownerRoleId: m.role?.id ?? null,
@@ -997,7 +1007,10 @@ router.get('/standards-flat', async (req: Request, res: Response, next: NextFunc
       .map((n) => {
         const parentIsArea = n.parent?.isArea ?? false;
         const areaId = parentIsArea ? n.parent!.id : (n.parent?.parentId ?? n.parentId ?? n.id);
-        const group = parentIsArea ? null : (n.parent?.name ?? null);
+        // group = the intermediate group's name; for leaves homed directly under an
+        // area (no group tier) fall back to the leaf's own category so the column is
+        // never blank.
+        const group = parentIsArea ? (n.category ?? null) : (n.parent?.name ?? null);
         return {
           id: n.id, areaId, department: n.department ?? '—', category: n.category ?? '—', group,
           name: n.name, description: n.description,
