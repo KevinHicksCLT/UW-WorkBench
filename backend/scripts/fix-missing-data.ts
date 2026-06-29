@@ -38,7 +38,24 @@ const ABBR: [RegExp, string][] = [
   [/\bsre\b/g, 'site reliability engineer'], [/\bpmo\b/g, 'program management office'],
   [/\brte\b/g, 'release train engineer'], [/\biso\b/g, 'information security officer'],
   [/\bip\b/g, 'intellectual property'],
+  [/\bciso\b/g, 'chief information security officer'], [/\bdpo\b/g, 'data protection officer'],
+  [/\bcro\b/g, 'chief risk officer'], [/\bchro\b/g, 'chief human resources officer'],
+  [/\bcoo\b/g, 'chief operating officer'], [/\bcio\b/g, 'chief information officer'],
+  [/\bcfo\b/g, 'chief financial officer'], [/\bcto\b/g, 'chief technology officer'],
+  [/\bceo\b/g, 'chief executive officer'],
 ];
+
+// Owner labels in the privacy/cyber standards are multi-party ("CISO / DPO",
+// "Highest-Ranking Executive + CISO"). Take the PRIMARY (first) accountable party
+// so the resolved/created owner is a single clean role, never a slash-compound.
+const primaryLabel = (v: unknown): string =>
+  String(v ?? '').split(/\s*[\/+;,]\s*|\s+and\s+|\s+&\s+/i)[0].trim();
+// free-text governance phrases → a real role.
+const OWNER_ALIAS: Record<string, string> = {
+  'highest ranking executive': 'Chief Executive Officer',
+  'senior governing body': 'Chief Executive Officer',
+  'vendor security': 'Vendor Risk Manager',
+};
 const norm = (v: unknown): string =>
   String(v ?? '').toLowerCase().replace(/\s*\([^)]*\)\s*/g, ' ')
     .replace(/[^a-z0-9& ]/g, ' ').replace(/&/g, ' and ').replace(/\s+/g, ' ').trim();
@@ -212,14 +229,21 @@ async function main() {
   const unowned = await prisma.standard.findMany({ where: { companyId, isArea: false, ownerRoleId: null }, select: { id: true, ownerLabel: true, relatedRole: true, department: true } });
   type Pending = { stdId: string; label: string; dept: string };
   const needRole: Pending[] = [];
+  // resolve a raw owner cell to its PRIMARY clean role label + a match (if any).
+  const resolveOwner = (raw: string | null) => {
+    const prim = primaryLabel(raw);
+    if (!prim) return { label: '', match: null as { id: string; name: string } | null };
+    const aliased = OWNER_ALIAS[norm(prim)] ?? prim;
+    return { label: aliased, match: matchRole(aliased) };
+  };
   for (const s of unowned) {
-    const m = matchRole(s.relatedRole) || matchRole(s.ownerLabel);
-    if (m) {
-      if (!DRY) await prisma.standard.update({ where: { id: s.id }, data: { ownerRoleId: m.id } });
+    let res = resolveOwner(s.relatedRole);
+    if (!res.match) { const alt = resolveOwner(s.ownerLabel); res = alt.match ? alt : (res.label ? res : alt); }
+    if (res.match) {
+      if (!DRY) await prisma.standard.update({ where: { id: s.id }, data: { ownerRoleId: res.match.id } });
       counts.ownerSet++;
-    } else {
-      const label = (s.ownerLabel || s.relatedRole || '').trim();
-      if (label) needRole.push({ stdId: s.id, label, dept: s.department || '' });
+    } else if (res.label) {
+      needRole.push({ stdId: s.id, label: res.label, dept: s.department || '' });
     }
   }
   // create + fully wire the genuinely-absent owner roles, then assign.
