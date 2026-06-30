@@ -28,11 +28,13 @@ const SUBJECT_TYPES = [
 const DISPOSITIONS = ['Automated', 'Discarded', 'Augmented', 'Manual'] as const;
 type Disposition = (typeof DISPOSITIONS)[number];
 
-// ProcessNode.automatability → adoption disposition. (There is no "Discarded"
-// source in the workbook, so that bucket stays at 0.)
+// ProcessNode.automatability → adoption disposition. Tiers: autonomous/workflow
+// (score 1-2, agent-runnable) → Automated; augmented/assist (score 3-4, AI in the
+// loop) → Augmented; manual (score 5) → Manual. (No "Discarded" source in the
+// workbook, so that bucket stays at 0.) Legacy "automated" token kept as Automated.
 function dispositionOf(automatability: string | null): Disposition {
-  if (automatability === 'automated') return 'Automated';
-  if (automatability === 'augmented') return 'Augmented';
+  if (automatability === 'autonomous' || automatability === 'workflow' || automatability === 'automated') return 'Automated';
+  if (automatability === 'augmented' || automatability === 'assist' || automatability === 'assisted') return 'Augmented';
   return 'Manual';
 }
 

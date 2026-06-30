@@ -117,21 +117,38 @@ router.get('/value-stream-adoption', async (req: Request, res: Response, next: N
   try {
     const company = await activeCompany(req, { id: true });
     if (!company) return res.status(404).json({ error: 'No company' });
-    const { idOf } = await processLevelMap(company.id);
-    const l2 = idOf(2);
+    const { byId, idOf } = await processLevelMap(company.id);
+    const l2 = idOf(2), l5 = idOf(5);
     const nodes = l2 ? await prisma.processNode.findMany({
       where: { companyId: company.id, processLevelTypeId: l2 },
       orderBy: { displayValue: 'asc' },
-      select: { id: true, displayValue: true, parent: { select: { displayValue: true } }, aiAdoption: true },
+      select: { id: true, displayValue: true, parent: { select: { displayValue: true } } },
     }) : [];
     const idx = (v: string | undefined) => AI_LEVEL_INDEX[v ?? 'not_used'] ?? 0;
+    // Roll the heat-map up from the value stream's L5 tasks: each cell is the mean
+    // adoption level (0-4) across the tasks' NodeAiAdoption for that AI mode.
+    const all = await prisma.processNode.findMany({ where: { companyId: company.id }, select: { id: true, parentId: true, processLevelTypeId: true } });
+    const map = new Map(all.map((n) => [n.id, n]));
+    const vsOf = (id: string): string | null => { // nearest L2 ancestor
+      let cur = map.get(id); while (cur) { if (cur.processLevelTypeId === l2) return cur.id; cur = cur.parentId ? map.get(cur.parentId) : undefined; } return null;
+    };
+    const adopt = await prisma.nodeAiAdoption.findMany({
+      where: { processNode: { companyId: company.id, processLevelTypeId: l5 ?? undefined } },
+      select: { processNodeId: true, aiAssist: true, aiAugment: true, aiWorkflow: true, aiAutonomous: true },
+    });
+    const agg = new Map<string, { sum: number[]; n: number }>();
+    for (const a of adopt) {
+      const vs = vsOf(a.processNodeId); if (!vs) continue;
+      const e = agg.get(vs) ?? { sum: [0, 0, 0, 0], n: 0 };
+      e.sum[0] += idx(a.aiAssist); e.sum[1] += idx(a.aiAugment); e.sum[2] += idx(a.aiWorkflow); e.sum[3] += idx(a.aiAutonomous); e.n++;
+      agg.set(vs, e);
+    }
     res.json({
-      valueStreams: nodes.map((n) => ({
-        id: n.id, name: n.displayValue, domain: n.parent?.displayValue ?? null,
-        cells: [idx(n.aiAdoption?.aiAssist), idx(n.aiAdoption?.aiAugment), idx(n.aiAdoption?.aiWorkflow), idx(n.aiAdoption?.aiAutonomous)],
-        useCases: n.aiAdoption?.useCases ?? null,
-        stats: n.aiAdoption?.stats ?? null,
-      })),
+      valueStreams: nodes.map((n) => {
+        const e = agg.get(n.id);
+        const cells = e && e.n ? e.sum.map((s) => Math.round(s / e.n)) : [0, 0, 0, 0];
+        return { id: n.id, name: n.displayValue, domain: n.parent?.displayValue ?? null, cells, useCases: null, stats: null };
+      }),
     });
   } catch (e) { next(e); }
 });
