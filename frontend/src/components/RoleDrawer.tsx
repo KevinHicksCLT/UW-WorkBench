@@ -21,13 +21,6 @@ type RoleDetailData = {
   ioRows?: ServerIoRow[]; deliverableCount?: number; inputCount?: number; processTasks?: ProcTask[];
 };
 
-// Split a workbook I/O field (comma / semicolon / newline separated) into the
-// discrete items that read as a list instead of a single cramped text blob.
-function splitItems(value: string | null): string[] {
-  if (!value) return [];
-  return value.split(/[;,\n]+/).map((s) => s.trim()).filter(Boolean);
-}
-
 const SectionLabel = ({ children }: { children: ReactNode }) => (
   <div className="text-[13px] font-bold uppercase tracking-[0.08em] text-[#374151] mb-2">{children}</div>
 );
@@ -35,42 +28,6 @@ const SectionLabel = ({ children }: { children: ReactNode }) => (
 const Empty = ({ text }: { text: string }) => (
   <div className="text-sm text-[#a3a3a3] italic">{text}</div>
 );
-
-// A vertical list of I/O items for one table cell. Inputs ("in") read as a plain
-// bulleted list; deliverables ("out") get a doc glyph so they stand apart as the
-// owned work products — even though they share a row with their inputs.
-function ItemList({ items, tone }: { items: string[]; tone: 'in' | 'out' }) {
-  if (items.length === 0) return <span className="text-xs text-[#a3a3a3] italic">—</span>;
-  return (
-    <ul className="space-y-1.5 min-w-0">
-      {items.map((it, i) => (
-        <li key={i} className="flex items-start gap-1.5 text-[13px] text-slate-700">
-          <span className={`mt-0.5 flex-shrink-0 ${tone === 'out' ? 'text-emerald-500' : 'text-slate-300'}`} aria-hidden="true">
-            {tone === 'out' ? <DocIcon /> : <Dot />}
-          </span>
-          <span className="min-w-0 break-words">{it}</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function Dot() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-
-function DocIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <path d="M14 2v6h6M9 13h6M9 17h6" />
-    </svg>
-  );
-}
 
 const Skeleton = () => (
   <div className="space-y-2">
@@ -87,21 +44,6 @@ export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClos
     api.get(`/roles/${roleId}`).then(setR).catch((e: Error) => setError(e.message));
   }, [roleId]);
 
-  // Inputs & deliverables, related per (value stream, sub-process), at the LOWEST
-  // level. Prefer the server's role-resolved I/O inventory (one row per L4
-  // sub-process); fall back to the coarse value-stream participation I/O for roles
-  // the inventory doesn't tag. "Outputs" and "deliverables" are the same thing, so
-  // they show once — as deliverables — paired with the inputs that feed them.
-  const ioRows = useMemo(() => {
-    if (!r) return [] as { vsId: string; vsName: string; sub: string | null; inputs: string[]; deliverables: string[] }[];
-    if (r.ioRows && r.ioRows.length) {
-      return r.ioRows.map((x) => ({ vsId: x.valueStreamId, vsName: x.valueStreamName, sub: x.l4 ?? x.l3 ?? null, inputs: x.inputs, deliverables: x.deliverables }));
-    }
-    return r.participation.map((p) => ({ vsId: p.valueStreamId, vsName: p.valueStreamName, sub: p.subStream, inputs: splitItems(p.inputs), deliverables: splitItems(p.outputs) }));
-  }, [r]);
-  const deliverableCount = r?.deliverableCount ?? ioRows.reduce((a, row) => a + row.deliverables.length, 0);
-  const inputCount = r?.inputCount ?? ioRows.reduce((a, row) => a + row.inputs.length, 0);
-
   // Process tasks — the L5 steps the role leads/supports — grouped by value stream.
   const taskGroups = useMemo(() => {
     const groups = new Map<string, { vsId: string; vsName: string; tasks: ProcTask[] }>();
@@ -112,7 +54,6 @@ export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClos
     return [...groups.values()].sort((a, b) => a.vsName.localeCompare(b.vsName));
   }, [r]);
   const processTaskCount = r?.processTasks?.length ?? 0;
-  const respCount = r?.responsibilities.reduce((a, g) => a + g.items.length, 0) ?? 0;
 
   return (
     <div className="absolute inset-0 z-30 flex justify-end" role="dialog" aria-modal="true">
@@ -165,39 +106,6 @@ export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClos
                 )}
               </div>
 
-              {/* Inputs & Deliverables — every input the role receives and
-                  deliverable it produces, at the LOWEST (sub-process) level, drawn
-                  from the role-tagged I/O inventory and related per value stream /
-                  L4. "Outputs" and "deliverables" are the same list, so they show
-                  once — as deliverables — paired with their inputs. No repetition. */}
-              <div className="mb-6">
-                <SectionLabel>Inputs &amp; Deliverables</SectionLabel>
-                <p className="text-xs text-slate-400 -mt-1 mb-3">
-                  {deliverableCount} deliverable{deliverableCount === 1 ? '' : 's'} and {inputCount} input{inputCount === 1 ? '' : 's'} across {ioRows.length} sub-process{ioRows.length === 1 ? '' : 'es'} — the role's lowest-level work products and what feeds them.
-                </p>
-                {ioRows.length === 0 ? <Empty text="Not mapped to any value stream." /> : (
-                  <div>
-                    {/* Header row */}
-                    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,1.3fr)] gap-3 pb-2 border-b border-slate-200">
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3]">Value stream · sub-process</div>
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3]">Receives (inputs)</div>
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3]">Deliverables</div>
-                    </div>
-                    {/* Body rows */}
-                    {ioRows.map((row, i) => (
-                      <div key={i} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,1.3fr)] gap-3 py-3 border-b border-slate-100 last:border-0 items-start">
-                        <div className="min-w-0">
-                          <Link to={`/overview?focus=${row.vsId}`} className="text-[13px] font-medium text-brand-700 hover:underline break-words">{row.vsName}</Link>
-                          {row.sub && <div className="text-xs text-slate-400 mt-0.5 break-words">{row.sub}</div>}
-                        </div>
-                        <ItemList items={row.inputs} tone="in" />
-                        <ItemList items={row.deliverables} tone="out" />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
               {/* Process Tasks — the L5 process steps this role leads or supports,
                   tied back to the role. These are its lowest-level activities; each
                   yields the output shown. */}
@@ -223,26 +131,6 @@ export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClos
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
-
-              {/* Responsibilities (merged checklist + role tasks), by category. */}
-              <div>
-                <SectionLabel>Responsibilities ({respCount})</SectionLabel>
-                {r.responsibilities.length === 0 ? <Empty text="No responsibilities recorded." /> : (
-                  r.responsibilities.map((g) => (
-                    <div key={g.category} className="mb-4 last:mb-0">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">{g.category} ({g.items.length})</div>
-                      <ul className="space-y-1.5">
-                        {g.items.map((it, i) => (
-                          <li key={i} className="flex gap-2 text-[13px] text-slate-700 leading-snug">
-                            <span className="mt-[7px] h-1 w-1 rounded-full bg-slate-300 flex-shrink-0" aria-hidden="true" />
-                            <span className="min-w-0 break-words">{it}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))
                 )}
               </div>
             </>

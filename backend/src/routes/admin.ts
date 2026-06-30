@@ -7,19 +7,12 @@ import { ENTITY_LIST, getEntity, buildData, companyWhere, coerceValue, type Admi
 import { logAudit, computeDiff } from '../services/audit.js';
 import { recomputeInitiative } from '../services/portfolioRollup.js';
 import { runValidations } from '../services/validations.js';
-import { syncSubProcessNode } from '../services/nodeSync.js';
 
 // Line items whose writes change an initiative's denormalized money rollup, so the
 // admin recomputes the parent after create/update/delete (audit A3/ARCH-8).
 const RECOMPUTE_MODELS = new Set(['benefitLine', 'costLine']);
 function maybeRecompute(entity: AdminEntity, row: { initiativeId?: string } | null) {
   if (row?.initiativeId && RECOMPUTE_MODELS.has(entity.model)) void recomputeInitiative(row.initiativeId);
-}
-
-// Entities whose rows have a DERIVED copy in the unified Node graph — refresh it
-// after any admin write so the map/builder never render stale detail.
-function maybeSyncNode(entity: AdminEntity, action: 'CREATE' | 'UPDATE' | 'DELETE', row: Record<string, any> | null) {
-  if (row && entity.slug === 'subValueStream') void syncSubProcessNode(action, row as any);
 }
 
 // tenantId filter fragment — empty for tenant-less line items (isolation comes from
@@ -95,7 +88,8 @@ async function applyWriteScope(req: Request, res: Response, entity: AdminEntity,
     data.companyId = cid;
   } else if (data[v.scalarField] != null) {
     const parent = await modelDelegate(v.targetSlug).findFirst({
-      where: { id: data[v.scalarField], tenantId: req.tenantId, companyId: cid },
+      // Only filter on tenantId when the parent table carries it.
+      where: { id: data[v.scalarField], companyId: cid, ...(v.targetHasTenantId ? { tenantId: req.tenantId } : {}) },
       select: { id: true },
     });
     if (!parent) {
@@ -256,19 +250,19 @@ router.get('/ai-adoption', async (req: Request, res: Response, next: NextFunctio
   try {
     const cid = await companyForReq(req);
     if (!cid) return res.status(400).json({ error: 'Valid companyId query parameter is required' });
-    // One row per canonical value_stream NODE; adoption stores on the node-keyed
-    // NodeAiAdoption table (the legacy Level-keyed copy is retired).
-    const nodes = await prisma.node.findMany({
-      where: { companyId: cid, typeKey: 'value_stream' },
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true, parent: { select: { name: true } }, aiAdoption: true },
+    // One row per value-stream ProcessNode (level 2); adoption stores on the
+    // node-keyed NodeAiAdoption table (1:1 with the ProcessNode).
+    const nodes = await prisma.processNode.findMany({
+      where: { companyId: cid, processLevelType: { levelNumber: 2 } },
+      orderBy: { displayValue: 'asc' },
+      select: { id: true, displayValue: true, parent: { select: { displayValue: true } }, aiAdoption: true },
     });
     res.json({
       levels: [...AI_LEVELS],
       rows: nodes.map((n) => ({
-        levelId: n.id, // canonical node id (PATCH accepts it)
-        name: n.name,
-        domain: n.parent?.name ?? null,
+        levelId: n.id, // canonical ProcessNode id (PATCH accepts it)
+        name: n.displayValue,
+        domain: n.parent?.displayValue ?? null,
         aiAssist: n.aiAdoption?.aiAssist ?? 'not_used',
         aiAugment: n.aiAdoption?.aiAugment ?? 'not_used',
         aiWorkflow: n.aiAdoption?.aiWorkflow ?? 'not_used',
@@ -286,8 +280,8 @@ router.patch('/ai-adoption/:levelId', async (req: Request, res: Response, next: 
   try {
     const cid = await companyForReq(req);
     if (!cid) return res.status(400).json({ error: 'Valid companyId query parameter is required' });
-    // The value_stream node id — adoption stores directly on NodeAiAdoption.
-    const vsNode = await prisma.node.findFirst({ where: { id: req.params.levelId, companyId: cid, typeKey: 'value_stream' }, select: { id: true } });
+    // The value-stream ProcessNode id — adoption stores directly on NodeAiAdoption.
+    const vsNode = await prisma.processNode.findFirst({ where: { id: req.params.levelId, companyId: cid, processLevelType: { levelNumber: 2 } }, select: { id: true } });
     if (!vsNode) return res.status(404).json({ error: 'Not found' });
     const node = { id: vsNode.id };
 
@@ -312,10 +306,10 @@ router.patch('/ai-adoption/:levelId', async (req: Request, res: Response, next: 
     }
     if (Object.keys(data).length === 0) return res.status(400).json({ error: 'No AI-adoption fields to update' });
 
-    const before = await prisma.nodeAiAdoption.findUnique({ where: { nodeId: node.id } });
+    const before = await prisma.nodeAiAdoption.findUnique({ where: { processNodeId: node.id } });
     const updated = await prisma.nodeAiAdoption.upsert({
-      where: { nodeId: node.id },
-      create: { nodeId: node.id, ...data },
+      where: { processNodeId: node.id },
+      create: { processNodeId: node.id, ...data },
       update: data,
     });
     logAudit({
@@ -336,8 +330,9 @@ router.get('/:entity', async (req: Request, res: Response, next: NextFunction) =
     const entity = resolve(req, res);
     if (!entity) return;
 
-    const take = Math.min(Number(req.query.limit) || 50, 200);
-    const skip = Number(req.query.offset) || 0;
+    // Pagination accepts either ?take/?skip or the legacy ?limit/?offset.
+    const take = Math.min(Number(req.query.take ?? req.query.limit) || 50, 200);
+    const skip = Number(req.query.skip ?? req.query.offset) || 0;
     const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
 
 
@@ -361,7 +356,11 @@ router.get('/:entity', async (req: Request, res: Response, next: NextFunction) =
       }
     }
 
-    const orderBy = entity.labelField === 'id' ? { createdAt: 'desc' } : { [entity.labelField]: 'asc' };
+    // Order by the label field when there is one; otherwise newest-first by
+    // createdAt, falling back to id for tables (some junctions) that lack createdAt.
+    const orderBy = entity.labelField !== 'id'
+      ? { [entity.labelField]: 'asc' }
+      : entity.hasCreatedAt ? { createdAt: 'desc' } : { id: 'desc' };
 
     const [rows, total] = await Promise.all([
       delegate(entity).findMany({ where, orderBy, take, skip }),
@@ -408,7 +407,6 @@ router.post('/:entity', async (req: Request, res: Response, next: NextFunction) 
 
     const created = await delegate(entity).create({ data });
     maybeRecompute(entity, created);
-    maybeSyncNode(entity, 'CREATE', created);
     logAudit({
       tenantId: req.tenantId,
       actorEmail: req.user.email,
@@ -446,7 +444,6 @@ router.patch('/:entity/:id', async (req: Request, res: Response, next: NextFunct
 
     const updated = await delegate(entity).update({ where: { id: req.params.id }, data });
     maybeRecompute(entity, updated);
-    maybeSyncNode(entity, 'UPDATE', updated);
     const diff = computeDiff(before, updated, entity.fields.map((f) => f.name));
     if (Object.keys(diff).length) {
       logAudit({
@@ -479,7 +476,6 @@ router.delete('/:entity/:id', async (req: Request, res: Response, next: NextFunc
 
     await delegate(entity).delete({ where: { id: req.params.id } });
     maybeRecompute(entity, before);
-    maybeSyncNode(entity, 'DELETE', before);
     logAudit({
       tenantId: req.tenantId,
       actorEmail: req.user.email,

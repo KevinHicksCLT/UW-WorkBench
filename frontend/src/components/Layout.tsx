@@ -3,12 +3,29 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { useCompany } from '../lib/company';
 import { api } from '../lib/api';
+import { withCompany } from '../lib/portfolio';
 import { useBreadcrumbHeader } from '../lib/breadcrumbs';
 import SearchBox from './SearchBox';
 import AssistantWidget from './AssistantWidget';
 import BreadcrumbBar from './BreadcrumbBar';
 
 type IndexItem = { id: string; name: string; valueStreams?: number; roles?: number };
+
+// Tab → the page's primary list endpoint, warmed on hover/focus so the page
+// paints instantly on click (api.get dedups, so the warm + the page's own fetch
+// share one round-trip). Company-scoped endpoints must match the page's exact
+// keyed path (withCompany), or the cache key won't match. Returns null to skip.
+const PREFETCH: Record<string, (companyId: string | null) => string | null> = {
+  '/overview':     () => '/explorer/tree',
+  '/roles':        () => '/explorer/org-table',
+  '/standards':    () => '/explorer/standards-flat',
+  '/applications': () => '/applications',
+  '/external':     () => '/external-interactions',
+  '/metrics':      (c) => (c ? withCompany('/explorer/telemetry-catalog', c) : null),
+  '/deliverables': (c) => (c ? withCompany('/work', c) : null),
+  '/tasks':        (c) => (c ? withCompany('/work', c) : null),
+  '/regulations':  (c) => (c ? withCompany('/regulations/jurisdictions', c) : null),
+};
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
@@ -46,11 +63,17 @@ export default function Layout({ children }: { children: ReactNode }) {
 
   // ── Nav link helper ────────────────────────────────────────────────────────
   // Underline-style tab: sits on the nav row's hairline, dark indicator when active.
+  // Hovering/focusing a tab warms its list endpoint's GET cache (api dedups, so a
+  // warm + the page's own fetch share one round-trip) — the page paints instantly
+  // on click instead of waiting on the network.
   const NavLink = ({ to, children: label }: { to: string; children: ReactNode }) => {
     const active = to === '/' ? onHome : location.pathname === to || location.pathname.startsWith(to);
+    const warm = () => { const p = PREFETCH[to]?.(companyId); if (p) api.prefetch(p); };
     return (
       <Link
         to={to}
+        onMouseEnter={warm}
+        onFocus={warm}
         onClick={() => resetToTab(to)}
         aria-current={active ? 'page' : undefined}
         className={
@@ -105,44 +128,49 @@ export default function Layout({ children }: { children: ReactNode }) {
             </span>
           </Link>
 
-          {/* Spacer */}
-          <div className="flex-1" />
+          {/* Center group — active-company switcher + search, centered between the
+              wordmark and the user menu (FB-01). flex-1 keeps it centered and lets it
+              collapse responsively; both controls move into the mobile menu below
+              sm/md, leaving this as empty centering space. */}
+          <div className="flex-1 flex justify-center min-w-0">
+            <div className="flex items-center gap-3 w-full max-w-xl">
+              {/* Active company — every view + edit is scoped to this company. */}
+              {companies.length > 0 && (
+                <div className="hidden sm:block relative flex-shrink-0">
+                  {/* Leading building glyph */}
+                  <svg
+                    className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
+                    width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+                  >
+                    <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4M9 9h.01M9 13h.01M9 17h.01" />
+                  </svg>
+                  <select
+                    aria-label="Active company"
+                    className="appearance-none rounded-lg border border-[#eaeaea] bg-white pl-8 pr-8 py-1.5 text-sm font-medium text-[#171717] max-w-[220px] truncate cursor-pointer hover:border-[#d4d4d4] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150"
+                    value={companyId ?? ''}
+                    onChange={(e) => setCompanyId(e.target.value)}
+                  >
+                    {companies.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                  {/* Custom chevron */}
+                  <svg
+                    className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
+                    width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </div>
+              )}
 
-          {/* Active company — every view + edit is scoped to this company. */}
-          {companies.length > 0 && (
-            <div className="hidden sm:block relative">
-              {/* Leading building glyph */}
-              <svg
-                className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
-                width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
-              >
-                <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4M9 9h.01M9 13h.01M9 17h.01" />
-              </svg>
-              <select
-                aria-label="Active company"
-                className="appearance-none rounded-lg border border-[#eaeaea] bg-white pl-8 pr-8 py-1.5 text-sm font-medium text-[#171717] max-w-[220px] truncate cursor-pointer hover:border-[#d4d4d4] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150"
-                value={companyId ?? ''}
-                onChange={(e) => setCompanyId(e.target.value)}
-              >
-                {companies.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-              {/* Custom chevron */}
-              <svg
-                className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
-                width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
-              >
-                <path d="M6 9l6 6 6-6" />
-              </svg>
+              {/* Search — desktop */}
+              <div className="hidden md:block flex-1 min-w-0">
+                <SearchBox />
+              </div>
             </div>
-          )}
-
-          {/* Search — desktop */}
-          <div className="hidden md:block w-64">
-            <SearchBox />
           </div>
 
           {/* User + sign-out — desktop */}
@@ -193,6 +221,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           <NavLink to="/portfolio">Workspace</NavLink>
           <NavLink to="/deliverables">Deliverables</NavLink>
           <NavLink to="/tasks">Tasks</NavLink>
+          <NavLink to="/automatable">Automatable</NavLink>
           <NavLink to="/applications">Applications</NavLink>
           <NavLink to="/external">Third-Parties</NavLink>
           {user?.role === 'ADMIN' && <NavLink to="/admin">Data Admin</NavLink>}
@@ -289,6 +318,12 @@ export default function Layout({ children }: { children: ReactNode }) {
                 className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/tasks') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
               >
                 Tasks
+              </button>
+              <button
+                onClick={() => go('/automatable')}
+                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/automatable') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
+              >
+                Automatable
               </button>
               <button
                 onClick={() => go('/applications')}

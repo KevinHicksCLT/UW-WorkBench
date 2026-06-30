@@ -27,6 +27,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
   const setCompanyId = (id: string) => {
     setCompanyIdState(id);
     localStorage.setItem(STORAGE_KEY, id);
+    api.invalidate(); // drop cached GETs so the newly-selected company loads fresh
   };
 
   const refresh = () => {

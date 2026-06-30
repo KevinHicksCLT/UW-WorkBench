@@ -124,6 +124,7 @@ export default function Standards() {
           cols={cols}
           rowKey={(r) => r.id}
           loading={items === null}
+          unit="standards"
           leading={viewToggle}
           onRowClick={(r) => setSel(r)}
           selectedKey={sel?.id ?? null}

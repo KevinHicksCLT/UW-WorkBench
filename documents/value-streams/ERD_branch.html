@@ -1,0 +1,256 @@
+<!doctype html><html><head><meta charset="utf-8"><title>ERD — BRANCH proud-lab (ep-raspy-boat)</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>body{font-family:Segoe UI,Arial,sans-serif;margin:0;padding:20px;background:#fff;color:#222}
+h1{color:#1F3864} .meta{font-size:13px;color:#555;margin-bottom:6px}
+.empty{background:#FDEDEC;border:1px solid #C0392B;border-radius:8px;padding:10px 14px;font-size:13px;margin:10px 0}
+.mermaid{font-size:13px}</style></head><body>
+<h1>Operating-Model ERD — BRANCH proud-lab (ep-raspy-boat)</h1>
+<div class="meta">Current working branch. Each entity shows its row count (or EMPTY) in this environment; PK/FK marked on attributes.</div>
+<div class="empty"><b>Empty tables:</b> RoleValueStream, ApplicationValueStream, StepAppUsage, StepDeliverable, IoItem, Metric, RequirementValueStream, InitiativeValueStream</div>
+<pre class="mermaid">
+erDiagram
+  Company {
+    rows n1 "1 rows"
+    string id PK
+    string tenantId FK
+    string name
+  }
+  Division {
+    rows n15 "15 rows"
+    string id PK
+    string companyId FK
+    string name
+    string higherCategory
+  }
+  Department {
+    rows n99 "99 rows"
+    string id PK
+    string divisionId FK
+    string name
+  }
+  Role {
+    rows n299 "299 rows"
+    string id PK
+    string divisionId FK
+    string departmentId FK
+    string name
+    string primaryValueStream
+  }
+  ValueStreamDomain {
+    rows n7 "7 rows"
+    string id PK
+    string companyId FK
+    string name
+  }
+  ValueStream {
+    rows n132 "132 rows"
+    string id PK
+    string companyId FK
+    string domainId FK
+    string name
+  }
+  SubValueStream {
+    rows n868 "868 rows"
+    string id PK
+    string valueStreamId FK
+    string parentId FK
+    int level
+    string name
+  }
+  ProcessStep {
+    rows n8355 "8,355 rows"
+    string id PK
+    string valueStreamId FK
+    int stepNumber
+    string name
+  }
+  Level {
+    rows n1012 "1,012 rows"
+    string id PK
+    string companyId FK
+    string parentId FK
+    int levelNumber
+    string name
+  }
+  RoleValueStream {
+    rows n0 "EMPTY!"
+    string id PK
+    string roleId FK
+    string valueStreamId FK
+    string participationType
+  }
+  ApplicationValueStream {
+    rows n0 "EMPTY!"
+    string id PK
+    string applicationId FK
+    string valueStreamId FK
+  }
+  StepAppUsage {
+    rows n0 "EMPTY!"
+    string id PK
+    string processStepId FK
+    string applicationId FK
+    string usageType
+  }
+  StepDeliverable {
+    rows n0 "EMPTY!"
+    string id PK
+    string processStepId FK
+    string name
+  }
+  IoItem {
+    rows n0 "EMPTY!"
+    string id PK
+    string valueStreamId FK
+    string type
+    string name
+  }
+  Metric {
+    rows n0 "EMPTY!"
+    string id PK
+    string valueStreamId FK
+    string name
+    float value
+  }
+  RequirementValueStream {
+    rows n0 "EMPTY!"
+    string id PK
+    string valueStreamId FK
+  }
+  InitiativeValueStream {
+    rows n0 "EMPTY!"
+    string id PK
+    string initiativeId FK
+    string valueStreamId FK
+  }
+  Application {
+    rows n56 "56 rows"
+    string id PK
+    string companyId FK
+    string name
+    string category
+  }
+  Initiative {
+    rows n6 "6 rows"
+    string id PK
+    string companyId FK
+    string name
+  }
+  Deliverable {
+    rows n688 "688 rows"
+    string id PK
+    string companyId FK
+    string valueStreamId FK
+    string title
+  }
+  Task {
+    rows n6256 "6,256 rows"
+    string id PK
+    string deliverableId FK
+    string title
+    string status
+  }
+  RoleTask {
+    rows n5698 "5,698 rows"
+    string id PK
+    string roleId FK
+    string categoryId FK
+    string text
+  }
+  ChecklistItem {
+    rows n5604 "5,604 rows"
+    string id PK
+    string roleId FK
+    string categoryId FK
+    string text
+  }
+  Category {
+    rows n40 "40 rows"
+    string id PK
+    string companyId FK
+    string name
+  }
+  ExternalInteraction {
+    rows n277 "277 rows"
+    string id PK
+    string companyId FK
+    string internalRoleId FK
+    string partyType
+  }
+  Standard {
+    rows n13 "13 rows"
+    string id PK
+    string companyId FK
+    string department
+  }
+  StandardItem {
+    rows n1391 "1,391 rows"
+    string id PK
+    string standardId FK
+    string ownerRoleId FK
+    string name
+  }
+  NodeType {
+    rows n10 "10 rows"
+    string id PK
+    string key
+    int level
+  }
+  Node {
+    rows n9782 "9,782 rows"
+    string id PK
+    string companyId FK
+    string parentId FK
+    string typeKey
+    string name
+  }
+  NodeLink {
+    rows n111 "111 rows"
+    string id PK
+    string fromNodeId FK
+    string toNodeId FK
+    string kind
+  }
+  Company ||--o{ Division : "has"
+  Company ||--o{ Role : "employs"
+  Division ||--o{ Department : "has"
+  Division ||--o{ Role : "staffs"
+  Department ||--o{ Role : "contains"
+  Company ||--o{ ValueStreamDomain : "defines"
+  ValueStreamDomain ||--o{ ValueStream : "groups"
+  Company ||--o{ ValueStream : "owns"
+  ValueStream ||--o{ SubValueStream : "decomposes"
+  ValueStream ||--o{ ProcessStep : "sequences"
+  Company ||--o{ Level : "tree"
+  Role ||--o{ RoleValueStream : "participates"
+  ValueStream ||--o{ RoleValueStream : "staffed-by"
+  Application ||--o{ ApplicationValueStream : "supports"
+  ValueStream ||--o{ ApplicationValueStream : "uses"
+  ProcessStep ||--o{ StepAppUsage : "uses"
+  Application ||--o{ StepAppUsage : "used-at"
+  ProcessStep ||--o{ StepDeliverable : "produces"
+  ValueStream ||--o{ IoItem : "io"
+  ValueStream ||--o{ Metric : "measured-by"
+  ValueStream ||--o{ RequirementValueStream : "governed-by"
+  Initiative ||--o{ InitiativeValueStream : "targets"
+  ValueStream ||--o{ InitiativeValueStream : "impacted-by"
+  Company ||--o{ Application : "catalog"
+  Company ||--o{ Initiative : "runs"
+  Company ||--o{ Deliverable : "tracks"
+  ValueStream |o--o{ Deliverable : "optional"
+  Deliverable ||--o{ Task : "breaks-into"
+  Role ||--o{ RoleTask : "responsible-for"
+  Role ||--o{ ChecklistItem : "checklist"
+  Category ||--o{ RoleTask : "groups"
+  Category ||--o{ ChecklistItem : "groups"
+  Company ||--o{ Category : "defines"
+  Company ||--o{ ExternalInteraction : "has"
+  Role ||--o{ ExternalInteraction : "internal"
+  Company ||--o{ Standard : "has"
+  Standard ||--o{ StandardItem : "contains"
+  Role ||--o{ StandardItem : "owns"
+  Company ||--o{ Node : "graph"
+  Node ||--o{ NodeLink : "from"
+</pre>
+<script>mermaid.initialize({startOnLoad:true, er:{layoutDirection:'LR'}, securityLevel:'loose'});</script>
+</body></html>

@@ -5,6 +5,28 @@
 // human-only. We express a group's "automatable %" as the mean of each task's
 // score mapped linearly to a percent — score 1 → 100%, score 5 → 0%.
 
+// Decision (defect A-02): a task is "automatable" when its agent score reaches
+// the Workflow Agent or Autonomous Agent tier. Mapping score → AI mode:
+//   1 Agent-ready → Autonomous Agent, 2 Needs setup → Workflow Agent,
+//   3 Partial → AI Augmented, 4 Mostly human → AI Assistant, 5 → human-only.
+// So automatable = scored 1 or 2 (Workflow + Autonomous; Assist/Augment excluded).
+export const isAutomatable = (score?: number | null): boolean =>
+  typeof score === 'number' && score <= 2;
+
+// Percent automatable for a group: automatable / scored (tasks with no score are
+// excluded from the denominator). Returns null when nothing in the group is scored.
+export function automatablePct(scores: (number | null | undefined)[]): { pct: number; auto: number; scored: number } | null {
+  const scored = scores.filter((s): s is number => typeof s === 'number');
+  if (scored.length === 0) return null;
+  const auto = scored.filter((s) => s <= 2).length;
+  return { pct: Math.round((100 * auto) / scored.length), auto, scored: scored.length };
+}
+
+// Graded automatability % for a SINGLE task: maps the 1-5 score linearly so a
+// partial task reads partial, not 0/100. 1→100, 2→75, 3→50, 4→25, 5→0.
+export const scoreToPct = (score?: number | null): number | null =>
+  typeof score === 'number' ? Math.round(((5 - score) / 4) * 100) : null;
+
 export const SCORE_LABEL: Record<number, string> = {
   1: 'Agent-ready',
   2: 'Needs setup',
@@ -21,7 +43,7 @@ export const SCORE_DESC: Record<number, string> = {
   5: 'Human-only — accountability, negotiation, physical presence or sign-off',
 };
 
-const SCORE_COLOR: Record<number, string> = {
+export const SCORE_COLOR: Record<number, string> = {
   1: '#059669', // emerald
   2: '#65a30d', // lime
   3: '#d97706', // amber

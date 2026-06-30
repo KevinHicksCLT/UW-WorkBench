@@ -39,11 +39,10 @@ export const STAGE_LABELS: Record<string, string> = {
   IDEA: 'Idea',
   PLAN: 'Plan',
   EXECUTE: 'Execute',
-  REALIZE: 'Realize',
   COMPLETE: 'Complete',
 };
 
-export const STAGE_ORDER = ['IDEA', 'PLAN', 'EXECUTE', 'REALIZE', 'COMPLETE'];
+export const STAGE_ORDER = ['IDEA', 'PLAN', 'EXECUTE', 'COMPLETE'];
 
 export const STATUS_PILL_CLASS: Record<string, string> = {
   ON_TRACK:  'pill-green',

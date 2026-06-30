@@ -6,7 +6,7 @@ import { STAGE_ORDER, STAGE_LABELS, STATUS_PILL_CLASS, STATUS_LABEL } from './fo
 // separate so the four pages stay lean and visually consistent with the rest of
 // the app (Vercel-clean cards, hairline borders, monochrome bars — no Recharts).
 
-export type Stage = 'IDEA' | 'PLAN' | 'EXECUTE' | 'REALIZE' | 'COMPLETE';
+export type Stage = 'IDEA' | 'PLAN' | 'EXECUTE' | 'COMPLETE';
 export type Status = 'ON_TRACK' | 'AT_RISK' | 'OFF_TRACK';
 
 export type MetricValue = { dataset: string; periodStart: string; amount: number };
@@ -17,7 +17,7 @@ export type Raid = { id: string; type: string; title: string; description: strin
 export type Objective = { id: string; name: string; description: string | null; weight: number; _count?: { links: number } };
 export type ObjectiveLink = { id: string; objectiveId: string; impact: number; objective: { id: string; name: string; weight: number } };
 export type Resource = { id: string; roleName: string | null; name: string; allocationPct: number; startDate: string; endDate: string };
-export type Activity = { id: string; name: string; startDate: string; endDate: string; status: string; dependsOnId: string | null; sortOrder: number };
+export type Activity = { id: string; name: string; startDate: string; endDate: string; status: string; assignedTo: string | null; dependsOnId: string | null; dependencyType: string | null; dependencyRefId: string | null; dependencyLabel: string | null; sortOrder: number };
 
 export type InitiativeLinks = {
   valueStreamId: string | null; divisionId: string | null; ownerRoleId: string | null; sponsorRoleId: string | null;
@@ -130,8 +130,18 @@ export function SeverityCell({ value }: { value: number }) {
 }
 
 // ─── Layout primitives ──────────────────────────────────────────────────────
-export function Tile({ label, value, hint, tone = 'neutral' }: { label: string; value: ReactNode; hint?: string; tone?: 'neutral' | 'positive' | 'negative' }) {
+export function Tile({ label, value, hint, tone = 'neutral', compact = false }: { label: string; value: ReactNode; hint?: string; tone?: 'neutral' | 'positive' | 'negative'; compact?: boolean }) {
   const color = tone === 'positive' ? 'text-[#047857]' : tone === 'negative' ? 'text-[#be123c]' : 'text-[#171717]';
+  if (compact) {
+    // Denser stat for headline strips (e.g. Regulations overview) — smaller box.
+    return (
+      <div className="card-elevated px-3 py-2">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#a3a3a3]">{label}</div>
+        <div className={`text-lg font-semibold tnum leading-tight ${color}`}>{value}</div>
+        {hint && <div className="text-[10px] text-[#a3a3a3] leading-tight">{hint}</div>}
+      </div>
+    );
+  }
   return (
     <div className="card-elevated p-4">
       <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</div>

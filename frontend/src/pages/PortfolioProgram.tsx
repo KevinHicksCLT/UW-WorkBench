@@ -28,7 +28,10 @@ type Program = {
   computedStatus?: string; statusOverridden?: boolean;
   workstreams: { id: string; name: string; status: string; computedStatus?: string; statusOverridden?: boolean; initiatives: InitRow[] }[];
 };
-type Summary = { initiativeCount: number; totalBenefit: number; totalCost: number; netBenefit: number };
+type Summary = {
+  initiativeCount: number; totalBenefit: number; totalCost: number; netBenefit: number;
+  budget: number; forecastSpend: number; actualSpend: number;
+};
 type ResourceRow = {
   name: string; roleName: string | null; totalAllocationPct: number; overUtilized: boolean;
   assignments: { initiativeId: string; initiativeName: string; allocationPct: number; startDate: string; endDate: string }[];
@@ -75,9 +78,16 @@ export default function PortfolioProgram() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <Tile label="Workstreams" value={program.workstreams.length} />
         <Tile label="Initiatives" value={summary?.initiativeCount ?? 0} />
-        <Tile label="Total Benefit" value={fmt.currency(summary?.totalBenefit ?? 0, { compact: true })} tone="positive" hint={`Cost ${fmt.currency(summary?.totalCost ?? 0, { compact: true })}`} />
-        <Tile label="Net Benefit" value={fmt.currency(summary?.netBenefit ?? 0, { compact: true })} tone={(summary?.netBenefit ?? 0) >= 0 ? 'positive' : 'negative'} />
+        <Tile label="Project Budget" value={fmt.currency(summary?.budget ?? 0, { compact: true })} />
+        <Tile
+          label="Spent to date"
+          value={fmt.currency(summary?.actualSpend ?? 0, { compact: true })}
+          hint={(summary?.budget ?? 0) > 0 ? `${Math.round(((summary?.actualSpend ?? 0) / summary!.budget) * 100)}% of budget` : undefined}
+        />
       </div>
+
+      {/* FB-03 — budget vs. spend, visualised. */}
+      <BudgetSpendCard summary={summary} />
 
       {/* Tabs */}
       <div className="border-b border-[#eaeaea] mb-5 overflow-x-auto">
@@ -110,6 +120,44 @@ export default function PortfolioProgram() {
   );
 }
 
+// ── BUDGET vs SPEND (FB-03) ───────────────────────────────────────────────
+// Project budget (cost TARGET), forecasted spend (FORECAST) and actual
+// spend-to-date (ACTUAL) as one comparable bar set, scaled to the largest of
+// the three, plus % of budget spent.
+function BudgetSpendCard({ summary }: { summary: Summary | null }) {
+  const budget = summary?.budget ?? 0;
+  const forecast = summary?.forecastSpend ?? 0;
+  const actual = summary?.actualSpend ?? 0;
+  const max = Math.max(1, budget, forecast, actual);
+  const pctSpent = budget > 0 ? Math.round((actual / budget) * 100) : null;
+  const rows: { label: string; value: number; color: string }[] = [
+    { label: 'Project budget', value: budget, color: '#4f46e5' },
+    { label: 'Forecasted spend', value: forecast, color: '#0d9488' },
+    { label: 'Actual spend-to-date', value: actual, color: '#171717' },
+  ];
+  return (
+    <div className="card-elevated p-5 mb-6">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h3 className="text-sm font-semibold text-[#171717]">Budget &amp; spend</h3>
+        <span className="text-xs text-[#a3a3a3]">
+          {pctSpent === null ? 'No budget set' : <><span className="font-semibold text-[#171717] tnum">{pctSpent}%</span> of budget spent</>}
+        </span>
+      </div>
+      <div className="space-y-3">
+        {rows.map((r) => (
+          <div key={r.label} className="flex items-center gap-3">
+            <div className="w-40 text-xs text-[#525252] flex-shrink-0">{r.label}</div>
+            <div className="flex-1 h-5 bg-[#f5f5f5] rounded overflow-hidden">
+              <div className="h-full rounded" style={{ width: `${(r.value / max) * 100}%`, backgroundColor: r.color, minWidth: r.value ? 2 : 0 }} />
+            </div>
+            <div className="w-20 text-right text-xs text-[#171717] tnum flex-shrink-0">{fmt.currency(r.value, { compact: true })}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── WORKSTREAMS ──────────────────────────────────────────────────────────
 function WorkstreamsTab({ program, onCreateInit }: { program: Program; onCreateInit: (ws: { id: string; name: string }) => void }) {
   return (
@@ -135,8 +183,6 @@ function WorkstreamsTab({ program, onCreateInit }: { program: Program; onCreateI
                     <th className="text-left pb-2 font-semibold">Initiative</th>
                     <th className="text-left pb-2 font-semibold w-40">Stage</th>
                     <th className="text-left pb-2 font-semibold w-24">Status</th>
-                    <th className="text-right pb-2 font-semibold">Benefit</th>
-                    <th className="text-right pb-2 font-semibold">Net</th>
                     <th className="text-left pb-2 font-semibold pl-3 w-40">Value stream</th>
                   </tr>
                 </thead>
@@ -148,8 +194,6 @@ function WorkstreamsTab({ program, onCreateInit }: { program: Program; onCreateI
                       </td>
                       <td className="py-2.5 pr-3"><StageBar stage={init.stage} /></td>
                       <td className="py-2.5"><StatusPill status={init.status} /></td>
-                      <td className="py-2.5 text-right text-[#525252] tnum">{fmt.currency(init.cumulativeBenefit, { compact: true })}</td>
-                      <td className={`py-2.5 text-right font-medium tnum ${init.cumulativeNetBenefit >= 0 ? 'text-[#047857]' : 'text-[#be123c]'}`}>{fmt.currency(init.cumulativeNetBenefit, { compact: true })}</td>
                       <td className="py-2.5 pl-3 text-[#666666] text-xs truncate">{init.valueStreamName ?? '—'}</td>
                     </tr>
                   ))}
@@ -199,7 +243,7 @@ function PipelineTab({ program }: { program: Program }) {
 }
 
 // ── PRIORITIZATION ───────────────────────────────────────────────────────
-type SortKey = 'name' | 'valueScore' | 'complexityScore' | 'cumulativeNetBenefit';
+type SortKey = 'name' | 'valueScore' | 'complexityScore';
 
 function PrioritizationTab({ program }: { program: Program }) {
   const all = program.workstreams.flatMap((ws) => ws.initiatives);
@@ -271,9 +315,8 @@ function PrioritizationTab({ program }: { program: Program }) {
             <thead className="text-xs text-[#a3a3a3] border-b border-[#eaeaea]">
               <tr>
                 <th className="text-left pb-2 font-semibold cursor-pointer select-none" onClick={() => setSort('name')}>Initiative{arrow('name')}</th>
-                <th className="text-right pb-2 font-semibold cursor-pointer select-none w-24" onClick={() => setSort('valueScore')}>Value{arrow('valueScore')}</th>
-                <th className="text-right pb-2 font-semibold cursor-pointer select-none w-28" onClick={() => setSort('complexityScore')}>Complexity{arrow('complexityScore')}</th>
-                <th className="text-right pb-2 font-semibold cursor-pointer select-none w-32" onClick={() => setSort('cumulativeNetBenefit')}>Net benefit{arrow('cumulativeNetBenefit')}</th>
+                <th className="text-center pb-2 font-semibold cursor-pointer select-none w-24" onClick={() => setSort('valueScore')}>Value{arrow('valueScore')}</th>
+                <th className="text-center pb-2 font-semibold cursor-pointer select-none w-28" onClick={() => setSort('complexityScore')}>Complexity{arrow('complexityScore')}</th>
               </tr>
             </thead>
             <tbody>
@@ -282,9 +325,8 @@ function PrioritizationTab({ program }: { program: Program }) {
                   <td className="py-2.5">
                     <Link to={`/initiatives/${i.id}`} className="font-medium text-[#171717] hover:text-[#4f46e5]">{i.name}</Link>
                   </td>
-                  <td className="py-2.5 text-right tnum">{i.valueScore}</td>
-                  <td className="py-2.5 text-right tnum">{i.complexityScore}</td>
-                  <td className={`py-2.5 text-right font-medium tnum ${i.cumulativeNetBenefit >= 0 ? 'text-[#047857]' : 'text-[#be123c]'}`}>{fmt.currency(i.cumulativeNetBenefit, { compact: true })}</td>
+                  <td className="py-2.5 text-center tnum">{i.valueScore}</td>
+                  <td className="py-2.5 text-center tnum">{i.complexityScore}</td>
                 </tr>
               ))}
             </tbody>
@@ -384,7 +426,7 @@ function ProgramResourcesTab({ programId }: { programId: string }) {
               <tr>
                 <th className="text-left pb-2 font-semibold">Resource</th>
                 <th className="text-left pb-2 font-semibold">Role</th>
-                <th className="text-right pb-2 font-semibold w-32">Active alloc. %</th>
+                <th className="text-center pb-2 font-semibold w-32">Active alloc. %</th>
                 <th className="text-left pb-2 font-semibold pl-4">Assignments</th>
               </tr>
             </thead>
@@ -393,7 +435,7 @@ function ProgramResourcesTab({ programId }: { programId: string }) {
                 <tr key={r.name} className={'border-b border-[#f5f5f5] ' + (r.overUtilized ? 'bg-[#fef2f2]' : '')}>
                   <td className="py-2.5 font-medium text-[#171717]">{r.name}</td>
                   <td className="py-2.5 text-[#666666]">{r.roleName ?? '—'}</td>
-                  <td className={'py-2.5 text-right tnum font-medium ' + (r.overUtilized ? 'text-[#be123c]' : 'text-[#171717]')}>
+                  <td className={'py-2.5 text-center tnum font-medium ' + (r.overUtilized ? 'text-[#be123c]' : 'text-[#171717]')}>
                     {r.totalAllocationPct}%{r.overUtilized && <span className="ml-1.5 text-[10px] uppercase font-semibold">over</span>}
                   </td>
                   <td className="py-2.5 pl-4 text-xs text-[#666666]">
@@ -420,6 +462,8 @@ function CreateWorkstreamModal({ programId, onClose, onCreated }: { programId: s
   const [error, setError] = useState('');
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!form.name.trim()) return setError('Name is required.');
+    setError('');
     try { await api.post('/portfolio/workstreams', { programId, ...form }); onCreated(); }
     catch (err) { setError((err as Error).message); }
   }
@@ -450,6 +494,10 @@ function CreateInitiativeModal({ workstream, links, onClose, onCreated }: { work
   const [error, setError] = useState('');
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!form.name.trim()) return setError('Name is required.');
+    if (!form.startDate || !form.dueDate) return setError('Start and due dates are required.');
+    if (form.dueDate < form.startDate) return setError('Due date must be on or after the start date.');
+    setError('');
     try {
       await api.post('/portfolio/initiatives', {
         workstreamId: workstream.id,

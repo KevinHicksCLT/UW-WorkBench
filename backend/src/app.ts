@@ -16,6 +16,7 @@ import roleRoutes from './routes/roles.js';
 import valueStreamRoutes from './routes/valueStreams.js';
 import externalInteractionRoutes from './routes/externalInteractions.js';
 import explorerRoutes from './routes/explorer.js';
+import inspectorRoutes from './routes/inspector.js';
 import aiAnalysisRoutes from './routes/aiAnalysis.js';
 import applicationRoutes from './routes/applications.js';
 import searchRoutes from './routes/search.js';
@@ -30,6 +31,7 @@ import workRoutes from './routes/work.js';
 import chatRoutes from './routes/chat.js';
 import standardsSkillsRoutes from './routes/standardsSkills.js';
 import regulationsRoutes from './routes/regulations.js';
+import { clearResponseCache } from './lib/responseCache.js';
 
 const app = express();
 app.use(cors());
@@ -37,6 +39,9 @@ app.use(cors());
 // that compresses ~10×, which is most of the tab-load latency.
 app.use(compression());
 app.use(express.json({ limit: '5mb' }));
+// Any write invalidates the GET response cache (see lib/responseCache.ts), so a
+// mutation on any router is always followed by fresh reads.
+app.use((req, _res, next) => { if (req.method !== 'GET' && req.method !== 'HEAD') clearResponseCache(); next(); });
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
@@ -66,6 +71,7 @@ app.use('/roles', roleRoutes);
 app.use('/value-streams', valueStreamRoutes);
 app.use('/external-interactions', externalInteractionRoutes);
 app.use('/explorer', explorerRoutes);
+app.use('/inspector', inspectorRoutes);
 app.use('/ai-analysis', aiAnalysisRoutes);
 app.use('/applications', applicationRoutes);
 app.use('/search', searchRoutes);

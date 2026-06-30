@@ -5,6 +5,8 @@ import { prisma } from '../db/prisma.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { tenantCompany } from '../lib/tenant.js';
 import { logAudit } from '../services/audit.js';
+import { structureCounts } from '../lib/resolvers/index.js';
+import { processClosure, orgClosure } from '../lib/closure.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -28,17 +30,19 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     });
     const withCounts = await Promise.all(
       companies.map(async (co) => {
-        const [divisions, departments, roles, valueStreams, checklistItems, roleTasks] = await Promise.all([
-          prisma.division.count({ where: { companyId: co.id } }),
-          prisma.department.count({ where: { companyId: co.id } }),
-          prisma.role.count({ where: { companyId: co.id } }),
-          prisma.valueStream.count({ where: { companyId: co.id } }),
-          prisma.checklistItem.count({ where: { role: { companyId: co.id } } }),
-          prisma.roleTask.count({ where: { role: { companyId: co.id } } }),
+        // erd_v5 structural counts (one canonical source). checklistItems is a
+        // direct count; roleTasks maps to NodeRole links (role ↔ task node).
+        const [counts, checklistItems, roleTasks] = await Promise.all([
+          structureCounts(co.id),
+          prisma.checklistItem.count({ where: { checklist: { companyId: co.id } } }),
+          prisma.nodeRole.count({ where: { companyId: co.id } }),
         ]);
         return {
           id: co.id, name: co.name, slug: co.slug,
-          counts: { divisions, departments, roles, valueStreams, checklistItems, roleTasks },
+          counts: {
+            divisions: counts.divisions, departments: counts.departments, roles: counts.roles,
+            valueStreams: counts.valueStreams, checklistItems, roleTasks,
+          },
         };
       })
     );
@@ -47,10 +51,12 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // POST /companies — onboard a new company. ADMIN only. Creates the Company row
-// (tenant-scoped, unique slug) and, unless opted out, seeds the two root nodes of
-// the configurable trees — Level 0 (value streams) and OrgLevel 0 (organization)
-// — both named after the company, so the Data Admin tree editors have a root to
-// grow from immediately. Audited.
+// (tenant-scoped, unique slug) and, unless opted out, seeds the level-1 type +
+// root node of each configurable tree — ProcessNode (value streams) and OrgUnit
+// (organization) — both named after the company, so the Data Admin tree editors
+// have a root to grow from immediately. Audited.
+// Closure maintenance: each seeded root gets its self closure row (depth 0) via
+// lib/closure.ts insertNode, so the tree editors and subtree reads work immediately.
 const createSchema = z.object({
   name: z.string().min(1).max(120),
   seedRoots: z.boolean().optional().default(true),
@@ -72,12 +78,20 @@ router.post('/', requireRole('ADMIN'), async (req: Request, res: Response, next:
     });
 
     if (seedRoots) {
-      await prisma.level.create({
-        data: { tenantId: req.tenantId, companyId: company.id, name, levelNumber: 0, sourceType: 'company', sourceRefId: company.id },
+      const processLevel = await prisma.processLevelType.create({
+        data: { companyId: company.id, levelNumber: 1, dbValue: 'L1', displayValue: 'Domain' },
       });
-      await prisma.orgLevel.create({
-        data: { tenantId: req.tenantId, companyId: company.id, name, levelNumber: 0, sourceType: 'company', sourceRefId: company.id },
+      const processRoot = await prisma.processNode.create({
+        data: { companyId: company.id, processLevelTypeId: processLevel.id, dbValue: name, displayValue: name },
       });
+      await processClosure.insertNode({ nodeId: processRoot.id, parentId: null });
+      const orgLevel = await prisma.orgLevelType.create({
+        data: { companyId: company.id, levelNumber: 1, dbValue: 'L1', displayValue: 'Segment' },
+      });
+      const orgRoot = await prisma.orgUnit.create({
+        data: { companyId: company.id, orgLevelTypeId: orgLevel.id, dbValue: name, displayValue: name },
+      });
+      await orgClosure.insertNode({ nodeId: orgRoot.id, parentId: null });
     }
 
     logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'Company', entityId: company.id, action: 'CREATE', diff: { name, slug } });
@@ -88,25 +102,28 @@ router.post('/', requireRole('ADMIN'), async (req: Request, res: Response, next:
   }
 });
 
-// GET /companies/:id/tree — division → department → role hierarchy.
-// Fixed depth across explicit relations, so a typed nested include is the right
-// tool (the genuinely recursive drill-down lives in /value-streams/:id).
+// GET /companies/:id/tree — division → (department) → role hierarchy.
+// erd_v5: divisions are OrgUnit nodes at level 2; there is no Department tier, so
+// the departments array is always empty and roles are listed directly under the
+// division (via the roles homed on that OrgUnit). Shape preserved for the UI.
 router.get('/:id/tree', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const company = await tenantCompany(req.params.id, req.tenantId);
     if (!company) return res.status(404).json({ error: 'Not found' });
-    const divisions = await prisma.division.findMany({
-      where: { companyId: company.id },
-      orderBy: { name: 'asc' },
-      include: {
-        departments: {
-          orderBy: { name: 'asc' },
-          include: {
-            roles: { orderBy: { name: 'asc' }, select: { id: true, name: true, roleFamily: true } },
-          },
-        },
+    const units = await prisma.orgUnit.findMany({
+      where: { companyId: company.id, orgLevelType: { levelNumber: 2 } },
+      orderBy: { displayValue: 'asc' },
+      select: {
+        id: true, displayValue: true,
+        roles: { orderBy: { displayValue: 'asc' }, select: { id: true, displayValue: true } },
       },
     });
+    const divisions = units.map((u) => ({
+      id: u.id,
+      name: u.displayValue,
+      departments: [] as unknown[],
+      roles: u.roles.map((r) => ({ id: r.id, name: r.displayValue, roleFamily: null })),
+    }));
     res.json({ id: company.id, name: company.name, divisions });
   } catch (e) { next(e); }
 });

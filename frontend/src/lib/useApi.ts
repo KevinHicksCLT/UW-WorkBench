@@ -1,12 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { api } from './api';
 
 // Small fetch hook with loading/error state for read-only pages.
 // Pass null to skip (e.g. while a dependency id isn't known yet).
+// `refetch()` re-runs the request (e.g. after a mutation elsewhere).
 export function useApi<T = any>(path: string | null) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!path) { setLoading(false); setData(null); return; }
@@ -18,7 +20,9 @@ export function useApi<T = any>(path: string | null) {
       .catch((e) => { if (active) setError(e.message); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [path]);
+  }, [path, reloadKey]);
 
-  return { data, error, loading };
+  const refetch = useCallback(() => setReloadKey((k) => k + 1), []);
+
+  return { data, error, loading, refetch };
 }

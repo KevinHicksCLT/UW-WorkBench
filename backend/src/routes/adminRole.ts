@@ -2,16 +2,14 @@ import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
-import { roleMatcher, cellMentionsRole } from '../lib/roleMatch.js';
+import { ancestorNames } from '../lib/resolvers/index.js';
 
 // ─── Role context for Data Admin (GET /admin/role-context/:id) ───────────────
-// A role's deliverables, inputs, and process tasks are NOT linked to it by a
-// foreign key — the Role-detail screen resolves them at read time by matching the
-// role's name against the free-text `keyRoles` (IoItem) and `leads`/`supporting`
-// (ProcessStep) columns (see lib/roleMatch.ts). So the Data Admin Role Studio
-// can't filter them with a simple WHERE; it asks this endpoint which IoItem and
-// ProcessStep rows resolve to the role, and then edits those exact rows through
-// the normal audited /admin/ioItem/:id and /admin/processStep/:id endpoints.
+// erd_v5: a role's deliverables and process tasks are now REAL FK links, not
+// free-text matches. Deliverables come from the RoleDeliverable junction
+// (role ↔ Deliverable, with role_ = Owner|Contributor); process tasks come from
+// the NodeRole junction (role ↔ ProcessNode, with role_ = Owner|Participant). The
+// Role Studio renders these so the admin can see what a role owns/participates in.
 // Mounted at /admin/role-context (before the generic /admin router) so it isn't
 // captured by the `/:entity/:id` catch-all. ADMIN-only.
 
@@ -25,46 +23,45 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     if (!companyId) return res.status(400).json({ error: 'companyId query parameter is required' });
 
     const role = await prisma.role.findFirst({
-      where: { id: req.params.id, tenantId: req.tenantId, companyId },
-      select: { id: true, name: true, itemRole: true, companyId: true },
+      where: { id: req.params.id, companyId },
+      select: { id: true, displayValue: true, companyId: true },
     });
     if (!role) return res.status(404).json({ error: 'Role not found' });
 
-    const [ioRows, stepRows] = await Promise.all([
-      prisma.ioItem.findMany({
-        where: { valueStream: { companyId: role.companyId } },
-        select: {
-          id: true, type: true, name: true, l3: true, l4: true, keyRoles: true,
-          dataElements: true, illustrative: true, valueStreamId: true,
-          valueStream: { select: { name: true } },
-        },
+    const [delivLinks, nodeLinks] = await Promise.all([
+      // Deliverables this role owns / contributes to.
+      prisma.roleDeliverable.findMany({
+        where: { roleId: role.id },
+        select: { id: true, role_: true, deliverable: { select: { id: true, title: true } } },
       }),
-      prisma.processStep.findMany({
-        where: { valueStream: { companyId: role.companyId } },
-        select: {
-          id: true, stepNumber: true, name: true, l3: true, l4: true, leads: true,
-          supporting: true, inputs: true, outputs: true, notes: true,
-          externalParticipants: true, description: true, illustrative: true, valueStreamId: true,
-          valueStream: { select: { name: true } },
-        },
+      // Process-tree tasks this role leads (Owner) or supports (Participant).
+      prisma.nodeRole.findMany({
+        where: { roleId: role.id },
+        select: { id: true, role_: true, processNode: { select: { id: true, displayValue: true } } },
       }),
     ]);
 
-    const matches = roleMatcher({ name: role.name, itemRole: role.itemRole });
-    const mine = (cell: string | null) => cellMentionsRole(cell, matches);
+    // Resolve each process node's value-stream (L2) name for display.
+    const names = await ancestorNames(nodeLinks.map((n) => n.processNode.id));
 
-    const flat = <T extends { valueStream: { name: string } }>(r: T) => {
-      const { valueStream, ...rest } = r;
-      return { ...rest, valueStreamName: valueStream?.name ?? null };
-    };
+    const ioItems = delivLinks.map((d) => ({
+      id: d.deliverable.id,
+      linkId: d.id,
+      type: d.role_, // Owner | Contributor
+      name: d.deliverable.title,
+      valueStreamName: null,
+    }));
 
-    const ioItems = ioRows.filter((io) => mine(io.keyRoles)).map(flat);
-    const processSteps = stepRows
-      .filter((st) => mine(st.leads) || mine(st.supporting))
-      .map((st) => ({ ...flat(st), relation: mine(st.leads) ? 'Lead' : 'Support' }));
+    const processSteps = nodeLinks.map((n) => ({
+      id: n.processNode.id,
+      linkId: n.id,
+      name: n.processNode.displayValue,
+      valueStreamName: names.get(n.processNode.id)?.valueStreamName ?? null,
+      relation: n.role_ === 'Owner' ? 'Lead' : 'Support',
+    }));
 
     res.json({
-      role: { id: role.id, name: role.name, itemRole: role.itemRole },
+      role: { id: role.id, name: role.displayValue, itemRole: null },
       ioItems,
       processSteps,
     });

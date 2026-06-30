@@ -1,0 +1,386 @@
+erDiagram
+  direction LR
+
+  %% ================================================================
+  %% COMPLETE application ERD (merged). People/Capacity REMOVED.
+  %% Nothing parked. Every table: surrogate id PK (junctions too);
+  %% closures use composite PK. dbValue = system/generic name;
+  %% displayValue = admin-editable label (relabel via Terminology).
+  %% ================================================================
+
+  %% ---------- ORG SPINE (generic, level-typed) ----------
+  Company {
+    string id PK
+    string name
+    string displayValue "EDITABLE label"
+  }
+  OrgLevelType {
+    string status "generic levels, db + display value"
+    string id PK
+    string companyId FK
+    int levelNumber
+    string dbValue "L1 L2 L3..."
+    string displayValue "EDITABLE: Division, Department, Team..."
+  }
+  OrgUnit {
+    string status "adjacency-list tree, any depth"
+    string id PK
+    string companyId FK
+    string orgLevelTypeId FK
+    string parentId FK "self -> OrgUnit"
+    string dbValue
+    string displayValue "EDITABLE label"
+  }
+  OrgUnitClosure {
+    string status "DERIVED — fast subtree (move-with-children, rollups)"
+    string ancestorId PK, FK
+    string descendantId PK, FK
+    int depth
+  }
+  Role {
+    string id PK
+    string companyId FK
+    string orgUnitId FK "primary home"
+    string managerRoleId FK "self -> Role (reporting)"
+    string name
+  }
+  RoleOrgAssignment {
+    string status "NEW — role at multiple levels (M:N)"
+    string id PK
+    string roleId FK
+    string orgUnitId FK
+    bool isPrimary
+  }
+
+  %% ---------- VALUE-STREAM SPINE (generic recursive) ----------
+  ProcessLevelType {
+    string status "generic levels, db + display value"
+    string id PK
+    string companyId FK
+    int levelNumber
+    string dbValue "L1 L2 L3 L4 L5"
+    string displayValue "EDITABLE: Domain, Value Stream, Process, Step"
+  }
+  ProcessNode {
+    string status "VALUE STREAM = ProcessNode at L2; L5/isTask = Task"
+    string id PK
+    string companyId FK
+    string processLevelTypeId FK
+    string parentId FK "self -> ProcessNode"
+    string dbValue
+    string displayValue "EDITABLE label"
+    bool isTask
+    string automatability "manual|augmented|automated"
+  }
+  ProcessNodeClosure {
+    string status "DERIVED — fast subtree (move-with-children, rollups)"
+    string ancestorId PK, FK
+    string descendantId PK, FK
+    int depth
+  }
+
+  %% ---------- WORK & CONTROL ENTITIES ----------
+  Deliverable {
+    string id PK
+    string companyId FK
+    string title
+    string automatability "manual|augmented|automated"
+  }
+  Checklist {
+    string status "group over items (codified test)"
+    string id PK
+    string companyId FK
+    string name
+  }
+  ChecklistItem {
+    string id PK
+    string checklistId FK
+    string roleId FK
+    string text
+  }
+  TestingTemplate {
+    string status "NEW — agent-teaching / verification"
+    string id PK
+    string taskNodeId FK "-> ProcessNode (or deliverableId)"
+    string system
+    string location
+    string checkType "presence|absence"
+    string expected
+  }
+  Standard {
+    string status "behaves as task group"
+    string id PK
+    string companyId FK
+    string name
+  }
+  RegulatoryReq {
+    string status "behaves as task group"
+    string id PK
+    string companyId FK
+    string name
+  }
+  Application {
+    string id PK
+    string companyId FK
+    string name
+    string kind "SystemOfRecord|Tool|Service"
+    string chargebackModel
+  }
+
+  %% ---------- CONNECTIONS (junctions, bind at ANY level) ----------
+  NodeDeliverable {
+    string status "was StepDeliverable (L3 only)"
+    string id PK
+    string processNodeId FK
+    string deliverableId FK
+  }
+  RoleDeliverable {
+    string id PK
+    string roleId FK
+    string deliverableId FK
+    string role "Owner|Contributor"
+  }
+  NodeRegulation {
+    string status "was RequirementValueStream (L3)"
+    string id PK
+    string processNodeId FK
+    string regId FK
+  }
+  RegulationApplication {
+    string status "NEW — reg -> apps + evidence"
+    string id PK
+    string regId FK
+    string applicationId FK
+    string evidenceRef
+  }
+  NodeStandard {
+    string status "was Standard_L4"
+    string id PK
+    string processNodeId FK
+    string standardId FK
+  }
+  NodeAppUsage {
+    string status "was StepAppUsage (L5)"
+    string id PK
+    string processNodeId FK
+    string applicationId FK
+    string usageType "performed|memorialized"
+  }
+  NodeChecklist {
+    string status "was Checklist_Step"
+    string id PK
+    string processNodeId FK
+    string checklistItemId FK
+  }
+  AppChargeback {
+    string status "NEW — cost allocation"
+    string id PK
+    string applicationId FK
+    string orgUnitId FK
+    float allocationPct
+    float cost
+    string period
+  }
+
+  %% ---------- INITIATIVE & METRIC (UNPARKED) ----------
+  Initiative {
+    string status "UNPARKED"
+    string id PK
+    string companyId FK
+    string name
+    string state
+    string startDate
+    string targetDate
+  }
+  NodeInitiative {
+    string status "NEW — initiative -> value-stream nodes (any level)"
+    string id PK
+    string processNodeId FK
+    string initiativeId FK
+  }
+  Metric {
+    string status "UNPARKED — measure on a node"
+    string id PK
+    string companyId FK
+    string processNodeId FK
+    string name
+    float value
+    string unit
+    string period
+    string kind "workforce|system|kpi"
+  }
+
+  %% ---------- EXTERNAL PARTIES (operating-model boundary) ----------
+  ExternalParty {
+    string status "NEW — Agent/Broker/Regulator/MGA/Insured/Vendor/SaaS/SI"
+    string id PK
+    string companyId FK
+    string name
+    string partyType "Agent|Broker|Regulator|MGA|Insured|Vendor|SaaS|SystemIntegrator"
+  }
+  ExternalInteraction {
+    string status "NEW — dependency on parties you don't control (wait-time)"
+    string id PK
+    string roleId FK
+    string externalPartyId FK
+    string processNodeId FK
+    string nature "handoff|approval|data|service"
+  }
+
+  %% ---------- AGENT ENABLEMENT (UNPARKED) ----------
+  KnowledgeBase {
+    string status "UNPARKED — domain/subject knowledge base"
+    string id PK
+    string companyId FK
+    string name
+    string domain
+  }
+  AgentSkill {
+    string status "UNPARKED — KB tied to app/task; powers automation"
+    string id PK
+    string knowledgeBaseId FK
+    string taskNodeId FK "-> ProcessNode"
+    string name
+  }
+
+  %% ---------- ADMIN & CROSS-CUTTING ----------
+  Terminology {
+    string status "NEW — display over db value (any entity)"
+    string id PK
+    string companyId FK
+    string entity
+    string dbValue
+    string displayValue "EDITABLE"
+  }
+  AuditEntry {
+    string status "admin change log (data-admin tab)"
+    string id PK
+    string companyId FK
+    string actorRoleId FK
+    string entity
+    string action
+    string timestamp
+  }
+  UserPreference {
+    string status "NEW — end-user prefs (col order) vs admin config"
+    string id PK
+    string roleId FK "actor proxy (People removed)"
+    string scope
+    string prefsJson
+  }
+
+  %% ================= RELATIONSHIPS =================
+
+  %% org spine
+  Company ||--o{ OrgLevelType : "defines"
+  Company ||--o{ OrgUnit : "has"
+  OrgLevelType ||--o{ OrgUnit : "types"
+  OrgUnit ||--o{ OrgUnit : "parent-of"
+  OrgUnit ||--o{ OrgUnitClosure : "ancestor"
+  OrgUnit ||--o{ Role : "primary-home"
+  Role ||--o{ Role : "manages"
+  Role ||--o{ RoleOrgAssignment : "assigned"
+  OrgUnit ||--o{ RoleOrgAssignment : "hosts"
+
+  %% value-stream spine
+  Company ||--o{ ProcessLevelType : "defines"
+  Company ||--o{ ProcessNode : "owns"
+  ProcessLevelType ||--o{ ProcessNode : "types"
+  ProcessNode ||--o{ ProcessNode : "parent-of"
+  ProcessNode ||--o{ ProcessNodeClosure : "ancestor"
+
+  %% work & control
+  Company ||--o{ Deliverable : "tracks"
+  Company ||--o{ Checklist : "defines"
+  Checklist ||--o{ ChecklistItem : "contains"
+  Role ||--o{ ChecklistItem : "performs"
+  ProcessNode ||--o{ TestingTemplate : "verified-by"
+  Company ||--o{ Standard : "has"
+  Company ||--o{ RegulatoryReq : "subject-to"
+  Company ||--o{ Application : "catalog"
+
+  %% connections (any level)
+  ProcessNode ||--o{ NodeDeliverable : ""
+  Deliverable ||--o{ NodeDeliverable : ""
+  Role ||--o{ RoleDeliverable : "owns / contributes"
+  Deliverable ||--o{ RoleDeliverable : "has"
+  ProcessNode ||--o{ NodeRegulation : ""
+  RegulatoryReq ||--o{ NodeRegulation : ""
+  RegulatoryReq ||--o{ RegulationApplication : "governs"
+  Application ||--o{ RegulationApplication : "evidenced-by"
+  ProcessNode ||--o{ NodeStandard : ""
+  Standard ||--o{ NodeStandard : ""
+  ProcessNode ||--o{ NodeAppUsage : ""
+  Application ||--o{ NodeAppUsage : ""
+  ProcessNode ||--o{ NodeChecklist : ""
+  ChecklistItem ||--o{ NodeChecklist : ""
+  Application ||--o{ AppChargeback : "billed"
+  OrgUnit ||--o{ AppChargeback : "allocated-to"
+
+  %% initiative & metric
+  Company ||--o{ Initiative : "runs"
+  ProcessNode ||--o{ NodeInitiative : ""
+  Initiative ||--o{ NodeInitiative : ""
+  Company ||--o{ Metric : "measures"
+  ProcessNode ||--o{ Metric : "measured-by"
+
+  %% external parties
+  Company ||--o{ ExternalParty : "interacts-with"
+  Role ||--o{ ExternalInteraction : "depends-on"
+  ExternalParty ||--o{ ExternalInteraction : "party"
+  ProcessNode ||--o{ ExternalInteraction : "at"
+
+  %% agent enablement
+  Company ||--o{ KnowledgeBase : "owns"
+  KnowledgeBase ||--o{ AgentSkill : "exposes"
+  ProcessNode ||--o{ AgentSkill : "automatable-via"
+
+  %% admin & prefs
+  Company ||--o{ Terminology : "relabels"
+  Company ||--o{ AuditEntry : "logs"
+  Role ||--o{ AuditEntry : "actor"
+  Role ||--o{ UserPreference : "sets"
+
+  %% derived
+  Role }o..o{ ProcessNode : "derived (via work)"
+
+  %% ================= COLOR CODING =================
+  %% red=connection tables · blue=value stream · orange=org · green=work · purple=other
+  style RoleOrgAssignment fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style OrgUnitClosure fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style ProcessNodeClosure fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style NodeDeliverable fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style RoleDeliverable fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style NodeRegulation fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style RegulationApplication fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style NodeStandard fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style NodeAppUsage fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style NodeChecklist fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style AppChargeback fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style NodeInitiative fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style ExternalInteraction fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+
+  style ProcessLevelType fill:#EAF2F8,stroke:#2980B9,stroke-width:2px,color:#1A5276
+  style ProcessNode fill:#EAF2F8,stroke:#2980B9,stroke-width:2px,color:#1A5276
+  style Metric fill:#EAF2F8,stroke:#2980B9,stroke-width:2px,color:#1A5276
+
+  style Company fill:#FCEFE0,stroke:#E67E22,stroke-width:2px,color:#7E4A12
+  style OrgLevelType fill:#FCEFE0,stroke:#E67E22,stroke-width:2px,color:#7E4A12
+  style OrgUnit fill:#FCEFE0,stroke:#E67E22,stroke-width:2px,color:#7E4A12
+  style Role fill:#FCEFE0,stroke:#E67E22,stroke-width:2px,color:#7E4A12
+
+  style Deliverable fill:#E9F7EF,stroke:#27AE60,stroke-width:2px,color:#196F3D
+  style Checklist fill:#E9F7EF,stroke:#27AE60,stroke-width:2px,color:#196F3D
+  style ChecklistItem fill:#E9F7EF,stroke:#27AE60,stroke-width:2px,color:#196F3D
+  style TestingTemplate fill:#E9F7EF,stroke:#27AE60,stroke-width:2px,color:#196F3D
+  style Standard fill:#E9F7EF,stroke:#27AE60,stroke-width:2px,color:#196F3D
+  style RegulatoryReq fill:#E9F7EF,stroke:#27AE60,stroke-width:2px,color:#196F3D
+  style Application fill:#E9F7EF,stroke:#27AE60,stroke-width:2px,color:#196F3D
+
+  style Initiative fill:#F4ECF7,stroke:#8E44AD,stroke-width:2px,color:#5B2C6F
+  style ExternalParty fill:#F4ECF7,stroke:#8E44AD,stroke-width:2px,color:#5B2C6F
+  style KnowledgeBase fill:#F4ECF7,stroke:#8E44AD,stroke-width:2px,color:#5B2C6F
+  style AgentSkill fill:#F4ECF7,stroke:#8E44AD,stroke-width:2px,color:#5B2C6F
+  style Terminology fill:#F4ECF7,stroke:#8E44AD,stroke-width:2px,color:#5B2C6F
+  style AuditEntry fill:#F4ECF7,stroke:#8E44AD,stroke-width:2px,color:#5B2C6F
+  style UserPreference fill:#F4ECF7,stroke:#8E44AD,stroke-width:2px,color:#5B2C6F

@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
+import Anthropic from '@anthropic-ai/sdk';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
-import { logAudit } from '../services/audit.js';
+import { logAudit, computeDiff } from '../services/audit.js';
 import { recomputeInitiative, summarizeProgram } from '../services/portfolioRollup.js';
 import { applyWorkflowAction } from '../services/portfolioWorkflow.js';
+import { linkNames } from '../lib/resolvers/index.js';
 
 // Initiative Tracker API — the strategic-portfolio module behind the
 // "Initiatives" tab. Everything is scoped to tenant (from the JWT) + the active
@@ -54,34 +56,38 @@ function withHealthRollup<P extends { status: string; workstreams: (W & { initia
 
 // Resolve the operating-model links (value stream / division / owner+sponsor
 // role) on a set of initiatives into display names, in one batched pass.
-async function resolveLinks(inits: { valueStreamId: string | null; divisionId: string | null; ownerRoleId: string | null; sponsorRoleId: string | null }[]) {
-  const vsIds = new Set<string>(), divIds = new Set<string>(), roleIds = new Set<string>();
+// erd_v5: the FK columns are valueStreamNodeId → ProcessNode, orgUnitId → OrgUnit,
+// owner/sponsorRoleId → Role. The frontend still wants the legacy display keys
+// (valueStreamName / divisionName / ownerRoleName / sponsorRoleName), so this maps
+// the new FKs through the spine displayValue and exposes the old key names.
+type InitLinks = { valueStreamNodeId: string | null; orgUnitId: string | null; ownerRoleId: string | null; sponsorRoleId: string | null };
+async function resolveLinks(inits: InitLinks[]) {
+  const vsIds: (string | null)[] = [], orgIds: (string | null)[] = [], roleIds: (string | null)[] = [];
   for (const i of inits) {
-    if (i.valueStreamId) vsIds.add(i.valueStreamId);
-    if (i.divisionId) divIds.add(i.divisionId);
-    if (i.ownerRoleId) roleIds.add(i.ownerRoleId);
-    if (i.sponsorRoleId) roleIds.add(i.sponsorRoleId);
+    vsIds.push(i.valueStreamNodeId);
+    orgIds.push(i.orgUnitId);
+    roleIds.push(i.ownerRoleId, i.sponsorRoleId);
   }
-  const [vs, divs, roles] = await Promise.all([
-    vsIds.size ? prisma.valueStream.findMany({ where: { id: { in: [...vsIds] } }, select: { id: true, name: true } }) : [],
-    divIds.size ? prisma.division.findMany({ where: { id: { in: [...divIds] } }, select: { id: true, name: true } }) : [],
-    roleIds.size ? prisma.role.findMany({ where: { id: { in: [...roleIds] } }, select: { id: true, name: true } }) : [],
+  const [valueStream, division, role] = await Promise.all([
+    linkNames(prisma, vsIds, 'processNode'),
+    linkNames(prisma, orgIds, 'orgUnit'),
+    linkNames(prisma, roleIds, 'role'),
   ]);
-  return {
-    valueStream: new Map(vs.map((x) => [x.id, x.name])),
-    division: new Map(divs.map((x) => [x.id, x.name])),
-    role: new Map(roles.map((x) => [x.id, x.name])),
-  };
+  return { valueStream, division, role };
 }
 
-function withLinkNames<T extends { valueStreamId: string | null; divisionId: string | null; ownerRoleId: string | null; sponsorRoleId: string | null }>(
+function withLinkNames<T extends InitLinks>(
   i: T,
   maps: Awaited<ReturnType<typeof resolveLinks>>,
 ) {
+  // Expose BOTH the new FK columns (already on the row via ...i) and the legacy
+  // display aliases the frontend reads.
   return {
     ...i,
-    valueStreamName: i.valueStreamId ? maps.valueStream.get(i.valueStreamId) ?? null : null,
-    divisionName: i.divisionId ? maps.division.get(i.divisionId) ?? null : null,
+    valueStreamId: i.valueStreamNodeId,
+    divisionId: i.orgUnitId,
+    valueStreamName: i.valueStreamNodeId ? maps.valueStream.get(i.valueStreamNodeId) ?? null : null,
+    divisionName: i.orgUnitId ? maps.division.get(i.orgUnitId) ?? null : null,
     ownerRoleName: i.ownerRoleId ? maps.role.get(i.ownerRoleId) ?? null : null,
     sponsorRoleName: i.sponsorRoleId ? maps.role.get(i.sponsorRoleId) ?? null : null,
   };
@@ -92,13 +98,16 @@ router.get('/links', async (req: Request, res: Response, next: NextFunction) => 
   try {
     const companyId = await activeCompanyId(req, res);
     if (!companyId) return;
-    const where = { companyId };
-    const [valueStreams, divisions, roles] = await Promise.all([
-      prisma.valueStream.findMany({ where, select: { id: true, name: true }, orderBy: { name: 'asc' } }),
-      prisma.division.findMany({ where, select: { id: true, name: true }, orderBy: { name: 'asc' } }),
-      prisma.role.findMany({ where, select: { id: true, name: true }, orderBy: { name: 'asc' } }),
+    // Value streams = ProcessNode at level 2; divisions = OrgUnit at level 2; roles
+    // = Role. Each spine entity's editable displayValue is exposed as `name` to
+    // keep the dropdown option shape ({ id, name }) the frontend consumes.
+    const [vsNodes, orgUnits, roles] = await Promise.all([
+      prisma.processNode.findMany({ where: { companyId, processLevelType: { levelNumber: 2 } }, select: { id: true, displayValue: true }, orderBy: { displayValue: 'asc' } }),
+      prisma.orgUnit.findMany({ where: { companyId, orgLevelType: { levelNumber: 2 } }, select: { id: true, displayValue: true }, orderBy: { displayValue: 'asc' } }),
+      prisma.role.findMany({ where: { companyId }, select: { id: true, displayValue: true }, orderBy: { displayValue: 'asc' } }),
     ]);
-    res.json({ valueStreams, divisions, roles });
+    const toOpt = (rows: { id: string; displayValue: string }[]) => rows.map((r) => ({ id: r.id, name: r.displayValue }));
+    res.json({ valueStreams: toOpt(vsNodes), divisions: toOpt(orgUnits), roles: toOpt(roles) });
   } catch (e) { next(e); }
 });
 
@@ -248,7 +257,7 @@ router.post('/programs', async (req: Request, res: Response, next: NextFunction)
         endDate: new Date(data.endDate),
       },
     });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'Program', entityId: program.id, action: 'CREATE' });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'Program', entityId: program.id, action: 'PROGRAM_CREATED', diff: { program: data.name } });
     res.status(201).json(program);
   } catch (e) { next(e); }
 });
@@ -260,23 +269,28 @@ const programUpdateSchema = programCreateSchema.partial().extend({
 
 router.patch('/programs/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const existing = await prisma.program.findFirst({ where: { id: req.params.id, tenantId: req.tenantId }, select: { id: true } });
+    const existing = await prisma.program.findFirst({ where: { id: req.params.id, tenantId: req.tenantId } });
     if (!existing) return res.status(404).json({ error: 'Not found' });
     const data = programUpdateSchema.parse(req.body);
     const patch: Record<string, unknown> = { ...data };
     if (data.startDate) patch.startDate = new Date(data.startDate);
     if (data.endDate) patch.endDate = new Date(data.endDate);
     const updated = await prisma.program.update({ where: { id: req.params.id }, data: patch });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'Program', entityId: req.params.id, action: 'UPDATE', diff: data });
+    logAudit({
+      tenantId: req.tenantId, actorEmail: req.user.email,
+      entityType: 'Program', entityId: req.params.id, action: 'PROGRAM_UPDATED',
+      diff: { program: existing.name, ...computeDiff(existing, data, Object.keys(data)) },
+    });
     res.json(updated);
   } catch (e) { next(e); }
 });
 
 router.delete('/programs/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const existing = await prisma.program.findFirst({ where: { id: req.params.id, tenantId: req.tenantId }, select: { name: true } });
     const r = await prisma.program.deleteMany({ where: { id: req.params.id, tenantId: req.tenantId } });
     if (r.count === 0) return res.status(404).json({ error: 'Not found' });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'Program', entityId: req.params.id, action: 'DELETE' });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'Program', entityId: req.params.id, action: 'PROGRAM_DELETED', diff: { program: existing?.name } });
     res.status(204).end();
   } catch (e) { next(e); }
 });
@@ -296,14 +310,14 @@ router.post('/workstreams', async (req: Request, res: Response, next: NextFuncti
     const ws = await prisma.workstream.create({
       data: { tenantId: req.tenantId, companyId: program.companyId, programId: data.programId, name: data.name, description: data.description },
     });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'Workstream', entityId: ws.id, action: 'CREATE' });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'Workstream', entityId: ws.id, action: 'WORKSTREAM_CREATED', diff: { workstream: data.name } });
     res.status(201).json(ws);
   } catch (e) { next(e); }
 });
 
 router.patch('/workstreams/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const existing = await prisma.workstream.findFirst({ where: { id: req.params.id, tenantId: req.tenantId }, select: { id: true } });
+    const existing = await prisma.workstream.findFirst({ where: { id: req.params.id, tenantId: req.tenantId } });
     if (!existing) return res.status(404).json({ error: 'Not found' });
     const data = z.object({
       name: z.string().optional(),
@@ -312,16 +326,21 @@ router.patch('/workstreams/:id', async (req: Request, res: Response, next: NextF
       statusNote: z.string().optional(),
     }).parse(req.body);
     const updated = await prisma.workstream.update({ where: { id: req.params.id }, data });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'Workstream', entityId: req.params.id, action: 'UPDATE', diff: data });
+    logAudit({
+      tenantId: req.tenantId, actorEmail: req.user.email,
+      entityType: 'Workstream', entityId: req.params.id, action: 'WORKSTREAM_UPDATED',
+      diff: { workstream: existing.name, ...computeDiff(existing, data, Object.keys(data)) },
+    });
     res.json(updated);
   } catch (e) { next(e); }
 });
 
 router.delete('/workstreams/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const existing = await prisma.workstream.findFirst({ where: { id: req.params.id, tenantId: req.tenantId }, select: { name: true } });
     const r = await prisma.workstream.deleteMany({ where: { id: req.params.id, tenantId: req.tenantId } });
     if (r.count === 0) return res.status(404).json({ error: 'Not found' });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'Workstream', entityId: req.params.id, action: 'DELETE' });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'Workstream', entityId: req.params.id, action: 'WORKSTREAM_DELETED', diff: { workstream: existing?.name } });
     res.status(204).end();
   } catch (e) { next(e); }
 });
@@ -360,13 +379,15 @@ router.get('/initiatives/:id', async (req: Request, res: Response, next: NextFun
         milestones: { orderBy: { dueDate: 'asc' } },
         raidItems: { orderBy: { severity: 'desc' } },
         objectives: { include: { objective: { select: { id: true, name: true, weight: true } } }, orderBy: { createdAt: 'asc' } },
-        resources: { orderBy: { startDate: 'asc' } },
+        resources: { orderBy: { startDate: 'asc' }, include: { role: { select: { displayValue: true } } } },
         activities: { orderBy: [{ startDate: 'asc' }, { sortOrder: 'asc' }] },
       },
     });
     if (!init) return res.status(404).json({ error: 'Not found' });
     const maps = await resolveLinks([init]);
-    res.json(withLinkNames(init, maps));
+    // Expose the legacy resource.roleName (resolved from the linked Role).
+    const resources = init.resources.map(({ role, ...r }) => ({ ...r, roleName: role?.displayValue ?? null }));
+    res.json({ ...withLinkNames(init, maps), resources });
   } catch (e) { next(e); }
 });
 
@@ -396,13 +417,14 @@ router.post('/initiatives', async (req: Request, res: Response, next: NextFuncti
         description: data.description,
         startDate: new Date(data.startDate),
         dueDate: new Date(data.dueDate),
-        valueStreamId: data.valueStreamId ?? null,
-        divisionId: data.divisionId ?? null,
+        // Frontend still sends the legacy keys; map to the erd_v5 FK columns.
+        valueStreamNodeId: data.valueStreamId ?? null,
+        orgUnitId: data.divisionId ?? null,
         ownerRoleId: data.ownerRoleId ?? null,
         sponsorRoleId: data.sponsorRoleId ?? null,
       },
     });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: init.id, action: 'CREATE' });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: init.id, action: 'INITIATIVE_CREATED', diff: { initiative: data.name } });
     res.status(201).json(init);
   } catch (e) { next(e); }
 });
@@ -429,8 +451,16 @@ router.patch('/initiatives/:id', async (req: Request, res: Response, next: NextF
     const patch: Record<string, unknown> = { ...data };
     if (data.startDate) patch.startDate = new Date(data.startDate);
     if (data.dueDate) patch.dueDate = new Date(data.dueDate);
+    // Translate the legacy link keys to the erd_v5 FK columns (and drop the
+    // legacy keys, which are not columns on PortfolioInitiative).
+    if ('valueStreamId' in data) { patch.valueStreamNodeId = data.valueStreamId ?? null; delete patch.valueStreamId; }
+    if ('divisionId' in data) { patch.orgUnitId = data.divisionId ?? null; delete patch.divisionId; }
     const updated = await prisma.portfolioInitiative.update({ where: { id: req.params.id }, data: patch });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: req.params.id, action: 'UPDATE', diff: data });
+    logAudit({
+      tenantId: req.tenantId, actorEmail: req.user.email,
+      entityType: 'PortfolioInitiative', entityId: req.params.id, action: 'INITIATIVE_UPDATED',
+      diff: { initiative: existing.name, ...computeDiff(existing, data, Object.keys(data)) },
+    });
     res.json(updated);
   } catch (e) { next(e); }
 });
@@ -440,7 +470,7 @@ router.delete('/initiatives/:id', async (req: Request, res: Response, next: Next
     const existing = await ownInitiative(req.params.id, req.tenantId);
     if (!existing) return res.status(404).json({ error: 'Not found' });
     await prisma.portfolioInitiative.delete({ where: { id: req.params.id } });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: req.params.id, action: 'DELETE' });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: req.params.id, action: 'INITIATIVE_DELETED', diff: { initiative: existing.name } });
     res.status(204).end();
   } catch (e) { next(e); }
 });
@@ -464,6 +494,88 @@ router.post('/initiatives/:id/recompute', async (req: Request, res: Response, ne
   } catch (e) { next(e); }
 });
 
+// ─── AI-generated Project Charter (FB-13) ───────────────────────────────────
+// Drafts a narrative project charter for an initiative, grounded ONLY in that
+// initiative's real data (program, dates, owner/sponsor, objectives, time-phased
+// benefits & costs, milestones, risks). Returns Markdown; the frontend renders it
+// under the Charter tab and caches it client-side so it isn't regenerated on
+// every visit. Works for any initiative ("for all projects displayed").
+let charterClient: Anthropic | null = null;
+function charterAnthropic(): Anthropic {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw Object.assign(new Error('Charter generation is not configured (ANTHROPIC_API_KEY missing)'), { status: 503 });
+  }
+  if (!charterClient) charterClient = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  return charterClient;
+}
+const CHARTER_MODEL = process.env.CHARTER_MODEL ?? process.env.CHATBOT_MODEL ?? 'claude-sonnet-4-6';
+
+router.post('/initiatives/:id/charter', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const init = await prisma.portfolioInitiative.findFirst({
+      where: { id: req.params.id, tenantId: req.tenantId },
+      include: {
+        workstream: { include: { program: { select: { name: true } } } },
+        benefits: { include: { values: true } },
+        costs: { include: { values: true } },
+        milestones: { orderBy: { dueDate: 'asc' } },
+        raidItems: { where: { type: 'RISK' }, orderBy: { severity: 'desc' }, take: 6 },
+        objectives: { include: { objective: { select: { name: true, weight: true } } } },
+      },
+    });
+    if (!init) return res.status(404).json({ error: 'Not found' });
+    const maps = await resolveLinks([init]);
+    const linked = withLinkNames(init, maps);
+
+    const sumDataset = (lines: { values: { dataset: string; amount: number }[] }[], dataset: string) =>
+      lines.reduce((a, l) => a + l.values.filter((v) => v.dataset === dataset).reduce((x, v) => x + v.amount, 0), 0);
+    const money = (n: number) => `$${Math.round(n).toLocaleString('en-US')}`;
+    const day = (d: Date) => d.toISOString().slice(0, 10);
+
+    // Compact, factual brief the model writes from — no invented numbers.
+    const facts = [
+      `Initiative: ${init.name}`,
+      init.description ? `Description: ${init.description}` : null,
+      `Program: ${init.workstream.program.name} › Workstream: ${init.workstream.name}`,
+      `Stage: ${init.stage} | Status: ${init.status} | Start: ${day(init.startDate)} | Due: ${day(init.dueDate)}`,
+      `Value stream: ${linked.valueStreamName ?? '—'} | Division: ${linked.divisionName ?? '—'}`,
+      `Owner role: ${linked.ownerRoleName ?? '—'} | Sponsor role: ${linked.sponsorRoleName ?? '—'}`,
+      `Complexity score: ${init.complexityScore}/10 | Value score: ${init.valueScore}`,
+      `Cumulative benefit: ${money(init.cumulativeBenefit)} | Cumulative cost: ${money(init.cumulativeCost)} | Net benefit: ${money(init.cumulativeNetBenefit)}`,
+      `Budget (planned cost): ${money(sumDataset(init.costs, 'TARGET'))} | Forecast cost: ${money(sumDataset(init.costs, 'FORECAST'))} | Actual cost to date: ${money(sumDataset(init.costs, 'ACTUAL'))}`,
+      init.objectives.length
+        ? `Linked strategic objectives: ${init.objectives.map((o) => `${o.objective.name} (impact ${o.impact}×weight ${o.objective.weight})`).join('; ')}`
+        : 'Linked strategic objectives: none',
+      init.milestones.length
+        ? `Milestones: ${init.milestones.map((m) => `${m.name} — due ${day(m.dueDate)}${m.isGate ? ' [gate]' : ''}`).join('; ')}`
+        : 'Milestones: none defined',
+      init.raidItems.length
+        ? `Top risks: ${init.raidItems.map((r) => `${r.title} (severity ${r.severity})`).join('; ')}`
+        : 'Top risks: none logged',
+    ].filter(Boolean).join('\n');
+
+    const system = [
+      'You are a transformation PMO lead drafting a concise Project Charter for an executive audience.',
+      'Write ONLY from the facts provided — never invent figures, dates, names or scope not present in them.',
+      'Where a fact is missing, say so briefly (e.g. "Scope to be confirmed") rather than fabricating.',
+      'Output clean GitHub-flavoured Markdown with these ## sections, in order:',
+      'Purpose & Background, Objectives & Strategic Alignment, Scope, Business Case (benefits, costs, net),',
+      'Key Milestones, Risks & Mitigations, Governance (sponsor/owner), Success Criteria.',
+      'Be tight and executive: short paragraphs and bullets, the key figures in **bold**. No preamble, no title line, no emojis.',
+    ].join('\n');
+
+    const resp = await charterAnthropic().messages.create({
+      model: CHARTER_MODEL,
+      max_tokens: 1600,
+      system,
+      messages: [{ role: 'user', content: `Draft the Project Charter from these facts:\n\n${facts}` }],
+    });
+    const charter = resp.content.filter((b): b is Anthropic.TextBlock => b.type === 'text').map((b) => b.text).join('\n').trim();
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: init.id, action: 'CHARTER_GENERATED', diff: { initiative: init.name } });
+    res.json({ charter });
+  } catch (e) { next(e); }
+});
+
 // Milestones (nested under an initiative)
 router.post('/initiatives/:id/milestones', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -471,6 +583,7 @@ router.post('/initiatives/:id/milestones', async (req: Request, res: Response, n
     if (!existing) return res.status(404).json({ error: 'Not found' });
     const data = z.object({ name: z.string().min(1), dueDate: z.string(), isGate: z.boolean().optional() }).parse(req.body);
     const m = await prisma.milestone.create({ data: { initiativeId: req.params.id, name: data.name, dueDate: new Date(data.dueDate), isGate: data.isGate ?? false } });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: req.params.id, action: 'MILESTONE_CREATED', diff: { milestone: data.name, dueDate: data.dueDate } });
     res.status(201).json(m);
   } catch (e) { next(e); }
 });
@@ -482,7 +595,8 @@ async function ownMilestone(id: string, tenantId: string) {
 
 router.patch('/initiatives/milestones/:milestoneId', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (!(await ownMilestone(req.params.milestoneId, req.tenantId))) return res.status(404).json({ error: 'Not found' });
+    const existing = await ownMilestone(req.params.milestoneId, req.tenantId);
+    if (!existing) return res.status(404).json({ error: 'Not found' });
     const data = z.object({
       name: z.string().optional(),
       dueDate: z.string().optional(),
@@ -494,14 +608,17 @@ router.patch('/initiatives/milestones/:milestoneId', async (req: Request, res: R
     if (data.status === 'DONE') patch.completedAt = new Date();
     if (data.status && data.status !== 'DONE') patch.completedAt = null;
     const updated = await prisma.milestone.update({ where: { id: req.params.milestoneId }, data: patch });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: existing.initiativeId, action: 'MILESTONE_UPDATED', diff: { milestone: existing.name, ...data } });
     res.json(updated);
   } catch (e) { next(e); }
 });
 
 router.delete('/initiatives/milestones/:milestoneId', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (!(await ownMilestone(req.params.milestoneId, req.tenantId))) return res.status(404).json({ error: 'Not found' });
+    const existing = await ownMilestone(req.params.milestoneId, req.tenantId);
+    if (!existing) return res.status(404).json({ error: 'Not found' });
     await prisma.milestone.delete({ where: { id: req.params.milestoneId } });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: existing.initiativeId, action: 'MILESTONE_DELETED', diff: { milestone: existing.name } });
     res.status(204).end();
   } catch (e) { next(e); }
 });
@@ -545,14 +662,14 @@ router.post('/objectives', async (req: Request, res: Response, next: NextFunctio
     const obj = await prisma.strategicObjective.create({
       data: { tenantId: req.tenantId, companyId, name: data.name, description: data.description, weight: data.weight ?? 1 },
     });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'StrategicObjective', entityId: obj.id, action: 'CREATE' });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'StrategicObjective', entityId: obj.id, action: 'OBJECTIVE_CREATED', diff: { objective: data.name, weight: data.weight ?? 1 } });
     res.status(201).json(obj);
   } catch (e) { next(e); }
 });
 
 router.patch('/objectives/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const existing = await prisma.strategicObjective.findFirst({ where: { id: req.params.id, tenantId: req.tenantId }, select: { id: true, weight: true } });
+    const existing = await prisma.strategicObjective.findFirst({ where: { id: req.params.id, tenantId: req.tenantId } });
     if (!existing) return res.status(404).json({ error: 'Not found' });
     const data = objectiveCreateSchema.partial().parse(req.body);
     const updated = await prisma.strategicObjective.update({ where: { id: req.params.id }, data });
@@ -561,19 +678,23 @@ router.patch('/objectives/:id', async (req: Request, res: Response, next: NextFu
       const links = await prisma.initiativeObjective.findMany({ where: { objectiveId: req.params.id }, select: { initiativeId: true } });
       for (const l of links) await recomputeValueScore(l.initiativeId);
     }
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'StrategicObjective', entityId: req.params.id, action: 'UPDATE', diff: data });
+    logAudit({
+      tenantId: req.tenantId, actorEmail: req.user.email,
+      entityType: 'StrategicObjective', entityId: req.params.id, action: 'OBJECTIVE_UPDATED',
+      diff: { objective: existing.name, ...computeDiff(existing, data, Object.keys(data)) },
+    });
     res.json(updated);
   } catch (e) { next(e); }
 });
 
 router.delete('/objectives/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const existing = await prisma.strategicObjective.findFirst({ where: { id: req.params.id, tenantId: req.tenantId }, select: { id: true } });
+    const existing = await prisma.strategicObjective.findFirst({ where: { id: req.params.id, tenantId: req.tenantId }, select: { id: true, name: true } });
     if (!existing) return res.status(404).json({ error: 'Not found' });
     const links = await prisma.initiativeObjective.findMany({ where: { objectiveId: req.params.id }, select: { initiativeId: true } });
     await prisma.strategicObjective.delete({ where: { id: req.params.id } }); // cascades the links
     for (const l of links) await recomputeValueScore(l.initiativeId);
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'StrategicObjective', entityId: req.params.id, action: 'DELETE' });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'StrategicObjective', entityId: req.params.id, action: 'OBJECTIVE_DELETED', diff: { objective: existing.name } });
     res.status(204).end();
   } catch (e) { next(e); }
 });
@@ -583,18 +704,18 @@ router.post('/initiatives/:id/objectives', async (req: Request, res: Response, n
     const init = await ownInitiative(req.params.id, req.tenantId);
     if (!init) return res.status(404).json({ error: 'Not found' });
     const data = z.object({ objectiveId: z.string(), impact: z.number().int().min(1).max(5) }).parse(req.body);
-    const objective = await prisma.strategicObjective.findFirst({ where: { id: data.objectiveId, tenantId: req.tenantId }, select: { id: true } });
+    const objective = await prisma.strategicObjective.findFirst({ where: { id: data.objectiveId, tenantId: req.tenantId }, select: { id: true, name: true } });
     if (!objective) return res.status(404).json({ error: 'Objective not found' });
     const link = await prisma.initiativeObjective.create({ data: { initiativeId: req.params.id, objectiveId: data.objectiveId, impact: data.impact } });
     await recomputeValueScore(req.params.id);
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'InitiativeObjective', entityId: link.id, action: 'CREATE', diff: data });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: req.params.id, action: 'OBJECTIVE_LINKED', diff: { objective: objective.name, impact: data.impact } });
     res.status(201).json(link);
   } catch (e) { next(e); }
 });
 
 // Walk an alignment link up to its initiative's tenant for the ownership guard.
 async function ownObjectiveLink(id: string, tenantId: string) {
-  const l = await prisma.initiativeObjective.findUnique({ where: { id }, include: { initiative: { select: { tenantId: true } } } });
+  const l = await prisma.initiativeObjective.findUnique({ where: { id }, include: { initiative: { select: { tenantId: true } }, objective: { select: { name: true } } } });
   return l && l.initiative.tenantId === tenantId ? l : null;
 }
 
@@ -605,7 +726,7 @@ router.patch('/initiatives/objectives/:linkId', async (req: Request, res: Respon
     const data = z.object({ impact: z.number().int().min(1).max(5) }).parse(req.body);
     const updated = await prisma.initiativeObjective.update({ where: { id: req.params.linkId }, data });
     await recomputeValueScore(link.initiativeId);
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'InitiativeObjective', entityId: req.params.linkId, action: 'UPDATE', diff: data });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: link.initiativeId, action: 'OBJECTIVE_IMPACT_UPDATED', diff: { objective: link.objective.name, impact: { from: link.impact, to: data.impact } } });
     res.json(updated);
   } catch (e) { next(e); }
 });
@@ -616,7 +737,7 @@ router.delete('/initiatives/objectives/:linkId', async (req: Request, res: Respo
     if (!link) return res.status(404).json({ error: 'Not found' });
     await prisma.initiativeObjective.delete({ where: { id: req.params.linkId } });
     await recomputeValueScore(link.initiativeId);
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'InitiativeObjective', entityId: req.params.linkId, action: 'DELETE' });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: link.initiativeId, action: 'OBJECTIVE_UNLINKED', diff: { objective: link.objective.name } });
     res.status(204).end();
   } catch (e) { next(e); }
 });
@@ -635,17 +756,19 @@ router.post('/initiatives/:id/resources', async (req: Request, res: Response, ne
     const init = await ownInitiative(req.params.id, req.tenantId);
     if (!init) return res.status(404).json({ error: 'Not found' });
     const data = resourceCreateSchema.parse(req.body);
+    // erd_v5 InitiativeResource has no free-text roleName column (role is now an
+    // optional Role FK). The legacy free-text roleName is accepted but not stored;
+    // reads resolve roleName from the linked Role's displayValue.
     const resource = await prisma.initiativeResource.create({
       data: {
         initiativeId: req.params.id,
         name: data.name,
-        roleName: data.roleName ?? null,
         allocationPct: data.allocationPct,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
       },
     });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'InitiativeResource', entityId: resource.id, action: 'CREATE' });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: req.params.id, action: 'RESOURCE_ADDED', diff: { resource: data.name, allocationPct: data.allocationPct } });
     res.status(201).json(resource);
   } catch (e) { next(e); }
 });
@@ -657,22 +780,26 @@ async function ownResource(id: string, tenantId: string) {
 
 router.patch('/initiatives/resources/:rid', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (!(await ownResource(req.params.rid, req.tenantId))) return res.status(404).json({ error: 'Not found' });
+    const existing = await ownResource(req.params.rid, req.tenantId);
+    if (!existing) return res.status(404).json({ error: 'Not found' });
     const data = resourceCreateSchema.partial().parse(req.body);
     const patch: Record<string, unknown> = { ...data };
     if (data.startDate) patch.startDate = new Date(data.startDate);
     if (data.endDate) patch.endDate = new Date(data.endDate);
+    // roleName is not an erd_v5 column — never write it through.
+    delete patch.roleName;
     const updated = await prisma.initiativeResource.update({ where: { id: req.params.rid }, data: patch });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'InitiativeResource', entityId: req.params.rid, action: 'UPDATE', diff: data });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: existing.initiativeId, action: 'RESOURCE_UPDATED', diff: { resource: existing.name, ...data } });
     res.json(updated);
   } catch (e) { next(e); }
 });
 
 router.delete('/initiatives/resources/:rid', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (!(await ownResource(req.params.rid, req.tenantId))) return res.status(404).json({ error: 'Not found' });
+    const existing = await ownResource(req.params.rid, req.tenantId);
+    if (!existing) return res.status(404).json({ error: 'Not found' });
     await prisma.initiativeResource.delete({ where: { id: req.params.rid } });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'InitiativeResource', entityId: req.params.rid, action: 'DELETE' });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: existing.initiativeId, action: 'RESOURCE_REMOVED', diff: { resource: existing.name } });
     res.status(204).end();
   } catch (e) { next(e); }
 });
@@ -685,7 +812,7 @@ router.get('/programs/:id/resources', async (req: Request, res: Response, next: 
     if (!program) return res.status(404).json({ error: 'Not found' });
     const resources = await prisma.initiativeResource.findMany({
       where: { initiative: { workstream: { programId: req.params.id } } },
-      include: { initiative: { select: { id: true, name: true } } },
+      include: { initiative: { select: { id: true, name: true } }, role: { select: { displayValue: true } } },
       orderBy: { name: 'asc' },
     });
     const today = new Date();
@@ -695,8 +822,10 @@ router.get('/programs/:id/resources', async (req: Request, res: Response, next: 
     };
     const byName = new Map<string, Row>();
     for (const r of resources) {
-      const row = byName.get(r.name) ?? { name: r.name, roleName: r.roleName, totalAllocationPct: 0, assignments: [] };
-      if (!row.roleName && r.roleName) row.roleName = r.roleName;
+      // roleName is resolved from the linked Role (erd_v5 dropped the free-text column).
+      const roleName = r.role?.displayValue ?? null;
+      const row = byName.get(r.name) ?? { name: r.name, roleName, totalAllocationPct: 0, assignments: [] };
+      if (!row.roleName && roleName) row.roleName = roleName;
       row.assignments.push({ initiativeId: r.initiative.id, initiativeName: r.initiative.name, allocationPct: r.allocationPct, startDate: r.startDate, endDate: r.endDate });
       if (r.startDate <= today && r.endDate >= today) row.totalAllocationPct += r.allocationPct;
       byName.set(r.name, row);
@@ -710,7 +839,33 @@ const activityCreateSchema = z.object({
   name: z.string().min(1),
   startDate: z.string(),
   endDate: z.string(),
+  assignedTo: z.string().nullable().optional(),
   dependsOnId: z.string().nullable().optional(),
+  // Typed dependency (FB-19): type + the chosen value (refId from a list, or a
+  // free-text label for Person / Change-control approval).
+  dependencyType: z.enum(['TEAM', 'ROLE', 'PERSON', 'PROJECT', 'CHANGE_APPROVAL']).nullable().optional(),
+  dependencyRefId: z.string().nullable().optional(),
+  dependencyLabel: z.string().nullable().optional(),
+});
+
+// Cascading dependency options for the workplan-activity modal: the second
+// dropdown is populated from these per the selected type. Person and
+// change-control approval are free-text (no canonical list in the model).
+router.get('/dependency-options', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const companyId = await activeCompanyId(req, res);
+    if (!companyId) return;
+    const [teams, roles, projects] = await Promise.all([
+      prisma.orgUnit.findMany({ where: { companyId }, select: { id: true, displayValue: true }, orderBy: { displayValue: 'asc' } }),
+      prisma.role.findMany({ where: { companyId }, select: { id: true, displayValue: true }, orderBy: { displayValue: 'asc' } }),
+      prisma.program.findMany({ where: { tenantId: req.tenantId, companyId }, select: { id: true, name: true }, orderBy: { name: 'asc' } }),
+    ]);
+    res.json({
+      TEAM: teams.map((t) => ({ id: t.id, name: t.displayValue })),
+      ROLE: roles.map((r) => ({ id: r.id, name: r.displayValue })),
+      PROJECT: projects.map((p) => ({ id: p.id, name: p.name })),
+    });
+  } catch (e) { next(e); }
 });
 
 // A dependency must point at another activity of the same initiative.
@@ -735,11 +890,15 @@ router.post('/initiatives/:id/activities', async (req: Request, res: Response, n
         name: data.name,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
+        assignedTo: data.assignedTo ?? null,
         dependsOnId: data.dependsOnId ?? null,
+        dependencyType: data.dependencyType ?? null,
+        dependencyRefId: data.dependencyRefId ?? null,
+        dependencyLabel: data.dependencyLabel ?? null,
         sortOrder: (last._max.sortOrder ?? 0) + 1,
       },
     });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'WorkplanActivity', entityId: activity.id, action: 'CREATE' });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: req.params.id, action: 'ACTIVITY_CREATED', diff: { activity: data.name } });
     res.status(201).json(activity);
   } catch (e) { next(e); }
 });
@@ -763,16 +922,17 @@ router.patch('/initiatives/activities/:aid', async (req: Request, res: Response,
     if (data.startDate) patch.startDate = new Date(data.startDate);
     if (data.endDate) patch.endDate = new Date(data.endDate);
     const updated = await prisma.workplanActivity.update({ where: { id: req.params.aid }, data: patch });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'WorkplanActivity', entityId: req.params.aid, action: 'UPDATE', diff: data });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: activity.initiativeId, action: 'ACTIVITY_UPDATED', diff: { activity: activity.name, ...data } });
     res.json(updated);
   } catch (e) { next(e); }
 });
 
 router.delete('/initiatives/activities/:aid', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (!(await ownActivity(req.params.aid, req.tenantId))) return res.status(404).json({ error: 'Not found' });
+    const existing = await ownActivity(req.params.aid, req.tenantId);
+    if (!existing) return res.status(404).json({ error: 'Not found' });
     await prisma.workplanActivity.delete({ where: { id: req.params.aid } });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'WorkplanActivity', entityId: req.params.aid, action: 'DELETE' });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: existing.initiativeId, action: 'ACTIVITY_DELETED', diff: { activity: existing.name } });
     res.status(204).end();
   } catch (e) { next(e); }
 });
@@ -796,6 +956,7 @@ router.post('/lines', async (req: Request, res: Response, next: NextFunction) =>
     const line = data.type === 'BENEFIT'
       ? await prisma.benefitLine.create({ data: payload })
       : await prisma.costLine.create({ data: payload });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: data.initiativeId, action: data.type === 'BENEFIT' ? 'BENEFIT_LINE_CREATED' : 'COST_LINE_CREATED', diff: { line: data.name, category: data.category ?? null } });
     res.status(201).json({ ...line, type: data.type });
   } catch (e) { next(e); }
 });
@@ -818,6 +979,7 @@ router.delete('/lines/:type/:id', async (req: Request, res: Response, next: Next
     if (type === 'BENEFIT') await prisma.benefitLine.delete({ where: { id } });
     else await prisma.costLine.delete({ where: { id } });
     await recomputeInitiative(line.initiativeId);
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: line.initiativeId, action: type === 'BENEFIT' ? 'BENEFIT_LINE_DELETED' : 'COST_LINE_DELETED', diff: { line: line.name } });
     res.status(204).end();
   } catch (e) { next(e); }
 });
@@ -846,6 +1008,20 @@ router.post('/values', async (req: Request, res: Response, next: NextFunction) =
     const line = await ownLine(data.type, data.lineId, req.tenantId);
     if (!line) return res.status(404).json({ error: 'Line not found' });
     const fkField = data.type === 'BENEFIT' ? 'benefitLineId' : 'costLineId';
+
+    // Capture the before-state so the audit records the exact month-level
+    // before→after changes (and so an unchanged dataset logs nothing).
+    const prior = await prisma.metricValue.findMany({ where: { [fkField]: data.lineId, dataset: data.dataset }, select: { periodStart: true, amount: true } });
+    const monthKey = (d: string | Date) => new Date(d).toISOString().slice(0, 7);
+    const beforeByMonth = new Map<string, number>();
+    for (const v of prior) beforeByMonth.set(monthKey(v.periodStart), v.amount);
+    const afterByMonth = new Map<string, number>();
+    for (const v of data.values) afterByMonth.set(monthKey(v.periodStart), v.amount);
+    const months = [...new Set([...beforeByMonth.keys(), ...afterByMonth.keys()])].sort();
+    const changes = months
+      .map((m) => ({ period: m, from: beforeByMonth.get(m) ?? 0, to: afterByMonth.get(m) ?? 0 }))
+      .filter((c) => c.from !== c.to);
+
     await prisma.metricValue.deleteMany({ where: { [fkField]: data.lineId, dataset: data.dataset } });
     if (data.values.length > 0) {
       await prisma.metricValue.createMany({
@@ -853,10 +1029,13 @@ router.post('/values', async (req: Request, res: Response, next: NextFunction) =
       });
     }
     await recomputeInitiative(line.initiativeId);
-    logAudit({
+    // Only audit datasets that actually changed — no more 3-rows-per-save noise.
+    const DATASET_LABEL: Record<string, string> = { ACTUAL: 'Actual', TARGET: 'Budget', FORECAST: 'Forecast' };
+    if (changes.length > 0) logAudit({
       tenantId: req.tenantId, actorEmail: req.user.email,
-      entityType: data.type === 'BENEFIT' ? 'BenefitLine' : 'CostLine',
-      entityId: data.lineId, action: 'UPDATE_VALUES', diff: { dataset: data.dataset, count: data.values.length },
+      entityType: 'PortfolioInitiative', entityId: line.initiativeId,
+      action: data.type === 'BENEFIT' ? 'BENEFIT_VALUES_UPDATED' : 'COST_VALUES_UPDATED',
+      diff: { line: line.name, field: `${DATASET_LABEL[data.dataset]} (${data.type === 'BENEFIT' ? 'benefit' : 'cost'})`, changes },
     });
     res.json({ ok: true });
   } catch (e) { next(e); }
@@ -914,7 +1093,7 @@ router.post('/raid', async (req: Request, res: Response, next: NextFunction) => 
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
       },
     });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'RaidItem', entityId: item.id, action: 'CREATE' });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: data.initiativeId, action: 'RAID_CREATED', diff: { type: data.type, title: data.title } });
     res.status(201).json(item);
   } catch (e) { next(e); }
 });
@@ -934,7 +1113,7 @@ router.patch('/raid/:id', async (req: Request, res: Response, next: NextFunction
     const impact = data.impact ?? item.impact;
     if (data.probability !== undefined || data.impact !== undefined) patch.severity = probability * impact;
     const updated = await prisma.raidItem.update({ where: { id: req.params.id }, data: patch });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'RaidItem', entityId: req.params.id, action: 'UPDATE', diff: data });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: item.initiativeId, action: 'RAID_UPDATED', diff: { title: item.title, ...data } });
     res.json(updated);
   } catch (e) { next(e); }
 });
@@ -944,7 +1123,70 @@ router.delete('/raid/:id', async (req: Request, res: Response, next: NextFunctio
     const item = await prisma.raidItem.findUnique({ where: { id: req.params.id }, include: { initiative: { select: { tenantId: true } } } });
     if (!item || item.initiative.tenantId !== req.tenantId) return res.status(404).json({ error: 'Not found' });
     await prisma.raidItem.delete({ where: { id: req.params.id } });
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'RaidItem', entityId: req.params.id, action: 'DELETE' });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: item.initiativeId, action: 'RAID_DELETED', diff: { title: item.title } });
+    res.status(204).end();
+  } catch (e) { next(e); }
+});
+
+// ─── Change requests / change log (FB-27) ──────────────────────────────────
+router.get('/initiatives/:id/change-requests', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!(await ownInitiative(req.params.id, req.tenantId))) return res.status(404).json({ error: 'Not found' });
+    const items = await prisma.changeRequest.findMany({ where: { initiativeId: req.params.id }, orderBy: { createdAt: 'desc' } });
+    res.json(items);
+  } catch (e) { next(e); }
+});
+
+const changeRequestSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional(),
+  raisedBy: z.string().optional(),
+  costImpact: z.number().optional(),
+  scheduleImpactDays: z.number().int().optional(),
+  status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
+});
+
+router.post('/initiatives/:id/change-requests', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!(await ownInitiative(req.params.id, req.tenantId))) return res.status(404).json({ error: 'Not found' });
+    const data = changeRequestSchema.parse(req.body);
+    const cr = await prisma.changeRequest.create({
+      data: {
+        initiativeId: req.params.id,
+        title: data.title,
+        description: data.description ?? null,
+        raisedBy: data.raisedBy?.trim() || req.user.email,
+        costImpact: data.costImpact ?? 0,
+        scheduleImpactDays: data.scheduleImpactDays ?? 0,
+        status: data.status ?? 'PENDING',
+      },
+    });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: req.params.id, action: 'CHANGE_REQUEST_CREATED', diff: { changeRequest: data.title, costImpact: data.costImpact ?? 0, scheduleImpactDays: data.scheduleImpactDays ?? 0 } });
+    res.status(201).json(cr);
+  } catch (e) { next(e); }
+});
+
+router.patch('/change-requests/:cid', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const existing = await prisma.changeRequest.findUnique({ where: { id: req.params.cid }, include: { initiative: { select: { tenantId: true } } } });
+    if (!existing || existing.initiative.tenantId !== req.tenantId) return res.status(404).json({ error: 'Not found' });
+    const data = changeRequestSchema.partial().parse(req.body);
+    const updated = await prisma.changeRequest.update({ where: { id: req.params.cid }, data });
+    logAudit({
+      tenantId: req.tenantId, actorEmail: req.user.email,
+      entityType: 'PortfolioInitiative', entityId: existing.initiativeId, action: 'CHANGE_REQUEST_UPDATED',
+      diff: { changeRequest: existing.title, ...computeDiff(existing, data, Object.keys(data)) },
+    });
+    res.json(updated);
+  } catch (e) { next(e); }
+});
+
+router.delete('/change-requests/:cid', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const existing = await prisma.changeRequest.findUnique({ where: { id: req.params.cid }, include: { initiative: { select: { tenantId: true } } } });
+    if (!existing || existing.initiative.tenantId !== req.tenantId) return res.status(404).json({ error: 'Not found' });
+    await prisma.changeRequest.delete({ where: { id: req.params.cid } });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'PortfolioInitiative', entityId: existing.initiativeId, action: 'CHANGE_REQUEST_DELETED', diff: { changeRequest: existing.title } });
     res.status(204).end();
   } catch (e) { next(e); }
 });

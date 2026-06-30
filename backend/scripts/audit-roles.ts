@@ -5,7 +5,6 @@
 import 'dotenv/config';
 import { prisma } from '../src/db/prisma.js';
 import { roleMatcher, splitRoleRefs, candidates } from '../src/lib/roleMatch.js';
-import { canonicalVs } from '../src/lib/vsMapping.js';
 
 const company = await prisma.company.findFirst({ select: { id: true } });
 const c = company!.id;
@@ -57,7 +56,7 @@ for (let i = 0; i < roles.length; i++) for (let j = i + 1; j < roles.length; j++
 
 // ── value-stream linkage ──────────────────────────────────────────────────────
 console.log('\n== Legacy ValueStream rows with NO canonical node (participation renders unlinked) ==');
-for (const v of legacyVs) if (!vsNodeNames.has(canonicalVs(v.name))) console.log(`  ${v.name}`);
+for (const v of legacyVs) if (!vsNodeNames.has(v.name)) console.log(`  ${v.name}`);
 
 console.log('\n== Roles with NO RoleValueStream rows ==');
 const noRvs = roles.filter((r) => r.valueStreamLinks.length === 0);
@@ -66,7 +65,7 @@ for (const r of noRvs) console.log(`  ${r.name} (${r.department?.division.name}/
 console.log('\n== Roles whose RVS rows ALL point at non-canonical streams (UI shows no linked stream) ==');
 for (const r of roles) {
   if (r.valueStreamLinks.length === 0) continue;
-  const mapped = r.valueStreamLinks.filter((l) => vsNodeNames.has(canonicalVs(l.valueStream.name)));
+  const mapped = r.valueStreamLinks.filter((l) => vsNodeNames.has(l.valueStream.name));
   if (mapped.length === 0) console.log(`  ${r.name} → ${[...new Set(r.valueStreamLinks.map((l) => l.valueStream.name))].join(', ')}`);
 }
 

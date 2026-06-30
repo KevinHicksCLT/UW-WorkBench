@@ -124,7 +124,21 @@ const bodySchema = z.object({
     .array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().min(1) }))
     .min(1)
     .max(50),
+  // The screen the user is currently viewing (sent by the widget) so the
+  // assistant is page-aware — "this", "here", "current" resolve to the right view.
+  pageContext: z.object({ path: z.string(), label: z.string() }).optional(),
 });
+
+// A short, uncached system block describing where the user is, so the assistant
+// can ground vague references and proactively surface page-relevant insight.
+function pageContextNote(ctx: { path: string; label: string }): string {
+  return [
+    `The user is currently viewing ${ctx.label} (route ${ctx.path}).`,
+    'When their question uses "this", "here", "current" or is otherwise unscoped, interpret it against',
+    'that view. After answering, you may add one short, relevant suggestion tied to this page if it helps.',
+    'If a record id appears in the route, query that specific record before answering.',
+  ].join(' ');
+}
 
 // Runs the agentic loop. `withWebSearch` toggles the web_search server tool so we
 // can retry without it if the account hasn't enabled it.
@@ -132,17 +146,22 @@ async function converse(
   system: string,
   messages: Anthropic.MessageParam[],
   withWebSearch: boolean,
+  contextNote?: string,
 ): Promise<{ answer: string; queries: { query: string; rowCount: number; error?: string }[] }> {
   const convo: Anthropic.MessageParam[] = messages.map((m) => ({ role: m.role, content: m.content }));
   const executed: { query: string; rowCount: number; error?: string }[] = [];
   const tools: Anthropic.ToolUnion[] = withWebSearch ? [RUN_SQL_TOOL, WEB_SEARCH_TOOL] : [RUN_SQL_TOOL];
+  // The big schema prompt is cached; the page-context note is a small, uncached
+  // block so per-page variation doesn't bust the prompt cache.
+  const systemBlocks: Anthropic.TextBlockParam[] = [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }];
+  if (contextNote) systemBlocks.push({ type: 'text', text: contextNote });
   let answer = '';
 
   for (let i = 0; i < MAX_TOOL_ITERATIONS; i++) {
     const resp = await anthropic().messages.create({
       model: MODEL,
       max_tokens: 2000,
-      system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
+      system: systemBlocks,
       tools,
       messages: convo,
     });
@@ -184,18 +203,19 @@ async function converse(
 
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { messages } = bodySchema.parse(req.body);
+    const { messages, pageContext } = bodySchema.parse(req.body);
     const schema = await getSchemaSummary();
     const system = buildSystemPrompt(schema);
+    const contextNote = pageContext ? pageContextNote(pageContext) : undefined;
 
     let result: Awaited<ReturnType<typeof converse>>;
     try {
-      result = await converse(system, messages, WEB_SEARCH_ENABLED);
+      result = await converse(system, messages, WEB_SEARCH_ENABLED, contextNote);
     } catch (e) {
       // If web search isn't available on this account, retry once without it.
       const msg = e instanceof Error ? e.message : '';
       if (WEB_SEARCH_ENABLED && /web_search|server tool|not.*(enabled|allowed|support)/i.test(msg)) {
-        result = await converse(system, messages, false);
+        result = await converse(system, messages, false, contextNote);
       } else {
         throw e;
       }

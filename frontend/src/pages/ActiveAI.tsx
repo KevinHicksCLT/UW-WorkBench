@@ -31,7 +31,11 @@ type BreakdownRow = {
   name: string; total: number; automated: number; discarded: number; augmented: number; manual: number;
 };
 type DimensionKey = 'division' | 'role' | 'category' | 'deliverableType' | 'valueStream';
+type Inventory = {
+  orgs: number; valueStreams: number; roles: number; tasks: number; deliverables: number; applications: number;
+};
 type Summary = {
+  inventory: Inventory;
   coverage: CoverageRow[];
   adoption: {
     totalTasks: number;
@@ -56,6 +60,18 @@ const DIMENSIONS: [DimensionKey, string][] = [
   ['category', 'Task categories'],
   ['deliverableType', 'Deliverable types'],
   ['valueStream', 'Value streams'],
+];
+
+// Stage 1 baseline inventory — the size of the current operating model. Pure
+// counts of each canonical entity (no analysis tracking implied), ordered as the
+// client reads the model: structure → people → work → outputs → systems.
+const INVENTORY: [keyof Inventory, string][] = [
+  ['orgs', 'Orgs'],
+  ['valueStreams', 'Value streams'],
+  ['roles', 'Roles'],
+  ['tasks', 'Tasks'],
+  ['deliverables', 'Deliverables'],
+  ['applications', 'Applications'],
 ];
 
 const fmtMonth = (d: string | null) =>
@@ -128,10 +144,11 @@ export default function ActiveAI() {
         title="Metrics"
         subtitle="The AI program in two stages: first analyze the operating model, then adopt — automate, augment or discard the work itself."
         eyebrow={company?.name}
+        dense
       />
 
       {/* Sub-view switcher — AI adoption vs the trackable-signal catalog. */}
-      <div className="border-b border-[#eaeaea] mb-2.5 flex gap-1">
+      <div className="border-b border-[#eaeaea] mb-2 flex gap-1">
         {([['adoption', 'AI Adoption'], ['signals', 'Trackable Metrics']] as const).map(([v, label]) => (
           <button
             key={v}
@@ -154,10 +171,34 @@ export default function ActiveAI() {
         <div className="py-8 text-sm text-[#be123c]">{error}</div>
       ) : (
       <>
-      {/* ── Stage 1 · Analysis coverage ──────────────────────────────────────── */}
+      {/* ── Stage 1 · Current State Analysis ─────────────────────────────────── */}
       <div className="card-elevated overflow-hidden mb-2.5">
-        <div className="px-4 py-1.5 border-b border-[#eaeaea] flex items-baseline gap-2 flex-wrap">
-          <h2 className="text-sm font-semibold text-[#171717]">Stage 1 · Analysis coverage</h2>
+        <div className="px-4 py-2.5 border-b border-[#eaeaea]">
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3]">Stage 1</span>
+            <h2 className="text-base font-semibold text-[#171717]">Current State Analysis</h2>
+          </div>
+          <p className="text-[11px] text-[#666666] mt-0.5">
+            Baseline inventory of today's operating model — the orgs, value streams, roles, tasks, deliverables and
+            applications a client must understand before planning a multi-year AI transformation.
+          </p>
+        </div>
+
+        {/* Baseline inventory — pure counts of each canonical entity (Stage 1). */}
+        <div className="px-4 py-3 grid grid-cols-3 sm:grid-cols-6 gap-2 border-b border-[#eaeaea]">
+          {INVENTORY.map(([key, label]) => (
+            <div key={key} className="card-elevated px-3 py-2.5 flex flex-col gap-0.5">
+              <span className="text-2xl font-semibold tnum leading-none text-[#171717]">
+                {(summary?.inventory[key] ?? 0).toLocaleString()}
+              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Analysis coverage — how much of the model has been assessed. */}
+        <div className="px-4 py-1.5 flex items-baseline gap-2 flex-wrap border-b border-[#f5f5f5]">
+          <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#525252]">Analysis coverage</h3>
           <p className="text-[11px] text-[#666666] min-w-0 truncate" title="In-progress fill shows analyses underway. Analysis status per value stream / org group / role is edited in Data Admin → Analysis Status.">
             How much of the operating model has been assessed for AI opportunity, and whether the remaining work is on plan.
           </p>
@@ -203,10 +244,13 @@ export default function ActiveAI() {
 
       {/* ── Stage 2 · AI adoption ────────────────────────────────────────────── */}
       <div className="card-elevated overflow-hidden mb-2.5">
-        <div className="px-4 py-1.5 border-b border-[#eaeaea] flex items-baseline justify-between gap-4 flex-wrap">
-          <div className="flex items-baseline gap-2 flex-wrap min-w-0">
-            <h2 className="text-sm font-semibold text-[#171717]">Stage 2 · AI adoption</h2>
-            <p className="text-[11px] text-[#666666] min-w-0 truncate" title="Computed from the canonical Task table (aiDisposition per task) — the same rows as Deliverables & Tasks; edited in Data Admin → Task.">
+        <div className="px-4 py-2.5 border-b border-[#eaeaea] flex items-start justify-between gap-4 flex-wrap">
+          <div className="min-w-0">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3]">Stage 2</span>
+              <h2 className="text-base font-semibold text-[#171717]">Adoption Telemetry</h2>
+            </div>
+            <p className="text-[11px] text-[#666666] mt-0.5" title="Computed from the canonical Task table (aiDisposition per task) — the same rows as Deliverables & Tasks; edited in Data Admin → Task.">
               Of {summary?.adoption.totalTasks.toLocaleString() ?? 0} tasks, how many were automated, AI-augmented or discarded outright.
             </p>
           </div>

@@ -2,17 +2,16 @@ import { prisma } from '../db/prisma.js';
 import { logAudit } from './audit.js';
 
 // Stage-gate engine for the initiative tracker. Stages advance
-// IDEA → PLAN → EXECUTE → REALIZE → COMPLETE; each stage maps to a coarse state.
+// IDEA → PLAN → EXECUTE → COMPLETE; each stage maps to a coarse state.
 // Ported from Cascade, with the notification + business-rule side effects removed
 // (out of scope) — every action is still recorded in the shared audit log.
 
-const STAGE_ORDER = ['IDEA', 'PLAN', 'EXECUTE', 'REALIZE', 'COMPLETE'] as const;
+const STAGE_ORDER = ['IDEA', 'PLAN', 'EXECUTE', 'COMPLETE'] as const;
 
 const STAGE_TO_STATE: Record<string, string> = {
   IDEA: 'PLANNING',
   PLAN: 'PLANNING',
   EXECUTE: 'ACTIVE',
-  REALIZE: 'ACTIVE',
   COMPLETE: 'DONE',
 };
 

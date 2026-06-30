@@ -164,10 +164,10 @@ const txn = (d: Dashboard, body: (t: TransformationData) => ReactNode): ReactNod
 export const WIDGET_CATALOG: Widget[] = [
   // ── Transformation command center (D1) ──
   {
-    id: 'card:portfolioRollup', title: 'Transformation portfolio', kind: 'wide', source: SRC.initiatives,
-    desc: 'Programs → initiatives rollup: health, % complete, net benefit',
+    id: 'card:portfolioRollup', title: 'Transformation Portfolio', kind: 'wide', source: SRC.initiatives,
+    desc: 'Programs → initiatives rollup: health, % complete, budget spend',
     render: (d) => (
-      <Card title={wt(d, 'card:portfolioRollup', 'Transformation portfolio')}>
+      <Card title={wt(d, 'card:portfolioRollup', 'Transformation Portfolio')}>
         {txn(d, (t) => <PortfolioRollup t={t} />)}
       </Card>
     ),
@@ -191,10 +191,10 @@ export const WIDGET_CATALOG: Widget[] = [
     ),
   },
   {
-    id: 'card:raidSummary', title: 'RAID log', kind: 'wide', source: SRC.risks,
+    id: 'card:raidSummary', title: 'Portfolio RAID Log', kind: 'wide', source: SRC.risks,
     desc: 'Open RAID counts — risks, issues, assumptions, decisions',
     render: (d) => (
-      <Card title={wt(d, 'card:raidSummary', 'RAID log')} to="/raid" toLabel="RAID log">
+      <Card title={wt(d, 'card:raidSummary', 'Portfolio RAID Log')} to="/raid" toLabel="RAID log">
         {txn(d, (t) => <RaidSummary t={t} />)}
       </Card>
     ),
