@@ -17,9 +17,13 @@ router.use(requireAuth);
 router.use(cacheResponses(15_000));
 
 const DEFAULT_TAKE = 5000;
-// ProcessNode.automatability → an illustrative 1-5 agent-automatability score
-// (same 1=manual … 5=fully-automatable scale the old Task.agentScore used).
-const SCORE_OF: Record<string, number> = { manual: 2, augmented: 3, automated: 5 };
+// ProcessNode.automatability → 1-5 agent-automatability score. Scale: 1 Autonomous
+// Agent (AI does it end-to-end) … 5 Human-only; "automatable" = score ≤ 2. Lower =
+// more AI-automatable. Legacy aliases kept for safety.
+const SCORE_OF: Record<string, number> = {
+  autonomous: 1, workflow: 2, augmented: 3, assist: 4, manual: 5,
+  automated: 1, assisted: 4, // legacy aliases
+};
 
 async function activeCompanyId(req: Request, res: Response): Promise<string | null> {
   const requested = typeof req.query.companyId === 'string' ? req.query.companyId : '';

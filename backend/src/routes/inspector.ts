@@ -26,9 +26,13 @@ import { logAudit } from '../services/audit.js';
 const router = Router();
 router.use(requireAuth);
 
-// ProcessNode.automatability → 1-5 agent-automatability score (same mapping the
-// Work tab / Automatable page use: manual=2, augmented=3, automated=5).
-const SCORE_OF: Record<string, number> = { manual: 2, augmented: 3, automated: 5 };
+// ProcessNode.automatability → 1-5 agent-automatability score. Scale (Automatable
+// page): 1 Autonomous Agent … 5 Human-only; "automatable" = score ≤ 2. Tokens map
+// onto that scale (lower = more AI-automatable). Legacy aliases kept for safety.
+const SCORE_OF: Record<string, number> = {
+  autonomous: 1, workflow: 2, augmented: 3, assist: 4, manual: 5,
+  automated: 1, assisted: 4, // legacy aliases
+};
 
 async function activeCompany(req: Request) {
   const requested = typeof req.query.companyId === 'string' ? req.query.companyId : '';
