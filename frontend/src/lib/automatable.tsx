@@ -22,6 +22,11 @@ export function automatablePct(scores: (number | null | undefined)[]): { pct: nu
   return { pct: Math.round((100 * auto) / scored.length), auto, scored: scored.length };
 }
 
+// Graded automatability % for a SINGLE task: maps the 1-5 score linearly so a
+// partial task reads partial, not 0/100. 1→100, 2→75, 3→50, 4→25, 5→0.
+export const scoreToPct = (score?: number | null): number | null =>
+  typeof score === 'number' ? Math.round(((5 - score) / 4) * 100) : null;
+
 export const SCORE_LABEL: Record<number, string> = {
   1: 'Agent-ready',
   2: 'Needs setup',

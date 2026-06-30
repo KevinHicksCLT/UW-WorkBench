@@ -14,7 +14,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { DOMAIN_HEX } from '../viz/model';
-import { automatablePct, AutomatableMeter, SCORE_DESC, SCORE_COLOR } from '../lib/automatable';
+import { automatablePct, scoreToPct, AutomatableMeter, SCORE_DESC, SCORE_COLOR, SCORE_LABEL } from '../lib/automatable';
 
 // ── Payload (mirrors GET /inspector/:nodeId) ─────────────────────────────────
 type Relation = 'Owner' | 'Participant';
@@ -417,8 +417,10 @@ const pctColor = (p: number) => (p >= 67 ? '#059669' : p >= 34 ? '#d97706' : '#d
 
 function AutomationPanel({ data, onRetarget }: { data: Payload; onRetarget: (id: string) => void }) {
   const a = data.automation;
+  // Single task → graded % from its 1-5 score (partial reads partial). Group →
+  // share of tasks that are agent-runnable (score ≤ 2), as a count.
   const overall = data.detail
-    ? (typeof a.score === 'number' ? automatablePct([a.score]) : null)
+    ? (typeof a.score === 'number' ? { pct: scoreToPct(a.score)!, auto: 0, scored: 1 } : null)
     : (a.pct != null ? { pct: a.pct, auto: a.auto, scored: a.scored } : null);
   const rows = (a.byChild ?? []).filter((c) => c.scored > 0).sort((x, y) => (y.pct ?? 0) - (x.pct ?? 0));
   const levelWord = a.byChildLabel ?? 'level';
@@ -440,7 +442,7 @@ function AutomationPanel({ data, onRetarget }: { data: Payload; onRetarget: (id:
 
       {data.detail && typeof a.score === 'number' && (
         <div className="mt-2 rounded-md bg-[#fbfcfd] border border-[#eaeaea] px-2.5 py-1.5 text-[11px] text-[#525252] leading-snug">
-          <span className="font-semibold" style={{ color: SCORE_COLOR[a.score] }}>{a.score}/5</span> — {SCORE_DESC[a.score]}
+          <span className="font-semibold" style={{ color: SCORE_COLOR[a.score] }}>{SCORE_LABEL[a.score]}</span> — {SCORE_DESC[a.score]}
         </div>
       )}
 
