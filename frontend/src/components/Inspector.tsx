@@ -32,6 +32,13 @@ type TestingRollup = { id: string; system: string | null; location: string | nul
 type Payload = {
   id: string; name: string; levelNumber: number; levelLabel: string;
   isTask: boolean; detail: boolean; automatability: string | null;
+  code: string | null;
+  attributes: {
+    l3num?: string | null; l4num?: string | null; l5num?: string | null;
+    how?: string | null; testByPattern?: string | null;
+    checklistPattern?: string | null; checklistDifferences?: string | null;
+    l4l5Mapping?: string | null; disposition?: string | null;
+  } | null;
   domain: string | null; valueStreamId: string | null;
   breadcrumb: { id: string; name: string }[];
   counts: { roles: number; applications: number; deliverables: number; tasks: number; checklist: number; testing: number };
@@ -224,6 +231,11 @@ export default function Inspector({ nodeId, onClose, onRetarget, accent, startCo
               </div>
             ) : null}
             <div className="text-[15px] font-bold text-[#171717] leading-snug">{loading ? 'Loading…' : data?.name ?? '—'}</div>
+            {data && (data.levelLabel || data.code) && (
+              <div className="text-[10px] text-[#a3a3a3] mt-0.5">
+                {data.levelLabel}{data.code ? <> · <span className="font-semibold text-[#737575] tabular-nums">#{data.code}</span></> : null}
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
             <button onClick={() => setCollapsed(true)} aria-label="Minimize" title="Minimize panel"
@@ -352,11 +364,46 @@ function OverviewTab({ data, onTab, onRetarget }: { data: Payload; onTab: (t: Ta
       </div>
       <AutomationPanel data={data} onRetarget={onRetarget} />
 
+      {data.detail && <ProcessDetailPanel data={data} />}
+
       {data.detail && (
         <div className="mt-4 rounded-lg bg-[#fbfcfd] border border-[#eaeaea] px-3 py-2.5 text-[11px] text-[#737575] leading-snug">
           The real, editable detail of one step. Everything here is the live, shared record.
         </div>
       )}
+    </div>
+  );
+}
+
+// Workbook step fields stored on ProcessNode.attributes/code (How, Test by Pattern,
+// Checklist Pattern/Differences, ordinals) — surfaced read-only on the step overview.
+function ProcessDetailPanel({ data }: { data: Payload }) {
+  const a = data.attributes ?? {};
+  const stepNo = a.l5num ?? data.code ?? null;
+  const blocks: { label: string; value?: string | null }[] = [
+    { label: 'How (test method)', value: a.how },
+    { label: 'Test by pattern', value: a.testByPattern },
+    { label: 'Checklist pattern', value: a.checklistPattern },
+    { label: 'Checklist differences by pattern', value: a.checklistDifferences },
+    { label: 'L4/L5 pair mapping', value: a.l4l5Mapping },
+    { label: 'Disposition', value: a.disposition },
+  ].filter((b) => b.value && String(b.value).trim());
+  if (!stepNo && !blocks.length) return null;
+  return (
+    <div className="mt-4 rounded-lg border border-[#eaeaea] bg-white px-3 py-3">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3] mb-2">Process detail</div>
+      {stepNo && (
+        <div className="mb-2 flex items-center gap-1.5">
+          <span className="text-[9.5px] text-[#737575]">Step #</span>
+          <span className="text-[11px] font-semibold text-[#171717] tabular-nums">{stepNo}</span>
+        </div>
+      )}
+      {blocks.map((b) => (
+        <div key={b.label} className="mb-2.5 last:mb-0">
+          <div className="text-[9.5px] font-medium uppercase tracking-wide text-[#a3a3a3] mb-0.5">{b.label}</div>
+          <div className="text-[11px] text-[#404040] leading-snug whitespace-pre-line">{b.value}</div>
+        </div>
+      ))}
     </div>
   );
 }

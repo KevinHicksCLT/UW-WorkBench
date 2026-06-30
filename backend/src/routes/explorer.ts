@@ -48,7 +48,7 @@ router.get('/overview', async (req: Request, res: Response, next: NextFunction) 
 
     const [domains, divisions, divRoleCounts] = await Promise.all([
       l1 ? prisma.processNode.findMany({ where: { companyId: company.id, processLevelTypeId: l1 }, orderBy: { sortOrder: 'asc' }, select: { id: true, displayValue: true } }) : Promise.resolve([]),
-      l2 ? prisma.processNode.findMany({ where: { companyId: company.id, processLevelTypeId: l2 }, orderBy: { sortOrder: 'asc' }, select: { id: true, displayValue: true, parentId: true } }) : Promise.resolve([]),
+      l2 ? prisma.processNode.findMany({ where: { companyId: company.id, processLevelTypeId: l2 }, orderBy: [{ parent: { sortOrder: 'asc' } }, { sortOrder: 'asc' }], select: { id: true, displayValue: true, parentId: true } }) : Promise.resolve([]),
       // role degree per L2 node (NodeRole) → the "roles" badge on each division.
       prisma.nodeRole.groupBy({ by: ['processNodeId'], where: { companyId: company.id }, _count: { _all: true } }),
     ]);

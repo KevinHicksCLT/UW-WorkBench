@@ -44,7 +44,7 @@ async function ownedNode(req: Request, companyId: string, nodeId: string) {
   return prisma.processNode.findFirst({
     where: { id: nodeId, companyId },
     select: {
-      id: true, displayValue: true, isTask: true, automatability: true, parentId: true,
+      id: true, displayValue: true, isTask: true, automatability: true, parentId: true, code: true, attributes: true,
       processLevelType: { select: { levelNumber: true, displayValue: true } },
     },
   });
@@ -271,6 +271,8 @@ router.get('/:nodeId', async (req: Request, res: Response, next: NextFunction) =
       levelLabel: node.processLevelType.displayValue,
       isTask: node.isTask,
       detail,
+      code: node.code ?? null,
+      attributes: node.attributes ?? null,
       automatability: node.automatability ?? null,
       automation: { ...automation, byChild, byChildLabel },
       domain,
