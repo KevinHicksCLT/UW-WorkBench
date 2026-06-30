@@ -6,24 +6,36 @@
 // A confident, professional palette: royal blue (Core Business), teal (IT),
 // amber/gold (Corporate Function). Saturated 600-level accents with clean tinted
 // backgrounds — crisp and premium, not washed-out.
+// Keys are the L1 segment dbValues in the data: "Core Business" (royal blue),
+// "Technology" (green), "Corporate Functions" (amber/orange). Legacy aliases
+// ('IT', 'Corporate Function') kept so older data still colours correctly.
 export const DOMAIN_HEX: Record<string, string> = {
   'Core Business': '#2563eb',
-  'IT': '#0d9488',
+  'Technology': '#16a34a',
+  'Corporate Functions': '#d97706',
+  // legacy aliases
+  'IT': '#16a34a',
   'Corporate Function': '#d97706',
 };
 export const DOMAIN_BG: Record<string, string> = {
   'Core Business': '#eef3ff',
-  'IT': '#ecfdf7',
+  'Technology': '#f0fdf4',
+  'Corporate Functions': '#fff7ed',
+  'IT': '#f0fdf4',
   'Corporate Function': '#fff7ed',
 };
 export const DOMAIN_BORDER: Record<string, string> = {
   'Core Business': '#c3d7fb',
-  'IT': '#a7e8d8',
+  'Technology': '#bbf7d0',
+  'Corporate Functions': '#fdd9a8',
+  'IT': '#bbf7d0',
   'Corporate Function': '#fdd9a8',
 };
 export const DOMAIN_TEXT: Record<string, string> = {
   'Core Business': '#1d4ed8',
-  'IT': '#0f766e',
+  'Technology': '#15803d',
+  'Corporate Functions': '#b45309',
+  'IT': '#15803d',
   'Corporate Function': '#b45309',
 };
 
@@ -44,6 +56,9 @@ export type DivisionSummary = {
   id: string;
   name: string;
   higherCategory: string | null;
+  /** The L1 domain (segment) ProcessNode id this division sits under — lets the
+   *  map treat the domain header as an id-backed drag source / drop target. */
+  higherCategoryId?: string | null;
   roles: number;
 };
 

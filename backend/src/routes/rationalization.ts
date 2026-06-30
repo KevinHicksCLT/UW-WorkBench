@@ -99,7 +99,9 @@ router.post('/initiatives', requireRole('ADMIN', 'MANAGER'), async (req: Request
       data: [0, 1].map((i) => ({ id: `${base}_a${i}`, tenantId, companyId, workspaceId: ws.id, name: `Legacy App ${i + 1}`, disposition: 'Replace', position: i, illustrative: true })),
     });
     await prisma.rationalizationMicroservice.createMany({
-      data: LAYERS.map((layer, li) => { const g = GF_NEW[layer]; return { id: `${base}_s${li}`, tenantId, companyId, workspaceId: ws.id, name: `${stageName} ${g.suffix}`, kind: g.kind, status: 'Planned', techStack: g.tech, ownerRole: g.owner, position: li, illustrative: true }; }),
+      // erd_v5: ownerRole is now an optional Role FK (ownerRoleId); the scaffold's
+      // illustrative free-text owner is dropped (no free-text column).
+      data: LAYERS.map((layer, li) => { const g = GF_NEW[layer]; return { id: `${base}_s${li}`, tenantId, companyId, workspaceId: ws.id, name: `${stageName} ${g.suffix}`, kind: g.kind, status: 'Planned', techStack: g.tech, position: li, illustrative: true }; }),
     });
     await prisma.rationalizationComponent.createMany({
       data: LAYERS.map((layer, li) => ({ id: `${base}_c${li}`, tenantId, companyId, workspaceId: ws.id, layer, name: COMP_NEW[layer], destination: `${stageName} ${GF_NEW[layer].suffix}`, microserviceId: `${base}_s${li}`, migrationStatus: 'Identified', illustrative: true })),
@@ -117,7 +119,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       where: { id: req.params.id, tenantId: req.tenantId },
       include: {
         apps: { orderBy: [{ position: 'asc' }, { name: 'asc' }] },
-        microservices: { orderBy: [{ position: 'asc' }, { name: 'asc' }] },
+        microservices: { orderBy: [{ position: 'asc' }, { name: 'asc' }], include: { ownerRole: { select: { displayValue: true } } } },
         components: true,
         capabilities: true,
       },
@@ -162,7 +164,9 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       })),
       // Green-field target services.
       microservices: w.microservices.map((m) => ({
-        id: m.id, name: m.name, kind: m.kind, status: m.status, techStack: m.techStack, ownerRole: m.ownerRole,
+        id: m.id, name: m.name, kind: m.kind, status: m.status, techStack: m.techStack,
+        // ownerRole is the linked Role's display label (erd_v5 ownerRoleId FK).
+        ownerRole: m.ownerRole?.displayValue ?? null,
       })),
       // Flat findings; the board groups by (appId, layer, category).
       findings: caps.map((c) => ({
@@ -257,14 +261,16 @@ router.patch('/apps/:id', requireRole('ADMIN', 'MANAGER'), async (req: Request, 
 });
 
 // PATCH /rationalization/microservices/:id — edit a green-field target service.
-const MS_FIELDS = ['name', 'kind', 'status', 'techStack', 'ownerRole'] as const;
+// ownerRole is now an optional Role FK (ownerRoleId), not free text, so it is no
+// longer a directly-patchable string field on this box.
+const MS_FIELDS = ['name', 'kind', 'status', 'techStack'] as const;
 router.patch('/microservices/:id', requireRole('ADMIN', 'MANAGER'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const updated = await patchBoxEntity(req, res,
       () => prisma.rationalizationMicroservice.findFirst({ where: { id: req.params.id, tenantId: req.tenantId } }),
       (id, data) => prisma.rationalizationMicroservice.update({ where: { id }, data }),
       MS_FIELDS, 'UPDATE_GREENFIELD');
-    if (updated) res.json({ id: updated.id, name: updated.name, kind: updated.kind, status: updated.status, techStack: updated.techStack ?? null, ownerRole: updated.ownerRole ?? null });
+    if (updated) res.json({ id: updated.id, name: updated.name, kind: updated.kind, status: updated.status, techStack: updated.techStack ?? null, ownerRole: null });
   } catch (e) { next(e); }
 });
 

@@ -7,6 +7,3 @@ import { prisma } from '../db/prisma.js';
 
 export const tenantCompany = (id: string, tenantId: string) =>
   prisma.company.findFirst({ where: { id, tenantId } });
-
-export const tenantValueStream = (id: string, tenantId: string) =>
-  prisma.valueStream.findFirst({ where: { id, tenantId } });

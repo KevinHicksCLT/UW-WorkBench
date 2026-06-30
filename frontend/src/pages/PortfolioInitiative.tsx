@@ -4,13 +4,14 @@ import { api } from '../lib/api';
 import { useDialogs } from '../lib/dialogs';
 import { fmt, STAGE_ORDER, STAGE_LABELS } from '../lib/format';
 import PageHeader from '../components/PageHeader';
+import AssistantMarkdown from '../components/AssistantMarkdown';
 import {
-  Tile, StatusPill, StageBar, SeverityCell, Modal, SvgLineChart, generateMonths,
+  Tile, StatusPill, SeverityCell, Modal, SvgLineChart, generateMonths,
   makeTimelineScale, TimelineAxis, TimelineGrid, ACTIVITY_STATUS_COLOR, ACTIVITY_STATUS_LABEL,
   type Initiative, type Line, type Raid, type Milestone, type Objective, type Activity,
 } from '../lib/portfolio';
 
-const TABS = ['Summary', 'Charter', 'Strategic Alignment', 'Financials', 'Workplan', 'Resources', 'RAID', 'Audit'] as const;
+const TABS = ['Summary', 'Charter', 'Strategic Alignment', 'Financials', 'Workplan', 'Change Log', 'Resources', 'RAID', 'Audit'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function PortfolioInitiative() {
@@ -42,7 +43,6 @@ export default function PortfolioInitiative() {
     <div>
       <PageHeader
         title={init.name}
-        subtitle={init.description ?? undefined}
         actions={
           <>
             {init.workflowAction === 'SUBMIT' && (
@@ -50,43 +50,22 @@ export default function PortfolioInitiative() {
                 Approve → {STAGE_LABELS[STAGE_ORDER[stageIdx + 1]] ?? 'Done'}
               </button>
             )}
-            {init.workflowAction !== 'SUBMIT' && stageIdx < STAGE_ORDER.length - 1 && (
-              <button className="btn-primary" disabled={busy} onClick={() => workflow('SUBMIT')}>Submit for approval</button>
-            )}
-            {stageIdx > 0 && <button className="btn-secondary" disabled={busy} onClick={() => workflow('MOVE_BACK')}>Move back</button>}
+            {stageIdx > 0 && <button className="btn-secondary" disabled={busy} onClick={() => workflow('MOVE_BACK')}>Roll Back</button>}
           </>
         }
       />
 
-      {/* Stage + status */}
+      {/* Status (FB-04 — stage label + stage ladder removed) */}
       <div className="card-elevated p-5 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span className="text-[11px] uppercase font-semibold tracking-[0.08em] text-[#a3a3a3]">Stage</span>
-            <span className="font-semibold text-[#171717]">{STAGE_LABELS[init.stage]}</span>
-            {init.workflowAction === 'SUBMIT' && <span className="pill-amber">Pending approval</span>}
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] uppercase font-semibold tracking-[0.08em] text-[#a3a3a3]">Status</span>
-            <select className="input w-36" value={init.status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="ON_TRACK">On Track</option>
-              <option value="AT_RISK">At Risk</option>
-              <option value="OFF_TRACK">Off Track</option>
-            </select>
-          </div>
+        <div className="flex items-center gap-3">
+          <span className="text-[11px] uppercase font-semibold tracking-[0.08em] text-[#a3a3a3]">Status</span>
+          <select className="input w-36" value={init.status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="ON_TRACK">On Track</option>
+            <option value="AT_RISK">At Risk</option>
+            <option value="OFF_TRACK">Off Track</option>
+          </select>
+          {init.workflowAction === 'SUBMIT' && <span className="pill-amber">Pending approval</span>}
         </div>
-        <StageBar stage={init.stage} />
-        <div className="grid grid-cols-5 mt-2 text-[10px] sm:text-xs text-[#a3a3a3]">
-          {STAGE_ORDER.map((s) => <div key={s} className="text-center truncate px-0.5">{STAGE_LABELS[s]}</div>)}
-        </div>
-      </div>
-
-      {/* KPI tiles */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <Tile label="Cumulative Benefit" value={fmt.currency(init.cumulativeBenefit, { compact: true })} tone="positive" />
-        <Tile label="Cumulative Cost" value={fmt.currency(init.cumulativeCost, { compact: true })} />
-        <Tile label="Net Benefit" value={fmt.currency(init.cumulativeNetBenefit, { compact: true })} tone={init.cumulativeNetBenefit >= 0 ? 'positive' : 'negative'} />
-        <Tile label="Value Score" value={init.valueScore} hint={`${init.objectives.length} linked objective${init.objectives.length !== 1 ? 's' : ''}`} />
       </div>
 
       {/* Tabs */}
@@ -112,6 +91,7 @@ export default function PortfolioInitiative() {
       {tab === 'Strategic Alignment' && <AlignmentTab init={init} reload={load} />}
       {tab === 'Financials' && <FinancialsTab init={init} reload={load} />}
       {tab === 'Workplan' && <WorkplanTab init={init} reload={load} />}
+      {tab === 'Change Log' && <ChangeLogTab init={init} />}
       {tab === 'Resources' && <ResourcesTab init={init} reload={load} />}
       {tab === 'RAID' && <RaidTab init={init} reload={load} />}
       {tab === 'Audit' && <AuditTab initId={init.id} />}
@@ -181,7 +161,8 @@ function CharterTab({ init, reload }: { init: Initiative; reload: () => void }) 
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div className="space-y-4">
+      <CharterNarrative init={init} />
       <div className="card-elevated p-5">
         <h3 className="text-sm font-semibold text-[#171717] mb-1">Complexity Score</h3>
         <p className="text-xs text-[#a3a3a3] mb-3">Delivery complexity, 0 (trivial) – 10 (extreme). Used as the x-axis of the program prioritization matrix.</p>
@@ -195,12 +176,58 @@ function CharterTab({ init, reload }: { init: Initiative; reload: () => void }) 
           <button className="btn-primary text-xs" onClick={save} disabled={saving || !dirty}>{saving ? 'Saving…' : 'Save'}</button>
         </div>
       </div>
-      <div className="card-elevated p-5">
-        <h3 className="text-sm font-semibold text-[#171717] mb-1">Value Score</h3>
-        <p className="text-xs text-[#a3a3a3] mb-3">Σ impact × objective weight across linked objectives — maintained automatically from the Strategic Alignment tab.</p>
-        <div className="text-3xl font-semibold tnum text-[#171717]">{init.valueScore}</div>
-        <div className="text-xs text-[#a3a3a3] mt-1">{init.objectives.length} linked objective{init.objectives.length !== 1 && 's'}</div>
+    </div>
+  );
+}
+
+// FB-13: an AI-drafted Project Charter narrative, shown at the top of the Charter
+// tab. Generated server-side from the initiative's real data and cached in
+// localStorage per initiative so it isn't regenerated on every visit (a manual
+// "Regenerate" refreshes it). Renders the returned Markdown with AssistantMarkdown.
+function CharterNarrative({ init }: { init: Initiative }) {
+  const cacheKey = `charter:${init.id}`;
+  const [text, setText] = useState<string>(() => localStorage.getItem(cacheKey) ?? '');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function generate() {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await api.post(`/portfolio/initiatives/${init.id}/charter`, {});
+      const charter = res.charter ?? '';
+      setText(charter);
+      if (charter) localStorage.setItem(cacheKey, charter);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally { setLoading(false); }
+  }
+
+  // Auto-draft on first view when nothing is cached yet.
+  useEffect(() => {
+    if (!text && !loading && !error) void generate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [init.id]);
+
+  return (
+    <div className="card-elevated p-5">
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <div>
+          <h3 className="text-sm font-semibold text-[#171717]">Project Charter</h3>
+          <p className="text-xs text-[#a3a3a3]">AI-drafted from this initiative's data — review before sharing.</p>
+        </div>
+        <button className="btn-secondary text-xs" onClick={generate} disabled={loading}>
+          {loading ? 'Generating…' : text ? 'Regenerate' : 'Generate'}
+        </button>
       </div>
+      {error && <div className="text-sm text-[#be123c]">{error}</div>}
+      {!error && loading && !text && <div className="text-sm text-[#a3a3a3] py-2">Drafting the charter…</div>}
+      {text && (
+        <div className={loading ? 'opacity-50 transition-opacity' : ''}>
+          <AssistantMarkdown content={text} />
+        </div>
+      )}
+      {!text && !loading && !error && <div className="text-sm text-[#a3a3a3] py-2">No charter yet.</div>}
     </div>
   );
 }
@@ -226,14 +253,6 @@ function AlignmentTab({ init, reload }: { init: Initiative; reload: () => void }
 
   return (
     <div className="space-y-4">
-      <div className="card-elevated p-5 flex items-center justify-between gap-4">
-        <div>
-          <h3 className="text-sm font-semibold text-[#171717]">Value Score</h3>
-          <p className="text-xs text-[#a3a3a3]">Σ impact × objective weight across linked objectives — recomputed on every change below.</p>
-        </div>
-        <div className="text-3xl font-semibold tnum text-[#171717]">{init.valueScore}</div>
-      </div>
-
       <div className="card-elevated p-5">
         <h3 className="text-sm font-semibold text-[#171717] mb-3">Linked strategic objectives</h3>
         {error && <div className="text-sm text-[#be123c] mb-2">{error}</div>}
@@ -241,13 +260,13 @@ function AlignmentTab({ init, reload }: { init: Initiative; reload: () => void }
           <div className="text-sm text-[#a3a3a3] py-2">No objectives linked yet.</div>
         ) : (
           <div className="table-scroll">
-            <table className="w-full text-sm">
+            <table className="w-full table-fixed text-sm">
               <thead className="text-xs text-[#a3a3a3] border-b border-[#eaeaea]">
                 <tr>
                   <th className="text-left pb-2 font-semibold">Objective</th>
-                  <th className="text-right pb-2 font-semibold w-20">Weight</th>
-                  <th className="text-left pb-2 font-semibold w-36 pl-4">Impact (1–5)</th>
-                  <th className="text-right pb-2 font-semibold w-28">Contribution</th>
+                  <th className="text-left pb-2 font-semibold">Weight</th>
+                  <th className="text-left pb-2 font-semibold">Impact (1–5)</th>
+                  <th className="text-left pb-2 font-semibold">Contribution</th>
                   <th className="w-10" />
                 </tr>
               </thead>
@@ -255,8 +274,8 @@ function AlignmentTab({ init, reload }: { init: Initiative; reload: () => void }
                 {init.objectives.map((l) => (
                   <tr key={l.id} className="border-b border-[#f5f5f5]">
                     <td className="py-2.5 font-medium text-[#171717]">{l.objective.name}</td>
-                    <td className="py-2.5 text-right tnum text-[#666666]">{l.objective.weight}</td>
-                    <td className="py-2.5 pl-4">
+                    <td className="py-2.5 text-left tnum text-[#666666]">{l.objective.weight}</td>
+                    <td className="py-2.5">
                       <select
                         className="input text-xs w-24"
                         value={l.impact}
@@ -265,7 +284,7 @@ function AlignmentTab({ init, reload }: { init: Initiative; reload: () => void }
                         {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}
                       </select>
                     </td>
-                    <td className="py-2.5 text-right tnum text-[#171717]">{Math.round(l.impact * l.objective.weight * 10) / 10}</td>
+                    <td className="py-2.5 text-left tnum text-[#171717]">{Math.round(l.impact * l.objective.weight * 10) / 10}</td>
                     <td className="py-2.5 text-right">
                       <button
                         className="text-[#be123c] hover:underline text-sm"
@@ -306,35 +325,112 @@ function AlignmentTab({ init, reload }: { init: Initiative; reload: () => void }
 }
 
 // ── FINANCIALS ───────────────────────────────────────────────────────────
+// FB-14: the financials view leads with budget delivery — Project Budget,
+// Forecasted Budget, Forecast-to-date and Actuals (cost-side TARGET/FORECAST/
+// ACTUAL) — instead of the old benefit-vs-cost view, so value-side figures no
+// longer share the headline. FB-15: a Change Impact card surfaces how the
+// forecast has moved the budget and the timeline against their baselines.
 function FinancialsTab({ init, reload }: { init: Initiative; reload: () => void }) {
   const [showCreate, setShowCreate] = useState<'BENEFIT' | 'COST' | null>(null);
 
-  const months = generateMonths(
-    init.startDate,
-    // chart spans the widest of the line ranges / initiative due date
-    init.dueDate,
-  );
-  const sum = (lines: Line[], dataset: string, month: string) =>
-    lines.reduce((a, l) => a + l.values.filter((v) => v.dataset === dataset && v.periodStart.slice(0, 7) === month).reduce((x, v) => x + v.amount, 0), 0);
+  const months = generateMonths(init.startDate, init.dueDate);
+  const nowMonth = new Date().toISOString().slice(0, 7);
+
+  // Monthly cost totals per dataset, then cumulative running sums for the chart.
+  const monthly = (dataset: string) =>
+    months.map((m) => init.costs.reduce((a, l) => a + l.values.filter((v) => v.dataset === dataset && v.periodStart.slice(0, 7) === m).reduce((x, v) => x + v.amount, 0), 0));
+  const cumulative = (arr: number[]) => { let run = 0; return arr.map((v) => (run += v)); };
+
+  const budgetM = monthly('TARGET');
+  const forecastRawM = monthly('FORECAST');
+  const actualM = monthly('ACTUAL');
+  // Forecast falls back to the budget baseline per-month wherever no explicit
+  // forecast exists (forecasts are typically only authored for remaining/future
+  // months, so the to-date portion must still reflect the planned baseline).
+  const forecastM = months.map((_m, i) => (forecastRawM[i] !== 0 ? forecastRawM[i] : budgetM[i]));
+  // Forecast-to-date = forecast spend expected by today (zero past the current month).
+  const forecastToDateM = months.map((m, i) => (m <= nowMonth ? forecastM[i] : 0));
+
+  // Totals for the summary tiles.
+  const projectBudget = budgetM.reduce((a, v) => a + v, 0);
+  const forecastBudget = forecastM.reduce((a, v) => a + v, 0);
+  const forecastToDate = forecastToDateM.reduce((a, v) => a + v, 0);
+  const actuals = actualM.reduce((a, v) => a + v, 0);
+
+  // Change impact (FB-15).
+  const budgetDelta = forecastBudget - projectBudget;            // forecast vs baseline budget
+  const budgetDeltaPct = projectBudget ? budgetDelta / projectBudget : 0;
+  const toDateVariance = actuals - forecastToDate;               // actual vs forecast-to-date
+  // Timeline: projected finish = latest dated work; slip vs the planned due date.
+  const dueMs = new Date(init.dueDate).getTime();
+  const workDates = [
+    ...init.activities.map((a) => new Date(a.endDate).getTime()),
+    ...init.milestones.map((m) => new Date(m.dueDate).getTime()),
+  ].filter((n) => !Number.isNaN(n));
+  const projectedMs = workDates.length ? Math.max(dueMs, ...workDates) : dueMs;
+  const slipDays = Math.round((projectedMs - dueMs) / 86400000);
+  const now = Date.now();
+  const overdueMilestones = init.milestones.filter((m) => m.status !== 'DONE' && new Date(m.dueDate).getTime() < now).length;
 
   return (
     <div className="space-y-4">
+      {/* Budget summary tiles */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <Tile label="Project Budget" value={fmt.currency(projectBudget, { compact: true })} hint="Planned cost baseline" />
+        <Tile label="Forecasted Budget" value={fmt.currency(forecastBudget, { compact: true })} hint="Latest full-life forecast" tone={budgetDelta > 0 ? 'negative' : 'neutral'} />
+        <Tile label="Forecast-to-date" value={fmt.currency(forecastToDate, { compact: true })} hint="Expected spend by today" />
+        <Tile label="Actuals" value={fmt.currency(actuals, { compact: true })} hint="Actual cost to date" tone={toDateVariance > 0 ? 'negative' : 'positive'} />
+      </div>
+
+      {/* Budget vs forecast vs actuals — cumulative */}
       <div className="card-elevated p-5">
-        <h3 className="text-sm font-semibold text-[#171717] mb-3">Monthly benefits &amp; costs — Actual vs Target</h3>
+        <h3 className="text-sm font-semibold text-[#171717] mb-3">Budget vs Forecast vs Actuals — cumulative cost</h3>
         <SvgLineChart
           labels={months}
           formatValue={(v) => `$${Math.round(v / 1000)}k`}
           series={[
-            { name: 'Benefit Actual', color: '#047857', data: months.map((m) => sum(init.benefits, 'ACTUAL', m)) },
-            { name: 'Benefit Target', color: '#10b981', dashed: true, data: months.map((m) => sum(init.benefits, 'TARGET', m)) },
-            { name: 'Cost Actual', color: '#be123c', data: months.map((m) => sum(init.costs, 'ACTUAL', m)) },
-            { name: 'Cost Target', color: '#fb7185', dashed: true, data: months.map((m) => sum(init.costs, 'TARGET', m)) },
+            { name: 'Project Budget', color: '#4f46e5', data: cumulative(budgetM) },
+            { name: 'Forecasted Budget', color: '#b45309', dashed: true, data: cumulative(forecastM) },
+            { name: 'Forecast-to-date', color: '#0ea5e9', dashed: true, data: cumulative(forecastToDateM) },
+            { name: 'Actuals', color: '#047857', data: cumulative(actualM) },
           ]}
         />
       </div>
 
-      <LineSection title="Benefits" type="BENEFIT" lines={init.benefits} onCreate={() => setShowCreate('BENEFIT')} onChange={reload} />
+      {/* Change Impact on budget & timeline (FB-15) */}
+      <div className="card-elevated p-5">
+        <h3 className="text-sm font-semibold text-[#171717] mb-1">Change Impact</h3>
+        <p className="text-xs text-[#a3a3a3] mb-4">How the current forecast and workplan move this initiative against its baselines.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="rounded-lg border border-[#eaeaea] p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-1">Budget</div>
+            <div className={'text-2xl font-semibold tnum ' + (budgetDelta > 0 ? 'text-[#be123c]' : budgetDelta < 0 ? 'text-[#047857]' : 'text-[#171717]')}>
+              {budgetDelta > 0 ? '+' : ''}{fmt.currency(budgetDelta, { compact: true })}
+            </div>
+            <div className="text-xs text-[#666666] mt-1">
+              Forecast vs budget ({budgetDeltaPct > 0 ? '+' : ''}{fmt.percent(budgetDeltaPct)}).{' '}
+              {toDateVariance !== 0
+                ? `Actuals are ${fmt.currency(Math.abs(toDateVariance), { compact: true })} ${toDateVariance > 0 ? 'over' : 'under'} forecast-to-date.`
+                : 'Actuals track forecast-to-date.'}
+            </div>
+          </div>
+          <div className="rounded-lg border border-[#eaeaea] p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-1">Timeline</div>
+            <div className={'text-2xl font-semibold tnum ' + (slipDays > 0 ? 'text-[#be123c]' : 'text-[#047857]')}>
+              {slipDays > 0 ? `+${slipDays}d` : 'On schedule'}
+            </div>
+            <div className="text-xs text-[#666666] mt-1">
+              {slipDays > 0
+                ? `Latest dated work runs past the ${fmt.date(init.dueDate)} due date by ${slipDays} day${slipDays === 1 ? '' : 's'}.`
+                : `All dated work fits within the ${fmt.date(init.dueDate)} due date.`}
+              {overdueMilestones > 0 && ` ${overdueMilestones} milestone${overdueMilestones === 1 ? '' : 's'} overdue.`}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <LineSection title="Costs" type="COST" lines={init.costs} onCreate={() => setShowCreate('COST')} onChange={reload} />
+      <LineSection title="Benefits" type="BENEFIT" lines={init.benefits} onCreate={() => setShowCreate('BENEFIT')} onChange={reload} />
 
       {showCreate && <CreateLineModal type={showCreate} init={init} onClose={() => setShowCreate(null)} onCreated={() => { setShowCreate(null); reload(); }} />}
     </div>
@@ -360,8 +456,8 @@ function LineSection({ title, type, lines, onCreate, onChange }: { title: string
                 <th className="text-left pb-2 font-semibold">Name</th>
                 <th className="text-left pb-2 font-semibold">Category</th>
                 <th className="text-left pb-2 font-semibold">Range</th>
-                <th className="text-right pb-2 font-semibold">Actual</th>
-                <th className="text-right pb-2 font-semibold">Target</th>
+                <th className="text-center pb-2 font-semibold">Actual</th>
+                <th className="text-center pb-2 font-semibold">Budget</th>
                 <th className="w-16" />
               </tr>
             </thead>
@@ -370,12 +466,16 @@ function LineSection({ title, type, lines, onCreate, onChange }: { title: string
                 const actual = l.values.filter((v) => v.dataset === 'ACTUAL').reduce((a, v) => a + v.amount, 0);
                 const target = l.values.filter((v) => v.dataset === 'TARGET').reduce((a, v) => a + v.amount, 0);
                 return (
-                  <tr key={l.id} className="border-b border-[#f5f5f5] hover:bg-[#fafafa] cursor-pointer" onClick={() => setEditing(l)}>
-                    <td className="py-2.5 font-medium text-[#171717]">{l.name}</td>
+                  <tr key={l.id} className="border-b border-[#f5f5f5] hover:bg-[#fafafa] cursor-pointer group" onClick={() => setEditing(l)}>
+                    <td className="py-2.5 font-medium">
+                      <button type="button" className="text-[#4f46e5] hover:underline text-left" title="Edit monthly values" onClick={(e) => { e.stopPropagation(); setEditing(l); }}>
+                        {l.name} <span className="text-[11px] font-normal text-[#a3a3a3]">(edit)</span>
+                      </button>
+                    </td>
                     <td className="py-2.5 text-[#666666]">{l.category || '—'}</td>
                     <td className="py-2.5 text-[#666666] text-xs">{fmt.month(l.startDate)} → {fmt.month(l.endDate)}</td>
-                    <td className="py-2.5 text-right tnum">{fmt.currency(actual, { compact: true })}</td>
-                    <td className="py-2.5 text-right text-[#a3a3a3] tnum">{fmt.currency(target, { compact: true })}</td>
+                    <td className="py-2.5 text-center tnum">{fmt.currency(actual, { compact: true })}</td>
+                    <td className="py-2.5 text-center text-[#a3a3a3] tnum">{fmt.currency(target, { compact: true })}</td>
                     <td className="py-2.5 text-right">
                       <button
                         className="text-xs text-[#be123c] hover:underline"
@@ -402,6 +502,11 @@ function CreateLineModal({ type, init, onClose, onCreated }: { type: 'BENEFIT' |
   const [error, setError] = useState('');
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!form.name.trim()) return setError('Name is required.');
+    if (!form.category.trim()) return setError('Category is required.');
+    if (!form.startDate || !form.endDate) return setError('Start and end dates are required.');
+    if (form.endDate < form.startDate) return setError('End date must be on or after the start date.');
+    setError('');
     try { await api.post('/portfolio/lines', { type, initiativeId: init.id, ...form }); onCreated(); }
     catch (err) { setError((err as Error).message); }
   }
@@ -428,46 +533,62 @@ function CreateLineModal({ type, init, onClose, onCreated }: { type: 'BENEFIT' |
   );
 }
 
+// FB-18: actuals, budget (the TARGET dataset) and forecast edited together on a
+// single tab — one row per month, one editable column per dataset.
+const VALUE_DATASETS = [
+  { key: 'ACTUAL', label: 'Actual' },
+  { key: 'TARGET', label: 'Budget' },
+  { key: 'FORECAST', label: 'Forecast' },
+] as const;
+
 function EditValuesModal({ type, line, onClose, onSaved }: { type: 'BENEFIT' | 'COST'; line: Line; onClose: () => void; onSaved: () => void }) {
-  const [dataset, setDataset] = useState<'ACTUAL' | 'TARGET' | 'FORECAST'>('ACTUAL');
   const months = generateMonths(line.startDate, line.endDate);
-  const [values, setValues] = useState<Record<string, string | number>>({});
+  // values[dataset][month] = amount
+  const [values, setValues] = useState<Record<string, Record<string, string | number>>>({ ACTUAL: {}, TARGET: {}, FORECAST: {} });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const v: Record<string, number> = {};
-    for (const x of line.values) if (x.dataset === dataset) v[x.periodStart.slice(0, 7)] = x.amount;
+    const v: Record<string, Record<string, number>> = { ACTUAL: {}, TARGET: {}, FORECAST: {} };
+    for (const x of line.values) (v[x.dataset] ??= {})[x.periodStart.slice(0, 7)] = x.amount;
     setValues(v);
-  }, [dataset, line]);
+  }, [line]);
 
   async function save() {
     setSaving(true);
     try {
-      const payload = months.map((m) => ({ periodStart: `${m}-01`, amount: Number(values[m] || 0) }));
-      await api.post('/portfolio/values', { type, lineId: line.id, dataset, values: payload });
+      // One POST per dataset (each is logged to the audit trail separately).
+      for (const { key } of VALUE_DATASETS) {
+        const payload = months.map((m) => ({ periodStart: `${m}-01`, amount: Number(values[key]?.[m] || 0) }));
+        await api.post('/portfolio/values', { type, lineId: line.id, dataset: key, values: payload });
+      }
       onSaved();
     } finally { setSaving(false); }
   }
 
   return (
     <Modal title={`${line.name} — monthly values`} onClose={onClose} wide>
-      <div className="mb-3 flex items-center gap-2">
-        {(['ACTUAL', 'TARGET', 'FORECAST'] as const).map((d) => (
-          <button key={d} className={dataset === d ? 'btn-primary text-xs' : 'btn-secondary text-xs'} onClick={() => setDataset(d)}>{d}</button>
-        ))}
-      </div>
       <div className="max-h-96 overflow-y-auto border border-[#eaeaea] rounded-md">
         <table className="w-full text-sm">
           <thead className="bg-[#fafafa] text-xs text-[#a3a3a3] sticky top-0">
-            <tr><th className="text-left p-2 font-semibold">Month</th><th className="text-right p-2 font-semibold">Amount</th></tr>
+            <tr>
+              <th className="text-center p-2 font-semibold">Month</th>
+              {VALUE_DATASETS.map((d) => <th key={d.key} className="text-center p-2 font-semibold">{d.label}</th>)}
+            </tr>
           </thead>
           <tbody>
             {months.map((m) => (
               <tr key={m} className="border-t border-[#f5f5f5]">
-                <td className="p-2 text-[#666666]">{m}</td>
-                <td className="p-2 text-right">
-                  <input type="number" className="input text-right w-32 ml-auto" value={values[m] ?? ''} onChange={(e) => setValues({ ...values, [m]: e.target.value })} />
-                </td>
+                <td className="p-2 text-center text-[#666666]">{m}</td>
+                {VALUE_DATASETS.map((d) => (
+                  <td key={d.key} className="p-2 text-center">
+                    <input
+                      type="number"
+                      className="input text-center w-28 mx-auto"
+                      value={values[d.key]?.[m] ?? ''}
+                      onChange={(e) => setValues((prev) => ({ ...prev, [d.key]: { ...prev[d.key], [m]: e.target.value } }))}
+                    />
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>
@@ -475,7 +596,7 @@ function EditValuesModal({ type, line, onClose, onSaved }: { type: 'BENEFIT' | '
       </div>
       <div className="flex justify-end gap-2 pt-3">
         <button className="btn-secondary" onClick={onClose}>Cancel</button>
-        <button className="btn-primary" onClick={save} disabled={saving}>{saving ? 'Saving…' : `Save ${dataset}`}</button>
+        <button className="btn-primary" onClick={save} disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
       </div>
     </Modal>
   );
@@ -493,7 +614,6 @@ function WorkplanTab({ init, reload }: { init: Initiative; reload: () => void })
     ...init.milestones.map((m) => m.dueDate),
   ];
   const scale = makeTimelineScale(dates.length ? dates : [init.startDate, init.dueDate])!;
-  const byId = new Map(init.activities.map((a) => [a.id, a]));
 
   async function toggle(m: Milestone) {
     await api.patch(`/portfolio/initiatives/milestones/${m.id}`, { status: m.status === 'DONE' ? 'PENDING' : 'DONE' });
@@ -534,11 +654,12 @@ function WorkplanTab({ init, reload }: { init: Initiative; reload: () => void })
         <div className="flex gap-3">
           <div className="w-48 flex-shrink-0">
             {init.activities.map((a) => {
-              const dep = a.dependsOnId ? byId.get(a.dependsOnId) : null;
+              const depTypeLabel = DEP_TYPES.find((t) => t.key === a.dependencyType)?.label;
               return (
                 <div key={a.id} className="h-10 flex flex-col justify-center cursor-pointer hover:bg-[#fafafa] rounded px-1 min-w-0" onClick={() => setEditing(a)}>
                   <div className="text-sm font-medium text-[#171717] truncate leading-tight">{a.name}</div>
-                  {dep && <div className="text-[10px] text-[#a3a3a3] truncate leading-tight">after: {dep.name}</div>}
+                  {a.assignedTo && <div className="text-[10px] text-[#666666] truncate leading-tight">{a.assignedTo}</div>}
+                  {a.dependencyLabel && <div className="text-[10px] text-[#a3a3a3] truncate leading-tight">depends on {depTypeLabel ? `${depTypeLabel.toLowerCase()}: ` : ''}{a.dependencyLabel}</div>}
                 </div>
               );
             })}
@@ -595,6 +716,18 @@ function WorkplanTab({ init, reload }: { init: Initiative; reload: () => void })
   );
 }
 
+// Dependency types (FB-19). LIST types resolve their value from the company's
+// data; FREE_TEXT types (no canonical list) accept a typed-in value.
+const DEP_TYPES = [
+  { key: 'TEAM', label: 'Team', optionsKey: 'TEAM' },
+  { key: 'ROLE', label: 'Role', optionsKey: 'ROLE' },
+  { key: 'PERSON', label: 'Person', optionsKey: null },
+  { key: 'PROJECT', label: 'Project', optionsKey: 'PROJECT' },
+  { key: 'CHANGE_APPROVAL', label: 'Change Control Approval', optionsKey: null },
+] as const;
+type DepType = (typeof DEP_TYPES)[number]['key'];
+type DepOptions = Record<string, { id: string; name: string }[]>;
+
 // Create (activity == null) or edit a workplan activity.
 function ActivityModal({ init, activity, onClose, onSaved }: { init: Initiative; activity: Activity | null; onClose: () => void; onSaved: () => void }) {
   const dialogs = useDialogs();
@@ -603,23 +736,54 @@ function ActivityModal({ init, activity, onClose, onSaved }: { init: Initiative;
     startDate: (activity?.startDate ?? init.startDate).slice(0, 10),
     endDate: (activity?.endDate ?? init.dueDate).slice(0, 10),
     status: activity?.status ?? 'PLANNED',
-    dependsOnId: activity?.dependsOnId ?? '',
+    assignedTo: activity?.assignedTo ?? '',
+    dependencyType: (activity?.dependencyType ?? '') as DepType | '',
+    dependencyRefId: activity?.dependencyRefId ?? '',
+    dependencyLabel: activity?.dependencyLabel ?? '',
   });
+  const [options, setOptions] = useState<DepOptions>({});
   const [error, setError] = useState('');
-  const options = init.activities.filter((a) => a.id !== activity?.id);
+
+  useEffect(() => {
+    api.get(`/portfolio/dependency-options?companyId=${init.companyId}`).then(setOptions).catch(() => {});
+  }, [init.companyId]);
+
+  const typeDef = DEP_TYPES.find((t) => t.key === form.dependencyType);
+  const isList = !!typeDef?.optionsKey;
+  const valueOptions = typeDef?.optionsKey ? (options[typeDef.optionsKey] ?? []) : [];
+
+  function setType(t: DepType | '') {
+    // Reset the chosen value whenever the type changes.
+    setForm((f) => ({ ...f, dependencyType: t, dependencyRefId: '', dependencyLabel: '' }));
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    // Mandatory-field validation.
+    if (!form.name.trim()) return setError('Name is required.');
+    if (!form.startDate || !form.endDate) return setError('Start and end dates are required.');
+    if (form.endDate < form.startDate) return setError('End date must be on or after the start date.');
+    if (form.dependencyType) {
+      if (isList && !form.dependencyRefId) return setError(`Select a ${typeDef!.label.toLowerCase()} for the dependency.`);
+      if (!isList && !form.dependencyLabel.trim()) return setError(`Enter the ${typeDef!.label.toLowerCase()} this activity depends on.`);
+    }
+    setError('');
+    const dep = {
+      dependencyType: form.dependencyType || null,
+      dependencyRefId: form.dependencyType && isList ? (form.dependencyRefId || null) : null,
+      dependencyLabel: form.dependencyType ? (form.dependencyLabel.trim() || null) : null,
+      dependsOnId: null,
+    };
     try {
       if (activity) {
         await api.patch(`/portfolio/initiatives/activities/${activity.id}`, {
           name: form.name, startDate: form.startDate, endDate: form.endDate, status: form.status,
-          dependsOnId: form.dependsOnId || null,
+          assignedTo: form.assignedTo.trim() || null, ...dep,
         });
       } else {
         await api.post(`/portfolio/initiatives/${init.id}/activities`, {
           name: form.name, startDate: form.startDate, endDate: form.endDate,
-          dependsOnId: form.dependsOnId || null,
+          assignedTo: form.assignedTo.trim() || null, ...dep,
         });
       }
       onSaved();
@@ -643,6 +807,8 @@ function ActivityModal({ init, activity, onClose, onSaved }: { init: Initiative;
           <div><label className="label">End</label>
             <input className="input" type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} required /></div>
         </div>
+        <div><label className="label">Assigned to</label>
+          <input className="input" value={form.assignedTo} onChange={(e) => setForm({ ...form, assignedTo: e.target.value })} placeholder="e.g. Jane Smith" /></div>
         {activity && (
           <div><label className="label">Status</label>
             <select className="input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
@@ -651,11 +817,40 @@ function ActivityModal({ init, activity, onClose, onSaved }: { init: Initiative;
               <option value="DONE">Done</option>
             </select></div>
         )}
-        <div><label className="label">Depends on</label>
-          <select className="input" value={form.dependsOnId} onChange={(e) => setForm({ ...form, dependsOnId: e.target.value })}>
-            <option value="">— none —</option>
-            {options.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-          </select></div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="label">Depends on</label>
+            <select className="input" value={form.dependencyType} onChange={(e) => setType(e.target.value as DepType | '')}>
+              <option value="">— none —</option>
+              {DEP_TYPES.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="label">{typeDef ? typeDef.label : 'Value'}</label>
+            {!form.dependencyType ? (
+              <select className="input" disabled><option>— select a type —</option></select>
+            ) : isList ? (
+              <select
+                className="input"
+                value={form.dependencyRefId}
+                onChange={(e) => {
+                  const opt = valueOptions.find((o) => o.id === e.target.value);
+                  setForm((f) => ({ ...f, dependencyRefId: e.target.value, dependencyLabel: opt?.name ?? '' }));
+                }}
+              >
+                <option value="">— select {typeDef!.label.toLowerCase()} —</option>
+                {valueOptions.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+              </select>
+            ) : (
+              <input
+                className="input"
+                value={form.dependencyLabel}
+                onChange={(e) => setForm({ ...form, dependencyLabel: e.target.value })}
+                placeholder={form.dependencyType === 'PERSON' ? 'e.g. Jane Smith' : 'e.g. CR-1042'}
+              />
+            )}
+          </div>
+        </div>
         {error && <div className="text-sm text-[#be123c]">{error}</div>}
         <div className="flex justify-between gap-2 pt-2">
           <div>{activity && <button type="button" className="text-xs text-[#be123c] hover:underline" onClick={remove}>Delete activity</button>}</div>
@@ -663,6 +858,127 @@ function ActivityModal({ init, activity, onClose, onSaved }: { init: Initiative;
             <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
             <button className="btn-primary">{activity ? 'Save' : 'Create'}</button>
           </div>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+// ── CHANGE LOG (FB-27) ─────────────────────────────────────────────────────
+type ChangeRequest = {
+  id: string; title: string; description: string | null; raisedBy: string;
+  costImpact: number; scheduleImpactDays: number; status: string; createdAt: string;
+};
+const CR_STATUS = ['PENDING', 'APPROVED', 'REJECTED'] as const;
+
+function ChangeLogTab({ init }: { init: Initiative }) {
+  const [rows, setRows] = useState<ChangeRequest[] | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
+
+  function load() { api.get(`/portfolio/initiatives/${init.id}/change-requests`).then(setRows).catch(() => setRows([])); }
+  useEffect(() => { load(); }, [init.id]);
+
+  async function setStatus(cr: ChangeRequest, status: string) {
+    await api.patch(`/portfolio/change-requests/${cr.id}`, { status });
+    load();
+  }
+
+  return (
+    <div className="card-elevated p-5">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold text-[#171717]">Change log</h3>
+        <button className="btn-secondary text-xs" onClick={() => setShowCreate(true)}>+ New change request</button>
+      </div>
+      {!rows ? (
+        <div className="text-sm text-[#a3a3a3]">Loading…</div>
+      ) : rows.length === 0 ? (
+        <div className="text-sm text-[#a3a3a3] py-2">No change requests yet.</div>
+      ) : (
+        <div className="table-scroll">
+          <table className="w-full text-sm table-fixed">
+            <thead className="text-xs text-[#a3a3a3] border-b border-[#eaeaea]">
+              <tr>
+                <th className="text-left pb-2 font-semibold w-[24%]">Change request</th>
+                <th className="text-left pb-2 font-semibold w-[17%]">Raised by</th>
+                <th className="text-left pb-2 font-semibold w-[11%]">When</th>
+                <th className="text-right pb-2 font-semibold w-[14%] px-3">Cost impact</th>
+                <th className="text-right pb-2 font-semibold w-[16%] px-3">Schedule impact</th>
+                <th className="text-left pb-2 font-semibold w-[18%] pl-6">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((cr) => (
+                <tr key={cr.id} className="border-b border-[#f5f5f5] hover:bg-[#fafafa] align-top">
+                  <td className="py-2.5 pr-3">
+                    <div className="font-medium text-[#171717]">{cr.title}</div>
+                    {cr.description && <div className="text-xs text-[#a3a3a3] mt-0.5">{cr.description}</div>}
+                  </td>
+                  <td className="py-2.5 pr-3 text-[#666666] truncate" title={cr.raisedBy}>{cr.raisedBy}</td>
+                  <td className="py-2.5 text-[#666666] text-xs whitespace-nowrap">{fmt.date(cr.createdAt)}</td>
+                  <td className={'py-2.5 px-3 text-right tnum whitespace-nowrap ' + (cr.costImpact > 0 ? 'text-[#be123c]' : cr.costImpact < 0 ? 'text-[#047857]' : 'text-[#171717]')}>
+                    {cr.costImpact > 0 ? '+' : ''}{fmt.currency(cr.costImpact, { compact: true })}
+                  </td>
+                  <td className={'py-2.5 px-3 text-right tnum whitespace-nowrap ' + (cr.scheduleImpactDays > 0 ? 'text-[#be123c]' : cr.scheduleImpactDays < 0 ? 'text-[#047857]' : 'text-[#171717]')}>
+                    {cr.scheduleImpactDays > 0 ? '+' : ''}{cr.scheduleImpactDays}d
+                  </td>
+                  <td className="py-2.5 pl-6">
+                    <select className="input text-xs w-full" value={cr.status} onChange={(e) => setStatus(cr, e.target.value)}>
+                      {CR_STATUS.map((s) => <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</option>)}
+                    </select>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {showCreate && <CreateChangeRequestModal initId={init.id} onClose={() => setShowCreate(false)} onCreated={() => { setShowCreate(false); load(); }} />}
+    </div>
+  );
+}
+
+function CreateChangeRequestModal({ initId, onClose, onCreated }: { initId: string; onClose: () => void; onCreated: () => void }) {
+  const [form, setForm] = useState({ title: '', description: '', raisedBy: '', costImpact: 0, scheduleImpactDays: 0, status: 'PENDING' });
+  const [error, setError] = useState('');
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.title.trim()) return setError('Title is required.');
+    setError('');
+    try {
+      await api.post(`/portfolio/initiatives/${initId}/change-requests`, {
+        title: form.title.trim(),
+        description: form.description.trim() || undefined,
+        raisedBy: form.raisedBy.trim() || undefined,
+        costImpact: Number(form.costImpact) || 0,
+        scheduleImpactDays: Number(form.scheduleImpactDays) || 0,
+        status: form.status,
+      });
+      onCreated();
+    } catch (err) { setError((err as Error).message); }
+  }
+  return (
+    <Modal title="New Change Request" onClose={onClose}>
+      <form onSubmit={submit} className="space-y-3">
+        <div><label className="label">Title</label>
+          <input className="input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></div>
+        <div><label className="label">Description</label>
+          <textarea className="input" rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+        <div><label className="label">Raised by</label>
+          <input className="input" value={form.raisedBy} onChange={(e) => setForm({ ...form, raisedBy: e.target.value })} placeholder="defaults to you" /></div>
+        <div className="grid grid-cols-2 gap-3">
+          <div><label className="label">Change cost ($)</label>
+            <input className="input text-right tnum" type="number" value={form.costImpact} onChange={(e) => setForm({ ...form, costImpact: Number(e.target.value) })} /></div>
+          <div><label className="label">Schedule impact (days)</label>
+            <input className="input text-right tnum" type="number" value={form.scheduleImpactDays} onChange={(e) => setForm({ ...form, scheduleImpactDays: Number(e.target.value) })} /></div>
+        </div>
+        <div><label className="label">Status</label>
+          <select className="input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+            {CR_STATUS.map((s) => <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</option>)}
+          </select></div>
+        {error && <div className="text-sm text-[#be123c]">{error}</div>}
+        <div className="flex justify-end gap-2 pt-2">
+          <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn-primary">Create</button>
         </div>
       </form>
     </Modal>
@@ -680,6 +996,11 @@ function ResourcesTab({ init, reload }: { init: Initiative; reload: () => void }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!form.name.trim()) return setError('Name is required.');
+    if (!form.startDate || !form.endDate) return setError('Start and end dates are required.');
+    if (form.endDate < form.startDate) return setError('End date must be on or after the start date.');
+    if (Number(form.allocationPct) < 1 || Number(form.allocationPct) > 100) return setError('Allocation must be between 1 and 100%.');
+    setError('');
     try {
       await api.post(`/portfolio/initiatives/${init.id}/resources`, {
         name: form.name.trim(),
@@ -706,7 +1027,7 @@ function ResourcesTab({ init, reload }: { init: Initiative; reload: () => void }
               <tr>
                 <th className="text-left pb-2 font-semibold">Name</th>
                 <th className="text-left pb-2 font-semibold">Role</th>
-                <th className="text-right pb-2 font-semibold w-28">Allocation %</th>
+                <th className="text-center pb-2 font-semibold w-28">Allocation %</th>
                 <th className="text-left pb-2 font-semibold pl-4 w-28">Start</th>
                 <th className="text-left pb-2 font-semibold w-28">End</th>
                 <th className="w-16" />
@@ -717,7 +1038,7 @@ function ResourcesTab({ init, reload }: { init: Initiative; reload: () => void }
                 <tr key={r.id} className="border-b border-[#f5f5f5]">
                   <td className="py-2.5 font-medium text-[#171717]">{r.name}</td>
                   <td className="py-2.5 text-[#666666]">{r.roleName ?? '—'}</td>
-                  <td className="py-2.5 text-right tnum">{r.allocationPct}%</td>
+                  <td className="py-2.5 text-center tnum">{r.allocationPct}%</td>
                   <td className="py-2.5 pl-4 text-[#666666] text-xs">{fmt.date(r.startDate)}</td>
                   <td className="py-2.5 text-[#666666] text-xs">{fmt.date(r.endDate)}</td>
                   <td className="py-2.5 text-right">
@@ -763,7 +1084,15 @@ function ResourcesTab({ init, reload }: { init: Initiative; reload: () => void }
 
 function CreateMilestoneModal({ initId, onClose, onCreated }: { initId: string; onClose: () => void; onCreated: () => void }) {
   const [form, setForm] = useState({ name: '', dueDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10), isGate: false });
-  async function submit(e: React.FormEvent) { e.preventDefault(); await api.post(`/portfolio/initiatives/${initId}/milestones`, form); onCreated(); }
+  const [error, setError] = useState('');
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.name.trim()) return setError('Name is required.');
+    if (!form.dueDate) return setError('Due date is required.');
+    setError('');
+    try { await api.post(`/portfolio/initiatives/${initId}/milestones`, form); onCreated(); }
+    catch (err) { setError((err as Error).message); }
+  }
   return (
     <Modal title="New Milestone" onClose={onClose}>
       <form onSubmit={submit} className="space-y-3">
@@ -775,6 +1104,7 @@ function CreateMilestoneModal({ initId, onClose, onCreated }: { initId: string; 
           <input type="checkbox" className="accent-[#171717]" checked={form.isGate} onChange={(e) => setForm({ ...form, isGate: e.target.checked })} />
           Stage-gate milestone
         </label>
+        {error && <div className="text-sm text-[#be123c]">{error}</div>}
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
           <button className="btn-primary">Create</button>
@@ -838,6 +1168,11 @@ function CreateRaidModal({ initId, onClose, onCreated }: { initId: string; onClo
   const [error, setError] = useState('');
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!form.type) return setError('Type is required.');
+    if (!form.title.trim()) return setError('Title is required.');
+    if (form.probability < 1 || form.probability > 5) return setError('Probability must be between 1 and 5.');
+    if (form.impact < 1 || form.impact > 5) return setError('Impact must be between 1 and 5.');
+    setError('');
     try { await api.post('/portfolio/raid', { initiativeId: initId, ...form }); onCreated(); }
     catch (err) { setError((err as Error).message); }
   }
@@ -871,8 +1206,92 @@ function CreateRaidModal({ initId, onClose, onCreated }: { initId: string; onClo
 }
 
 // ── AUDIT ────────────────────────────────────────────────────────────────
+// Email → display name: "kevin.hicks@…" → "Kevin Hicks".
+function actorName(email: string): string {
+  const local = email.split('@')[0];
+  const parts = local.split(/[._-]+/).filter(Boolean).map((s) => s.charAt(0).toUpperCase() + s.slice(1));
+  return parts.length ? parts.join(' ') : email;
+}
+// "COST_VALUES_UPDATED" → "Cost values updated".
+function actionLabel(a: string): string {
+  const s = a.replace(/_/g, ' ').toLowerCase();
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+// "2026-07" → "Jul 2026".
+function monthLabel(ym: string): string {
+  const [y, m] = ym.split('-').map(Number);
+  return new Date(y, (m || 1) - 1, 1).toLocaleString('en-US', { month: 'short', year: 'numeric' });
+}
+
+type ValueChange = { period: string; from: number; to: number };
+type AuditEntry = { id: string; action: string; actorEmail: string; createdAt: string; diff: string | null };
+
+// Human-readable detail for one audit entry, parsed from its JSON diff.
+function AuditDetail({ entry }: { entry: AuditEntry }) {
+  if (!entry.diff) return null;
+  let d: Record<string, unknown>;
+  try { d = JSON.parse(entry.diff); } catch { return <pre className="mt-1 text-xs text-[#666666] bg-[#fafafa] border border-[#eaeaea] rounded p-2 overflow-auto">{entry.diff}</pre>; }
+
+  // Time-phased value edits — show each changed month as from → to.
+  if (Array.isArray(d.changes)) {
+    const changes = d.changes as ValueChange[];
+    return (
+      <div className="mt-1 text-xs text-[#525252]">
+        <div className="mb-1">
+          Changed <span className="font-medium text-[#171717]">{String(d.field ?? 'values')}</span>
+          {d.line ? <> on <span className="font-medium text-[#171717]">{String(d.line)}</span></> : null}
+        </div>
+        <ul className="space-y-0.5">
+          {changes.map((c) => (
+            <li key={c.period} className="tnum">
+              {monthLabel(c.period)}: <span className="text-[#be123c]">{fmt.currency(c.from, { compact: true })}</span>
+              {' → '}<span className="text-[#047857]">{fmt.currency(c.to, { compact: true })}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  // Workflow stage move — diff carries top-level stage codes.
+  if (typeof d.from === 'string' && typeof d.to === 'string') {
+    return (
+      <div className="mt-1 text-xs text-[#525252]">
+        Stage: <span className="text-[#be123c]">{STAGE_LABELS[d.from] ?? d.from}</span>
+        {' → '}<span className="text-[#047857]">{STAGE_LABELS[d.to] ?? d.to}</span>
+      </div>
+    );
+  }
+  if (typeof d.stage === 'string' && typeof d.requestedNext === 'string') {
+    return (
+      <div className="mt-1 text-xs text-[#525252]">
+        Requested advance: {STAGE_LABELS[d.stage] ?? d.stage} → {STAGE_LABELS[d.requestedNext] ?? d.requestedNext}
+      </div>
+    );
+  }
+
+  // Generic diff — render each field as "key: value" (or "from → to").
+  const rows = Object.entries(d).filter(([, v]) => v !== undefined && v !== null);
+  if (rows.length === 0) return null;
+  return (
+    <div className="mt-1 text-xs text-[#525252] space-y-0.5">
+      {rows.map(([k, v]) => {
+        const fromTo = v && typeof v === 'object' && 'from' in (v as object) && 'to' in (v as object);
+        return (
+          <div key={k}>
+            <span className="text-[#a3a3a3]">{k}:</span>{' '}
+            {fromTo
+              ? <span className="tnum">{String((v as { from: unknown }).from)} → {String((v as { to: unknown }).to)}</span>
+              : <span className="text-[#171717]">{typeof v === 'object' ? JSON.stringify(v) : String(v)}</span>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function AuditTab({ initId }: { initId: string }) {
-  const [entries, setEntries] = useState<{ id: string; action: string; actorEmail: string; createdAt: string; diff: string | null }[]>([]);
+  const [entries, setEntries] = useState<AuditEntry[]>([]);
   useEffect(() => { api.get(`/audit?entityType=PortfolioInitiative&entityId=${initId}`).then(setEntries).catch(() => {}); }, [initId]);
   return (
     <div className="card-elevated p-5">
@@ -885,8 +1304,11 @@ function AuditTab({ initId }: { initId: string }) {
             <li key={e.id} className="flex gap-3 py-2 border-b border-[#f5f5f5] last:border-0">
               <div className="text-xs text-[#a3a3a3] w-36 flex-shrink-0">{new Date(e.createdAt).toLocaleString()}</div>
               <div className="flex-1 min-w-0">
-                <div className="text-sm"><span className="pill-slate text-xs mr-2">{e.action}</span><span className="text-[#525252]">{e.actorEmail}</span></div>
-                {e.diff && <pre className="mt-1 text-xs text-[#666666] bg-[#fafafa] border border-[#eaeaea] rounded p-2 overflow-auto">{e.diff}</pre>}
+                <div className="text-sm">
+                  <span className="font-medium text-[#171717]">{actorName(e.actorEmail)}</span>
+                  <span className="text-[#525252]"> · {actionLabel(e.action)}</span>
+                </div>
+                <AuditDetail entry={e} />
               </div>
             </li>
           ))}

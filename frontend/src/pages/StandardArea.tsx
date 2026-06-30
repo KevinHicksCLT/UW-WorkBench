@@ -25,6 +25,8 @@ type Item = {
   agentSkill: string | null;
   sdlcGates: string | null;
   regCitation: string | null;
+  testProcedure: string | null; // FB-58 — how to independently verify the rule
+  evidence: string | null; // FB-58 — the evidence artifact the check leaves behind
   responsible: Responsible | null;
   valueStreams: ValueStream[];
 };
@@ -134,7 +136,7 @@ export default function StandardArea() {
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.9 5.6L19.5 9l-4.6 3.3 1.8 5.7L12 14.7 7.3 18l1.8-5.7L4.5 9l5.6-.4z" /></svg>
                     <span className="text-[#0070AD]/60">Agent skill:</span>
-                    {skillLabel(g.skill)}
+                    {skillLabel(g.skill, a.department)}
                     <span className="text-[#0070AD]/50">· view &amp; download</span>
                   </button>
                 )}
@@ -163,14 +165,18 @@ export default function StandardArea() {
                           <div className="lg:col-span-2">
                             <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] mb-1">What it means</div>
                             <p className="text-sm text-[#171717]">{it.description}</p>
+                            {/* Childless group = a single granular standard; show its
+                                own test + evidence (FB-58). */}
+                            {it.subs.length === 0 && <TestEvidence item={it} />}
                             {it.subs.length > 0 && (
                               <ul className="mt-2 space-y-2">
                                 {it.subs.map((s) => (
                                   <li key={s.id} className="flex items-start gap-2">
                                     <span className="mt-[7px] w-1 h-1 rounded-full bg-[#a3a3a3] flex-shrink-0" />
-                                    <div>
+                                    <div className="min-w-0">
                                       <div className="text-sm font-medium text-[#171717]">{s.name}</div>
                                       <p className="text-xs text-[#525252]">{s.description}</p>
+                                      <TestEvidence item={s} />
                                     </div>
                                   </li>
                                 ))}
@@ -210,7 +216,6 @@ export default function StandardArea() {
                             ) : (
                               <div className="text-sm text-[#525252]">
                                 {it.ownerRole ?? <span className="text-[#a3a3a3] italic">Unassigned</span>}
-                                {it.ownerRole && <div className="text-[11px] text-[#a3a3a3] italic mt-0.5">not matched to a role in the inventory</div>}
                               </div>
                             )}
                             {it.relatedRole && it.relatedRole !== it.ownerRole && (
@@ -229,6 +234,28 @@ export default function StandardArea() {
       )}
 
       {viewSkill && <SkillViewer skill={viewSkill} onClose={() => setViewSkill(null)} />}
+    </div>
+  );
+}
+
+// FB-58 — surface the granular standard's verification + evidence so it reads as
+// an independently testable rule, not a vague aspiration.
+function TestEvidence({ item }: { item: { testProcedure: string | null; evidence: string | null } }) {
+  if (!item.testProcedure && !item.evidence) return null;
+  return (
+    <div className="mt-1.5 space-y-1">
+      {item.testProcedure && (
+        <div className="flex items-start gap-1.5">
+          <span className="mt-px text-[9px] font-semibold uppercase tracking-[0.08em] text-[#0070AD] bg-[#eef6fb] rounded px-1 py-px flex-shrink-0">Test</span>
+          <p className="text-xs text-[#525252]">{item.testProcedure}</p>
+        </div>
+      )}
+      {item.evidence && (
+        <div className="flex items-start gap-1.5">
+          <span className="mt-px text-[9px] font-semibold uppercase tracking-[0.08em] text-[#047857] bg-[#ecfdf5] rounded px-1 py-px flex-shrink-0">Evidence</span>
+          <p className="text-xs text-[#525252]">{item.evidence}</p>
+        </div>
+      )}
     </div>
   );
 }

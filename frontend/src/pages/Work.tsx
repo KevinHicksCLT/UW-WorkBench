@@ -5,7 +5,7 @@ import { useCompany } from '../lib/company';
 import PageHeader from '../components/PageHeader';
 import { withCompany } from '../lib/portfolio';
 import { Sheet, SheetCell, type SheetCol } from '../components/Sheet';
-import { AutomatableMeter, SCORE_LABEL, SCORE_DESC } from '../lib/automatable';
+import { AutomatableMeter, SCORE_LABEL, SCORE_DESC, automatablePct } from '../lib/automatable';
 
 // Deliverables / Tasks — the standalone work tracker, now two top-level tabs
 // (/deliverables and /tasks) rendering this same page with a `tab` prop:
@@ -24,15 +24,12 @@ type Task = {
   source: string; deliverableId: string | null; deliverableTitle: string | null;
   roles: string[]; processes: string[];
   division: string | null;
+  department: string | null;
+  roleName: string | null;
+  valueStreamName: string | null;
   agentScore: number | null; agentRationale: string | null;
 };
 type WorkData = { deliverables: Deliverable[]; tasks: Task[]; valueStreams: { id: string; name: string }[] };
-// One checklist item (GET /work/checklist) — the finest grain of work. Each
-// carries its parent task (the role's task in the same category) for context.
-type ChecklistRow = {
-  id: string; text: string; roleId: string; roleName: string; category: string | null;
-  taskId: string | null; taskTitle: string | null; valueStreamName: string | null;
-};
 
 // ── Drill-down shapes (mirror /work/deliverable/:id and /work/task/:id) ────────
 type RoleRef = { id: string; name: string };
@@ -256,25 +253,12 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
   const [data, setData] = useState<WorkData>({ deliverables: [], tasks: [], valueStreams: [] });
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState<Detail | null>(null);
-  // Tasks tab grain: task rows (default) or one row per checklist item.
-  const [grain, setGrain] = useState<'tasks' | 'checklist'>('tasks');
-  const [checklist, setChecklist] = useState<ChecklistRow[] | null>(null);
-
   useEffect(() => {
     if (companyLoading) return;
     setLoading(true);
-    setChecklist(null);
     api.get(withCompany('/work', companyId))
       .then(setData).catch(() => {}).finally(() => setLoading(false));
   }, [companyId, companyLoading]);
-
-  // Checklist rows load lazily, the first time the grain is switched.
-  useEffect(() => {
-    if (grain !== 'checklist' || checklist !== null || companyLoading) return;
-    api.get(withCompany('/work/checklist', companyId))
-      .then((d: { items: ChecklistRow[] }) => setChecklist(d.items))
-      .catch(() => setChecklist([]));
-  }, [grain, checklist, companyId, companyLoading]);
 
   // Open a row's drill-down in the sidebar by fetching its detail.
   function openDrill(kind: 'deliverable' | 'task', id: string) {
@@ -318,43 +302,12 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
     },
   ], [vsByDeliverable]);
 
-  const cCols = useMemo<SheetCol<ChecklistRow>[]>(() => [
-    { key: 'text', label: 'Checklist item', width: 'minmax(0,1.5fr)', value: (c) => c.text },
-    { key: 'task', label: 'Task', width: 'minmax(0,1fr)', value: (c) => c.taskTitle ?? DASH, dim: true },
-    { key: 'role', label: 'Role', width: 'minmax(0,0.9fr)', value: (c) => c.roleName, dim: true },
-    { key: 'category', label: 'Category', width: 'minmax(0,0.8fr)', value: (c) => c.category ?? DASH, dim: true },
-    { key: 'valueStream', label: 'Value Stream', width: 'minmax(0,0.9fr)', value: (c) => c.valueStreamName ?? DASH, dim: true },
-  ], []);
-
-  // Grain toggle for the Tasks tab (sits inline on the Sheet's totals strip).
-  const grainToggle = (
-    <div className="inline-flex items-center gap-0.5 rounded-full border border-[#eaeaea] bg-white/90 backdrop-blur p-0.5 shadow-sm" role="tablist" aria-label="Row grain">
-      {([['tasks', 'Tasks'], ['checklist', 'Checklist items']] as const).map(([v, label]) => (
-        <button
-          key={v}
-          type="button"
-          role="tab"
-          aria-selected={grain === v}
-          onClick={() => setGrain(v)}
-          className={
-            'inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium transition-colors duration-150 ' +
-            (grain === v ? 'bg-[#171717] text-white' : 'text-[#525252] hover:text-[#171717]')
-          }
-        >
-          {label}
-        </button>
-      ))}
-    </div>
-  );
-
   return (
     <div>
       {tab === 'deliverables' ? (
-        <PageHeader title={`Deliverables (${deliverables.length})`} subtitle="Track tangible outputs across the company" />
-      ) : grain === 'checklist' ? (
-        <PageHeader title={`Checklist items (${checklist?.length ?? '…'})`} subtitle="The finest grain of work — every checklist item as its own row" />
+        <PageHeader title="Deliverables" subtitle="Track tangible outputs across the company" />
       ) : (
-        <PageHeader title={`Tasks (${tasks.length})`} subtitle="Track the work driving deliverables across the company" />
+        <PageHeader title="Tasks" subtitle="Every task and checklist item across the company, in one list" />
       )}
 
       {tab === 'deliverables' ? (
@@ -363,29 +316,25 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
           cols={dCols}
           rowKey={(d) => d.id}
           loading={loading}
+          unit="deliverables"
           onRowClick={(d) => openDrill('deliverable', d.id)}
           summarize={(v) => `${new Set(v.map((d) => d.valueStreamName).filter(Boolean)).size} value streams`}
         />
-      ) : grain === 'checklist' ? (
-        <Sheet
-          rows={checklist ?? []}
-          cols={cCols}
-          rowKey={(c) => c.id}
-          loading={checklist === null}
-          leading={grainToggle}
-          onRowClick={(c) => { if (c.taskId) openDrill('task', c.taskId); }}
-          summarize={(v) => `${new Set(v.map((c) => c.taskId).filter(Boolean)).size} tasks · ${new Set(v.map((c) => c.roleId)).size} roles`}
-        />
       ) : (
-        <Sheet
-          rows={tasks}
-          cols={tCols}
-          rowKey={(t) => t.id}
-          loading={loading}
-          leading={grainToggle}
-          onRowClick={(t) => openDrill('task', t.id)}
-          summarize={(v) => `${new Set(v.map((t) => t.deliverableId).filter(Boolean)).size} deliverables`}
-        />
+        <>
+          <Sheet
+            rows={tasks}
+            cols={tCols}
+            rowKey={(t) => t.id}
+            loading={loading}
+            unit="tasks"
+            onRowClick={(t) => openDrill('task', t.id)}
+            summarize={(v) => {
+              const a = automatablePct(v.map((t) => t.agentScore));
+              return `${new Set(v.map((t) => t.deliverableId).filter(Boolean)).size} deliverables${a ? ` · ${a.pct}% automatable` : ''}`;
+            }}
+          />
+        </>
       )}
 
       {detail && (

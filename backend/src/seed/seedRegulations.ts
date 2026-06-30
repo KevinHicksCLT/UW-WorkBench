@@ -11,12 +11,14 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { PrismaClient } from '@prisma/client';
+import { resolveSpineRefs, type SpineRefs } from './resolveSpineRefs.js';
 
 const BASELINE = resolve(dirname(fileURLToPath(import.meta.url)), '../../seed/regulations-baseline.json');
 
 // Category → operating-model value streams the requirement plausibly touches.
-// Names must match the company's ValueStream rows; misses are skipped silently
-// (the Coverage lens in the UI surfaces unmapped requirements for curation).
+// Names resolve to a value-stream ProcessNode via resolveSpineRefs (alias + fuzzy);
+// misses are counted + logged. The link is now NodeRegulation(processNodeId, regId)
+// instead of the dropped RequirementValueStream→ValueStream.
 // Every seeded link is annotated "auto-suggested at seed" so admins know it is
 // a starting point, not an attestation.
 const CATEGORY_VS: Record<string, { name: string; relationship: string }[]> = {
@@ -45,8 +47,12 @@ const CATEGORY_VS: Record<string, { name: string; relationship: string }[]> = {
   CYBERSECURITY: [{ name: 'Cybersecurity, Identity & Resilience', relationship: 'GOVERNS' }],
 };
 
-export async function seedRegulations(prisma: PrismaClient, ids: { tenantId: string; companyId: string }) {
+export async function seedRegulations(
+  prisma: PrismaClient,
+  ids: { tenantId: string; companyId: string; refs?: SpineRefs },
+) {
   const { tenantId, companyId } = ids;
+  const refs = ids.refs ?? (await resolveSpineRefs(prisma, companyId));
   const existing = await prisma.jurisdiction.count({ where: { companyId } });
   if (existing > 0 && process.env.SEED_FORCE !== '1') {
     console.log(`Regulations: ${existing} jurisdictions exist — skipping (SEED_FORCE=1 to rebuild)`);
@@ -67,10 +73,6 @@ export async function seedRegulations(prisma: PrismaClient, ids: { tenantId: str
     });
     systemIdByName.set(s.name, row.id);
   }
-
-  // Value streams for the auto-suggested requirement links.
-  const valueStreams = await prisma.valueStream.findMany({ where: { companyId }, select: { id: true, name: true } });
-  const vsIdByName = new Map(valueStreams.map((v) => [v.name, v.id]));
 
   let nReq = 0, nLink = 0, nInt = 0, nBul = 0, nRule = 0, nSrc = 0;
   for (const j of baseline.jurisdictions) {
@@ -103,11 +105,15 @@ export async function seedRegulations(prisma: PrismaClient, ids: { tenantId: str
         },
       });
       nReq++;
+      // requirement ↔ value-stream node link = NodeRegulation. Dedupe per
+      // requirement (two CATEGORY_VS names can fuzzy-resolve to one node).
+      const linkedNodes = new Set<string>();
       for (const cand of CATEGORY_VS[r.category] ?? []) {
-        const vsId = vsIdByName.get(cand.name);
-        if (!vsId) continue;
-        await prisma.requirementValueStream.create({
-          data: { requirementId: req.id, valueStreamId: vsId, relationship: cand.relationship, notes: 'auto-suggested at seed' },
+        const nodeId = refs.nodeByName(cand.name);
+        if (!nodeId || linkedNodes.has(nodeId)) continue;
+        linkedNodes.add(nodeId);
+        await prisma.nodeRegulation.create({
+          data: { companyId, processNodeId: nodeId, regId: req.id, relationship: cand.relationship, notes: 'auto-suggested at seed' },
         });
         nLink++;
       }

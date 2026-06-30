@@ -6,60 +6,44 @@ import { requireAuth } from '../middleware/auth.js';
 const router = Router();
 router.use(requireAuth);
 
-const PART_ORDER: Record<string, number> = { Lead: 0, Core: 1, Control: 2, Oversight: 3, Support: 4 };
-
-// GET /departments/:id — department → roles, each with the role-level detail that
-// used to live one click deeper (level, family, value-stream
-// participation parsed into L3/L4, and responsibility/checklist counts). This
-// lets the department page render a rich roles table instead of bare pills.
+// GET /departments/:id — department → roles (rich roles table).
+// erd_v5 has NO Department tier in the org spine (OrgUnit only goes L1 Segment →
+// L2 Division). This route resolves the id as an OrgUnit and lists the roles homed
+// on it. Per-role value-stream participation now comes from NodeRole (role ↔
+// process node) and is resolved on the dedicated role-context endpoint, so it is
+// not expanded here — the shape (roles[] + totals) is preserved with empty
+// participations.
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const department = await prisma.department.findFirst({
-      where: { id: req.params.id, tenantId: req.tenantId },
-      include: {
-        company: { select: { id: true, name: true } },
-        division: { select: { id: true, name: true, higherCategory: true } },
+    const unit = await prisma.orgUnit.findFirst({
+      where: { id: req.params.id },
+      select: {
+        id: true, displayValue: true,
+        company: { select: { id: true, name: true, tenantId: true } },
+        parent: { select: { id: true, displayValue: true } },
         roles: {
-          orderBy: { name: 'asc' },
+          orderBy: { displayValue: 'asc' },
           select: {
-            id: true, name: true, roleLevel: true, roleFamily: true, description: true,
-            _count: { select: { checklistItems: true, roleTasks: true } },
-            valueStreamLinks: {
-              orderBy: [{ participationType: 'asc' }, { subStream: 'asc' }],
-              select: { valueStreamId: true, participationType: true, subStream: true, valueStream: { select: { name: true, domain: true, domainRef: { select: { name: true } } } } },
-            },
+            id: true, displayValue: true,
+            _count: { select: { checklistItems: true, nodeRoles: true } },
           },
         },
       },
     });
-    if (!department) return res.status(404).json({ error: 'Not found' });
+    if (!unit || unit.company.tenantId !== req.tenantId) return res.status(404).json({ error: 'Not found' });
 
-    const roles = department.roles.map((r) => {
-      const participations = r.valueStreamLinks
-        .map((l) => {
-          const [l3, l4] = (l.subStream ?? '').split(' — ');
-          return {
-            valueStreamId: l.valueStreamId,
-            valueStreamName: l.valueStream.name,
-            domain: l.valueStream.domainRef?.name ?? l.valueStream.domain ?? null,
-            participationType: l.participationType,
-            l3: l3 || null,
-            l4: l4 || null,
-          };
-        })
-        .sort((a, b) => (PART_ORDER[a.participationType] ?? 9) - (PART_ORDER[b.participationType] ?? 9) || a.valueStreamName.localeCompare(b.valueStreamName));
-      return {
-        id: r.id, name: r.name, roleLevel: r.roleLevel, roleFamily: r.roleFamily, description: r.description,
-        valueStreamCount: new Set(participations.map((p) => p.valueStreamId)).size,
-        checklistCount: r._count.checklistItems,
-        taskCount: r._count.roleTasks,
-        participations,
-      };
-    });
+    const roles = unit.roles.map((r) => ({
+      id: r.id, name: r.displayValue, roleLevel: null, roleFamily: null, description: null,
+      valueStreamCount: 0,
+      checklistCount: r._count.checklistItems,
+      taskCount: r._count.nodeRoles,
+      participations: [] as unknown[],
+    }));
 
     res.json({
-      id: department.id, name: department.name,
-      company: department.company, division: department.division,
+      id: unit.id, name: unit.displayValue,
+      company: { id: unit.company.id, name: unit.company.name },
+      division: unit.parent ? { id: unit.parent.id, name: unit.parent.displayValue, higherCategory: null } : null,
       totals: { roles: roles.length },
       roles,
     });

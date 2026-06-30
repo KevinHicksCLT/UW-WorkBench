@@ -27,7 +27,7 @@ export type AdminField = {
 // Company table itself (scoped by tenant only).
 export type CompanyVia =
   | { kind: 'direct' }
-  | { kind: 'relation'; objectField: string; scalarField: string; targetSlug: string }
+  | { kind: 'relation'; objectField: string; scalarField: string; targetSlug: string; targetHasTenantId: boolean }
   | null;
 
 export type AdminEntity = {
@@ -40,6 +40,8 @@ export type AdminEntity = {
   hasTenantId?: boolean; // false for transitively-scoped line items (no tenantId column).
                          // When false, tenant isolation comes from the parent FK, not a
                          // tenantId filter. Undefined/true ⇒ tenant-scoped directly.
+  hasCreatedAt?: boolean; // the table has a createdAt column (orderBy fallback). Some
+                          // junctions don't — order them by id instead.
   hidden?: boolean; // kept resolvable (FK target) but not listed in the sidebar
   group?: string; // sidebar section this entity belongs to (assigned from GROUPS)
 };
@@ -53,8 +55,8 @@ export type AdminEntity = {
 // edited through the specialized in-app financial/RAID grids).
 const DENY = new Set([
   'User', 'AuditEntry', 'Tenant',
-  // Unified graph (rework) — edited via the bespoke interactive builder, not generic CRUD.
-  'NodeType', 'Node', 'NodeLink',
+  // DERIVED closure tables — rebuilt from the tree, never hand-edited.
+  'ProcessNodeClosure', 'OrgUnitClosure',
 ]);
 
 // Tenant-less line-item tables that scope to a company TRANSITIVELY through a
@@ -66,46 +68,54 @@ const DENY = new Set([
 // portfolio values grid (which already recomputes rollups).
 const TRANSITIVE = new Set(['BenefitLine', 'CostLine', 'Milestone', 'RaidItem',
   // Regulations junctions — scoped through Jurisdiction / RegulatoryRequirement.
-  'JurisdictionIntegration', 'RequirementValueStream']);
+  'JurisdictionIntegration',
+  // erd_v5 operating-model junctions — each carries companyId and is scoped through
+  // its ProcessNode/Role/Standard/etc. parent.
+  'NodeRole', 'NodeDeliverable', 'RoleDeliverable', 'NodeAppUsage', 'NodeChecklist',
+  'NodeStandard', 'NodeRegulation', 'NodeInitiative', 'RoleStandard', 'StandardDeliverable',
+  'RegulationApplication', 'RegulationDeliverable', 'RoleOrgAssignment',
+  // Catalog line item scoped through its (non-nullable) Checklist parent.
+  'ChecklistItem']);
 
 // Label-field overrides for tables whose identifying column isn't name/title/text.
 // Without these the list would fall back to showing the raw id.
 const LABEL_OVERRIDES: Record<string, string> = {
-  standard: 'department',
-  roleValueStream: 'participationType',
-  applicationValueStream: 'systemRole',
-  initiativeValueStream: 'impactType',
-  initiativeDivision: 'role',
-  stepAppUsage: 'activityCode',
   complianceRule: 'ruleCode',
   jurisdictionIntegration: 'usage',
-  requirementValueStream: 'relationship',
   analysisStatus: 'subjectType',
+  // erd_v5 spine + junction labels (the discriminator/usage column reads best).
+  processNode: 'displayValue',
+  orgUnit: 'displayValue',
+  role: 'displayValue',
+  processLevelType: 'displayValue',
+  orgLevelType: 'displayValue',
+  company: 'displayValue',
+  nodeRole: 'role_',
+  roleDeliverable: 'role_',
+  nodeAppUsage: 'usageType',
+  nodeRegulation: 'relationship',
 };
 
-// The raw value-stream tables back FK pickers elsewhere, so they stay resolvable
-// but are hidden from the sidebar — the unified "Value Streams" entity (below)
-// replaces them with one level-numbered (L1–L5) list. subValueStream is NOT
-// hidden: its level-4 rows carry the sub-process detail (inputs/outputs/
-// upstream/downstream/notes) the L4 sidebar + drawer render, so it must be
-// editable (Data Admin → Value Streams → Sub-processes).
-const HIDDEN = new Set(['valueStream', 'level', 'orgLevel', 'valueStreamDomain']);
+// Level-type definition tables back the spine but are seeded structure (rarely
+// hand-edited): kept resolvable as FK targets, hidden from the sidebar.
+const HIDDEN = new Set(['processLevelType', 'orgLevelType']);
 
 // Sidebar groups — entities organized by operating-model area so a user can find
 // what to update at a glance. This array defines BOTH the section order and the
 // within-section order. The Data Dictionary (frontend lib/glossary.ts) mirrors
 // these group names and order. Entities not listed fall into "Other" at the end.
 const GROUPS: { group: string; slugs: string[] }[] = [
-  { group: 'Organization', slugs: ['organization', 'company', 'valueStreamDomain', 'division', 'department', 'role'] },
-  { group: 'Value Streams', slugs: ['valueStreams', 'subValueStream', 'processStep', 'ioItem', 'stepAppUsage', 'stepDeliverable'] },
-  { group: 'Role Work', slugs: ['category', 'checklistItem', 'roleTask', 'roleValueStream'] },
-  { group: 'Applications & Metrics', slugs: ['application', 'applicationValueStream', 'metric', 'telemetrySignal', 'analysisStatus', 'standard', 'standardItem'] },
-  { group: 'Change & Risk', slugs: ['initiative', 'initiativeValueStream', 'initiativeDivision', 'risk', 'scenario'] },
-  { group: 'Deliverables & Tasks', slugs: ['deliverable', 'task'] },
-  { group: 'Initiative Tracker (SPM)', slugs: ['program', 'workstream', 'portfolioInitiative', 'benefitLine', 'costLine', 'milestone', 'raidItem'] },
+  { group: 'Organization', slugs: ['company', 'orgLevelType', 'orgUnit', 'role', 'roleOrgAssignment'] },
+  { group: 'Value Streams', slugs: ['processLevelType', 'processNode'] },
+  { group: 'Work & Control', slugs: ['deliverable', 'checklist', 'checklistItem', 'standard', 'testingTemplate'] },
+  { group: 'Connections', slugs: ['nodeRole', 'nodeDeliverable', 'roleDeliverable', 'nodeAppUsage', 'nodeChecklist', 'nodeStandard', 'roleStandard', 'standardDeliverable', 'nodeInitiative'] },
+  { group: 'Applications & Metrics', slugs: ['application', 'integrationSource', 'metric', 'telemetrySignal', 'analysisStatus', 'nodeAiAdoption'] },
+  { group: 'Change & Risk', slugs: ['initiative', 'scenario'] },
+  { group: 'External Parties', slugs: ['externalParty', 'externalInteraction', 'knowledgeBase', 'agentSkill'] },
+  { group: 'Initiative Tracker (SPM)', slugs: ['program', 'workstream', 'portfolioInitiative', 'strategicObjective', 'riskScoringBand', 'benefitLine', 'costLine', 'milestone', 'raidItem'] },
   { group: 'Application Rationalization', slugs: ['rationalizationWorkspace', 'rationalizationApp', 'rationalizationComponent', 'rationalizationCapability', 'rationalizationMicroservice', 'rationalizationPlanStep'] },
-  { group: 'Regulations', slugs: ['jurisdiction', 'regulatoryRequirement', 'requirementValueStream', 'regulatoryBulletin', 'integrationSystem', 'jurisdictionIntegration', 'regulatorySource', 'complianceRule'] },
-  { group: 'Third-Parties', slugs: ['externalInteraction'] },
+  { group: 'Regulations', slugs: ['jurisdiction', 'regulatoryRequirement', 'nodeRegulation', 'regulationApplication', 'regulationDeliverable', 'regulatoryBulletin', 'integrationSystem', 'jurisdictionIntegration', 'regulatorySource', 'complianceRule'] },
+  { group: 'Admin', slugs: ['terminology'] },
 ];
 const OTHER_GROUP = 'Other';
 
@@ -151,7 +161,7 @@ function pickLabelField(model: Prisma.DMMF.Model): string {
   return 'id';
 }
 
-function buildEntity(model: Prisma.DMMF.Model, companyModels: Set<string>): AdminEntity {
+function buildEntity(model: Prisma.DMMF.Model, companyModels: Set<string>, tenantModels: Set<string>): AdminEntity {
   // FK scalar → target model name, e.g. { companyId: 'Company' }.
   const fkTarget: Record<string, string> = {};
   for (const f of model.fields) {
@@ -171,7 +181,7 @@ function buildEntity(model: Prisma.DMMF.Model, companyModels: Set<string>): Admi
     // Inherit company via the first FK whose target table carries companyId.
     for (const f of model.fields) {
       if (f.kind === 'object' && f.relationFromFields?.length === 1 && companyModels.has(f.type)) {
-        companyVia = { kind: 'relation', objectField: f.name, scalarField: f.relationFromFields[0], targetSlug: camel(f.type) };
+        companyVia = { kind: 'relation', objectField: f.name, scalarField: f.relationFromFields[0], targetSlug: camel(f.type), targetHasTenantId: tenantModels.has(f.type) };
         break;
       }
     }
@@ -214,13 +224,22 @@ function buildEntity(model: Prisma.DMMF.Model, companyModels: Set<string>): Admi
     labelField: LABEL_OVERRIDES[camel(model.name)] ?? pickLabelField(model),
     companyVia,
     hasTenantId: model.fields.some((f) => f.name === 'tenantId'),
+    hasCreatedAt: model.fields.some((f) => f.name === 'createdAt'),
     fields,
   };
 }
 
 function build(): Record<string, AdminEntity> {
+  // Surface every operating-model table that is scoped to a tenant OR a company
+  // (the erd_v5 spine — ProcessNode / OrgUnit / Role / Application / Deliverable /
+  // … — is company-scoped but tenant-less), plus the explicitly opted-in tenant-
+  // less line-item / junction tables (TRANSITIVE). DENY-listed tables are excluded.
   const models = Prisma.dmmf.datamodel.models.filter(
-    (m) => !DENY.has(m.name) && (m.fields.some((f) => f.name === 'tenantId') || TRANSITIVE.has(m.name)),
+    (m) => !DENY.has(m.name) && (
+      m.fields.some((f) => f.name === 'tenantId') ||
+      m.fields.some((f) => f.name === 'companyId' && f.kind === 'scalar') ||
+      TRANSITIVE.has(m.name)
+    ),
   );
   // Tables that carry their own companyId — used to resolve transitive scoping.
   const companyModels = new Set(
@@ -228,7 +247,14 @@ function build(): Record<string, AdminEntity> {
       .filter((m) => m.fields.some((f) => f.name === 'companyId' && f.kind === 'scalar'))
       .map((m) => m.name),
   );
-  const entities = models.map((m) => buildEntity(m, companyModels));
+  // Tables that carry tenantId — a relation-scope parent filter may only pin
+  // tenantId on a parent that actually has the column (erd_v5 spine tables don't).
+  const tenantModels = new Set(
+    Prisma.dmmf.datamodel.models
+      .filter((m) => m.fields.some((f) => f.name === 'tenantId' && f.kind === 'scalar'))
+      .map((m) => m.name),
+  );
+  const entities = models.map((m) => buildEntity(m, companyModels, tenantModels));
   const bySlug: Record<string, AdminEntity> = {};
   for (const e of entities) bySlug[e.slug] = e;
 
@@ -283,7 +309,9 @@ export function companyWhere(entity: AdminEntity, companyId: string, tenantId?: 
   const v = entity.companyVia;
   if (!v) return {};
   if (v.kind === 'direct') return { companyId };
-  return { [v.objectField]: { companyId, ...(tenantId ? { tenantId } : {}) } };
+  // Only pin tenantId on the parent filter when the parent table actually has it.
+  const pin = tenantId && v.targetHasTenantId ? { tenantId } : {};
+  return { [v.objectField]: { companyId, ...pin } };
 }
 
 // Coerce a raw JSON value from the request body into the type Prisma expects for

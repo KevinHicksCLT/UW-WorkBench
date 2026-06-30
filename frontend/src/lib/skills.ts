@@ -9,11 +9,21 @@ const SKILL_LABELS: Record<string, string> = {
   'nydfs-500-sdlc-compliance': 'NYDFS 500 Compliance',
 };
 
-const ACRONYMS = new Set(['gdpr', 'ccpa', 'cpra', 'nydfs', 'iso', 'soc', 'pci', 'hipaa', 'dora']);
+const ACRONYMS = new Set(['gdpr', 'ccpa', 'cpra', 'nydfs', 'iso', 'soc', 'pci', 'hipaa', 'dora', 'cat', 'pmo', 'sast', 'dast', 'sca', 'siem', 'mfa', 'rbac', 'pam', 'dpia', 'ropa', 'kpi', 'sla', 'api']);
 
-export function skillLabel(slug: string): string {
+// Per-area, per-category skill slugs are "<area>-<category>-sdlc-compliance"
+// (e.g. "actuarial-pricing-sdlc-compliance"). When shown INSIDE that area's
+// context (the area page / a standard's drawer) the leading area name is
+// redundant, so pass `area` to strip it → "Pricing Compliance".
+const slugify = (s: string) => s.toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+export function skillLabel(slug: string, area?: string | null): string {
   if (SKILL_LABELS[slug]) return SKILL_LABELS[slug];
-  return slug
+  let s = slug;
+  if (area) {
+    const prefix = slugify(area) + '-';
+    if (s.startsWith(prefix) && s.length > prefix.length) s = s.slice(prefix.length);
+  }
+  return s
     .split('-')
     .filter((w) => w !== 'sdlc')
     .map((w) => (ACRONYMS.has(w) ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1)))

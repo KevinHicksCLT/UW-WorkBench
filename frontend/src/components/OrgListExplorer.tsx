@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { DOMAIN_HEX } from '../viz/model';
 import { api } from '../lib/api';
 import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from './MetricsSidebar';
 import RoleDrawer from './RoleDrawer';
-import { HeaderComboFilter } from './Sheet';
+import { HeaderComboFilter, ListSearch } from './Sheet';
 
 // Org List view (R2 rework) — a FLAT spreadsheet of the org spine, the mirror
 // image of the Value Streams list (ListExplorer). No tree, no expand/collapse:
@@ -96,6 +96,7 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
   const [divisionSel, setDivisionSel] = useState<string[]>([]);
   const [deptSel, setDeptSel] = useState<string[]>([]);
   const [roleSel, setRoleSel] = useState<string[]>([]);
+  const [search, setSearch] = useState('');
   const [sort, setSort] = useState<Sort>({ col: 'domain', dir: 1 });
 
   // Right-hand metrics panel — identical to the map / value-stream list.
@@ -197,8 +198,11 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
   useEffect(() => { prune(roleSel, roleOptions, setRoleSel); }, [roleOptions, roleSel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Visible rows: filters + sort (chain order as the tie-break).
+  const needle = search.trim().toLowerCase();
+  const searchMatch = (r: FlatRow) =>
+    !needle || [r.domain, r.divName, r.deptName, r.roleName].some((v) => v.toLowerCase().includes(needle));
   const rows = useMemo(() => {
-    const list = flat.filter((r) => matches(r));
+    const list = flat.filter((r) => matches(r) && searchMatch(r));
     const chainOrder = (a: FlatRow, b: FlatRow) =>
       a.domain.localeCompare(b.domain)
       || a.divName.localeCompare(b.divName)
@@ -211,7 +215,7 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
         : a.roleName.localeCompare(b.roleName);
       return c * sort.dir || chainOrder(a, b);
     });
-  }, [flat, domainSel, divisionSel, deptSel, roleSel, sort]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [flat, domainSel, divisionSel, deptSel, roleSel, sort, needle]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Totals strip — distinct entities among the visible (filtered) rows.
   const totals = useMemo(() => {
@@ -226,12 +230,60 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
     return { domains: domains.size, divisions: divisions.size, departments: depts.size, roles };
   }, [rows]);
 
-  const anyFilter = domainSel.length > 0 || divisionSel.length > 0 || deptSel.length > 0 || roleSel.length > 0;
-  const clear = () => { setDomainSel([]); setDivisionSel([]); setDeptSel([]); setRoleSel([]); };
+  const anyFilter = domainSel.length > 0 || divisionSel.length > 0 || deptSel.length > 0 || roleSel.length > 0 || !!needle;
+  const clear = () => { setDomainSel([]); setDivisionSel([]); setDeptSel([]); setRoleSel([]); setSearch(''); };
 
   const toggleSort = (col: Col) => setSort((s) => (s.col === col ? { col, dir: s.dir === 1 ? -1 : 1 } : { col, dir: 1 }));
 
   const activeKey = base ? `${base.level}:${base.id}` : null;
+
+  // ── Row virtualization ──────────────────────────────────────────────────────
+  // The sheet can be thousands of rows (one per role); rendering them all at once
+  // floods the DOM and hangs the tab. Rows are a fixed height, so window to just
+  // the slice in view (+ overscan) and pad above/below with spacers. The markup of
+  // each rendered row is unchanged, so the sheet looks identical. (Mirrors the
+  // Value Streams list — ListExplorer.)
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const rowsWrapRef = useRef<HTMLDivElement>(null);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [viewH, setViewH] = useState(0);
+  const [rowsTop, setRowsTop] = useState(0); // rows-area offset from scroll-content top (clears the sticky header)
+  const [rowH, setRowH] = useState(24);      // measured row height
+  const OVERSCAN = 10;
+
+  const measure = () => {
+    const el = scrollRef.current; if (!el) return;
+    setViewH(el.clientHeight);
+    const rw = rowsWrapRef.current;
+    if (rw) setRowsTop(rw.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop);
+  };
+  useLayoutEffect(measure, [loading, rows.length === 0]);
+  // Filtering can shrink the list while scrolled down; the browser clamps the
+  // real scrollTop but our cached value goes stale (no scroll event fires). Re-
+  // read it whenever the row count changes so the window can't point past the end.
+  useLayoutEffect(() => { const el = scrollRef.current; if (el) setScrollTop(el.scrollTop); }, [rows.length]);
+  useEffect(() => {
+    const el = scrollRef.current; if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(measure); ro.observe(el);
+    return () => ro.disconnect();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Measure the live row height from the first rendered row (handles zoom/DPR).
+  const measureRow = (el: HTMLDivElement | null) => {
+    if (el && el.offsetHeight && Math.abs(el.offsetHeight - rowH) > 0.5) setRowH(el.offsetHeight);
+  };
+
+  const ticking = useRef(false);
+  const onScroll = () => {
+    if (ticking.current) return; ticking.current = true;
+    requestAnimationFrame(() => { ticking.current = false; const el = scrollRef.current; if (el) setScrollTop(el.scrollTop); });
+  };
+
+  const rel = Math.max(0, scrollTop - rowsTop);
+  const start = Math.max(0, Math.floor(rel / rowH) - OVERSCAN);
+  const end = viewH > 0 ? Math.min(rows.length, Math.ceil((rel + viewH) / rowH) + OVERSCAN) : Math.min(rows.length, OVERSCAN * 4);
+  const visible = rows.slice(start, end);
+  const padTop = start * rowH;
+  const padBottom = Math.max(0, (rows.length - end) * rowH);
 
   return (
     <>
@@ -248,10 +300,12 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
                   {totals.domains} domains · {totals.divisions} divisions · {totals.departments} departments · {totals.roles} roles
                 </span>
                 {anyFilter && <button onClick={clear} className="text-[11px] font-medium text-[#1d4ed8] hover:underline">Clear filters</button>}
+                <div className="flex-1" />
+                <ListSearch value={search} onChange={setSearch} />
               </>
             )}
           </div>
-          <div className="flex-1 min-h-0 overflow-auto">
+          <div ref={scrollRef} onScroll={onScroll} className="flex-1 min-h-0 overflow-auto">
           <div className="px-3 sm:px-4 pb-4">
             {loading ? (
               <div className="text-sm text-[#a3a3a3] animate-pulse py-8 text-center">Loading organization…</div>
@@ -272,9 +326,10 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
                     <HeaderComboFilter label="Role" value={roleSel} onChange={setRoleSel} options={roleOptions}
                       sort={<SortToggle col="role" sort={sort} onSort={toggleSort} />} />
                   </div>
-                  <div className="rounded-b-lg overflow-hidden">
+                  <div ref={rowsWrapRef} className="rounded-b-lg overflow-hidden">
                     {rows.length === 0 && <EmptyRow text="No rows match the current filters." />}
-                    {rows.map((r) => {
+                    {padTop > 0 && <div style={{ height: padTop }} />}
+                    {visible.map((r, vi) => {
                       const hex = DOMAIN_HEX[r.domain] ?? '#94a3b8';
                       const selected = activeKey != null && (
                         activeKey === `domain:${r.domain}`
@@ -284,6 +339,7 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
                       return (
                         <div
                           key={`${r.divId}|${r.deptId ?? r.deptName}|${r.roleId ?? ''}`}
+                          ref={vi === 0 ? measureRow : undefined}
                           // Row default click = the most specific entity on the row.
                           // Roles open the full-detail drawer (same as the map);
                           // higher levels open the metrics sidebar (same as the map).
@@ -300,6 +356,7 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
                         </div>
                       );
                     })}
+                    {padBottom > 0 && <div style={{ height: padBottom }} />}
                   </div>
                 </div>
               </>

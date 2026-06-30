@@ -547,6 +547,9 @@ input, select, textarea {
 .rf-stage--map .react-flow__node {
   transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
 }
+/* The actively-dragged card must track the cursor 1:1 — the gap-open tween above
+   would otherwise make it lag behind the pointer and land drops in the wrong slot. */
+.rf-stage--map .react-flow__node.dragging { transition: none; }
 @media (prefers-reduced-motion: reduce) {
   .rf-stage--map .react-flow__node { transition: none; }
 }
@@ -556,6 +559,11 @@ input, select, textarea {
 .rf-stage .react-flow__background         { color: #e5e5e5; }
 .rf-stage .react-flow__node               { cursor: pointer; }
 .rf-stage .react-flow__node.nopan         { cursor: pointer; }
+/* Pan-grab cursor on the empty canvas only in edit mode — in the read-only view
+   the map reads as a static diagram (default cursor), as it did before edit mode. */
+.rf-stage--map .react-flow__pane                         { cursor: default; }
+.rf-stage--map.rf-stage--edit .react-flow__pane          { cursor: grab; }
+.rf-stage--map.rf-stage--edit .react-flow__pane.dragging { cursor: grabbing; }
 .rf-stage .react-flow__edge-path          { stroke-width: 1.25px; stroke: #9ca3af; }
 .rf-stage .react-flow__controls {
   border-radius: 0.5rem;

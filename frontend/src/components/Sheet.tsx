@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 // Sheet — the canonical spreadsheet list view (extracted from the Value
 // Streams / Organization list explorers so every list tab shares the EXACT
@@ -138,6 +138,36 @@ export function HeaderComboFilter({ label, value, onChange, options, sort }: {
   );
 }
 
+// Shared free-text search box for the totals strip of every list view (the
+// canonical Sheet plus the hand-rolled Value Streams / Organization explorers).
+// A compact input that filters the whole sheet across all columns at once —
+// complements the per-column combobox filters in the header. One component so
+// the control looks identical on every list.
+export function ListSearch({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  return (
+    <div className="relative">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        className="absolute left-2 top-1/2 -translate-y-1/2 text-[#a3a3a3] pointer-events-none" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
+      </svg>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder ?? 'Search…'}
+        aria-label="Search list"
+        className="w-44 sm:w-56 rounded border border-[#eaeaea] bg-white pl-7 pr-6 py-1 text-[11px] text-[#171717] placeholder:text-[#a3a3a3] focus:outline-none focus:border-[#d4d4d4] focus:ring-2 focus:ring-[#f5f8ff] transition-colors duration-150"
+      />
+      {value && (
+        <button type="button" onClick={() => onChange('')} aria-label="Clear search"
+          className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 rounded flex items-center justify-center text-[#a3a3a3] hover:text-[#171717] hover:bg-[#fafafa]">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </button>
+      )}
+    </div>
+  );
+}
+
 // One spreadsheet cell. Clickable cells underline on hover and stopPropagation
 // so a cell-level action doesn't also fire the row's default click.
 export function SheetCell({ text, onClick, dim, title }: { text: string; onClick?: () => void; dim?: boolean; title?: string }) {
@@ -153,7 +183,7 @@ export function SheetCell({ text, onClick, dim, title }: { text: string; onClick
 }
 
 export function Sheet<R>({
-  rows, cols, rowKey, defaultSort, defaultFilters, summarize, loading, emptyText,
+  rows, cols, rowKey, defaultSort, defaultFilters, summarize, unit, loading, emptyText,
   onRowClick, expand, selectedKey, scrollToKey, leading,
 }: {
   rows: R[];
@@ -164,6 +194,8 @@ export function Sheet<R>({
   // Extra entity totals for the strip (e.g. "13 areas · 96 categories"); the
   // row count is always appended.
   summarize?: (visible: R[]) => string;
+  // Noun for the appended row count (e.g. "tasks", "deliverables"); default "rows".
+  unit?: string;
   loading?: boolean;
   emptyText?: string;
   onRowClick?: (r: R) => void;
@@ -187,6 +219,9 @@ export function Sheet<R>({
   const firstSortable = cols.find((c) => (c.sortable ?? !!(c.value || c.values)));
   const [sort, setSort] = useState<Sort>(defaultSort ?? { col: firstSortable?.key ?? '', dir: 1 });
   const [expanded, setExpanded] = useState<string | null>(null);
+  // Free-text search across every column with a value (complements the per-
+  // column combobox filters; narrows the visible rows only, not the dropdowns).
+  const [search, setSearch] = useState('');
 
   const colByKey = useMemo(() => new Map(cols.map((c) => [c.key, c])), [cols]);
   const valOf = (c: SheetCol<R>, r: R): string[] =>
@@ -221,8 +256,12 @@ export function Sheet<R>({
     }
   }, [optionsByCol]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const needle = search.trim().toLowerCase();
+  const searchMatch = (r: R) =>
+    !needle || cols.some((c) => (c.value || c.values) && valOf(c, r).some((v) => v.toLowerCase().includes(needle)));
+
   const visible = useMemo(() => {
-    const list = rows.filter((r) => matches(r));
+    const list = rows.filter((r) => matches(r) && searchMatch(r));
     const sc = colByKey.get(sort.col);
     if (!sc) return list;
     const get = (r: R) => valOf(sc, r).join(', ');
@@ -233,35 +272,139 @@ export function Sheet<R>({
       if (!vb && va) return -1;
       return va.localeCompare(vb, undefined, { numeric: true }) * sort.dir;
     });
-  }, [rows, sel, sort, colByKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [rows, sel, sort, colByKey, needle]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const anyFilter = filterCols.some((c) => (sel[c.key] ?? []).length > 0);
+  const anyFilter = filterCols.some((c) => (sel[c.key] ?? []).length > 0) || !!needle;
   const clear = () => {
     const init: Record<string, string[]> = {};
     for (const c of filterCols) init[c.key] = [];
     setSel(init);
+    setSearch('');
   };
   const toggleSort = (col: string) => setSort((s) => (s.col === col ? { col, dir: s.dir === 1 ? -1 : 1 } : { col, dir: 1 }));
 
   const gridCols = { gridTemplateColumns: cols.map((c) => c.width).join(' ') };
 
-  // Deep-linked focus: scroll the target row into view once rows are in.
-  const focusRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (scrollToKey && rows.length) focusRef.current?.scrollIntoView({ block: 'center' });
-  }, [scrollToKey, rows.length]);
+  // ── Row virtualization (variable height) ──────────────────────────────────────
+  // Sheets can be thousands of rows (e.g. ~3,800 tasks); rendering them all at
+  // once floods the DOM and hangs/crashes the tab. Rows are NOT a fixed height
+  // (chips and long titles wrap), so we measure each rendered row by its stable
+  // key and window off a measured-offset model, padding above/below. The Sheet
+  // doesn't own its scroller (the sticky header pins to a parent <main> with
+  // overflow-auto), so we find that scroll ancestor and measure off rects. Each
+  // rendered row's markup is unchanged, so the sheet looks identical. The single
+  // expandable row (`expand`) folds its measured panel height into the offsets.
+  const rowsWrapRef = useRef<HTMLDivElement>(null);
+  const scrollerRef = useRef<HTMLElement | null>(null);
+  const [rel, setRel] = useState(0);   // px the rows-area top is scrolled above the viewport
+  const [viewH, setViewH] = useState(0);
+  const [panelH, setPanelH] = useState(0);
+  const heights = useRef<Map<string, number>>(new Map());
+  const [measureTick, setMeasureTick] = useState(0);
+  const EST_ROW_H = 30;  // estimate for not-yet-measured rows
+  const OVERSCAN = 12;
+
+  // Measure each row by its stable key. A row's content is fixed, so its height
+  // is stable once measured — the tick settles and there is no feedback loop.
+  // (The old single `rowH` sample thrashed as the windowed first row changed on
+  // fast scroll, blowing past React's update depth and white-screening the tab.)
+  const measureRow = (key: string) => (el: HTMLDivElement | null) => {
+    if (!el || !el.offsetHeight) return;
+    const prev = heights.current.get(key);
+    if (prev === undefined || Math.abs(prev - el.offsetHeight) > 0.5) {
+      heights.current.set(key, el.offsetHeight);
+      setMeasureTick((t) => t + 1);
+    }
+  };
+  const measurePanel = (el: HTMLDivElement | null) => {
+    if (el && el.offsetHeight && Math.abs(el.offsetHeight - panelH) > 0.5) setPanelH(el.offsetHeight);
+  };
+
+  const N = visible.length;
+  // Cumulative top offset of each visible row (measured height where known, else
+  // an estimate), with the expanded panel folded in after its row.
+  const offsets = useMemo(() => {
+    const off = new Array<number>(N + 1);
+    off[0] = 0;
+    for (let i = 0; i < N; i++) {
+      const k = rowKey(visible[i]);
+      off[i + 1] = off[i] + (heights.current.get(k) ?? EST_ROW_H) + (k === expanded ? panelH : 0);
+    }
+    return off;
+  }, [visible, expanded, panelH, measureTick]); // eslint-disable-line react-hooks/exhaustive-deps
+  const total = offsets[N];
+
+  useLayoutEffect(() => {
+    const rw = rowsWrapRef.current; if (!rw) return;
+    let p: HTMLElement | null = rw.parentElement;
+    while (p) { const oy = getComputedStyle(p).overflowY; if (oy === 'auto' || oy === 'scroll') break; p = p.parentElement; }
+    const scroller = p;
+    scrollerRef.current = scroller;
+    const recompute = () => {
+      const rwTop = rowsWrapRef.current?.getBoundingClientRect().top ?? 0;
+      if (scroller) { const c = scroller.getBoundingClientRect(); setRel(Math.max(0, c.top - rwTop)); setViewH(scroller.clientHeight); }
+      else { setRel(Math.max(0, -rwTop)); setViewH(window.innerHeight); }
+    };
+    recompute();
+    let ticking = false;
+    const onScroll = () => { if (ticking) return; ticking = true; requestAnimationFrame(() => { ticking = false; recompute(); }); };
+    const target: Window | HTMLElement = scroller ?? window;
+    target.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    return () => { target.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); };
+  }, [loading, visible.length === 0]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Filtering/expanding changes total height while scrolled; the browser clamps
+  // the scroller but no scroll event fires, leaving rel stale (→ a blank window).
+  // Recompute rel/viewH off live rects whenever the list or total height changes.
+  useLayoutEffect(() => {
+    const rw = rowsWrapRef.current; if (!rw) return;
+    const scroller = scrollerRef.current;
+    const rwTop = rw.getBoundingClientRect().top;
+    if (scroller) { const c = scroller.getBoundingClientRect(); setRel(Math.max(0, c.top - rwTop)); setViewH(scroller.clientHeight); }
+    else { setRel(Math.max(0, -rwTop)); setViewH(window.innerHeight); }
+  }, [N, expanded, panelH, total, loading]);
+
+  // First visible index whose bottom passes `y` (binary search over offsets).
+  const idxAt = (y: number) => {
+    let lo = 0, hi = N;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (offsets[mid + 1] <= y) lo = mid + 1; else hi = mid; }
+    return lo;
+  };
+  const vStart = Math.max(0, idxAt(rel) - OVERSCAN);
+  const vEnd = viewH > 0 ? Math.min(N, idxAt(rel + viewH) + 1 + OVERSCAN) : Math.min(N, OVERSCAN * 4);
+  const slice = visible.slice(vStart, vEnd);
+  const padTop = offsets[vStart];
+  const padBottom = Math.max(0, total - offsets[vEnd]);
+
+  // Deep-linked focus: jump the scroller to the target row (it may be unmounted,
+  // so scroll by computed offset rather than scrollIntoView).
+  const scrolledKey = useRef<string | null>(null);
+  useLayoutEffect(() => {
+    if (!scrollToKey || !N || scrolledKey.current === scrollToKey) return;
+    const idx = visible.findIndex((r) => rowKey(r) === scrollToKey);
+    const rw = rowsWrapRef.current; if (idx < 0 || !rw) return;
+    const scroller = scrollerRef.current;
+    const rwTop = rw.getBoundingClientRect().top;
+    if (scroller) scroller.scrollTop += rwTop - scroller.getBoundingClientRect().top + offsets[idx] - scroller.clientHeight / 2;
+    else window.scrollBy(0, rwTop + offsets[idx] - window.innerHeight / 2);
+    scrolledKey.current = scrollToKey;
+  }, [scrollToKey, visible, total]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
-      {/* Slim strip: optional leading control (view toggle) + totals + clear. */}
+      {/* Slim strip: optional leading control (view toggle) + totals + clear,
+          then a free-text search box pushed to the right. */}
       <div className="flex items-center gap-3 flex-wrap pb-1.5">
         {leading}
         {!loading && (
           <>
             <span className="text-[11px] text-[#737373] tnum">
-              {summarize ? summarize(visible) + ' · ' : ''}{visible.length} rows
+              {summarize ? summarize(visible) + ' · ' : ''}{visible.length} {unit ?? 'rows'}
             </span>
             {anyFilter && <button onClick={clear} className="text-[11px] font-medium text-[#1d4ed8] hover:underline">Clear filters</button>}
+            <div className="flex-1" />
+            <ListSearch value={search} onChange={setSearch} />
           </>
         )}
       </div>
@@ -282,39 +425,46 @@ export function Sheet<R>({
             );
           })}
         </div>
-        <div className="rounded-b-lg overflow-hidden">
+        <div ref={rowsWrapRef} className="rounded-b-lg overflow-hidden">
           {loading ? (
             <div className="py-1.5 px-3 text-[11px] text-[#a3a3a3] italic">Loading…</div>
           ) : visible.length === 0 ? (
             <div className="py-1.5 px-3 text-[11px] text-[#a3a3a3] italic">{emptyText ?? 'No rows match the current filters.'}</div>
-          ) : visible.map((r) => {
-            const k = rowKey(r);
-            const isOpen = expanded === k;
-            const clickable = !!onRowClick || !!expand;
-            const handleClick = expand
-              ? () => setExpanded(isOpen ? null : k)
-              : onRowClick ? () => onRowClick(r) : undefined;
-            return (
-              <div key={k} ref={k === scrollToKey ? focusRef : undefined}>
-                <div
-                  onClick={handleClick}
-                  className={'grid items-stretch divide-x divide-[#f0f0f0] border-b border-[#f5f5f5] last:border-0 transition-colors duration-100 '
-                    + (clickable ? 'cursor-pointer ' : '')
-                    + (selectedKey === k || k === scrollToKey ? 'bg-[#f5f8ff] ' : '') + 'hover:bg-[#fafafa]'}
-                  style={gridCols}
-                >
-                  {cols.map((c) => (
-                    <div key={c.key} className="px-2 py-[3px] flex items-center gap-1.5 min-w-0">
-                      {c.render ? c.render(r) : <SheetCell text={valOf(c, r).join(', ')} dim={c.dim} />}
+          ) : (
+            <>
+              {padTop > 0 && <div style={{ height: padTop }} />}
+              {slice.map((r) => {
+                const k = rowKey(r);
+                const isOpen = expanded === k;
+                const clickable = !!onRowClick || !!expand;
+                const handleClick = expand
+                  ? () => setExpanded(isOpen ? null : k)
+                  : onRowClick ? () => onRowClick(r) : undefined;
+                return (
+                  <div key={k}>
+                    <div
+                      ref={measureRow(k)}
+                      onClick={handleClick}
+                      className={'grid items-stretch divide-x divide-[#f0f0f0] border-b border-[#f5f5f5] last:border-0 transition-colors duration-100 '
+                        + (clickable ? 'cursor-pointer ' : '')
+                        + (selectedKey === k || k === scrollToKey ? 'bg-[#f5f8ff] ' : '') + 'hover:bg-[#fafafa]'}
+                      style={gridCols}
+                    >
+                      {cols.map((c) => (
+                        <div key={c.key} className="px-2 py-[3px] flex items-center gap-1.5 min-w-0">
+                          {c.render ? c.render(r) : <SheetCell text={valOf(c, r).join(', ')} dim={c.dim} />}
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                {isOpen && expand && (
-                  <div className="border-b border-[#f5f5f5] bg-[#fafafa] px-4 py-2.5">{expand(r)}</div>
-                )}
-              </div>
-            );
-          })}
+                    {isOpen && expand && (
+                      <div ref={measurePanel} className="border-b border-[#f5f5f5] bg-[#fafafa] px-4 py-2.5">{expand(r)}</div>
+                    )}
+                  </div>
+                );
+              })}
+              {padBottom > 0 && <div style={{ height: padBottom }} />}
+            </>
+          )}
         </div>
       </div>
     </>

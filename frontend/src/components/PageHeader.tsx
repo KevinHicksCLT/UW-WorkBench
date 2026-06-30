@@ -7,16 +7,18 @@ type Props = {
   // Optional eyebrow line above the title — use for domain attribution.
   eyebrow?: string;
   actions?: ReactNode;
+  // Tighter bottom margin — for pages where the header sits close to dense content.
+  dense?: boolean;
 };
 
-export default function PageHeader({ title, subtitle, eyebrow, actions }: Props) {
+export default function PageHeader({ title, subtitle, eyebrow, actions, dense }: Props) {
   // Contribute this page to the visited-path breadcrumb trail. The trail
   // itself renders once, in the global header (components/BreadcrumbBar) —
   // pages no longer carry their own breadcrumb.
   useRegisterCrumb(title);
 
   return (
-    <div className="mb-4">
+    <div className={dense ? 'mb-2' : 'mb-4'}>
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
           {eyebrow && (

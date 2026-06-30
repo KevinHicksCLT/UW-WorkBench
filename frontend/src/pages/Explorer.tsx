@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useHeaderBreadcrumbSlot } from '../lib/breadcrumbs';
@@ -52,30 +52,38 @@ export default function Explorer() {
   // Lift it into state and clear the param so it doesn't linger or re-fire.
   const [searchParams, setSearchParams] = useSearchParams();
   const [focusVsId, setFocusVsId] = useState<string | null>(null);
+  // `?vs=<name>` focuses the LIST by value-stream NAME (used where the caller
+  // only knows the name, e.g. the Third-Parties drawer) — pre-applies the Value
+  // stream filter without needing the stream's id.
+  const [focusVsName, setFocusVsName] = useState<string | null>(null);
 
   useEffect(() => {
     const f = searchParams.get('focus');
+    const vsName = searchParams.get('vs');
     const v = searchParams.get('view');
-    if (!f && v !== 'list' && v !== 'map') return;
+    if (!f && !vsName && v !== 'list' && v !== 'map') return;
     if (f) { setFocusVsId(f); setView(v === 'map' ? 'map' : 'list'); }
+    else if (vsName) { setFocusVsName(vsName); setView('list'); }
     else if (v === 'list' || v === 'map') setView(v);
     const next = new URLSearchParams(searchParams);
     next.delete('focus');
+    next.delete('vs');
     next.delete('view');
     setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
 
-  useEffect(() => {
-    let cancelled = false;
+  // Load the map bootstrap (domains + L2 divisions). Exposed as a callback so the
+  // map can re-run it after an edit-mode move (an L2 row could have changed).
+  const loadOverview = useCallback(() => {
     api.get('/explorer/overview')
       .then((overview) => {
-        if (cancelled) return;
-        // overview.divisions shape: { id, name, higherCategory, roles }
+        // overview.divisions shape: { id, name, higherCategory, higherCategoryId, roles }
         // Null higherCategory → fold into "Core Business"
         const divs: DivisionSummary[] = (overview.divisions ?? []).map((d: any) => ({
           id: d.id,
           name: d.name,
           higherCategory: d.higherCategory ?? 'Core Business',
+          higherCategoryId: d.higherCategoryId ?? null,
           roles: d.roles ?? 0,
         }));
         setDivisions(divs);
@@ -84,13 +92,12 @@ export default function Explorer() {
         setLoading(false);
       })
       .catch((e) => {
-        if (!cancelled) {
-          setError(e.message ?? 'Failed to load');
-          setLoading(false);
-        }
+        setError(e.message ?? 'Failed to load');
+        setLoading(false);
       });
-    return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => { loadOverview(); }, [loadOverview]);
 
   // In map view the drill breadcrumb claims the GLOBAL header bar (Layout's
   // BreadcrumbBar) and MapCanvas portals into it — no in-page header strip.
@@ -103,7 +110,7 @@ export default function Explorer() {
         <ViewToggle view={view} onChange={setView} />
 
         {view === 'list' ? (
-          <ListExplorer divisions={divisions} companyName={companyName} streams={streams} focusVsId={focusVsId} />
+          <ListExplorer divisions={divisions} companyName={companyName} streams={streams} focusVsId={focusVsId} focusVsName={focusVsName} />
         ) : loading ? (
           <div className="h-full grid place-items-center">
             <div className="text-sm text-[#a3a3a3] animate-pulse">Loading operating model…</div>
@@ -113,7 +120,7 @@ export default function Explorer() {
             <div className="text-sm text-[#be123c]">{error}</div>
           </div>
         ) : (
-          <MapCanvas divisions={divisions} companyName={companyName} breadcrumbSlot={crumbSlot} focusVsId={focusVsId} />
+          <MapCanvas divisions={divisions} companyName={companyName} breadcrumbSlot={crumbSlot} focusVsId={focusVsId} onMoved={loadOverview} />
         )}
       </div>
     </div>
