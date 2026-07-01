@@ -12,6 +12,7 @@ import Explorer from './pages/Explorer';
 import DivisionDetail from './pages/DivisionDetail';
 import DepartmentDetail from './pages/DepartmentDetail';
 import Organization from './pages/Organization';
+import Roles from './pages/Roles';
 import SearchResults from './pages/SearchResults';
 import Admin from './pages/Admin';
 import AuditTrail from './pages/AuditTrail';
@@ -31,10 +32,11 @@ import Regulations from './pages/Regulations';
 import RegulationDetail from './pages/RegulationDetail';
 
 // The standalone role page was retired (it repeated the Organization role
-// panel) — old /roles/:id links open that panel instead.
+// panel) — old /roles/:id links open that panel instead (now at /organization,
+// since /roles is the new Roles tab).
 function RoleRedirect() {
   const { id } = useParams();
-  return <Navigate to={`/roles?role=${encodeURIComponent(id ?? '')}`} replace />;
+  return <Navigate to={`/organization?role=${encodeURIComponent(id ?? '')}`} replace />;
 }
 
 // The standalone value-stream page was retired too — its detail renders as an
@@ -91,8 +93,10 @@ export default function App() {
         <Route path="/overview" element={<Explorer />} />
         <Route path="/n/*" element={<Explorer />} />
         <Route path="/explorer" element={<Navigate to="/overview" replace />} />
+        {/* Roles — the roles-centric tab: flat sheet + reporting-line org chart. */}
+        <Route path="/roles" element={<Roles />} />
         {/* Organization — interactive table (org groupings → role, value-stream cross-link). */}
-        <Route path="/roles" element={<Organization />} />
+        <Route path="/organization" element={<Organization />} />
         {/* Detail pages remain as deep-link targets from inspector + search. */}
         <Route path="/divisions/:id" element={<DivisionDetail />} />
         <Route path="/departments/:id" element={<DepartmentDetail />} />

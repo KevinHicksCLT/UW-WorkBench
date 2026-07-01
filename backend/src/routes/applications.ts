@@ -46,15 +46,19 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       rolesForNodes(nodeIds),
     ]);
 
-    // applicationId → { value-stream names, roleId → name }
-    const enrich = new Map<string, { vs: Set<string>; roles: Map<string, string> }>();
+    // applicationId → { value-stream names, roleId → name, division → usage count }
+    const enrich = new Map<string, { vs: Set<string>; roles: Map<string, string>; div: Map<string, number> }>();
     for (const u of usages) {
       let b = enrich.get(u.applicationId);
-      if (!b) { b = { vs: new Set(), roles: new Map() }; enrich.set(u.applicationId, b); }
-      const vsName = vsNames.get(u.processNodeId)?.valueStreamName;
-      if (vsName) b.vs.add(vsName);
+      if (!b) { b = { vs: new Set(), roles: new Map(), div: new Map() }; enrich.set(u.applicationId, b); }
+      const loc = vsNames.get(u.processNodeId);
+      if (loc?.valueStreamName) b.vs.add(loc.valueStreamName);
+      if (loc?.division) b.div.set(loc.division, (b.div.get(loc.division) ?? 0) + 1);
       for (const r of nodeRoles.get(u.processNodeId) ?? []) b.roles.set(r.id, r.name);
     }
+    // the division an app most-used-in — fallback when it has no primary org unit.
+    const topDiv = (m?: Map<string, number>) =>
+      m && m.size ? [...m.entries()].sort((a, b) => b[1] - a[1])[0][0] : null;
 
     res.json({
       applications: apps.map((a) => {
@@ -64,7 +68,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         return {
           id: a.id, code: a.code, name: a.name, kind: a.kind, category: a.category, vendor: a.vendor,
           criticality: a.criticality, description: null, systemOfRecord: a.systemOfRecord, illustrative: a.illustrative,
-          totalTco: a.totalTco, primaryDivisionName: a.orgUnit?.displayValue ?? null,
+          totalTco: a.totalTco, primaryDivisionName: a.orgUnit?.displayValue ?? topDiv(b?.div),
           stepUsages: a._count.nodeAppUsages, sorDeliverables: 0,
           valueStreams: [...(b?.vs ?? new Set<string>())].sort((x, y) => x.localeCompare(y)),
           roles: roleList,

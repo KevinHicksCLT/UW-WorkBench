@@ -14,11 +14,13 @@ import { FlagPill, catLabel } from './Regulations';
 // requirement list (with the inline value-stream link editor), integration
 // systems, bulletins, machine-readable compliance rules, and monitored sources.
 
+type RoleRef = { id: string; name: string };
 type Requirement = {
   id: string; category: string; title: string; requirement: string;
   lineOfBusiness: string; citation: string | null; citationUrl: string | null;
   obligationType: string; frequency: string | null; status: string; confidence: string;
-  sourceNote: string | null; valueStreamLinks: VsLink[];
+  regime: string | null; sourceNote: string | null; valueStreamLinks: VsLink[];
+  owner: RoleRef | null; contributors: RoleRef[];
 };
 type Detail = {
   id: string; code: string; name: string; regulatorType: string;
@@ -139,6 +141,7 @@ export default function RegulationDetail() {
               <div key={r.id} className="py-2.5">
                 <div className="text-sm font-medium text-[#171717]">{r.title}</div>
                 <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                  {r.regime && <span className="pill-blue">{r.regime}</span>}
                   <span className="pill-slate">{catLabel(r.category)}</span>
                   {r.lineOfBusiness !== 'ALL' && <span className="pill-slate">{label(r.lineOfBusiness)}</span>}
                   {r.obligationType === 'FILING_GATE' && <span className="pill-amber">Filing gate</span>}
@@ -155,9 +158,10 @@ export default function RegulationDetail() {
                 </div>
                 <p className="text-sm text-[#525252] leading-relaxed mt-1.5">{r.requirement}</p>
                 <div className="flex flex-wrap gap-x-4 mt-1 text-xs text-[#a3a3a3]">
+                  {r.owner && <span>Owner: <span className="text-[#525252]">{r.owner.name}</span></span>}
+                  {r.contributors.length > 0 && <span>Contributors: <span className="text-[#525252]">{r.contributors.map((c) => c.name).join(', ')}</span></span>}
                   {r.citation && <span>Citation: {r.citation}</span>}
                   {r.frequency && <span>Frequency: {r.frequency}</span>}
-                  {r.sourceNote && <span>Source: {r.sourceNote}</span>}
                 </div>
                 {editing === r.id && (
                   <LinksEditor

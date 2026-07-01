@@ -177,6 +177,7 @@ model Role {
   manager       Role?    @relation("RoleReports", fields: [managerRoleId], references: [id])
   reports       Role[]   @relation("RoleReports")
   jobDescription String? // concise narrative of the role's purpose & scope (FB-53)
+  roleType      String? // Approver | Reviewer | Contributor — governance classification (Roles tab)
   dbValue       String
   displayValue  String // EDITABLE label
   createdAt     DateTime @default(now())
@@ -187,6 +188,7 @@ model Role {
   roleDeliverables              RoleDeliverable[]
   nodeRoles                     NodeRole[]
   roleStandards                 RoleStandard[]
+  roleRegulations               RoleRegulation[]
   ownedStandards                Standard[]                   @relation("StandardOwnerRole")
   externalInteractions          ExternalInteraction[]
   metrics                       Metric[]
@@ -272,6 +274,7 @@ model ProcessNode {
   children           ProcessNode[]    @relation("ProcessNodeTree")
   dbValue            String
   displayValue       String // EDITABLE label
+  description        String? // atomic task: what is done / definition of done
   isTask             Boolean          @default(false)
   automatability     String? // manual | augmented | automated
   sortOrder          Int              @default(0)
@@ -327,6 +330,7 @@ model Deliverable {
   companyId      String
   company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   title          String
+  description    String? // what single artifact this deliverable is (atomic)
   automatability String? // manual | augmented | automated
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -639,6 +643,23 @@ model RegulationApplication {
   @@unique([regId, applicationId])
   @@index([regId])
   @@index([applicationId])
+  @@index([companyId, regId])
+}
+
+// NEW — reg → role (accountable Owner + hands-on Contributors). Mirrors
+// RoleDeliverable: role_ discriminates the responsibility kind.
+model RoleRegulation {
+  id         String                @id @default(cuid())
+  companyId  String
+  roleId     String
+  role       Role                  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  regId      String
+  regulation RegulatoryRequirement @relation(fields: [regId], references: [id], onDelete: Cascade)
+  role_      String // "Owner|Contributor"
+
+  @@unique([roleId, regId, role_])
+  @@index([roleId])
+  @@index([regId])
   @@index([companyId, regId])
 }
 
@@ -1500,6 +1521,9 @@ model RegulatoryRequirement {
   status         String       @default("ACTIVE") // ACTIVE | SUPERSEDED | PENDING
   effectiveDate  DateTime?
   supersededById String?
+  // The named regulation / regime this obligation belongs to, surfaced as a
+  // column so GDPR/CCPA/NYDFS/SERFF/IIPRC are visible without drilling in.
+  regime         String? // GDPR | CCPA-CPRA | NYDFS-500 | SERFF | IIPRC | IAIABC-EDI | ...
   // Accuracy metadata
   confidence     String       @default("BASELINE") // BASELINE | VERIFIED | DERIVED | STALE
   sourceNote     String?
@@ -1514,6 +1538,7 @@ model RegulatoryRequirement {
   nodeRegulations        NodeRegulation[]
   regulationApplications RegulationApplication[]
   regulationDeliverables RegulationDeliverable[]
+  roleRegulations        RoleRegulation[]
   bulletins              RegulatoryBulletin[]
 
   @@index([companyId])

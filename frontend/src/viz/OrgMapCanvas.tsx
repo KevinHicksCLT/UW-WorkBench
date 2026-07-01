@@ -7,7 +7,7 @@
 //
 // Data comes from /explorer/org-table; segment/division/department carry their
 // OrgUnit ids so they can be edited. Roles are leaves (a separate table) — they
-// navigate to /roles?role=<id> and aren't draggable.
+// navigate to /organization?role=<id> and aren't draggable.
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import { createPortal } from 'react-dom';
@@ -826,7 +826,7 @@ function OrgMapCanvasInner({ data, breadcrumbSlot, onSaved }: Props & { data: Or
     else if (node.type === 'orgSegment') onSegmentClick(node.id.replace(/^seg:/, ''));
     else if (node.type === 'orgDivision') onDivisionClick(node.id.replace(/^div:/, ''));
     else if (node.type === 'orgDept') onDeptClick(node.id.replace(/^dept:/, ''));
-    else if (node.type === 'orgRole') navigate(`/roles?role=${encodeURIComponent(node.id.replace(/^role:/, ''))}`);
+    else if (node.type === 'orgRole') navigate(`/organization?role=${encodeURIComponent(node.id.replace(/^role:/, ''))}`);
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────

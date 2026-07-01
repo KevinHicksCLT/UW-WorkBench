@@ -23,7 +23,10 @@ type Item = {
   agentSkill: string | null;
   sdlcGates: string | null;
   regCitation: string | null;
+  testProcedure: string | null;
+  evidence: string | null;
   responsible: Responsible | null;
+  appliers: { roleId: string; roleName: string }[];
   valueStreams: ValueStream[];
 };
 // Top-level rows are groups: each carries its decomposed child standards.
@@ -183,6 +186,37 @@ export default function StandardDrawer({ areaId, itemId, onClose }: { areaId: st
                   <div className="mt-2 text-xs text-[#a3a3a3]">Accountable (governance): {item.relatedRole}</div>
                 )}
               </div>
+
+              {/* Applied by — the roles that execute the control day-to-day */}
+              {item.appliers.length > 0 && (
+                <div>
+                  <SectionLabel>Applied by</SectionLabel>
+                  <div className="flex flex-wrap gap-1">
+                    {item.appliers.map((a) => (
+                      <Link key={a.roleId} to={`/roles/${a.roleId}`} className="chip-soft hover:bg-[#eaeaea]">{a.roleName}</Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* How to verify — ordered test steps + the evidence they leave */}
+              {(item.testProcedure || item.evidence) && (
+                <div>
+                  <SectionLabel>How to verify</SectionLabel>
+                  {item.testProcedure && (() => {
+                    const steps = item.testProcedure!.split('\n').filter(Boolean);
+                    return steps.length === 1
+                      ? <p className="text-sm text-[#171717] leading-relaxed">{steps[0]}</p>
+                      : <ol className="text-sm text-[#171717] leading-relaxed list-decimal pl-5 space-y-1">{steps.map((s, i) => <li key={i}>{s}</li>)}</ol>;
+                  })()}
+                  {item.evidence && (
+                    <div className="mt-2 flex items-start gap-1.5">
+                      <span className="mt-px text-[9px] font-semibold uppercase tracking-[0.08em] text-[#047857] bg-[#ecfdf5] rounded px-1 py-px flex-shrink-0">Evidence</span>
+                      <p className="text-xs text-[#525252]">{item.evidence}</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Applies to value streams */}
               {item.valueStreams.length > 0 && (

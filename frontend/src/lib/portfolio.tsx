@@ -130,12 +130,12 @@ export function SeverityCell({ value }: { value: number }) {
 }
 
 // ─── Layout primitives ──────────────────────────────────────────────────────
-export function Tile({ label, value, hint, tone = 'neutral', compact = false }: { label: string; value: ReactNode; hint?: string; tone?: 'neutral' | 'positive' | 'negative'; compact?: boolean }) {
+export function Tile({ label, value, hint, tone = 'neutral', compact = false, center = false }: { label: string; value: ReactNode; hint?: string; tone?: 'neutral' | 'positive' | 'negative'; compact?: boolean; center?: boolean }) {
   const color = tone === 'positive' ? 'text-[#047857]' : tone === 'negative' ? 'text-[#be123c]' : 'text-[#171717]';
   if (compact) {
     // Denser stat for headline strips (e.g. Regulations overview) — smaller box.
     return (
-      <div className="card-elevated px-3 py-2">
+      <div className={`card-elevated px-3 py-1.5${center ? ' text-center' : ''}`}>
         <div className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#a3a3a3]">{label}</div>
         <div className={`text-lg font-semibold tnum leading-tight ${color}`}>{value}</div>
         {hint && <div className="text-[10px] text-[#a3a3a3] leading-tight">{hint}</div>}

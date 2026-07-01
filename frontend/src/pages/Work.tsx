@@ -15,19 +15,22 @@ import { AutomatableMeter, SCORE_LABEL, SCORE_DESC, automatablePct } from '../li
 // Scoped to the active company.
 
 type Deliverable = {
-  id: string; title: string; description: string | null; owner: string | null; type: string;
+  id: string; title: string; description: string | null; owner: string | null; contributors: string[]; type: string;
   status: string; dueDate: string | null; taskCount: number; valueStreamId: string | null; valueStreamName: string | null;
-  roles: string[]; processes: string[];
+  roles: string[]; processes: string[]; level3: string | null; level4: string | null; test: string | null;
 };
 type Task = {
-  id: string; title: string; owner: string | null; status: string; priority: string; dueDate: string | null;
+  id: string; title: string; description: string | null; owner: string | null; contributors: string[];
+  status: string; priority: string; dueDate: string | null;
   source: string; deliverableId: string | null; deliverableTitle: string | null;
-  roles: string[]; processes: string[];
+  roles: string[]; processes: string[]; level3: string | null; level4: string | null;
   division: string | null;
   department: string | null;
   roleName: string | null;
   valueStreamName: string | null;
   agentScore: number | null; agentRationale: string | null;
+  test: string | null;
+  standards: string[]; regulations: string[];
 };
 type WorkData = { deliverables: Deliverable[]; tasks: Task[]; valueStreams: { id: string; name: string }[] };
 
@@ -38,17 +41,22 @@ type DeliverableDetail = {
   kind: 'deliverable'; id: string; title: string; description: string | null; type: string; owner: string | null;
   jiraKey: string | null;
   valueStream: { id: string; name: string; domain: string } | null;
+  level3: string | null; level4: string | null;
   subProcesses: string[]; dataElements: string[];
   inputs: { name: string; dataElements: string[]; roles: RoleSet }[];
   assignedRoles: RoleRef[]; assignedExtra: string[];
+  ownerRoles: RoleRef[]; contributorRoles: RoleRef[];
+  tests: { expected: string | null; checkType: string | null; system: string | null; location: string | null }[];
   tasks: { id: string; title: string; owner: string | null; priority: string }[];
   downstream: { valueStreamId: string; valueStreamName: string; subProcess: string | null; roles: RoleSet }[];
 };
 type TaskDetail = {
-  kind: 'task'; id: string; title: string; owner: string | null; priority: string;
+  kind: 'task'; id: string; title: string; description: string | null; owner: string | null; priority: string;
   ownerRole: RoleRef | null;
+  tests: { expected: string | null; checkType: string | null }[];
   jiraKey: string | null; agentScore: number | null; agentRationale: string | null;
   valueStream: { id: string; name: string } | null; subProcess: string | null;
+  level3: string | null; level4: string | null;
   leadRoles: RoleRef[]; leadExtra: string[]; supportRoles: RoleRef[]; supportExtra: string[];
   outputs: string[];
   deliverable: { id: string; title: string } | null;
@@ -104,7 +112,7 @@ function DetailBody({ detail }: { detail: Detail }) {
     <div className="space-y-5">
       <div>
         <h3 className="text-base font-semibold text-[#171717]">{detail.title}</h3>
-        {detail.kind === 'deliverable' && detail.description && (
+        {detail.description && (
           <p className="text-sm text-[#666666] mt-1">{detail.description}</p>
         )}
         <div className="flex flex-wrap gap-1.5 mt-2">
@@ -153,10 +161,28 @@ function DetailBody({ detail }: { detail: Detail }) {
       {/* Roles — deliverables list every assigned role; a task shows just its
           single owning role. */}
       {detail.kind === 'deliverable' ? (
-        <Field label="Assigned roles"><RoleChips roles={detail.assignedRoles} extra={detail.assignedExtra} /></Field>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Owner"><RoleChips roles={detail.ownerRoles} extra={detail.ownerRoles.length === 0 && detail.owner ? [detail.owner] : []} /></Field>
+          <Field label={`Contributors (${detail.contributorRoles.length})`}><RoleChips roles={detail.contributorRoles} extra={[]} /></Field>
+        </div>
       ) : (
-        <Field label="Role">
-          <RoleChips roles={detail.ownerRole ? [detail.ownerRole] : []} extra={!detail.ownerRole && detail.owner ? [detail.owner] : []} />
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Owner"><RoleChips roles={detail.ownerRole ? [detail.ownerRole] : []} extra={!detail.ownerRole && detail.owner ? [detail.owner] : []} /></Field>
+          <Field label={`Contributors (${detail.supportRoles.length})`}><RoleChips roles={detail.supportRoles} extra={detail.supportExtra} /></Field>
+        </div>
+      )}
+
+      {/* Test — how presence is verified (deliverables + tasks) */}
+      {((detail.kind === 'deliverable' && detail.tests.length > 0) || (detail.kind === 'task' && detail.tests.length > 0)) && (
+        <Field label="Test (presence check)">
+          <ul className="space-y-1.5">
+            {detail.tests.map((t, i) => (
+              <li key={i} className="text-sm text-[#171717] flex gap-2">
+                <span className="pill-slate text-[10px] flex-shrink-0 mt-0.5">{t.checkType ?? 'presence'}</span>
+                <span>{t.expected}</span>
+              </li>
+            ))}
+          </ul>
         </Field>
       )}
 
@@ -256,7 +282,8 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
   useEffect(() => {
     if (companyLoading) return;
     setLoading(true);
-    api.get(withCompany('/work', companyId))
+    // fetch all rows (tasks exceed the old 5k default; splits push the total higher).
+    api.get(withCompany('/work?take=30000', companyId))
       .then(setData).catch(() => {}).finally(() => setLoading(false));
   }, [companyId, companyLoading]);
 
@@ -266,21 +293,24 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
   }
 
   const { deliverables, tasks } = data;
-  const vsByDeliverable = useMemo(
-    () => new Map(deliverables.map((d) => [d.id, d.valueStreamName ?? DASH])),
-    [deliverables],
-  );
   const rolesCell = (roles: string[]) => {
     const joined = (roles ?? []).join(', ');
     return <SheetCell text={joined || DASH} dim title={joined || undefined} />;
   };
+  // Standards / regulations governing a task — "N/A" when its area carries none.
+  const naCell = (items: string[]) => {
+    const joined = (items ?? []).join(', ');
+    return <SheetCell text={joined || 'N/A'} dim title={joined || undefined} />;
+  };
 
   const dCols = useMemo<SheetCol<Deliverable>[]>(() => [
-    { key: 'title', label: 'Deliverable', width: 'minmax(0,1.3fr)', value: (d) => d.title },
-    { key: 'type', label: 'Type', width: '120px', value: (d) => d.type, dim: true },
-    { key: 'valueStream', label: 'Value Stream', width: 'minmax(0,1fr)', value: (d) => d.valueStreamName ?? DASH, dim: true },
-    { key: 'process', label: 'Process', width: 'minmax(0,1fr)', values: (d) => d.processes ?? [], dim: true },
-    { key: 'roles', label: 'Role', width: 'minmax(0,1fr)', values: (d) => d.roles ?? [], dim: true, render: (d) => rolesCell(d.roles) },
+    { key: 'title', label: 'Deliverable', width: 'minmax(0,1.1fr)', value: (d) => d.title },
+    { key: 'description', label: 'Description', width: 'minmax(0,1.3fr)', value: (d) => d.description ?? DASH, dim: true, render: (d) => <SheetCell text={d.description ?? DASH} dim title={d.description ?? undefined} /> },
+    { key: 'valueStream', label: 'Value Stream (L2)', width: 'minmax(0,0.9fr)', value: (d) => d.valueStreamName ?? DASH, dim: true },
+    { key: 'level3', label: 'Process L3', width: 'minmax(0,0.9fr)', value: (d) => d.level3 ?? DASH, dim: true },
+    { key: 'level4', label: 'Process L4', width: 'minmax(0,0.9fr)', value: (d) => d.level4 ?? DASH, dim: true },
+    { key: 'owner', label: 'Owner', width: 'minmax(0,0.8fr)', value: (d) => d.owner ?? DASH, dim: true },
+    { key: 'contributors', label: 'Contributors', width: 'minmax(0,1fr)', values: (d) => d.contributors ?? [], dim: true, render: (d) => rolesCell(d.contributors) },
     {
       key: 'tasks', label: 'Tasks', width: '70px', value: (d) => String(d.taskCount), filterable: false,
       render: (d) => <span className="text-[12px] text-[#737373] tnum">{d.taskCount}</span>,
@@ -288,19 +318,20 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
   ], []);
 
   const tCols = useMemo<SheetCol<Task>[]>(() => [
-    { key: 'title', label: 'Task', width: 'minmax(0,1.4fr)', value: (t) => t.title },
-    { key: 'role', label: 'Role', width: 'minmax(0,1.1fr)', value: (t) => t.owner ?? DASH, dim: true },
-    { key: 'division', label: 'Division', width: 'minmax(0,0.9fr)', value: (t) => t.division ?? DASH, dim: true },
+    { key: 'title', label: 'Task (L5)', width: 'minmax(0,1.8fr)', value: (t) => t.title },
+    { key: 'level4', label: 'Process L4', width: 'minmax(0,1fr)', value: (t) => t.level4 ?? DASH, dim: true },
     { key: 'deliverable', label: 'Deliverable', width: 'minmax(0,1fr)', value: (t) => t.deliverableTitle ?? DASH, dim: true },
-    { key: 'valueStream', label: 'Value Stream', width: 'minmax(0,0.9fr)', value: (t) => (t.deliverableId ? vsByDeliverable.get(t.deliverableId) ?? DASH : DASH), dim: true },
-    { key: 'process', label: 'Process', width: 'minmax(0,0.9fr)', values: (t) => t.processes ?? [], dim: true },
+    { key: 'owner', label: 'Owner', width: 'minmax(0,0.8fr)', value: (t) => t.owner ?? DASH, dim: true },
+    { key: 'contributors', label: 'Contributors', width: 'minmax(0,0.9fr)', values: (t) => t.contributors ?? [], dim: true, render: (t) => rolesCell(t.contributors) },
+    { key: 'standards', label: 'Standards', width: 'minmax(0,1fr)', values: (t) => (t.standards?.length ? t.standards : ['N/A']), dim: true, render: (t) => naCell(t.standards) },
+    { key: 'regulations', label: 'Regulations', width: 'minmax(0,1fr)', values: (t) => (t.regulations?.length ? t.regulations : ['N/A']), dim: true, render: (t) => naCell(t.regulations) },
     {
-      key: 'automatable', label: 'AI automatable', width: '150px',
+      key: 'automatable', label: 'AI automatable', width: '140px',
       // Filter by band ("1 · Agent-ready" … "5 · Human-only"); leading digit sorts numerically.
       value: (t) => (typeof t.agentScore === 'number' ? `${t.agentScore} · ${SCORE_LABEL[t.agentScore]}` : 'Not scored'),
       render: (t) => <AutomatableMeter score={t.agentScore} rationale={t.agentRationale} />,
     },
-  ], [vsByDeliverable]);
+  ], []);
 
   return (
     <div>

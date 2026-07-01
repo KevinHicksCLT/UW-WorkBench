@@ -118,6 +118,7 @@ router.get('/:nodeId', async (req: Request, res: Response, next: NextFunction) =
       tasks: detail ? 1 : taskIds.length,
       checklist: new Set(checkLinks.map((c) => c.checklistItem.id)).size,
       testing: new Set(testingRows.map((t) => t.id)).size,
+      standards: 0, regulations: 0, // set below once governing links resolve
     };
 
     // Automation rollup (mirrors the Automatable page): each task's 1-5 score from
@@ -230,6 +231,24 @@ router.get('/:nodeId', async (req: Request, res: Response, next: NextFunction) =
       valueStreamId = ancLevels.find((a) => a.processLevelType.levelNumber === 2)?.id ?? null;
     }
 
+    // Standards + regulations governing this node: those attached to its L2/L3
+    // process ancestors (value stream + area) plus the node itself when it is an
+    // L2/L3 container — the same inheritance the Tasks list surfaces on a leaf.
+    const govCandidateIds = [node.id, ...ancNodes.map((n) => n.id)];
+    const govNodes = await prisma.processNode.findMany({
+      where: { id: { in: govCandidateIds }, processLevelType: { levelNumber: { in: [2, 3] } } },
+      select: { id: true },
+    });
+    const govIds = govNodes.map((n) => n.id);
+    const [stdRows, regRows] = await Promise.all([
+      govIds.length ? prisma.nodeStandard.findMany({ where: { processNodeId: { in: govIds } }, select: { standard: { select: { id: true, name: true } } } }) : [],
+      govIds.length ? prisma.nodeRegulation.findMany({ where: { processNodeId: { in: govIds } }, select: { regulation: { select: { id: true, title: true } } } }) : [],
+    ]);
+    const standards = [...new Map(stdRows.map((r) => [r.standard.id, { standardId: r.standard.id, name: r.standard.name }])).values()].sort((a, b) => a.name.localeCompare(b.name));
+    const regulations = [...new Map(regRows.map((r) => [r.regulation.id, { regId: r.regulation.id, title: r.regulation.title }])).values()].sort((a, b) => a.title.localeCompare(b.title));
+    counts.standards = standards.length;
+    counts.regulations = regulations.length;
+
     // Drill children (the Tasks tab list at a container; siblings-context at a leaf).
     const children = await prisma.processNode.findMany({
       where: { parentId: node.id },
@@ -288,6 +307,8 @@ router.get('/:nodeId', async (req: Request, res: Response, next: NextFunction) =
       deliverables,
       checklist,
       testing,
+      standards,
+      regulations,
       children: children.map((c) => ({ id: c.id, name: c.displayValue, isTask: c.isTask })),
     });
   } catch (e) { next(e); }

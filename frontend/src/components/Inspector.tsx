@@ -41,7 +41,7 @@ type Payload = {
   } | null;
   domain: string | null; valueStreamId: string | null;
   breadcrumb: { id: string; name: string }[];
-  counts: { roles: number; applications: number; deliverables: number; tasks: number; checklist: number; testing: number };
+  counts: { roles: number; applications: number; deliverables: number; tasks: number; checklist: number; testing: number; standards: number; regulations: number };
   automation: {
     score: number | null; scored: number; auto: number; pct: number | null; tiers: Record<number, number>;
     byChild: { id: string; name: string; isTask: boolean; scored: number; auto: number; pct: number | null }[];
@@ -52,11 +52,13 @@ type Payload = {
   deliverables: (DelivDetail | DelivRollup)[];
   checklist: (CheckDetail | CheckRollup)[];
   testing: TestingDetail | TestingRollup[];
+  standards: { standardId: string; name: string }[];
+  regulations: { regId: string; title: string }[];
   children: { id: string; name: string; isTask: boolean }[];
 };
 
-type Tab = 'Overview' | 'Work' | 'Tasks' | 'Roles' | 'Applications' | 'Deliverables' | 'Checklist' | 'Testing';
-const TABS: Tab[] = ['Overview', 'Work', 'Tasks', 'Roles', 'Applications', 'Deliverables', 'Checklist', 'Testing'];
+type Tab = 'Overview' | 'Work' | 'Tasks' | 'Roles' | 'Applications' | 'Deliverables' | 'Checklist' | 'Testing' | 'Governance';
+const TABS: Tab[] = ['Overview', 'Work', 'Tasks', 'Roles', 'Applications', 'Deliverables', 'Checklist', 'Testing', 'Governance'];
 
 const RACI = ['Responsible', 'Accountable', 'Consulted', 'Informed'];
 
@@ -201,7 +203,7 @@ export default function Inspector({ nodeId, onClose, onRetarget, accent, startCo
 
   return (
     <aside className="hidden md:flex flex-col bg-white border-l border-[#eaeaea] flex-shrink-0 relative overflow-hidden"
-      style={{ width: 420, minWidth: 360, ...(accent ? { borderTop: `3px solid ${accent}` } : {}) }}>
+      style={{ width: 560, minWidth: 480, ...(accent ? { borderTop: `3px solid ${accent}` } : {}) }}>
 
       {/* Edit-mode banner — saved to the single source of truth. */}
       {edit && (
@@ -294,6 +296,7 @@ export default function Inspector({ nodeId, onClose, onRetarget, accent, startCo
             {tab === 'Deliverables' && <DeliverablesTab data={data} edit={edit} onNav={navigate} after={after} />}
             {tab === 'Checklist' && <ChecklistTab data={data} edit={edit} after={after} />}
             {tab === 'Testing' && <TestingTab data={data} edit={edit} after={after} />}
+            {tab === 'Governance' && <GovernancePanel data={data} />}
 
             {/* Auto-association reminder (no manual node ops) — scrolls with content. */}
             {detail && edit && (
@@ -330,6 +333,7 @@ function tabCount(d: Payload, t: Tab): number | null {
     case 'Deliverables': return d.counts.deliverables;
     case 'Checklist': return d.counts.checklist;
     case 'Testing': return d.counts.testing;
+    case 'Governance': return d.counts.standards + d.counts.regulations;
     default: return null;
   }
 }
@@ -371,6 +375,36 @@ function OverviewTab({ data, onTab, onRetarget }: { data: Payload; onTab: (t: Ta
           The real, editable detail of one step. Everything here is the live, shared record.
         </div>
       )}
+    </div>
+  );
+}
+
+// Governance — the standards + regulations governing this node, inherited from
+// its value-stream + area ancestors. Read-only; "N/A" when the area carries none.
+function GovernancePanel({ data }: { data: Payload }) {
+  const scope = data.detail ? 'this step' : 'this branch';
+  const Group = ({ label, items }: { label: string; items: string[] }) => (
+    <div className="mb-2.5 last:mb-0">
+      <div className="flex items-center gap-1.5 mb-1">
+        <span className="text-[9.5px] font-medium uppercase tracking-wide text-[#a3a3a3]">{label}</span>
+        <span className="text-[9.5px] text-[#a3a3a3] tabular-nums">{items.length || 'N/A'}</span>
+      </div>
+      {items.length ? (
+        <div className="flex flex-wrap gap-1">
+          {items.map((t) => (
+            <span key={t} title={t} className="max-w-full truncate rounded-md bg-[#f4ecf7] border border-[#e6d6f0] px-1.5 py-0.5 text-[10.5px] text-[#6c3fa0]">{t}</span>
+          ))}
+        </div>
+      ) : (
+        <div className="text-[11px] text-[#a3a3a3] italic">N/A — none govern {scope}.</div>
+      )}
+    </div>
+  );
+  return (
+    <div className="mt-4 rounded-lg border border-[#eaeaea] bg-white px-3 py-3">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3] mb-2">Governance</div>
+      <Group label="Standards" items={data.standards.map((s) => s.name)} />
+      <Group label="Regulations" items={data.regulations.map((r) => r.title)} />
     </div>
   );
 }
@@ -526,7 +560,7 @@ function RolesTab({ data, edit, onNav, after, propText }: {
                   {r.relation === 'Owner' ? 'Owner' : 'Participant'}{!isDetail && (r as RoleRollup).tasks ? ` · ${(r as RoleRollup).tasks} tasks` : ''}{isDetail && (r as RoleDetail).raci ? ` · ${(r as RoleDetail).raci}` : ''}
                 </span>
               )}
-              <LinkOut onClick={() => onNav(`/roles?role=${encodeURIComponent(r.roleId)}`)} />
+              <LinkOut onClick={() => onNav(`/organization?role=${encodeURIComponent(r.roleId)}`)} />
               {isDetail && edit && <DetachBtn onClick={async () => { await api.delete(`/inspector/roles/${(r as RoleDetail).nodeRoleId}`); after('Detached', 'The role itself is kept'); }} />}
             </div>
           );
@@ -681,7 +715,7 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
         <div className="px-2.5 pb-2 pl-7 flex flex-col gap-1">
           {t.roles.length > 0 && <MiniHead>Roles</MiniHead>}
           {t.roles.map((r) => (
-            <button key={r.roleId} onClick={() => onNav(`/roles?role=${encodeURIComponent(r.roleId)}`)} className="flex items-center gap-1.5 text-left group/r">
+            <button key={r.roleId} onClick={() => onNav(`/organization?role=${encodeURIComponent(r.roleId)}`)} className="flex items-center gap-1.5 text-left group/r">
               <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: r.relation === 'Owner' ? '#1e9e6a' : '#7fc9a6' }} />
               <span className="text-[11.5px] text-[#15603f] group-hover/r:underline">{r.name}</span>
               <span className="text-[9px] text-[#8a8a8a]">{r.relation === 'Owner' ? 'Owner' : 'Participant'}</span>

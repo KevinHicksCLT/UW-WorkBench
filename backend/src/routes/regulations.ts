@@ -37,11 +37,19 @@ const list = (v: unknown) => (typeof v === 'string' && v ? v.split(',').map((s) 
 // The frontend still consumes `valueStreamLinks[]` as { valueStreamId, valueStream:
 // { id, name }, relationship, notes }, so we include the node regulations and alias
 // them through the ProcessNode displayValue.
-const NODE_REG_INCLUDE = { nodeRegulations: { include: { processNode: { select: { id: true, displayValue: true } } } } } as const;
+// erd_v5: reg ↔ role is RoleRegulation (Owner|Contributor). Included alongside the
+// value-stream links so a regulation row carries its owner + contributor roles.
+const NODE_REG_INCLUDE = {
+  nodeRegulations: { include: { processNode: { select: { id: true, displayValue: true } } } },
+  roleRegulations: { include: { role: { select: { id: true, displayValue: true } } } },
+} as const;
 
 type NodeRegRow = { id: string; processNodeId: string; relationship: string; notes: string | null; processNode: { id: string; displayValue: string } };
-function withValueStreamLinks<T extends { nodeRegulations: NodeRegRow[] }>(r: T) {
-  const { nodeRegulations, ...rest } = r;
+type RoleRegRow = { id: string; roleId: string; role_: string; role: { id: string; displayValue: string } };
+function withValueStreamLinks<T extends { nodeRegulations: NodeRegRow[]; roleRegulations: RoleRegRow[] }>(r: T) {
+  const { nodeRegulations, roleRegulations, ...rest } = r;
+  const owner = roleRegulations.find((x) => x.role_ === 'Owner');
+  const contributors = roleRegulations.filter((x) => x.role_ === 'Contributor');
   return {
     ...rest,
     valueStreamLinks: nodeRegulations.map((n) => ({
@@ -51,6 +59,8 @@ function withValueStreamLinks<T extends { nodeRegulations: NodeRegRow[] }>(r: T)
       notes: n.notes,
       valueStream: { id: n.processNode.id, name: n.processNode.displayValue },
     })),
+    owner: owner ? { id: owner.role.id, name: owner.role.displayValue } : null,
+    contributors: contributors.map((c) => ({ id: c.role.id, name: c.role.displayValue })),
   };
 }
 
@@ -136,7 +146,7 @@ router.get('/jurisdictions', async (req: Request, res: Response, next: NextFunct
         autoVerification: true, autoVerificationDetail: true,
         workersCompModel: true, workersCompDetail: true, apcd: true, sbs: true,
         priorityTier: true, profileDepth: true, lastReviewedAt: true, lastVerifiedAt: true, updatedAt: true,
-        _count: { select: { requirements: true, bulletins: true, rules: true, integrations: true, sources: true } },
+        _count: { select: { requirements: { where: { status: 'ACTIVE' } }, bulletins: true, rules: true, integrations: true, sources: true } },
       },
     });
     res.json(rows);
@@ -153,6 +163,7 @@ router.get('/jurisdictions/:idOrCode', async (req: Request, res: Response, next:
       where: { companyId, OR: [{ id: p }, { code: p.toUpperCase() }] },
       include: {
         requirements: {
+          where: { status: 'ACTIVE' },
           orderBy: [{ category: 'asc' }, { title: 'asc' }],
           include: NODE_REG_INCLUDE,
         },
@@ -190,7 +201,7 @@ router.get('/federal', async (req: Request, res: Response, next: NextFunction) =
           orderBy: [{ category: 'asc' }, { title: 'asc' }],
           select: {
             id: true, title: true, category: true, requirement: true, citation: true, citationUrl: true,
-            obligationType: true, lineOfBusiness: true, confidence: true,
+            obligationType: true, lineOfBusiness: true, confidence: true, regime: true,
             ...NODE_REG_INCLUDE,
           },
         },
@@ -233,7 +244,7 @@ router.get('/international', async (req: Request, res: Response, next: NextFunct
           orderBy: [{ category: 'asc' }, { title: 'asc' }],
           select: {
             id: true, title: true, category: true, requirement: true, citation: true, citationUrl: true,
-            obligationType: true, lineOfBusiness: true, confidence: true, agentSkill: true,
+            obligationType: true, lineOfBusiness: true, confidence: true, agentSkill: true, regime: true,
             ...NODE_REG_INCLUDE,
           },
         },
@@ -304,6 +315,7 @@ const requirementSchema = z.object({
   status: z.string().optional(),
   effectiveDate: z.string().nullable().optional(),
   confidence: z.string().optional(),
+  regime: z.string().nullable().optional(),
   sourceNote: z.string().nullable().optional(),
 });
 
@@ -333,7 +345,7 @@ router.post('/requirements', requireRole('ADMIN', 'MANAGER'), async (req: Reques
   } catch (e) { next(e); }
 });
 
-const EDITABLE = ['category', 'title', 'requirement', 'lineOfBusiness', 'citation', 'citationUrl', 'obligationType', 'frequency', 'status', 'effectiveDate', 'confidence', 'sourceNote'] as const;
+const EDITABLE = ['category', 'title', 'requirement', 'lineOfBusiness', 'citation', 'citationUrl', 'obligationType', 'frequency', 'status', 'effectiveDate', 'confidence', 'regime', 'sourceNote'] as const;
 
 router.patch('/requirements/:id', requireRole('ADMIN', 'MANAGER'), async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -397,6 +409,40 @@ router.put('/requirements/:id/value-streams', requireRole('ADMIN', 'MANAGER'), a
       id: n.id, valueStreamId: n.processNodeId, relationship: n.relationship, notes: n.notes,
       valueStream: { id: n.processNode.id, name: n.processNode.displayValue },
     })));
+  } catch (e) { next(e); }
+});
+
+// Replace a requirement's owner + contributor role set (RoleRegulation).
+const rolesSchema = z.object({
+  ownerRoleId: z.string().min(1).nullable().optional(),
+  contributorRoleIds: z.array(z.string().min(1)).default([]),
+});
+
+router.put('/requirements/:id/roles', requireRole('ADMIN', 'MANAGER'), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const companyId = await activeCompanyId(req, res);
+    if (!companyId) return;
+    const requirement = await prisma.regulatoryRequirement.findFirst({ where: { id: req.params.id, companyId }, select: { id: true } });
+    if (!requirement) return res.status(404).json({ error: 'Not found' });
+    const { ownerRoleId, contributorRoleIds } = rolesSchema.parse(req.body);
+    // Owner is never also a contributor.
+    const contribIds = [...new Set(contributorRoleIds)].filter((id) => id !== ownerRoleId);
+    const roleIds = [...new Set([...(ownerRoleId ? [ownerRoleId] : []), ...contribIds])];
+    if (roleIds.length) {
+      const owned = await prisma.role.count({ where: { id: { in: roleIds }, companyId } });
+      if (owned !== roleIds.length) return res.status(404).json({ error: 'Role not found' });
+    }
+    const result = await prisma.$transaction(async (tx) => {
+      await tx.roleRegulation.deleteMany({ where: { regId: requirement.id } });
+      if (ownerRoleId) await tx.roleRegulation.create({ data: { companyId, regId: requirement.id, roleId: ownerRoleId, role_: 'Owner' } });
+      for (const roleId of contribIds) await tx.roleRegulation.create({ data: { companyId, regId: requirement.id, roleId, role_: 'Contributor' } });
+      return tx.roleRegulation.findMany({ where: { regId: requirement.id }, include: { role: { select: { id: true, displayValue: true } } } });
+    });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'regulatoryRequirement', entityId: requirement.id, action: 'SET_ROLES', diff: { ownerRoleId, contributorRoleIds: contribIds } });
+    res.json({
+      owner: result.filter((r) => r.role_ === 'Owner').map((r) => ({ id: r.role.id, name: r.role.displayValue }))[0] ?? null,
+      contributors: result.filter((r) => r.role_ === 'Contributor').map((r) => ({ id: r.role.id, name: r.role.displayValue })),
+    });
   } catch (e) { next(e); }
 });
 

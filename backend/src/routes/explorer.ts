@@ -3,6 +3,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { cacheResponses } from '../lib/responseCache.js';
+import { skillName } from '../lib/skillPacks.js';
 import {
   structureCounts, processSubtree, processSubtrees, ancestorNames, streamAncestry, rolesForNodes, appsForNodes,
 } from '../lib/resolvers/index.js';
@@ -913,12 +914,20 @@ type StdRow = {
   sdlcGates: string | null; regCitation: string | null; testProcedure: string | null; evidence: string | null;
   ownerRole: { id: string; displayValue: string } | null;
   nodeStandards: { processNode: { id: string; displayValue: string; parent: { displayValue: string } | null } | null }[];
+  roleStandards: { role: { id: string; displayValue: string } | null }[];
 };
 function shapeItem(r: StdRow) {
   const valueStreams = r.nodeStandards
     .map((ns) => ns.processNode)
     .filter((p): p is NonNullable<typeof p> => !!p)
     .map((p) => ({ id: p.id, name: p.displayValue, domain: p.parent?.displayValue ?? null }));
+  // Appliers = the roles that EXECUTE the control day-to-day (RoleStandard),
+  // distinct from the accountable OWNER (ownerRole). De-duped by role id.
+  const seen = new Set<string>();
+  const appliers = r.roleStandards
+    .map((rs) => rs.role)
+    .filter((role): role is NonNullable<typeof role> => !!role && !seen.has(role.id) && (seen.add(role.id), true))
+    .map((role) => ({ roleId: role.id, roleName: role.displayValue }));
   return {
     id: r.id,
     category: r.category ?? '—',
@@ -929,12 +938,14 @@ function shapeItem(r: StdRow) {
     relatedRole: r.relatedRole,
     relatedCategory: r.relatedCategory,
     itemsLink: r.link,
-    agentSkill: r.agentSkill,
+    agentSkill: r.agentSkill, // per-standard tailored skill (Standard.agentSkill)
+    categorySkill: r.category ? skillName(r.category) : null, // the category rollup skill
     sdlcGates: r.sdlcGates,
     regCitation: r.regCitation,
     testProcedure: r.testProcedure,
     evidence: r.evidence,
     responsible: r.ownerRole ? { roleId: r.ownerRole.id, roleName: r.ownerRole.displayValue, roleLevel: null as string | null } : null,
+    appliers,
     valueStreams,
   };
 }
@@ -945,6 +956,7 @@ const STD_ITEM_SELECT = {
   testProcedure: true, evidence: true,
   ownerRole: { select: { id: true, displayValue: true } },
   nodeStandards: { select: { processNode: { select: { id: true, displayValue: true, parent: { select: { displayValue: true } } } } } },
+  roleStandards: { select: { role: { select: { id: true, displayValue: true } } } },
 } as const;
 
 router.get('/standards', async (req: Request, res: Response, next: NextFunction) => {

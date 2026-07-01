@@ -4,7 +4,7 @@ import { basename } from 'node:path';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.js';
 import { prisma } from '../db/prisma.js';
-import { buildGroupings, generatedPackFiles, skillName, KEEP, type Grouping } from '../lib/skillPacks.js';
+import { buildGroupings, generatedPackFiles, skillName, KEEP, findStandardSkill, generatedStandardPackFiles, type Grouping } from '../lib/skillPacks.js';
 
 // ─── SDLC compliance agent skills (/standards-skills) ────────────────────────
 // No filesystem. Two kinds of pack:
@@ -71,6 +71,16 @@ router.get('/:skill', async (req: Request, res: Response, next: NextFunction) =>
         const skillMd = packFiles.find((f) => f.path === 'SKILL.md')?.content ?? null;
         return res.json({ name: skill, files, primary: 'SKILL.md', skillMd, editable: false });
       }
+      // Per-standard skill (one control) — tailored SKILL.md, read-only.
+      const control = await findStandardSkill(companyId, skill);
+      if (control) {
+        const packFiles = generatedStandardPackFiles(control);
+        const files = packFiles
+          .map((f) => ({ path: f.path, bytes: bytes(f.content) }))
+          .sort((a, b) => (a.path === 'SKILL.md' ? -1 : b.path === 'SKILL.md' ? 1 : a.path.localeCompare(b.path)));
+        const skillMd = packFiles.find((f) => f.path === 'SKILL.md')?.content ?? null;
+        return res.json({ name: skill, files, primary: 'SKILL.md', skillMd, editable: false });
+      }
     }
 
     const rows = await prisma.skillFile.findMany({ where: { companyId, skill }, select: { path: true, bytes: true, content: true } });
@@ -97,6 +107,12 @@ router.get('/:skill/file', async (req: Request, res: Response, next: NextFunctio
       const g = await findGenerated(companyId, skill);
       if (g) {
         const f = generatedPackFiles(g).find((x) => x.path === rel);
+        if (!f) return res.status(404).json({ error: 'File not found' });
+        return res.json({ path: rel, name: basename(rel), content: f.content });
+      }
+      const control = await findStandardSkill(companyId, skill);
+      if (control) {
+        const f = generatedStandardPackFiles(control).find((x) => x.path === rel);
         if (!f) return res.status(404).json({ error: 'File not found' });
         return res.json({ path: rel, name: basename(rel), content: f.content });
       }

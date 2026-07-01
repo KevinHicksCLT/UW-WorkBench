@@ -226,6 +226,14 @@ erDiagram
     string regId FK "-> RegulatoryRequirement"
     string deliverableId FK
   }
+  RoleRegulation {
+    string status "NEW — reg Owner/Contributor role"
+    string id PK
+    string companyId FK
+    string roleId FK
+    string regId FK "-> RegulatoryRequirement"
+    string role_ "Owner|Contributor"
+  }
   NodeStandard {
     string status "was Standard_L4"
     string id PK
@@ -523,6 +531,7 @@ erDiagram
     string title
     string requirement
     string lineOfBusiness
+    string regime "GDPR|CCPA-CPRA|NYDFS-500|SERFF|IIPRC|IAIABC-EDI|..."
     string confidence "BASELINE|VERIFIED|DERIVED|STALE"
     string agentSkill "FB-59 — SDLC skill for migrated privacy/cyber regimes"
   }
@@ -672,6 +681,8 @@ erDiagram
   Application ||--o{ RegulationApplication : "evidenced-by"
   RegulatoryRequirement ||--o{ RegulationDeliverable : "evidence"
   Deliverable ||--o{ RegulationDeliverable : "evidences"
+  RegulatoryRequirement ||--o{ RoleRegulation : "owned/done-by"
+  Role ||--o{ RoleRegulation : "owns/contributes"
   ProcessNode ||--o{ NodeStandard : ""
   Standard ||--o{ NodeStandard : ""
   Role ||--o{ RoleStandard : "owns/follows"
@@ -772,6 +783,7 @@ erDiagram
   style NodeRegulation fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style RegulationApplication fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style RegulationDeliverable fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style RoleRegulation fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style NodeStandard fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style RoleStandard fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style StandardDeliverable fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
