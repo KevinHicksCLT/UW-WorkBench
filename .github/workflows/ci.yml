@@ -57,17 +57,11 @@ jobs:
       - name: Build
         run: npm run build -w cascade-frontend
 
-  sonarcloud:
-    runs-on: ubuntu-latest
-    # Optional: runs only when SonarCloud is configured.
-    if: ${{ vars.SONAR_ENABLED == 'true' }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: SonarSource/sonarqube-scan-action@v5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  # SonarCloud job intentionally absent until the account is configured — an
+  # always-skipped job is a permanent noise row in every merge box. To enable:
+  # restore the job from git history (SonarSource/sonarqube-scan-action@v5,
+  # gated on vars.SONAR_ENABLED) after adding SONAR_TOKEN. Sonar's rule engine
+  # (eslint-plugin-sonarjs) already runs inside the lint gate regardless.
 
   # ─── Feature branches: preview deploy AFTER gates ─────────────────────────
   deploy-preview:
