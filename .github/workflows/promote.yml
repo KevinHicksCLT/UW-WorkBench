@@ -11,10 +11,9 @@
 #
 # Required repo secrets (Settings → Secrets and variables → Actions):
 #   NEON_API_KEY        — Neon API key (org: Kevin)
+#   NEON_PROJECT_ID     — billowing-salad-46113160
 #   DEVELOP_DATABASE_URL    — direct (non-pooler) URL of the Neon `develop` branch
 #   PRODUCTION_DATABASE_URL — direct (non-pooler) URL of the Neon `production` branch
-# Required repo variable:
-#   NEON_PROJECT_ID     — billowing-salad-46113160
 # Optional:
 #   VERCEL_DEPLOY_HOOK_DEVELOP / _PRODUCTION — to force a redeploy after migration.
 name: Promote
@@ -65,5 +64,5 @@ jobs:
       - name: Delete the merged feature's Neon branch
         env:
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
-          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+          NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
         run: node scripts/neon-branch-cleanup.mjs
