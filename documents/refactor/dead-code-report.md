@@ -28,9 +28,29 @@ app source — ops scripts/content dirs excluded, same rationale as the lint gat
 
 ## Database: dead tables & data (Task 16)
 
-Full audit of all **94 models** in `schema.prisma` against code references (routes,
-resolvers, seeds, scripts): **zero dead tables**. Every model is either actively read
-by routes/resolvers or seed-populated and surfaced through a screen. No drops needed;
-no data removed. (Details: every FK column carries an explicit index; `erd_v5.mmd`
-verified in sync with the schema.) Screenshots/blobs: the schema stores **no** image
-data — the only binary-ish field is a file-size integer.
+Audit of all **94 models** in `schema.prisma` against code references (routes,
+resolvers, seeds, scripts), followed by a row-level pass on the suspects:
+
+**Dropped** (migration `20260702130000_drop_dead_role_tab_leftovers`, applied to the
+refactor Neon branch; reaches develop/production via `migrate deploy` at cutover):
+
+| Item | Evidence |
+| --- | --- |
+| `RoleDottedLine` table | zero code references outside schema; **0 rows** — leftover of the scrapped FB-45/50-53 Role tab |
+| `UserPreference` table | zero code references outside schema; **0 rows** |
+| `Role.jobDescription` column | zero code references outside schema; **0 populated values** (FB-53 leftover) |
+
+All three were empty, so the drop is data-loss-free by construction; `erd_v5.mmd`
+updated in the same commit.
+
+**Kept after row-level review:**
+
+| Item | Why |
+| --- | --- |
+| `Initiative` / `NodeInitiative`, `KnowledgeBase`, `IntegrationSource` | no bespoke screens, but listed + editable in Data Admin's generic CRUD (surfaced UI) — retire deliberately with a product decision, not in a behavior-frozen refactor |
+| `Scenario`, `AnalysisStatus` | read by dashboard counts / AI-analysis routes |
+| Regulations feed tables (`RegulatorySource`, `RegulatoryBulletin`, `ComplianceRule`, `IntegrationSystem`, `JurisdictionIntegration`) | read by `/regulations` feeds + lenses |
+| `Checklist`/`ChecklistItem`/`TestingTemplate` | still read by roles/work routes; Work-Library retirement of the legacy grain is a separate planned change |
+
+Screenshots/blobs: the schema stores **no** image data — the only binary-ish field is
+a file-size integer.

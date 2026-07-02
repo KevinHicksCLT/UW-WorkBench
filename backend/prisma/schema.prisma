@@ -177,7 +177,6 @@ model Role {
   managerRoleId String? // SOLID-LINE manager (the role this role reports to)
   manager       Role?    @relation("RoleReports", fields: [managerRoleId], references: [id])
   reports       Role[]   @relation("RoleReports")
-  jobDescription String? // concise narrative of the role's purpose & scope (FB-53)
   roleType      String? // Approver | Reviewer | Contributor — governance classification (Roles tab)
   dbValue       String
   displayValue  String // EDITABLE label
@@ -194,7 +193,6 @@ model Role {
   externalInteractions          ExternalInteraction[]
   metrics                       Metric[]
   auditEntries                  AuditEntry[]
-  userPreferences               UserPreference[]
   // Portfolio links
   ownedPortfolioInitiatives     PortfolioInitiative[]         @relation("PortfolioInitiativeOwner")
   sponsoredPortfolioInitiatives PortfolioInitiative[]         @relation("PortfolioInitiativeSponsor")
@@ -202,10 +200,6 @@ model Role {
   initiativeResources           InitiativeResource[]
   rationalizationMicroservices  RationalizationMicroservice[] @relation("RationalizationMicroserviceOwner")
   rationalizationPlanSteps      RationalizationPlanStep[]     @relation("RationalizationPlanStepOwner")
-  // Dotted-line reporting (FB-45): secondary managers this role also answers to,
-  // and the roles that dotted-line into this role. Each is a RoleDottedLine row.
-  dottedManagers                RoleDottedLine[]              @relation("RoleDottedFrom")
-  dottedReports                 RoleDottedLine[]              @relation("RoleDottedTo")
   // Work Library entity-typed values pointing at this role
   nodeTemplateAnswers           NodeTemplateAnswer[]
   standardTemplateAnswers       StandardTemplateAnswer[]
@@ -217,24 +211,6 @@ model Role {
   @@index([companyId])
   @@index([orgUnitId])
   @@index([managerRoleId])
-}
-
-// Dotted-line reporting relationship (FB-45). A role can answer to one or more
-// secondary managers in addition to its solid-line manager (Role.managerRoleId).
-// These cross-structure relationships are an input to capacity planning. Modeled
-// as a junction (role ↔ role) so a role can have any number of dotted managers.
-model RoleDottedLine {
-  id            String @id @default(cuid())
-  companyId     String
-  roleId        String // the reporting role
-  role          Role   @relation("RoleDottedFrom", fields: [roleId], references: [id], onDelete: Cascade)
-  managerRoleId String // the dotted-line manager role
-  managerRole   Role   @relation("RoleDottedTo", fields: [managerRoleId], references: [id], onDelete: Cascade)
-
-  @@unique([roleId, managerRoleId])
-  @@index([roleId])
-  @@index([managerRoleId])
-  @@index([companyId, roleId])
 }
 
 // NEW — role at multiple levels (M:N).
@@ -1109,19 +1085,6 @@ model AuditEntry {
   @@index([entityType, entityId])
   @@index([actorRoleId])
   @@index([processNodeId])
-}
-
-// NEW — end-user prefs (col order) vs admin config.
-model UserPreference {
-  id        String   @id @default(cuid())
-  roleId    String? // actor proxy (People removed)
-  role      Role?    @relation(fields: [roleId], references: [id], onDelete: SetNull)
-  scope     String
-  prefsJson Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([roleId])
 }
 
 // ─── AI-ADOPTION per ProcessNode (Telemetry / Active AI) ────────────────
