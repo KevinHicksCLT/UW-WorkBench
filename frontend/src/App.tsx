@@ -1,36 +1,40 @@
 // App.tsx
 
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { useAuth } from './lib/auth';
 import { CompanyProvider } from './lib/company';
 import { DialogProvider } from './lib/dialogs';
 import { BreadcrumbProvider } from './lib/breadcrumbs';
+// Layout (the app shell) and Login stay eager so the chrome renders instantly;
+// every page below is route-level code-split via React.lazy.
 import Layout from './components/Layout';
 import Login from './pages/Login';
-import Overview from './pages/Overview';
-import Explorer from './pages/Explorer';
-import DivisionDetail from './pages/DivisionDetail';
-import DepartmentDetail from './pages/DepartmentDetail';
-import Organization from './pages/Organization';
-import Roles from './pages/Roles';
-import SearchResults from './pages/SearchResults';
-import Admin from './pages/Admin';
-import AuditTrail from './pages/AuditTrail';
-import Standards from './pages/Standards';
-import StandardArea from './pages/StandardArea';
-import ActiveAI from './pages/ActiveAI';
-import ActiveAIDetail from './pages/ActiveAIDetail';
-import Portfolio from './pages/Portfolio';
-import PortfolioProgram from './pages/PortfolioProgram';
-import PortfolioInitiative from './pages/PortfolioInitiative';
-import PortfolioRaid from './pages/PortfolioRaid';
-import Work from './pages/Work';
-import Automatable from './pages/Automatable';
-import WorkLibrary from './pages/WorkLibrary';
-import Applications from './pages/Applications';
-import External from './pages/External';
-import Regulations from './pages/Regulations';
-import RegulationDetail from './pages/RegulationDetail';
+
+const Overview = lazy(() => import('./pages/Overview'));
+const Explorer = lazy(() => import('./pages/Explorer'));
+const DivisionDetail = lazy(() => import('./pages/DivisionDetail'));
+const DepartmentDetail = lazy(() => import('./pages/DepartmentDetail'));
+const Organization = lazy(() => import('./pages/Organization'));
+const Roles = lazy(() => import('./pages/Roles'));
+const SearchResults = lazy(() => import('./pages/SearchResults'));
+const Admin = lazy(() => import('./pages/Admin'));
+const AuditTrail = lazy(() => import('./pages/AuditTrail'));
+const Standards = lazy(() => import('./pages/Standards'));
+const StandardArea = lazy(() => import('./pages/StandardArea'));
+const ActiveAI = lazy(() => import('./pages/ActiveAI'));
+const ActiveAIDetail = lazy(() => import('./pages/ActiveAIDetail'));
+const Portfolio = lazy(() => import('./pages/Portfolio'));
+const PortfolioProgram = lazy(() => import('./pages/PortfolioProgram'));
+const PortfolioInitiative = lazy(() => import('./pages/PortfolioInitiative'));
+const PortfolioRaid = lazy(() => import('./pages/PortfolioRaid'));
+const Work = lazy(() => import('./pages/Work'));
+const Automatable = lazy(() => import('./pages/Automatable'));
+const WorkLibrary = lazy(() => import('./pages/WorkLibrary'));
+const Applications = lazy(() => import('./pages/Applications'));
+const External = lazy(() => import('./pages/External'));
+const Regulations = lazy(() => import('./pages/Regulations'));
+const RegulationDetail = lazy(() => import('./pages/RegulationDetail'));
 
 // The standalone role page was retired (it repeated the Organization role
 // panel) — old /roles/:id links open that panel instead (now at /organization,
@@ -86,6 +90,9 @@ export default function App() {
     <CompanyProvider>
     <BreadcrumbProvider>
     <Layout>
+      {/* Single Suspense boundary for all lazy routes — an empty div keeps the
+          shell steady (no spinner flash) while a page chunk loads. */}
+      <Suspense fallback={<div />}>
       <Routes>
         {/* Home IS the executive dashboard — the application landing. */}
         <Route path="/" element={<Overview />} />
@@ -151,6 +158,7 @@ export default function App() {
         <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </Layout>
     </BreadcrumbProvider>
     </CompanyProvider>
