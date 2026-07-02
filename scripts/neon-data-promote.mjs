@@ -90,3 +90,17 @@ const result = await api(`/projects/${PROJECT}/branches/${target.id}/restore`, {
 });
 console.log(`Restore accepted. Previous ${targetName} state preserved as "${backupName}".`);
 console.log(JSON.stringify(result.branch ? { restored: result.branch.name, backup: backupName } : result));
+
+// ── Backup rotation: keep exactly ONE backup per target ──
+// The new backup above is the safety net for THIS promotion; older
+// backup/<target>-* branches are now superseded and pruned. A prune failure
+// (e.g. lineage children) must not fail the promotion — warn and continue.
+const stale = branches.filter((b) => b.name.startsWith(`backup/${targetName}-`) && b.name !== backupName);
+for (const b of stale) {
+  try {
+    await api(`/projects/${PROJECT}/branches/${b.id}`, { method: 'DELETE' });
+    console.log(`Pruned superseded backup "${b.name}" (${b.id}).`);
+  } catch (err) {
+    console.warn(`Could not prune old backup "${b.name}": ${err.message} — leaving it in place.`);
+  }
+}
