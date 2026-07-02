@@ -25,7 +25,8 @@ const HOME: Crumb = { to: '/', label: 'Home' };
 // tab). Kept in sync with the Layout nav.
 const TABS: Crumb[] = [
   { to: '/overview', label: 'Value Streams' },
-  { to: '/roles', label: 'Organization' },
+  { to: '/roles', label: 'Roles' },
+  { to: '/organization', label: 'Organization' },
   { to: '/standards', label: 'Standards' },
   { to: '/regulations', label: 'Regulations' },
   { to: '/metrics', label: 'Metrics' },
@@ -44,7 +45,8 @@ const pathOf = (to: string) => to.split('?')[0];
 // trail starts fresh (e.g. on a deep link) so the breadcrumb is always rooted.
 // Portfolio drill-downs (/programs, /initiatives, /raid) belong to Home.
 const TAB_PREFIXES: [string, string][] = [
-  ['/roles', '/roles'], ['/divisions', '/roles'], ['/departments', '/roles'],
+  ['/organization', '/organization'], ['/divisions', '/organization'], ['/departments', '/organization'],
+  ['/roles', '/roles'],
   ['/value-streams', '/overview'], ['/overview', '/overview'], ['/n/', '/overview'],
   ['/standards', '/standards'], ['/regulations', '/regulations'], ['/metrics', '/metrics'],
   ['/portfolio', '/portfolio'], ['/deliverables', '/deliverables'], ['/tasks', '/tasks'],

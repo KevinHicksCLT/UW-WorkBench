@@ -17,7 +17,8 @@ type IndexItem = { id: string; name: string; valueStreams?: number; roles?: numb
 // keyed path (withCompany), or the cache key won't match. Returns null to skip.
 const PREFETCH: Record<string, (companyId: string | null) => string | null> = {
   '/overview':     () => '/explorer/tree',
-  '/roles':        () => '/explorer/org-table',
+  '/roles':        () => '/roles',
+  '/organization': () => '/explorer/org-table',
   '/standards':    () => '/explorer/standards-flat',
   '/applications': () => '/applications',
   '/external':     () => '/external-interactions',
@@ -35,7 +36,8 @@ export default function Layout({ children }: { children: ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [domains, setDomains] = useState<IndexItem[]>([]);
   const [divisions, setDivisions] = useState<IndexItem[]>([]);
-  const isExplorer = location.pathname.startsWith('/overview') || location.pathname.startsWith('/n/') || location.pathname === '/roles';
+  const isExplorer = location.pathname.startsWith('/overview') || location.pathname.startsWith('/n/')
+    || location.pathname === '/roles' || location.pathname === '/organization';
 
   useEffect(() => { setMobileMenuOpen(false); }, [location.pathname]);
   useEffect(() => {
@@ -214,13 +216,15 @@ export default function Layout({ children }: { children: ReactNode }) {
         >
           <NavLink to="/">Home</NavLink>
           <NavLink to="/overview">Value Streams</NavLink>
-          <NavLink to="/roles">Organization</NavLink>
+          <NavLink to="/roles">Roles</NavLink>
+          <NavLink to="/organization">Organization</NavLink>
           <NavLink to="/standards">Standards</NavLink>
           <NavLink to="/regulations">Regulations</NavLink>
           <NavLink to="/metrics">Metrics</NavLink>
           <NavLink to="/portfolio">Workspace</NavLink>
           <NavLink to="/deliverables">Deliverables</NavLink>
           <NavLink to="/tasks">Tasks</NavLink>
+          <NavLink to="/work-library">Work Library</NavLink>
           <NavLink to="/automatable">Automatable</NavLink>
           <NavLink to="/applications">Applications</NavLink>
           <NavLink to="/external">Third-Parties</NavLink>
@@ -281,6 +285,12 @@ export default function Layout({ children }: { children: ReactNode }) {
                 onClick={() => go('/roles')}
                 className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/roles') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
               >
+                Roles
+              </button>
+              <button
+                onClick={() => go('/organization')}
+                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/organization') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
+              >
                 Organization
               </button>
               <button
@@ -318,6 +328,12 @@ export default function Layout({ children }: { children: ReactNode }) {
                 className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/tasks') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
               >
                 Tasks
+              </button>
+              <button
+                onClick={() => go('/work-library')}
+                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/work-library') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
+              >
+                Work Library
               </button>
               <button
                 onClick={() => go('/automatable')}

@@ -68,7 +68,7 @@ export default function ValueStreamDrawer({ valueStreamId, onClose }: { valueStr
                 ) : (
                   <div className="flex flex-wrap gap-1.5">
                     {roles.map((r, i) => (
-                      <Link key={`${r.roleId}-${i}`} to={`/roles?role=${r.roleId}`} className="inline-flex items-center gap-1.5 rounded-md border border-[#eaeaea] bg-[#fafafa] px-2 py-1 hover:border-[#d4d4d4] transition-colors duration-150">
+                      <Link key={`${r.roleId}-${i}`} to={`/organization?role=${r.roleId}`} className="inline-flex items-center gap-1.5 rounded-md border border-[#eaeaea] bg-[#fafafa] px-2 py-1 hover:border-[#d4d4d4] transition-colors duration-150">
                         <span className="text-xs text-[#171717]">{r.roleName}</span>
                         <span className={`${PART_CLASS[r.participationType] ?? 'chip-soft'} flex-shrink-0`}>{r.participationType}</span>
                       </Link>

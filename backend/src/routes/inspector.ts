@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { processSubtree, streamAncestry, rolesForNodes, appsForNodes } from '../lib/resolvers/index.js';
+import { taskPlans, subtreePlanRollup } from '../lib/workPlan.js';
+import { subtreeStandards, subtreeRegulations } from '../lib/govRollup.js';
 import { logAudit } from '../services/audit.js';
 
 // Value-Streams Inspector (Sidebar-Rework-v2) — the unified read + CRUD surface
@@ -118,6 +120,7 @@ router.get('/:nodeId', async (req: Request, res: Response, next: NextFunction) =
       tasks: detail ? 1 : taskIds.length,
       checklist: new Set(checkLinks.map((c) => c.checklistItem.id)).size,
       testing: new Set(testingRows.map((t) => t.id)).size,
+      standards: 0, regulations: 0, // set below once governing links resolve
     };
 
     // Automation rollup (mirrors the Automatable page): each task's 1-5 score from
@@ -209,6 +212,22 @@ router.get('/:nodeId', async (req: Request, res: Response, next: NextFunction) =
       testing = testingRows.map((t) => ({ id: t.id, system: t.system, location: t.location, checkType: t.checkType, expected: t.expected }));
     }
 
+    // Work Library plan surfacing: detail = the task's full plan (checklist/
+    // testing key rows + tied standards/regs steps, ✓ defined / ✗ missing);
+    // rollup = defined/total counts across the subtree's tasks.
+    let plan: any = null;
+    let planRollup: any = null;
+    if (detail) {
+      plan = (await taskPlans([node.id], { includeTied: true })).get(node.id) ?? null;
+      counts.checklist = plan?.checklist.length ?? 0;
+      counts.testing = plan?.testing.length ?? 0;
+    } else if (taskIds.length) {
+      // One aggregate SQL round trip — never loads each task's full plan.
+      const r = await subtreePlanRollup(node.id);
+      planRollup = { tasks: taskIds.length, tasksWithPlan: r.tasksWithPlan, defined: r.defined, total: r.total };
+      counts.checklist = r.checklistKeys; counts.testing = r.testingKeys;
+    }
+
     // Breadcrumb (ancestors top→down) + domain (topmost ancestor) for the accent.
     const ancEdges = await prisma.processNodeClosure.findMany({
       where: { descendantId: node.id, depth: { gt: 0 } },
@@ -229,6 +248,17 @@ router.get('/:nodeId', async (req: Request, res: Response, next: NextFunction) =
       const ancLevels = await prisma.processNode.findMany({ where: { id: { in: ancNodes.map((n) => n.id) } }, select: { id: true, processLevelType: { select: { levelNumber: true } } } });
       valueStreamId = ancLevels.find((a) => a.processLevelType.levelNumber === 2)?.id ?? null;
     }
+
+    // Standards + regulations governing this node: those attached to its L2/L3
+    // process ancestors (value stream + area) plus the node itself when it is an
+    // L2/L3 container — the same inheritance the Tasks list surfaces on a leaf.
+    // Standards/regs live on TASK nodes only; any level (a task itself or a
+    // container) rolls up the distinct set across its subtree's tasks.
+    const [stdRows, regRows] = await Promise.all([subtreeStandards(node.id), subtreeRegulations(node.id)]);
+    const standards = stdRows.map((r) => ({ standardId: r.standardId, name: r.name }));
+    const regulations = regRows.map((r) => ({ regId: r.regId, title: r.title }));
+    counts.standards = standards.length;
+    counts.regulations = regulations.length;
 
     // Drill children (the Tasks tab list at a container; siblings-context at a leaf).
     const children = await prisma.processNode.findMany({
@@ -288,6 +318,10 @@ router.get('/:nodeId', async (req: Request, res: Response, next: NextFunction) =
       deliverables,
       checklist,
       testing,
+      plan,
+      planRollup,
+      standards,
+      regulations,
       children: children.map((c) => ({ id: c.id, name: c.displayValue, isTask: c.isTask })),
     });
   } catch (e) { next(e); }
@@ -322,24 +356,14 @@ router.get('/:nodeId/chain', async (req: Request, res: Response, next: NextFunct
     const taskNodeIds = [...new Set(delivLinks.map((l) => l.processNodeId).filter((id) => isTaskSet.has(id) || detail))];
     const deliverableIds = [...new Set(delivLinks.map((l) => l.deliverable.id))];
 
-    const [checkLinks, testingRows, roleEntries, appEntries] = await Promise.all([
-      taskNodeIds.length
-        ? prisma.nodeChecklist.findMany({ where: { processNodeId: { in: taskNodeIds } }, select: { processNodeId: true, checklistItem: { select: { id: true, text: true, checklist: { select: { name: true } } } } } })
-        : Promise.resolve([]),
-      prisma.testingTemplate.findMany({
-        where: { OR: [{ taskNodeId: { in: taskNodeIds.length ? taskNodeIds : ['_'] } }, { deliverableId: { in: deliverableIds } }] },
-        select: { id: true, deliverableId: true, taskNodeId: true, system: true, location: true, checkType: true, expected: true },
-      }),
+    // Work Library plans drive the checklist/testing content of each task card
+    // (✓ defined value / ✗ missing key), including tied standard/reg steps.
+    const [plans, roleEntries, appEntries] = await Promise.all([
+      taskPlans(taskNodeIds, { includeTied: true }),
       rolesForNodes(taskNodeIds),
       appsForNodes(taskNodeIds),
     ]);
 
-    const checkByNode = new Map<string, { id: string; text: string; group: string | null }[]>();
-    for (const c of checkLinks) {
-      const list = checkByNode.get(c.processNodeId) ?? [];
-      if (!list.some((x) => x.id === c.checklistItem.id)) list.push({ id: c.checklistItem.id, text: c.checklistItem.text, group: c.checklistItem.checklist?.name ?? null });
-      checkByNode.set(c.processNodeId, list);
-    }
     const rolesForTask = (nodeId: string) => {
       const seen = new Map<string, { roleId: string; name: string; relation: string }>();
       for (const e of roleEntries.get(nodeId) ?? []) {
@@ -356,7 +380,6 @@ router.get('/:nodeId/chain', async (req: Request, res: Response, next: NextFunct
       }
       return [...seen.values()].map((e) => ({ appId: e.appId, name: e.name, usageType: [...e.types].join(' · ') })).sort((a, b) => a.name.localeCompare(b.name));
     };
-    const testShape = (r: typeof testingRows[number]) => ({ id: r.id, system: r.system, location: r.location, checkType: r.checkType, expected: r.expected });
 
     // Group links by deliverable; tasks = the (task) nodes producing it.
     const byDeliv = new Map<string, { title: string; linkId: string | null; taskIds: { nodeId: string; linkId: string }[] }>();
@@ -368,16 +391,26 @@ router.get('/:nodeId/chain', async (req: Request, res: Response, next: NextFunct
     }
 
     const chain = [...byDeliv.entries()].map(([deliverableId, d]) => {
-      const tasks = d.taskIds.map(({ nodeId }) => ({
-        taskId: nodeId,
-        name: nameById.get(nodeId) ?? '—',
-        roles: rolesForTask(nodeId),
-        applications: appsForTask(nodeId),
-        checklist: checkByNode.get(nodeId) ?? [],
-        testing: testingRows.filter((r) => r.taskNodeId === nodeId).map(testShape),
-      }));
-      const deliverableTesting = testingRows.filter((r) => r.deliverableId === deliverableId && !r.taskNodeId).map(testShape);
-      return { deliverableId, title: d.title, linkId: d.linkId, tasks, testing: deliverableTesting };
+      const tasks = d.taskIds.map(({ nodeId }) => {
+        const p = plans.get(nodeId);
+        return {
+          taskId: nodeId,
+          name: nameById.get(nodeId) ?? '—',
+          roles: rolesForTask(nodeId),
+          applications: appsForTask(nodeId),
+          checklist: p?.checklist ?? [],
+          testing: p?.testing ?? [],
+          standards: p?.standards ?? [],
+          regulations: p?.regulations ?? [],
+        };
+      });
+      // Deliverable roll-up = verified/total across its tasks' plan rows.
+      let defined = 0; let total = 0;
+      for (const { nodeId } of d.taskIds) {
+        const p = plans.get(nodeId);
+        if (p) { defined += p.defined; total += p.total; }
+      }
+      return { deliverableId, title: d.title, linkId: d.linkId, tasks, rollup: { defined, total } };
     }).sort((a, b) => a.title.localeCompare(b.title));
 
     res.json({ chain });

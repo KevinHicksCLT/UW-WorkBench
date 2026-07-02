@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { prisma } from '../db/prisma.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { logAudit, computeDiff } from '../services/audit.js';
+import { vsForRegulations } from '../lib/govRollup.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -33,24 +34,33 @@ const str = (v: unknown) => (typeof v === 'string' && v ? v : undefined);
 // Multi-select filters arrive as comma-separated values.
 const list = (v: unknown) => (typeof v === 'string' && v ? v.split(',').map((s) => s.trim()).filter(Boolean) : undefined);
 
-// erd_v5: requirement ↔ value-stream is NodeRegulation (processNodeId → ProcessNode).
-// The frontend still consumes `valueStreamLinks[]` as { valueStreamId, valueStream:
-// { id, name }, relationship, notes }, so we include the node regulations and alias
-// them through the ProcessNode displayValue.
-const NODE_REG_INCLUDE = { nodeRegulations: { include: { processNode: { select: { id: true, displayValue: true } } } } } as const;
+// erd_v5: requirement ↔ value-stream is NodeRegulation — and those rows now
+// attach to TASK nodes only (single source of truth at the atomic grain). The
+// `valueStreamLinks[]` the frontend consumes are a ROLLUP of the linked tasks'
+// L2 ancestors (vsForRegulations / govRollup.ts); link ids are synthetic
+// `${regId}:${vsId}` because the underlying rows live per task.
+// erd_v5: reg ↔ role is RoleRegulation (Owner|Contributor), carried alongside.
+const NODE_REG_INCLUDE = {
+  roleRegulations: { include: { role: { select: { id: true, displayValue: true } } } },
+} as const;
 
-type NodeRegRow = { id: string; processNodeId: string; relationship: string; notes: string | null; processNode: { id: string; displayValue: string } };
-function withValueStreamLinks<T extends { nodeRegulations: NodeRegRow[] }>(r: T) {
-  const { nodeRegulations, ...rest } = r;
+type RoleRegRow = { id: string; roleId: string; role_: string; role: { id: string; displayValue: string } };
+type VsRollup = Map<string, { id: string; name: string; domain: string | null }[]>;
+function withValueStreamLinks<T extends { id: string; roleRegulations: RoleRegRow[] }>(r: T, vsMap: VsRollup) {
+  const { roleRegulations, ...rest } = r;
+  const owner = roleRegulations.find((x) => x.role_ === 'Owner');
+  const contributors = roleRegulations.filter((x) => x.role_ === 'Contributor');
   return {
     ...rest,
-    valueStreamLinks: nodeRegulations.map((n) => ({
-      id: n.id,
-      valueStreamId: n.processNodeId,
-      relationship: n.relationship,
-      notes: n.notes,
-      valueStream: { id: n.processNode.id, name: n.processNode.displayValue },
+    valueStreamLinks: (vsMap.get(r.id) ?? []).map((vs) => ({
+      id: `${r.id}:${vs.id}`,
+      valueStreamId: vs.id,
+      relationship: 'GOVERNS',
+      notes: null,
+      valueStream: { id: vs.id, name: vs.name },
     })),
+    owner: owner ? { id: owner.role.id, name: owner.role.displayValue } : null,
+    contributors: contributors.map((c) => ({ id: c.role.id, name: c.role.displayValue })),
   };
 }
 
@@ -136,7 +146,7 @@ router.get('/jurisdictions', async (req: Request, res: Response, next: NextFunct
         autoVerification: true, autoVerificationDetail: true,
         workersCompModel: true, workersCompDetail: true, apcd: true, sbs: true,
         priorityTier: true, profileDepth: true, lastReviewedAt: true, lastVerifiedAt: true, updatedAt: true,
-        _count: { select: { requirements: true, bulletins: true, rules: true, integrations: true, sources: true } },
+        _count: { select: { requirements: { where: { status: 'ACTIVE' } }, bulletins: true, rules: true, integrations: true, sources: true } },
       },
     });
     res.json(rows);
@@ -153,6 +163,7 @@ router.get('/jurisdictions/:idOrCode', async (req: Request, res: Response, next:
       where: { companyId, OR: [{ id: p }, { code: p.toUpperCase() }] },
       include: {
         requirements: {
+          where: { status: 'ACTIVE' },
           orderBy: [{ category: 'asc' }, { title: 'asc' }],
           include: NODE_REG_INCLUDE,
         },
@@ -163,7 +174,8 @@ router.get('/jurisdictions/:idOrCode', async (req: Request, res: Response, next:
       },
     });
     if (!jur) return res.status(404).json({ error: 'Not found' });
-    res.json({ ...jur, requirements: jur.requirements.map(withValueStreamLinks) });
+    const vsMap = await vsForRegulations(jur.requirements.map((r) => r.id));
+    res.json({ ...jur, requirements: jur.requirements.map((r) => withValueStreamLinks(r, vsMap)) });
   } catch (e) { next(e); }
 });
 
@@ -190,12 +202,13 @@ router.get('/federal', async (req: Request, res: Response, next: NextFunction) =
           orderBy: [{ category: 'asc' }, { title: 'asc' }],
           select: {
             id: true, title: true, category: true, requirement: true, citation: true, citationUrl: true,
-            obligationType: true, lineOfBusiness: true, confidence: true,
+            obligationType: true, lineOfBusiness: true, confidence: true, regime: true,
             ...NODE_REG_INCLUDE,
           },
         },
       },
     });
+    const vsMap = await vsForRegulations(rows.flatMap((j) => j.requirements.map((r) => r.id)));
     const byCountry = new Map<string, { country: string; countryCode: string; regulators: unknown[] }>();
     for (const j of rows) {
       const g = FEDERAL_GROUP[j.regulatorType] ?? { country: 'Other', countryCode: 'XX', level: 'National' };
@@ -204,7 +217,7 @@ router.get('/federal', async (req: Request, res: Response, next: NextFunction) =
         id: j.id, code: j.code, name: j.name, regulatorName: j.regulatorName,
         regulatorWebsite: j.regulatorWebsite, level: g.level, summary: j.summaryRegulator,
         lastVerifiedAt: j.lastVerifiedAt, updatedAt: j.updatedAt,
-        requirements: j.requirements.map(withValueStreamLinks),
+        requirements: j.requirements.map((r) => withValueStreamLinks(r, vsMap)),
       });
     }
     res.json({ groups: [...byCountry.values()] });
@@ -233,12 +246,13 @@ router.get('/international', async (req: Request, res: Response, next: NextFunct
           orderBy: [{ category: 'asc' }, { title: 'asc' }],
           select: {
             id: true, title: true, category: true, requirement: true, citation: true, citationUrl: true,
-            obligationType: true, lineOfBusiness: true, confidence: true, agentSkill: true,
+            obligationType: true, lineOfBusiness: true, confidence: true, agentSkill: true, regime: true,
             ...NODE_REG_INCLUDE,
           },
         },
       },
     });
+    const vsMap = await vsForRegulations(rows.flatMap((j) => j.requirements.map((r) => r.id)));
     const byRegion = new Map<string, { country: string; countryCode: string; regulators: unknown[] }>();
     for (const j of rows) {
       const g = INTERNATIONAL_GROUP[j.regulatorType] ?? { region: 'Other', regionCode: 'XX', level: 'International' };
@@ -247,7 +261,7 @@ router.get('/international', async (req: Request, res: Response, next: NextFunct
         id: j.id, code: j.code, name: j.name, regulatorName: j.regulatorName,
         regulatorWebsite: j.regulatorWebsite, level: g.level, summary: j.summaryRegulator,
         lastVerifiedAt: j.lastVerifiedAt, updatedAt: j.updatedAt,
-        requirements: j.requirements.map(withValueStreamLinks),
+        requirements: j.requirements.map((r) => withValueStreamLinks(r, vsMap)),
       });
     }
     res.json({ groups: [...byRegion.values()] });
@@ -268,7 +282,8 @@ router.get('/requirements', async (req: Request, res: Response, next: NextFuncti
     if (!where.status) where.status = 'ACTIVE';
     const states = list(q.state);
     if (states) where.jurisdiction = { code: { in: states.map((s) => s.toUpperCase()) } };
-    if (str(q.valueStreamId)) where.nodeRegulations = { some: { processNodeId: String(q.valueStreamId) } };
+    // Rows live on tasks; "in this value stream" = any linked task under the VS.
+    if (str(q.valueStreamId)) where.nodeRegulations = { some: { processNode: { descendantEdges: { some: { ancestorId: String(q.valueStreamId) } } } } };
     if (q.unmapped === '1') where.nodeRegulations = { none: {} };
     if (str(q.search)) {
       where.OR = [
@@ -287,7 +302,8 @@ router.get('/requirements', async (req: Request, res: Response, next: NextFuncti
         ...NODE_REG_INCLUDE,
       },
     });
-    res.json(rows.map(withValueStreamLinks));
+    const vsMap = await vsForRegulations(rows.map((r) => r.id));
+    res.json(rows.map((r) => withValueStreamLinks(r, vsMap)));
   } catch (e) { next(e); }
 });
 
@@ -304,6 +320,7 @@ const requirementSchema = z.object({
   status: z.string().optional(),
   effectiveDate: z.string().nullable().optional(),
   confidence: z.string().optional(),
+  regime: z.string().nullable().optional(),
   sourceNote: z.string().nullable().optional(),
 });
 
@@ -333,7 +350,7 @@ router.post('/requirements', requireRole('ADMIN', 'MANAGER'), async (req: Reques
   } catch (e) { next(e); }
 });
 
-const EDITABLE = ['category', 'title', 'requirement', 'lineOfBusiness', 'citation', 'citationUrl', 'obligationType', 'frequency', 'status', 'effectiveDate', 'confidence', 'sourceNote'] as const;
+const EDITABLE = ['category', 'title', 'requirement', 'lineOfBusiness', 'citation', 'citationUrl', 'obligationType', 'frequency', 'status', 'effectiveDate', 'confidence', 'regime', 'sourceNote'] as const;
 
 router.patch('/requirements/:id', requireRole('ADMIN', 'MANAGER'), async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -374,29 +391,69 @@ router.put('/requirements/:id/value-streams', requireRole('ADMIN', 'MANAGER'), a
     const { links } = linksSchema.parse(req.body);
     // Validate every target value-stream NODE belongs to the company before writing.
     const ids = [...new Set(links.map((l) => l.valueStreamId))];
-    const owned = await prisma.processNode.count({ where: { id: { in: ids }, companyId } });
-    if (owned !== ids.length) return res.status(404).json({ error: 'Value stream not found' });
-    const result = await prisma.$transaction(async (tx) => {
+    const owned = await prisma.processNode.findMany({ where: { id: { in: ids }, companyId }, select: { id: true, displayValue: true } });
+    if (owned.length !== ids.length) return res.status(404).json({ error: 'Value stream not found' });
+    // Rows live on TASK nodes (single source of truth at the atomic grain):
+    // linking a value stream materializes the regulation onto every task under
+    // it; unlinking removes the task rows. Higher-level views roll back up.
+    await prisma.$transaction(async (tx) => {
       await tx.nodeRegulation.deleteMany({ where: { regId: requirement.id } });
       for (const l of links) {
-        await tx.nodeRegulation.create({
-          data: { companyId: requirement.companyId, regId: requirement.id, processNodeId: l.valueStreamId, relationship: l.relationship, notes: l.notes ?? null },
-        });
+        await tx.$executeRawUnsafe(
+          `INSERT INTO public."NodeRegulation" (id, "companyId", "processNodeId", "regId", relationship, notes, "excluded")
+           SELECT gen_random_uuid()::text, $1, c."descendantId", $2, $3, $4, false
+           FROM public."ProcessNodeClosure" c
+           JOIN public."ProcessNode" t ON t.id = c."descendantId" AND t."isTask"
+           WHERE c."ancestorId" = $5
+           ON CONFLICT ("processNodeId", "regId") DO NOTHING`,
+          requirement.companyId, requirement.id, l.relationship, l.notes ?? null, l.valueStreamId
+        );
       }
-      return tx.nodeRegulation.findMany({
-        where: { regId: requirement.id },
-        include: { processNode: { select: { id: true, displayValue: true } } },
-      });
     });
     logAudit({
       tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'regulatoryRequirement', entityId: requirement.id, action: 'SET_VALUE_STREAMS',
       diff: { links: links.map((l) => ({ valueStreamId: l.valueStreamId, relationship: l.relationship })) },
     });
-    // Return the link rows in the frontend's valueStreamLinks shape.
-    res.json(result.map((n) => ({
-      id: n.id, valueStreamId: n.processNodeId, relationship: n.relationship, notes: n.notes,
-      valueStream: { id: n.processNode.id, name: n.processNode.displayValue },
+    // Return the rollup shape the frontend consumes (synthetic per-VS link ids).
+    const nameById = new Map(owned.map((n) => [n.id, n.displayValue]));
+    res.json(links.map((l) => ({
+      id: `${requirement.id}:${l.valueStreamId}`, valueStreamId: l.valueStreamId, relationship: l.relationship, notes: l.notes ?? null,
+      valueStream: { id: l.valueStreamId, name: nameById.get(l.valueStreamId) ?? '—' },
     })));
+  } catch (e) { next(e); }
+});
+
+// Replace a requirement's owner + contributor role set (RoleRegulation).
+const rolesSchema = z.object({
+  ownerRoleId: z.string().min(1).nullable().optional(),
+  contributorRoleIds: z.array(z.string().min(1)).default([]),
+});
+
+router.put('/requirements/:id/roles', requireRole('ADMIN', 'MANAGER'), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const companyId = await activeCompanyId(req, res);
+    if (!companyId) return;
+    const requirement = await prisma.regulatoryRequirement.findFirst({ where: { id: req.params.id, companyId }, select: { id: true } });
+    if (!requirement) return res.status(404).json({ error: 'Not found' });
+    const { ownerRoleId, contributorRoleIds } = rolesSchema.parse(req.body);
+    // Owner is never also a contributor.
+    const contribIds = [...new Set(contributorRoleIds)].filter((id) => id !== ownerRoleId);
+    const roleIds = [...new Set([...(ownerRoleId ? [ownerRoleId] : []), ...contribIds])];
+    if (roleIds.length) {
+      const owned = await prisma.role.count({ where: { id: { in: roleIds }, companyId } });
+      if (owned !== roleIds.length) return res.status(404).json({ error: 'Role not found' });
+    }
+    const result = await prisma.$transaction(async (tx) => {
+      await tx.roleRegulation.deleteMany({ where: { regId: requirement.id } });
+      if (ownerRoleId) await tx.roleRegulation.create({ data: { companyId, regId: requirement.id, roleId: ownerRoleId, role_: 'Owner' } });
+      for (const roleId of contribIds) await tx.roleRegulation.create({ data: { companyId, regId: requirement.id, roleId, role_: 'Contributor' } });
+      return tx.roleRegulation.findMany({ where: { regId: requirement.id }, include: { role: { select: { id: true, displayValue: true } } } });
+    });
+    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'regulatoryRequirement', entityId: requirement.id, action: 'SET_ROLES', diff: { ownerRoleId, contributorRoleIds: contribIds } });
+    res.json({
+      owner: result.filter((r) => r.role_ === 'Owner').map((r) => ({ id: r.role.id, name: r.role.displayValue }))[0] ?? null,
+      contributors: result.filter((r) => r.role_ === 'Contributor').map((r) => ({ id: r.role.id, name: r.role.displayValue })),
+    });
   } catch (e) { next(e); }
 });
 

@@ -1,0 +1,275 @@
+{
+ "tasks": [
+  {
+   "id": "f6e89fe9-80c8-495a-8782-2ed7ca829f37",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All third-party/partner integration endpoints registered in the API gateway (Azure API Management) for ABC Insurance production and non-prod, plus all outbound connections defined in the source repo's integration config; scope = every partner endpoint with an active connection agreement (reinsurers, bureaus, payment processors, Guidewire cloud interfaces)." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current release cycle plus the trailing 90 days of connection-health telemetry; re-verified each release and on any partner certificate rotation." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "cmqsck0z203zhmbk8cuyn6zhs" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "4a7ec7f0-644e-4943-9829-914696d87ba1" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Every partner connection record carries endpoint URL, mTLS/API-key credential reference (from vault, never inline), owning team, SLA tier, and IP allowlist; connections missing any field are blocked from promotion by the pipeline policy gate." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of configured connections in Azure API Management reconciles 1:1 with active partner agreements in the CLM repository and CMDB CI records; variance must be 0 or an open Jira 'INT-Recon' ticket explains each delta." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Connection config exported and committed to the source repo with git SHA and ISO-8601 timestamp; gateway change record retained in ITSM (ServiceNow/Jira) change ticket for 3 years per audit-trail policy." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Failed handshakes, cert-expiry warnings, and rate-limit breaches raised as ITSM incidents tagged 'partner-connectivity'; disposition (fixed / accepted-risk / partner-side) recorded on the ticket within the SLA for its severity." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqz5zmje000j53crnex67qo4" }
+   ],
+   "standards": [
+    { "standardId": "cmqscp70y1nbqmbk8jlmb3b87", "checklist": [ { "step": "Issue partner API keys via Azure API Management subscriptions", "value": "Each partner has a dedicated APIM subscription key scoped to its product; keys stored in Key Vault, rotated every 90 days, never embedded in client config." } ], "testing": [ { "step": "Verify no shared or hard-coded keys", "value": "Grep repo + APIM export shows 0 inline keys; every partner maps to exactly one active subscription; deactivated partners have revoked keys." } ] },
+    { "standardId": "cmqscp7381nbumbk8769dvsyj", "checklist": [ { "step": "Notify consumers before breaking changes", "value": "Any contract change to a partner endpoint triggers a versioned deprecation notice ≥30 days ahead, logged in the CLM repository and emailed to the partner technical contact." } ], "testing": [ { "step": "Confirm notification trail", "value": "For each interface changed this release, a deprecation notice with date and recipient exists; 0 breaking changes shipped without a prior notice record." } ] },
+    { "standardId": "cmqscp6e01nammbk8u3kkbgln", "checklist": [ { "step": "Contract tests per partner API", "value": "Pact/OpenAPI contract tests run in CI for every partner integration; provider and consumer contracts stored in the repo under /contracts." } ], "testing": [ { "step": "Contract suite green in CI", "value": "CI 'contract-tests' stage passes 100% for all partner endpoints; a failing contract blocks merge to develop." } ] },
+    { "standardId": "cmqscp6301na4mbk8rvf3wosu", "checklist": [ { "step": "Trace partner calls end-to-end", "value": "W3C traceparent correlation IDs propagated through APIM to backend; traces visible in Azure Monitor/Dynatrace for every partner transaction." } ], "testing": [ { "step": "Sample-trace verification", "value": "Pull 10 recent partner transactions; each shows an unbroken distributed trace from gateway to backend with latency per hop." } ] }
+   ],
+   "regulations": [
+    { "regId": "cmqwos2hu008nd29hdiqyhoyx", "checklist": [ { "step": "Apply third-party security policy to each partner connection", "value": "Every partner endpoint has a completed vendor security assessment on file and mTLS + IP allowlisting enforced at the gateway before go-live." } ], "testing": [ { "step": "Verify TPSP controls", "value": "For each active partner, an approved security assessment exists and the connection enforces mTLS; 0 partners connected without an assessment." } ] },
+    { "regId": "cmqworzyb0061d29hwdcw1z6p", "checklist": [ { "step": "Least-privilege on partner credentials", "value": "Partner API scopes grant only the specific operations in the agreement; access reviewed quarterly and revoked on offboarding." } ], "testing": [ { "step": "Quarterly access review evidence", "value": "Latest quarterly APIM subscription review is signed by the IAM Engineer; any over-scoped key has a remediation ticket." } ] }
+   ]
+  },
+  {
+   "id": "3c35b44d-a684-4724-a834-98284ef7b98d",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All public and internal API/interface reference docs for services shipping in this release; scope = every REST/event endpoint with a versioned OpenAPI/AsyncAPI spec in the source repo, plus SDK/interface guides in Confluence." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current release version; docs regenerated on every merge to develop and validated in the release-candidate build before go-live." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Every documented endpoint lists method, path, auth scheme, request/response schema, error codes, and at least one worked example; the OpenAPI linter (Spectral) reports 0 errors and 0 missing-description warnings." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of endpoints in the generated spec equals the count of routes registered in code (automated diff in CI); any drift fails the 'docs-sync' pipeline stage." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Published doc bundle tagged with the release version and git SHA, retained in Confluence with page history; superseded versions archived, not deleted." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Undocumented or mismatched endpoints logged as Jira 'DOC-Gap' tickets with owner = Software Engineer and a fix-by-release-cut SLA." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" }
+   ],
+   "standards": [
+    { "standardId": "cmqscp5ut1n9qmbk8f7w0sm1w", "checklist": [ { "step": "Auto-generate OpenAPI spec from code annotations", "value": "OpenAPI 3.1 spec generated by the build from source annotations; hand-edited spec files are prohibited and rejected by the pipeline." } ], "testing": [ { "step": "Generated-vs-code equality", "value": "CI regenerates the spec and diffs against the committed copy; a non-empty diff fails the build." } ] },
+    { "standardId": "cmqscp7211nbsmbk8ounk1ia1", "checklist": [ { "step": "Docs sourced from code, not maintained by hand", "value": "Reference docs render from the generated spec via a docs pipeline; no parallel manually maintained endpoint list exists." } ], "testing": [ { "step": "Verify single source", "value": "Confirm the published reference site is built from the spec artifact of the release build; timestamp matches the release." } ] },
+    { "standardId": "cmqscp5r61n9kmbk8xcnz45ig", "checklist": [ { "step": "Provide runnable examples", "value": "Each endpoint includes a copy-paste curl example and a sample payload validated against its schema." } ], "testing": [ { "step": "Example validity", "value": "A CI check parses every example payload against its JSON schema; 0 invalid examples permitted." } ] },
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [ { "step": "Keep docs current with each release", "value": "Docs regenerate on every develop merge; the reference site footer shows the build version and generation timestamp." } ], "testing": [ { "step": "Freshness check", "value": "Published doc version equals the current release tag; no doc older than the latest release is served as current." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "a5cf98b5-c1ab-4de7-94a2-5d9ed378b73f",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The prioritized product backlog and the sprint commitment for the upcoming sprint in Jira; scope = all stories/enablers ranked above the sprint capacity line for the team's board." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The upcoming sprint (2-week cadence); sign-off captured at sprint planning before the sprint start date." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Every committed story has a priority rank, estimate, acceptance criteria, and 'Ready' status; stories missing any field cannot be pulled into the sprint per the board's DoR validation." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Sum of committed story points ≤ team's rolling 3-sprint average velocity; any over-commit flagged in the planning notes with Product Owner rationale." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Sprint commitment snapshot exported from Jira with sprint ID and timestamp, attached to the sprint's Confluence planning page; retained for the release." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Items descoped or contested during planning logged as Jira comments on the story with disposition (deferred / split / dropped) and decision owner." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2v88pn000nxa9irjv495b3", "value": "The Product Owner's sign-off recorded as a Jira sprint approval comment (or Jira Align commitment) with name, date/time, and the committed scope list." },
+    { "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb", "value": "Scrum team, Scrum Master, Tech Lead, and dependent teams' leads notified via the sprint planning summary posted to the team Confluence space and Teams channel." },
+    { "templateKeyId": "cmr2oap6g002flasb12gpqsrx", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oap7x002hlasb21lclhgc", "value": "All sprint items and their status-transition history in Jira for the committed sprint (typically 8-15 items)." },
+    { "templateKeyId": "cmr2oapa9002jlasbbht6cp5g", "value": "Pass = every committed item shows a Jira transition to 'Committed'/sprint-assigned with a timestamp before sprint start and a recorded PO approval; fail = any item lacking either." },
+    { "templateKeyId": "cmr2oapbz002llasbwuwwn4mb", "value": "Items assigned to the sprint without PO approval are removed or flagged with a Jira 'AGILE-Exception' ticket, owner = Scrum Master, resolved within 1 business day." },
+    { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2v89li0015xa9ia4hiukkb", "value": "Backlog sign-off authority documented in the team charter: Product Owner is sole approver of scope/priority; delegate (named backup PO) recorded in the charter and used only when PO is out." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Every committed item linked to a work item hierarchy", "value": "Each committed story links to its parent epic/feature in Jira; orphan stories are not eligible for the sprint." } ], "testing": [ { "step": "Traceability check", "value": "Query the sprint: 0 committed stories without a parent epic link." } ] },
+    { "standardId": "cmqscp5o31n9embk822qt2buu", "checklist": [ { "step": "Record significant scoping decisions", "value": "Material scope trade-offs at planning captured as a short ADR or decision log entry on the sprint planning page." } ], "testing": [ { "step": "Decision-record presence", "value": "Sprint planning page contains a decision log; each contested item has a recorded rationale." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "cmr2fkwyi1m3dkfgzhu57mwhz",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Engineering knowledge-coverage gaps across owned services; scope = every production service without a current runbook, README, or ADR set, and every critical component with a single knowledge owner (bus-factor = 1), sourced from the docs/quality tool and repo inventory." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current quarter; the coverage report is produced quarterly and covers the trailing quarter's changes." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "89cd2109-63ff-4bf7-a31c-14e6b68e7ed9" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Report lists each service with: has-README (Y/N), has-runbook (Y/N), ADR count, doc last-updated date, and knowledge-owner count; every row is fully populated from automated repo/docs scans, no blanks." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Service count in the report equals the count of active services in the CMDB/service catalog; a 0 variance is required or each missing service is listed as a data-quality note." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "The coverage report is published to the BI/reporting platform and archived to Confluence with quarter label and generation timestamp; retained for 4 quarters for trend comparison." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Each identified gap becomes a Jira 'DOC-Gap' backlog item with owning team and target quarter; gaps accepted as low-risk carry a documented rationale on the ticket." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oap6g002flasb12gpqsrx", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oap7x002hlasb21lclhgc", "value": "All active services in the service catalog for the reporting team(s) (typically 20-60 services)." },
+    { "templateKeyId": "cmr2oapa9002jlasbbht6cp5g", "value": "Pass = report delivered to engineering leadership before the quarter-close date with every service scored and each gap ticketed; fail = late delivery or any unscored service." },
+    { "templateKeyId": "cmr2oapbz002llasbwuwwn4mb", "value": "If a data source is unavailable at report time, the affected services are marked 'data-pending' and a follow-up is logged as a Jira 'KM-Exception' ticket, owner = Software Engineer, closed within 5 business days." },
+    { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2v89li0015xa9ia4hiukkb", "value": "Report is addressed to the Engineering Lead (Tech Lead / engineering manager); if unavailable, the delegate named in the team charter receives and acknowledges it." },
+    { "answerId": "cmr2ocdxk0ur0kaz3dyahm729", "value": "Acceptance = leadership acknowledges receipt (Confluence page comment or email reply) and each gap has an owner and target quarter; evidence stored on the quarterly KM Confluence page and the source report in the BI platform." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp5vv1n9smbk87l9mzurv", "checklist": [ { "step": "Measure README coverage", "value": "Report flags every repo whose README does not cover purpose, setup, run, test, and deploy; missing sections counted as gaps." } ], "testing": [ { "step": "README completeness scan", "value": "Automated check confirms each service README contains all five required sections; the report tallies non-conforming repos." } ] },
+    { "standardId": "cmqscp68b1nacmbk8boqyksun", "checklist": [ { "step": "Verify runbooks are linked", "value": "Every production service dashboard/alert links to a current runbook; services without a linked runbook are reported as gaps." } ], "testing": [ { "step": "Runbook-link audit", "value": "Report shows has-runbook status per service; a service with active alerts but no runbook is a fail row." } ] },
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [ { "step": "Flag stale documentation", "value": "Docs not updated within the last 2 quarters are marked stale in the coverage report." } ], "testing": [ { "step": "Freshness measurement", "value": "Report computes doc last-updated age per service; stale docs are counted and ticketed." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "39960b5e-c880-424e-9f6a-9baf80162703",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All defects raised against services in this release; scope = every bug in Jira with type 'Defect' from unit, integration, UAT, and production for the components in the release." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current release cycle plus any open defects carried over from prior releases; reviewed each sprint at defect triage." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Every defect has severity, priority, reproduction steps, environment, linked failing test/build, and assignee; defects missing severity or repro steps are returned to the reporter and cannot progress to 'In Progress'." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Open + closed defect counts reconcile against the CI test-failure log and QA test-run report; no defect exists without a source test/observation, and no failing test lacks a defect." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Defect closure evidence (fix commit SHA, passing re-test run, reviewer approval) attached to the Jira defect; history retained on the ticket with timestamps." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Defects dispositioned as won't-fix / duplicate / not-a-defect require a documented rationale and Tech Lead concurrence recorded on the ticket before closure." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xsmbk8m22e2kle" },
+    { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqsck0rq03wgmbk8l97vjt6e" },
+    { "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq", "value": "All defects targeted for this release (open and resolved), typically 15-80 tickets on the release board." },
+    { "templateKeyId": "cmr2oao03001jlasb1coy37l2", "value": "Pass = 0 open critical/high (P1/P2) defects at release cut; all medium (P3) defects have either a fix or an approved waiver; each closed defect has a passing verification re-test linked." },
+    { "templateKeyId": "cmr2oao16001llasbnlkf9nbu", "value": "A critical defect that cannot be fixed by release cut requires a Jira 'SDLC-Exception', owner = Engineering Manager, with a documented workaround and a 10-business-day remediation SLA." },
+    { "templateKeyId": "cmr2v88x1000rxa9if2t45ukx", "value": "A defect is 'Done' when the fix is merged via reviewed PR, all related automated tests pass in CI, and QA confirms the original reproduction no longer occurs in the test environment." },
+    { "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m", "value": "Defect records with fix SHA, re-test evidence, and reviewer sign-off live on the Jira defect ticket; release defect summary archived to the release Confluence page." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6cw1nakmbk8o95bp77w", "checklist": [ { "step": "Add a regression test for each defect", "value": "Every fixed defect includes a new automated test reproducing the bug, committed with the fix and named to reference the defect key." } ], "testing": [ { "step": "Regression-test presence", "value": "Sample 10 closed defects; each has a linked automated test in the repo; 0 fixes without a regression test." } ] },
+    { "standardId": "cmqscp6y21nbmmbk882oq68hf", "checklist": [ { "step": "Fixes land via reviewed PR", "value": "Defect fixes merge only through a pull request to develop/main with required approvals; no direct commits." } ], "testing": [ { "step": "PR-merge verification", "value": "Each closed defect's fix commit is reachable only via a merged, approved PR; 0 direct-to-main fixes." } ] },
+    { "standardId": "cmqscp5671n8embk8uhcmnqok", "checklist": [ { "step": "Resolve defects promptly", "value": "P1/P2 defects targeted within the current sprint; aging tracked on the defect dashboard." } ], "testing": [ { "step": "Aging check", "value": "Dashboard shows 0 P1/P2 defects open beyond two sprints without an approved waiver." } ] },
+    { "standardId": "cmqscoh7i1m24mbk8hmgrzh91", "checklist": [ { "step": "Enforce quality gate on open defects", "value": "Release pipeline gate blocks promotion while any open P1/P2 defect targets the release." } ], "testing": [ { "step": "Gate enforcement", "value": "Attempt a release with an open P1 defect fails the gate; log shows the block reason." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "89fc4624-f681-46ac-9a00-4c0993b739e7",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All pipeline DAG/workflow definitions for batch and event-driven jobs owned by the team; scope = every orchestrator DAG (Airflow/Azure Data Factory) with a schedule or trigger, stored as code in the source repo." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current release; schedule/SLA config validated in non-prod then applied to production for the active operating window." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0ro03tmmbk8ggz2wirh" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each DAG defines schedule (cron/event), retry policy, timeout, SLA, upstream/downstream dependencies, and on-failure alert target; DAGs missing an SLA or alert target fail the config-lint gate." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of active DAGs in the orchestrator matches the count of DAG definitions committed in the repo; drift fails the 'orchestration-sync' CI check." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "DAG config committed with git SHA and timestamp; the applied production change captured in an ITSM change ticket retained for 3 years." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Schedule conflicts, missed SLAs, and failed runs raised as ITSM incidents; disposition (rescheduled / backfilled / accepted) recorded within the incident's SLA." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "The scheduling/SLA design is versioned in the repo and approved via PR; the DAG framework version (e.g., Airflow 2.x) is pinned in requirements and recorded in the runbook." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "e3f0dab1-136a-4b10-89b4-5690c1d51009" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Sensitivity: a schedule change is flagged high-impact if the DAG feeds regulatory reporting or a downstream SLA; such changes require a dry-run in non-prod before apply." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Materiality: DAGs whose late/failed run affects >1 downstream consumer or a financial close are tagged 'tier-1' and monitored with a 15-minute alert threshold." },
+    { "templateKeyId": "cmr2oaqo3003rlasb1r26nwor", "roleId": "cmqsck0ro03tmmbk8ggz2wirh" },
+    { "templateKeyId": "cmr2oaqpd003tlasbyv59t5v5", "value": "All DAGs changed or created this release, validated in non-prod with representative trigger conditions (typically 3-15 DAGs)." },
+    { "templateKeyId": "cmr2oaqq9003vlasbyjg1pxll", "value": "Pass = each DAG fires on its defined schedule/trigger in non-prod, respects retry/timeout, and emits the SLA-breach alert on an injected delay; fail = any missed trigger or silent SLA breach." },
+    { "templateKeyId": "cmr2oaqrf003xlasb2mopahy1", "value": "A DAG failing validation is held from production; issue logged as a Jira 'SDLC-Exception', owner = Data Engineer, remediated within 5 business days before re-attempting promotion." },
+    { "templateKeyId": "cmr2oaqsp003zlasbtvvkt534", "value": "Validation covers the current release window; effective dates of any schedule change recorded in the change ticket." },
+    { "answerId": "cmr2ocdxu0v4ukaz3bnm8zn81", "value": "Acceptance = all release DAGs pass the non-prod trigger/SLA validation and config matches the repo; evidence = orchestrator run logs and CI 'orchestration-sync' report attached to the change ticket." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp3oz1n5mmbk8w0mgzz9i", "checklist": [ { "step": "Ensure DAGs are idempotent", "value": "Each scheduled task is safe to re-run for the same logical date without duplicating output; partition/merge keys enforce this." } ], "testing": [ { "step": "Re-run test", "value": "Re-run a completed DAG for the same execution date in non-prod; output row counts and checksums are unchanged." } ] },
+    { "standardId": "cmqscp3rz1n5smbk85axljifj", "checklist": [ { "step": "Configure monitoring and alerting per DAG", "value": "Every DAG has failure and SLA-miss alerts routed to the owning team's on-call channel." } ], "testing": [ { "step": "Alert-fires test", "value": "Inject a failure/delay in non-prod; confirm the alert reaches the on-call channel within the SLA threshold." } ] },
+    { "standardId": "cmqscp5481n8ambk8lcjqd1fi", "checklist": [ { "step": "Define schedules as code", "value": "DAG schedules/triggers live in version-controlled definitions; no schedules configured only via the orchestrator UI." } ], "testing": [ { "step": "IaC verification", "value": "Compare running schedules to repo definitions; 0 UI-only schedules." } ] },
+    { "standardId": "cmqscp4wa1n7umbk8rckhlnz3", "checklist": [ { "step": "Meet business SLA timeliness", "value": "Each DAG's SLA reflects the downstream business need and is enforced by the orchestrator SLA feature." } ], "testing": [ { "step": "SLA adherence", "value": "Non-prod runs complete within the configured SLA; breaches trigger alerts and are logged." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "92d416ba-85e6-4f78-8cc4-093d1b74036f",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Backlog items being refined toward Definition of Ready; scope = all stories/enablers slated for the next 2 sprints on the team's Jira board that are not yet marked 'Ready'." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Refinement covers the next 2 sprints; run weekly at the backlog refinement session." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "A story meets DoR when it has a user-story statement, acceptance criteria, an estimate, dependencies identified, and no open blocking questions; the board's DoR checklist gates the transition to 'Ready'." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of items marked 'Ready' reconciles with items passing all DoR checklist fields; no item is 'Ready' with an unmet DoR field." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Refinement outcomes (estimates, split decisions) recorded on each Jira story with timestamp; refinement session notes archived to the team Confluence page." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Items that cannot reach DoR (open dependency, unclear requirement) stay in 'Refinement' with a documented blocker and follow-up owner on the ticket." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03x8mbk8goc4tif8" },
+    { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqsck0rq03x8mbk8goc4tif8" },
+    { "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq", "value": "All items refined in the session and their DoR checklist state (typically 8-20 stories)." },
+    { "templateKeyId": "cmr2oao03001jlasb1coy37l2", "value": "Pass = every story marked 'Ready' has acceptance criteria, an estimate, and 0 open blocking questions; fail = any 'Ready' story missing a DoR field." },
+    { "templateKeyId": "cmr2oao16001llasbnlkf9nbu", "value": "A story pulled into sprint without meeting DoR is returned to the backlog and logged as a Jira 'AGILE-Exception', owner = Scrum Master, resolved within 1 business day." },
+    { "templateKeyId": "cmr2v88x1000rxa9if2t45ukx", "value": "Definition of Ready is met when the story is estimated, has testable acceptance criteria, dependencies are resolved or scheduled, and the team confirms shared understanding at refinement." },
+    { "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m", "value": "DoR state and refinement history recorded on each Jira story; session summary on the team Confluence refinement page." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Link refined items to work hierarchy", "value": "Each refined story links to its parent epic/feature and, where applicable, to the originating demand item." } ], "testing": [ { "step": "Link completeness", "value": "0 'Ready' stories without a parent epic link." } ] },
+    { "standardId": "cmqscp5m71n9ambk871sxrrvu", "checklist": [ { "step": "Pair on complex refinement", "value": "Stories flagged high-complexity are refined jointly by Software Engineer and Business Analyst before estimation." } ], "testing": [ { "step": "Complex-item review", "value": "Sample high-complexity stories; each shows collaborative refinement notes and an agreed estimate." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "efb423a3-880f-462d-bfdd-086b38d73c8e",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "New engineers/teams onboarding to enablement tooling and golden paths this cycle; scope = every incoming engineer in the cohort plus the golden-path modules (repo scaffolding, CI/CD, IAM access, IDE setup) they must complete." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current onboarding cohort; measured over each engineer's first 30 days." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "dabba33d-94fb-4f3a-aa75-016e077055ca" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each onboardee record has: LMS modules assigned/completed, IAM access provisioned to required systems, first PR merged, and golden-path checklist signed; records with an incomplete required item stay open." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of engineers onboarded reconciles with HRIS new-hire roster for the cohort; 0 roster members unaccounted for." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Completion evidence (LMS certificates, IAM grant records, first-PR link) captured per engineer with timestamps; retained in the LMS and the onboarding Confluence tracker." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Engineers not completing onboarding within 30 days are flagged with a documented reason and a follow-up plan on the onboarding tracker." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2v88pn000nxa9irjv495b3", "value": "Completion of each engineer's onboarding recorded in the LMS and acknowledged by the Tech Lead on the onboarding tracker with date." },
+    { "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb", "value": "Engineering manager, Tech Lead, and the assigned onboarding buddy notified of completion via the onboarding tracker and team Teams channel." },
+    { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq", "value": "All engineers in the current onboarding cohort and their golden-path checklist status (typically 3-15 people)." },
+    { "templateKeyId": "cmr2oao03001jlasb1coy37l2", "value": "Pass = ≥95% of the cohort completes all required golden-path modules and merges a first PR within 30 days; fail = any required IAM access or safety module incomplete at day 30." },
+    { "templateKeyId": "cmr2oao16001llasbnlkf9nbu", "value": "An engineer blocked on access or environment setup is logged as an ITSM request; if onboarding slips past 30 days, a 'KM-Exception' ticket is raised, owner = Engineering Manager, resolved within 5 business days." },
+    { "templateKeyId": "cmr2v88x1000rxa9if2t45ukx", "value": "Onboarding is 'complete' when all required LMS modules are passed, required access is provisioned, the golden-path checklist is signed, and the engineer has merged a first reviewed PR." },
+    { "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m", "value": "Per-engineer completion records in the LMS; cohort summary and sign-offs on the onboarding Confluence tracker." },
+    { "answerId": "cmr2ocdxx0v94kaz3b7w29jmq", "value": "Authorized approver = Tech Lead (or engineering manager); delegation matrix in the team charter names a backup approver used only when the Tech Lead is unavailable." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp5tf1n9ombk8gq23fix3", "checklist": [ { "step": "Provide an onboarding guide/golden path", "value": "Each new engineer follows a current onboarding guide covering environment setup, CI/CD, and golden-path scaffolding, maintained in Confluence." } ], "testing": [ { "step": "Guide currency + usage", "value": "Guide updated within the last quarter; each onboardee confirms they completed it via the tracker checklist." } ] },
+    { "standardId": "cmqscp51f1n84mbk8i3h7eo38", "checklist": [ { "step": "Standardize dev environment via golden path", "value": "Onboardees provision dev environments from the golden-path template so dev/test/prod parity holds from day one." } ], "testing": [ { "step": "Environment parity check", "value": "Each onboardee's dev environment matches the golden-path template version; deviations are recorded." } ] }
+   ],
+   "regulations": [
+    { "regId": "cmqworzyb0061d29hwdcw1z6p", "checklist": [ { "step": "Provision least-privilege access at onboarding", "value": "IAM access granted via role-based bundles matching the engineer's team and role; no broad/standing admin granted by default." } ], "testing": [ { "step": "Access-grant review", "value": "Each onboardee's granted entitlements match the role bundle; any exception has an approval record; reviewed at 30 days." } ] }
+   ]
+  },
+  {
+   "id": "8be640c6-4ca9-4317-9418-7291327f45b2",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Incoming demand items awaiting owner assignment; scope = every intake request in Jira with status 'New/Triaged' that lacks an accountable product owner and engineering team for initial assessment." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current intake window; assignment SLA measured from request creation, reviewed each triage cycle (daily/weekly per team cadence)." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rsmbk8cr7zj5ho" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each demand item, once assigned, carries an accountable product owner, an engineering team, a priority, and an assessment due date; items missing an owner or team cannot leave the intake queue." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of assigned demand items reconciles with the intake queue inflow for the period; 0 items left unassigned past the assignment SLA." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Assignment recorded on the Jira demand item with assignee, team, and timestamp; triage decision retained in the ticket history." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Demand items with no clear owner (ambiguous domain) are escalated to the PMO/portfolio queue with a documented reason on the ticket." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "cmqsck0rn03rsmbk8cr7zj5ho" },
+    { "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj", "value": "All demand items processed through intake in the period (typically 10-50 items)." },
+    { "templateKeyId": "cmr2oaodj001vlasbycmyhv72", "value": "Pass = 100% of intake items assigned an accountable owner and team within the assignment SLA (e.g., 2 business days) with priority set; fail = any item unassigned past SLA." },
+    { "templateKeyId": "cmr2oaof2001xlasbgo5bzael", "value": "An item that cannot be assigned within SLA is escalated via a Jira 'INTAKE-Exception' to the PMO Manager with a reason; resolved within 3 business days." },
+    { "templateKeyId": "cmr2v8940000vxa9iz1ws174c", "value": "Assignment is 'complete' when the demand item has a named product owner, an engineering team, a priority, and a scheduled initial assessment, all recorded in Jira." },
+    { "templateKeyId": "cmr2v8953000xxa9izs452xrs", "value": "Assignment and triage evidence on the Jira demand item; period intake reconciliation summary on the intake Confluence page." },
+    { "answerId": "cmr2ocdxy0v9lkaz3pegykvdv", "value": "Authorized approver of assignment = Product Owner / PMO Manager per the intake RACI; delegation matrix in the intake governance doc names backups used only when primaries are unavailable." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Track demand as linked work items", "value": "Each demand item is a Jira work item linked to its future epic once assessed; assignment sets assignee and team fields." } ], "testing": [ { "step": "Assignment-field completeness", "value": "Query intake board: 0 items past SLA without assignee and team populated." } ] },
+    { "standardId": "cmqscp5o31n9embk822qt2buu", "checklist": [ { "step": "Record non-trivial routing decisions", "value": "Ambiguous or cross-team demand routing recorded as a decision note on the ticket." } ], "testing": [ { "step": "Decision-note check", "value": "Escalated/re-routed items each carry a documented routing rationale." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "f42f4564-0a2c-4a59-b2b8-0126473503f1",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Incoming service requests requiring classification; scope = every request in ServiceNow/Jira ITSM at status 'New' that lacks type, priority, and fulfilling-team attributes." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current intake window; classification SLA measured from request submission, reviewed continuously as requests arrive." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rsmbk8cr7zj5ho" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each request carries category/type, priority (from an impact×urgency matrix), and fulfilling team; requests missing any classification attribute cannot be routed and remain in triage." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of classified requests reconciles with total inbound requests for the period; 0 requests routed with a null category, priority, or team." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Classification recorded on the ITSM record with the classifying agent and timestamp; category taxonomy version noted; audit trail retained per record-retention policy." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Misclassified or ambiguous requests are re-triaged with the correction and rationale logged in the ITSM work notes." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "c7ac1f7a-57c5-4016-8421-be1d45fe1754" },
+    { "templateKeyId": "cmr2oan48000xlasba0u1ffd8", "value": "Requests touching regulated data or access changes cite the applicable policy/rule (e.g., internal access-control policy; NYDFS 500 §500.7 for access requests) in the ITSM record." },
+    { "templateKeyId": "cmr2v88hl000fxa9io24wujiz", "value": "ITSM records retained per the enterprise records-retention schedule (security/audit-relevant tickets ≥3 years) with immutable work-note history." },
+    { "templateKeyId": "cmr2v88il000hxa9icjpyq8mw", "value": "Classification completed within the intake SLA (e.g., 4 business hours for standard, 1 hour for high-priority) so downstream fulfillment SLAs remain achievable." },
+    { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqsck0rn03rsmbk8cr7zj5ho" },
+    { "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq", "value": "All service requests received in the period (typically 20-100 tickets)." },
+    { "templateKeyId": "cmr2oao03001jlasb1coy37l2", "value": "Pass = ≥98% of requests fully classified (type, priority, team) within the classification SLA; fail = any request routed with a missing attribute or classified late." },
+    { "templateKeyId": "cmr2oao16001llasbnlkf9nbu", "value": "A request that cannot be classified (unknown type) is escalated to the service desk lead via an ITSM 'TRIAGE-Exception' and resolved within 1 business day." },
+    { "templateKeyId": "cmr2v88x1000rxa9if2t45ukx", "value": "A request is 'classified' when type, priority, and fulfilling team are set, any required policy citation is attached, and it is routed to the correct queue." },
+    { "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m", "value": "Classification attributes and history on the ITSM record; period classification-quality summary on the service-desk dashboard." },
+    { "answerId": "cmr2ocdxy0v9pkaz3t5hqs48g", "value": "Applicable citation for access-change or regulated-data requests: internal access-control policy and, where personal/nonpublic data or access is involved, NYDFS 500 access-privilege management (§500.7) or the relevant privacy policy; the specific citation is recorded on the ticket." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Classify and link each request", "value": "Every request carries category, priority, and fulfilling-team fields and links to the CI/service it concerns in the CMDB." } ], "testing": [ { "step": "Attribute completeness", "value": "0 routed requests with a null category, priority, or team over the sampled period." } ] },
+    { "standardId": "cmqscp5wt1n9umbk8zd85l89b", "checklist": [ { "step": "Priority drives actionable routing", "value": "Priority derived from a documented impact×urgency matrix so high-priority requests alert the right fulfilling team immediately." } ], "testing": [ { "step": "Priority-matrix conformance", "value": "Sample requests; each priority matches the matrix inputs; high-priority items reached the correct team within SLA." } ] }
+   ],
+   "regulations": [
+    { "regId": "cmqworzyb0061d29hwdcw1z6p", "checklist": [ { "step": "Route access-related requests through least-privilege review", "value": "Requests for system access are categorized as access changes and routed to the IAM approval workflow enforcing least privilege." } ], "testing": [ { "step": "Access-request routing check", "value": "All access-type requests in the period routed to the IAM workflow with an approval record; 0 access grants outside the workflow." } ] }
+   ]
+  }
+ ]
+}

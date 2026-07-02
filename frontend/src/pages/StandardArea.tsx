@@ -22,13 +22,18 @@ type Item = {
   relatedRole: string | null;
   relatedCategory: string | null;
   itemsLink: string | null;
-  agentSkill: string | null;
+  agentSkill: string | null; // per-standard tailored skill
+  categorySkill: string | null; // the category rollup skill
   sdlcGates: string | null;
   regCitation: string | null;
   testProcedure: string | null; // FB-58 — how to independently verify the rule
   evidence: string | null; // FB-58 — the evidence artifact the check leaves behind
-  responsible: Responsible | null;
+  responsible: Responsible | null; // accountable owner
+  appliers: { roleId: string; roleName: string }[]; // who executes the control
   valueStreams: ValueStream[];
+  // Work Library plan keys (generic template keys + item-specific steps) —
+  // values are filled in the Work Library, this view shows the structure.
+  plan: { checklist: string[]; testing: string[] } | null;
 };
 // Top-level rows are groups; their decomposed child standards ride along.
 type Group = Item & { subs: Item[] };
@@ -64,7 +69,7 @@ export default function StandardArea() {
     for (const it of items) { if (!byCat.has(it.category)) byCat.set(it.category, []); byCat.get(it.category)!.push(it); }
     // All standards in a regulatory category share one enforcing skill, so
     // surface it once at the category level (not repeated per standard).
-    return [...byCat.entries()].map(([category, rows]) => ({ category, rows, skill: rows.find((r) => r.agentSkill)?.agentSkill ?? null }));
+    return [...byCat.entries()].map(([category, rows]) => ({ category, rows, skill: rows.find((r) => r.categorySkill)?.categorySkill ?? null }));
   }, [data, q]);
 
   if (loading) return <div className="text-slate-500">Loading standards…</div>;
@@ -166,8 +171,8 @@ export default function StandardArea() {
                             <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] mb-1">What it means</div>
                             <p className="text-sm text-[#171717]">{it.description}</p>
                             {/* Childless group = a single granular standard; show its
-                                own test + evidence (FB-58). */}
-                            {it.subs.length === 0 && <TestEvidence item={it} />}
+                                own test + evidence + appliers + skill. */}
+                            {it.subs.length === 0 && <StandardMeta item={it} onViewSkill={setViewSkill} />}
                             {it.subs.length > 0 && (
                               <ul className="mt-2 space-y-2">
                                 {it.subs.map((s) => (
@@ -176,7 +181,7 @@ export default function StandardArea() {
                                     <div className="min-w-0">
                                       <div className="text-sm font-medium text-[#171717]">{s.name}</div>
                                       <p className="text-xs text-[#525252]">{s.description}</p>
-                                      <TestEvidence item={s} />
+                                      <StandardMeta item={s} onViewSkill={setViewSkill} />
                                     </div>
                                   </li>
                                 ))}
@@ -238,23 +243,58 @@ export default function StandardArea() {
   );
 }
 
-// FB-58 — surface the granular standard's verification + evidence so it reads as
-// an independently testable rule, not a vague aspiration.
-function TestEvidence({ item }: { item: { testProcedure: string | null; evidence: string | null } }) {
-  if (!item.testProcedure && !item.evidence) return null;
+// Surface a granular standard as an independently testable + applicable rule:
+// the ordered verification steps, the evidence they leave, who applies it, and
+// the tailored agent skill that enforces + tests it.
+function StandardMeta({ item, onViewSkill }: {
+  item: { id: string; plan: { checklist: string[]; testing: string[] } | null; agentSkill: string | null; appliers: { roleId: string; roleName: string }[] };
+  onViewSkill: (skill: string) => void;
+}) {
+  const checklist = item.plan?.checklist ?? [];
+  const testing = item.plan?.testing ?? [];
+  if (!checklist.length && !testing.length && !item.appliers.length && !item.agentSkill) return null;
   return (
-    <div className="mt-1.5 space-y-1">
-      {item.testProcedure && (
+    <div className="mt-1.5 space-y-1.5">
+      {checklist.length > 0 && (
         <div className="flex items-start gap-1.5">
-          <span className="mt-px text-[9px] font-semibold uppercase tracking-[0.08em] text-[#0070AD] bg-[#eef6fb] rounded px-1 py-px flex-shrink-0">Test</span>
-          <p className="text-xs text-[#525252]">{item.testProcedure}</p>
+          <span className="mt-px text-[9px] font-semibold uppercase tracking-[0.08em] text-[#047857] bg-[#ecfdf5] rounded px-1 py-px flex-shrink-0">Checklist</span>
+          <ol className="text-xs text-[#525252] list-decimal pl-4 space-y-0.5">{checklist.map((s, i) => <li key={i}>{s}</li>)}</ol>
         </div>
       )}
-      {item.evidence && (
+      {testing.length > 0 && (
         <div className="flex items-start gap-1.5">
-          <span className="mt-px text-[9px] font-semibold uppercase tracking-[0.08em] text-[#047857] bg-[#ecfdf5] rounded px-1 py-px flex-shrink-0">Evidence</span>
-          <p className="text-xs text-[#525252]">{item.evidence}</p>
+          <span className="mt-px text-[9px] font-semibold uppercase tracking-[0.08em] text-[#0070AD] bg-[#eef6fb] rounded px-1 py-px flex-shrink-0">Testing</span>
+          <ol className="text-xs text-[#525252] list-decimal pl-4 space-y-0.5">{testing.map((s, i) => <li key={i}>{s}</li>)}</ol>
         </div>
+      )}
+      {(checklist.length > 0 || testing.length > 0) && (
+        <Link
+          to={`/work-library?type=standard&id=${item.id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="inline-block text-[11px] font-medium text-[#2563eb] hover:underline"
+        >
+          Fill in values in the Work library ↗
+        </Link>
+      )}
+      {item.appliers.length > 0 && (
+        <div className="flex items-start gap-1.5">
+          <span className="mt-px text-[9px] font-semibold uppercase tracking-[0.08em] text-[#b45309] bg-[#fffbeb] rounded px-1 py-px flex-shrink-0">Applied by</span>
+          <div className="flex flex-wrap gap-1">
+            {item.appliers.map((a) => (
+              <Link key={a.roleId} to={`/roles/${a.roleId}`} className="chip-soft hover:bg-[#eaeaea]" onClick={(e) => e.stopPropagation()}>{a.roleName}</Link>
+            ))}
+          </div>
+        </div>
+      )}
+      {item.agentSkill && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onViewSkill(item.agentSkill!); }}
+          className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#0070AD] bg-[#eef6fb] hover:bg-[#e0f0fb] px-2 py-0.5 rounded-md transition-colors"
+          title="Tailored agent skill for this standard — view & download"
+        >
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.9 5.6L19.5 9l-4.6 3.3 1.8 5.7L12 14.7 7.3 18l1.8-5.7L4.5 9l5.6-.4z" /></svg>
+          Agent skill · view &amp; download
+        </button>
       )}
     </div>
   );

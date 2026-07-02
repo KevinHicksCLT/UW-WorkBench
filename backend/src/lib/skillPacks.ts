@@ -1,4 +1,5 @@
 import { prisma } from '../db/prisma.js';
+import { vsForStandards } from './govRollup.js';
 
 // ─── Generated SDLC skill packs (single source of truth) ─────────────────────
 // The per-category compliance skill packs are a PURE FUNCTION of the company's
@@ -153,6 +154,111 @@ function auditMapMd(g: Grouping): string {
     .join('\n')}\n`;
 }
 
+// ─── Per-standard skill packs (one control = one tailored skill) ─────────────
+// Each leaf Standard can carry its OWN agent skill (Standard.agentSkill), tailored
+// to enforcing + testing that single control across the SDLC. Like the category
+// packs these are a PURE FUNCTION of the Standard row (+ its owner/appliers/value
+// streams/test/evidence) — nothing is stored; the route builds them on demand.
+
+// Deterministic, resolvable slug: <department>-<category>-<name>. Unique per
+// company (a name repeats across categories, so category disambiguates); matched
+// back via Standard.agentSkill.
+export const standardSkillName = (department: string | null, category: string | null, name: string) =>
+  [department, category, name].map((p) => slug(p ?? '')).filter(Boolean).join('-').slice(0, 140);
+
+export type StandardControl = {
+  id: string; name: string; description: string; category: string | null; department: string | null;
+  buildRun: string | null; regCitation: string | null; testProcedure: string | null; evidence: string | null;
+  ownerLabel: string | null; ownerRole: string | null; appliers: string[]; valueStreams: string[];
+};
+
+function standardSkillMd(c: StandardControl, name: string): string {
+  const steps = (c.testProcedure ?? '').split('\n').map((s) => s.trim()).filter(Boolean);
+  const vs = uniq(c.valueStreams);
+  const appliers = uniq(c.appliers);
+  const owner = c.ownerRole ?? c.ownerLabel ?? 'the area owner';
+  const phase = c.buildRun === 'Run' ? 'operational (Run)' : 'build-time (Build)';
+  return `---
+name: ${name}
+description: >
+  Enforce and evidence the single control "${c.name}"${c.category ? ` (${c.category})` : ''} across the software
+  delivery lifecycle — requirements, design, development, and testing. Use this skill whenever delivery or
+  operations work touches ${lc(c.category ?? c.name)}${vs.length ? ` in the ${vs.slice(0, 3).join(', ')} value stream(s)` : ''},
+  or whenever the goal is audit-ready proof that "${c.name}" is met. When unsure whether it is in scope, run
+  the scope gate rather than skipping it.
+---
+
+# ${c.name}
+
+**Control** · ${c.department ?? '—'}${c.category ? ` · ${c.category}` : ''} · ${phase}${c.regCitation ? ` · Citation: ${c.regCitation}` : ''}
+
+## What this control requires
+${c.description || c.name}
+
+## Who
+- **Accountable owner:** ${owner} — makes the substantive calls and signs off.
+- **Applied by:** ${appliers.length ? appliers.join(', ') : 'the delivery/operations team'} — implements and evidences it day-to-day.
+${vs.length ? `- **Governs value stream(s):** ${vs.join(', ')}.` : ''}
+
+## STEP 0 — Scope gate (always run first)
+1. Does the system/change implement, feed, or report **${lc(c.category ?? c.name)}**?
+2. If **no** → record the determination and stop. If **unsure** → treat as in-scope and escalate to ${owner}.
+
+## Build it in (requirements → design → development)
+- **Requirements:** capture "${c.name}" as an explicit, testable requirement with its acceptance criteria = the verification below.
+- **Design:** design the control in so its evidence is producible by construction — not reconstructed at audit time.
+- **Development:** implement it and emit its evidence as a side effect of normal operation.
+
+## Verify it (testing / audit)
+Run these steps; the control is **not met** until every step passes and the evidence exists.
+
+${steps.length ? steps.map((s, i) => `${i + 1}. ${s}`).join('\n') : '1. Confirm the control meets its acceptance criteria for the in-scope systems, with an accountable owner.'}
+
+## Evidence to capture
+> ${c.evidence ?? 'Documented control implementation with a reviewer sign-off and the date it was last verified.'}
+
+## Boundary
+Engineering + operational enforcement and evidence — not a substitute for ${owner}'s professional judgement.
+`;
+}
+
+function standardReferenceMd(c: StandardControl): string {
+  return `# ${c.name} — Source Reference\n\nThe obligation this control enforces — cite from it in reviews and evidence.\n\n${c.description || c.name}\n\n**Area:** ${c.department ?? '—'}${c.category ? `  ·  **Category:** ${c.category}` : ''}${c.regCitation ? `  ·  **Citation:** ${c.regCitation}` : ''}\n**Owner:** ${c.ownerRole ?? c.ownerLabel ?? '—'}${c.appliers.length ? `  ·  **Applied by:** ${uniq(c.appliers).join(', ')}` : ''}${c.valueStreams.length ? `  ·  **Value streams:** ${uniq(c.valueStreams).join(', ')}` : ''}\n`;
+}
+
+// Render one standard into its pack files. Pure function of the control.
+export function generatedStandardPackFiles(c: StandardControl): { path: string; content: string }[] {
+  const name = standardSkillName(c.department, c.category, c.name);
+  return [
+    { path: 'SKILL.md', content: standardSkillMd(c, name) },
+    { path: `references/${slug(c.name)}-reference.md`, content: standardReferenceMd(c) },
+  ];
+}
+
+// Resolve a per-standard skill by its slug (Standard.agentSkill match). Returns
+// the shaped control (for pack rendering), or null if no leaf carries that slug.
+export async function findStandardSkill(companyId: string, skill: string): Promise<StandardControl | null> {
+  const s = await prisma.standard.findFirst({
+    where: { companyId, isArea: false, agentSkill: skill },
+    select: {
+      id: true, name: true, description: true, category: true, department: true, buildRun: true,
+      regCitation: true, testProcedure: true, evidence: true, ownerLabel: true,
+      ownerRole: { select: { displayValue: true } },
+      roleStandards: { select: { role: { select: { displayValue: true } } } },
+    },
+  });
+  if (!s) return null;
+  // Standards attach to task nodes; value streams roll up via the closure.
+  const vs = (await vsForStandards([s.id])).get(s.id) ?? [];
+  return {
+    id: s.id, name: s.name, description: s.description ?? '', category: s.category, department: s.department,
+    buildRun: s.buildRun, regCitation: s.regCitation, testProcedure: s.testProcedure, evidence: s.evidence,
+    ownerLabel: s.ownerLabel, ownerRole: s.ownerRole?.displayValue ?? null,
+    appliers: s.roleStandards.map((r) => r.role?.displayValue).filter((v): v is string => !!v),
+    valueStreams: vs.map((v) => v.name),
+  };
+}
+
 // ── Build groupings from the DB (the per-skill "differences") ─────────────────
 export async function buildGroupings(companyId: string): Promise<Grouping[]> {
   const nonAreas = await prisma.standard.findMany({
@@ -160,11 +266,12 @@ export async function buildGroupings(companyId: string): Promise<Grouping[]> {
     select: {
       id: true, name: true, description: true, department: true, category: true, parentId: true,
       testProcedure: true, evidence: true, ownerLabel: true, buildRun: true, regCitation: true,
-      nodeStandards: { select: { processNode: { select: { displayValue: true } } } },
     },
   });
   const hasChildren = new Set(nonAreas.map((n) => n.parentId).filter((p): p is string => !!p));
   const leaves = nonAreas.filter((n) => !hasChildren.has(n.id) && n.department && n.category);
+  // Standards attach to task nodes; value streams roll up via the closure.
+  const vsMap = await vsForStandards(leaves.map((l) => l.id));
 
   const byCat = new Map<string, Grouping>();
   for (const l of leaves) {
@@ -175,7 +282,7 @@ export async function buildGroupings(companyId: string): Promise<Grouping[]> {
     g.controls.push({
       name: l.name, description: l.description ?? '', testProcedure: l.testProcedure, evidence: l.evidence,
       ownerLabel: l.ownerLabel, buildRun: l.buildRun, regCitation: l.regCitation, department: l.department!,
-      valueStreams: l.nodeStandards.map((ns) => ns.processNode?.displayValue).filter((v): v is string => !!v),
+      valueStreams: (vsMap.get(l.id) ?? []).map((v) => v.name),
     });
   }
   for (const g of byCat.values()) g.departments.sort();

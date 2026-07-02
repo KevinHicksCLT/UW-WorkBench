@@ -4,6 +4,7 @@ import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { cacheResponses } from '../lib/responseCache.js';
 import { ancestorNames, rolesForNodes } from '../lib/resolvers/index.js';
+import { taskPlans } from '../lib/workPlan.js';
 
 // Deliverables & Tasks API — the standalone work tracker behind the
 // "Deliverables & Tasks" tab. erd_v5: deliverables = Deliverable rows (owner +
@@ -24,6 +25,9 @@ const SCORE_OF: Record<string, number> = {
   autonomous: 1, workflow: 2, augmented: 3, assist: 4, manual: 5,
   automated: 1, assisted: 4, // legacy aliases
 };
+// executive/senior roles are not surfaced as task-level contributors.
+const EXEC = /\b(chief|officer|c-?suite|cxo|ceo|cfo|coo|cto|cio|ciso|chro|cro|cdo|caio|president|vice[- ]president|vp|head of|head,|director|board)\b/i;
+const TOP_CONTRIB = 5;
 
 async function activeCompanyId(req: Request, res: Response): Promise<string | null> {
   const requested = typeof req.query.companyId === 'string' ? req.query.companyId : '';
@@ -40,7 +44,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const companyId = await activeCompanyId(req, res);
     if (!companyId) return;
-    const take = typeof req.query.take === 'string' ? Math.max(1, Math.min(10000, Number(req.query.take) || DEFAULT_TAKE)) : DEFAULT_TAKE;
+    const take = typeof req.query.take === 'string' ? Math.max(1, Math.min(30000, Number(req.query.take) || DEFAULT_TAKE)) : DEFAULT_TAKE;
     const cursorId = typeof req.query.cursor === 'string' && req.query.cursor ? req.query.cursor : null;
     const pageArgs: { take: number; skip?: number; cursor?: { id: string } } =
       cursorId ? { take, skip: 1, cursor: { id: cursorId } } : { take };
@@ -51,9 +55,10 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         orderBy: { id: 'asc' },
         ...pageArgs,
         select: {
-          id: true, title: true, automatability: true,
+          id: true, title: true, description: true, automatability: true,
           roleDeliverables: { select: { role_: true, role: { select: { displayValue: true } } } },
           nodeDeliverables: { select: { processNodeId: true, processNode: { select: { isTask: true } } } },
+          testingTemplates: { select: { expected: true } },
         },
       }),
       // tasks = L5 task ProcessNodes.
@@ -62,9 +67,10 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         orderBy: { id: 'asc' },
         ...pageArgs,
         select: {
-          id: true, displayValue: true, automatability: true,
-          nodeRoles: { where: { role_: 'Owner' }, select: { role: { select: { id: true, displayValue: true, orgUnit: { select: { displayValue: true } } } } } },
+          id: true, displayValue: true, description: true, automatability: true,
+          nodeRoles: { select: { role_: true, role: { select: { id: true, displayValue: true } } } },
           nodeDeliverables: { select: { deliverable: { select: { id: true, title: true } } } },
+          testingTemplates: { select: { expected: true } },
         },
       }),
       // value-stream options for the filter dropdown.
@@ -80,10 +86,34 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const taskIds = taskNodes.map((t) => t.id);
     const loc = await ancestorNames([...new Set([...delivNodeIds, ...taskIds])]);
 
+    // Task-level standards + regulations — the task's OWN NodeStandard /
+    // NodeRegulation rows (tasks are the single source of truth; higher levels
+    // roll up from them). A task carrying neither reads "N/A" in the UI.
+    const STD_CAP = 8;
+    const [nodeStds, nodeRegs] = await Promise.all([
+      taskIds.length ? prisma.nodeStandard.findMany({ where: { processNodeId: { in: taskIds }, excluded: false }, select: { processNodeId: true, standard: { select: { name: true } } } }) : [],
+      taskIds.length ? prisma.nodeRegulation.findMany({ where: { processNodeId: { in: taskIds }, excluded: false }, select: { processNodeId: true, regulation: { select: { title: true } } } }) : [],
+    ]);
+    const stdByAnc = new Map<string, string[]>();
+    for (const x of nodeStds) { const a = stdByAnc.get(x.processNodeId) ?? []; a.push(x.standard.name); stdByAnc.set(x.processNodeId, a); }
+    const regByAnc = new Map<string, string[]>();
+    for (const x of nodeRegs) { const a = regByAnc.get(x.processNodeId) ?? []; a.push(x.regulation.title); regByAnc.set(x.processNodeId, a); }
+    const taskLinks = (id: string, m: Map<string, string[]>) => [...new Set(m.get(id) ?? [])].sort().slice(0, STD_CAP);
+
+    // Work Library testing pattern per task (null = no TEST template assigned yet).
+    const testLinks = taskIds.length
+      ? await prisma.nodeWorkTemplate.findMany({
+          where: { processNodeId: { in: taskIds }, template: { kind: 'TEST' } },
+          select: { processNodeId: true, template: { select: { name: true } } },
+        })
+      : [];
+    const testByTask = new Map(testLinks.map((l) => [l.processNodeId, l.template.name]));
+
     res.json({
       deliverables: deliverables.map((d) => {
         const owner = d.roleDeliverables.find((r) => r.role_ === 'Owner')?.role.displayValue
           ?? d.roleDeliverables[0]?.role.displayValue ?? null;
+        const contributors = [...new Set(d.roleDeliverables.filter((r) => r.role_ === 'Contributor').map((r) => r.role.displayValue))].sort();
         // Deliverable groups its L4's L5 task nodes; the L4 node self-links too.
         const taskNodeIds = d.nodeDeliverables.filter((n) => n.processNode?.isTask).map((n) => n.processNodeId);
         // value stream + processes from the first producing node (L4 or a task — both resolve the same VS).
@@ -91,29 +121,39 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         const a = firstNode ? loc.get(firstNode) : undefined;
         const processes = a ? [a.l4 ?? a.l3].filter((x): x is string => !!x) : [];
         return {
-          id: d.id, title: d.title, description: null, owner, type: 'Deliverable',
+          id: d.id, title: d.title, description: d.description, owner, contributors, type: 'Deliverable',
           status: 'OPEN', dueDate: null, taskCount: taskNodeIds.length,
           valueStreamId: a?.valueStreamId ?? null, valueStreamName: a?.valueStreamName ?? null,
           roles: [...new Set(d.roleDeliverables.map((r) => r.role.displayValue))].sort(),
           processes,
+          level3: a?.l3 ?? null, level4: a?.l4 ?? null,
+          test: d.testingTemplates[0]?.expected ?? null,
         };
       }),
       tasks: taskNodes.map((t) => {
         const a = loc.get(t.id);
-        const owner = t.nodeRoles[0]?.role ?? null;
+        const owner = t.nodeRoles.find((r) => r.role_ === 'Owner')?.role ?? t.nodeRoles[0]?.role ?? null;
+        const contributors = [...new Set(t.nodeRoles
+          .filter((r) => r.role_ === 'Participant' && r.role.displayValue !== owner?.displayValue && !EXEC.test(r.role.displayValue))
+          .map((r) => r.role.displayValue))].slice(0, TOP_CONTRIB);
         const deliv = t.nodeDeliverables[0]?.deliverable ?? null;
         return {
-          id: t.id, title: t.displayValue, owner: owner?.displayValue ?? null,
+          id: t.id, title: t.displayValue, description: t.description, owner: owner?.displayValue ?? null, contributors,
           status: 'OPEN', priority: 'Medium', dueDate: null, source: 'step',
           deliverableId: deliv?.id ?? null, deliverableTitle: deliv?.title ?? null,
           roles: owner ? [owner.displayValue] : [],
           processes: a ? [a.l4 ?? a.l3].filter((x): x is string => !!x) : [],
-          division: owner?.orgUnit?.displayValue ?? null,
-          department: null,
+          level3: a?.l3 ?? null, level4: a?.l4 ?? null,
+          division: a?.division ?? null,
+          department: a?.department ?? null,
           roleName: owner?.displayValue ?? null,
           valueStreamName: a?.valueStreamName ?? null,
           agentScore: t.automatability ? SCORE_OF[t.automatability] ?? null : null,
           agentRationale: null,
+          test: t.testingTemplates[0]?.expected ?? null,
+          testPattern: testByTask.get(t.id) ?? null,
+          standards: taskLinks(t.id, stdByAnc),
+          regulations: taskLinks(t.id, regByAnc),
         };
       }),
       valueStreams: vsNodes.map((v) => ({ id: v.id, name: v.displayValue })),
@@ -157,7 +197,7 @@ router.get('/deliverable/:id', async (req: Request, res: Response, next: NextFun
     const d = await prisma.deliverable.findFirst({
       where: { id: req.params.id, companyId },
       select: {
-        id: true, title: true,
+        id: true, title: true, description: true, automatability: true,
         roleDeliverables: { select: { role_: true, role: { select: { id: true, displayValue: true } } } },
         nodeDeliverables: { select: { processNodeId: true, processNode: { select: { isTask: true } } } },
       },
@@ -171,6 +211,12 @@ router.get('/deliverable/:id', async (req: Request, res: Response, next: NextFun
     const first = nodeIds[0];
     const a = first ? loc.get(first) : undefined;
     const assignedRoles = d.roleDeliverables.map((r) => ({ id: r.role.id, name: r.role.displayValue }));
+    const ownerRoles = d.roleDeliverables.filter((r) => r.role_ === 'Owner').map((r) => ({ id: r.role.id, name: r.role.displayValue }));
+    const contributorRoles = d.roleDeliverables.filter((r) => r.role_ === 'Contributor').map((r) => ({ id: r.role.id, name: r.role.displayValue }));
+    // Deliverable roll-up = defined/total plan keys across its tasks (Work Library).
+    const plans = await taskPlans(taskNodeIds);
+    let planDefined = 0; let planTotal = 0;
+    for (const p of plans.values()) { planDefined += p.defined; planTotal += p.total; }
     const subProcesses = [...new Set([...loc.values()].map((x) => [x.l3, x.l4].filter(Boolean).join(' · ')).filter(Boolean))];
 
     // The L4's grouped L5 task nodes are the deliverable's tasks.
@@ -181,10 +227,12 @@ router.get('/deliverable/:id', async (req: Request, res: Response, next: NextFun
 
     res.json({
       kind: 'deliverable',
-      id: d.id, title: d.title, description: null, type: 'Deliverable', owner: assignedRoles[0]?.name ?? null, jiraKey: null,
+      id: d.id, title: d.title, description: d.description, type: 'Deliverable', owner: ownerRoles[0]?.name ?? null, jiraKey: null,
       valueStream: a?.valueStreamId ? { id: a.valueStreamId, name: a.valueStreamName, domain: a.domain } : null,
+      level3: a?.l3 ?? null, level4: a?.l4 ?? null,
       subProcesses, dataElements: [], inputs: [],
       assignedRoles, assignedExtra: [],
+      ownerRoles, contributorRoles, planRollup: { defined: planDefined, total: planTotal },
       tasks,
       downstream: [],
     });
@@ -200,7 +248,7 @@ router.get('/task/:id', async (req: Request, res: Response, next: NextFunction) 
     const t = await prisma.processNode.findFirst({
       where: { id: req.params.id, companyId, isTask: true },
       select: {
-        id: true, displayValue: true, automatability: true, attributes: true,
+        id: true, displayValue: true, description: true, automatability: true, attributes: true,
         nodeRoles: { select: { role_: true, role: { select: { id: true, displayValue: true } } } },
         nodeDeliverables: { select: { deliverable: { select: { id: true, title: true } } } },
       },
@@ -208,9 +256,12 @@ router.get('/task/:id', async (req: Request, res: Response, next: NextFunction) 
     if (!t) return res.status(404).json({ error: 'Not found' });
 
     const loc = (await ancestorNames([t.id])).get(t.id);
+    const plan = (await taskPlans([t.id])).get(t.id) ?? null;
     const ownerRole = t.nodeRoles.find((r) => r.role_ === 'Owner')?.role ?? null;
     const leadRoles = t.nodeRoles.filter((r) => r.role_ === 'Owner').map((r) => ({ id: r.role.id, name: r.role.displayValue }));
-    const supportRoles = t.nodeRoles.filter((r) => r.role_ === 'Participant').map((r) => ({ id: r.role.id, name: r.role.displayValue }));
+    // contributors = participant roles, exec-stripped + capped (mirrors the list view).
+    const supportRoles = t.nodeRoles.filter((r) => r.role_ === 'Participant' && r.role.id !== ownerRole?.id && !EXEC.test(r.role.displayValue))
+      .map((r) => ({ id: r.role.id, name: r.role.displayValue })).slice(0, TOP_CONTRIB);
     // The task's own workbook deliverable TEXT (preserved on the node) — what the
     // old per-task Deliverable used to show. Falls back to the L4 grouping title.
     const attrDeliv = (t.attributes as { deliverable?: string } | null)?.deliverable ?? null;
@@ -218,10 +269,12 @@ router.get('/task/:id', async (req: Request, res: Response, next: NextFunction) 
 
     res.json({
       kind: 'task',
-      id: t.id, title: t.displayValue, owner: ownerRole?.displayValue ?? null, priority: 'Medium', jiraKey: null,
+      id: t.id, title: t.displayValue, description: t.description, owner: ownerRole?.displayValue ?? null, priority: 'Medium', jiraKey: null,
+      plan: plan ? { checklist: plan.checklist, testing: plan.testing, defined: plan.defined, total: plan.total } : null,
       ownerRole: ownerRole ? { id: ownerRole.id, name: ownerRole.displayValue } : null,
       agentScore: t.automatability ? SCORE_OF[t.automatability] ?? null : null, agentRationale: null,
       valueStream: loc?.valueStreamId ? { id: loc.valueStreamId, name: loc.valueStreamName } : null,
+      level3: loc?.l3 ?? null, level4: loc?.l4 ?? null,
       subProcess: loc ? [loc.l3, loc.l4].filter(Boolean).join(' · ') || null : null,
       leadRoles, leadExtra: [],
       supportRoles, supportExtra: [],

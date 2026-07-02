@@ -72,6 +72,7 @@ model Company {
   checklists                Checklist[]
   standards                 Standard[]
   applications              Application[]
+  workTemplates             WorkTemplate[]
   integrationSources        IntegrationSource[]
   // Initiative & metric
   initiatives               Initiative[]
@@ -177,6 +178,7 @@ model Role {
   manager       Role?    @relation("RoleReports", fields: [managerRoleId], references: [id])
   reports       Role[]   @relation("RoleReports")
   jobDescription String? // concise narrative of the role's purpose & scope (FB-53)
+  roleType      String? // Approver | Reviewer | Contributor — governance classification (Roles tab)
   dbValue       String
   displayValue  String // EDITABLE label
   createdAt     DateTime @default(now())
@@ -187,6 +189,7 @@ model Role {
   roleDeliverables              RoleDeliverable[]
   nodeRoles                     NodeRole[]
   roleStandards                 RoleStandard[]
+  roleRegulations               RoleRegulation[]
   ownedStandards                Standard[]                   @relation("StandardOwnerRole")
   externalInteractions          ExternalInteraction[]
   metrics                       Metric[]
@@ -203,6 +206,12 @@ model Role {
   // and the roles that dotted-line into this role. Each is a RoleDottedLine row.
   dottedManagers                RoleDottedLine[]              @relation("RoleDottedFrom")
   dottedReports                 RoleDottedLine[]              @relation("RoleDottedTo")
+  // Work Library entity-typed values pointing at this role
+  nodeTemplateAnswers           NodeTemplateAnswer[]
+  standardTemplateAnswers       StandardTemplateAnswer[]
+  regulationTemplateAnswers     RegulationTemplateAnswer[]
+  nodeStandardEvidences         NodeStandardEvidence[]
+  nodeRegulationEvidences       NodeRegulationEvidence[]
 
   @@unique([companyId, dbValue])
   @@index([companyId])
@@ -272,6 +281,7 @@ model ProcessNode {
   children           ProcessNode[]    @relation("ProcessNodeTree")
   dbValue            String
   displayValue       String // EDITABLE label
+  description        String? // atomic task: what is done / definition of done
   isTask             Boolean          @default(false)
   automatability     String? // manual | augmented | automated
   sortOrder          Int              @default(0)
@@ -293,6 +303,10 @@ model ProcessNode {
   nodeChecklists            NodeChecklist[]
   nodeInitiatives           NodeInitiative[]
   testingTemplates          TestingTemplate[] // task-level (secondary tie)
+  nodeWorkTemplates         NodeWorkTemplate[]
+  nodeTemplateAnswers       NodeTemplateAnswer[]
+  nodeStandardEvidences     NodeStandardEvidence[]
+  nodeRegulationEvidences   NodeRegulationEvidence[]
   metrics                   Metric[]
   externalInteractions      ExternalInteraction[]
   agentSkills               AgentSkill[]
@@ -327,15 +341,21 @@ model Deliverable {
   companyId      String
   company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   title          String
+  description    String? // what single artifact this deliverable is (atomic)
   automatability String? // manual | augmented | automated
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  nodeDeliverables       NodeDeliverable[]
-  roleDeliverables       RoleDeliverable[]
-  testingTemplates       TestingTemplate[]
-  standardDeliverables   StandardDeliverable[]
-  regulationDeliverables RegulationDeliverable[]
+  nodeDeliverables          NodeDeliverable[]
+  roleDeliverables          RoleDeliverable[]
+  testingTemplates          TestingTemplate[]
+  standardDeliverables      StandardDeliverable[]
+  regulationDeliverables    RegulationDeliverable[]
+  nodeTemplateAnswers       NodeTemplateAnswer[]
+  standardTemplateAnswers   StandardTemplateAnswer[]
+  regulationTemplateAnswers RegulationTemplateAnswer[]
+  nodeStandardEvidences     NodeStandardEvidence[]
+  nodeRegulationEvidences   NodeRegulationEvidence[]
 
   @@index([companyId])
 }
@@ -422,9 +442,12 @@ model Standard {
   testProcedure         String? // how to independently verify the standard is met
   evidence              String? // the evidence artifact the verification leaves behind
 
-  nodeStandards        NodeStandard[]
-  roleStandards        RoleStandard[]
-  standardDeliverables StandardDeliverable[]
+  nodeStandards           NodeStandard[]
+  roleStandards           RoleStandard[]
+  standardDeliverables    StandardDeliverable[]
+  standardWorkTemplates   StandardWorkTemplate[]
+  standardTemplateAnswers StandardTemplateAnswer[]
+  nodeStandardEvidences   NodeStandardEvidence[]
 
   @@index([companyId])
   @@index([companyId, isArea])
@@ -462,9 +485,14 @@ model Application {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
-  nodeAppUsages          NodeAppUsage[]
-  regulationApplications RegulationApplication[]
-  metrics                Metric[]
+  nodeAppUsages             NodeAppUsage[]
+  regulationApplications    RegulationApplication[]
+  metrics                   Metric[]
+  nodeTemplateAnswers       NodeTemplateAnswer[]
+  standardTemplateAnswers   StandardTemplateAnswer[]
+  regulationTemplateAnswers RegulationTemplateAnswer[]
+  nodeStandardEvidences     NodeStandardEvidence[]
+  nodeRegulationEvidences   NodeRegulationEvidence[]
 
   @@index([companyId])
   @@index([orgUnitId])
@@ -573,6 +601,10 @@ model NodeStandard {
   processNode   ProcessNode @relation(fields: [processNodeId], references: [id], onDelete: Cascade)
   standardId    String
   standard      Standard    @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  // Task-level override: true = this standard (inherited from an L2/L3 ancestor)
+  // is explicitly NOT applied at this node. Applicability = ancestor/self links
+  // where excluded=false, minus self links where excluded=true.
+  excluded      Boolean     @default(false)
 
   @@unique([processNodeId, standardId])
   @@index([processNodeId])
@@ -618,6 +650,7 @@ model NodeRegulation {
   regulation    RegulatoryRequirement @relation(fields: [regId], references: [id], onDelete: Cascade)
   relationship  String                @default("GOVERNS") // GOVERNS | REQUIRES_INTEGRATION | INFORMS
   notes         String?
+  excluded      Boolean               @default(false) // task-level override (see NodeStandard.excluded)
   createdAt     DateTime              @default(now())
 
   @@unique([processNodeId, regId])
@@ -642,6 +675,23 @@ model RegulationApplication {
   @@index([companyId, regId])
 }
 
+// NEW — reg → role (accountable Owner + hands-on Contributors). Mirrors
+// RoleDeliverable: role_ discriminates the responsibility kind.
+model RoleRegulation {
+  id         String                @id @default(cuid())
+  companyId  String
+  roleId     String
+  role       Role                  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  regId      String
+  regulation RegulatoryRequirement @relation(fields: [regId], references: [id], onDelete: Cascade)
+  role_      String // "Owner|Contributor"
+
+  @@unique([roleId, regId, role_])
+  @@index([roleId])
+  @@index([regId])
+  @@index([companyId, regId])
+}
+
 // NEW v3 — reg evidence as a deliverable.
 model RegulationDeliverable {
   id            String                @id @default(cuid())
@@ -658,6 +708,232 @@ model RegulationDeliverable {
 }
 
 // ─── INITIATIVE & METRIC ────────────────────────────────────────────────
+
+// ─── WORK LIBRARY (checklist/testing templates + per-item plans) ─────────
+
+// Reusable generic template. kind CHECKLIST = pattern module (Core evidence base +
+// 5 add-on modules); kind TEST = one of the 8 "Test by …" patterns. ADMIN-edited.
+model WorkTemplate {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kind        String // CHECKLIST | TEST
+  name        String
+  description String?
+  isDefault   Boolean  @default(false) // seeded library default (Core evidence is always applied)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  keys            WorkTemplateKey[]
+  nodeLinks       NodeWorkTemplate[]
+  standardLinks   StandardWorkTemplate[]
+  regulationLinks RegulationWorkTemplate[]
+
+  @@index([companyId, kind])
+}
+
+// One generic key (question/step) of a template — key text lives HERE once;
+// renaming propagates to every plan using the pattern.
+model WorkTemplateKey {
+  id         String       @id @default(cuid())
+  templateId String
+  template   WorkTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  key        String
+  guidance   String?
+  valueKind  String       @default("TEXT") // TEXT | APPLICATION | ROLE | DELIVERABLE — drives the plan-side value combobox
+  sortOrder  Int          @default(0)
+
+  nodeAnswers       NodeTemplateAnswer[]
+  standardAnswers   StandardTemplateAnswer[]
+  regulationAnswers RegulationTemplateAnswer[]
+
+  @@index([templateId])
+}
+
+// Assignment junctions — which templates a work item's plan uses (the dropdown
+// selections). Deselecting removes the row; saved answers persist independently.
+model NodeWorkTemplate {
+  id            String       @id @default(cuid())
+  companyId     String
+  processNodeId String
+  processNode   ProcessNode  @relation(fields: [processNodeId], references: [id], onDelete: Cascade)
+  templateId    String
+  template      WorkTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([processNodeId, templateId])
+  @@index([processNodeId])
+  @@index([templateId])
+  @@index([companyId, processNodeId])
+}
+
+model StandardWorkTemplate {
+  id         String       @id @default(cuid())
+  companyId  String
+  standardId String
+  standard   Standard     @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  templateId String
+  template   WorkTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([standardId, templateId])
+  @@index([standardId])
+  @@index([templateId])
+  @@index([companyId, standardId])
+}
+
+model RegulationWorkTemplate {
+  id         String                @id @default(cuid())
+  companyId  String
+  regId      String
+  regulation RegulatoryRequirement @relation(fields: [regId], references: [id], onDelete: Cascade)
+  templateId String
+  template   WorkTemplate          @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([regId, templateId])
+  @@index([regId])
+  @@index([templateId])
+  @@index([companyId, regId])
+}
+
+// Per-work-item answers. Keyed (subject, templateKey) and kept INDEPENDENT of the
+// assignment junctions so switching patterns preserves saved values. templateKeyId
+// null = item-specific custom step (customKey holds its text; user-editable).
+// suppressed = generic key removed for this one item. Entity-typed values store an
+// FK to the owning row (Application/Role/Deliverable) — never a copied name.
+model NodeTemplateAnswer {
+  id            String           @id @default(cuid())
+  companyId     String
+  processNodeId String
+  processNode   ProcessNode      @relation(fields: [processNodeId], references: [id], onDelete: Cascade)
+  templateKeyId String?
+  templateKey   WorkTemplateKey? @relation(fields: [templateKeyId], references: [id], onDelete: Cascade)
+  customKey     String?
+  kind          String?          // CHECKLIST | TEST — block placement for custom steps (derived from the template for generic keys)
+  value         String?
+  applicationId String?
+  application   Application?     @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  roleId        String?
+  role          Role?            @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  deliverableId String?
+  deliverable   Deliverable?     @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  suppressed    Boolean          @default(false)
+  sortOrder     Int              @default(0)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@unique([processNodeId, templateKeyId])
+  @@index([processNodeId])
+  @@index([templateKeyId])
+  @@index([companyId, processNodeId])
+}
+
+model StandardTemplateAnswer {
+  id            String           @id @default(cuid())
+  companyId     String
+  standardId    String
+  standard      Standard         @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  templateKeyId String?
+  templateKey   WorkTemplateKey? @relation(fields: [templateKeyId], references: [id], onDelete: Cascade)
+  customKey     String?
+  kind          String?          // CHECKLIST | TEST — block placement for custom steps (derived from the template for generic keys)
+  value         String?
+  applicationId String?
+  application   Application?     @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  roleId        String?
+  role          Role?            @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  deliverableId String?
+  deliverable   Deliverable?     @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  suppressed    Boolean          @default(false)
+  sortOrder     Int              @default(0)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@unique([standardId, templateKeyId])
+  @@index([standardId])
+  @@index([templateKeyId])
+  @@index([companyId, standardId])
+}
+
+model RegulationTemplateAnswer {
+  id            String                @id @default(cuid())
+  companyId     String
+  regId         String
+  regulation    RegulatoryRequirement @relation(fields: [regId], references: [id], onDelete: Cascade)
+  templateKeyId String?
+  templateKey   WorkTemplateKey?      @relation(fields: [templateKeyId], references: [id], onDelete: Cascade)
+  customKey     String?
+  kind          String?               // CHECKLIST | TEST — block placement for custom steps (derived from the template for generic keys)
+  value         String?
+  applicationId String?
+  application   Application?          @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  roleId        String?
+  role          Role?                 @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  deliverableId String?
+  deliverable   Deliverable?          @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  suppressed    Boolean               @default(false)
+  sortOrder     Int                   @default(0)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@unique([regId, templateKeyId])
+  @@index([regId])
+  @@index([templateKeyId])
+  @@index([companyId, regId])
+}
+
+// Per-task checklist/testing STEP LISTS for an inherited standard/regulation, so
+// application of the standard/reg at that task is implemented AND verified.
+// Applicability stays DERIVED (NodeStandard/NodeRegulation on L2/L3 ancestors) —
+// these hold only the task-local steps; users add/remove/edit rows freely.
+model NodeStandardEvidence {
+  id            String       @id @default(cuid())
+  companyId     String
+  processNodeId String
+  processNode   ProcessNode  @relation(fields: [processNodeId], references: [id], onDelete: Cascade)
+  standardId    String
+  standard      Standard     @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  kind          String // CHECKLIST | TEST
+  step          String
+  value         String?
+  applicationId String?
+  application   Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  roleId        String?
+  role          Role?        @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  deliverableId String?
+  deliverable   Deliverable? @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  sortOrder     Int          @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([processNodeId])
+  @@index([standardId])
+  @@index([companyId, processNodeId])
+}
+
+model NodeRegulationEvidence {
+  id            String                @id @default(cuid())
+  companyId     String
+  processNodeId String
+  processNode   ProcessNode           @relation(fields: [processNodeId], references: [id], onDelete: Cascade)
+  regId         String
+  regulation    RegulatoryRequirement @relation(fields: [regId], references: [id], onDelete: Cascade)
+  kind          String // CHECKLIST | TEST
+  step          String
+  value         String?
+  applicationId String?
+  application   Application?          @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  roleId        String?
+  role          Role?                 @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  deliverableId String?
+  deliverable   Deliverable?          @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  sortOrder     Int                   @default(0)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@index([processNodeId])
+  @@index([regId])
+  @@index([companyId, processNodeId])
+}
 
 model Initiative {
   id         String    @id @default(cuid())
@@ -1500,6 +1776,9 @@ model RegulatoryRequirement {
   status         String       @default("ACTIVE") // ACTIVE | SUPERSEDED | PENDING
   effectiveDate  DateTime?
   supersededById String?
+  // The named regulation / regime this obligation belongs to, surfaced as a
+  // column so GDPR/CCPA/NYDFS/SERFF/IIPRC are visible without drilling in.
+  regime         String? // GDPR | CCPA-CPRA | NYDFS-500 | SERFF | IIPRC | IAIABC-EDI | ...
   // Accuracy metadata
   confidence     String       @default("BASELINE") // BASELINE | VERIFIED | DERIVED | STALE
   sourceNote     String?
@@ -1511,10 +1790,14 @@ model RegulatoryRequirement {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  nodeRegulations        NodeRegulation[]
-  regulationApplications RegulationApplication[]
-  regulationDeliverables RegulationDeliverable[]
-  bulletins              RegulatoryBulletin[]
+  nodeRegulations           NodeRegulation[]
+  regulationApplications    RegulationApplication[]
+  regulationDeliverables    RegulationDeliverable[]
+  roleRegulations           RoleRegulation[]
+  bulletins                 RegulatoryBulletin[]
+  regulationWorkTemplates   RegulationWorkTemplate[]
+  regulationTemplateAnswers RegulationTemplateAnswer[]
+  nodeRegulationEvidences   NodeRegulationEvidence[]
 
   @@index([companyId])
   @@index([jurisdictionId])

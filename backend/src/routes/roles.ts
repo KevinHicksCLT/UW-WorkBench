@@ -7,6 +7,158 @@ import { ancestorNames } from '../lib/resolvers/index.js';
 const router = Router();
 router.use(requireAuth);
 
+// Per-role list columns fed by unbounded links (tasks, checklist, deliverables)
+// are capped so the flat table stays a scannable summary and the payload stays
+// small — the full set lives in the role drawer (GET /roles/:id). Value streams
+// and standards are naturally small per role, so they render in full.
+const LIST_CAP = 25;
+const capped = (items: string[]) => (items.length > LIST_CAP ? items.slice(0, LIST_CAP) : items);
+
+// GET /roles — flat table for the Roles tab list view: one row per role.
+// Department/Division come off the org spine (OrgUnit L3/L2); a role homed
+// straight on a division has no department ("Direct to division"). The four
+// participation columns (value streams / deliverables / tasks / standards) plus
+// checklist responsibilities are resolved for EVERY role in a handful of batched
+// queries — no per-role fan-out.
+router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const roles = await prisma.role.findMany({
+      where: { company: { tenantId: req.tenantId } },
+      select: {
+        id: true, displayValue: true, roleType: true,
+        orgUnit: {
+          select: {
+            displayValue: true, orgLevelType: { select: { levelNumber: true } },
+            parent: { select: { displayValue: true, orgLevelType: { select: { levelNumber: true } } } },
+          },
+        },
+      },
+      orderBy: { displayValue: 'asc' },
+    });
+
+    const orgOf = (role: (typeof roles)[number]) => {
+      let division: string | null = null;
+      let department: string | null = null;
+      if (role.orgUnit) {
+        if (role.orgUnit.orgLevelType.levelNumber === 3) {
+          department = role.orgUnit.displayValue;
+          if (role.orgUnit.parent?.orgLevelType.levelNumber === 2) division = role.orgUnit.parent.displayValue;
+        } else {
+          division = role.orgUnit.displayValue;
+          department = 'Direct to division';
+        }
+      }
+      return { division, department };
+    };
+
+    const roleIds = roles.map((r) => r.id);
+    // Batch every link once, keyed by roleId (or node) — never per role.
+    const [nodeRoles, roleDelivs, roleStandards] = await Promise.all([
+      prisma.nodeRole.findMany({ where: { roleId: { in: roleIds } }, select: { roleId: true, processNodeId: true, processNode: { select: { displayValue: true } } } }),
+      prisma.roleDeliverable.findMany({ where: { roleId: { in: roleIds } }, select: { roleId: true, deliverable: { select: { title: true } } } }),
+      prisma.roleStandard.findMany({ where: { roleId: { in: roleIds } }, select: { roleId: true, standard: { select: { name: true } } } }),
+    ]);
+
+    const nodeIds = [...new Set(nodeRoles.map((n) => n.processNodeId))];
+    // One closure pass over every role's task nodes → each node's L2 (value
+    // stream) name and its L3 (area) ancestor ids (the areas whose standards the
+    // role is governed by). Plus the checklists + deliverables carried on those
+    // nodes, so a role with no DIRECT standard/deliverable link still fills the
+    // column from the work it actually does.
+    const [closureEdges, nodeChecks, nodeDelivs] = await Promise.all([
+      prisma.processNodeClosure.findMany({ where: { descendantId: { in: nodeIds } }, select: { ancestorId: true, descendantId: true } }),
+      prisma.nodeChecklist.findMany({ where: { processNodeId: { in: nodeIds } }, select: { processNodeId: true, checklistItem: { select: { text: true } } } }),
+      prisma.nodeDeliverable.findMany({ where: { processNodeId: { in: nodeIds } }, select: { processNodeId: true, deliverable: { select: { title: true } } } }),
+    ]);
+    const ancestorIds = [...new Set(closureEdges.map((e) => e.ancestorId))];
+    const ancestors = await prisma.processNode.findMany({
+      where: { id: { in: ancestorIds }, processLevelType: { levelNumber: { in: [2, 3] } } },
+      select: { id: true, displayValue: true, processLevelType: { select: { levelNumber: true } } },
+    });
+    const ancById = new Map(ancestors.map((a) => [a.id, { name: a.displayValue, level: a.processLevelType.levelNumber }] as const));
+    // Standards live on the task nodes themselves (tasks = single source of
+    // truth; areas/value streams roll up from them), so a role's governing
+    // standards come straight from its nodes' own links.
+    const areaStds = await prisma.nodeStandard.findMany({ where: { processNodeId: { in: nodeIds }, excluded: false }, select: { processNodeId: true, standard: { select: { name: true } } } });
+    const stdByTaskNode = new Map<string, string[]>();
+    for (const ns of areaStds) { const a = stdByTaskNode.get(ns.processNodeId) ?? []; a.push(ns.standard.name); stdByTaskNode.set(ns.processNodeId, a); }
+    // node → { value stream name, L3 ancestor ids }
+    const vsByNode = new Map<string, string>();
+    const l3ByNode = new Map<string, string[]>();
+    for (const e of closureEdges) {
+      const anc = ancById.get(e.ancestorId);
+      if (!anc) continue;
+      if (anc.level === 2) vsByNode.set(e.descendantId, anc.name);
+      else if (anc.level === 3) { const a = l3ByNode.get(e.descendantId) ?? []; a.push(e.ancestorId); l3ByNode.set(e.descendantId, a); }
+    }
+    // node → checklist texts / deliverable titles.
+    const checksByNode = new Map<string, string[]>();
+    for (const nc of nodeChecks) { const a = checksByNode.get(nc.processNodeId) ?? []; a.push(nc.checklistItem.text); checksByNode.set(nc.processNodeId, a); }
+    const delivsByNode = new Map<string, string[]>();
+    for (const nd of nodeDelivs) { const a = delivsByNode.get(nd.processNodeId) ?? []; a.push(nd.deliverable.title); delivsByNode.set(nd.processNodeId, a); }
+
+    // Aggregate per role.
+    const vsByRole = new Map<string, Set<string>>();
+    const tasksByRole = new Map<string, Set<string>>();
+    const checksByRole = new Map<string, Set<string>>();
+    const nodeDelivByRole = new Map<string, Set<string>>();
+    const areaStdByRole = new Map<string, Set<string>>();
+    const push = (m: Map<string, Set<string>>, k: string, v: string | null | undefined) => {
+      if (!v) return;
+      const s = m.get(k) ?? new Set<string>(); s.add(v); m.set(k, s);
+    };
+    for (const nr of nodeRoles) {
+      push(tasksByRole, nr.roleId, nr.processNode.displayValue);
+      push(vsByRole, nr.roleId, vsByNode.get(nr.processNodeId));
+      for (const text of checksByNode.get(nr.processNodeId) ?? []) push(checksByRole, nr.roleId, text);
+      for (const title of delivsByNode.get(nr.processNodeId) ?? []) push(nodeDelivByRole, nr.roleId, title);
+      for (const sn of stdByTaskNode.get(nr.processNodeId) ?? []) push(areaStdByRole, nr.roleId, sn);
+    }
+    // Direct links take priority; fall back to work-derived where a role has none.
+    const delivByRole = new Map<string, Set<string>>();
+    for (const rd of roleDelivs) push(delivByRole, rd.roleId, rd.deliverable.title);
+    const stdByRole = new Map<string, Set<string>>();
+    for (const rs of roleStandards) push(stdByRole, rs.roleId, rs.standard.name);
+
+    type Row = {
+      key: string; roleId: string; role: string; roleType: string | null;
+      department: string | null; division: string | null;
+      valueStreams: string[]; deliverables: string[]; tasks: string[]; standards: string[];
+      checklist: string[];
+    };
+    const setArr = (m: Map<string, Set<string>>, id: string) => [...(m.get(id) ?? new Set<string>())].sort();
+    // Union of direct + work-derived links (direct first), de-duplicated.
+    const merged = (a: Map<string, Set<string>>, b: Map<string, Set<string>>, id: string) =>
+      [...new Set([...(a.get(id) ?? []), ...(b.get(id) ?? [])])].sort();
+    const rows: Row[] = roles.map((role) => {
+      const { division, department } = orgOf(role);
+      return {
+        key: role.id, roleId: role.id, role: role.displayValue, roleType: role.roleType ?? null,
+        department, division,
+        valueStreams: setArr(vsByRole, role.id),
+        deliverables: capped(merged(delivByRole, nodeDelivByRole, role.id)),
+        tasks: capped(setArr(tasksByRole, role.id)),
+        standards: capped(merged(stdByRole, areaStdByRole, role.id)),
+        checklist: capped(setArr(checksByRole, role.id)),
+      };
+    });
+    res.json({ rows });
+  } catch (e) { next(e); }
+});
+
+// GET /roles/org-chart — the reporting-line root. Manager chains aren't backfilled
+// yet (Role.managerRoleId is unset company-wide), so for now this returns just the
+// CEO with an empty `reports` list — the org chart's top box and nothing under it.
+router.get('/org-chart', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const ceo = await prisma.role.findFirst({
+      where: { company: { tenantId: req.tenantId }, displayValue: { contains: 'Chief Executive', mode: 'insensitive' } },
+      select: { id: true, displayValue: true },
+    });
+    res.json({ root: ceo ? { id: ceo.id, name: ceo.displayValue, reports: [] } : null });
+  } catch (e) { next(e); }
+});
+
 // Group responsibilities by their checklist name for display, de-duplicating by
 // normalized text within each group.
 function groupByChecklist(rows: { text: string; checklist: string | null }[]) {

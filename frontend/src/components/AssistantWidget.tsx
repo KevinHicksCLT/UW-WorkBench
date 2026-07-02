@@ -23,6 +23,12 @@ const ORG_SUGGESTIONS = [
   'Which roles have the most checklist items?',
 ];
 
+const ROLES_SUGGESTIONS = [
+  'Which roles participate in the most value streams?',
+  'Which roles own the most standards?',
+  'Which departments have the most roles?',
+];
+
 const PROCESS_SUGGESTIONS = [
   'Which value streams have the most process steps?',
   'Which L4 processes have the most L5 steps?',
@@ -37,9 +43,10 @@ const SUGGESTIONS_BY_SCREEN: [prefix: string, suggestions: string[]][] = [
     'List the individual actuarial standards we have to validate',
     'Which roles own the most individual standards?',
   ]],
-  ['/roles', ORG_SUGGESTIONS],
+  ['/organization', ORG_SUGGESTIONS],
   ['/divisions', ORG_SUGGESTIONS],
   ['/departments', ORG_SUGGESTIONS],
+  ['/roles', ROLES_SUGGESTIONS],
   ['/overview', PROCESS_SUGGESTIONS],
   ['/n/', PROCESS_SUGGESTIONS],
   ['/metrics', [
@@ -100,9 +107,10 @@ const PAGE_LABELS: [prefix: string, label: string][] = [
   ['/raid', 'the RAID log'],
   ['/standards', 'the Standards screen'],
   ['/regulations', 'the Regulations screen'],
-  ['/roles', 'the Organization (roles) screen'],
+  ['/organization', 'the Organization (roles) screen'],
   ['/divisions', 'an Organization division'],
   ['/departments', 'an Organization department'],
+  ['/roles', 'the Roles screen'],
   ['/overview', 'the Value Streams operating-model map'],
   ['/n/', 'an operating-model node detail'],
   ['/metrics', 'the Metrics screen'],

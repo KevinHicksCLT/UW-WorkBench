@@ -336,7 +336,9 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
           {/* Very slim strip: totals + clear. Lives OUTSIDE the scroll area so the
               sticky sheet header pins below it instead of sliding over the
               floating List|Map toggle (pl clears the toggle). */}
-          <div className="flex-shrink-0 flex items-center gap-3 flex-wrap pr-3 sm:pr-4 pt-2 pb-1.5 pl-[162px] min-h-[48px]">
+          {/* pr clears the card padding + the scroll area's scrollbar so the
+              search box lines up with the table's right edge (doesn't hang past). */}
+          <div className="flex-shrink-0 flex items-center gap-3 flex-wrap pr-[31px] pl-[162px] h-[57px]">
             {!loading && !error && (
               <>
                 <span className="text-[11px] text-[#737373] tnum">

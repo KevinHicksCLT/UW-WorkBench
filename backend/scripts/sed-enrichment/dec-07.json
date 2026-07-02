@@ -1,0 +1,310 @@
+{
+ "tasks": [
+  {
+   "id": "2583d5de-af03-4e1f-b4e6-21ada5f6fa1f",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All production data pipelines orchestrated in the ITSM/scheduler with a business SLA tier (P1 finance/regulatory feeds, P2 analytics, P3 internal). Scope = the failed or late DAG run plus every downstream dependent job in the same lineage." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The current scheduling window for the affected run (e.g. nightly 02:00-06:00 ET batch load) up to the point the pipeline is confirmed recovered and caught up to the current watermark." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Incident record captures failed job id, run timestamp, error class (data/infra/dependency), SLA tier, root cause, and recovery action; all mandatory ITSM fields non-null before the ticket can be resolved." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Post-recovery row counts and control totals for the re-run match the source watermark within 0 variance for financial feeds and <=0.1% for analytics feeds; reconciliation query result attached to the incident." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Scheduler run log, error stack trace, and reconciliation output exported to the incident record with UTC timestamp and pipeline commit SHA; retained per the incident's 3-year audit retention." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Every SLA breach logged as an ITSM incident with disposition (recovered / re-run / data-quarantine / permanent-fail-escalated) and, if unresolved within the SLA tier, escalated to on-call SRE and the data product owner." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03wumbk841l1glrn" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Runbook and recovery procedure for the pipeline are the latest approved version in Confluence, referenced by id in the incident; recovery steps executed match the approved runbook revision." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03wumbk841l1glrn" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Alert thresholds: warn at 50% of SLA window elapsed with job still running, page on-call at 80%; late-data threshold = watermark lag > 30 min for P1, > 2 h for P2." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Any pipeline feeding a regulatory or GL filing is material; a missed P1 SLA or >0 reconciliation variance on a material feed triggers mandatory data product owner sign-off before close." },
+    { "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaq1y0035lasbt581hez0", "value": "Sample of the last 20 SLA-breach incidents over the trailing quarter, weighted to include all P1 breaches." },
+    { "templateKeyId": "cmr2oaq320037lasb58si1owg", "value": "Pass = pipeline recovered within its SLA tier (P1 <=2 h, P2 <=8 h, P3 next business day) and reconciliation clean; fail = SLA missed or reconciliation variance outside tolerance." },
+    { "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x", "value": "On persistent failure, quarantine partial output, open a P1 SDLC-Exception ticket owned by the Engineering Manager with a 10-business-day RCA SLA, and notify downstream data consumers via the ITSM broadcast." },
+    { "templateKeyId": "cmr2v89xj0017xa9ikgynty6d", "value": "Recovery executed against the runbook version tagged in the pipeline repo (git tag matching the deployed release), recorded in the incident." },
+    { "templateKeyId": "cmr2v89ze0019xa9i4s25sd76", "value": "Scheduler config and connection parameters sourced from the version-controlled IaC repo and the secrets vault; no manual parameter overrides permitted during recovery." },
+    { "answerId": "cmr2ocdwr0to2kaz3qthfm1qu", "value": "Acceptance = failed/late pipeline recovered within SLA tier, downstream jobs green, reconciliation clean; evidence = resolved ITSM incident with attached scheduler logs and reconciliation output at the incident record URL." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp3rz1n5smbk8rvf3wosu", "checklist": [ { "step": "Confirm the pipeline emits health metrics and failure alerts", "value": "Each DAG publishes success/failure and watermark-lag metrics to the observability platform with alert rules wired to on-call." } ], "testing": [ { "step": "Trigger a synthetic failure and verify alert fires", "value": "Inject a forced task failure in a staging DAG; page must reach on-call within 5 minutes." } ] },
+    { "standardId": "cmqscp68b1nacmbk8boqyksun", "checklist": [ { "step": "Link the recovery runbook to the pipeline", "value": "Runbook URL stored in the DAG metadata and referenced in every SLA-breach incident." } ], "testing": [ { "step": "Verify runbook resolves the last incident", "value": "Re-run the documented recovery steps against the most recent breach and confirm recovery." } ] },
+    { "standardId": "cmqscp3oz1n5mmbk8w0mgzz9i", "checklist": [ { "step": "Ensure re-runs are idempotent", "value": "Recovery re-run of the failed job produces identical output with no duplicate rows (merge/upsert keyed on natural key)." } ], "testing": [ { "step": "Re-run twice and compare", "value": "Execute recovery job twice; row counts and checksums identical on both runs." } ] },
+    { "standardId": "cmqscp4wa1n7umbk8rckhlnz3", "checklist": [ { "step": "Enforce per-pipeline timeliness SLA", "value": "SLA tier (P1/P2/P3) recorded on the pipeline and monitored against the business-agreed delivery time." } ], "testing": [ { "step": "Audit trailing-quarter SLA attainment", "value": "Query incident history; P1 attainment >= 99% with all breaches ticketed." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "eab6f86d-e325-47a8-b0b8-401be56c9b7f",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "High-traffic and latency-sensitive components identified in the release scope (public APIs, quote/bind endpoints, batch ingestion). Scope = the specific service build/tag under test plus its direct downstream dependencies." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The performance test campaign for the current release candidate, run in the pre-production performance environment before the go/no-go gate." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "newApplication": "Apache JMeter / k6 Performance Testing" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03wgmbk8l97vjt6e" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Every scenario records p50/p95/p99 latency, throughput (req/s), error rate, and resource utilisation; all fields populated in the test report before results are accepted." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Requests issued vs. responses recorded reconcile within 0.1%; unaccounted requests investigated and explained before the run is deemed valid." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Test plan, load profile, raw result files, and dashboards exported to the CI artifact store tagged with the build SHA and UTC run timestamp; retained for the release's audit window." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Any scenario breaching a target logged as a defect in Jira with severity, owner, and disposition (fix / accept-with-waiver / block-release)." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xsmbk8m22e2kle" },
+    { "templateKeyId": "cmr2oandp0013lasb81a47aqo", "value": "Current-release p95 latency and throughput compared against the prior release baseline; no more than 5% latency regression permitted, and any regression waived requires Tech Lead sign-off." },
+    { "templateKeyId": "cmr2v88lm000jxa9iggiq99sw", "applicationId": "52deb808-fc3d-469f-8652-e331ba334cbe" },
+    { "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8", "value": "Performance run linked to the release change ticket (Jira release id / change record) and to the CI pipeline run that produced the tested build." },
+    { "templateKeyId": "cmr2oaqo3003rlasb1r26nwor", "roleId": "cmqsck0rq03wgmbk8l97vjt6e" },
+    { "templateKeyId": "cmr2oaqpd003tlasbyv59t5v5", "value": "The full set of performance scenarios for the release: steady-state load, peak (2x expected), soak (2 h), and spike; each executed against the tagged build." },
+    { "templateKeyId": "cmr2oaqq9003vlasbyjg1pxll", "value": "Pass = p95 <= 500 ms, p99 <= 1 s, error rate < 0.1% at target throughput, and no > 5% regression vs. baseline; fail = any target breached." },
+    { "templateKeyId": "cmr2oaqrf003xlasb2mopahy1", "value": "On failure, block the release gate and open a Jira defect (type Performance) owned by the Tech Lead; a waiver requires an SDLC-Exception ticket approved by the Engineering Manager with a remediation plan and 10-business-day SLA." },
+    { "templateKeyId": "cmr2oaqsp003zlasbtvvkt534", "value": "Effective for the current release candidate; results expire and must be re-run if the build SHA changes before deployment." },
+    { "answerId": "cmr2ocdww0tvlkaz3tprlimrb", "value": "Acceptance = all scenarios meet latency/throughput/error targets with no > 5% regression; evidence = signed performance report and dashboards in the CI artifact store keyed to the build SHA." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6gk1naqmbk8p8f0ok8y", "checklist": [ { "step": "Run load tests before production", "value": "Performance suite executed against the release candidate in the pre-prod perf environment and gated in CI." } ], "testing": [ { "step": "Verify gate blocks on failure", "value": "Force a scenario over threshold; confirm the release pipeline stage fails and the gate blocks promotion." } ] },
+    { "standardId": "cmqscp6ls1naymbk8q8t2kn8n", "checklist": [ { "step": "Establish and store a performance baseline", "value": "Prior-release p50/p95/p99 and throughput baselines stored in the artifact store for regression comparison." } ], "testing": [ { "step": "Compare candidate to baseline", "value": "Automated diff flags any metric > 5% worse than baseline." } ] },
+    { "standardId": "cmqscp6aw1nagmbk8geywa493", "checklist": [ { "step": "Cover critical paths", "value": "Quote/bind and highest-traffic endpoints all have a load scenario; coverage of critical paths >= 90%." } ], "testing": [ { "step": "Review scenario-to-endpoint map", "value": "QA confirms every critical endpoint appears in the test plan." } ] },
+    { "standardId": "cmqscp6mw1nb0mbk8k1cnga6l", "checklist": [ { "step": "Manage test data", "value": "Load driven by masked, production-representative synthetic data set; no live PII used." } ], "testing": [ { "step": "Verify data volume and shape", "value": "Test dataset row counts and cardinality within 10% of production profile." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "32984f6d-475d-4363-9a01-94c268a6cdc9",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The streaming pipeline under test (e.g. Kafka topic + stream processor) and its consumers. Scope = the deployed stream job version validated against peak-condition throughput and latency targets." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The load-test campaign for the current stream release candidate, executed in the staging streaming cluster before promotion." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "newApplication": "k6 / Gatling Streaming Load Testing" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03wgmbk8l97vjt6e" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each run records sustained events/sec, end-to-end latency (p95/p99), consumer lag, and dropped-message count; all fields populated before results accepted." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Messages produced vs. consumed reconcile with 0 message loss at target rate; any gap between produced and committed offsets investigated before pass." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Load profile, throughput/latency dashboards, and consumer-lag charts exported to the CI artifact store with build SHA and UTC timestamp; retained for the release audit window." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Any breach of latency or lag target logged as a Jira defect with severity, owner, and disposition (tune / scale / block-release)." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xsmbk8m22e2kle" },
+    { "templateKeyId": "cmr2oandp0013lasb81a47aqo", "value": "Current-version throughput and p99 latency compared to prior baseline; no > 5% latency or lag regression permitted without Tech Lead sign-off." },
+    { "templateKeyId": "cmr2v88lm000jxa9iggiq99sw", "applicationId": "52deb808-fc3d-469f-8652-e331ba334cbe" },
+    { "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8", "value": "Load run linked to the stream deployment change ticket and the CI pipeline run that built the tested stream job." },
+    { "templateKeyId": "cmr2oapmt002rlasbojqqymeh", "roleId": "cmqsck0rq03wgmbk8l97vjt6e" },
+    { "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp", "value": "Peak-condition scenarios: sustained target rate, 2x burst, and a partition-rebalance during load, each against the tagged stream job." },
+    { "templateKeyId": "cmr2oappx002vlasbp983y62z", "value": "Pass = sustains target events/sec with p99 latency <= 2 s, consumer lag draining to 0 within 60 s of burst end, and 0 message loss; fail = any target breached." },
+    { "templateKeyId": "cmr2oaprq002xlasbn62pym1c", "value": "On failure, block promotion and open a Jira defect owned by the Tech Lead; waiver via SDLC-Exception ticket approved by Engineering Manager with a 10-business-day remediation SLA." },
+    { "templateKeyId": "cmr2oapt3002zlasbvo2amzzy", "value": "Effective for the current stream job version; re-run required if the deployed artifact changes before promotion." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6gk1naqmbk8p8f0ok8y", "checklist": [ { "step": "Load test the stream before production", "value": "Peak-condition load suite run against the release candidate in staging and gated in CI." } ], "testing": [ { "step": "Confirm gate blocks on breach", "value": "Force consumer lag beyond threshold; verify the pipeline stage fails." } ] },
+    { "standardId": "cmqscp6ls1naymbk8q8t2kn8n", "checklist": [ { "step": "Baseline stream performance", "value": "Prior throughput/latency/lag baseline stored for regression comparison." } ], "testing": [ { "step": "Diff candidate vs baseline", "value": "Automated check flags > 5% regression on any metric." } ] },
+    { "standardId": "cmqscp3k91n5embk88vzqljzw", "checklist": [ { "step": "Validate CDC/real-time handling under load", "value": "Stream configured for at-least-once with idempotent consumers; ordering and dedup verified under peak load." } ], "testing": [ { "step": "Inject duplicates during load", "value": "Replay a partition; confirm no duplicate downstream records." } ] },
+    { "standardId": "cmqscp3rz1n5smbk8rvf3wosu", "checklist": [ { "step": "Monitor lag and errors during the run", "value": "Consumer lag and error-rate alerts wired to dashboards throughout the load test." } ], "testing": [ { "step": "Verify alerts fire on lag spike", "value": "Drive lag above threshold; confirm alert triggers within 1 minute." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "d98024ba-0597-489b-8e65-314b520b6636",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Demand items in the intake backlog flagged high-priority or high-risk (regulatory, security, or executive-sponsored). Scope = the specific demand record being escalated to technology leadership." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The current intake triage cycle (weekly demand review), from flag to leadership acknowledgement of the escalation." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Escalation record captures demand id, priority/risk rationale, business impact, requested decision, and target date; all mandatory fields non-null before submission." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of items flagged high-priority in the triage tool reconciles with the count escalated; no flagged item dropped without a logged disposition." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Escalation submission and leadership acknowledgement captured in the ITSM record with UTC timestamp and version; retained per intake governance retention." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Items considered but not escalated logged with the reason (below threshold / deferred / merged) in the demand record." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03u7mbk8cs0skbzm" },
+    { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj", "value": "All demand items marked high-priority/high-risk in the current triage cycle." },
+    { "templateKeyId": "cmr2oaodj001vlasbycmyhv72", "value": "Pass = every flagged item has a submitted escalation with complete fields and a leadership acknowledgement within 2 business days; fail = missing escalation or acknowledgement." },
+    { "templateKeyId": "cmr2oaof2001xlasbgo5bzael", "value": "If leadership does not acknowledge within SLA, re-escalate to the Enterprise Architect and PMO Manager and log an SDLC-Exception ticket owned by the Engineering Manager." },
+    { "templateKeyId": "cmr2v8940000vxa9iz1ws174c", "value": "Acceptance = escalation submitted with complete rationale and priority evidence, and receipt acknowledged by technology leadership." },
+    { "templateKeyId": "cmr2v8953000xxa9izs452xrs", "value": "Escalation record and acknowledgement thread stored in the ITSM demand record at its ticket URL." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Link the escalation to its work item", "value": "Escalation references the originating demand id in the ITSM/PPM tool." } ], "testing": [ { "step": "Verify traceability", "value": "Every escalation resolves to a demand record with matching priority flag." } ] },
+    { "standardId": "cmqscp40w1n68mbk86db9qx14", "checklist": [ { "step": "Follow the defined escalation path", "value": "Escalation routed to the documented leadership tier for the item's risk level." } ], "testing": [ { "step": "Audit routing", "value": "Sample escalations reach the correct approver per the escalation matrix." } ] },
+    { "standardId": "cmqscp3vm1n5ymbk8qgjozhcq", "checklist": [ { "step": "Document accountability", "value": "Named owner and decision authority recorded on each escalated item." } ], "testing": [ { "step": "Check owner assignment", "value": "No escalated item lacks a named owner." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "e5c31c3d-7382-4c42-9534-98378ed35d68",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The solution components for the current feature/epic: logical/physical data model, API contracts, and UI specification. Scope = the design artifacts for the build increment under Solution Build & Code Delivery." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The design phase of the current sprint/increment, from design start to architecture review sign-off." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "93c26f4e-2c06-4b8f-89ca-2e56818aaf8c" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0ro03tombk8h8khuiyn" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Design package includes data model with keys/constraints, OpenAPI spec for every endpoint, and UI spec with states; each component links to the requirement id it satisfies; no orphan requirements." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of requirements mapped to design components equals the count of in-scope requirements; a requirements-to-design traceability matrix reconciles 1:1." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Design docs and the OpenAPI spec committed to the repo/Confluence with version tag and UTC timestamp; ADRs recorded for significant decisions." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Open design questions and deviations from standard patterns logged as ADR entries or Jira design-review comments with disposition." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "381b2c32-e821-4e74-a6fc-abb3414e690b" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Design follows the current approved reference architecture and data-modeling standard version; ADR cites the pattern applied." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rp03u7mbk8cs0skbzm" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Design flags any component exceeding complexity/coupling thresholds (e.g. > 7 direct dependencies) for architecture review." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Components touching regulated/PII data or core policy/claims systems are material and require Enterprise Architect and Data Architect sign-off before build." },
+    { "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x", "roleId": "cmqsck0ro03tsmbk8glmk5sv4" },
+    { "templateKeyId": "cmr2oaq1y0035lasbt581hez0", "value": "All design components in the increment: data model, each API contract, and the UI spec." },
+    { "templateKeyId": "cmr2oaq320037lasb58si1owg", "value": "Pass = each requirement traces to a design component, OpenAPI validates, data model normalised/reviewed, and ADRs recorded; fail = any untraced requirement or unreviewed significant decision." },
+    { "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x", "value": "Design gaps returned to the design owner as blocking review comments; a pattern deviation requires an approved ADR or an SDLC-Exception ticket owned by the Enterprise Architect." },
+    { "templateKeyId": "cmr2v89xj0017xa9ikgynty6d", "value": "Design conforms to the current approved reference-architecture and API-standards version tagged in the architecture repo." },
+    { "templateKeyId": "cmr2v89ze0019xa9i4s25sd76", "value": "Data model attributes sourced from the enterprise data dictionary/business glossary; API field definitions traceable to the source-of-record schema." },
+    { "answerId": "cmr2ocdx50u7jkaz32kbpbwd4", "value": "Source-system field definitions taken from the enterprise data catalog/business glossary; control totals defined per source table (row counts, key uniqueness) and recorded in the data model doc." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp8p51neymbk820w63hfg", "checklist": [ { "step": "Expose capabilities via well-defined APIs", "value": "Every solution capability has a documented OpenAPI contract before build." } ], "testing": [ { "step": "Validate the API contract", "value": "OpenAPI spec passes lint/validation and contract review." } ] },
+    { "standardId": "cmqscp7ql1nd4mbk84sleiyni", "checklist": [ { "step": "Record ADRs for significant decisions", "value": "Each material design choice captured as an ADR in the repo." } ], "testing": [ { "step": "Verify ADR coverage", "value": "Design review confirms an ADR exists for every significant decision." } ] },
+    { "standardId": "cmqscp5o31n9embk822qt2buu", "checklist": [ { "step": "Maintain architecture decision records", "value": "ADR log kept current alongside the design package." } ], "testing": [ { "step": "Audit ADR log", "value": "ADR entries dated and versioned for this increment." } ] },
+    { "standardId": "cmqscp9ol1ngsmbk8olq59h9a", "checklist": [ { "step": "Link data model to the business glossary", "value": "Every model attribute mapped to a governed glossary term." } ], "testing": [ { "step": "Check glossary linkage", "value": "No modeled attribute lacks a glossary term reference." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "55ceb4b9-f0bf-4a79-b457-8b0778939e33",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The elaborated requirements package for the current epic: user stories, acceptance criteria, NFRs, and traceability matrix. Scope = the package being handed from BA to engineering for backlog shaping." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The requirements-elaboration-to-handover window of the current increment, ending at engineering handover confirmation." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rsmbk8cr7zj5ho" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Every story has a title, description, acceptance criteria (Given/When/Then), and priority; NFRs and dependencies documented; no story missing acceptance criteria at handover." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of elaborated requirements equals count of stories transferred; traceability matrix maps each requirement to at least one backlog item with 0 unmapped." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Handover package version, transfer timestamp, and engineering acceptance recorded in Jira/Confluence with UTC timestamp." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Open questions and unresolved dependencies logged as Jira items flagged 'needs-clarification' with owner and disposition before handover completes." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Requirements follow the current approved elaboration template/Definition of Ready version; handover checklist references it." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Stories exceeding a size threshold (e.g. > 8 story points) flagged for splitting before acceptance into the sprint backlog." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Requirements affecting regulated processes or customer PII are material and require Product Owner and Tech Lead joint sign-off at handover." },
+    { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq", "value": "All stories and NFRs in the requirements package being handed over." },
+    { "templateKeyId": "cmr2oao03001jlasb1coy37l2", "value": "Pass = every story meets Definition of Ready (clear AC, sized, dependencies noted) and engineering confirms acceptance; fail = any story fails DoR or handover unacknowledged." },
+    { "templateKeyId": "cmr2oao16001llasbnlkf9nbu", "value": "Stories failing Definition of Ready returned to the BA with blocking comments; unresolved gaps tracked as an SDLC-Exception ticket owned by the Product Owner with a 10-business-day SLA." },
+    { "templateKeyId": "cmr2v88x1000rxa9if2t45ukx", "value": "Acceptance = package meets Definition of Ready, traceability complete, and engineering handover confirmed in writing." },
+    { "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m", "value": "Requirements package and handover confirmation stored in Confluence/Jira at the epic's page URL." },
+    { "answerId": "cmr2ocdx90ud9kaz3rd98crx9", "value": "Package built to the current approved elaboration template version; requirement parameters (business rules, thresholds) sourced from the signed-off business requirements document referenced by id." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Link stories to work items", "value": "Every transferred story is a tracked Jira item linked to its parent epic." } ], "testing": [ { "step": "Verify linkage", "value": "No story exists outside the epic's work-item tree." } ] },
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [ { "step": "Keep the requirements docs current", "value": "Handover package reflects the latest elaborated version with no stale sections." } ], "testing": [ { "step": "Check version currency", "value": "Package version matches the latest Confluence revision at handover." } ] },
+    { "standardId": "cmqscp5r61n9kmbk8xcnz45ig", "checklist": [ { "step": "Provide examples in acceptance criteria", "value": "Each story includes concrete Given/When/Then examples." } ], "testing": [ { "step": "Sample AC quality", "value": "Reviewed stories contain testable, example-backed acceptance criteria." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "e518768c-e341-474d-bf31-531004ee94be",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Developer workstation baseline (golden image, IDE, SDKs, security agents) and the approved tooling catalogue. Scope = the current published standard applied to all engineering workstations." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The current quarterly review cycle of the workstation standard, from draft to publication of the updated baseline." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Standard specifies OS version, required security agents (EDR, disk encryption), approved IDE/tool list with versions, and configuration baselines; every catalogue entry has an owner and approval status." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of approved tools in the catalogue reconciles with the software-inventory/CMDB deployment count; unmanaged or out-of-catalogue installs flagged for remediation." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Published standard document and tooling catalogue versioned in Confluence/CMDB with UTC timestamp and change author; prior version archived." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Approved exceptions (non-standard tools, elevated privileges) logged in the ITSM tool with owner, justification, and expiry." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2v88pn000nxa9irjv495b3", "value": "Standard-change decision recorded in the CAB/ITSM change record with rationale and approver, referencing the security review outcome." },
+    { "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb", "value": "Updated standard communicated to all engineering staff via the ITSM broadcast and Confluence notification; recipient list = all Software/Backend/UI engineers." },
+    { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb", "value": "The published workstation standard document and the full approved tooling catalogue." },
+    { "templateKeyId": "cmr2oaoru0027lasblf4a3q5g", "value": "Pass = standard current (reviewed within the last quarter), every catalogue tool approved and versioned, and deployed fleet matches within 5% drift; fail = stale review or > 5% non-compliant workstations." },
+    { "templateKeyId": "cmr2oaot40029lasbqt4ono47", "value": "Non-compliant workstations auto-flagged; remediation ticket opened in ITSM; unresolved exceptions escalate to the Platform Engineering Lead with a 10-business-day SLA." },
+    { "templateKeyId": "cmr2v89b6000zxa9ivo819zn7", "value": "Catalogue fields (tool name, version, license, owner, approval status) defined in the CMDB software model." },
+    { "templateKeyId": "cmr2v89c10011xa9ijssevzvo", "value": "Deployed-software counts pulled from the CMDB/endpoint-management inventory as the control total for compliance reconciliation." },
+    { "answerId": "cmr2ocdx90udakaz3m6secmwa", "value": "Authorized approver for standard changes = Platform Engineering Lead; delegation matrix in the ITSM change policy names backup approvers and approval thresholds." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp51f1n84mbk8i3h7eo38", "checklist": [ { "step": "Keep dev/test/prod environments consistent", "value": "Workstation baseline aligns tool and runtime versions with the standard dev environment definition." } ], "testing": [ { "step": "Verify version parity", "value": "Sampled workstations run the catalogue-approved SDK/tool versions." } ] },
+    { "standardId": "cmqscp5c31n8qmbk8dbhnhyzt", "checklist": [ { "step": "Enforce linters/style tooling via the standard", "value": "Approved linter/formatter tools included and pre-configured in the workstation baseline." } ], "testing": [ { "step": "Check tooling presence", "value": "Baseline image ships the mandated linters at the catalogue version." } ] },
+    { "standardId": "cmqscp5tf1n9ombk8gq23fix3", "checklist": [ { "step": "Maintain an onboarding/setup guide", "value": "Workstation setup guide kept current with the tooling catalogue." } ], "testing": [ { "step": "Dry-run onboarding", "value": "New-developer setup following the guide yields a compliant workstation." } ] }
+   ],
+   "regulations": [
+    { "regId": "cmqwos0a7006dd29hvd4j01c9", "checklist": [ { "step": "Align tooling with secure SDLC procedures", "value": "Approved catalogue restricted to vetted tools; security agents (EDR, encryption) mandatory in the baseline." } ], "testing": [ { "step": "Verify security controls on the baseline", "value": "Sampled workstations show disk encryption and EDR active per the standard." } ] }
+   ]
+  },
+  {
+   "id": "fa300f5b-58d4-4e6e-93ae-ba030b239be9",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Release documentation set required at the governance gate: README, runbook, ADRs, API docs, changelog, test evidence, and rollback plan. Scope = the documentation for the release candidate being gated." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The release governance gate for the current release, evaluated at the go/no-go review." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each required document present and non-empty for the release version; checklist marks every artifact (README, runbook, ADRs, changelog, test evidence, rollback) as complete or explicitly waived." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of required documents equals count present; any missing artifact blocks the gate. Documentation completeness score recorded (target 100% of mandatory items)." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Gate checklist, completeness score, and gate outcome recorded in the GRC platform with release version, UTC timestamp, and approver; evidence retained per release audit retention." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Missing or waived documents logged in the GRC record with justification, owner, and remediation date; waivers require sign-off." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03wumbk841l1glrn" },
+    { "templateKeyId": "cmr2oan48000xlasba0u1ffd8", "value": "Gate cites the internal release governance policy and, for regulated releases, the applicable retention/change-management control reference." },
+    { "templateKeyId": "cmr2v88hl000fxa9io24wujiz", "value": "Release documentation retained for the mandated audit period (minimum 3 years for regulated changes) in the compliance evidence repository." },
+    { "templateKeyId": "cmr2v88il000hxa9icjpyq8mw", "value": "Gate completed and outcome recorded before the scheduled release cutover date; late gates flagged." },
+    { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb", "value": "The full mandatory documentation set for the release candidate." },
+    { "templateKeyId": "cmr2oaoru0027lasblf4a3q5g", "value": "Pass = 100% of mandatory documents present, current, and version-tagged to the release; fail = any mandatory document missing or stale without an approved waiver." },
+    { "templateKeyId": "cmr2oaot40029lasbqt4ono47", "value": "On a documentation gap, block the release and open an SDLC-Exception ticket owned by the Release/Environment Manager with a remediation SLA before re-gating." },
+    { "templateKeyId": "cmr2v89b6000zxa9ivo819zn7", "value": "Required-document set and its fields defined in the release governance checklist template in the GRC platform." },
+    { "templateKeyId": "cmr2v89c10011xa9ijssevzvo", "value": "Mandatory-document count for the release taken from the governance checklist as the control total for completeness reconciliation." },
+    { "answerId": "cmr2ocdxa0uefkaz3nw1mw7ab", "value": "Applicable citation = internal Release Governance Policy and Records Retention Schedule; for changes to regulated systems, the NYDFS 500 audit-trail retention requirement is referenced in the gate record." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp5vv1n9smbk87l9mzurv", "checklist": [ { "step": "Confirm README completeness", "value": "README covers purpose, setup, run, test, and deploy for the release." } ], "testing": [ { "step": "Inspect README sections", "value": "All five mandated sections present and non-empty." } ] },
+    { "standardId": "cmqscp68b1nacmbk8boqyksun", "checklist": [ { "step": "Verify runbook is linked", "value": "Operational runbook linked from the release record." } ], "testing": [ { "step": "Check runbook link", "value": "Runbook URL resolves and matches the release version." } ] },
+    { "standardId": "cmqscp5q71n9imbk88q7k8pe2", "checklist": [ { "step": "Confirm changelog is maintained", "value": "Changelog updated with this release's changes and version." } ], "testing": [ { "step": "Diff changelog vs commits", "value": "Changelog entries reconcile with merged PRs for the release." } ] },
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [ { "step": "Confirm docs are current", "value": "All release docs reflect the shipped build, no stale content." } ], "testing": [ { "step": "Spot-check currency", "value": "Sampled docs match the release version and code state." } ] }
+   ],
+   "regulations": [
+    { "regId": "cmr2bss2v016254qdbpdw81an", "checklist": [ { "step": "Retain change/audit trail evidence", "value": "Release gate evidence retained for at least 3 years in the compliance evidence repository." } ], "testing": [ { "step": "Verify retention", "value": "Retention policy on the evidence repository confirms >= 3-year hold on release records." } ] }
+   ]
+  },
+  {
+   "id": "42facdb3-1064-4154-ac90-259bf9fe134d",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Demand intake decisions requiring stakeholder communication: acceptance/rejection, status, and prioritization outcome. Scope = the decision record for the demand item being communicated to requesters." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The current intake decision cycle, from decision approval to communication sent to requesting stakeholders." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Communication captures demand id, decision, rationale, priority/queue position, and next steps; recipient list resolved to the requesting stakeholders; all fields populated before send." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of decided demand items reconciles with count communicated; no decided item left without a stakeholder notification." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Sent communication and decision record captured in the ITSM/PPM tool with UTC timestamp and version; retained per intake governance retention." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Undeliverable notifications or disputed decisions logged with disposition (resend / re-triage / escalate) in the demand record." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03vombk861ggluhk" },
+    { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rq03vombk861ggluhk" },
+    { "templateKeyId": "cmr2v88pn000nxa9irjv495b3", "value": "Prioritization decision and rationale recorded in the PPM tool referencing the intake scoring model result." },
+    { "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb", "value": "Recipients = the requesting business stakeholder(s) and their sponsor, resolved from the demand record's requester field; recipient list stored with the communication." },
+    { "templateKeyId": "cmr2oap6g002flasb12gpqsrx", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oap7x002hlasb21lclhgc", "value": "All demand items with a recorded intake decision in the current cycle." },
+    { "templateKeyId": "cmr2oapa9002jlasbbht6cp5g", "value": "Pass = every decided item has a communication sent to the correct recipients within 3 business days of decision, with complete rationale; fail = missing/late communication or wrong recipients." },
+    { "templateKeyId": "cmr2oapbz002llasbwuwwn4mb", "value": "If a communication cannot be sent or a decision is disputed, log an ITSM task and escalate to the PMO Manager; unresolved disputes tracked to closure with owner." },
+    { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rq03vombk861ggluhk" },
+    { "templateKeyId": "cmr2v89li0015xa9ia4hiukkb", "value": "Delegation matrix in the intake governance policy names who may communicate decisions when the PMO Manager is unavailable." },
+    { "answerId": "cmr2ocdxb0ufskaz3519uw3zy", "value": "Acceptance = decision communicated to all requesting stakeholders with rationale and priority outcome, receipt logged; evidence = sent-communication record in the ITSM/PPM tool at the demand ticket URL." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Link communication to the demand item", "value": "Notification references the originating demand id in the ITSM/PPM tool." } ], "testing": [ { "step": "Verify traceability", "value": "Each communication resolves to a decided demand record." } ] },
+    { "standardId": "cmqscp3vm1n5ymbk8qgjozhcq", "checklist": [ { "step": "Document decision accountability", "value": "Decision, approver, and rationale recorded before communication." } ], "testing": [ { "step": "Check decision record", "value": "No communication sent without a documented, approved decision." } ] },
+    { "standardId": "cmqscp40w1n68mbk86db9qx14", "checklist": [ { "step": "Define escalation for disputes", "value": "Disputed decisions routed to the PMO per the escalation path." } ], "testing": [ { "step": "Audit dispute handling", "value": "Sample disputes reach the correct escalation tier." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "1538d00f-a70d-44d2-9154-aeef81df519c",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The reviewed technical documentation set to be placed under version control: docs-as-code sources, diagrams, and API specs. Scope = the documentation for the current release stored in the source/CI-CD repository." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The documentation-versioning activity for the current release, from review sign-off to commit under version control." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Every reviewed document committed to the docs repo with a version tag, author, and linked review; no reviewed doc left outside version control." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of reviewed documents equals count committed under version control; a reconciliation of the review list against the repo tree shows 0 gaps." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Commit SHA, tag, and UTC timestamp recorded; prior versions preserved in git history and retrievable." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Documents intentionally excluded from version control logged with reason (e.g. superseded) and disposition in the PR description." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oandp0013lasb81a47aqo", "value": "Post-commit repo state compared to the reviewed set: every reviewed doc present at the expected version; diff shows only intended changes." },
+    { "templateKeyId": "cmr2v88lm000jxa9iggiq99sw", "applicationId": "52deb808-fc3d-469f-8652-e331ba334cbe" },
+    { "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8", "value": "Documentation commit made via a pull request linked to the release change ticket / work item." },
+    { "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaq1y0035lasbt581hez0", "value": "All reviewed documents in the release documentation set." },
+    { "templateKeyId": "cmr2oaq320037lasb58si1owg", "value": "Pass = every reviewed doc committed via PR, tagged to the release, with history preserved and CI docs-build green; fail = any doc missing, untagged, or committed directly to main." },
+    { "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x", "value": "A direct commit to main or a missing doc reverts the merge; the gap is fixed and re-submitted via PR; repeated violations raise an SDLC-Exception ticket owned by the Engineering Manager." },
+    { "templateKeyId": "cmr2v89xj0017xa9ikgynty6d", "value": "Versioning follows the current approved docs-as-code branching/tagging standard referenced in the repo README." },
+    { "templateKeyId": "cmr2v89ze0019xa9i4s25sd76", "value": "Document content sourced from the reviewed, signed-off versions in Confluence/GRC; the committed version matches the approved review artifact." },
+    { "answerId": "cmr2ocdxc0uhckaz304a43pyx", "value": "Acceptance = all reviewed docs under version control with tags and preserved history, committed via PR; evidence = merged PR and release tag in the source/CI-CD repository at the PR URL." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6y21nbmmbk882oq68hf", "checklist": [ { "step": "Require PR for main/develop", "value": "Documentation changes land via pull request, never direct commits to main." } ], "testing": [ { "step": "Check branch protection", "value": "Repo settings block direct pushes to main for the docs path." } ] },
+    { "standardId": "cmqscp6wb1nbimbk8xjdtaqkl", "checklist": [ { "step": "No direct commits to main", "value": "All doc commits reviewed via PR before merge." } ], "testing": [ { "step": "Audit commit history", "value": "No non-merge commits authored directly on main for the docs set." } ] },
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Link commit to a work item", "value": "Docs PR references the release change ticket." } ], "testing": [ { "step": "Verify linkage", "value": "PR contains a resolvable work-item link." } ] },
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [ { "step": "Keep docs current under version control", "value": "Committed docs reflect the reviewed, latest state." } ], "testing": [ { "step": "Diff repo vs reviewed set", "value": "Repo contents match the approved review artifacts." } ] }
+   ],
+   "regulations": []
+  }
+ ]
+}

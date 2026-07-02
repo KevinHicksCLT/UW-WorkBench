@@ -23,7 +23,11 @@ type Item = {
   agentSkill: string | null;
   sdlcGates: string | null;
   regCitation: string | null;
+  testProcedure: string | null;
+  evidence: string | null;
+  plan: { checklist: string[]; testing: string[] } | null; // Work Library plan keys
   responsible: Responsible | null;
+  appliers: { roleId: string; roleName: string }[];
   valueStreams: ValueStream[];
 };
 // Top-level rows are groups: each carries its decomposed child standards.
@@ -184,6 +188,36 @@ export default function StandardDrawer({ areaId, itemId, onClose }: { areaId: st
                 )}
               </div>
 
+              {/* Applied by — the roles that execute the control day-to-day */}
+              {item.appliers.length > 0 && (
+                <div>
+                  <SectionLabel>Applied by</SectionLabel>
+                  <div className="flex flex-wrap gap-1">
+                    {item.appliers.map((a) => (
+                      <Link key={a.roleId} to={`/roles/${a.roleId}`} className="chip-soft hover:bg-[#eaeaea]">{a.roleName}</Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Work Library plan — checklist + testing keys (values filled there) */}
+              {(item.plan?.checklist.length || item.plan?.testing.length) ? (
+                <div>
+                  {item.plan!.checklist.length > 0 && (
+                    <>
+                      <SectionLabel>Checklist</SectionLabel>
+                      <ol className="text-sm text-[#171717] leading-relaxed list-decimal pl-5 space-y-1 mb-2">{item.plan!.checklist.map((s, i) => <li key={i}>{s}</li>)}</ol>
+                    </>
+                  )}
+                  {item.plan!.testing.length > 0 && (
+                    <>
+                      <SectionLabel>Testing</SectionLabel>
+                      <ol className="text-sm text-[#171717] leading-relaxed list-decimal pl-5 space-y-1">{item.plan!.testing.map((s, i) => <li key={i}>{s}</li>)}</ol>
+                    </>
+                  )}
+                </div>
+              ) : null}
+
               {/* Applies to value streams */}
               {item.valueStreams.length > 0 && (
                 <div>
@@ -198,6 +232,9 @@ export default function StandardDrawer({ areaId, itemId, onClose }: { areaId: st
                 </div>
               )}
 
+              <Link to={`/work-library?type=standard&id=${itemId}`} className="inline-block w-full text-center rounded-md border border-[#9fb6e8] px-3 py-1.5 text-xs font-semibold text-[#2563eb] hover:bg-[#f0f6ff]">
+                Checklist &amp; testing plan in Work library ↗
+              </Link>
               <Link to={`/standards/${areaId}`} className="inline-block text-xs text-[#666666] hover:text-[#171717] underline decoration-[#d4d4d4]">
                 View standards area →
               </Link>

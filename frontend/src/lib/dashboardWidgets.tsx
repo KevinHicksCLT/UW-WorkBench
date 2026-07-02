@@ -209,7 +209,7 @@ export const WIDGET_CATALOG: Widget[] = [
     ),
   },
   // Headline count tiles
-  tile('tile:divisions', 'Divisions', 'divisions', { hint: (t) => `${t.departments} departments`, to: '/roles', source: SRC.org }),
+  tile('tile:divisions', 'Divisions', 'divisions', { hint: (t) => `${t.departments} departments`, to: '/organization', source: SRC.org }),
   tile('tile:roles', 'Roles', 'roles', { to: '/roles', source: SRC.org }),
   tile('tile:valueStreams', 'Value Streams', 'valueStreams', { hint: (t) => `${t.domains} domains`, to: '/overview', source: SRC.vs }),
   // Initiative/scenario/risk tiles carry no deep-link: their list views are the
@@ -218,7 +218,7 @@ export const WIDGET_CATALOG: Widget[] = [
   tile('tile:initiatives', 'Initiatives', 'initiatives', { source: SRC.initiatives }),
   tile('tile:deliverables', 'Deliverables', 'deliverables', { to: '/deliverables', source: SRC.work }),
   tile('tile:tasks', 'Tasks', 'tasks', { to: '/tasks', source: SRC.work }),
-  tile('tile:departments', 'Departments', 'departments', { to: '/roles?view=departments', source: SRC.org }),
+  tile('tile:departments', 'Departments', 'departments', { to: '/organization?view=departments', source: SRC.org }),
   tile('tile:domains', 'Domains', 'domains', { to: '/overview', source: SRC.vs }),
   tile('tile:applications', 'Applications', 'applications', { to: '/applications', source: SRC.apps }),
   tile('tile:risks', 'Risks', 'risks', { source: SRC.risks }),
@@ -250,7 +250,7 @@ export const WIDGET_CATALOG: Widget[] = [
   },
   {
     id: 'card:divisionsByCategory', title: 'Divisions by segment', desc: 'Division counts by CEO segment (Core Business / IT / Corporate)', kind: 'card', source: SRC.org,
-    render: (d) => <Card title={wt(d, 'card:divisionsByCategory', 'Divisions by segment')} to="/roles" toLabel="Roles"><BarList groups={d.divisionsByCategory} color="#4f46e5" /></Card>,
+    render: (d) => <Card title={wt(d, 'card:divisionsByCategory', 'Divisions by segment')} to="/organization" toLabel="Organization"><BarList groups={d.divisionsByCategory} color="#4f46e5" /></Card>,
   },
   {
     id: 'card:initiativesByStatus', title: 'Initiatives by status', desc: 'Portfolio initiatives grouped by status', kind: 'card', source: SRC.initiatives,
@@ -308,7 +308,7 @@ export const WIDGET_CATALOG: Widget[] = [
   {
     id: 'card:topDivisions', title: 'Top divisions', desc: 'Divisions ranked by number of roles', kind: 'card', source: SRC.org,
     render: (d) => (
-      <Card title={wt(d, 'card:topDivisions', 'Top divisions')} to="/roles">
+      <Card title={wt(d, 'card:topDivisions', 'Top divisions')} to="/organization">
         <div className="space-y-2 text-sm">
           {d.topDivisions.map((v) => (
             <div key={v.id} className="flex items-center justify-between border-b border-[#f5f5f5] pb-1">

@@ -1,0 +1,109 @@
+{
+ "tasks": [
+  {
+   "id": "e485e011-d9a0-4051-bc50-06256e6f2d4c",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All code changes in the current release train targeting Guidewire PolicyCenter/ClaimCenter/BillingCenter integrations plus surrounding microservices; scope = every merged PR since the last architecture conformance review, identified by Jira Fix Version and the Git tag range on the release branch." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The active release cycle (current 3-week sprint through release-candidate cut); effective dates recorded on the Jira release 'startDate'/'releaseDate' fields." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "52deb808-fc3d-469f-8652-e331ba334cbe" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Every changed component maps to an approved ADR and the target-state reference architecture; verify layering (no UI-to-DB direct calls), approved tech-stack usage (AKS, Azure API Management, Kafka/Service Bus), and that all new capabilities are exposed via well-defined APIs. Zero unresolved architecture guardrail violations." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of changed services in the fitness-function/architecture-compliance test run reconciles to the count of components listed in the design package (delta = 0); dependency-graph diff matches the approved C4 container diagram." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Conformance report exported as PDF to the compliance evidence repository, filename pattern 'archconformance-<release>-<yyyymmdd>.pdf', with Git commit SHA, ADR IDs, and reviewer signatures; retained 7 years." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Each deviation logged as a Jira issue type 'ARCH-EXCEPTION' with disposition (waiver / remediate / reject), owner = Tech Lead, remediation SLA 10 business days; open exceptions block the release gate." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03u7mbk8cs0skbzm" }
+   ,
+    { "templateKeyId": "cmr2oandp0013lasb81a47aqo", "value": "Pre/post comparison: architecture fitness-function suite passes on the release branch with the same or fewer violations than the baseline main-branch run; SonarQube architecture/dependency rules show no new blocker/critical issues introduced by the change set." },
+    { "templateKeyId": "cmr2v88lm000jxa9iggiq99sw", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8", "value": "ServiceNow change record linked to the Jira release and the Git tag; change ticket references the architecture conformance report ID and the ARB decision record." },
+    { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rp03u7mbk8cs0skbzm" },
+    { "templateKeyId": "cmr2v88pn000nxa9irjv495b3", "value": "Conformance decision (conformant / conditional / non-conformant) recorded in the ADR log and the ARB minutes in Confluence, with rationale and any conditions and their due dates." },
+    { "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb", "value": "Decision distributed to the delivery squad, Tech Lead, Enterprise Architect, Release Manager, and Product Owner via the Jira release comment and the #arch-review Teams channel; recipient list captured in the ARB minutes." },
+    { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj", "value": "100% of components changed in the release (no sampling) — full census of merged PRs in the Fix Version run through the automated architecture-compliance suite." },
+    { "templateKeyId": "cmr2oaodj001vlasbycmyhv72", "value": "PASS = 0 blocker/critical architecture-rule violations and every component traceable to an approved ADR; FAIL = any new blocker/critical violation or any undocumented deviation without an approved ARCH-EXCEPTION waiver." },
+    { "templateKeyId": "cmr2oaof2001xlasbgo5bzael", "value": "On FAIL, block promotion, open an ARCH-EXCEPTION in Jira (owner = Tech Lead), and route to the ARB; only an ARB-approved conditional waiver with a dated remediation plan permits release." },
+    { "templateKeyId": "cmr2v8940000vxa9iz1ws174c", "value": "Acceptance criteria: conformance report generated, 0 unwaived guardrail violations, ARB/EA sign-off recorded, and all ARCH-EXCEPTIONs dispositioned before the release-candidate gate." },
+    { "templateKeyId": "cmr2v8953000xxa9izs452xrs", "value": "Evidence stored in the compliance evidence repository (conformance PDF + fitness-function CI logs) and cross-linked from the ServiceNow change record and the ADR log in Confluence." },
+    { "answerId": "cmr2ocg0z0yfdkaz319xq8tw5", "value": "Authorized approver for conformance sign-off = Enterprise Architect (primary); delegation matrix in Confluence names Solutions Architect as first delegate and Tech Lead as second delegate when the EA is unavailable >2 business days; delegation must be logged in the ARB minutes and the approver must differ from the change author (Software Engineer)." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp7ql1nd4mbk84sleiyni", "checklist": [ { "step": "Confirm each significant design decision in the change set has a corresponding ADR", "value": "ADR markdown files present under /docs/adr in the repo, statuses = Accepted, referenced by ID in the conformance report" } ], "testing": [ { "step": "Cross-check ADR IDs against changed components", "value": "Every component in the fitness-function output resolves to an Accepted ADR; 0 orphan components" } ] },
+    { "standardId": "cmqscp7rk1nd6mbk8bc5skece", "checklist": [ { "step": "Verify ARB approval exists for the initiative before promotion", "value": "ARB decision record in Confluence with quorum and dated approval linked to the Jira release" } ], "testing": [ { "step": "Validate ARB record status", "value": "ARB minutes show 'Approved' or 'Conditional' with conditions tracked as Jira issues" } ] },
+    { "standardId": "cmqscp7u31ndambk8oa603ruk", "checklist": [ { "step": "Run the automated architecture-compliance (fitness-function) suite on the release branch", "value": "ArchUnit/dependency-cruiser job in the CI pipeline green; report artifact archived" } ], "testing": [ { "step": "Inspect CI job result and violation count", "value": "0 blocker/critical rule violations vs. baseline main-branch run" } ] },
+    { "standardId": "cmqscp8p51neymbk820w63hfg", "checklist": [ { "step": "Confirm new capabilities are exposed only via well-defined APIs", "value": "OpenAPI specs published for all new endpoints in Azure API Management; no direct cross-context DB access" } ], "testing": [ { "step": "Scan for boundary violations", "value": "Dependency scan shows no unauthorized cross-bounded-context calls" } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "b8ee2577-3203-4a9a-90a9-d2004fb508e8",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Requirements for the in-flight epic/feature under Business Analysis & Requirements Elaboration; scope = all user stories and acceptance criteria for the epic keyed by its Jira Epic link, plus the impacted Guidewire and integration touchpoints named in the epic charter." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Requirements elaboration window for the current PI/sprint; workshop date and the epic's target PI recorded on the Jira Epic and the Confluence requirements page header." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Every captured requirement has: unique ID, business rationale, INVEST-compliant story text, testable acceptance criteria (Given/When/Then), priority (MoSCoW), and a named business owner; stories missing acceptance criteria are flagged 'Needs Refinement' and excluded from ready-for-dev." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Number of requirements logged in Jira reconciles to the requirement count in the workshop notes and the requirements traceability matrix in Confluence (delta = 0); each maps to at least one business objective." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Workshop outputs (attendee list, decisions, requirement set) saved to the Confluence requirements space with page version and timestamp; recording/notes retained per project record policy (minimum 3 years)." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Open questions and conflicting requirements logged as Jira issues labeled 'req-open-item' with owner and due date; parked items recorded in a decision log with disposition before stories are marked ready." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" }
+   ,
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Elicitation approach/template version approved: use the standard requirements-workshop template v-current from the BA playbook in Confluence; version stamped on the page and agreed by the Product Owner before the session." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rn03rsmbk8cr7zj5ho" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Sensitivity: requirements touching pricing, underwriting rules, or claims payout logic flagged 'high-impact' and require a second SME confirmation and Solution Architect review before acceptance." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Materiality: any requirement estimated >8 story points or crossing >2 systems is escalated to the Product Owner and Architecture for scope/feasibility sign-off before commit." },
+    { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb", "value": "All requirements produced by the workshop (full set, no sampling) inspected against the definition-of-ready checklist in Jira." },
+    { "templateKeyId": "cmr2oaoru0027lasblf4a3q5g", "value": "PASS = 100% of committed stories have testable Given/When/Then acceptance criteria, a business owner, and traceability to a business objective; FAIL = any committed story missing acceptance criteria or owner." },
+    { "templateKeyId": "cmr2oaot40029lasbqt4ono47", "value": "Stories failing definition-of-ready are moved to 'Needs Refinement', a follow-up refinement session is scheduled within 5 business days, and they are excluded from the sprint until remediated (owner = Business Analyst)." },
+    { "templateKeyId": "cmr2v89b6000zxa9ivo819zn7", "value": "Source-system field definitions confirmed against the data catalog/business glossary for any data element referenced (e.g., Guidewire PolicyCenter policy/coverage fields), with glossary term IDs cited in the story." },
+    { "templateKeyId": "cmr2v89c10011xa9ijssevzvo", "value": "Where requirements assert data volumes or migration counts, source-system control totals are captured from the enterprise data warehouse and attached to the requirement as baseline figures." },
+    { "answerId": "cmr2ocg140ymmkaz34xnhbwj6", "value": "Acceptance criteria: workshop notes signed off by the Product Owner, requirements traceability matrix complete with 0 orphan stories, and all high-impact items SME-confirmed; evidence location = Confluence requirements space (page version linked) and the Jira epic, cross-referenced in the traceability matrix." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp38o1n4umbk8ne8wtn63", "checklist": [ { "step": "Document each requirement with rationale, acceptance criteria, priority, and owner", "value": "Confluence requirements page + Jira stories with Given/When/Then and MoSCoW priority populated" } ], "testing": [ { "step": "Audit story fields for completeness", "value": "100% of committed stories pass the definition-of-ready field check" } ] },
+    { "standardId": "cmqscp5o31n9embk822qt2buu", "checklist": [ { "step": "Record significant scope/design decisions made in the workshop as ADRs or decision-log entries", "value": "Decision log in Confluence with decision, options, rationale, and owner for each material choice" } ], "testing": [ { "step": "Verify decisions are traceable", "value": "Every 'parked/decided' item in the workshop notes appears in the decision log" } ] },
+    { "standardId": "cmqscp3co1n52mbk8zfr9bm39", "checklist": [ { "step": "Link data-related requirements to business glossary terms", "value": "Glossary term IDs cited on each data-bearing story; unmatched terms raised to Data Governance" } ], "testing": [ { "step": "Check glossary linkage coverage", "value": "0 data elements referenced without a resolved glossary term" } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "b8ede1e6-99f8-45ac-b5ba-1b971e2a6d90",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The release candidate for the current Fix Version across all changed services/Guidewire configuration; scope = the exact build artifact (immutable version tag) plus its full test scope: unit, integration, contract, regression, security, and performance suites executed against it." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The release-candidate hardening window (RC cut through go/no-go); build timestamp and release date recorded on the Jira release and the CI/CD pipeline run for the tagged artifact." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "52deb808-fc3d-469f-8652-e331ba334cbe" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rr03xsmbk8m22e2kle" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "All exit-criteria fields populated: 0 open blocker/critical defects, code coverage ≥ 80% on changed lines and ≥ 90% on critical paths, 100% of regression suite automated and passing, SAST/DAST with 0 critical/high findings (≤5 medium with waivers), performance within baseline SLA, and UAT sign-off attached." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Test execution counts reconcile: planned vs. executed test cases delta = 0 for mandatory suites; defect counts in the test-management tool match the Jira release defect query (blocker/critical = 0)." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "QA sign-off record (exit-criteria checklist, coverage report, security scan results, test summary report) exported to the compliance evidence repository, filename 'qa-signoff-<release>-<yyyymmdd>.pdf', with build SHA and reviewer signature; retained 7 years." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Any waived defect or accepted medium security finding logged as Jira issue type 'SDLC-Exception' with disposition and business justification, owner = Engineering Manager, 10-business-day remediation SLA; unresolved blockers/criticals veto sign-off." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xsmbk8m22e2kle" }
+   ,
+    { "templateKeyId": "cmr2oandp0013lasb81a47aqo", "value": "Pre/post: full regression suite passes on the RC build with 0 new failures vs. the prior release baseline; performance benchmark within ±10% of the established baseline; no coverage regression on changed lines." },
+    { "templateKeyId": "cmr2v88lm000jxa9iggiq99sw", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8", "value": "ServiceNow change/release record linked to the Jira release and the immutable build tag; references the QA sign-off evidence ID and the CI/CD pipeline run URL." },
+    { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rr03xsmbk8m22e2kle" },
+    { "templateKeyId": "cmr2v88pn000nxa9irjv495b3", "value": "Go/No-Go decision (Approved / Conditional / Rejected) documented on the Jira release and in the release readiness review minutes in Confluence, with residual-risk statement and any conditions." },
+    { "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb", "value": "Sign-off distributed to Release Manager, Product Owner, DevOps Engineer, delivery squad, and Operations/Support via the Jira release comment and the #release-readiness Teams channel; recipient list captured in the review minutes." },
+    { "templateKeyId": "cmr2oapmt002rlasbojqqymeh", "roleId": "cmqsck0rr03xsmbk8m22e2kle" },
+    { "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp", "value": "The complete mandatory test scope for the RC build (unit, integration, contract, regression, security, performance) — no sampling; each suite's latest run tied to the build SHA." },
+    { "templateKeyId": "cmr2oappx002vlasbp983y62z", "value": "PASS = 0 blocker/critical defects, coverage ≥ 80% changed / ≥ 90% critical paths, 100% regression green, 0 critical/high SAST/DAST findings, performance within SLA; FAIL = any unmet gate without an approved SDLC-Exception." },
+    { "templateKeyId": "cmr2oaprq002xlasbn62pym1c", "value": "On FAIL, withhold sign-off and block deployment; open an SDLC-Exception (owner = Engineering Manager) for any risk-accepted item; only an approved conditional waiver with a dated remediation plan permits release." },
+    { "templateKeyId": "cmr2oapt3002zlasbvo2amzzy", "value": "In-scope period = the RC build's test-execution window; effective dates = the release's target deployment date recorded on the Jira release and the ServiceNow change record." },
+    { "answerId": "cmr2ocg140ymokaz3tz7kw95y", "value": "Authorized approver for QA sign-off = Test Lead (primary); delegation matrix in Confluence names QA Analyst as first delegate and Engineering Manager as second when the Test Lead is unavailable >1 business day; the approver must be independent of the change author (differs from the Software Engineer owner) and the delegation logged in the release readiness minutes." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6jk1naumbk8glp27aai", "checklist": [ { "step": "Verify line coverage on the RC build meets the minimum", "value": "Coverage report from the CI pipeline shows ≥ 80% line coverage on changed lines" } ], "testing": [ { "step": "Fail the gate if coverage below threshold", "value": "SonarQube/coverage gate red blocks sign-off when < 80%" } ] },
+    { "standardId": "cmqscp6aw1nagmbk8geywa493", "checklist": [ { "step": "Confirm critical-path coverage", "value": "Critical user journeys (quote-to-bind, FNOL-to-payment) show ≥ 90% coverage in the report" } ], "testing": [ { "step": "Trace critical paths to automated tests", "value": "Each critical path maps to ≥1 passing automated end-to-end test" } ] },
+    { "standardId": "cmqscp6bw1naimbk87degjlyb", "checklist": [ { "step": "Ensure the full regression suite is automated and executed on the RC", "value": "100% of regression cases automated; manual only for exploratory; suite green in the pipeline run" } ], "testing": [ { "step": "Inspect regression run results", "value": "0 failed / 0 skipped mandatory regression cases on the tagged build" } ] },
+    { "standardId": "cmqscoh7i1m24mbk8hmgrzh91", "checklist": [ { "step": "Enforce CI/CD quality gates as the promotion condition", "value": "Pipeline quality gate (tests + coverage + SonarQube + security scan) must be green to allow the RC to progress" } ], "testing": [ { "step": "Verify gate status before sign-off", "value": "Gate = PASS on the exact build SHA being signed off; no manual override without SDLC-Exception" } ] },
+    { "standardId": "cmqscp3an1n4ymbk8z80rd202", "checklist": [ { "step": "Attach UAT sign-off to the release", "value": "UAT sign-off record from business acceptance stored with the release evidence" } ], "testing": [ { "step": "Confirm UAT completeness", "value": "All UAT scenarios executed with 0 open critical UAT defects" } ] }
+   ],
+   "regulations": [
+    { "regId": "cmqwos0a7006dd29hvd4j01c9", "checklist": [ { "step": "Confirm the RC passed the mandated secure-SDLC quality gates before sign-off", "value": "SAST/DAST and dependency scans executed in the pipeline with results archived to the compliance evidence repository" } ], "testing": [ { "step": "Verify security gate outcome", "value": "0 critical/high SAST/DAST findings on the RC; ≤5 medium each with approved SDLC-Exception waivers" } ] },
+    { "regId": "cmqwos2mq008rd29hee8nly31", "checklist": [ { "step": "Ensure known vulnerabilities are managed before release", "value": "SCA/vulnerability scan report attached; no unresolved critical CVEs in dependencies of the RC build" } ], "testing": [ { "step": "Check vulnerability remediation status", "value": "All critical/high CVEs remediated or waived via SDLC-Exception with a dated remediation plan" } ] }
+   ]
+  }
+ ]
+}

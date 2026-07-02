@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useApi } from '../lib/useApi';
-import { Sheet, SheetCell, type SheetCol } from '../components/Sheet';
+import { Sheet, SheetCell, ListSearch, type SheetCol } from '../components/Sheet';
 import StandardDrawer from '../components/StandardDrawer';
 
 // Standards — the company's department standards, in two views:
@@ -86,6 +86,11 @@ export default function Standards() {
   if (!data) return null;
 
   const t = data.totals;
+  // Locked totals line — identical in both views (mirrors Value Streams / Org):
+  // "13 areas · 95 categories · 1010 standards". Category count comes from the
+  // flat leaf list; falls back to the area count until it loads.
+  const catCount = items ? new Set(items.map((i) => i.category)).size : null;
+  const totalsText = `${t.areas} areas · ${catCount ?? '—'} categories · ${t.standards} standards`;
 
   // Segmented pill toggle (same control as the Value Streams / Organization
   // List↔Map switch) — sits inline on the totals strip to keep the header to
@@ -135,24 +140,13 @@ export default function Standards() {
         />
       ) : (
         <>
-          {/* Toggle + totals on one compact strip (matches the list view). */}
-          <div className="flex items-center gap-3 flex-wrap pb-1.5">
+          {/* One compact strip: toggle + totals on the left, search + count on the
+              right (matches the list view; no separate control row). */}
+          <div className="flex items-center gap-3 pb-2">
             {viewToggle}
-            <span className="text-[11px] text-[#737373] tnum">
-              {t.areas} standard areas · {t.standards} standards across {data.company.name}
-            </span>
-          </div>
-
-          {/* Drilldown controls */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
-            <input
-              className="input sm:max-w-xs"
-              placeholder="Search department, owner, role…"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
+            <span className="hidden md:inline text-[11px] text-[#737373] tnum whitespace-nowrap">{totalsText}</span>
             <div className="flex-1" />
-            <span className="text-xs text-[#a3a3a3] tnum">{dRows.length} of {t.areas} areas</span>
+            <ListSearch value={q} onChange={setQ} placeholder="Search department, owner, role…" />
           </div>
 
           {/* Standards areas — click through to the area's individual standards */}
