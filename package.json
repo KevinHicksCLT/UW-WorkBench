@@ -12,9 +12,29 @@
     "dev:backend": "npm run dev --workspace cascade-backend",
     "dev:frontend": "npm run dev --workspace cascade-frontend",
     "build": "npm run prisma:generate --workspace cascade-backend && npm run build --workspace cascade-frontend",
-    "typecheck": "npm run typecheck --workspace cascade-backend && npm run typecheck --workspace cascade-frontend"
+    "typecheck": "npm run typecheck --workspace cascade-backend && npm run typecheck --workspace cascade-frontend",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "npm run test --workspace cascade-backend && npm run test --workspace cascade-frontend",
+    "test:coverage": "npm run test:coverage --workspace cascade-backend && npm run test:coverage --workspace cascade-frontend",
+    "e2e": "playwright test",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js}": [
+      "prettier --write",
+      "eslint --max-warnings 0"
+    ],
+    "*.{json,md,css}": [
+      "prettier --write"
+    ]
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
   }
 }
