@@ -45,13 +45,13 @@ Otherwise previews see production data and drift from the develop schema.
 ### Deployment gating
 
 **Nothing deploys before the gates.** Vercel's direct git builds are fully disabled
-(`scripts/vercel-ignore-build.sh` skips every branch):
+(`vercel.json` → `git.deploymentEnabled: false`); every deployment comes from the
+single `Pipeline` workflow (one run per push, staged jobs):
 
-- **Feature branches:** CI's `deploy-preview` job deploys a preview **after** the
-  quality job passes.
-- **`develop`/`master`:** the `Promote` workflow chains
-  `quality → DB migrations → deploy → smoke check → Neon cleanup` — a deployment can
-  only exist if lint/typecheck/tests/build succeeded AND migrations applied first.
+- **Feature branches:** `quality → deploy-preview`.
+- **`develop`/`master`:** `quality → data-promote (marker-gated) → migrate → deploy →
+smoke → neon-cleanup` — a deployment can only exist if lint/typecheck/tests/build
+  succeeded AND migrations applied first.
 
 ### Rules
 
