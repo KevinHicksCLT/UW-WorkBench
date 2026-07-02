@@ -39,8 +39,7 @@ migrations to the target Neon branch on merge (see `.github/workflows/promote.ym
 ## Whole-dataset promotions (data, not schema)
 
 Migrations move schema + SQL-encoded data changes. When a branch's **dataset** is the
-deliverable (reseed, bulk enrichment), promote it through the pipeline by putting the
-literal marker `[promote-data]` in the merge commit message: the `data-promote` stage
+deliverable (reseed, bulk enrichment), promote it through the pipeline by ENDING the merge commit title with `[promote-data]` (mid-sentence mentions do not trigger): the `data-promote` stage
 (scripts/neon-data-promote.mjs) restores the target Neon branch from the source
 (feature → develop on develop merges; develop → production on master merges), with the
 prior state auto-preserved as `backup/<target>-<sha>`. Never restore branches by hand

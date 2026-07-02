@@ -27,8 +27,12 @@ const REF = process.env.GITHUB_REF_NAME ?? '';
 const MSG = process.env.COMMIT_MESSAGE ?? '';
 const SHA = (process.env.COMMIT_SHA ?? 'manual').slice(0, 7);
 
-if (!MSG.includes('[promote-data]')) {
-  console.log('No [promote-data] marker in the commit message — data promotion skipped.');
+// The marker must TERMINATE the merge title (first line). A title that merely
+// mentions the marker mid-sentence (e.g. a PR about this feature) must not
+// trigger a promotion — that exact accident re-parented develop once.
+const title = MSG.split('\n', 1)[0].trim();
+if (!/\[promote-data\]$/.test(title)) {
+  console.log('Merge title does not END with [promote-data] — data promotion skipped.');
   process.exit(0);
 }
 if (!KEY || !PROJECT) {

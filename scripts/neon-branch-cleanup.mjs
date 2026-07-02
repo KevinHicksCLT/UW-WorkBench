@@ -60,7 +60,19 @@ const del = await fetch(`${API}/projects/${PROJECT}/branches/${target.id}`, {
   headers,
 });
 if (!del.ok) {
-  console.error(`Failed to delete Neon branch "${name}" (${target.id}): HTTP ${del.status}`);
+  const body = await del.text();
+  // After a [promote-data] restore the TARGET environment branch becomes a
+  // CHILD of this feature branch in Neon's copy-on-write lineage — the parent
+  // cannot be deleted while a child depends on it. That is expected, not a
+  // failure: keep the branch as a lineage node (negligible storage).
+  if (del.status === 422 && /has children/i.test(body)) {
+    console.log(
+      `Neon branch "${name}" is kept: an environment branch now descends from it ` +
+        `(data promotion lineage). Details: ${body.trim()}`,
+    );
+    process.exit(0);
+  }
+  console.error(`Failed to delete Neon branch "${name}" (${target.id}): HTTP ${del.status} ${body}`);
   process.exit(1);
 }
 console.log(`Deleted Neon branch "${name}" (${target.id}).`);
