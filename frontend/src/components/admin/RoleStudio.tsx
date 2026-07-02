@@ -4,6 +4,7 @@ import { useDialogs } from '../../lib/dialogs';
 import type { AdminEntity } from '../../lib/adminTypes';
 import EntityList from './EntityList';
 import EntityForm from '../EntityForm';
+import { Button, Card, ErrorMessage } from '../ui';
 
 // ─── Role Studio ─────────────────────────────────────────────────────────────
 // The editable mirror of the Role detail screen. It surfaces EVERYTHING that
@@ -19,8 +20,14 @@ import EntityForm from '../EntityForm';
 // audited /admin endpoints. Adding one prefills the role name into the matching
 // column so it immediately resolves back to this role.
 
-type Role = { id: string; name: string; itemRole?: string | null; [k: string]: any };
-type Context = { role: { id: string; name: string; itemRole: string | null }; ioItems: any[]; processSteps: any[] };
+type Role = { id: string; name: string; itemRole?: string | null; roleLevel?: string | null; roleFamily?: string | null; [k: string]: unknown };
+type CtxRow = {
+  id: string; name: string;
+  type?: string; valueStreamName?: string | null;
+  l3?: string | null; l4?: string | null;
+  stepNumber?: number; relation?: string | null;
+} & Record<string, unknown>;
+type Context = { role: { id: string; name: string; itemRole: string | null }; ioItems: CtxRow[]; processSteps: CtxRow[] };
 
 function withCompany(path: string, companyId: string | null) {
   if (!companyId) return path;
@@ -33,7 +40,7 @@ export default function RoleStudio({ companyId, bySlug }: { companyId: string | 
   const [editingRole, setEditingRole] = useState(false);
   const [listRefresh, setListRefresh] = useState(0);
 
-  if (!roleEntity) return <div className="card-elevated p-8 text-center text-sm text-[#a3a3a3]">Roles aren’t available in this build.</div>;
+  if (!roleEntity) return <Card variant="elevated" className="p-8 text-center text-sm text-[#a3a3a3]">Roles aren’t available in this build.</Card>;
 
   return (
     <div>
@@ -59,17 +66,17 @@ export default function RoleStudio({ companyId, bySlug }: { companyId: string | 
 
         <div className="flex-1 min-w-0">
           {!selected ? (
-            <div className="card-elevated p-10 text-center text-sm text-[#a3a3a3]">Select a role to edit its full profile.</div>
+            <Card variant="elevated" className="p-10 text-center text-sm text-[#a3a3a3]">Select a role to edit its full profile.</Card>
           ) : (
             <div className="space-y-6">
-              <div className="card p-4 flex items-start justify-between gap-3">
+              <Card className="p-4 flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">Role</div>
                   <div className="text-base font-semibold text-[#171717] truncate">{selected.name}</div>
                   {selected.roleLevel && <div className="text-sm text-[#666666] mt-0.5">{selected.roleLevel}{selected.roleFamily ? ` · ${selected.roleFamily}` : ''}</div>}
                 </div>
-                <button className="btn-secondary flex-shrink-0" onClick={() => setEditingRole(true)}>Edit profile</button>
-              </div>
+                <Button variant="secondary" className="flex-shrink-0" onClick={() => setEditingRole(true)}>Edit profile</Button>
+              </Card>
 
               {/* Responsibilities */}
               <Section title="Responsibilities" hint="What the role is accountable for — shown grouped on the Role screen.">
@@ -142,16 +149,16 @@ function RoleContextSection({ role, companyId, entity, kind }: { role: Role; com
   const [ctx, setCtx] = useState<Context | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [editing, setEditing] = useState<Record<string, any> | null | { create: Record<string, any> }>(null);
+  const [editing, setEditing] = useState<CtxRow | null | { create: Record<string, string> }>(null);
 
   const load = () => {
     setLoading(true); setError('');
-    api.get(withCompany(`/admin/role-context/${role.id}`, companyId))
+    api.get<Context>(withCompany(`/admin/role-context/${role.id}`, companyId))
       .then(setCtx)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [role.id, companyId]);
+  useEffect(() => { load(); }, [role.id, companyId]);
 
   if (!entity) return null;
 
@@ -162,11 +169,11 @@ function RoleContextSection({ role, companyId, entity, kind }: { role: Role; com
   const hint = kind === 'io'
     ? 'The I/O inventory rows that name this role in "Key roles" — its deliverables (outputs) and inputs.'
     : 'The L5 process steps this role leads or supports.';
-  const addDefaults = kind === 'io'
+  const addDefaults: Record<string, string> = kind === 'io'
     ? { keyRoles: roleAlias, type: 'Deliverable' }
     : { leads: roleAlias };
 
-  const remove = async (row: Record<string, any>) => {
+  const remove = async (row: CtxRow) => {
     const ok = await dialogs.confirm({
       title: `Delete "${row.name}"?`,
       danger: true,
@@ -174,13 +181,13 @@ function RoleContextSection({ role, companyId, entity, kind }: { role: Role; com
     });
     if (!ok) return;
     try { await api.delete(withCompany(`/admin/${entity.slug}/${row.id}`, companyId)); load(); }
-    catch (e) { void dialogs.alert({ title: 'Delete failed', message: (e as Error).message }); }
+    catch (e) { dialogs.alert({ title: 'Delete failed', message: (e as Error).message }); }
   };
 
   return (
     <Section title={title} hint={hint}>
-      {error && <div className="text-sm text-[#be123c] mb-2">{error}</div>}
-      <div className="card-elevated overflow-hidden">
+      {error && <ErrorMessage className="mb-2">{error}</ErrorMessage>}
+      <Card variant="elevated" className="overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#eaeaea] text-left text-[#666666]">
@@ -234,17 +241,17 @@ function RoleContextSection({ role, companyId, entity, kind }: { role: Role; com
             )}
           </tbody>
         </table>
-      </div>
-      <button className="btn-secondary mt-2" onClick={() => setEditing({ create: addDefaults })}>
+      </Card>
+      <Button variant="secondary" className="mt-2" onClick={() => setEditing({ create: addDefaults })}>
         + Add {kind === 'io' ? 'deliverable / input' : 'process task'}
-      </button>
+      </Button>
 
       {editing !== null && (
         <EntityForm
           entity={entity}
           companyId={companyId}
-          record={'create' in editing ? null : (editing as Record<string, any>)}
-          defaults={'create' in editing ? (editing as { create: Record<string, any> }).create : undefined}
+          record={'create' in editing ? null : (editing as CtxRow)}
+          defaults={'create' in editing ? (editing as { create: Record<string, string> }).create : undefined}
           onClose={() => setEditing(null)}
           onSaved={() => { setEditing(null); load(); }}
         />

@@ -4,6 +4,7 @@ import { useDialogs } from '../../lib/dialogs';
 import EntityForm from '../EntityForm';
 import type { AdminEntity, ListResponse } from '../../lib/adminTypes';
 import { fieldLabel, cellText, pickColumns } from '../../lib/adminFormat';
+import { Button, Card, ErrorMessage, Input } from '../ui';
 
 // Reusable record table for one admin entity: search + table + create/edit/delete
 // through the shared EntityForm drawer. Used directly for generic catalog tabs,
@@ -14,16 +15,18 @@ import { fieldLabel, cellText, pickColumns } from '../../lib/adminFormat';
 // rows — not just the matches inside the first page), and `onSelect` turns rows
 // into a picker.
 
+type AdminRow = { id: string } & Record<string, unknown>;
+
 type Props = {
   entity: AdminEntity;
   companyId: string | null;
   title?: string;
   newLabel?: string;
-  fixed?: Record<string, any>;
-  filter?: (row: Record<string, any>) => boolean;
+  fixed?: Record<string, unknown>;
+  filter?: (row: AdminRow) => boolean;
   selectable?: boolean;
   selectedId?: string | null;
-  onSelect?: (row: Record<string, any>) => void;
+  onSelect?: (row: AdminRow) => void;
   onChanged?: () => void; // fired after any create/update/delete
   emptyHint?: string;
   dense?: boolean;
@@ -47,7 +50,7 @@ export default function EntityList({
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [editing, setEditing] = useState<Record<string, any> | null | 'new'>(null);
+  const [editing, setEditing] = useState<AdminRow | null | 'new'>(null);
   const [sort, setSort] = useState<{ col: string; dir: 1 | -1 } | null>(null);
 
   const columns = useMemo(() => pickColumns(entity), [entity]);
@@ -62,16 +65,16 @@ export default function EntityList({
 
   const load = (q: string) => {
     setLoading(true); setError('');
-    api.get(withCompany(`/admin/${entity.slug}?limit=200${fixedQs}${q ? `&search=${encodeURIComponent(q)}` : ''}`, companyId))
+    api.get<ListResponse>(withCompany(`/admin/${entity.slug}?limit=200${fixedQs}${q ? `&search=${encodeURIComponent(q)}` : ''}`, companyId))
       .then(setList)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   };
-  useEffect(() => { setSearch(''); load(''); /* eslint-disable-next-line */ }, [entity.slug, companyId, fixedQs]);
-  useEffect(() => { const t = setTimeout(() => load(search), 250); return () => clearTimeout(t); /* eslint-disable-next-line */ }, [search]);
+  useEffect(() => { setSearch(''); load(''); }, [entity.slug, companyId, fixedQs]);
+  useEffect(() => { const t = setTimeout(() => load(search), 250); return () => clearTimeout(t); }, [search]);
 
   const rows = useMemo(() => {
-    const all = list?.rows ?? [];
+    const all = (list?.rows ?? []) as AdminRow[];
     const filtered = filter ? all.filter(filter) : all;
     if (!sort) return filtered;
     const { col, dir } = sort;
@@ -86,11 +89,11 @@ export default function EntityList({
   }, [list, filter, sort]);
 
   const onSaved = () => { setEditing(null); load(search); onChanged?.(); };
-  const doDelete = async (row: Record<string, any>) => {
+  const doDelete = async (row: AdminRow) => {
     try { await api.delete(withCompany(`/admin/${entity.slug}/${row.id}`, companyId)); load(search); onChanged?.(); }
-    catch (e) { void dialogs.alert({ title: 'Delete failed', message: (e as Error).message }); }
+    catch (e) { dialogs.alert({ title: 'Delete failed', message: (e as Error).message }); }
   };
-  const remove = async (row: Record<string, any>) => {
+  const remove = async (row: AdminRow) => {
     const name = String(row[entity.labelField] ?? row.id);
     const ok = TYPED_CONFIRM_DELETE.has(entity.slug)
       ? await dialogs.confirm({
@@ -123,19 +126,19 @@ export default function EntityList({
     <div>
       <div className="flex items-center gap-3 mb-3">
         {title && <h3 className="text-sm font-semibold text-[#171717]">{title}</h3>}
-        <input
-          className="input max-w-xs"
+        <Input
+          className="max-w-xs"
           placeholder={`Search ${entity.label}…`}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         <div className="flex-1" />
-        <button className="btn-primary" onClick={() => setEditing('new')}>+ {newLabel ?? `New ${entity.label}`}</button>
+        <Button onClick={() => setEditing('new')}>+ {newLabel ?? `New ${entity.label}`}</Button>
       </div>
 
-      {error && <div className="text-sm text-[#be123c] mb-3">{error}</div>}
+      {error && <ErrorMessage className="mb-3">{error}</ErrorMessage>}
 
-      <div className="card-elevated overflow-hidden">
+      <Card variant="elevated" className="overflow-hidden">
         <div className="table-scroll" style={bodyMaxHeight ? { maxHeight: bodyMaxHeight, overflowY: 'auto' } : undefined}>
           <table className="w-full text-sm">
             <thead>
@@ -186,7 +189,7 @@ export default function EntityList({
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
 
       {editing !== null && (
         <EntityForm

@@ -24,7 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return;
     }
-    api.get('/auth/me')
+    api.get<AuthUser>('/auth/me')
       .then((u) => {
         setUser(u);
         localStorage.setItem('cascade.user', JSON.stringify(u));

@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { api } from './api';
 import { STAGE_ORDER, STAGE_LABELS, STATUS_PILL_CLASS, STATUS_LABEL } from './format';
+import { Card, EmptyState, StatusPill as UIStatusPill } from '../components/ui';
 
 // Shared types + themed UI primitives for the Initiative Tracker tab. Kept
 // separate so the four pages stay lean and visually consistent with the rest of
@@ -63,7 +64,7 @@ export function StageBar({ stage }: { stage: string }) {
 
 export function StageChip({ stage }: { stage: string }) {
   const idx = STAGE_ORDER.indexOf(stage);
-  return <span className="pill-blue tnum">{idx + 1}. {STAGE_LABELS[stage] ?? stage}</span>;
+  return <UIStatusPill tone="blue" className="tnum">{idx + 1}. {STAGE_LABELS[stage] ?? stage}</UIStatusPill>;
 }
 
 // ── Risk scoring bands (DB-driven) ──────────────────────────────────────────
@@ -79,8 +80,8 @@ const bandsListeners = new Set<(b: RiskBand[]) => void>();
 
 function loadBands(): Promise<RiskBand[]> {
   if (bandsCache) return Promise.resolve(bandsCache);
-  bandsPromise ??= api.get('/portfolio/risk-bands')
-    .then((r: { bands: RiskBand[] }) => {
+  bandsPromise ??= api.get<{ bands: RiskBand[] }>('/portfolio/risk-bands')
+    .then((r) => {
       bandsCache = r.bands ?? [];
       bandsListeners.forEach((fn) => fn(bandsCache!));
       return bandsCache!;
@@ -135,31 +136,31 @@ export function Tile({ label, value, hint, tone = 'neutral', compact = false, ce
   if (compact) {
     // Denser stat for headline strips (e.g. Regulations overview) — smaller box.
     return (
-      <div className={`card-elevated px-3 py-1.5${center ? ' text-center' : ''}`}>
+      <Card variant="elevated" className={`px-3 py-1.5${center ? ' text-center' : ''}`}>
         <div className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#a3a3a3]">{label}</div>
         <div className={`text-lg font-semibold tnum leading-tight ${color}`}>{value}</div>
         {hint && <div className="text-[10px] text-[#a3a3a3] leading-tight">{hint}</div>}
-      </div>
+      </Card>
     );
   }
   return (
-    <div className="card-elevated p-4">
+    <Card variant="elevated" className="p-4">
       <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</div>
       <div className={`text-2xl font-semibold mt-1 tnum ${color}`}>{value}</div>
       {hint && <div className="text-[11px] text-[#a3a3a3] mt-0.5">{hint}</div>}
-    </div>
+    </Card>
   );
 }
 
 export function SectionCard({ title, actions, children }: { title: string; actions?: ReactNode; children: ReactNode }) {
   return (
-    <div className="card-elevated p-5">
+    <Card variant="elevated" className="p-5">
       <div className="flex items-center justify-between gap-3 mb-4">
         <h2 className="text-sm font-semibold text-[#171717]">{title}</h2>
         {actions}
       </div>
       {children}
-    </div>
+    </Card>
   );
 }
 
@@ -213,7 +214,7 @@ export function SvgLineChart({
   formatValue?: (n: number) => string;
 }) {
   if (labels.length === 0) {
-    return <div className="text-sm text-[#a3a3a3] py-8 text-center">No data yet.</div>;
+    return <EmptyState baseClassName="text-sm text-[#a3a3a3] py-8 text-center" message="No data yet." />;
   }
   const W = 640, H = height, padL = 52, padR = 12, padT = 12, padB = 28;
   const max = Math.max(1, ...series.flatMap((s) => s.data));

@@ -11,13 +11,15 @@ import { processClosure, orgClosure } from '../lib/closure.js';
 const router = Router();
 router.use(requireAuth);
 
-// Kebab-case a company name into a URL-safe slug.
+// Kebab-case a company name into a URL-safe slug. The [^a-z0-9]+ pass collapses
+// every non-alnum run to ONE dash, so at most a single leading/trailing dash can
+// remain — ^-|-$ is equivalent to ^-+|-+$.
 function slugify(name: string): string {
   return name
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+    .replace(/^-|-$/g, '')
     .slice(0, 60) || 'company';
 }
 
@@ -69,8 +71,10 @@ router.post('/', requireRole('ADMIN'), async (req: Request, res: Response, next:
     // Ensure a slug that's unique within the tenant.
     const base = slugify(name);
     let slug = base;
-    for (let i = 2; await prisma.company.findFirst({ where: { tenantId: req.tenantId, slug }, select: { id: true } }); i++) {
-      slug = `${base}-${i}`;
+    let suffix = 2;
+    while (await prisma.company.findFirst({ where: { tenantId: req.tenantId, slug }, select: { id: true } })) {
+      slug = `${base}-${suffix}`;
+      suffix++;
     }
 
     const company = await prisma.company.create({

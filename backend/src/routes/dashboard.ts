@@ -15,9 +15,9 @@ router.use(requireAuth);
 
 type Group = { key: string; count: number };
 
-function ordered(rows: { _count: { _all: number } }[], field: string, order?: string[]): Group[] {
+function ordered(rows: ({ _count: { _all: number } } & Record<string, unknown>)[], field: string, order?: string[]): Group[] {
   const map = new Map<string, number>();
-  for (const r of rows as any[]) map.set(r[field] ?? '—', r._count._all);
+  for (const r of rows) map.set((r[field] as string | null | undefined) ?? '—', r._count._all);
   const keys = order ?? [...map.keys()];
   return keys.map((key) => ({ key, count: map.get(key) ?? 0 }));
 }
@@ -63,9 +63,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       prisma.orgLevelType.findMany({ where: { companyId }, select: { id: true, levelNumber: true } }),
     ]);
 
-    const pL1 = processLevelTypes.find((t) => t.levelNumber === 1)?.id;
     const pL2 = processLevelTypes.find((t) => t.levelNumber === 2)?.id;
-    const oL1 = orgLevelTypes.find((t) => t.levelNumber === 1)?.id;
     const oL2 = orgLevelTypes.find((t) => t.levelNumber === 2)?.id;
 
     // Open RAID (RISK) counts + footprint extras.

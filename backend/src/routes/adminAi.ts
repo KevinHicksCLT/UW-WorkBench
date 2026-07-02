@@ -47,9 +47,12 @@ function entityCatalog(): string {
   }).join('\n');
 }
 
+/** Platform display name used in AI prompts — env-configurable per deployment (charter Task 1). */
+const PLATFORM_NAME = process.env.PLATFORM_NAME ?? 'Capgemini Transformation Bridge';
+
 function systemPrompt(companyName: string): string {
   return [
-    'You are the configuration copilot inside the Data Admin console of the Capgemini Transformation Bridge —',
+    `You are the configuration copilot inside the Data Admin console of the ${PLATFORM_NAME} —`,
     'an operating-model platform (companies → org units → roles → value streams → processes → metrics, plus',
     'initiatives, risks, standards, applications, deliverables and tasks). You help an administrator',
     `configure the data for the company "${companyName}". Every record you touch is scoped to this company.`,
@@ -135,7 +138,7 @@ async function listRecords(tenantId: string, companyId: string, entitySlug: stri
   const scope = entity.companyVia ? companyWhere(entity, companyId) : {};
   const where: Record<string, unknown> = { tenantId, ...scope };
   if (search && entity.labelField !== 'id') where[entity.labelField] = { contains: search, mode: 'insensitive' };
-  const delegate = (prisma as unknown as Record<string, any>)[entity.model];
+  const delegate = (prisma as unknown as Record<string, { findMany(args: unknown): Promise<Record<string, unknown>[]> }>)[entity.model];
   const rows = await delegate.findMany({ where, take: Math.min(take, 100) });
   return { rows };
 }
@@ -149,9 +152,12 @@ function slimRow(entitySlug: string, row: Record<string, unknown>): Record<strin
   return out;
 }
 
+// Shape of one create/update/delete operation as proposed by the model.
+type ProposedOp = { op: string; entity: string; id?: string; data?: Record<string, unknown>; reason?: string };
+
 // Annotate a proposed op: validate entity + fields against the registry so the UI
 // can flag problems before the user applies it.
-function annotateOp(op: { op: string; entity: string; id?: string; data?: Record<string, unknown>; reason?: string }) {
+function annotateOp(op: ProposedOp) {
   const entity = getEntity(op.entity);
   const issues: string[] = [];
   if (!entity) issues.push(`Unknown entity "${op.entity}"`);
@@ -208,7 +214,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       for (const block of resp.content) {
         if (block.type !== 'tool_use') continue;
         if (block.name === 'propose_plan') {
-          const input = block.input as { summary?: string; operations?: any[] };
+          const input = block.input as { summary?: string; operations?: ProposedOp[] };
           plan = {
             summary: String(input.summary ?? ''),
             operations: Array.isArray(input.operations) ? input.operations.map(annotateOp) : [],

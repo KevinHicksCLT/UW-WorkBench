@@ -1,0 +1,477 @@
+// MapCanvas.tsx — Interactive operating-model map with spatial drill-down.
+// L0 Enterprise → L1 Domain (3 CEO domains, horizontal row) → L2 Division
+// (horizontal row under the selected domain) → L3 Value Stream → L4 Process Area
+// → L5 Sub-Process → L6 Process Step (the workbook's L5 steps) — each level
+// rendering left-to-right as you drill in.
+// A right-hand MetricsSidebar shows a spreadsheet-derived dashboard for whatever
+// level is currently focused (company / domain / division / value stream / area)
+// — the SAME panel the list view shows (SHOW_METRICS_SIDEBAR in viz/map/constants).
+//
+// Split for maintainability (pure code motion — behavior unchanged):
+//   viz/map/constants.ts     — layout constants, types, pure helpers
+//   viz/map/buildGraph.ts    — the two-pass node/edge layout builder
+//   viz/map/useMapCamera.ts  — fit/center helpers + drill-driven camera effects
+//   viz/map/useMapDragDrop.ts— edit-mode pointer drag/drop gesture
+//   viz/map/MapBreadcrumb.tsx / viz/map/MapChrome.tsx — presentational chrome
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
+import {
+  ReactFlow, Background, Controls, ReactFlowProvider,
+  useReactFlow, useStore,
+  type Node, type Edge, type NodeMouseHandler,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+
+import { mapNodeTypes, MAP_CARD_W, MAP_CARD_H } from '../nodes/MapNode';
+import type { DivisionSummary } from '../model';
+import { MetricsDrawer, type Dashboard, type MetricSection } from '../../components/MetricsSidebar';
+import ValueStreamDrawer from '../../components/ValueStreamDrawer';
+import TestingTemplateModal from '../../components/TestingTemplateModal';
+import Inspector from '../../components/Inspector';
+import { api } from '../../lib/api';
+import { useCompany } from '../../lib/company';
+import {
+  SHOW_METRICS_SIDEBAR, DRAGGABLE_TYPES, catFor,
+  type Category, type DragState, type GapState, type MoveRec, type RenameState,
+} from './constants';
+import { buildMapGraph } from './buildGraph';
+import { useMapFocus } from './useMapFocus';
+import { useStagedDisplay } from './useStagedDisplay';
+import { useMapCamera } from './useMapCamera';
+import { useMapDragDrop } from './useMapDragDrop';
+import MapBreadcrumb from './MapBreadcrumb';
+import { DragGhost, RenameEditor, MapEditToolbar, MoveFlashBanner } from './MapChrome';
+
+// ── Inner canvas ─────────────────────────────────────────────────────────────
+
+type Props = { divisions: DivisionSummary[]; companyName: string; breadcrumbSlot?: HTMLElement | null; focusVsId?: string | null; onMoved?: () => void };
+
+function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onMoved }: Props) {
+  const rf = useReactFlow();
+  const paneW = useStore((s) => s.width);
+  const paneH = useStore((s) => s.height);
+  const navigate = useNavigate();
+  const { companyId } = useCompany();
+
+  // ── Edit mode (Apple-home-screen drag-to-reparent) ───────────────────────────
+  // OFF by default → the map is pixel-identical to the read-only view (drag
+  // disabled, click-to-drill active). ON → process nodes (L3 value stream, L4
+  // sub-process, L5 task) become draggable; dropping one onto a node exactly one
+  // level above (e.g. an L4 onto a different L3, including a different value
+  // stream) re-parents the whole subtree via PATCH /builder/nodes/:id.
+  const [editMode, setEditMode] = useState(false);
+  // ── Custom pointer-drag state (see useMapDragDrop) ───────────────────────────
+  // `drag` is the in-progress gesture (ghost follows the cursor); `gap` is the open
+  // insertion slot under the cursor. Declared up here so the display-array memos
+  // can lift the dragged card out of the layout while it's in flight.
+  const dragRef = useRef<DragState | null>(null);
+  const [drag, setDrag] = useState<DragState | null>(null);
+  const [gap, setGap] = useState<GapState | null>(null);
+  // When the cursor is over the CENTRE of a box → that box highlights as a "nest
+  // inside" target (drop makes the dragged card its child, one level deeper).
+  const [nestTargetId, setNestTargetId] = useState<string | null>(null);
+  // Transient feedback banner (success / invalid-move), auto-dismisses.
+  const [moveFlash, setMoveFlash] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  const flashTimer = useRef<number | null>(null);
+  const flash = useCallback((kind: 'ok' | 'err', text: string) => {
+    if (flashTimer.current) window.clearTimeout(flashTimer.current);
+    setMoveFlash({ kind, text });
+    flashTimer.current = window.setTimeout(() => setMoveFlash(null), 2600);
+  }, []);
+
+  // ── Staged edits (Save / Revert) ─────────────────────────────────────────────
+  // Drags never hit the DB directly; they accumulate here until the user Saves
+  // (one atomic /builder/nodes/batch call) or Reverts. A move records its target
+  // parent + whether the node keeps its level: SAME-LEVEL re-homes render
+  // optimistically under the new parent (matching element type); RE-LEVEL moves
+  // just flag the card and reconcile on Save's refetch. A reorder records the new
+  // left-to-right (or top-to-bottom) child order for a parent.
+  const [pendingMoves, setPendingMoves] = useState<Map<string, MoveRec>>(new Map());
+  const [pendingOrder, setPendingOrder] = useState<Map<string, string[]>>(new Map());
+  // Staged inline renames (rawId → new display name).
+  const [pendingRenames, setPendingRenames] = useState<Map<string, string>>(new Map());
+  const [saving, setSaving] = useState(false);
+  const dirty = pendingMoves.size > 0 || pendingOrder.size > 0 || pendingRenames.size > 0;
+  const pendingCount = pendingMoves.size + pendingOrder.size + pendingRenames.size;
+  // Active double-click rename editor (positioned over the box, in screen coords).
+  const [rename, setRename] = useState<RenameState | null>(null);
+
+  // ── Drill/focus state machine (viz/map/useMapFocus) ──────────────────────────
+  const {
+    companyOpen, selectedDomain, level,
+    focusedDivisionId, focusedVsId, focusedStepId, focusedSubStepId,
+    flowData, flowLoading, vsFlowData, vsFlowLoading,
+    fetchFlow, fetchVsFlow,
+    onCompanyClick, onDomainClick, onDivisionClick, onVsClick, onStepClick, onSubStepClick,
+    crumbToL0, crumbToL1, crumbToL2, crumbToL3, crumbToDomains,
+  } = useMapFocus(divisions, focusVsId);
+
+  // Right-hand metrics dashboard (per-level, spreadsheet-derived).
+  const [dash, setDash] = useState<Dashboard | null>(null);
+  const [, setDashLoading] = useState(false);
+  // Comprehensive "view all" drawer (a snapshot of one sidebar section).
+  const [drawerSection, setDrawerSection] = useState<MetricSection | null>(null);
+  // Value-stream full detail, shown as an in-place drawer (the standalone page
+  // was retired — the map is the only home for this content now).
+  const [vsDetailId, setVsDetailId] = useState<string | null>(null);
+  // Testing-template modal for the focused process node (value stream / step).
+  const [testingNodeId, setTestingNodeId] = useState<string | null>(null);
+
+  // The map keys L1 domain headers by category NAME (`core:<name>`); the real
+  // ProcessNode id rides on each division as higherCategoryId. These two maps let
+  // the domain header act as an id-backed drag source / drop target.
+  const domainIdByCat = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const d of divisions) { const c = catFor(d); if (d.higherCategoryId && !m.has(c)) m.set(c, d.higherCategoryId); }
+    return m;
+  }, [divisions]);
+  const domainCatById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const [c, id] of domainIdByCat) m.set(id, c);
+    return m;
+  }, [domainIdByCat]);
+
+  // Canvas node id → raw ProcessNode id. Domains resolve via the name→id map; L2
+  // divisions already carry their raw id; deeper nodes strip the level prefix.
+  const rawNodeId = useCallback((node: { id: string }): string | null => {
+    const id = node.id;
+    if (id === 'company') return null;
+    if (id.startsWith('core:')) return domainIdByCat.get(id.slice(5)) ?? null;
+    return id.replace(/^(vs|step|substep|leaf):/, '');
+  }, [domainIdByCat]);
+
+  // Apply a parent's staged child order (listed ids first, in order; the rest keep
+  // their incoming order).
+  const applyOrder = useCallback(<T,>(parentRaw: string | null, arr: T[], idOf: (t: T) => string): T[] => {
+    if (!parentRaw) return arr;
+    const ord = pendingOrder.get(parentRaw);
+    if (!ord) return arr;
+    const pos = new Map(ord.map((id, i) => [id, i]));
+    return [...arr].sort((a, b) => (pos.get(idOf(a)) ?? Infinity) - (pos.get(idOf(b)) ?? Infinity));
+  }, [pendingOrder]);
+
+  // ── Derived, pending-aware display data (viz/map/useStagedDisplay) ───────────
+  const { displayDivisions, focusedDivision, valueStreams, focusedVs, steps, focusedStep, focusedSubStep } = useStagedDisplay({
+    divisions, dirty, pendingMoves, applyOrder, domainCatById,
+    flowData, vsFlowData, focusedDivisionId, focusedVsId, focusedStepId, focusedSubStepId,
+  });
+
+  // ── Metrics dashboard target (deepest focused level) ───────────────────────
+  // The metrics/roles dashboards bottom out at the process-area (L3) level, so
+  // drilling into L4 sub-processes / L5 steps keeps the L3 dashboard in view.
+  const metricTarget = useMemo<{ level: string; id: string } | null>(() => {
+    // The metrics sidebar follows the deepest focused node: L5 step, then the
+    // L4 sub-process (its authored inputs/outputs/leads detail), then the value
+    // stream, whose sidebar offers the "View full details" drawer.
+    if (level >= 4 && focusedSubStep) return { level: 'step', id: focusedSubStep.id };
+    if (focusedStep) return { level: 'step', id: focusedStep.id };
+    if (focusedVs) return { level: 'valueStream', id: focusedVs.id };
+    return null;
+  }, [level, focusedSubStep, focusedStep?.id, focusedVs?.id]);  
+
+  // Sidebar-internal drill stack (e.g. department — these aren't map nodes, so
+  // they navigate inside the dashboard rather than the canvas).
+  const [ovStack, setOvStack] = useState<{ level: string; id: string }[]>([]);
+  const dashTarget = ovStack.length ? ovStack[ovStack.length - 1] : metricTarget;
+
+  // Map navigation resets the sidebar drill stack.
+  useEffect(() => { setOvStack([]); }, [metricTarget?.level, metricTarget?.id]);
+
+  // Any change of the focused entity makes the drawer's snapshot stale — close it.
+  useEffect(() => { setDrawerSection(null); }, [dashTarget?.level, dashTarget?.id]);
+
+  useEffect(() => {
+    // Flag off → skip the fetch entirely, not just the render.
+    if (!SHOW_METRICS_SIDEBAR || !dashTarget) { setDash(null); return; }
+    let cancelled = false;
+    setDashLoading(true); setDash(null);
+    const path = dashTarget.id
+      ? `/explorer/roles/${dashTarget.level}/${encodeURIComponent(dashTarget.id)}`
+      : `/explorer/roles/${dashTarget.level}`;
+    api.get<Dashboard>(path)
+      .then((d) => { if (!cancelled) setDash(d); })
+      .catch(() => { if (!cancelled) setDash(null); })
+      .finally(() => { if (!cancelled) setDashLoading(false); });
+    return () => { cancelled = true; };
+  }, [dashTarget?.level, dashTarget?.id]);  
+
+  // ── Build nodes and edges (see viz/map/buildGraph.ts) ─────────────────────
+  const { nodes, edges } = useMemo(() => buildMapGraph({
+    displayDivisions, companyName, companyOpen, selectedDomain, level,
+    focusedDivisionId, focusedVsId, focusedStepId, focusedSubStepId,
+    flowData, valueStreams, vsFlowData, steps, applyOrder, domainIdByCat,
+  }), [
+    displayDivisions, companyName, companyOpen, selectedDomain, level,
+    focusedDivisionId, focusedDivision, focusedVsId, focusedStepId, focusedStep, focusedSubStepId,
+    flowData, valueStreams, vsFlowData, steps, applyOrder, domainIdByCat,
+  ]);  
+
+  // Overlay edit-mode affordances onto the laid-out nodes WITHOUT touching the
+  // layout memo (which `onNodeDragStop` reads for snap-back). In edit mode the
+  // three process levels become draggable and get the grab/dashed style; the
+  // hovered valid parent gets the drop-target ring. In normal view this is a
+  // shallow pass-through (no draggable, no affordance) so the map is unchanged.
+  const displayNodes = useMemo<Node[]>(() => {
+    if (!editMode) return nodes;
+    // Lift the dragged card out (a dragged domain/coreNode isn't in the data arrays,
+    // so drop it by id here; L2–L5 are already removed upstream).
+    const liftId = drag?.started ? drag.canvasId : null;
+    let result = liftId ? nodes.filter((n) => n.id !== liftId) : nodes;
+    // Open the insertion slot: every rendered card of the gap's type at/after the
+    // index slides over by one card-width (the CSS transform-transition animates it).
+    if (gap) {
+      const horiz = gap.type !== 'subStepNode';
+      const rowNodes = result.filter((n) => n.type === gap.type)
+        .sort((a, b) => (horiz ? a.position.x - b.position.x : a.position.y - b.position.y));
+      const shiftIds = new Set(rowNodes.slice(gap.index).map((n) => n.id));
+      if (shiftIds.size) {
+        const dx = horiz ? MAP_CARD_W + 12 : 0;
+        const dy = horiz ? 0 : MAP_CARD_H + 12;
+        result = result.map((n) => (shiftIds.has(n.id) ? { ...n, position: { x: n.position.x + dx, y: n.position.y + dy } } : n));
+      }
+    }
+    return result.map((n) => {
+      const draggable = DRAGGABLE_TYPES.has(n.type ?? '');
+      const raw = rawNodeId(n);
+      const renamed = raw != null ? pendingRenames.get(raw) : undefined;
+      const staged = (raw != null && pendingMoves.has(raw)) || renamed !== undefined;
+      const nestTarget = n.id === nestTargetId; // "nest inside here" highlight
+      if (!draggable && !staged && !nestTarget) return n;
+      const data: Record<string, unknown> = { ...n.data, editable: draggable, staged, dropTarget: nestTarget };
+      if (renamed !== undefined) { if (n.type === 'coreNode') data.label = renamed; else data.name = renamed; }
+      return { ...n, data };
+    });
+  }, [nodes, editMode, drag, gap, nestTargetId, rawNodeId, pendingMoves, pendingRenames]);
+
+  // While dragging, drop the lifted card's connectors so its line visibly detaches
+  // from its parent (the card itself is hidden in displayNodes; its slot stays so
+  // siblings don't shift and the drop target stays put).
+  const displayEdges = useMemo<Edge[]>(() => {
+    const liftId = drag?.started ? drag.canvasId : null;
+    return liftId ? edges.filter((e) => e.source !== liftId && e.target !== liftId) : edges;
+  }, [edges, drag]);
+
+  const flowNodes = displayNodes;
+
+  // ── Camera helpers + drill-driven camera effects (viz/map/useMapCamera) ────
+  useMapCamera({
+    rf, paneW, paneH, dragRef, companyOpen, selectedDomain, level,
+    focusedDivisionId, focusedVsId, focusedStepId, focusedSubStepId,
+    flowData, vsFlowData, valueStreams, steps, focusedStep,
+  });
+
+  // ── Edit-mode pointer drag/drop (viz/map/useMapDragDrop) ───────────────────
+  const { onStagePointerDown, clearHoverDrill, gapRef, nestRef } = useMapDragDrop({
+    editMode, rf, nodes, drag, setDrag, dragRef, setGap, setNestTargetId,
+    selectedDomain, focusedDivisionId, focusedVsId, focusedStepId, focusedStep,
+    valueStreams, steps, displayDivisions, catFor, domainIdByCat, domainCatById, rawNodeId,
+    onDomainClick, onDivisionClick, onVsClick, onStepClick, onSubStepClick,
+    setPendingMoves, setPendingOrder, pendingRenames, setRename, flash,
+  });
+
+  // ── Save / Revert staged edits ────────────────────────────────────────────────
+  const onSave = useCallback(async () => {
+    if (!companyId || !dirty || saving) return;
+    const ops: ({ op: 'move'; id: string; newParentId: string } | { op: 'reorder'; parentId: string; orderedIds: string[] } | { op: 'rename'; id: string; name: string })[] = [];
+    for (const [id, rec] of pendingMoves) ops.push({ op: 'move', id, newParentId: rec.parent });
+    for (const [parentId, orderedIds] of pendingOrder) ops.push({ op: 'reorder', parentId, orderedIds });
+    for (const [id, name] of pendingRenames) ops.push({ op: 'rename', id, name });
+    setSaving(true);
+    try {
+      await api.post(`/builder/nodes/batch?companyId=${encodeURIComponent(companyId)}`, { ops });
+      setPendingMoves(new Map()); setPendingOrder(new Map()); setPendingRenames(new Map());
+      flash('ok', 'Saved.');
+      if (focusedDivisionId) fetchFlow(focusedDivisionId);
+      if (focusedDivisionId && focusedVsId) fetchVsFlow(focusedDivisionId, focusedVsId);
+      onMoved?.();
+    } catch (e) {
+      const msg = (e as Error)?.message;
+      flash('err', msg && !/HTTP/.test(msg) ? msg : 'Save failed — your changes are kept.');
+    } finally { setSaving(false); }
+  }, [companyId, dirty, saving, pendingMoves, pendingOrder, pendingRenames, focusedDivisionId, focusedVsId, fetchFlow, fetchVsFlow, onMoved, flash]);
+
+  const onRevert = useCallback(() => {
+    setPendingMoves(new Map()); setPendingOrder(new Map()); setPendingRenames(new Map());
+    setRename(null);
+    flash('ok', 'Reverted.');
+  }, [flash]);
+
+  // Commit the inline rename editor → stage the new name.
+  const commitRename = useCallback(() => {
+    if (!rename) return;
+    const v = rename.value.trim();
+    if (v) setPendingRenames((m) => { const n = new Map(m); n.set(rename.rawId, v); return n; });
+    setRename(null);
+  }, [rename]);
+
+  const onToggleEdit = useCallback(() => {
+    if (editMode && dirty) { flash('err', 'Save or revert your changes first.'); return; }
+    setEditMode((v) => !v);
+    dragRef.current = null; gapRef.current = null; nestRef.current = null;
+    setDrag(null); setGap(null); setNestTargetId(null); setRename(null);
+    clearHoverDrill();
+  }, [editMode, dirty, flash, clearHoverDrill, gapRef, nestRef]);
+
+  // ── Node click handler ────────────────────────────────────────────────────
+  const onNodeClick: NodeMouseHandler = useCallback((_e, node) => {
+    // Click-to-drill stays active in edit mode for every level so the user can
+    // navigate to the branch they want to edit. React Flow fires this only on a
+    // genuine click (a drag goes through onNodeDragStop instead), so click and
+    // drag don't collide.
+    if (node.type === 'companyNode') {
+      onCompanyClick();
+    } else if (node.type === 'coreNode') {
+      onDomainClick(node.id.replace(/^core:/, '') as Category);
+    } else if (node.type === 'divisionNode') {
+      onDivisionClick(node.id);
+    } else if (node.type === 'valueStreamNode') {
+      onVsClick(node.id.replace(/^vs:/, ''));
+    } else if (node.type === 'stepNode') {
+      onStepClick(node.id.replace(/^step:/, ''));
+    } else if (node.type === 'subStepNode') {
+      onSubStepClick(node.id.replace(/^substep:/, ''));
+    }
+    // leafStepNode (L5) is display-only (non-interactive)
+  }, [onCompanyClick, onDomainClick, onDivisionClick, onVsClick, onStepClick, onSubStepClick]);
+
+  // ── Dashboard drill-down ────────────────────────────────────────────────────
+  // Map levels move the canvas; departments drill inside the sidebar (stack).
+  const onDrill = useCallback((lvl: string, id: string) => {
+    // Roles are the leaf of the sidebar drill — clicking one leaves the map and
+    // opens the dedicated role page rather than an in-sidebar role dashboard.
+    if (lvl === 'role') { navigate(`/roles/${id}`); return; }
+    if (lvl === 'department') { setOvStack((s) => [...s, { level: lvl, id }]); return; }
+    setOvStack([]);
+    if (lvl === 'domain') onDomainClick(id as Category);
+    else if (lvl === 'division') onDivisionClick(id);
+    else if (lvl === 'valueStream') onVsClick(id);
+    else if (lvl === 'step') onStepClick(id);
+  }, [navigate, onDomainClick, onDivisionClick, onVsClick, onStepClick]);
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  return (
+    <div style={{ position: 'relative', height: '100%', display: 'flex' }}>
+
+      {/* Breadcrumb — rendered into the page header via portal (lives in the header, not over the canvas). */}
+      {breadcrumbSlot && createPortal(
+        <MapBreadcrumb
+          companyName={companyName}
+          selectedDomain={selectedDomain}
+          level={level}
+          focusedDivision={focusedDivision}
+          focusedVs={focusedVs}
+          focusedStep={focusedStep}
+          focusedSubStep={focusedSubStep ?? null}
+          crumbToDomains={crumbToDomains}
+          crumbToL0={crumbToL0}
+          crumbToL1={crumbToL1}
+          crumbToL2={crumbToL2}
+          crumbToL3={crumbToL3}
+        />,
+        breadcrumbSlot
+      )}
+
+      {/* Fetch loading indicator */}
+      {(flowLoading || vsFlowLoading) && (
+        <div
+          className="animate-pulse"
+          style={{
+            position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)',
+            zIndex: 20, padding: '6px 14px',
+            background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)',
+            border: '1px solid #eaeaea', borderRadius: 8, fontSize: 12, color: '#a3a3a3',
+          }}
+        >
+          Loading…
+        </div>
+      )}
+
+      {/* React Flow canvas. No `fitView` prop on purpose: it queues a
+          vertically-CENTERED fit on init that lands after (and overrides) the
+          top-pinned fit from fitTopView — the companyOpen mount effect handles
+          the initial camera instead. */}
+      <div
+        className={'rf-stage rf-stage--map' + (editMode ? ' rf-stage--edit' : '')}
+        style={{ flex: 1, position: 'relative' }}
+        onPointerDownCapture={onStagePointerDown}
+      >
+        <ReactFlow
+          nodes={flowNodes}
+          edges={displayEdges}
+          nodeTypes={mapNodeTypes}
+          onNodeClick={onNodeClick}
+          nodesDraggable={false}
+          nodesConnectable={false}
+          panOnDrag={!editMode}
+          minZoom={0.05}
+          maxZoom={2}
+          proOptions={{ hideAttribution: true }}
+        >
+          <Background color="#e5e5e5" gap={20} size={1} />
+          <Controls showInteractive={false} position="bottom-left" />
+        </ReactFlow>
+
+        {/* Drag ghost — a card-sized chip following the cursor 1:1 (pointer-events
+            off so it's transparent to hit-testing). Only while really dragging. */}
+        {drag?.started && <DragGhost drag={drag} />}
+
+        {/* Inline rename editor — double-click a box in edit mode to open it. */}
+        {rename && <RenameEditor rename={rename} setRename={setRename} commitRename={commitRename} />}
+
+        {/* Edit toolbar — top-right of the canvas (the view toggle owns top-left). */}
+        <MapEditToolbar
+          editMode={editMode}
+          dirty={dirty}
+          pendingCount={pendingCount}
+          saving={saving}
+          onSave={onSave}
+          onRevert={onRevert}
+          onToggleEdit={onToggleEdit}
+        />
+
+        {/* Move feedback — small ephemeral banner, bottom-center (never a window.alert). */}
+        {moveFlash && <MoveFlashBanner moveFlash={moveFlash} />}
+
+        {/* Comprehensive "view all" drawer — overlays the canvas; closing it leaves
+            the map (and its breadcrumb) exactly where the user left it. */}
+        {drawerSection && (
+          <MetricsDrawer
+            section={drawerSection}
+            contextTitle={dash?.title ?? ''}
+            onClose={() => setDrawerSection(null)}
+            onDrill={onDrill}
+          />
+        )}
+
+        {/* Value-stream full detail — slides over the canvas in place. */}
+        {vsDetailId && <ValueStreamDrawer valueStreamId={vsDetailId} onClose={() => setVsDetailId(null)} />}
+
+        {/* Testing templates for the focused process node — slides over the canvas. */}
+        {testingNodeId && <TestingTemplateModal nodeId={testingNodeId} onClose={() => setTestingNodeId(null)} />}
+      </div>
+
+      {/* Right inspector — same component as the list view. Opens collapsed (a
+          rail) so the canvas isn't covered; breadcrumb/child clicks re-target it
+          without moving the map. */}
+      {SHOW_METRICS_SIDEBAR && dashTarget && dashTarget.id && (
+        <Inspector
+          nodeId={dashTarget.id}
+          startCollapsed
+          onRetarget={(id) => setOvStack((s) => [...s, { level: 'node', id }])}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Provider wrapper ──────────────────────────────────────────────────────────
+
+export default function MapCanvas({ divisions, companyName, breadcrumbSlot, focusVsId, onMoved }: Props) {
+  return (
+    <ReactFlowProvider>
+      <MapCanvasInner divisions={divisions} companyName={companyName} breadcrumbSlot={breadcrumbSlot} focusVsId={focusVsId} onMoved={onMoved} />
+    </ReactFlowProvider>
+  );
+}

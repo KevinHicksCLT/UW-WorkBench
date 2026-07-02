@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
+import { DrawerShell, EmptyState, ErrorMessage, SkeletonLoader } from './ui';
 
 // ValueStreamDrawer — the value stream's full detail (Process L4 & L5 tree +
 // participating roles), rendered as a wide slide-over on the map/list view.
@@ -23,38 +24,29 @@ export default function ValueStreamDrawer({ valueStreamId, onClose }: { valueStr
   useEffect(() => {
     setVs(null);
     setError('');
-    api.get(`/value-streams/${valueStreamId}`).then(setVs).catch((e: Error) => setError(e.message));
+    api.get<Detail>(`/value-streams/${valueStreamId}`).then(setVs).catch((e: Error) => setError(e.message));
   }, [valueStreamId]);
 
   const processAreas = vs?.processAreas ?? [];
   const roles = vs?.roles ?? [];
 
   return (
-    <div className="absolute inset-0 z-30 flex justify-end" role="dialog" aria-modal="true">
-      {/* Backdrop dims the canvas; click to dismiss. */}
-      <div className="absolute inset-0 bg-black/20" onClick={onClose} />
-
-      <aside className="relative h-full bg-white border-l border-[#eaeaea] shadow-2xl flex flex-col" style={{ width: 640, maxWidth: '92vw' }}>
-        {/* Header */}
-        <div className="px-5 py-4 border-b border-[#eaeaea] flex items-start justify-between gap-3 flex-shrink-0">
-          <div className="min-w-0">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3]">Value stream</div>
-            <div className="text-[15px] font-bold text-[#171717] leading-snug">{vs?.name ?? 'Loading…'}</div>
-            {vs?.domain && <div className="text-[11px] text-[#a3a3a3] mt-0.5">{vs.domain}</div>}
-          </div>
-          <button onClick={onClose} aria-label="Close" className="-mr-1 flex-shrink-0 text-[#a3a3a3] hover:text-[#171717] w-7 h-7 rounded-md hover:bg-[#fafafa] flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
-          </button>
+    <DrawerShell
+      onClose={onClose}
+      width={640}
+      maxWidth="92vw"
+      header={
+        <div className="min-w-0">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3]">Value stream</div>
+          <div className="text-[15px] font-bold text-[#171717] leading-snug">{vs?.name ?? 'Loading…'}</div>
+          {vs?.domain && <div className="text-[11px] text-[#a3a3a3] mt-0.5">{vs.domain}</div>}
         </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-5">
+      }
+    >
           {error ? (
-            <div className="text-sm text-[#be123c]">{error}</div>
+            <ErrorMessage>{error}</ErrorMessage>
           ) : !vs ? (
-            <div className="space-y-2">
-              {Array.from({ length: 5 }).map((_, i) => <div key={i} className="skeleton rounded-md" style={{ height: 48 }} />)}
-            </div>
+            <SkeletonLoader count={5} height={48} className="space-y-2" />
           ) : (
             <>
               {/* Participating roles — compact chips up top so the long process
@@ -64,7 +56,7 @@ export default function ValueStreamDrawer({ valueStreamId, onClose }: { valueStr
                   Participating roles ({roles.length})
                 </div>
                 {roles.length === 0 ? (
-                  <div className="text-sm text-[#a3a3a3] italic">None.</div>
+                  <EmptyState baseClassName="text-sm text-[#a3a3a3] italic" message="None." />
                 ) : (
                   <div className="flex flex-wrap gap-1.5">
                     {roles.map((r, i) => (
@@ -82,7 +74,7 @@ export default function ValueStreamDrawer({ valueStreamId, onClose }: { valueStr
                 Process Level 4 &amp; Process Level 5
               </div>
               {processAreas.length === 0 ? (
-                <div className="text-sm text-[#a3a3a3] italic">No process areas.</div>
+                <EmptyState baseClassName="text-sm text-[#a3a3a3] italic" message="No process areas." />
               ) : (
                 <div className="space-y-5">
                   {processAreas.map((area, ai) => (
@@ -133,8 +125,6 @@ export default function ValueStreamDrawer({ valueStreamId, onClose }: { valueStr
               )}
             </>
           )}
-        </div>
-      </aside>
-    </div>
+    </DrawerShell>
   );
 }

@@ -85,11 +85,29 @@ export type LevelHandlers = {
 
 type Spine = 'processNode' | 'orgUnit';
 
+// Structural view of a spine row / delegate as used by the dynamic Prisma access
+// below. Purely compile-time (casts are erased); Prisma still validates shapes.
+type SpineRaw = {
+  id: string; displayValue: string; parentId: string | null; sortOrder: number;
+  attributes?: Record<string, unknown> | null;
+  processLevelType?: { levelNumber: number } | null;
+  orgLevelType?: { levelNumber: number } | null;
+};
+type SpineDelegate = {
+  findMany(args: unknown): Promise<SpineRaw[]>;
+  findFirst(args: unknown): Promise<SpineRaw | null>;
+  findUnique(args: unknown): Promise<{ parentId: string | null } | null>;
+  create(args: unknown): Promise<SpineRaw>;
+  update(args: unknown): Promise<SpineRaw>;
+  count(args: unknown): Promise<number>;
+};
+type LevelTypeDelegate = { findFirst(args: unknown): Promise<{ id: string } | null> };
+
 function buildLevelAdmin(opts: { model: string; slug: string; label: string; spine: Spine; auditModel: string }): LevelHandlers {
-  const del = () => (prisma as unknown as Record<string, any>)[opts.spine];
+  const del = () => (prisma as unknown as Record<string, SpineDelegate>)[opts.spine];
   // The level-type relation + delegate that resolves a node's levelNumber.
   const levelRelation = opts.spine === 'processNode' ? 'processLevelType' : 'orgLevelType';
-  const levelDelegate = () => (prisma as unknown as Record<string, any>)[opts.spine === 'processNode' ? 'processLevelType' : 'orgLevelType'];
+  const levelDelegate = () => (prisma as unknown as Record<string, LevelTypeDelegate>)[opts.spine === 'processNode' ? 'processLevelType' : 'orgLevelType'];
 
   const SELECT = {
     id: true, displayValue: true, dbValue: true, parentId: true, sortOrder: true, attributes: opts.spine === 'processNode',
@@ -97,7 +115,7 @@ function buildLevelAdmin(opts: { model: string; slug: string; label: string; spi
   } as const;
 
   // Normalize a raw spine row (with its level-type relation) into SpineRow.
-  const norm = (r: any): SpineRow => ({
+  const norm = (r: SpineRaw): SpineRow => ({
     id: r.id, displayValue: r.displayValue, parentId: r.parentId, sortOrder: r.sortOrder,
     attributes: opts.spine === 'processNode' ? (r.attributes ?? null) : null,
     levelNumber: r[levelRelation]?.levelNumber ?? 0,
@@ -137,7 +155,7 @@ function buildLevelAdmin(opts: { model: string; slug: string; label: string; spi
       del().findMany({ where, select: SELECT, orderBy: [{ sortOrder: 'asc' }, { displayValue: 'asc' }], take, skip }),
       del().count({ where }),
     ]);
-    const mapped = (rows as any[]).map(norm).map(toRow).sort((a, b) => a.levelNumber - b.levelNumber || a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+    const mapped = rows.map(norm).map(toRow).sort((a, b) => a.levelNumber - b.levelNumber || a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
     return { rows: mapped, total, limit: take, offset: skip };
   };
 

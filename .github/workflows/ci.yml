@@ -1,0 +1,84 @@
+# CI quality gate (refactor charter Tasks 7, 8, 20).
+# Every push and PR: install → lint (zero warnings) → typecheck → unit tests
+# with coverage → production build. Vercel handles deployment previews;
+# SonarCloud job runs only when the token secret is configured.
+name: CI
+
+on:
+  push:
+    branches: [master, develop, refactor]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate -w cascade-backend
+        env:
+          # prisma generate does not connect; placeholder satisfies env validation.
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
+          DIRECT_URL: postgresql://user:pass@localhost:5432/db
+
+      - name: Lint (zero warnings)
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests + coverage
+        run: npm run test:coverage
+
+      - name: Build
+        run: npm run build -w cascade-frontend
+
+  sonarcloud:
+    runs-on: ubuntu-latest
+    # Optional gate: runs only when SONAR_TOKEN is configured in repo secrets.
+    if: ${{ vars.SONAR_ENABLED == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  deploy-preview:
+    # Feature-branch previews deploy ONLY after the quality gates pass —
+    # Vercel's direct git builds are skipped for non-protected branches by
+    # scripts/vercel-ignore-build.sh. Requires repo secrets VERCEL_TOKEN,
+    # VERCEL_ORG_ID, VERCEL_PROJECT_ID and repo variable
+    # VERCEL_CI_DEPLOY=true to activate.
+    needs: quality
+    if: ${{ vars.VERCEL_CI_DEPLOY == 'true' && github.ref_name != 'master' && github.ref_name != 'develop' && github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Deploy preview to Vercel (post-gate)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          npx vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+          url=$(npx vercel deploy --token="$VERCEL_TOKEN" 2>&1 | tail -1)
+          echo "Preview deployed after green gates: $url"
+          echo "$url" >> "$GITHUB_STEP_SUMMARY"

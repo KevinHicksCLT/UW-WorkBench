@@ -4,6 +4,7 @@ import { api } from '../lib/api';
 import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from './MetricsSidebar';
 import RoleDrawer from './RoleDrawer';
 import { HeaderComboFilter, ListSearch } from './Sheet';
+import { Card, EmptyState, ErrorMessage, LinkButton, LoadingState } from './ui';
 
 // Org List view (R2 rework) — a FLAT spreadsheet of the org spine, the mirror
 // image of the Value Streams list (ListExplorer). No tree, no expand/collapse:
@@ -81,7 +82,7 @@ function Cell({ text, accent, onClick, dim }: { text: string; accent?: string; o
 }
 
 const EmptyRow = ({ text }: { text: string }) => (
-  <div className="py-1.5 px-3 text-[11px] text-[#a3a3a3] italic">{text}</div>
+  <EmptyState baseClassName="py-1.5 px-3 text-[11px] text-[#a3a3a3] italic" message={text} />
 );
 
 const LOOSE_DEPT = 'Direct to division';
@@ -118,8 +119,8 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
 
   useEffect(() => {
     let cancelled = false; setLoading(true);
-    api.get('/explorer/org-table')
-      .then((d: OrgData) => { if (!cancelled) { setData(d); setLoading(false); } })
+    api.get<OrgData>('/explorer/org-table')
+      .then((d) => { if (!cancelled) { setData(d); setLoading(false); } })
       .catch((e) => { if (!cancelled) { setError(e.message ?? 'Failed to load'); setLoading(false); } });
     return () => { cancelled = true; };
   }, []);
@@ -128,12 +129,12 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
     if (!target) { setDash(null); return; }
     let cancelled = false; setDashLoading(true); setDash(null);
     const url = target.id ? `/explorer/roles/${target.level}/${encodeURIComponent(target.id)}` : `/explorer/roles/${target.level}`;
-    api.get(url)
-      .then((d: Dashboard) => { if (!cancelled) setDash(d); })
+    api.get<Dashboard>(url)
+      .then((d) => { if (!cancelled) setDash(d); })
       .catch(() => { if (!cancelled) setDash(null); })
       .finally(() => { if (!cancelled) setDashLoading(false); });
     return () => { cancelled = true; };
-  }, [target?.level, target?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [target?.level, target?.id]);  
 
   // Changing the focused entity makes the drawer's snapshot stale — close it.
   useEffect(() => { setDrawerSection(null); }, [target?.level, target?.id]);
@@ -178,24 +179,24 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
     && (skip === 'dept' || deptSel.length === 0 || deptSel.includes(r.deptName))
     && (skip === 'role' || roleSel.length === 0 || roleSel.includes(r.roleName));
 
-  const selDeps = [flat, domainSel, divisionSel, deptSel, roleSel]; // eslint-disable-line
+  const selDeps = [flat, domainSel, divisionSel, deptSel, roleSel];  
   const optionList = (vals: Iterable<string>) => ['All', ...[...new Set([...vals].filter(Boolean))].sort()];
-  /* eslint-disable react-hooks/exhaustive-deps */
+   
   const domainOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'domain')).map((r) => r.domain)), selDeps);
   const divisionOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'division')).map((r) => r.divName)), selDeps);
   const deptOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'dept')).map((r) => r.deptName)), selDeps);
   const roleOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'role')).map((r) => r.roleName)), selDeps);
-  /* eslint-enable react-hooks/exhaustive-deps */
+   
 
   // A pick can be invalidated by a later pick in another column — drop it.
   const prune = (sel: string[], options: string[], set: (v: string[]) => void) => {
     const kept = sel.filter((v) => options.includes(v));
     if (kept.length !== sel.length) set(kept);
   };
-  useEffect(() => { prune(domainSel, domainOptions, setDomainSel); }, [domainOptions, domainSel]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { prune(divisionSel, divisionOptions, setDivisionSel); }, [divisionOptions, divisionSel]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { prune(deptSel, deptOptions, setDeptSel); }, [deptOptions, deptSel]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { prune(roleSel, roleOptions, setRoleSel); }, [roleOptions, roleSel]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { prune(domainSel, domainOptions, setDomainSel); }, [domainOptions, domainSel]);  
+  useEffect(() => { prune(divisionSel, divisionOptions, setDivisionSel); }, [divisionOptions, divisionSel]);  
+  useEffect(() => { prune(deptSel, deptOptions, setDeptSel); }, [deptOptions, deptSel]);  
+  useEffect(() => { prune(roleSel, roleOptions, setRoleSel); }, [roleOptions, roleSel]);  
 
   // Visible rows: filters + sort (chain order as the tie-break).
   const needle = search.trim().toLowerCase();
@@ -215,7 +216,7 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
         : a.roleName.localeCompare(b.roleName);
       return c * sort.dir || chainOrder(a, b);
     });
-  }, [flat, domainSel, divisionSel, deptSel, roleSel, sort, needle]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [flat, domainSel, divisionSel, deptSel, roleSel, sort, needle]);  
 
   // Totals strip — distinct entities among the visible (filtered) rows.
   const totals = useMemo(() => {
@@ -266,7 +267,7 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
     const el = scrollRef.current; if (!el || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(measure); ro.observe(el);
     return () => ro.disconnect();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);  
   // Measure the live row height from the first rendered row (handles zoom/DPR).
   const measureRow = (el: HTMLDivElement | null) => {
     if (el && el.offsetHeight && Math.abs(el.offsetHeight - rowH) > 0.5) setRowH(el.offsetHeight);
@@ -274,7 +275,8 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
 
   const ticking = useRef(false);
   const onScroll = () => {
-    if (ticking.current) return; ticking.current = true;
+    if (ticking.current) return;
+    ticking.current = true;
     requestAnimationFrame(() => { ticking.current = false; const el = scrollRef.current; if (el) setScrollTop(el.scrollTop); });
   };
 
@@ -301,7 +303,7 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
                 <span className="text-[11px] text-[#737373] tnum">
                   {totals.domains} domains · {totals.divisions} divisions · {totals.departments} departments · {totals.roles} roles
                 </span>
-                {anyFilter && <button onClick={clear} className="text-[11px] font-medium text-[#1d4ed8] hover:underline">Clear filters</button>}
+                {anyFilter && <LinkButton onClick={clear} className="text-[11px] font-medium">Clear filters</LinkButton>}
                 <div className="flex-1" />
                 <ListSearch value={search} onChange={setSearch} />
               </>
@@ -310,13 +312,13 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
           <div ref={scrollRef} onScroll={onScroll} className="flex-1 min-h-0 overflow-auto">
           <div className="px-3 sm:px-4 pb-4">
             {loading ? (
-              <div className="text-sm text-[#a3a3a3] animate-pulse py-8 text-center">Loading organization…</div>
+              <LoadingState className="animate-pulse py-8 text-center" message="Loading organization…" />
             ) : error ? (
-              <div className="text-sm text-[#be123c] py-8 text-center">{error}</div>
+              <ErrorMessage className="py-8 text-center">{error}</ErrorMessage>
             ) : (
               <>
                 {/* No overflow-hidden on the card — the combo dropdowns must escape it. */}
-                <div className="card p-0">
+                <Card className="p-0">
                   {/* Sticky spreadsheet header: each cell hosts its combobox filter + sort. */}
                   <div className={GRID_COLS + ' items-stretch divide-x divide-[#eaeaea] border-b border-[#eaeaea] bg-[#fafafa] rounded-t-lg sticky top-0 z-20'}>
                     <HeaderComboFilter label="Domain" value={domainSel} onChange={setDomainSel} options={domainOptions}
@@ -360,7 +362,7 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
                     })}
                     {padBottom > 0 && <div style={{ height: padBottom }} />}
                   </div>
-                </div>
+                </Card>
               </>
             )}
           </div>

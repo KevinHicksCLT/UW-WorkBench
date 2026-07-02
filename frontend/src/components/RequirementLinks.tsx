@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
 import { withCompany } from '../lib/portfolio';
+import { ErrorMessage } from './ui';
 
 // Value-stream chips for a regulatory requirement + the inline editor that
 // replaces the full link set (PUT /regulations/requirements/:id/value-streams).
@@ -103,7 +104,7 @@ export function LinksEditor({
           );
         })}
       </div>
-      {error && <div className="text-xs text-[#be123c] mt-2">{error}</div>}
+      {error && <ErrorMessage baseClassName="text-xs text-[#be123c] mt-2">{error}</ErrorMessage>}
       <div className="flex items-center gap-2 mt-3">
         <button
           onClick={save}

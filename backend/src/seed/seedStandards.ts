@@ -82,7 +82,7 @@ export async function seedStandards(
     relatedCategory: i.relatedCategory, link: i.itemsLink, agentSkill: i.agentSkill,
     sdlcGates: i.sdlcGates, regCitation: i.regCitation,
     appliesToValueStreams: i.appliesToValueStreams,
-    ownerRoleId: (() => { const id = refs.roleResolver(i.ownerRole); if (id) ownerHits++; return id; })(),
+    ownerRoleId: (() => { const id = refs.roleResolver(i.ownerRole); if (id) { ownerHits++; } return id; })(),
   });
 
   // VS-link materialization for one Standard row.

@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient, Prisma } from '@prisma/client';
 import { resolveSpineRefs, type SpineRefs } from './resolveSpineRefs.js';
 
 // Demo data for the Initiative Tracker, ported in spirit from the Cascade seed
@@ -289,7 +289,7 @@ export async function seedPortfolio(
             : await prisma.costLine.create({ data: { initiativeId: init.id, name: def.name, category: def.category, startDate, endDate: dueDate } });
           lineCount++;
           const fk = kind === 'BENEFIT' ? { benefitLineId: line.id } : { costLineId: line.id };
-          const rows: any[] = [];
+          const rows: Prisma.MetricValueCreateManyInput[] = [];
           for (const m of months) {
             const isPast = m <= startOfMonth(today);
             const factor = 0.82 + noise(`${line.id}:${m.toISOString()}`) * 0.3; // 0.82–1.12 vs target

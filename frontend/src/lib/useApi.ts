@@ -4,7 +4,7 @@ import { api } from './api';
 // Small fetch hook with loading/error state for read-only pages.
 // Pass null to skip (e.g. while a dependency id isn't known yet).
 // `refetch()` re-runs the request (e.g. after a mutation elsewhere).
-export function useApi<T = any>(path: string | null) {
+export function useApi<T = unknown>(path: string | null) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -15,7 +15,7 @@ export function useApi<T = any>(path: string | null) {
     let active = true;
     setLoading(true);
     setError('');
-    api.get(path)
+    api.get<T>(path)
       .then((d) => { if (active) setData(d); })
       .catch((e) => { if (active) setError(e.message); })
       .finally(() => { if (active) setLoading(false); });

@@ -197,8 +197,11 @@ export async function seedOrgFromDevelop(
     await prisma.orgLevelType.delete({ where: { id: existingL3.id } });
   }
 
+  // L3 label is seed-time configuration (charter Task 1): another company may
+  // call this level "Team"/"Unit" — override via SEED_L3_LABEL. The runtime UI
+  // always reads OrgLevelType.displayValue, never a hardcoded string.
   const l3Type = await prisma.orgLevelType.create({
-    data: { companyId: c, levelNumber: 3, dbValue: 'L3', displayValue: 'Department' },
+    data: { companyId: c, levelNumber: 3, dbValue: 'L3', displayValue: process.env.SEED_L3_LABEL ?? 'Department' },
   });
 
   // ── 1. Ensure the "Executive Office" L2 division (org-side only) ──

@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useState } from 'react';
 import { api } from '../../lib/api';
+import { Button, Card, EmptyState, ErrorMessage, Input, Select, Textarea } from '../ui';
 
 // Flat AI-adoption editor (audit D3/A1): one row per canonical value stream
 // (levelNumber=3) with the four AI autonomy modes as dropdowns. This is the data
@@ -92,7 +93,7 @@ function UseCaseEditor({ row, companyId, onSaved }: { row: Row; companyId: strin
     <div className="px-4 py-3 bg-[#fafafa] border-t border-[#f0f0f0]">
       <div className="grid gap-4 lg:grid-cols-2">
         {MODE_KEYS.map(([mode, label]) => (
-          <div key={mode} className="card bg-white p-3">
+          <Card key={mode} className="bg-white p-3">
             <div className="flex items-center justify-between mb-2">
               <div className="text-xs font-semibold text-[#171717]">{label}</div>
               <button className="text-xs text-[#4338ca] hover:underline" onClick={() => add(mode)}>+ Add use case</button>
@@ -101,40 +102,40 @@ function UseCaseEditor({ row, companyId, onSaved }: { row: Row; companyId: strin
             <div className="flex items-center gap-3 mb-2.5 text-xs">
               <label className="flex items-center gap-1.5 text-[#666666]">
                 Roles using %
-                <input type="number" min={0} max={100} className="input py-0.5 text-xs w-16 tnum"
+                <Input type="number" min={0} max={100} className="py-0.5 text-xs w-16 tnum"
                   value={statsDraft[mode].rolesUsingPct}
                   onChange={(e) => setStat(mode, 'rolesUsingPct', e.target.value)} />
               </label>
               <label className="flex items-center gap-1.5 text-[#666666]">
                 Efficiency gain %
-                <input type="number" min={0} max={100} className="input py-0.5 text-xs w-16 tnum"
+                <Input type="number" min={0} max={100} className="py-0.5 text-xs w-16 tnum"
                   value={statsDraft[mode].efficiencyGainPct}
                   onChange={(e) => setStat(mode, 'efficiencyGainPct', e.target.value)} />
               </label>
             </div>
             {draft[mode].length === 0 ? (
-              <div className="text-xs text-[#a3a3a3] italic">No use cases for this mode.</div>
+              <EmptyState baseClassName="text-xs text-[#a3a3a3] italic" message="No use cases for this mode." />
             ) : (
               <div className="space-y-3">
                 {draft[mode].map((u, i) => (
                   <div key={i} className="border border-[#eaeaea] rounded-md p-2 space-y-1.5">
                     <div className="flex gap-1.5">
-                      <input className="input py-1 text-xs flex-1" placeholder="Title" value={u.title} onChange={(e) => setUc(mode, i, 'title', e.target.value)} />
+                      <Input className="py-1 text-xs flex-1" placeholder="Title" value={u.title} onChange={(e) => setUc(mode, i, 'title', e.target.value)} />
                       <button className="text-[#be123c] hover:text-[#9f1239] text-xs px-1" title="Remove use case" onClick={() => remove(mode, i)}>✕</button>
                     </div>
-                    <input className="input py-1 text-xs w-full" placeholder="Persona (who uses it)" value={u.persona} onChange={(e) => setUc(mode, i, 'persona', e.target.value)} />
-                    <textarea className="input py-1 text-xs w-full min-h-[48px]" placeholder="Detail — what the AI does" value={u.detail} onChange={(e) => setUc(mode, i, 'detail', e.target.value)} />
+                    <Input className="py-1 text-xs w-full" placeholder="Persona (who uses it)" value={u.persona} onChange={(e) => setUc(mode, i, 'persona', e.target.value)} />
+                    <Textarea className="py-1 text-xs w-full min-h-[48px]" placeholder="Detail — what the AI does" value={u.detail} onChange={(e) => setUc(mode, i, 'detail', e.target.value)} />
                   </div>
                 ))}
               </div>
             )}
-          </div>
+          </Card>
         ))}
       </div>
       <div className="flex items-center gap-3 mt-3">
-        <button className="btn-primary disabled:opacity-50" disabled={saving || !dirty} onClick={save}>
+        <Button className="disabled:opacity-50" disabled={saving || !dirty} onClick={save}>
           {saving ? 'Saving…' : 'Save use cases & stats'}
-        </button>
+        </Button>
         {error && <span className="text-xs text-[#be123c]">{error}</span>}
         {!error && !dirty && <span className="text-xs text-[#a3a3a3]">Saved — these render in Metrics → AI Adoption drill-in.</span>}
       </div>
@@ -152,9 +153,9 @@ export default function AiAdoptionEditor({ companyId }: { companyId: string | nu
   const load = () => {
     if (!companyId) return;
     setError('');
-    api.get(`/admin/ai-adoption?companyId=${companyId}`)
-      .then((d: { rows: Row[]; levels: string[] }) => { setRows(d.rows); setLevels(d.levels); })
-      .catch((e: any) => setError(String(e?.message || e)));
+    api.get<{ rows: Row[]; levels: string[] }>(`/admin/ai-adoption?companyId=${companyId}`)
+      .then((d) => { setRows(d.rows); setLevels(d.levels); })
+      .catch((e: unknown) => setError(String((e as { message?: string })?.message || e)));
   };
   useEffect(load, [companyId]);
 
@@ -180,8 +181,8 @@ export default function AiAdoptionEditor({ companyId }: { companyId: string | nu
         Edits save immediately and are audited. Value streams with no AI yet stay <span className="font-medium">Not used</span>.
         Expand a stream to edit the concrete <span className="font-medium">use cases</span> behind each mode (rendered in the Active AI drill-in).
       </p>
-      {error && <div className="text-sm text-[#be123c] mb-3">{error}</div>}
-      <div className="card-elevated overflow-hidden">
+      {error && <ErrorMessage className="mb-3">{error}</ErrorMessage>}
+      <Card variant="elevated" className="overflow-hidden">
         <div className="table-scroll" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
           <table className="w-full text-sm">
             <thead>
@@ -209,14 +210,14 @@ export default function AiAdoptionEditor({ companyId }: { companyId: string | nu
                         <td className="px-3 py-2 text-[#737373]">{r.domain ?? '—'}</td>
                         {MODES.map(([k]) => (
                           <td key={k} className="px-3 py-1.5">
-                            <select
+                            <Select
                               value={r[k] as string}
                               disabled={savingId === r.levelId}
                               onChange={(e) => update(r, k, e.target.value)}
-                              className="input py-1 text-xs disabled:opacity-50"
+                              className="py-1 text-xs disabled:opacity-50"
                             >
                               {levels.map((lv) => <option key={lv} value={lv}>{LEVEL_LABEL[lv] ?? lv}</option>)}
-                            </select>
+                            </Select>
                           </td>
                         ))}
                         <td className="px-3 py-1.5">
@@ -247,7 +248,7 @@ export default function AiAdoptionEditor({ companyId }: { companyId: string | nu
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

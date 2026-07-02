@@ -3,6 +3,7 @@
 // this renders just the root box and nothing under it — the chart fills in as
 // manager assignments are added. Data: GET /roles/org-chart.
 import { useApi } from '../lib/useApi';
+import { EmptyState, ErrorMessage, LoadingState } from './ui';
 
 type OrgChartData = { root: { id: string; name: string; reports: unknown[] } | null };
 
@@ -13,11 +14,11 @@ export default function RolesOrgChart() {
   return (
     <div className="h-full w-full flex flex-col items-center justify-center gap-4 px-6">
       {loading ? (
-        <div className="text-sm text-[#a3a3a3] animate-pulse">Loading organization…</div>
+        <LoadingState className="animate-pulse" message="Loading organization…" />
       ) : error ? (
-        <div className="text-sm text-[#be123c]">Failed to load the org chart.</div>
+        <ErrorMessage>Failed to load the org chart.</ErrorMessage>
       ) : !root ? (
-        <div className="text-sm text-[#a3a3a3] italic">No CEO role found for this company.</div>
+        <EmptyState baseClassName="text-sm text-[#a3a3a3] italic" message="No CEO role found for this company." />
       ) : (
         <>
           <div className="rounded-xl border-2 border-[#171717] bg-white shadow-sm px-6 py-4 text-center">

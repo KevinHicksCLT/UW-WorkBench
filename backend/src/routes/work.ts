@@ -26,7 +26,11 @@ const SCORE_OF: Record<string, number> = {
   automated: 1, assisted: 4, // legacy aliases
 };
 // executive/senior roles are not surfaced as task-level contributors.
-const EXEC = /\b(chief|officer|c-?suite|cxo|ceo|cfo|coo|cto|cio|ciso|chro|cro|cdo|caio|president|vice[- ]president|vp|head of|head,|director|board)\b/i;
+// (Two regexes — same union as the old single one, kept under the lint
+// complexity budget.)
+const EXEC_TITLES = /\b(chief|officer|c-?suite|cxo|ceo|cfo|coo|cto|cio|ciso|chro|cro|cdo|caio)\b/i;
+const EXEC_RANKS = /\b(president|vice[- ]president|vp|head of|head,|director|board)\b/i;
+const isExec = (name: string): boolean => EXEC_TITLES.test(name) || EXEC_RANKS.test(name);
 const TOP_CONTRIB = 5;
 
 async function activeCompanyId(req: Request, res: Response): Promise<string | null> {
@@ -84,29 +88,32 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     // Resolve location strings for every deliverable-producing node + every task.
     const delivNodeIds = deliverables.flatMap((d) => d.nodeDeliverables.map((n) => n.processNodeId));
     const taskIds = taskNodes.map((t) => t.id);
-    const loc = await ancestorNames([...new Set([...delivNodeIds, ...taskIds])]);
 
-    // Task-level standards + regulations — the task's OWN NodeStandard /
-    // NodeRegulation rows (tasks are the single source of truth; higher levels
-    // roll up from them). A task carrying neither reads "N/A" in the UI.
+    // Everything below depends only on the first batch, so run the location
+    // resolution, the task-level standards/regulations, and the Work Library
+    // testing-pattern lookups as ONE parallel round (they were 3 serial rounds).
+    //
+    // Standards + regulations are the task's OWN NodeStandard / NodeRegulation
+    // rows (tasks are the single source of truth; higher levels roll up from
+    // them). A task carrying neither reads "N/A" in the UI. testLinks: null =
+    // no TEST template assigned yet.
     const STD_CAP = 8;
-    const [nodeStds, nodeRegs] = await Promise.all([
+    const [loc, nodeStds, nodeRegs, testLinks] = await Promise.all([
+      ancestorNames([...new Set([...delivNodeIds, ...taskIds])]),
       taskIds.length ? prisma.nodeStandard.findMany({ where: { processNodeId: { in: taskIds }, excluded: false }, select: { processNodeId: true, standard: { select: { name: true } } } }) : [],
       taskIds.length ? prisma.nodeRegulation.findMany({ where: { processNodeId: { in: taskIds }, excluded: false }, select: { processNodeId: true, regulation: { select: { title: true } } } }) : [],
+      taskIds.length
+        ? prisma.nodeWorkTemplate.findMany({
+            where: { processNodeId: { in: taskIds }, template: { kind: 'TEST' } },
+            select: { processNodeId: true, template: { select: { name: true } } },
+          })
+        : [],
     ]);
     const stdByAnc = new Map<string, string[]>();
     for (const x of nodeStds) { const a = stdByAnc.get(x.processNodeId) ?? []; a.push(x.standard.name); stdByAnc.set(x.processNodeId, a); }
     const regByAnc = new Map<string, string[]>();
     for (const x of nodeRegs) { const a = regByAnc.get(x.processNodeId) ?? []; a.push(x.regulation.title); regByAnc.set(x.processNodeId, a); }
     const taskLinks = (id: string, m: Map<string, string[]>) => [...new Set(m.get(id) ?? [])].sort().slice(0, STD_CAP);
-
-    // Work Library testing pattern per task (null = no TEST template assigned yet).
-    const testLinks = taskIds.length
-      ? await prisma.nodeWorkTemplate.findMany({
-          where: { processNodeId: { in: taskIds }, template: { kind: 'TEST' } },
-          select: { processNodeId: true, template: { select: { name: true } } },
-        })
-      : [];
     const testByTask = new Map(testLinks.map((l) => [l.processNodeId, l.template.name]));
 
     res.json({
@@ -134,7 +141,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         const a = loc.get(t.id);
         const owner = t.nodeRoles.find((r) => r.role_ === 'Owner')?.role ?? t.nodeRoles[0]?.role ?? null;
         const contributors = [...new Set(t.nodeRoles
-          .filter((r) => r.role_ === 'Participant' && r.role.displayValue !== owner?.displayValue && !EXEC.test(r.role.displayValue))
+          .filter((r) => r.role_ === 'Participant' && r.role.displayValue !== owner?.displayValue && !isExec(r.role.displayValue))
           .map((r) => r.role.displayValue))].slice(0, TOP_CONTRIB);
         const deliv = t.nodeDeliverables[0]?.deliverable ?? null;
         return {
@@ -260,7 +267,7 @@ router.get('/task/:id', async (req: Request, res: Response, next: NextFunction) 
     const ownerRole = t.nodeRoles.find((r) => r.role_ === 'Owner')?.role ?? null;
     const leadRoles = t.nodeRoles.filter((r) => r.role_ === 'Owner').map((r) => ({ id: r.role.id, name: r.role.displayValue }));
     // contributors = participant roles, exec-stripped + capped (mirrors the list view).
-    const supportRoles = t.nodeRoles.filter((r) => r.role_ === 'Participant' && r.role.id !== ownerRole?.id && !EXEC.test(r.role.displayValue))
+    const supportRoles = t.nodeRoles.filter((r) => r.role_ === 'Participant' && r.role.id !== ownerRole?.id && !isExec(r.role.displayValue))
       .map((r) => ({ id: r.role.id, name: r.role.displayValue })).slice(0, TOP_CONTRIB);
     // The task's own workbook deliverable TEXT (preserved on the node) — what the
     // old per-task Deliverable used to show. Falls back to the L4 grouping title.

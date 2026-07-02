@@ -40,7 +40,7 @@ export async function applyWorkflowAction({
   const currentIdx = STAGE_ORDER.indexOf(init.stage as (typeof STAGE_ORDER)[number]);
   let newStage = init.stage;
   let newWorkflowAction: string | null = null;
-  let auditAction = 'UPDATE';
+  let auditAction: string; // assigned on every branch below (unknown action throws)
 
   if (action === 'SUBMIT') {
     if (currentIdx >= STAGE_ORDER.length - 1) throw httpError('Already at final stage', 400);

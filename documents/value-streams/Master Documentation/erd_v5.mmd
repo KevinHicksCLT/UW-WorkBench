@@ -49,16 +49,8 @@ erDiagram
     string companyId FK
     string orgUnitId FK "primary home"
     string managerRoleId FK "self -> Role (solid-line reporting)"
-    string jobDescription "concise purpose & scope (FB-53)"
     string dbValue
     string displayValue "EDITABLE label"
-  }
-  RoleDottedLine {
-    string status "FB-45 — dotted-line reporting (role -> manager role)"
-    string id PK
-    string companyId FK
-    string roleId FK "the reporting role"
-    string managerRoleId FK "the dotted-line manager role"
   }
   RoleOrgAssignment {
     string status "NEW — role at multiple levels (M:N)"
@@ -468,13 +460,6 @@ erDiagram
     string action
     string actorEmail
   }
-  UserPreference {
-    string status "NEW — end-user prefs (col order) vs admin config"
-    string id PK
-    string roleId FK "actor proxy (People removed)"
-    string scope
-    string prefsJson
-  }
   NodeAiAdoption {
     string status "1:1 ProcessNode — Telemetry / Active AI autonomy modes"
     string id PK
@@ -760,8 +745,6 @@ erDiagram
   OrgUnit ||--o{ OrgUnitClosure : "ancestor"
   OrgUnit ||--o{ Role : "primary-home"
   Role ||--o{ Role : "manages"
-  Role ||--o{ RoleDottedLine : "dotted-from"
-  Role ||--o{ RoleDottedLine : "dotted-to"
   Role ||--o{ RoleOrgAssignment : "assigned"
   OrgUnit ||--o{ RoleOrgAssignment : "hosts"
   %% value-stream spine
@@ -854,7 +837,6 @@ erDiagram
   Company ||--o{ AuditEntry : "logs"
   Role ||--o{ AuditEntry : "actor"
   ProcessNode ||--o{ AuditEntry : "on"
-  Role ||--o{ UserPreference : "sets"
   ProcessNode ||--|| NodeAiAdoption : "ai-adoption"
   %% telemetry / scenario / analysis
   Company ||--o{ TelemetrySignal : "tracks"
@@ -913,7 +895,6 @@ erDiagram
   %% ================= COLOR CODING =================
   %% red=connection tables · blue=value stream · orange=org · green=work · purple=other · teal=peripheral
   style RoleOrgAssignment fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
-  style RoleDottedLine fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style OrgUnitClosure fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style ProcessNodeClosure fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style NodeDeliverable fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
@@ -951,7 +932,6 @@ erDiagram
   style AgentSkill fill:#F4ECF7,stroke:#8E44AD,stroke-width:2px,color:#5B2C6F
   style Terminology fill:#F4ECF7,stroke:#8E44AD,stroke-width:2px,color:#5B2C6F
   style AuditEntry fill:#F4ECF7,stroke:#8E44AD,stroke-width:2px,color:#5B2C6F
-  style UserPreference fill:#F4ECF7,stroke:#8E44AD,stroke-width:2px,color:#5B2C6F
   style IntegrationSource fill:#F4ECF7,stroke:#8E44AD,stroke-width:2px,color:#5B2C6F
   style NodeAiAdoption fill:#EAF2F8,stroke:#2980B9,stroke-width:2px,color:#1A5276
   style TelemetrySignal fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655

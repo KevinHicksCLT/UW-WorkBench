@@ -1,36 +1,40 @@
 // App.tsx
 
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { useAuth } from './lib/auth';
 import { CompanyProvider } from './lib/company';
 import { DialogProvider } from './lib/dialogs';
 import { BreadcrumbProvider } from './lib/breadcrumbs';
+// Layout (the app shell) and Login stay eager so the chrome renders instantly;
+// every page below is route-level code-split via React.lazy.
 import Layout from './components/Layout';
-import Login from './pages/Login';
-import Overview from './pages/Overview';
-import Explorer from './pages/Explorer';
-import DivisionDetail from './pages/DivisionDetail';
-import DepartmentDetail from './pages/DepartmentDetail';
-import Organization from './pages/Organization';
-import Roles from './pages/Roles';
-import SearchResults from './pages/SearchResults';
-import Admin from './pages/Admin';
-import AuditTrail from './pages/AuditTrail';
-import Standards from './pages/Standards';
-import StandardArea from './pages/StandardArea';
-import ActiveAI from './pages/ActiveAI';
-import ActiveAIDetail from './pages/ActiveAIDetail';
-import Portfolio from './pages/Portfolio';
-import PortfolioProgram from './pages/PortfolioProgram';
-import PortfolioInitiative from './pages/PortfolioInitiative';
-import PortfolioRaid from './pages/PortfolioRaid';
-import Work from './pages/Work';
-import Automatable from './pages/Automatable';
-import WorkLibrary from './pages/WorkLibrary';
-import Applications from './pages/Applications';
-import External from './pages/External';
-import Regulations from './pages/Regulations';
-import RegulationDetail from './pages/RegulationDetail';
+import Login from './pages/login/Login';
+
+const Overview = lazy(() => import('./pages/overview/Overview'));
+const Explorer = lazy(() => import('./pages/explorer/Explorer'));
+const DivisionDetail = lazy(() => import('./pages/division-detail/DivisionDetail'));
+const DepartmentDetail = lazy(() => import('./pages/department-detail/DepartmentDetail'));
+const Organization = lazy(() => import('./pages/organization/Organization'));
+const Roles = lazy(() => import('./pages/roles/Roles'));
+const SearchResults = lazy(() => import('./pages/search-results/SearchResults'));
+const Admin = lazy(() => import('./pages/admin/Admin'));
+const AuditTrail = lazy(() => import('./pages/audit-trail/AuditTrail'));
+const Standards = lazy(() => import('./pages/standards/Standards'));
+const StandardArea = lazy(() => import('./pages/standard-area/StandardArea'));
+const ActiveAI = lazy(() => import('./pages/active-ai/ActiveAI'));
+const ActiveAIDetail = lazy(() => import('./pages/active-ai-detail/ActiveAIDetail'));
+const Portfolio = lazy(() => import('./pages/portfolio/Portfolio'));
+const PortfolioProgram = lazy(() => import('./pages/portfolio-program/PortfolioProgram'));
+const PortfolioInitiative = lazy(() => import('./pages/portfolio-initiative/PortfolioInitiative'));
+const PortfolioRaid = lazy(() => import('./pages/portfolio-raid/PortfolioRaid'));
+const Work = lazy(() => import('./pages/work/Work'));
+const Automatable = lazy(() => import('./pages/automatable/Automatable'));
+const WorkLibrary = lazy(() => import('./pages/work-library/WorkLibrary'));
+const Applications = lazy(() => import('./pages/applications/Applications'));
+const External = lazy(() => import('./pages/external/External'));
+const Regulations = lazy(() => import('./pages/regulations/Regulations'));
+const RegulationDetail = lazy(() => import('./pages/regulation-detail/RegulationDetail'));
 
 // The standalone role page was retired (it repeated the Organization role
 // panel) — old /roles/:id links open that panel instead (now at /organization,
@@ -86,6 +90,9 @@ export default function App() {
     <CompanyProvider>
     <BreadcrumbProvider>
     <Layout>
+      {/* Single Suspense boundary for all lazy routes — an empty div keeps the
+          shell steady (no spinner flash) while a page chunk loads. */}
+      <Suspense fallback={<div />}>
       <Routes>
         {/* Home IS the executive dashboard — the application landing. */}
         <Route path="/" element={<Overview />} />
@@ -151,6 +158,7 @@ export default function App() {
         <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </Layout>
     </BreadcrumbProvider>
     </CompanyProvider>

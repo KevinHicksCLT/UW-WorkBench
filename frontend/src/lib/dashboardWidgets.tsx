@@ -5,6 +5,7 @@ import {
   PortfolioRollup, ProgramGantt, TopRisks, RaidSummary, RaidByProgram,
   type TransformationData,
 } from '../components/home/TransformationWidgets';
+import { Card as UICard, EmptyState } from '../components/ui';
 
 // ─── Home dashboard widget catalog ───────────────────────────────────────────
 // The single source of truth for what the Home dashboard CAN show. Overview.tsx
@@ -59,12 +60,12 @@ function Tile({ label, value, hint, to }: { label: string; value: string | numbe
   );
   if (to) {
     return (
-      <Link to={to} className="card-elevated p-4 block h-full transition-colors hover:border-[#4f46e5] group">
+      <UICard as={Link} variant="elevated" to={to} className="p-4 block h-full transition-colors hover:border-[#4f46e5] group">
         {body}
-      </Link>
+      </UICard>
     );
   }
-  return <div className="card-elevated p-4 h-full">{body}</div>;
+  return <UICard variant="elevated" className="p-4 h-full">{body}</UICard>;
 }
 
 // Horizontal bar list. Bars are scaled to the largest value in the set.
@@ -90,7 +91,7 @@ function BarList({ groups, color }: { groups: Group[]; color?: string | ((k: str
 
 function Card({ title, children, to, toLabel }: { title: string; children: ReactNode; to?: string; toLabel?: string }) {
   return (
-    <div className="card-elevated p-5 h-full">
+    <UICard variant="elevated" className="p-5 h-full">
       <div className="flex items-center justify-between mb-4">
         {to ? (
           <Link to={to} className="text-sm font-semibold text-[#171717] hover:text-[#4f46e5]">{title}</Link>
@@ -100,7 +101,7 @@ function Card({ title, children, to, toLabel }: { title: string; children: React
         {to && <Link to={to} className="text-xs text-[#525252] hover:text-[#171717]">{toLabel ?? 'View'} →</Link>}
       </div>
       {children}
-    </div>
+    </UICard>
   );
 }
 
@@ -159,7 +160,7 @@ export const FOOTPRINT_DEFAULT: string[] = ['subProcesses', 'ioItems', 'external
 // Transformation widgets read the `transformation` slice; until the backend
 // serves it (older payloads), they render a quiet placeholder.
 const txn = (d: Dashboard, body: (t: TransformationData) => ReactNode): ReactNode =>
-  d.transformation ? body(d.transformation) : <div className="text-sm text-[#a3a3a3]">No transformation data yet.</div>;
+  d.transformation ? body(d.transformation) : <EmptyState baseClassName="text-sm text-[#a3a3a3]" message="No transformation data yet." />;
 
 export const WIDGET_CATALOG: Widget[] = [
   // ── Transformation command center (D1) ──

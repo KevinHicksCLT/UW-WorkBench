@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
+import { Card, ErrorMessage, LoadingState } from '../ui';
 
 // Data Health panel (audit A2): runs the read-only validation checks for the
 // active company and renders pass/warn/fail with sample offending rows. Nothing
@@ -36,9 +37,9 @@ export default function ValidationPanel({
     if (!companyId) return;
     setLoading(true);
     setError('');
-    api.get(`/admin/validations?companyId=${companyId}`)
-      .then((d: { checks: Check[] }) => setChecks(d.checks))
-      .catch((e: any) => setError(String(e?.message || e)))
+    api.get<{ checks: Check[] }>(`/admin/validations?companyId=${companyId}`)
+      .then((d) => setChecks(d.checks))
+      .catch((e: unknown) => setError(String((e as { message?: string })?.message || e)))
       .finally(() => setLoading(false));
   };
   useEffect(load, [companyId]);
@@ -72,14 +73,14 @@ export default function ValidationPanel({
         </div>
       )}
 
-      {error && <div className="text-sm text-[#be123c]">{error}</div>}
-      {!checks && loading && <div className="text-sm text-[#a3a3a3]">Running checks…</div>}
+      {error && <ErrorMessage>{error}</ErrorMessage>}
+      {!checks && loading && <LoadingState message="Running checks…" />}
 
       <div className="space-y-3">
         {(checks ?? []).map((c) => {
           const s = STATUS[c.status];
           return (
-            <div key={c.id} className={`card-elevated p-4 border-l-4 ${s.ring}`}>
+            <Card variant="elevated" key={c.id} className={`p-4 border-l-4 ${s.ring}`}>
               <div className="flex items-center gap-2 mb-1">
                 <span className={`w-2 h-2 rounded-full ${s.dot}`} />
                 <span className="font-medium text-[#171717]">{c.label}</span>
@@ -111,7 +112,7 @@ export default function ValidationPanel({
                   )}
                 </div>
               )}
-            </div>
+            </Card>
           );
         })}
       </div>

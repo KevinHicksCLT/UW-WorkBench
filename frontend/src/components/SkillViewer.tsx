@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import AssistantMarkdown from './AssistantMarkdown';
 import { skillLabel, describeSkillFile, SKILL_FILE_GROUP_ORDER } from '../lib/skills';
+import { Button, ErrorMessage, LoadingState } from './ui';
 
 // Modal that views an SDLC compliance agent skill: its SKILL.md plus the phase
 // guides, references, and datasets that ship with it. Markdown renders inline;
@@ -32,8 +33,8 @@ export default function SkillViewer({ skill, onClose }: { skill: string; onClose
 
   // Load the manifest (+ SKILL.md content) once.
   useEffect(() => {
-    api.get(`/standards-skills/${encodeURIComponent(skill)}`)
-      .then((m: Manifest) => {
+    api.get<Manifest>(`/standards-skills/${encodeURIComponent(skill)}`)
+      .then((m) => {
         setManifest(m);
         if (m.skillMd != null) setCache({ 'SKILL.md': m.skillMd });
       })
@@ -45,12 +46,12 @@ export default function SkillViewer({ skill, onClose }: { skill: string; onClose
     if (active in cache) return;
     let on = true;
     setLoadingFile(true);
-    api.get(`/standards-skills/${encodeURIComponent(skill)}/file?path=${encodeURIComponent(active)}`)
-      .then((r: { content: string }) => { if (on) setCache((c) => ({ ...c, [active]: r.content })); })
+    api.get<{ content: string }>(`/standards-skills/${encodeURIComponent(skill)}/file?path=${encodeURIComponent(active)}`)
+      .then((r) => { if (on) setCache((c) => ({ ...c, [active]: r.content })); })
       .catch((e) => { if (on) setError(e.message); })
       .finally(() => { if (on) setLoadingFile(false); });
     return () => { on = false; };
-  }, [active, skill]); // eslint-disable-line
+  }, [active, skill]);  
 
   // Close on Escape.
   useEffect(() => {
@@ -90,17 +91,17 @@ export default function SkillViewer({ skill, onClose }: { skill: string; onClose
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <button onClick={downloadActive} disabled={content == null} className="btn-primary text-xs inline-flex items-center gap-1.5 disabled:opacity-50">
+            <Button onClick={downloadActive} disabled={content == null} className="text-xs inline-flex items-center gap-1.5 disabled:opacity-50">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" /></svg>
               Download {baseName(active)}
-            </button>
+            </Button>
             <button onClick={onClose} className="text-[#a3a3a3] hover:text-[#171717]" aria-label="Close">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
           </div>
         </div>
 
-        {error && <div className="px-5 py-2 text-sm text-[#be123c]">{error}</div>}
+        {error && <ErrorMessage baseClassName="px-5 py-2 text-sm text-[#be123c]">{error}</ErrorMessage>}
 
         <div className="flex-1 min-h-0 flex">
           {/* File nav — grouped, with clear names + how the agent uses each. */}
@@ -128,7 +129,7 @@ export default function SkillViewer({ skill, onClose }: { skill: string; onClose
                   </div>
                 </div>
               ))}
-              {!manifest && !error && <div className="px-2.5 py-2 text-xs text-[#a3a3a3]">Loading…</div>}
+              {!manifest && !error && <LoadingState baseClassName="px-2.5 py-2 text-xs text-[#a3a3a3]" />}
             </nav>
           </aside>
 
@@ -140,7 +141,7 @@ export default function SkillViewer({ skill, onClose }: { skill: string; onClose
               <div className="text-[10px] text-[#bdbdbd] font-mono mt-0.5">{active}</div>
             </div>
             {content == null ? (
-              <div className="text-sm text-[#a3a3a3]">{loadingFile ? 'Loading…' : 'Select a file.'}</div>
+              <LoadingState message={loadingFile ? 'Loading…' : 'Select a file.'} />
             ) : isMd(active) ? (
               <div className="max-w-none"><AssistantMarkdown content={content} /></div>
             ) : (

@@ -10,6 +10,7 @@ import ValidationPanel from './ValidationPanel';
 import AiAdoptionEditor from './AiAdoptionEditor';
 import ModelBuilder from './ModelBuilder';
 import StepLensEditor from './StepLensEditor';
+import { Card, ErrorMessage } from '../ui';
 
 // Resolves one section's EditorSpec to the right editor component, wiring entity
 // metadata in from the registry. Keeps Admin.tsx declarative — the page just maps
@@ -17,9 +18,9 @@ import StepLensEditor from './StepLensEditor';
 
 function Missing({ slug }: { slug: string }) {
   return (
-    <div className="card-elevated p-8 text-center text-sm text-[#a3a3a3]">
+    <Card variant="elevated" className="p-8 text-center text-sm text-[#a3a3a3]">
       <code className="text-[#525252]">{slug}</code> isn't available in this build.
-    </div>
+    </Card>
   );
 }
 
@@ -29,7 +30,7 @@ function Intro({ text }: { text?: string }) {
 }
 
 export default function AdminSection({
-  spec, companyId, companyName, bySlug, onRequestAi, onNavigate,
+  spec, companyId, bySlug, onRequestAi, onNavigate,
 }: {
   spec: EditorSpec;
   companyId: string | null;
@@ -79,7 +80,7 @@ export default function AdminSection({
       }
       return (
         <div>
-          {missing.length > 0 && <div className="text-xs text-[#be123c] mb-2">Unavailable: {missing.join(', ')}</div>}
+          {missing.length > 0 && <ErrorMessage baseClassName="text-xs text-[#be123c] mb-2">Unavailable: {missing.join(', ')}</ErrorMessage>}
           <MasterDetailEditor companyId={companyId} parent={parent} parentTitle={spec.parentTitle} intro={spec.intro} childSpecs={children} />
         </div>
       );
