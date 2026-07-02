@@ -190,8 +190,8 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
     const path = dashTarget.id
       ? `/explorer/roles/${dashTarget.level}/${encodeURIComponent(dashTarget.id)}`
       : `/explorer/roles/${dashTarget.level}`;
-    api.get(path)
-      .then((d: Dashboard) => { if (!cancelled) setDash(d); })
+    api.get<Dashboard>(path)
+      .then((d) => { if (!cancelled) setDash(d); })
       .catch(() => { if (!cancelled) setDash(null); })
       .finally(() => { if (!cancelled) setDashLoading(false); });
     return () => { cancelled = true; };

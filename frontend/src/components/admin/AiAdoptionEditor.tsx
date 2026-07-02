@@ -153,8 +153,8 @@ export default function AiAdoptionEditor({ companyId }: { companyId: string | nu
   const load = () => {
     if (!companyId) return;
     setError('');
-    api.get(`/admin/ai-adoption?companyId=${companyId}`)
-      .then((d: { rows: Row[]; levels: string[] }) => { setRows(d.rows); setLevels(d.levels); })
+    api.get<{ rows: Row[]; levels: string[] }>(`/admin/ai-adoption?companyId=${companyId}`)
+      .then((d) => { setRows(d.rows); setLevels(d.levels); })
       .catch((e: unknown) => setError(String((e as { message?: string })?.message || e)));
   };
   useEffect(load, [companyId]);

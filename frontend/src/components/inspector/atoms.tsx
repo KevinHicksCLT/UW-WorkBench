@@ -31,8 +31,8 @@ export function AddPicker({ label, kind, onPick }: {
     if (!open) return;
     let cancelled = false;
     const t = setTimeout(() => {
-      api.get(`/inspector/search/${kind}?q=${encodeURIComponent(q)}`)
-        .then((r: { items: typeof items }) => { if (!cancelled) setItems(r.items); })
+      api.get<{ items: { id: string; name: string; sub?: string | null }[] }>(`/inspector/search/${kind}?q=${encodeURIComponent(q)}`)
+        .then((r) => { if (!cancelled) setItems(r.items); })
         .catch(() => { if (!cancelled) setItems([]); });
     }, 150);
     return () => { cancelled = true; clearTimeout(t); };

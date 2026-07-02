@@ -319,7 +319,7 @@ export function RoadmapTab({ program }: { program: Program }) {
 export function ProgramResourcesTab({ programId }: { programId: string }) {
   const [rows, setRows] = useState<ResourceRow[] | null>(null);
   const [error, setError] = useState('');
-  useEffect(() => { api.get(`/portfolio/programs/${programId}/resources`).then(setRows).catch((e) => setError(e.message)); }, [programId]);
+  useEffect(() => { api.get<ResourceRow[]>(`/portfolio/programs/${programId}/resources`).then(setRows).catch((e) => setError(e.message)); }, [programId]);
 
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
   if (!rows) return <LoadingState />;

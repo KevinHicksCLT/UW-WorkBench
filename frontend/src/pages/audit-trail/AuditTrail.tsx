@@ -65,13 +65,13 @@ export default function AuditTrail({ embedded }: { embedded?: boolean } = {}) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api.get('/admin/_meta').then((m) => setEntities(m.entities)).catch(() => {});
+    api.get<{ entities: AdminEntity[] }>('/admin/_meta').then((m) => setEntities(m.entities)).catch(() => {});
   }, []);
 
   useEffect(() => {
     setLoading(true);
     setError('');
-    api.get(`/audit?limit=200${filter ? `&entityType=${encodeURIComponent(filter)}` : ''}`)
+    api.get<Entry[]>(`/audit?limit=200${filter ? `&entityType=${encodeURIComponent(filter)}` : ''}`)
       .then(setEntries)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));

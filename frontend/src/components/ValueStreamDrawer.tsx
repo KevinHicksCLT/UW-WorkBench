@@ -24,7 +24,7 @@ export default function ValueStreamDrawer({ valueStreamId, onClose }: { valueStr
   useEffect(() => {
     setVs(null);
     setError('');
-    api.get(`/value-streams/${valueStreamId}`).then(setVs).catch((e: Error) => setError(e.message));
+    api.get<Detail>(`/value-streams/${valueStreamId}`).then(setVs).catch((e: Error) => setError(e.message));
   }, [valueStreamId]);
 
   const processAreas = vs?.processAreas ?? [];

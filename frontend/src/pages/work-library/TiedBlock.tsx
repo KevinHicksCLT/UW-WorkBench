@@ -28,7 +28,7 @@ function AddTiedPicker({ scope, taskId, tiedIds, refetch }: {
   useEffect(() => {
     if (!open) return;
     const t = setTimeout(() => {
-      api.get(`/work-library/subjects?type=${scope}&q=${encodeURIComponent(q)}`)
+      api.get<{ subjects: Subject[] }>(`/work-library/subjects?type=${scope}&q=${encodeURIComponent(q)}`)
         .then((d) => setOptions(d.subjects.filter((s: Subject) => !tiedIds.has(s.id))))
         .catch(() => setOptions([]));
     }, 200);

@@ -80,8 +80,8 @@ const bandsListeners = new Set<(b: RiskBand[]) => void>();
 
 function loadBands(): Promise<RiskBand[]> {
   if (bandsCache) return Promise.resolve(bandsCache);
-  bandsPromise ??= api.get('/portfolio/risk-bands')
-    .then((r: { bands: RiskBand[] }) => {
+  bandsPromise ??= api.get<{ bands: RiskBand[] }>('/portfolio/risk-bands')
+    .then((r) => {
       bandsCache = r.bands ?? [];
       bandsListeners.forEach((fn) => fn(bandsCache!));
       return bandsCache!;

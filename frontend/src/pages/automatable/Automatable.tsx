@@ -44,7 +44,7 @@ export default function Automatable() {
 
   useEffect(() => {
     setLoading(true); setError('');
-    api.get(withCompany('/work', companyId))
+    api.get<WorkData>(withCompany('/work', companyId))
       .then(setData).catch((e) => setError(e.message)).finally(() => setLoading(false));
   }, [companyId]);
 

@@ -65,7 +65,7 @@ export default function EntityList({
 
   const load = (q: string) => {
     setLoading(true); setError('');
-    api.get(withCompany(`/admin/${entity.slug}?limit=200${fixedQs}${q ? `&search=${encodeURIComponent(q)}` : ''}`, companyId))
+    api.get<ListResponse>(withCompany(`/admin/${entity.slug}?limit=200${fixedQs}${q ? `&search=${encodeURIComponent(q)}` : ''}`, companyId))
       .then(setList)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));

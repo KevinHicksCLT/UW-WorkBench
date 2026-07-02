@@ -19,7 +19,7 @@ export default function Overview() {
     if (companyLoading) return;
     setLoading(true);
     setError('');
-    api.get(`/dashboard${companyId ? `?companyId=${companyId}` : ''}`)
+    api.get<Dashboard>(`/dashboard${companyId ? `?companyId=${companyId}` : ''}`)
       .then(setData)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));

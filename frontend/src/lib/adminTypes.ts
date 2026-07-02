@@ -24,7 +24,7 @@ export type AdminEntity = {
 };
 
 export type ListResponse = {
-  rows: Record<string, any>[];
+  rows: Record<string, unknown>[];
   total: number;
   limit: number;
   offset: number;

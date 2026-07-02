@@ -42,7 +42,7 @@ export default function StepLensEditor({ companyId, onNavigate }: {
   const fetchAll = async (slug: string): Promise<Row[]> => {
     const out: Row[] = [];
     for (let offset = 0; offset < 4000; offset += 200) {
-      const r = await api.get(withCompany(`/admin/${slug}?limit=200&offset=${offset}`, companyId));
+      const r = await api.get<{ rows?: Row[]; total?: number }>(withCompany(`/admin/${slug}?limit=200&offset=${offset}`, companyId));
       out.push(...rows(r));
       if (out.length >= (r?.total ?? 0)) break;
     }
@@ -58,11 +58,11 @@ export default function StepLensEditor({ companyId, onNavigate }: {
   // scope (stream / L4 / step) filters instantly client-side.
   useEffect(() => {
     if (!companyId) return;
-    api.get(withCompany('/admin/valueStream?limit=200', companyId)).then((r) => setStreams(rows(r)));
-    api.get(withCompany('/admin/application?limit=200', companyId)).then((r) => setApps(rows(r)));
+    api.get<{ rows?: Row[] }>(withCompany('/admin/valueStream?limit=200', companyId)).then((r) => setStreams(rows(r)));
+    api.get<{ rows?: Row[] }>(withCompany('/admin/application?limit=200', companyId)).then((r) => setApps(rows(r)));
     Promise.all([
-      api.get(withCompany('/admin/role?limit=200', companyId)),
-      api.get(withCompany('/admin/role?limit=200&offset=200', companyId)),
+      api.get<{ rows?: Row[] }>(withCompany('/admin/role?limit=200', companyId)),
+      api.get<{ rows?: Row[] }>(withCompany('/admin/role?limit=200&offset=200', companyId)),
     ]).then(([a, b]) => setRoles([...rows(a), ...rows(b)]));
     void reloadBridges();
   }, [companyId]);
@@ -70,7 +70,7 @@ export default function StepLensEditor({ companyId, onNavigate }: {
   // Steps of the selected stream.
   const loadSteps = () => {
     if (!companyId || !vsId) { setSteps([]); return; }
-    api.get(withCompany(`/admin/processStep?limit=200&f_valueStreamId=${vsId}`, companyId)).then((r) => setSteps(rows(r)));
+    api.get<{ rows?: Row[] }>(withCompany(`/admin/processStep?limit=200&f_valueStreamId=${vsId}`, companyId)).then((r) => setSteps(rows(r)));
   };
   useEffect(() => {
     setL4(''); setStepId(''); setSteps([]);
@@ -84,7 +84,7 @@ export default function StepLensEditor({ companyId, onNavigate }: {
   const loadL4Row = () => {
     setL4Row(undefined);
     if (!companyId || !vsId || !l4) return;
-    api.get(withCompany(`/admin/subValueStream?limit=200&f_valueStreamId=${vsId}&f_level=4`, companyId))
+    api.get<{ rows?: Row[] }>(withCompany(`/admin/subValueStream?limit=200&f_valueStreamId=${vsId}&f_level=4`, companyId))
       .then((r) => setL4Row(rows(r).find((x: Row) => x.name === l4) ?? null));
   };
   useEffect(() => { loadL4Row(); }, [companyId, vsId, l4]);

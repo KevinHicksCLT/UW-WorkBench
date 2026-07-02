@@ -39,7 +39,7 @@ export default function Admin() {
   const [refreshKey, setRefreshKey] = useState(0); // bumped after AI applies changes
 
   useEffect(() => {
-    api.get('/admin/_meta')
+    api.get<{ entities: AdminEntity[] }>('/admin/_meta')
       .then((m) => setEntities(m.entities))
       .catch((e) => setError(e.message));
   }, []);

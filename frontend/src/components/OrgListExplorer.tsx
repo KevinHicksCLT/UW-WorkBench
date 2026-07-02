@@ -119,8 +119,8 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
 
   useEffect(() => {
     let cancelled = false; setLoading(true);
-    api.get('/explorer/org-table')
-      .then((d: OrgData) => { if (!cancelled) { setData(d); setLoading(false); } })
+    api.get<OrgData>('/explorer/org-table')
+      .then((d) => { if (!cancelled) { setData(d); setLoading(false); } })
       .catch((e) => { if (!cancelled) { setError(e.message ?? 'Failed to load'); setLoading(false); } });
     return () => { cancelled = true; };
   }, []);
@@ -129,8 +129,8 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
     if (!target) { setDash(null); return; }
     let cancelled = false; setDashLoading(true); setDash(null);
     const url = target.id ? `/explorer/roles/${target.level}/${encodeURIComponent(target.id)}` : `/explorer/roles/${target.level}`;
-    api.get(url)
-      .then((d: Dashboard) => { if (!cancelled) setDash(d); })
+    api.get<Dashboard>(url)
+      .then((d) => { if (!cancelled) setDash(d); })
       .catch(() => { if (!cancelled) setDash(null); })
       .finally(() => { if (!cancelled) setDashLoading(false); });
     return () => { cancelled = true; };

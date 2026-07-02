@@ -15,7 +15,10 @@ const ACRONYMS = new Set(['gdpr', 'ccpa', 'cpra', 'nydfs', 'iso', 'soc', 'pci', 
 // (e.g. "actuarial-pricing-sdlc-compliance"). When shown INSIDE that area's
 // context (the area page / a standard's drawer) the leading area name is
 // redundant, so pass `area` to strip it → "Pricing Compliance".
-const slugify = (s: string) => s.toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+// Trailing replace is /^-|-$/ (not /^-+|-+$/): the [^a-z0-9]+ pass already
+// collapses runs, so at most one dash can sit at each end — and the quantifier-
+// free form is linear (sonarjs/super-linear-regex).
+const slugify = (s: string) => s.toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 export function skillLabel(slug: string, area?: string | null): string {
   if (SKILL_LABELS[slug]) return SKILL_LABELS[slug];
   let s = slug;

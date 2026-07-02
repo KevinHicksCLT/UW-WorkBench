@@ -156,7 +156,7 @@ function ActivityModal({ init, activity, onClose, onSaved }: { init: Initiative;
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api.get(`/portfolio/dependency-options?companyId=${init.companyId}`).then(setOptions).catch(() => {});
+    api.get<DepOptions>(`/portfolio/dependency-options?companyId=${init.companyId}`).then(setOptions).catch(() => {});
   }, [init.companyId]);
 
   const typeDef = DEP_TYPES.find((t) => t.key === form.dependencyType);

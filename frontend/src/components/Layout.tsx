@@ -46,7 +46,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   }, [mobileMenuOpen]);
   useEffect(() => {
     if (!user) return;
-    api.get('/explorer/overview')
+    api.get<{ domains?: IndexItem[]; divisions?: IndexItem[] }>('/explorer/overview')
       .then((o) => { setDomains(o.domains ?? []); setDivisions(o.divisions ?? []); })
       .catch(() => {});
   }, [user]);

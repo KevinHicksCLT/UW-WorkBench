@@ -33,8 +33,8 @@ export default function SkillViewer({ skill, onClose }: { skill: string; onClose
 
   // Load the manifest (+ SKILL.md content) once.
   useEffect(() => {
-    api.get(`/standards-skills/${encodeURIComponent(skill)}`)
-      .then((m: Manifest) => {
+    api.get<Manifest>(`/standards-skills/${encodeURIComponent(skill)}`)
+      .then((m) => {
         setManifest(m);
         if (m.skillMd != null) setCache({ 'SKILL.md': m.skillMd });
       })
@@ -46,8 +46,8 @@ export default function SkillViewer({ skill, onClose }: { skill: string; onClose
     if (active in cache) return;
     let on = true;
     setLoadingFile(true);
-    api.get(`/standards-skills/${encodeURIComponent(skill)}/file?path=${encodeURIComponent(active)}`)
-      .then((r: { content: string }) => { if (on) setCache((c) => ({ ...c, [active]: r.content })); })
+    api.get<{ content: string }>(`/standards-skills/${encodeURIComponent(skill)}/file?path=${encodeURIComponent(active)}`)
+      .then((r) => { if (on) setCache((c) => ({ ...c, [active]: r.content })); })
       .catch((e) => { if (on) setError(e.message); })
       .finally(() => { if (on) setLoadingFile(false); });
     return () => { on = false; };

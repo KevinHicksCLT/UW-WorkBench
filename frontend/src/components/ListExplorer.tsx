@@ -111,8 +111,8 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
 
   useEffect(() => {
     let cancelled = false; setLoading(true);
-    api.get('/explorer/tree')
-      .then((t: Tree) => { if (!cancelled) { setTree(t); setLoading(false); } })
+    api.get<Tree>('/explorer/tree')
+      .then((t) => { if (!cancelled) { setTree(t); setLoading(false); } })
       .catch((e) => { if (!cancelled) { setError(e.message ?? 'Failed to load'); setLoading(false); } });
     return () => { cancelled = true; };
   }, []);
@@ -169,8 +169,8 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
     };
     const row = flat.find((r) => r.vsId === focusVsId);
     if (row) { apply(row.vsName); return; }
-    api.get(`/explorer/value-stream/${encodeURIComponent(focusVsId)}/focus`)
-      .then((f: { valueStreamId: string }) => {
+    api.get<{ valueStreamId: string }>(`/explorer/value-stream/${encodeURIComponent(focusVsId)}/focus`)
+      .then((f) => {
         const resolved = flat.find((r) => r.vsId === f.valueStreamId);
         if (resolved) apply(resolved.vsName);
       })

@@ -138,8 +138,8 @@ export function useMapFocus(divisions: DivisionSummary[], focusVsId: string | nu
     if (appliedFocusRef.current === focusVsId) return;
     appliedFocusRef.current = focusVsId;
     let cancelled = false;
-    api.get(`/explorer/value-stream/${focusVsId}/focus`)
-      .then((f: { divisionId: string; category: string }) => {
+    api.get<{ divisionId: string; category: string }>(`/explorer/value-stream/${focusVsId}/focus`)
+      .then((f) => {
         if (!cancelled) focusValueStream(f.category as Category, f.divisionId, focusVsId);
       })
       .catch(() => { /* unresolvable → leave the map at its default view */ });

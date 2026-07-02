@@ -29,8 +29,8 @@ export default function SkillAdmin() {
 
   // Load the skill list once; default to the first skill.
   useEffect(() => {
-    api.get('/standards-skills')
-      .then((r: { skills: SkillRef[] }) => { setSkills(r.skills); if (r.skills[0]) setSkill(r.skills[0].name); })
+    api.get<{ skills: SkillRef[] }>('/standards-skills')
+      .then((r) => { setSkills(r.skills); if (r.skills[0]) setSkill(r.skills[0].name); })
       .catch((e) => setError(e.message));
   }, []);
 
@@ -38,8 +38,8 @@ export default function SkillAdmin() {
   useEffect(() => {
     if (!skill) return;
     setError('');
-    api.get(`/standards-skills/${encodeURIComponent(skill)}`)
-      .then((m: { files: FileRef[] }) => { setFiles(m.files); setActive('SKILL.md'); })
+    api.get<{ files: FileRef[] }>(`/standards-skills/${encodeURIComponent(skill)}`)
+      .then((m) => { setFiles(m.files); setActive('SKILL.md'); })
       .catch((e) => setError(e.message));
   }, [skill]);
 
@@ -48,8 +48,8 @@ export default function SkillAdmin() {
     if (!skill || !active) return;
     let on = true;
     setLoading(true); setError(''); setSavedAt(null);
-    api.get(`/standards-skills/${encodeURIComponent(skill)}/file?path=${encodeURIComponent(active)}`)
-      .then((r: { content: string }) => { if (on) { setContent(r.content); setOriginal(r.content); } })
+    api.get<{ content: string }>(`/standards-skills/${encodeURIComponent(skill)}/file?path=${encodeURIComponent(active)}`)
+      .then((r) => { if (on) { setContent(r.content); setOriginal(r.content); } })
       .catch((e) => { if (on) setError(e.message); })
       .finally(() => { if (on) setLoading(false); });
     return () => { on = false; };

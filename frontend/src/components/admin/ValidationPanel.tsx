@@ -37,8 +37,8 @@ export default function ValidationPanel({
     if (!companyId) return;
     setLoading(true);
     setError('');
-    api.get(`/admin/validations?companyId=${companyId}`)
-      .then((d: { checks: Check[] }) => setChecks(d.checks))
+    api.get<{ checks: Check[] }>(`/admin/validations?companyId=${companyId}`)
+      .then((d) => setChecks(d.checks))
       .catch((e: unknown) => setError(String((e as { message?: string })?.message || e)))
       .finally(() => setLoading(false));
   };

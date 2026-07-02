@@ -51,8 +51,8 @@ export default function Inspector({ nodeId, onClose, onRetarget, accent, startCo
   const load = useCallback(() => {
     let cancelled = false;
     setLoading(true);
-    api.get(`/inspector/${encodeURIComponent(nodeId)}`)
-      .then((d: Payload) => { if (!cancelled) { setData(d); setLoading(false); if (!d.detail) setEdit(false); } })
+    api.get<Payload>(`/inspector/${encodeURIComponent(nodeId)}`)
+      .then((d) => { if (!cancelled) { setData(d); setLoading(false); if (!d.detail) setEdit(false); } })
       .catch(() => { if (!cancelled) { setData(null); setLoading(false); } });
     return () => { cancelled = true; };
   }, [nodeId]);

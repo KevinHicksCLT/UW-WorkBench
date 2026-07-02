@@ -27,11 +27,11 @@ export function fieldLabel(entitySlug: string, fieldName: string): string {
   return FIELD_LABELS[entitySlug]?.[fieldName] ?? humanize(fieldName);
 }
 
-export function cellText(field: { kind: string }, v: any): string {
+export function cellText(field: { kind: string }, v: unknown): string {
   if (v === null || v === undefined || v === '') return '—';
   if (field.kind === 'boolean') return v ? '✓' : '–';
   if (field.kind === 'datetime') {
-    const d = new Date(v);
+    const d = typeof v === 'string' || typeof v === 'number' || v instanceof Date ? new Date(v) : new Date(NaN);
     return Number.isNaN(d.getTime()) ? String(v) : d.toLocaleDateString();
   }
   const s = String(v);

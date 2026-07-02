@@ -98,8 +98,8 @@ function OrgMapCanvasInner({ data, breadcrumbSlot, onSaved }: Props & { data: Or
     if (!target) { setDash(null); return; }
     let cancelled = false; setDashLoading(true); setDash(null);
     const url = target.id ? `/explorer/roles/${target.level}/${encodeURIComponent(target.id)}` : `/explorer/roles/${target.level}`;
-    api.get(url)
-      .then((d: Dashboard) => { if (!cancelled) setDash(d); })
+    api.get<Dashboard>(url)
+      .then((d) => { if (!cancelled) setDash(d); })
       .catch(() => { if (!cancelled) setDash(null); })
       .finally(() => { if (!cancelled) setDashLoading(false); });
     return () => { cancelled = true; };

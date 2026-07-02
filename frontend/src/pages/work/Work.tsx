@@ -307,13 +307,13 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
     if (companyLoading) return;
     setLoading(true);
     // fetch all rows (tasks exceed the old 5k default; splits push the total higher).
-    api.get(withCompany('/work?take=30000', companyId))
+    api.get<WorkData>(withCompany('/work?take=30000', companyId))
       .then(setData).catch(() => {}).finally(() => setLoading(false));
   }, [companyId, companyLoading]);
 
   // Open a row's drill-down in the sidebar by fetching its detail.
   function openDrill(kind: 'deliverable' | 'task', id: string) {
-    api.get(withCompany(`/work/${kind}/${id}`, companyId)).then(setDetail).catch(() => {});
+    api.get<Detail>(withCompany(`/work/${kind}/${id}`, companyId)).then(setDetail).catch(() => {});
   }
 
   const { deliverables, tasks } = data;

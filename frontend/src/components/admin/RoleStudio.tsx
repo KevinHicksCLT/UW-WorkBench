@@ -153,7 +153,7 @@ function RoleContextSection({ role, companyId, entity, kind }: { role: Role; com
 
   const load = () => {
     setLoading(true); setError('');
-    api.get(withCompany(`/admin/role-context/${role.id}`, companyId))
+    api.get<Context>(withCompany(`/admin/role-context/${role.id}`, companyId))
       .then(setCtx)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));

@@ -69,7 +69,7 @@ export default function EntityForm({ entity, companyId, record, fixed, defaults,
         const rel = f.relation!;
         // Scope FK options to the active company so you can only link in-company
         // records (the Company table ignores the param server-side).
-        const res = await api.get(withCompany(`/admin/${rel.entity}?limit=200`, companyId));
+        const res = await api.get<{ rows: Record<string, unknown>[] }>(withCompany(`/admin/${rel.entity}?limit=200`, companyId));
         const opts: Option[] = res.rows.map((r: Record<string, unknown>) => ({ id: r.id as string, label: String(r[rel.labelField] ?? r.id) }));
         return [f.name, opts] as const;
       }),

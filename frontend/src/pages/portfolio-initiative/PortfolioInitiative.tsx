@@ -32,7 +32,7 @@ export default function PortfolioInitiative() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  function load() { api.get(`/portfolio/initiatives/${id}`).then(setInit).catch((e) => setError(e.message)); }
+  function load() { api.get<Initiative>(`/portfolio/initiatives/${id}`).then(setInit).catch((e) => setError(e.message)); }
   useEffect(() => { load(); }, [id]);  
 
   async function workflow(action: string) {

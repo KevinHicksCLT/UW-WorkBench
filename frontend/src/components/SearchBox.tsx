@@ -17,7 +17,7 @@ export default function SearchBox() {
   useEffect(() => {
     if (q.trim().length < 2) { setResults([]); return; }
     const t = setTimeout(() => {
-      api.get(`/search?q=${encodeURIComponent(q.trim())}`)
+      api.get<SearchResult[]>(`/search?q=${encodeURIComponent(q.trim())}`)
         .then((r) => { setResults(r); setOpen(true); })
         .catch(() => {});
     }, 200);

@@ -36,7 +36,7 @@ export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClos
 
   useEffect(() => {
     setR(null); setError('');
-    api.get(`/roles/${roleId}`).then(setR).catch((e: Error) => setError(e.message));
+    api.get<RoleDetailData>(`/roles/${roleId}`).then(setR).catch((e: Error) => setError(e.message));
   }, [roleId]);
 
   // Process tasks — the L5 steps the role leads/supports — grouped by value stream.

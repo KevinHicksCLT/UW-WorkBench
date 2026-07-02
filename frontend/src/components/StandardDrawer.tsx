@@ -53,7 +53,7 @@ export default function StandardDrawer({ areaId, itemId, onClose }: { areaId: st
   useEffect(() => {
     setData(null);
     setError('');
-    api.get(`/explorer/standards/${areaId}`).then(setData).catch((e: Error) => setError(e.message));
+    api.get<AreaData>(`/explorer/standards/${areaId}`).then(setData).catch((e: Error) => setError(e.message));
   }, [areaId]);
 
   useEffect(() => setActiveId(itemId), [itemId]);

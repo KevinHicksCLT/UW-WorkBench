@@ -60,7 +60,10 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
 
   const load = () => {
     if (!companyId) return;
-    Promise.all([api.get('/builder/types'), api.get(`/builder/tree?companyId=${companyId}`)])
+    Promise.all([
+      api.get<{ types: NodeType[]; relationTypes: string[] }>('/builder/types'),
+      api.get<{ nodes: TreeNode[] }>(`/builder/tree?companyId=${companyId}`),
+    ])
       .then(([t, tr]) => { setTypes(t.types); setRelationTypes(t.relationTypes); setNodes(tr.nodes); })
       .catch((e: unknown) => setError(String((e as { message?: string })?.message || e)));
   };
@@ -68,7 +71,7 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
 
   useEffect(() => {
     if (!selected || !companyId) { setLinks(null); return; }
-    api.get(`/builder/nodes/${selected.id}/links?companyId=${companyId}`).then(setLinks).catch(() => setLinks(null));
+    api.get<{ in: LinkRow[]; out: LinkRow[] }>(`/builder/nodes/${selected.id}/links?companyId=${companyId}`).then(setLinks).catch(() => setLinks(null));
   }, [selected?.id, companyId]);
 
   if (!companyId) return <p className="text-sm text-[#a3a3a3]">Select a company to build its operating model.</p>;
@@ -297,7 +300,7 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
                   nodes={nodes}
                   relationTypes={relationTypes}
                   typeLabel={label}
-                  onCreated={() => selected && api.get(`/builder/nodes/${selected.id}/links?companyId=${companyId}`).then(setLinks)}
+                  onCreated={() => selected && api.get<{ in: LinkRow[]; out: LinkRow[] }>(`/builder/nodes/${selected.id}/links?companyId=${companyId}`).then(setLinks)}
                   onError={setError}
                 />
               </div>

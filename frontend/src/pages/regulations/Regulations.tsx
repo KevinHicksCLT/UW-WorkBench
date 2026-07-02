@@ -84,7 +84,7 @@ export default function Regulations() {
   const [requirements, setRequirements] = useState<RequirementRow[] | null>(null);
   useEffect(() => {
     if (!companyId) return;
-    api.get(withCompany('/regulations/requirements', companyId)).then(setRequirements).catch(() => setRequirements([]));
+    api.get<RequirementRow[]>(withCompany('/regulations/requirements', companyId)).then(setRequirements).catch(() => setRequirements([]));
   }, [companyId]);
 
   const rows = (requirements ?? []).filter((r) => LENS_TYPE[tab](r.jurisdiction.regulatorType));

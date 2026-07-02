@@ -20,7 +20,7 @@ export function ChangeLogTab({ init }: { init: Initiative }) {
   const [rows, setRows] = useState<ChangeRequest[] | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
-  function load() { api.get(`/portfolio/initiatives/${init.id}/change-requests`).then(setRows).catch(() => setRows([])); }
+  function load() { api.get<ChangeRequest[]>(`/portfolio/initiatives/${init.id}/change-requests`).then(setRows).catch(() => setRows([])); }
   useEffect(() => { load(); }, [init.id]);  
 
   async function setStatus(cr: ChangeRequest, status: string) {

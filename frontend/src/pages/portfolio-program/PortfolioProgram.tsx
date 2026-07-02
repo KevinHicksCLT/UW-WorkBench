@@ -42,12 +42,12 @@ export default function PortfolioProgram() {
   const [error, setError] = useState('');
 
   function load() {
-    Promise.all([api.get(`/portfolio/programs/${id}`), api.get(`/portfolio/programs/${id}/summary`)])
+    Promise.all([api.get<Program>(`/portfolio/programs/${id}`), api.get<Summary>(`/portfolio/programs/${id}/summary`)])
       .then(([p, s]) => { setProgram(p); setSummary(s); })
       .catch((e) => setError(e.message));
   }
   useEffect(() => { load(); }, [id]);  
-  useEffect(() => { api.get(withCompany('/portfolio/links', companyId)).then(setLinks).catch(() => {}); }, [companyId]);
+  useEffect(() => { api.get<LinkOptions>(withCompany('/portfolio/links', companyId)).then(setLinks).catch(() => {}); }, [companyId]);
 
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
   if (!program) return <LoadingState />;

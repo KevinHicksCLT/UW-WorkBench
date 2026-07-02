@@ -60,8 +60,8 @@ export default function ApplicationRationalization({ embedded = false }: { embed
   const appOf = (s: StageListItem) => s.application ?? 'Unassigned';
 
   const loadList = useCallback((preferApp?: string) => {
-    return api.get(`/rationalization${companyId ? `?companyId=${companyId}` : ''}`)
-      .then((rows: StageListItem[]) => {
+    return api.get<StageListItem[]>(`/rationalization${companyId ? `?companyId=${companyId}` : ''}`)
+      .then((rows) => {
         setList(rows);
         const apps = [...new Set(rows.map(appOf))];
         setSelectedApp((prev) => (preferApp && apps.includes(preferApp) ? preferApp : prev && apps.includes(prev) ? prev : apps[0] ?? null));
@@ -93,8 +93,8 @@ export default function ApplicationRationalization({ embedded = false }: { embed
   const [selL4, setSelL4] = useState('');
 
   useEffect(() => {
-    api.get('/explorer/tree')
-      .then((t: { divisions: { valueStreams: { id: string; name: string; areas: { id: string; name: string }[] }[] }[] }) => {
+    api.get<{ divisions: { valueStreams: { id: string; name: string; areas: { id: string; name: string }[] }[] }[] }>('/explorer/tree')
+      .then((t) => {
         const seen = new Set<string>();
         const l3s: LensL3[] = [];
         for (const d of t.divisions) for (const vs of d.valueStreams) {
@@ -176,11 +176,11 @@ export default function ApplicationRationalization({ embedded = false }: { embed
 
   const loadDetail = useCallback(() => {
     if (!selectedId) return;
-    api.get(`/rationalization/${selectedId}`).then(setDetail).catch((e) => setError(e.message));
+    api.get<StageDetail>(`/rationalization/${selectedId}`).then(setDetail).catch((e) => setError(e.message));
   }, [selectedId]);
   const loadLog = useCallback(() => {
     if (!selectedId) { setLog([]); return; }
-    api.get(`/audit?entityType=RationalizationWorkspace&entityId=${selectedId}`).then(setLog).catch(() => setLog([]));
+    api.get<LogEntry[]>(`/audit?entityType=RationalizationWorkspace&entityId=${selectedId}`).then(setLog).catch(() => setLog([]));
   }, [selectedId]);
 
   useEffect(() => {

@@ -43,7 +43,7 @@ export default function Standards() {
   const [sel, setSel] = useState<FlatItem | null>(null);
 
   useEffect(() => {
-    api.get('/explorer/standards-flat').then((r) => setItems(r.items)).catch(() => setItems([]));
+    api.get<{ items: FlatItem[] }>('/explorer/standards-flat').then((r) => setItems(r.items)).catch(() => setItems([]));
   }, []);
 
   const cols = useMemo<SheetCol<FlatItem>[]>(() => [

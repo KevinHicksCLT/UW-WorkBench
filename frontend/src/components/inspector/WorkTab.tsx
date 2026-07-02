@@ -32,8 +32,8 @@ export function WorkTab({ data, edit, onNav, after }: {
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     let cancelled = false; setLoading(true);
-    api.get(`/inspector/${data.id}/chain`)
-      .then((r: { chain: ChainDeliv[] }) => { if (!cancelled) { setChain(r.chain); setLoading(false); } })
+    api.get<{ chain: ChainDeliv[] }>(`/inspector/${data.id}/chain`)
+      .then((r) => { if (!cancelled) { setChain(r.chain); setLoading(false); } })
       .catch(() => { if (!cancelled) { setChain([]); setLoading(false); } });
     return () => { cancelled = true; };
   }, [data.id, ver]);

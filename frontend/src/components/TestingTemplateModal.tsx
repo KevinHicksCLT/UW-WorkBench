@@ -68,7 +68,7 @@ export default function TestingTemplateModal({ nodeId, onClose }: { nodeId: stri
   useEffect(() => {
     setData(null);
     setError('');
-    api.get(`/explorer/testing-templates/${nodeId}`).then(setData).catch((e: Error) => setError(e.message));
+    api.get<Payload>(`/explorer/testing-templates/${nodeId}`).then(setData).catch((e: Error) => setError(e.message));
   }, [nodeId]);
 
   const templates = data?.templates ?? [];

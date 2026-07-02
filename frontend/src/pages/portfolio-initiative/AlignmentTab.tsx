@@ -18,7 +18,7 @@ export function AlignmentTab({ init, reload }: { init: Initiative; reload: () =>
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api.get(`/portfolio/objectives?companyId=${init.companyId}`).then(setObjectives).catch((e) => setError(e.message));
+    api.get<Objective[]>(`/portfolio/objectives?companyId=${init.companyId}`).then(setObjectives).catch((e) => setError(e.message));
   }, [init.companyId]);
 
   const linkedIds = new Set(init.objectives.map((l) => l.objectiveId));

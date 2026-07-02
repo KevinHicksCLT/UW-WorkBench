@@ -48,7 +48,7 @@ export default function SignalCatalog({ companyId }: { companyId: string | null 
 
   useEffect(() => {
     setLoading(true); setError('');
-    api.get(withCompany('/explorer/telemetry-catalog', companyId))
+    api.get<Catalog>(withCompany('/explorer/telemetry-catalog', companyId))
       .then(setData).catch((e) => setError(e.message)).finally(() => setLoading(false));
   }, [companyId]);
 

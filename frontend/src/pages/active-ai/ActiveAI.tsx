@@ -106,8 +106,8 @@ export default function ActiveAI() {
     setError('');
     const qs = companyId ? `?companyId=${companyId}` : '';
     Promise.all([
-      api.get('/explorer/value-stream-adoption'),
-      api.get(`/ai-analysis/summary${qs}`),
+      api.get<{ valueStreams?: ValueStream[] }>('/explorer/value-stream-adoption'),
+      api.get<Summary>(`/ai-analysis/summary${qs}`),
     ])
       .then(([adoption, sum]) => { setStreams(adoption.valueStreams ?? []); setSummary(sum); })
       .catch((e) => setError(e.message))

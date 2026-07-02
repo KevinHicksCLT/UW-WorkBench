@@ -60,8 +60,8 @@ export default function RegulationDetail() {
 
   useEffect(() => {
     if (!companyId || !code) return;
-    api.get(withCompany(`/regulations/jurisdictions/${code}`, companyId)).then(setDetail).catch((e) => setError(e.message));
-    api.get(withCompany('/regulations/overview', companyId)).then((o) => setValueStreams(o.valueStreams ?? [])).catch(() => {});
+    api.get<Detail>(withCompany(`/regulations/jurisdictions/${code}`, companyId)).then(setDetail).catch((e) => setError(e.message));
+    api.get<{ valueStreams?: VsOption[] }>(withCompany('/regulations/overview', companyId)).then((o) => setValueStreams(o.valueStreams ?? [])).catch(() => {});
   }, [companyId, code]);
 
   if (error) {

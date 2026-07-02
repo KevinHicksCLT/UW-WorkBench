@@ -95,7 +95,7 @@ function AuditDetail({ entry }: { entry: AuditEntry }) {
 
 export function AuditTab({ initId }: { initId: string }) {
   const [entries, setEntries] = useState<AuditEntry[]>([]);
-  useEffect(() => { api.get(`/audit?entityType=PortfolioInitiative&entityId=${initId}`).then(setEntries).catch(() => {}); }, [initId]);
+  useEffect(() => { api.get<AuditEntry[]>(`/audit?entityType=PortfolioInitiative&entityId=${initId}`).then(setEntries).catch(() => {}); }, [initId]);
   return (
     <Card variant="elevated" className="p-5">
       <h3 className="text-sm font-semibold text-[#171717] mb-3">Audit trail</h3>

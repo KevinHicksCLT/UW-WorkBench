@@ -76,7 +76,11 @@ export default function Explorer() {
   // Load the map bootstrap (domains + L2 divisions). Exposed as a callback so the
   // map can re-run it after an edit-mode move (an L2 row could have changed).
   const loadOverview = useCallback(() => {
-    api.get('/explorer/overview')
+    api.get<{
+      divisions?: { id: string; name: string; higherCategory?: string | null; higherCategoryId?: string | null; roles?: number }[];
+      company?: { name?: string };
+      counts?: { valueStreams?: number };
+    }>('/explorer/overview')
       .then((overview) => {
         // overview.divisions shape: { id, name, higherCategory, higherCategoryId, roles }
         // Null higherCategory → fold into "Core Business"

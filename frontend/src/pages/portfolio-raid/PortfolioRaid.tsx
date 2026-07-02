@@ -38,7 +38,7 @@ export default function PortfolioRaid({ embedded = false, programId }: { embedde
   useEffect(() => {
     if (companyLoading) return;
     setLoading(true);
-    api.get(withCompany(programId ? `/portfolio/raid?programId=${programId}` : '/portfolio/raid', companyId))
+    api.get<RaidRow[]>(withCompany(programId ? `/portfolio/raid?programId=${programId}` : '/portfolio/raid', companyId))
       .then(setItems).catch(() => {}).finally(() => setLoading(false));
   }, [companyId, companyLoading, programId]);
 

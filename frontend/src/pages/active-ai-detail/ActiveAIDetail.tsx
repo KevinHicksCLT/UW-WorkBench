@@ -45,7 +45,10 @@ export default function ActiveAIDetail() {
   useEffect(() => {
     setLoading(true);
     setError('');
-    Promise.all([api.get('/explorer/value-stream-adoption'), api.get('/explorer/value-streams')])
+    Promise.all([
+      api.get<{ valueStreams?: AdoptionStream[] }>('/explorer/value-stream-adoption'),
+      api.get<{ valueStreams?: LegacyStream[] }>('/explorer/value-streams'),
+    ])
       .then(([a, v]) => { setStreams(a.valueStreams ?? []); setLegacy(v.valueStreams ?? []); })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));

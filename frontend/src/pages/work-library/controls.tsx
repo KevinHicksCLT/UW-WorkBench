@@ -25,7 +25,7 @@ export function ValueCell({ valueKind, current, onSave }: {
   useEffect(() => {
     if (!entity || !open) return;
     const t = setTimeout(() => {
-      api.get(`/work-library/options?kind=${valueKind}&q=${encodeURIComponent(text)}`)
+      api.get<{ options: { id: string; name: string; detail?: string | null }[] }>(`/work-library/options?kind=${valueKind}&q=${encodeURIComponent(text)}`)
         .then((d) => setOptions(d.options))
         .catch(() => setOptions([]));
     }, 200);

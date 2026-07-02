@@ -58,8 +58,8 @@ export default function DashboardAdmin(_props: { onNavigate?: (tab: string, sect
   useEffect(() => {
     if (!companyId) return;
     setError(''); setNameSavedAt(null); setLayoutSavedAt(null);
-    api.get(`/admin/company/${companyId}`)
-      .then((c: { id: string; name: string; dashboardConfig?: { widgets?: string[]; footprintStats?: string[]; widgetTitles?: Record<string, string> } | null }) => {
+    api.get<{ id: string; name: string; dashboardConfig?: { widgets?: string[]; footprintStats?: string[]; widgetTitles?: Record<string, string> } | null }>(`/admin/company/${companyId}`)
+      .then((c) => {
         setCompanyDbId(c.id);
         setName(c.name); setOrigName(c.name);
         // Keep only ids still in the catalog; fall back to the default layout.
