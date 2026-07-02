@@ -22,10 +22,19 @@ environments is the **schema, via committed migrations** — data never moves up
 
 1. Feature work: schema edits land as a migration (`npm run db:migrate -w
 cascade-backend`), applied to your feature DB branch as you develop.
-2. Merge feature → `develop`: the `Promote` workflow runs `prisma migrate deploy`
+2. Merge feature → `develop`: the pipeline runs `prisma migrate deploy`
    against the Neon `develop` branch, smoke-checks the deployment, then **deletes the
    feature's Neon branch automatically** (same-name convention).
 3. Merge `develop` → `master`: same flow against the Neon `production` branch.
+
+**Whole-DATASET promotions** (reseeds, bulk enrichment — when the feature's _data_ is
+the deliverable, not just its schema): put the literal marker **`[promote-data]`** in
+the merge commit message. The pipeline's `data-promote` stage then performs a Neon
+branch restore _before_ migrating — merge → develop copies the feature's same-name
+Neon branch over `develop`; merge → master copies `develop` over `production`. The
+target's prior state is automatically preserved as `backup/<target>-<sha>` (restorable
+from the Neon console). Without the marker the stage is a green no-op — ordinary
+merges never touch data.
 
 ⚠ If the Neon **Vercel integration** ("preview branching") is enabled, it auto-creates
 a DB branch per preview deployment and defaults the parent to the project's default
@@ -36,13 +45,13 @@ Otherwise previews see production data and drift from the develop schema.
 ### Deployment gating
 
 **Nothing deploys before the gates.** Vercel's direct git builds are fully disabled
-(`scripts/vercel-ignore-build.sh` skips every branch):
+(`vercel.json` → `git.deploymentEnabled: false`); every deployment comes from the
+single `Pipeline` workflow (one run per push, staged jobs):
 
-- **Feature branches:** CI's `deploy-preview` job deploys a preview **after** the
-  quality job passes.
-- **`develop`/`master`:** the `Promote` workflow chains
-  `quality → DB migrations → deploy → smoke check → Neon cleanup` — a deployment can
-  only exist if lint/typecheck/tests/build succeeded AND migrations applied first.
+- **Feature branches:** `quality → deploy-preview`.
+- **`develop`/`master`:** `quality → data-promote (marker-gated) → migrate → deploy →
+smoke → neon-cleanup` — a deployment can only exist if lint/typecheck/tests/build
+  succeeded AND migrations applied first.
 
 ### Rules
 

@@ -73,6 +73,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Ensure the feature's Neon DB branch (forked from develop)
+        id: db
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+        run: |
+          node scripts/neon-ensure-branch.mjs "${{ github.ref_name }}" > db.env
+          # Mask + expose the connection strings for the deploy step.
+          while IFS='=' read -r k v; do
+            echo "::add-mask::$v"
+            echo "$k=$v" >> "$GITHUB_OUTPUT"
+          done < db.env
       - name: Deploy preview to Vercel (post-gate)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -86,14 +98,36 @@ jobs:
         run: |
           npx vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
           # URL arrives on stdout; CLI hints go to stderr — don't merge them.
-          url=$(npx vercel deploy --token="$VERCEL_TOKEN")
+          # The preview runs against the feature's own Neon branch (forked from
+          # develop) — deployment-scoped env, no project-level settings touched.
+          url=$(npx vercel deploy --token="$VERCEL_TOKEN" \
+            --env DATABASE_URL="${{ steps.db.outputs.POOLED_URL }}" \
+            --env DIRECT_URL="${{ steps.db.outputs.DIRECT_URL }}")
           echo "Preview deployed after green gates: $url"
           echo "$url" >> "$GITHUB_STEP_SUMMARY"
 
-  # ─── develop/master: migrate → deploy → smoke → cleanup ───────────────────
-  migrate:
+  # ─── develop/master: data-promote? → migrate → deploy → smoke → cleanup ───
+  data-promote:
+    # Whole-DATASET promotion (Neon branch restore with automatic backup).
+    # Deliberate opt-in: acts ONLY when the merge commit message contains
+    # `[promote-data]`; otherwise the step is a green no-op. master: restore
+    # production from develop. develop: restore develop from the merged
+    # feature's same-name Neon branch.
     needs: quality
     if: ${{ github.ref_name == 'master' || github.ref_name == 'develop' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Promote dataset if the merge requests it
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: node scripts/neon-data-promote.mjs
+
+  migrate:
+    needs: data-promote
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
