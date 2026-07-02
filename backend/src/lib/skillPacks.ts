@@ -20,7 +20,9 @@ export const KEEP = new Set([
   'acord-data-standards-compliance',
 ]);
 
-const slug = (s: string) => s.toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+// The [^a-z0-9]+ pass collapses every non-alnum run to ONE dash, so at most a
+// single leading/trailing dash can remain — ^-|-$ is equivalent to ^-+|-+$.
+const slug = (s: string) => s.toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const firstSentence = (s: string | null) => (s ? (s.split(/(?<=[.;])\s/)[0] || s).trim() : '');
 const lc = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 export const skillName = (category: string) => `${slug(category)}-sdlc-compliance`;

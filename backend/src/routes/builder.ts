@@ -55,8 +55,35 @@ function parseTypeKey(typeKey: string): { spine: Spine; level: number } | null {
   if (!m) return null;
   return { spine: m[1] === 'p' ? 'processNode' : 'orgUnit', level: Number(m[2]) };
 }
-const delegateFor = (spine: Spine) => (prisma as unknown as Record<string, any>)[spine];
-const levelDelegateFor = (spine: Spine) => (prisma as unknown as Record<string, any>)[spine === 'processNode' ? 'processLevelType' : 'orgLevelType'];
+// Structural view of a spine row / delegate as used by the dynamic Prisma access
+// below. Purely compile-time (casts are erased); Prisma still validates shapes.
+type SpineRecord = {
+  id: string; parentId: string | null; displayValue: string; sortOrder: number;
+  attributes?: unknown;
+  processLevelType?: { levelNumber: number } | null;
+  orgLevelType?: { levelNumber: number } | null;
+};
+type SpineDelegate = {
+  findFirst(args: unknown): Promise<SpineRecord | null>;
+  findUnique(args: unknown): Promise<SpineRecord>;
+  create(args: unknown): Promise<SpineRecord>;
+  update(args: unknown): Promise<SpineRecord>;
+  count(args: unknown): Promise<number>;
+  aggregate(args: unknown): Promise<{ _max: { sortOrder: number | null } }>;
+};
+type LevelTypeDelegate = {
+  findFirst(args: unknown): Promise<{ id: string } | null>;
+  findMany(args: unknown): Promise<{ id: string; levelNumber: number }[]>;
+  createMany(args: unknown): Promise<unknown>;
+  update(args: unknown): Promise<{ displayValue: string }>;
+};
+
+// attributes is a JSON column — narrow the "hidden" flag without assuming shape.
+const isHidden = (attrs: unknown): boolean =>
+  typeof attrs === 'object' && attrs !== null && (attrs as Record<string, unknown>).hidden === true;
+
+const delegateFor = (spine: Spine) => (prisma as unknown as Record<string, SpineDelegate>)[spine];
+const levelDelegateFor = (spine: Spine) => (prisma as unknown as Record<string, LevelTypeDelegate>)[spine === 'processNode' ? 'processLevelType' : 'orgLevelType'];
 const levelRelationFor = (spine: Spine) => (spine === 'processNode' ? 'processLevelType' : 'orgLevelType');
 const levelFkFor = (spine: Spine) => (spine === 'processNode' ? 'processLevelTypeId' : 'orgLevelTypeId');
 
@@ -132,7 +159,7 @@ router.get('/tree', async (req: Request, res: Response, next: NextFunction) => {
       ...pNodes.map((n) => ({
         id: n.id, typeKey: typeKeyFor('processNode', n.processLevelType.levelNumber), parentId: n.parentId,
         name: n.displayValue, description: attrDesc(n.attributes), sortOrder: n.sortOrder, provenance: 'real',
-        code: n.code ?? null, attributes: n.attributes ?? null, hidden: (n.attributes as any)?.hidden === true, inboundLinks: 0,
+        code: n.code ?? null, attributes: n.attributes ?? null, hidden: isHidden(n.attributes), inboundLinks: 0,
       })),
       ...oNodes.map((n) => ({
         id: n.id, typeKey: typeKeyFor('orgUnit', n.orgLevelType.levelNumber), parentId: n.parentId,
@@ -150,7 +177,11 @@ async function levelTypeId(spine: Spine, companyId: string, level: number): Prom
   return lt?.id ?? null;
 }
 
-const closureDelegateFor = (spine: Spine) => (prisma as unknown as Record<string, any>)[spine === 'processNode' ? 'processNodeClosure' : 'orgUnitClosure'];
+type ClosureDelegate = {
+  findFirst(args: unknown): Promise<unknown>;
+  findMany(args: unknown): Promise<{ depth: number }[]>;
+};
+const closureDelegateFor = (spine: Spine) => (prisma as unknown as Record<string, ClosureDelegate>)[spine === 'processNode' ? 'processNodeClosure' : 'orgUnitClosure'];
 
 // Validate + plan a reparent on EITHER spine. The tree allows re-leveling: a node
 // can drop under ANY target and adopts level (parentLevel + 1), its whole subtree
@@ -265,7 +296,7 @@ router.patch('/nodes/:id', async (req: Request, res: Response, next: NextFunctio
       const attrs = { ...((found.attributes as Record<string, unknown>) ?? {}) };
       let touchedAttrs = false;
       if (body.description !== undefined) { attrs.description = body.description === null ? null : String(body.description); touchedAttrs = true; }
-      if (body.hidden !== undefined) { if (body.hidden) attrs.hidden = true; else delete attrs.hidden; touchedAttrs = true; }
+      if (body.hidden !== undefined) { if (body.hidden) { attrs.hidden = true; } else { delete attrs.hidden; } touchedAttrs = true; }
       if (touchedAttrs) data.attributes = attrs;
     }
     if (body.sortOrder !== undefined) {
@@ -320,7 +351,7 @@ router.patch('/nodes/:id', async (req: Request, res: Response, next: NextFunctio
     }
     const updated = await del.findUnique({ where: { id: req.params.id } });
     audit(req, req.params.id, 'UPDATE', { ...data, ...(moveTo !== undefined ? { parentId: moveTo } : {}) });
-    res.json({ id: updated.id, typeKey: typeKeyFor(spine, newLevel), parentId: updated.parentId, name: updated.displayValue, sortOrder: updated.sortOrder, attributes: spine === 'processNode' ? updated.attributes : null, hidden: (updated.attributes as any)?.hidden === true });
+    res.json({ id: updated.id, typeKey: typeKeyFor(spine, newLevel), parentId: updated.parentId, name: updated.displayValue, sortOrder: updated.sortOrder, attributes: spine === 'processNode' ? updated.attributes : null, hidden: isHidden(updated.attributes) });
   } catch (e) { next(e); }
 });
 
@@ -396,7 +427,7 @@ router.post('/nodes/batch', async (req: Request, res: Response, next: NextFuncti
 
     await prisma.$transaction(async (tx) => {
       for (const p of planned) {
-        const txDel = (tx as unknown as Record<string, any>)[p.spine];
+        const txDel = (tx as unknown as Record<string, SpineDelegate>)[p.spine];
         if (p.op === 'move') {
           await moveSubtreeWithRelevelTx(tx, p.spine, p.id, p.newParentId, p.levelByDepth);
         } else if (p.op === 'rename') {

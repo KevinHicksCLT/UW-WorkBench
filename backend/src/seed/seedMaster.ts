@@ -50,7 +50,7 @@ async function chunked<T>(rows: T[], fn: (c: T[]) => Promise<unknown>, size = 10
 
 export async function seedMaster(
   prisma: PrismaClient,
-  { tenantId, companyId }: { tenantId: string; companyId: string },
+  { companyId }: { tenantId: string; companyId: string }, // tenantId accepted for signature parity; unused
 ) {
   const m: Master = JSON.parse(readFileSync(MASTER, 'utf8'));
   const c = companyId;

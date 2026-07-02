@@ -27,7 +27,8 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     req.user = user;
     req.tenantId = user.tenantId;
     next();
-  } catch (e) {
+  } catch {
+    // Any verify failure (bad signature, expired, malformed) maps to one 401.
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 }

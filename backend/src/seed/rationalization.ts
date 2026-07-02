@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient, Prisma } from '@prisma/client';
 import { resolveSpineRefs, type SpineRefs } from './resolveSpineRefs.js';
 
 // "Evergreen" Application Rationalization Workspace — the full CAPDAN view.
@@ -12,8 +12,7 @@ import { resolveSpineRefs, type SpineRefs } from './resolveSpineRefs.js';
 // gateway for Integration, a domain service for Business Service, a data store
 // for Data, a platform for Infrastructure). All illustrative=true.
 
-const LAYERS = ['UI', 'Integration', 'Business Service', 'Data', 'Infrastructure'] as const;
-type Layer = (typeof LAYERS)[number];
+type Layer = 'UI' | 'Integration' | 'Business Service' | 'Data' | 'Infrastructure';
 type Capdan = 'Common' | 'Different' | 'Relocate' | 'Eliminate';
 
 type Item = { name: string; code1: string; code2: string };
@@ -279,11 +278,16 @@ export async function seedRationalization(
   const refs = ctx.refs ?? (await resolveSpineRefs(prisma, companyId));
   await prisma.rationalizationWorkspace.deleteMany({ where: { companyId } });
 
-  const wsRows: any[] = [], appRows: any[] = [], svcRows: any[] = [], compRows: any[] = [], capRows: any[] = [];
+  const wsRows: Prisma.RationalizationWorkspaceCreateManyInput[] = [];
+  const appRows: Prisma.RationalizationAppCreateManyInput[] = [];
+  const svcRows: Prisma.RationalizationMicroserviceCreateManyInput[] = [];
+  const compRows: Prisma.RationalizationComponentCreateManyInput[] = [];
+  const capRows: Prisma.RationalizationCapabilityCreateManyInput[] = [];
 
   for (const initiative of INITIATIVES) {
     // The workspace's value stream = the initiative's platform mapped to a VS node
     // ("Underwriting Platform" → Underwriting, "Claims Platform" → Claims).
+    // eslint-disable-next-line sonarjs/super-linear-regex -- behavior-frozen refactor; safe rewrite deferred (input is the short static app literals above)
     const vsNodeId = refs.nodeByName(initiative.app.replace(/\s*Platform$/i, ''));
     for (const stage of initiative.stages) {
       const wsId = `rw_${stage.key}`;
