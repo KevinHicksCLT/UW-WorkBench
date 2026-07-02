@@ -3,8 +3,9 @@ import express from 'express';
 import type { Request, Response, ErrorRequestHandler } from 'express';
 import cors from 'cors';
 import compression from 'compression';
-import morgan from 'morgan';
 import type { HealthResponse } from '@cascade/shared';
+
+import { logger, httpLogger } from './lib/logger.js';
 
 import { prisma } from './db/prisma.js';
 import authRoutes from './routes/auth.js';
@@ -15,26 +16,30 @@ import departmentRoutes from './routes/departments.js';
 import roleRoutes from './routes/roles.js';
 import valueStreamRoutes from './routes/valueStreams.js';
 import externalInteractionRoutes from './routes/externalInteractions.js';
-import explorerRoutes from './routes/explorer.js';
-import inspectorRoutes from './routes/inspector.js';
+import explorerRoutes from './routes/explorer/index.js';
+import inspectorRoutes from './routes/inspector/index.js';
 import aiAnalysisRoutes from './routes/aiAnalysis.js';
 import applicationRoutes from './routes/applications.js';
 import searchRoutes from './routes/search.js';
-import adminRoutes from './routes/admin.js';
+import adminRoutes from './routes/admin/index.js';
 import adminAiRoutes from './routes/adminAi.js';
 import builderRoutes from './routes/builder.js';
 import adminRoleRoutes from './routes/adminRole.js';
 import dashboardRoutes from './routes/dashboard.js';
 import rationalizationRoutes from './routes/rationalization.js';
-import portfolioRoutes from './routes/portfolio.js';
+import portfolioRoutes from './routes/portfolio/index.js';
 import workRoutes from './routes/work.js';
-import workLibraryRoutes from './routes/work-library.js';
+import workLibraryRoutes from './routes/work-library/index.js';
 import chatRoutes from './routes/chat.js';
 import standardsSkillsRoutes from './routes/standardsSkills.js';
-import regulationsRoutes from './routes/regulations.js';
+import regulationsRoutes from './routes/regulations/index.js';
 import { clearResponseCache } from './lib/responseCache.js';
 
 const app = express();
+app.disable('x-powered-by');
+// Open CORS is intentional: the API is only reachable via the same-origin /api
+// proxy (Vite dev proxy / Vercel routePrefix) and every route requires a JWT.
+// eslint-disable-next-line sonarjs/cors
 app.use(cors());
 // Gzip every response — the /work and /explorer payloads are MB-scale JSON
 // that compresses ~10×, which is most of the tab-load latency.
@@ -42,10 +47,13 @@ app.use(compression());
 app.use(express.json({ limit: '5mb' }));
 // Any write invalidates the GET response cache (see lib/responseCache.ts), so a
 // mutation on any router is always followed by fresh reads.
-app.use((req, _res, next) => { if (req.method !== 'GET' && req.method !== 'HEAD') clearResponseCache(); next(); });
-if (process.env.NODE_ENV !== 'production') {
-  app.use(morgan('dev'));
-}
+app.use((req, _res, next) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD') clearResponseCache();
+  next();
+});
+// Structured request logging (pino) — method/url/status/duration/tenantId +
+// a per-request UUID echoed as X-Request-Id (see lib/logger.ts).
+app.use(httpLogger);
 
 // Health check — confirms a live DB round-trip. Routers are mounted at the
 // root: the Vercel `experimentalServices` backend (routePrefix "/api") and the
@@ -58,6 +66,7 @@ app.get('/health', async (_req: Request, res: Response) => {
     const body: HealthResponse = { ok: true, db: 'reachable', commit };
     res.json(body);
   } catch (e) {
+    logger.warn({ err: e }, 'health check failed — DB unreachable');
     const body: HealthResponse = { ok: false, db: 'unreachable', commit };
     res.status(503).json(body);
   }
@@ -91,12 +100,21 @@ app.use('/chat', chatRoutes);
 app.use('/standards-skills', standardsSkillsRoutes);
 app.use('/regulations', regulationsRoutes);
 
-const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
-  console.error(err);
-  const status = err.status || 500;
+/**
+ * Central error handler — logs the full error with request context (request id,
+ * tenant, url) via pino, then responds with the canonical shape
+ * `{ error: message }` (+ `stack` outside production). Status = err.status || 500.
+ */
+const errorHandler: ErrorRequestHandler = (err: unknown, req, res, _next) => {
+  const e = err as { status?: number; message?: string; stack?: string };
+  const status = e.status || 500;
+  logger.error(
+    { err, requestId: req.id, tenantId: req.tenantId ?? null, url: req.originalUrl, status },
+    'request error',
+  );
   res.status(status).json({
-    error: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
+    error: e.message || 'Internal server error',
+    ...(process.env.NODE_ENV !== 'production' && { stack: e.stack }),
   });
 };
 app.use(errorHandler);

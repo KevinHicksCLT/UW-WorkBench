@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
+import { logger } from '../lib/logger.js';
 import { ancestorNames } from '../lib/resolvers/index.js';
 
 const router = Router();
@@ -22,6 +24,7 @@ const capped = (items: string[]) => (items.length > LIST_CAP ? items.slice(0, LI
 // queries — no per-role fan-out.
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const t0 = Date.now();
     const roles = await prisma.role.findMany({
       where: { company: { tenantId: req.tenantId } },
       select: {
@@ -35,6 +38,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       },
       orderBy: { displayValue: 'asc' },
     });
+    const tRoles = Date.now();
 
     const orgOf = (role: (typeof roles)[number]) => {
       let division: string | null = null;
@@ -52,52 +56,69 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     };
 
     const roleIds = roles.map((r) => r.id);
-    // Batch every link once, keyed by roleId (or node) — never per role.
-    const [nodeRoles, roleDelivs, roleStandards] = await Promise.all([
-      prisma.nodeRole.findMany({ where: { roleId: { in: roleIds } }, select: { roleId: true, processNodeId: true, processNode: { select: { displayValue: true } } } }),
+    if (!roleIds.length) return res.json({ rows: [] });
+    // Every remaining read keys off the roles' task nodes. Rather than pulling
+    // the ~50k NodeRole rows first and shipping ~11k node ids back as a second
+    // round of IN-lists, each query derives the node set itself with the same
+    // subselect — so ALL of them run in ONE parallel round against Neon (the
+    // per-round-trip latency dominates this endpoint).
+    const roleIdList = Prisma.join(roleIds);
+    const nodeSubselect = Prisma.sql`SELECT DISTINCT "processNodeId" FROM public."NodeRole" WHERE "roleId" IN (${roleIdList})`;
+    const [nodeRoles, roleDelivs, roleStandards, closureAnc, nodeChecks, nodeDelivs, areaStds] = await Promise.all([
+      // role ↔ task-node links + the task's display name (the Tasks column).
+      prisma.$queryRaw<{ roleId: string; processNodeId: string; taskName: string }[]>(Prisma.sql`
+        SELECT nr."roleId", nr."processNodeId", pn."displayValue" AS "taskName"
+        FROM public."NodeRole" nr
+        JOIN public."ProcessNode" pn ON pn.id = nr."processNodeId"
+        WHERE nr."roleId" IN (${roleIdList})`),
       prisma.roleDeliverable.findMany({ where: { roleId: { in: roleIds } }, select: { roleId: true, deliverable: { select: { title: true } } } }),
       prisma.roleStandard.findMany({ where: { roleId: { in: roleIds } }, select: { roleId: true, standard: { select: { name: true } } } }),
+      // One closure pass over every role's task nodes, pre-joined to the L2
+      // ancestor's name — each node's value stream. (The old two-step
+      // closure+ancestors read shipped every ancestor edge; only the L2 name is
+      // ever consumed, so filter in SQL and cut the row volume ~80%.)
+      prisma.$queryRaw<{ descendantId: string; name: string }[]>(Prisma.sql`
+        SELECT c."descendantId", pn."displayValue" AS name
+        FROM public."ProcessNodeClosure" c
+        JOIN public."ProcessNode" pn ON pn.id = c."ancestorId"
+        JOIN public."ProcessLevelType" plt ON plt.id = pn."processLevelTypeId" AND plt."levelNumber" = 2
+        WHERE c."descendantId" IN (${nodeSubselect})`),
+      // Checklists + deliverables carried on those nodes, so a role with no
+      // DIRECT standard/deliverable link still fills the column from the work
+      // it actually does.
+      prisma.$queryRaw<{ processNodeId: string; text: string }[]>(Prisma.sql`
+        SELECT nc."processNodeId", ci.text
+        FROM public."NodeChecklist" nc
+        JOIN public."ChecklistItem" ci ON ci.id = nc."checklistItemId"
+        WHERE nc."processNodeId" IN (${nodeSubselect})`),
+      prisma.$queryRaw<{ processNodeId: string; title: string }[]>(Prisma.sql`
+        SELECT nd."processNodeId", d.title
+        FROM public."NodeDeliverable" nd
+        JOIN public."Deliverable" d ON d.id = nd."deliverableId"
+        WHERE nd."processNodeId" IN (${nodeSubselect})`),
+      // Standards live on the task nodes themselves (tasks = single source of
+      // truth; areas/value streams roll up from them), so a role's governing
+      // standards come straight from its nodes' own links.
+      prisma.$queryRaw<{ processNodeId: string; name: string }[]>(Prisma.sql`
+        SELECT ns."processNodeId", s.name
+        FROM public."NodeStandard" ns
+        JOIN public."Standard" s ON s.id = ns."standardId"
+        WHERE NOT ns.excluded AND ns."processNodeId" IN (${nodeSubselect})`),
     ]);
+    const tLinks = Date.now();
 
-    const nodeIds = [...new Set(nodeRoles.map((n) => n.processNodeId))];
-    // One closure pass over every role's task nodes → each node's L2 (value
-    // stream) name and its L3 (area) ancestor ids (the areas whose standards the
-    // role is governed by). Plus the checklists + deliverables carried on those
-    // nodes, so a role with no DIRECT standard/deliverable link still fills the
-    // column from the work it actually does.
-    const [closureEdges, nodeChecks, nodeDelivs] = await Promise.all([
-      prisma.processNodeClosure.findMany({ where: { descendantId: { in: nodeIds } }, select: { ancestorId: true, descendantId: true } }),
-      prisma.nodeChecklist.findMany({ where: { processNodeId: { in: nodeIds } }, select: { processNodeId: true, checklistItem: { select: { text: true } } } }),
-      prisma.nodeDeliverable.findMany({ where: { processNodeId: { in: nodeIds } }, select: { processNodeId: true, deliverable: { select: { title: true } } } }),
-    ]);
-    const ancestorIds = [...new Set(closureEdges.map((e) => e.ancestorId))];
-    const ancestors = await prisma.processNode.findMany({
-      where: { id: { in: ancestorIds }, processLevelType: { levelNumber: { in: [2, 3] } } },
-      select: { id: true, displayValue: true, processLevelType: { select: { levelNumber: true } } },
-    });
-    const ancById = new Map(ancestors.map((a) => [a.id, { name: a.displayValue, level: a.processLevelType.levelNumber }] as const));
-    // Standards live on the task nodes themselves (tasks = single source of
-    // truth; areas/value streams roll up from them), so a role's governing
-    // standards come straight from its nodes' own links.
-    const areaStds = await prisma.nodeStandard.findMany({ where: { processNodeId: { in: nodeIds }, excluded: false }, select: { processNodeId: true, standard: { select: { name: true } } } });
     const stdByTaskNode = new Map<string, string[]>();
-    for (const ns of areaStds) { const a = stdByTaskNode.get(ns.processNodeId) ?? []; a.push(ns.standard.name); stdByTaskNode.set(ns.processNodeId, a); }
-    // node → { value stream name, L3 ancestor ids }
+    for (const ns of areaStds) { const a = stdByTaskNode.get(ns.processNodeId) ?? []; a.push(ns.name); stdByTaskNode.set(ns.processNodeId, a); }
+    // node → value stream name (L2 ancestor).
     const vsByNode = new Map<string, string>();
-    const l3ByNode = new Map<string, string[]>();
-    for (const e of closureEdges) {
-      const anc = ancById.get(e.ancestorId);
-      if (!anc) continue;
-      if (anc.level === 2) vsByNode.set(e.descendantId, anc.name);
-      else if (anc.level === 3) { const a = l3ByNode.get(e.descendantId) ?? []; a.push(e.ancestorId); l3ByNode.set(e.descendantId, a); }
-    }
+    for (const e of closureAnc) vsByNode.set(e.descendantId, e.name);
     // node → checklist texts / deliverable titles.
     const checksByNode = new Map<string, string[]>();
-    for (const nc of nodeChecks) { const a = checksByNode.get(nc.processNodeId) ?? []; a.push(nc.checklistItem.text); checksByNode.set(nc.processNodeId, a); }
+    for (const nc of nodeChecks) { const a = checksByNode.get(nc.processNodeId) ?? []; a.push(nc.text); checksByNode.set(nc.processNodeId, a); }
     const delivsByNode = new Map<string, string[]>();
-    for (const nd of nodeDelivs) { const a = delivsByNode.get(nd.processNodeId) ?? []; a.push(nd.deliverable.title); delivsByNode.set(nd.processNodeId, a); }
+    for (const nd of nodeDelivs) { const a = delivsByNode.get(nd.processNodeId) ?? []; a.push(nd.title); delivsByNode.set(nd.processNodeId, a); }
 
-    // Aggregate per role.
+    // Aggregate per role — one pass over the role↔node links.
     const vsByRole = new Map<string, Set<string>>();
     const tasksByRole = new Map<string, Set<string>>();
     const checksByRole = new Map<string, Set<string>>();
@@ -108,7 +129,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       const s = m.get(k) ?? new Set<string>(); s.add(v); m.set(k, s);
     };
     for (const nr of nodeRoles) {
-      push(tasksByRole, nr.roleId, nr.processNode.displayValue);
+      push(tasksByRole, nr.roleId, nr.taskName);
       push(vsByRole, nr.roleId, vsByNode.get(nr.processNodeId));
       for (const text of checksByNode.get(nr.processNodeId) ?? []) push(checksByRole, nr.roleId, text);
       for (const title of delivsByNode.get(nr.processNodeId) ?? []) push(nodeDelivByRole, nr.roleId, title);
@@ -142,6 +163,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         checklist: capped(setArr(checksByRole, role.id)),
       };
     });
+    logger.debug({ roles: tRoles - t0, links: tLinks - tRoles, aggregate: Date.now() - tLinks }, 'GET /roles timings (ms)');
     res.json({ rows });
   } catch (e) { next(e); }
 });
