@@ -18,7 +18,13 @@ feature/<name>  →  develop  →  master
 ### Rules
 
 1. Never commit directly to `develop` or `master` — protect both branches in GitHub
-   (Settings → Branches → require PR + passing CI).
+   (Settings → Branches → require PR + a passing `quality` check).
+   ⚠ **Currently unenforceable**: this repo is private on a GitHub Free plan, and
+   GitHub only allows branch protection/rulesets on private repos with Pro/Team.
+   Until the plan is upgraded (or the repo is made public / moved to a Team org),
+   the no-direct-push rule is convention — the pre-commit hooks and CI still run,
+   but nothing blocks a direct push. Enable protection the moment the plan allows:
+   required status check `quality`, 1 approving review, no force pushes.
 2. Every PR requires **at least one review** and a **green CI run** before merge.
 3. Keep PRs scoped: one feature/fix per branch.
 4. After merge, delete the git feature branch and its Neon DB branch.
@@ -30,14 +36,14 @@ feature/<name>  →  develop  →  master
 
 ## Quality gates (enforced, not optional)
 
-| Gate | Command | Runs |
-| --- | --- | --- |
-| Lint (zero warnings) | `npm run lint` | pre-commit + CI |
-| Format | `npm run format:check` | pre-commit (auto-fixes staged files) + CI via lint |
-| Typecheck | `npm run typecheck` | pre-commit + CI |
-| Unit tests | `npm test` | CI (run locally before pushing) |
-| Coverage threshold | `npm run test:coverage` | CI |
-| Build | `npm run build` | CI + Vercel |
+| Gate                 | Command                 | Runs                                               |
+| -------------------- | ----------------------- | -------------------------------------------------- |
+| Lint (zero warnings) | `npm run lint`          | pre-commit + CI                                    |
+| Format               | `npm run format:check`  | pre-commit (auto-fixes staged files) + CI via lint |
+| Typecheck            | `npm run typecheck`     | pre-commit + CI                                    |
+| Unit tests           | `npm test`              | CI (run locally before pushing)                    |
+| Coverage threshold   | `npm run test:coverage` | CI                                                 |
+| Build                | `npm run build`         | CI + Vercel                                        |
 
 Pre-commit hooks are installed automatically by `npm install` (husky). **Do not bypass
 hooks** (`--no-verify`) — if a gate fails, fix the cause.
