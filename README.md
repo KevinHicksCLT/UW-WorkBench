@@ -81,20 +81,20 @@ hooks, open a PR, and let CI + review gate the merge.
 All run from the repo root. `-w <package>` targets a workspace by **package name**
 (`cascade-backend`, `cascade-frontend`, `@cascade/shared`), not directory name.
 
-| Command | What it does |
-| --- | --- |
-| `npm run dev:backend` | `tsx watch` the Express API on :4000 |
-| `npm run dev:frontend` | Vite dev server on :5173 |
-| `npm run build` | prisma generate (backend) + vite build (frontend) — what Vercel runs |
-| `npm run lint` / `lint:fix` | ESLint (flat config), **zero warnings tolerated** |
-| `npm run format` / `format:check` | Prettier |
-| `npm run typecheck` | `tsc --noEmit` for backend + frontend |
-| `npm test` / `npm run test:coverage` | Vitest unit tests (backend + frontend), with coverage thresholds |
-| `npm run e2e` | Playwright smoke suite (see [e2e/README.md](e2e/README.md) — needs both dev servers + seeded DB) |
-| `npm run db:setup -w cascade-backend` | One-command DB setup: generate → `migrate deploy` → seed |
-| `npm run db:migrate -w cascade-backend` | Create/apply a schema migration (`prisma migrate dev`) |
-| `npm run db:seed -w cascade-backend` | Re-run the seed only |
-| `npm run db:studio -w cascade-backend` | Prisma Studio against the active branch |
+| Command                                 | What it does                                                                                     |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `npm run dev:backend`                   | `tsx watch` the Express API on :4000                                                             |
+| `npm run dev:frontend`                  | Vite dev server on :5173                                                                         |
+| `npm run build`                         | prisma generate (backend) + vite build (frontend) — what Vercel runs                             |
+| `npm run lint` / `lint:fix`             | ESLint (flat config), **zero warnings tolerated**                                                |
+| `npm run format` / `format:check`       | Prettier                                                                                         |
+| `npm run typecheck`                     | `tsc --noEmit` for backend + frontend                                                            |
+| `npm test` / `npm run test:coverage`    | Vitest unit tests (backend + frontend), with coverage thresholds                                 |
+| `npm run e2e`                           | Playwright smoke suite (see [e2e/README.md](e2e/README.md) — needs both dev servers + seeded DB) |
+| `npm run db:setup -w cascade-backend`   | One-command DB setup: generate → `migrate deploy` → seed                                         |
+| `npm run db:migrate -w cascade-backend` | Create/apply a schema migration (`prisma migrate dev`)                                           |
+| `npm run db:seed -w cascade-backend`    | Re-run the seed only                                                                             |
+| `npm run db:studio -w cascade-backend`  | Prisma Studio against the active branch                                                          |
 
 > `prisma db push` is **deprecated in this repo** — it silently drops drifted columns.
 > Schema changes go through version-controlled migrations only (see
@@ -102,12 +102,11 @@ All run from the repo root. `-w <package>` targets a workspace by **package name
 
 ## Quality gates
 
-| Gate | Where it runs | What it enforces |
-| --- | --- | --- |
-| Pre-commit (husky) | every commit | lint-staged (Prettier + ESLint `--max-warnings 0` on staged files), then a full-repo typecheck |
-| CI (`.github/workflows/ci.yml`) | every push + PR | `lint` → `typecheck` → `test:coverage` → frontend build; optional SonarCloud job |
-| Promote (`.github/workflows/promote.yml`) | push to `develop` / `master` | applies migrations to the matching Neon branch, smoke-checks the Vercel deployment, cleans up merged feature branches |
-| Branch protection | GitHub | PR + review + green CI required to merge into `develop` / `master` |
+| Gate                                  | Where it runs                     | What it enforces                                                                                                                 |
+| ------------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Pre-commit (husky)                    | every commit                      | lint-staged (Prettier + ESLint `--max-warnings 0` on staged files), then a full-repo typecheck                                   |
+| Pipeline (`.github/workflows/ci.yml`) | every push (one run, staged jobs) | feature branches: `quality → deploy-preview`; develop/master: `quality → data-promote → migrate → deploy → smoke → neon-cleanup` |
+| Branch protection                     | GitHub                            | PR + review + green CI required to merge into `develop` / `master`                                                               |
 
 Do not bypass hooks (`--no-verify`); if a gate fails, fix the cause.
 
@@ -128,35 +127,55 @@ Do not bypass hooks (`--no-verify`); if a gate fails, fix the cause.
 
 One Vercel project serves both workspaces via `vercel.json` `experimentalServices`:
 the frontend at `/` and the Express backend at `/api` (prefix stripped before Express).
-The backend's `vercel-build` runs `prisma migrate deploy`.
+Vercel's direct git builds are disabled (`git.deploymentEnabled: false`) — **every
+deployment comes from the Pipeline workflow, after its gates**.
 
-Promotion flow (git flow mirrored by Neon DB branches — see
-[docs/DB-GIT-FLOW.md](docs/DB-GIT-FLOW.md)):
+Promotion flow (git flow mirrored by Neon DB branches):
 
-1. `feature/<name>` (git + optional Neon branch) → PR → **`develop`**. On merge, the
-   `Promote` workflow migrates the Neon `develop` branch, waits for + smoke-checks the
-   develop Vercel deployment (`scripts/deploy-smoke.mjs`), and deletes the feature's
-   Neon branch (`scripts/neon-branch-cleanup.mjs`).
+1. `feature/<name>` (git + same-name Neon branch via
+   `node scripts/neon-branch-create.mjs <name>`) → PR → **`develop`**. On merge, the
+   pipeline migrates the Neon `develop` branch, deploys, smoke-checks
+   (`scripts/deploy-smoke.mjs`), and deletes the feature's Neon branch
+   (`scripts/neon-branch-cleanup.mjs`).
 2. `develop` → PR → **`master`**. Same flow against the Neon `production` branch and
    the production URL.
 
-Rollback: redeploy the previous commit from Vercel; if a migration misbehaved, Neon
-point-in-time restore (see [documents/refactor/CUTOVER.md](documents/refactor/CUTOVER.md)).
+**Schema promotes automatically on every merge** (committed migrations replayed by the
+`migrate` stage). **Datasets promote only when you say so** — put the literal marker
+`[promote-data]` in the merge commit message (edit the commit title in GitHub's merge
+dialog, or from the CLI):
+
+```bash
+# feature → develop, promoting the feature's Neon dataset over develop's:
+gh pr merge <PR#> --merge --subject "Merge feature/<name> [promote-data]"
+
+# develop → master, promoting develop's dataset over production's:
+gh pr merge <PR#> --merge --subject "Promote develop to production [promote-data]"
+```
+
+The `data-promote` stage then Neon-restores the target branch from the source
+(`scripts/neon-data-promote.mjs`), preserving the target's prior state as
+`backup/<target>-<sha>`. Without the marker the stage is a green no-op — ordinary
+merges never touch data.
+
+Rollback: redeploy the previous commit from Vercel; a mispromoted dataset is restored
+from its automatic `backup/*` branch; a misbehaving migration via Neon point-in-time
+restore (see [documents/refactor/CUTOVER.md](documents/refactor/CUTOVER.md)).
 
 ## Repository map
 
-| Path | What lives there |
-| --- | --- |
-| `frontend/` | React SPA — [frontend/README.md](frontend/README.md) |
-| `backend/` | Express API + Prisma schema/migrations/seed — [backend/README.md](backend/README.md) |
-| `shared/` | Zod schemas + types shared across the API boundary — [shared/README.md](shared/README.md) |
-| `e2e/` | Playwright smoke suite — [e2e/README.md](e2e/README.md) |
-| `backend/scripts/` | One-off operational/data scripts (lint-exempt) — [backend/scripts/README.md](backend/scripts/README.md) |
-| `scripts/` | Pipeline + verification helpers — [scripts/README.md](scripts/README.md) |
-| `api/` | Vercel serverless entrypoint shim for the backend service |
-| `.github/workflows/` | CI, Promote, Neon PR-preview branches |
-| `documents/` | Source workbooks, schema diagram (`erd_v5.mmd`), ADRs, refactor charter & baseline |
-| `docs/` | Operational runbooks (DB git-flow) |
+| Path                 | What lives there                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------------------- |
+| `frontend/`          | React SPA — [frontend/README.md](frontend/README.md)                                                    |
+| `backend/`           | Express API + Prisma schema/migrations/seed — [backend/README.md](backend/README.md)                    |
+| `shared/`            | Zod schemas + types shared across the API boundary — [shared/README.md](shared/README.md)               |
+| `e2e/`               | Playwright smoke suite — [e2e/README.md](e2e/README.md)                                                 |
+| `backend/scripts/`   | One-off operational/data scripts (lint-exempt) — [backend/scripts/README.md](backend/scripts/README.md) |
+| `scripts/`           | Pipeline + verification helpers — [scripts/README.md](scripts/README.md)                                |
+| `api/`               | Vercel serverless entrypoint shim for the backend service                                               |
+| `.github/workflows/` | CI, Promote, Neon PR-preview branches                                                                   |
+| `documents/`         | Source workbooks, schema diagram (`erd_v5.mmd`), ADRs, refactor charter & baseline                      |
+| `docs/`              | Operational runbooks (DB git-flow)                                                                      |
 
 ## Further reading
 
