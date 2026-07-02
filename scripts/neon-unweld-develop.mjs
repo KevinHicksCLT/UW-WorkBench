@@ -43,10 +43,33 @@ const byName = new Map(branches.map((b) => [b.name, b]));
 const production = byName.get('production');
 const develop = byName.get('develop');
 const welded = branches.filter((b) => b.name === 'pipeline-fix' || b.name.startsWith('backup/develop-'));
-if (!production || !develop) throw new Error('production/develop branch not found');
-// A develop-new left by a previous failed attempt is scratch by definition —
-// replace it so the repair is rerunnable.
+if (!production) throw new Error('production branch not found');
+
+// ── RESUME MODE ── a previous attempt copied+verified, deleted old develop,
+// then died before the rename: develop-new is the SURVIVOR holding the data.
+// Finish the job: rename it and prune what's prunable. NEVER delete it.
 const leftover = byName.get('develop-new');
+if (leftover && !develop) {
+  console.log('Resume: develop is gone and develop-new holds the verified copy — renaming.');
+  await api(`/projects/${PROJECT}/branches/${leftover.id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ branch: { name: 'develop' } }),
+  });
+  console.log('Renamed develop-new -> develop.');
+  for (const b of branches.filter((w) => w.name.startsWith('backup/develop-'))) {
+    try {
+      await api(`/projects/${PROJECT}/branches/${b.id}`, { method: 'DELETE' });
+      console.log(`Deleted "${b.name}" (${b.id}).`);
+    } catch (err) {
+      console.warn(`Held (non-fatal): "${b.name}" — ${err.message}\nIt is an inert lineage node kept alive by soft-deleted descendants in Neon's retention queue; delete it from the console once retention expires.`);
+    }
+  }
+  console.log('Lineage is now production -> develop. Rotate DEVELOP connection strings.');
+  process.exit(0);
+}
+if (!develop) throw new Error('develop branch not found and no develop-new survivor — restore from the dump artifact.');
+// A develop-new alongside a LIVE develop is scratch from a failed copy —
+// replace it so the repair is rerunnable.
 if (leftover) {
   await api(`/projects/${PROJECT}/branches/${leftover.id}`, { method: 'DELETE' });
   console.log(`Deleted scratch develop-new from a previous attempt (${leftover.id}).`);
@@ -118,12 +141,20 @@ console.log(`Verified: ${tableCount} tables, all row counts identical.`);
 // ── 4. Dissolve the welded chain, leaf by leaf ──
 for (const name of ['develop', 'pipeline-fix']) {
   const b = byName.get(name);
+  if (!b) continue;
   await api(`/projects/${PROJECT}/branches/${b.id}`, { method: 'DELETE' });
   console.log(`Deleted "${name}" (${b.id}).`);
 }
 for (const b of welded.filter((w) => w.name.startsWith('backup/develop-'))) {
-  await api(`/projects/${PROJECT}/branches/${b.id}`, { method: 'DELETE' });
-  console.log(`Deleted "${b.name}" (${b.id}).`);
+  try {
+    await api(`/projects/${PROJECT}/branches/${b.id}`, { method: 'DELETE' });
+    console.log(`Deleted "${b.name}" (${b.id}).`);
+  } catch (err) {
+    // Held alive by soft-deleted descendants in Neon's retention queue —
+    // inert, prunable from the console after retention expires. Never fatal:
+    // the rename below MUST happen or develop stays dark.
+    console.warn(`Held (non-fatal): "${b.name}" — ${err.message}`);
+  }
 }
 
 // ── 5. develop-new takes the name ──
