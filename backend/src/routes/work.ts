@@ -4,6 +4,7 @@ import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
 import { cacheResponses } from '../lib/responseCache.js';
 import { ancestorNames, rolesForNodes } from '../lib/resolvers/index.js';
+import { taskPlans } from '../lib/workPlan.js';
 
 // Deliverables & Tasks API — the standalone work tracker behind the
 // "Deliverables & Tasks" tab. erd_v5: deliverables = Deliverable rows (owner +
@@ -85,33 +86,28 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const taskIds = taskNodes.map((t) => t.id);
     const loc = await ancestorNames([...new Set([...delivNodeIds, ...taskIds])]);
 
-    // Task-level standards + regulations. Nothing attaches directly to an L5 task;
-    // they're inherited from the task's governing L2/L3 process ancestors
-    // (NodeStandard / NodeRegulation sit at the value-stream + area levels). A task
-    // whose area carries neither reads "N/A" in the UI.
+    // Task-level standards + regulations — the task's OWN NodeStandard /
+    // NodeRegulation rows (tasks are the single source of truth; higher levels
+    // roll up from them). A task carrying neither reads "N/A" in the UI.
     const STD_CAP = 8;
-    const taskClosure = taskIds.length
-      ? await prisma.processNodeClosure.findMany({ where: { descendantId: { in: taskIds } }, select: { ancestorId: true, descendantId: true } })
-      : [];
-    const govAncIds = [...new Set(taskClosure.map((e) => e.ancestorId))];
-    const govNodes = govAncIds.length
-      ? await prisma.processNode.findMany({ where: { id: { in: govAncIds }, processLevelType: { levelNumber: { in: [2, 3] } } }, select: { id: true } })
-      : [];
-    const govSet = new Set(govNodes.map((n) => n.id));
     const [nodeStds, nodeRegs] = await Promise.all([
-      govSet.size ? prisma.nodeStandard.findMany({ where: { processNodeId: { in: [...govSet] } }, select: { processNodeId: true, standard: { select: { name: true } } } }) : [],
-      govSet.size ? prisma.nodeRegulation.findMany({ where: { processNodeId: { in: [...govSet] } }, select: { processNodeId: true, regulation: { select: { title: true } } } }) : [],
+      taskIds.length ? prisma.nodeStandard.findMany({ where: { processNodeId: { in: taskIds }, excluded: false }, select: { processNodeId: true, standard: { select: { name: true } } } }) : [],
+      taskIds.length ? prisma.nodeRegulation.findMany({ where: { processNodeId: { in: taskIds }, excluded: false }, select: { processNodeId: true, regulation: { select: { title: true } } } }) : [],
     ]);
     const stdByAnc = new Map<string, string[]>();
     for (const x of nodeStds) { const a = stdByAnc.get(x.processNodeId) ?? []; a.push(x.standard.name); stdByAnc.set(x.processNodeId, a); }
     const regByAnc = new Map<string, string[]>();
     for (const x of nodeRegs) { const a = regByAnc.get(x.processNodeId) ?? []; a.push(x.regulation.title); regByAnc.set(x.processNodeId, a); }
-    const govByTask = new Map<string, string[]>();
-    for (const e of taskClosure) { if (govSet.has(e.ancestorId)) { const a = govByTask.get(e.descendantId) ?? []; a.push(e.ancestorId); govByTask.set(e.descendantId, a); } }
-    const taskLinks = (id: string, m: Map<string, string[]>) => {
-      const govs = govByTask.get(id) ?? [];
-      return [...new Set(govs.flatMap((g) => m.get(g) ?? []))].sort().slice(0, STD_CAP);
-    };
+    const taskLinks = (id: string, m: Map<string, string[]>) => [...new Set(m.get(id) ?? [])].sort().slice(0, STD_CAP);
+
+    // Work Library testing pattern per task (null = no TEST template assigned yet).
+    const testLinks = taskIds.length
+      ? await prisma.nodeWorkTemplate.findMany({
+          where: { processNodeId: { in: taskIds }, template: { kind: 'TEST' } },
+          select: { processNodeId: true, template: { select: { name: true } } },
+        })
+      : [];
+    const testByTask = new Map(testLinks.map((l) => [l.processNodeId, l.template.name]));
 
     res.json({
       deliverables: deliverables.map((d) => {
@@ -155,6 +151,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
           agentScore: t.automatability ? SCORE_OF[t.automatability] ?? null : null,
           agentRationale: null,
           test: t.testingTemplates[0]?.expected ?? null,
+          testPattern: testByTask.get(t.id) ?? null,
           standards: taskLinks(t.id, stdByAnc),
           regulations: taskLinks(t.id, regByAnc),
         };
@@ -203,7 +200,6 @@ router.get('/deliverable/:id', async (req: Request, res: Response, next: NextFun
         id: true, title: true, description: true, automatability: true,
         roleDeliverables: { select: { role_: true, role: { select: { id: true, displayValue: true } } } },
         nodeDeliverables: { select: { processNodeId: true, processNode: { select: { isTask: true } } } },
-        testingTemplates: { select: { expected: true, checkType: true, system: true, location: true } },
       },
     });
     if (!d) return res.status(404).json({ error: 'Not found' });
@@ -217,7 +213,10 @@ router.get('/deliverable/:id', async (req: Request, res: Response, next: NextFun
     const assignedRoles = d.roleDeliverables.map((r) => ({ id: r.role.id, name: r.role.displayValue }));
     const ownerRoles = d.roleDeliverables.filter((r) => r.role_ === 'Owner').map((r) => ({ id: r.role.id, name: r.role.displayValue }));
     const contributorRoles = d.roleDeliverables.filter((r) => r.role_ === 'Contributor').map((r) => ({ id: r.role.id, name: r.role.displayValue }));
-    const tests = d.testingTemplates.map((t) => ({ expected: t.expected, checkType: t.checkType, system: t.system, location: t.location }));
+    // Deliverable roll-up = defined/total plan keys across its tasks (Work Library).
+    const plans = await taskPlans(taskNodeIds);
+    let planDefined = 0; let planTotal = 0;
+    for (const p of plans.values()) { planDefined += p.defined; planTotal += p.total; }
     const subProcesses = [...new Set([...loc.values()].map((x) => [x.l3, x.l4].filter(Boolean).join(' · ')).filter(Boolean))];
 
     // The L4's grouped L5 task nodes are the deliverable's tasks.
@@ -233,7 +232,7 @@ router.get('/deliverable/:id', async (req: Request, res: Response, next: NextFun
       level3: a?.l3 ?? null, level4: a?.l4 ?? null,
       subProcesses, dataElements: [], inputs: [],
       assignedRoles, assignedExtra: [],
-      ownerRoles, contributorRoles, tests,
+      ownerRoles, contributorRoles, planRollup: { defined: planDefined, total: planTotal },
       tasks,
       downstream: [],
     });
@@ -252,12 +251,12 @@ router.get('/task/:id', async (req: Request, res: Response, next: NextFunction) 
         id: true, displayValue: true, description: true, automatability: true, attributes: true,
         nodeRoles: { select: { role_: true, role: { select: { id: true, displayValue: true } } } },
         nodeDeliverables: { select: { deliverable: { select: { id: true, title: true } } } },
-        testingTemplates: { select: { expected: true, checkType: true } },
       },
     });
     if (!t) return res.status(404).json({ error: 'Not found' });
 
     const loc = (await ancestorNames([t.id])).get(t.id);
+    const plan = (await taskPlans([t.id])).get(t.id) ?? null;
     const ownerRole = t.nodeRoles.find((r) => r.role_ === 'Owner')?.role ?? null;
     const leadRoles = t.nodeRoles.filter((r) => r.role_ === 'Owner').map((r) => ({ id: r.role.id, name: r.role.displayValue }));
     // contributors = participant roles, exec-stripped + capped (mirrors the list view).
@@ -271,7 +270,7 @@ router.get('/task/:id', async (req: Request, res: Response, next: NextFunction) 
     res.json({
       kind: 'task',
       id: t.id, title: t.displayValue, description: t.description, owner: ownerRole?.displayValue ?? null, priority: 'Medium', jiraKey: null,
-      tests: t.testingTemplates.map((x) => ({ expected: x.expected, checkType: x.checkType })),
+      plan: plan ? { checklist: plan.checklist, testing: plan.testing, defined: plan.defined, total: plan.total } : null,
       ownerRole: ownerRole ? { id: ownerRole.id, name: ownerRole.displayValue } : null,
       agentScore: t.automatability ? SCORE_OF[t.automatability] ?? null : null, agentRationale: null,
       valueStream: loc?.valueStreamId ? { id: loc.valueStreamId, name: loc.valueStreamName } : null,

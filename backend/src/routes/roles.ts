@@ -76,11 +76,12 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       select: { id: true, displayValue: true, processLevelType: { select: { levelNumber: true } } },
     });
     const ancById = new Map(ancestors.map((a) => [a.id, { name: a.displayValue, level: a.processLevelType.levelNumber }] as const));
-    // L3 area node → its standards' names (governing standards for that area).
-    const l3Ids = ancestors.filter((a) => a.processLevelType.levelNumber === 3).map((a) => a.id);
-    const areaStds = await prisma.nodeStandard.findMany({ where: { processNodeId: { in: l3Ids } }, select: { processNodeId: true, standard: { select: { name: true } } } });
-    const stdByL3 = new Map<string, string[]>();
-    for (const ns of areaStds) { const a = stdByL3.get(ns.processNodeId) ?? []; a.push(ns.standard.name); stdByL3.set(ns.processNodeId, a); }
+    // Standards live on the task nodes themselves (tasks = single source of
+    // truth; areas/value streams roll up from them), so a role's governing
+    // standards come straight from its nodes' own links.
+    const areaStds = await prisma.nodeStandard.findMany({ where: { processNodeId: { in: nodeIds }, excluded: false }, select: { processNodeId: true, standard: { select: { name: true } } } });
+    const stdByTaskNode = new Map<string, string[]>();
+    for (const ns of areaStds) { const a = stdByTaskNode.get(ns.processNodeId) ?? []; a.push(ns.standard.name); stdByTaskNode.set(ns.processNodeId, a); }
     // node → { value stream name, L3 ancestor ids }
     const vsByNode = new Map<string, string>();
     const l3ByNode = new Map<string, string[]>();
@@ -111,7 +112,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       push(vsByRole, nr.roleId, vsByNode.get(nr.processNodeId));
       for (const text of checksByNode.get(nr.processNodeId) ?? []) push(checksByRole, nr.roleId, text);
       for (const title of delivsByNode.get(nr.processNodeId) ?? []) push(nodeDelivByRole, nr.roleId, title);
-      for (const l3 of l3ByNode.get(nr.processNodeId) ?? []) for (const sn of stdByL3.get(l3) ?? []) push(areaStdByRole, nr.roleId, sn);
+      for (const sn of stdByTaskNode.get(nr.processNodeId) ?? []) push(areaStdByRole, nr.roleId, sn);
     }
     // Direct links take priority; fall back to work-derived where a role has none.
     const delivByRole = new Map<string, Set<string>>();

@@ -1,4 +1,5 @@
 import { prisma } from '../db/prisma.js';
+import { vsForStandards } from './govRollup.js';
 
 // ─── Generated SDLC skill packs (single source of truth) ─────────────────────
 // The per-category compliance skill packs are a PURE FUNCTION of the company's
@@ -244,16 +245,17 @@ export async function findStandardSkill(companyId: string, skill: string): Promi
       regCitation: true, testProcedure: true, evidence: true, ownerLabel: true,
       ownerRole: { select: { displayValue: true } },
       roleStandards: { select: { role: { select: { displayValue: true } } } },
-      nodeStandards: { select: { processNode: { select: { displayValue: true } } } },
     },
   });
   if (!s) return null;
+  // Standards attach to task nodes; value streams roll up via the closure.
+  const vs = (await vsForStandards([s.id])).get(s.id) ?? [];
   return {
     id: s.id, name: s.name, description: s.description ?? '', category: s.category, department: s.department,
     buildRun: s.buildRun, regCitation: s.regCitation, testProcedure: s.testProcedure, evidence: s.evidence,
     ownerLabel: s.ownerLabel, ownerRole: s.ownerRole?.displayValue ?? null,
     appliers: s.roleStandards.map((r) => r.role?.displayValue).filter((v): v is string => !!v),
-    valueStreams: s.nodeStandards.map((n) => n.processNode?.displayValue).filter((v): v is string => !!v),
+    valueStreams: vs.map((v) => v.name),
   };
 }
 
@@ -264,11 +266,12 @@ export async function buildGroupings(companyId: string): Promise<Grouping[]> {
     select: {
       id: true, name: true, description: true, department: true, category: true, parentId: true,
       testProcedure: true, evidence: true, ownerLabel: true, buildRun: true, regCitation: true,
-      nodeStandards: { select: { processNode: { select: { displayValue: true } } } },
     },
   });
   const hasChildren = new Set(nonAreas.map((n) => n.parentId).filter((p): p is string => !!p));
   const leaves = nonAreas.filter((n) => !hasChildren.has(n.id) && n.department && n.category);
+  // Standards attach to task nodes; value streams roll up via the closure.
+  const vsMap = await vsForStandards(leaves.map((l) => l.id));
 
   const byCat = new Map<string, Grouping>();
   for (const l of leaves) {
@@ -279,7 +282,7 @@ export async function buildGroupings(companyId: string): Promise<Grouping[]> {
     g.controls.push({
       name: l.name, description: l.description ?? '', testProcedure: l.testProcedure, evidence: l.evidence,
       ownerLabel: l.ownerLabel, buildRun: l.buildRun, regCitation: l.regCitation, department: l.department!,
-      valueStreams: l.nodeStandards.map((ns) => ns.processNode?.displayValue).filter((v): v is string => !!v),
+      valueStreams: (vsMap.get(l.id) ?? []).map((v) => v.name),
     });
   }
   for (const g of byCat.values()) g.departments.sort();

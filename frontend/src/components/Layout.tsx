@@ -224,6 +224,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           <NavLink to="/portfolio">Workspace</NavLink>
           <NavLink to="/deliverables">Deliverables</NavLink>
           <NavLink to="/tasks">Tasks</NavLink>
+          <NavLink to="/work-library">Work Library</NavLink>
           <NavLink to="/automatable">Automatable</NavLink>
           <NavLink to="/applications">Applications</NavLink>
           <NavLink to="/external">Third-Parties</NavLink>
@@ -327,6 +328,12 @@ export default function Layout({ children }: { children: ReactNode }) {
                 className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/tasks') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
               >
                 Tasks
+              </button>
+              <button
+                onClick={() => go('/work-library')}
+                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/work-library') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
+              >
+                Work Library
               </button>
               <button
                 onClick={() => go('/automatable')}

@@ -26,6 +26,7 @@ import PortfolioInitiative from './pages/PortfolioInitiative';
 import PortfolioRaid from './pages/PortfolioRaid';
 import Work from './pages/Work';
 import Automatable from './pages/Automatable';
+import WorkLibrary from './pages/WorkLibrary';
 import Applications from './pages/Applications';
 import External from './pages/External';
 import Regulations from './pages/Regulations';
@@ -132,6 +133,8 @@ export default function App() {
         <Route path="/deliverables" element={<Work tab="deliverables" />} />
         <Route path="/tasks" element={<Work tab="tasks" />} />
         <Route path="/automatable" element={<Automatable />} />
+        {/* Work Library — checklist/testing plans at the atomic level of work. */}
+        <Route path="/work-library" element={<WorkLibrary />} />
         <Route path="/work" element={<Navigate to="/deliverables" replace />} />
         {/* Regulations — 50-state insurance regulatory baseline (states /
             requirements / coverage lenses) + per-state detail by USPS code. */}

@@ -28,6 +28,11 @@ type CheckDetail = { nodeChecklistId: string; checklistItemId: string; text: str
 type CheckRollup = { checklistItemId: string; text: string };
 type TestingDetail = { id: string | null; deliverableId: string | null; system: string | null; location: string | null; checkType: string | null; expected: string | null };
 type TestingRollup = { id: string; system: string | null; location: string | null; checkType: string | null; expected: string | null };
+// Work Library plan surfacing (defined value → green ✓, missing → red ✗).
+type PlanRow = { key: string; value: string | null; defined: boolean };
+type TiedPlan = { id: string; name: string; source: string | null; checklist: PlanRow[]; testing: PlanRow[] };
+type TaskPlan = { checklist: PlanRow[]; testing: PlanRow[]; standards: TiedPlan[]; regulations: TiedPlan[]; defined: number; total: number };
+type PlanRollup = { tasks: number; tasksWithPlan: number; defined: number; total: number };
 
 type Payload = {
   id: string; name: string; levelNumber: number; levelLabel: string;
@@ -52,6 +57,8 @@ type Payload = {
   deliverables: (DelivDetail | DelivRollup)[];
   checklist: (CheckDetail | CheckRollup)[];
   testing: TestingDetail | TestingRollup[];
+  plan: TaskPlan | null;
+  planRollup: PlanRollup | null;
   standards: { standardId: string; name: string }[];
   regulations: { regId: string; title: string }[];
   children: { id: string; name: string; isTask: boolean }[];
@@ -294,8 +301,8 @@ export default function Inspector({ nodeId, onClose, onRetarget, accent, startCo
             {tab === 'Roles' && <RolesTab data={data} edit={edit} onNav={navigate} after={after} propText={propText} />}
             {tab === 'Applications' && <AppsTab data={data} edit={edit} onNav={navigate} after={after} propText={propText} />}
             {tab === 'Deliverables' && <DeliverablesTab data={data} edit={edit} onNav={navigate} after={after} />}
-            {tab === 'Checklist' && <ChecklistTab data={data} edit={edit} after={after} />}
-            {tab === 'Testing' && <TestingTab data={data} edit={edit} after={after} />}
+            {tab === 'Checklist' && <ChecklistTab data={data} onNav={navigate} />}
+            {tab === 'Testing' && <TestingTab data={data} onNav={navigate} />}
             {tab === 'Governance' && <GovernancePanel data={data} />}
 
             {/* Auto-association reminder (no manual node ops) — scrolls with content. */}
@@ -368,7 +375,6 @@ function OverviewTab({ data, onTab, onRetarget }: { data: Payload; onTab: (t: Ta
       </div>
       <AutomationPanel data={data} onRetarget={onRetarget} />
 
-      {data.detail && <ProcessDetailPanel data={data} />}
 
       {data.detail && (
         <div className="mt-4 rounded-lg bg-[#fbfcfd] border border-[#eaeaea] px-3 py-2.5 text-[11px] text-[#737575] leading-snug">
@@ -405,39 +411,6 @@ function GovernancePanel({ data }: { data: Payload }) {
       <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3] mb-2">Governance</div>
       <Group label="Standards" items={data.standards.map((s) => s.name)} />
       <Group label="Regulations" items={data.regulations.map((r) => r.title)} />
-    </div>
-  );
-}
-
-// Workbook step fields stored on ProcessNode.attributes/code (How, Test by Pattern,
-// Checklist Pattern/Differences, ordinals) — surfaced read-only on the step overview.
-function ProcessDetailPanel({ data }: { data: Payload }) {
-  const a = data.attributes ?? {};
-  const stepNo = a.l5num ?? data.code ?? null;
-  const blocks: { label: string; value?: string | null }[] = [
-    { label: 'How (test method)', value: a.how },
-    { label: 'Test by pattern', value: a.testByPattern },
-    { label: 'Checklist pattern', value: a.checklistPattern },
-    { label: 'Checklist differences by pattern', value: a.checklistDifferences },
-    { label: 'L4/L5 pair mapping', value: a.l4l5Mapping },
-    { label: 'Disposition', value: a.disposition },
-  ].filter((b) => b.value && String(b.value).trim());
-  if (!stepNo && !blocks.length) return null;
-  return (
-    <div className="mt-4 rounded-lg border border-[#eaeaea] bg-white px-3 py-3">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3] mb-2">Process detail</div>
-      {stepNo && (
-        <div className="mb-2 flex items-center gap-1.5">
-          <span className="text-[9.5px] text-[#737575]">Step #</span>
-          <span className="text-[11px] font-semibold text-[#171717] tabular-nums">{stepNo}</span>
-        </div>
-      )}
-      {blocks.map((b) => (
-        <div key={b.label} className="mb-2.5 last:mb-0">
-          <div className="text-[9.5px] font-medium uppercase tracking-wide text-[#a3a3a3] mb-0.5">{b.label}</div>
-          <div className="text-[11px] text-[#404040] leading-snug whitespace-pre-line">{b.value}</div>
-        </div>
-      ))}
     </div>
   );
 }
@@ -508,7 +481,8 @@ function AutomationPanel({ data, onRetarget }: { data: Payload; onRetarget: (id:
 
 // ── Tasks (children / drill) ────────────────────────────────────────────────
 function TasksTab({ data, onRetarget }: { data: Payload; onRetarget: (id: string) => void }) {
-  if (!data.children.length) return <Empty text={data.detail ? 'This is a leaf step — no children.' : 'No steps recorded here.'} />;
+  if (data.detail) return null; // leaf — nothing to drill
+  if (!data.children.length) return <Empty text="No steps recorded here." />;
   return (
     <div>
       <div className="flex flex-col gap-1">
@@ -541,27 +515,42 @@ function RolesTab({ data, edit, onNav, after, propText }: {
       {edit && <div className="flex justify-end mb-2"><AddPicker label="Associate / add role" kind="roles" onPick={(c) => add(c)} /></div>}
       {!data.roles.length && <Empty text={edit ? 'Add the first role above.' : 'No roles resolved here.'} />}
       <div className="flex flex-col gap-1.5">
-        {data.roles.map((r) => {
-          const isDetail = 'nodeRoleId' in r;
+        {/* One row per ROLE — a role linked as both Owner and Participant shows
+            once with both tags (the underlying NodeRole rows stay separate). */}
+        {[...data.roles.reduce((m, r) => {
+          const e = m.get(r.roleId) ?? { roleId: r.roleId, name: r.name, relations: [] as Relation[], links: [] as RoleDetail[], tasks: 0, raci: null as string | null };
+          if (!e.relations.includes(r.relation)) e.relations.push(r.relation);
+          if ('nodeRoleId' in r) { e.links.push(r as RoleDetail); e.raci = e.raci ?? (r as RoleDetail).raci ?? null; }
+          else e.tasks = Math.max(e.tasks, (r as RoleRollup).tasks);
+          m.set(r.roleId, e);
+          return m;
+        }, new Map<string, { roleId: string; name: string; relations: Relation[]; links: RoleDetail[]; tasks: number; raci: string | null }>()).values()].map((r) => {
+          const owner = r.relations.includes('Owner');
+          const tag = [...r.relations].sort((a) => (a === 'Owner' ? -1 : 1)).join(' · ');
+          const single = r.links.length === 1 ? r.links[0] : null;
           return (
-            <div key={isDetail ? (r as RoleDetail).nodeRoleId : (r as RoleRollup).roleId}
-              className="rounded-lg bg-[#f7fbf8] border border-[#cbead9] px-2.5 py-2 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: r.relation === 'Owner' ? '#1e9e6a' : '#7fc9a6' }} />
+            <div key={r.roleId} className="rounded-lg bg-[#f7fbf8] border border-[#cbead9] px-2.5 py-2 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: owner ? '#1e9e6a' : '#7fc9a6' }} />
               <span className="text-[12.5px] font-semibold text-[#15603f] flex-1 min-w-0 truncate">{r.name}</span>
-              {isDetail && edit ? (
+              {single && edit ? (
                 <>
-                  <Select value={r.relation} w={108} options={['Owner', 'Participant']}
-                    onChange={async (v) => { await api.patch(`/inspector/roles/${(r as RoleDetail).nodeRoleId}`, { relation: v }); after('Updated', 'Saved to the single record'); }} />
-                  <Select value={(r as RoleDetail).raci ?? ''} w={122} options={['', ...RACI]}
-                    onChange={async (v) => { await api.patch(`/inspector/roles/${(r as RoleDetail).nodeRoleId}`, { raci: v || null }); after('Updated', 'Saved to the single record'); }} />
+                  <Select value={single.relation} w={108} options={['Owner', 'Participant']}
+                    onChange={async (v) => { await api.patch(`/inspector/roles/${single.nodeRoleId}`, { relation: v }); after('Updated', 'Saved to the single record'); }} />
+                  <Select value={single.raci ?? ''} w={122} options={['', ...RACI]}
+                    onChange={async (v) => { await api.patch(`/inspector/roles/${single.nodeRoleId}`, { raci: v || null }); after('Updated', 'Saved to the single record'); }} />
                 </>
               ) : (
                 <span className="text-[10px] text-[#15603f] bg-white border border-[#cbead9] rounded px-1.5 py-0.5">
-                  {r.relation === 'Owner' ? 'Owner' : 'Participant'}{!isDetail && (r as RoleRollup).tasks ? ` · ${(r as RoleRollup).tasks} tasks` : ''}{isDetail && (r as RoleDetail).raci ? ` · ${(r as RoleDetail).raci}` : ''}
+                  {tag}{!r.links.length && r.tasks ? ` · ${r.tasks} tasks` : ''}{r.raci ? ` · ${r.raci}` : ''}
                 </span>
               )}
               <LinkOut onClick={() => onNav(`/organization?role=${encodeURIComponent(r.roleId)}`)} />
-              {isDetail && edit && <DetachBtn onClick={async () => { await api.delete(`/inspector/roles/${(r as RoleDetail).nodeRoleId}`); after('Detached', 'The role itself is kept'); }} />}
+              {r.links.length > 0 && edit && (
+                <DetachBtn onClick={async () => {
+                  for (const l of r.links) await api.delete(`/inspector/roles/${l.nodeRoleId}`);
+                  after('Detached', 'The role itself is kept');
+                }} />
+              )}
             </div>
           );
         })}
@@ -596,9 +585,12 @@ function AppsTab({ data, edit, onNav, after, propText }: {
                 <Select value={(a as AppDetail).usageType} w={132} options={['performed', 'memorialized']}
                   onChange={async (v) => { await api.patch(`/inspector/applications/${(a as AppDetail).usageId}`, { usageType: v }); after('Updated', 'Saved to the single record'); }} />
               ) : (
-                <span className="text-[10px] text-[#1d4ed8] bg-white border border-[#d4e2fc] rounded px-1.5 py-0.5">
-                  {a.usageType}{!isDetail && (a as AppRollup).tasks ? ` · ${(a as AppRollup).tasks} tasks` : ''}
-                </span>
+                // "performed" is the default usage — only surface the notable tags.
+                (a.usageType !== 'performed' || (!isDetail && (a as AppRollup).tasks > 0)) && (
+                  <span className="text-[10px] text-[#1d4ed8] bg-white border border-[#d4e2fc] rounded px-1.5 py-0.5">
+                    {[a.usageType === 'performed' ? null : a.usageType, !isDetail && (a as AppRollup).tasks ? `${(a as AppRollup).tasks} tasks` : null].filter(Boolean).join(' · ')}
+                  </span>
+                )
               )}
               <LinkOut onClick={() => onNav(`/applications?focus=${encodeURIComponent(a.appId)}`)} />
               {isDetail && edit && <DetachBtn onClick={async () => { await api.delete(`/inspector/applications/${(a as AppDetail).usageId}`); after('Detached', 'The application is kept in the catalog'); }} />}
@@ -615,12 +607,13 @@ function AppsTab({ data, edit, onNav, after, propText }: {
 //   Deliverable → the Tasks that produce it → each task's Checklist items
 //   → the Testing templates that verify it. Read-oriented; associate/detach
 //   the deliverable in edit mode (at a step).
-type ChainTest = { id: string; system: string | null; location: string | null; checkType: string | null; expected: string | null };
-type ChainCheck = { id: string; text: string; group: string | null };
 type ChainRole = { roleId: string; name: string; relation: string };
 type ChainApp = { appId: string; name: string; usageType: string };
-type ChainTask = { taskId: string; name: string; roles: ChainRole[]; applications: ChainApp[]; checklist: ChainCheck[]; testing: ChainTest[] };
-type ChainDeliv = { deliverableId: string; title: string; linkId: string | null; tasks: ChainTask[]; testing: ChainTest[] };
+type ChainTask = {
+  taskId: string; name: string; roles: ChainRole[]; applications: ChainApp[];
+  checklist: PlanRow[]; testing: PlanRow[]; standards: TiedPlan[]; regulations: TiedPlan[];
+};
+type ChainDeliv = { deliverableId: string; title: string; linkId: string | null; tasks: ChainTask[]; rollup: { defined: number; total: number } };
 
 // Work tab — the connected chain in one organized view: Deliverable → the Tasks
 // that produce it → each task's Roles, Applications, Checklist items, and the
@@ -659,17 +652,22 @@ function WorkTab({ data, edit, onNav, after }: {
   );
 }
 
-const Testing = ({ t }: { t: ChainTest }) => (
-  <div className="rounded-md bg-[#fbfcfd] border border-[#e2e6ea] px-2 py-1.5 text-[10.5px] text-[#525252] leading-snug">
-    <span className="font-semibold text-[#6b7785]">Testing · </span>
-    {[t.system && `System: ${t.system}`, t.location && `Location: ${t.location}`, t.checkType && `Check: ${t.checkType}`].filter(Boolean).join(' · ') || 'template'}
-    {t.expected && <div className="text-[#8a8a8a] mt-0.5 line-clamp-2">{t.expected}</div>}
+// Chain plan row — defined value → green ✓, missing key → red ✗.
+const ChainPlanLine = ({ r }: { r: PlanRow }) => (
+  <div className="flex items-start gap-1.5">
+    <span className={(r.defined ? 'text-[#1e9e6a]' : 'text-[#dc2626]') + ' text-[12px] mt-px flex-shrink-0'}>{r.defined ? '✓' : '✗'}</span>
+    <span className="text-[11.5px] leading-snug">
+      {r.defined
+        ? <><span className="text-[#8a94a0]">{r.key}: </span><span className="text-[#171717]">{r.value}</span></>
+        : <span className="text-[#6b7785]">{r.key}</span>}
+    </span>
   </div>
 );
 
 function DelivChain({ d, edit, onNav, onDetach }: { d: ChainDeliv; edit: boolean; onNav: (p: string) => void; onDetach: (linkId: string) => void }) {
   const [open, setOpen] = useState(true);
-  const kids = d.tasks.length + d.testing.length;
+  const kids = d.tasks.length;
+  const pct = d.rollup.total ? Math.round((100 * d.rollup.defined) / d.rollup.total) : null;
   return (
     <div className="rounded-lg bg-[#e9f7ef] border border-[#cbead9]" style={{ borderLeft: '3px solid #1e9e6a' }}>
       <div className="flex items-center gap-1.5 px-2.5 py-2">
@@ -680,6 +678,12 @@ function DelivChain({ d, edit, onNav, onDetach }: { d: ChainDeliv; edit: boolean
         )}
         <span className="text-[8px] font-bold uppercase tracking-wide rounded px-1 py-px bg-white text-[#196f3d] border border-[#cbead9] flex-shrink-0">Deliverable</span>
         <span className="text-[12.5px] font-bold text-[#196f3d] flex-1 min-w-0 truncate">{d.title}</span>
+        {pct !== null && (
+          <span className={'text-[9px] px-1.5 py-px rounded-full flex-shrink-0 ' + (pct === 100 ? 'bg-white text-[#196f3d] border border-[#cbead9]' : 'bg-[#fdf3e0] text-[#8a5a12]')}
+            title="Checklist + testing keys defined across this deliverable's tasks">
+            {d.rollup.defined} of {d.rollup.total} verified
+          </span>
+        )}
         {d.tasks.length > 0 && <span className="text-[9px] text-[#5a8a6f]">{d.tasks.length} task{d.tasks.length === 1 ? '' : 's'}</span>}
         <LinkOut onClick={() => onNav('/deliverables')} />
         {edit && d.linkId && <DetachBtn onClick={() => onDetach(d.linkId!)} />}
@@ -687,7 +691,6 @@ function DelivChain({ d, edit, onNav, onDetach }: { d: ChainDeliv; edit: boolean
       {open && kids > 0 && (
         <div className="px-2.5 pb-2.5 pt-0.5 flex flex-col gap-1.5">
           {d.tasks.map((t) => <TaskChain key={t.taskId} t={t} onNav={onNav} />)}
-          {d.testing.map((t) => <Testing key={t.id} t={t} />)}
         </div>
       )}
     </div>
@@ -700,7 +703,10 @@ function MiniHead({ children }: { children: React.ReactNode }) {
 
 function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
   const [open, setOpen] = useState(true);
-  const kids = t.roles.length + t.applications.length + t.checklist.length + t.testing.length;
+  const tied = [...t.standards, ...t.regulations];
+  const kids = t.roles.length + t.applications.length + t.checklist.length + t.testing.length + tied.length;
+  const allRows = [...t.checklist, ...t.testing, ...tied.flatMap((x) => [...x.checklist, ...x.testing])];
+  const defined = allRows.filter((r) => r.defined).length;
   return (
     <div className="rounded-lg bg-[#faf8ff] border border-[#ded5f8]" style={{ borderLeft: '3px solid #7c3aed' }}>
       <button onClick={() => kids > 0 && setOpen((o) => !o)} className="w-full flex items-center gap-1.5 px-2.5 py-1.5 text-left">
@@ -709,7 +715,7 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
         )}
         <span className="text-[8px] font-bold uppercase tracking-wide rounded px-1 py-px bg-white text-[#6d28d9] border border-[#ded5f8] flex-shrink-0">Task</span>
         <span className="text-[11.5px] font-semibold text-[#4c1d95] flex-1 min-w-0">{t.name}</span>
-        {t.checklist.length > 0 && <span className="text-[9px] text-[#7c5db8]">{t.checklist.length}✓</span>}
+        {allRows.length > 0 && <span className="text-[9px] text-[#7c5db8]">{defined}/{allRows.length} ✓</span>}
       </button>
       {open && kids > 0 && (
         <div className="px-2.5 pb-2 pl-7 flex flex-col gap-1">
@@ -726,18 +732,29 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
             <button key={a.appId} onClick={() => onNav(`/applications?focus=${encodeURIComponent(a.appId)}`)} className="flex items-center gap-1.5 text-left group/a">
               <span className="w-1.5 h-1.5 rounded-sm flex-shrink-0 bg-[#1d4ed8]" />
               <span className="text-[11.5px] text-[#1d4ed8] group-hover/a:underline">{a.name}</span>
-              <span className="text-[9px] text-[#8a8a8a]">{a.usageType}</span>
+              {a.usageType !== 'performed' && <span className="text-[9px] text-[#8a8a8a]">{a.usageType.split(' · ').filter((t) => t !== 'performed').join(' · ')}</span>}
             </button>
           ))}
           {t.checklist.length > 0 && <MiniHead>Checklist</MiniHead>}
-          {t.checklist.map((c) => (
-            <div key={c.id} className="flex items-start gap-1.5">
-              <span className="text-[#1e9e6a] text-[12px] mt-px flex-shrink-0">✓</span>
-              <span className="text-[11.5px] text-[#171717] leading-snug">{c.text}{c.group && <span className="text-[#a3a3a3]"> · {c.group}</span>}</span>
+          {t.checklist.map((r, i) => <ChainPlanLine key={i} r={r} />)}
+          {t.testing.length > 0 && <MiniHead>Testing</MiniHead>}
+          {t.testing.map((r, i) => <ChainPlanLine key={i} r={r} />)}
+          {t.standards.length > 0 && <MiniHead>Standards</MiniHead>}
+          {t.standards.map((s) => (
+            <div key={s.id}>
+              <div className="text-[10.5px] font-semibold text-[#525252] leading-snug">{s.name}{s.source && <span className="text-[#a3a3a3] font-normal"> · {s.source}</span>}</div>
+              {[...s.checklist, ...s.testing].map((r, i) => <ChainPlanLine key={i} r={r} />)}
+              {!s.checklist.length && !s.testing.length && <div className="text-[10px] text-[#a3a3a3]">No evidence steps yet</div>}
             </div>
           ))}
-          {t.testing.length > 0 && <MiniHead>Testing plan</MiniHead>}
-          {t.testing.map((tt) => <Testing key={tt.id} t={tt} />)}
+          {t.regulations.length > 0 && <MiniHead>Regulations</MiniHead>}
+          {t.regulations.map((s) => (
+            <div key={s.id}>
+              <div className="text-[10.5px] font-semibold text-[#525252] leading-snug">{s.name}{s.source && <span className="text-[#a3a3a3] font-normal"> · {s.source}</span>}</div>
+              {[...s.checklist, ...s.testing].map((r, i) => <ChainPlanLine key={i} r={r} />)}
+              {!s.checklist.length && !s.testing.length && <div className="text-[10px] text-[#a3a3a3]">No evidence steps yet</div>}
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -775,109 +792,84 @@ function DeliverablesTab({ data, edit, onNav, after }: {
   );
 }
 
-// ── Checklist ──────────────────────────────────────────────────────────────────
-function ChecklistTab({ data, edit, after }: {
-  data: Payload; edit: boolean;
-  after: (msg: string, sub: string, undo?: () => void) => void;
-}) {
-  const [draft, setDraft] = useState('');
-  const detail = data.detail;
-  const addItem = async () => {
-    const text = draft.trim();
-    if (!text) return;
-    const r = await api.post(`/inspector/${data.id}/checklist`, { text });
-    setDraft('');
-    const ncId = r.item.nodeChecklistId;
-    after('Checklist item added', 'Saved to the single record', async () => { await api.delete(`/inspector/checklist/${ncId}`); after('Removed', 'Reverted'); });
-  };
+// ── Checklist / Testing — Work Library plan views ───────────────────────────
+// Read-only surfacing of the item's plan: defined key → green ✓ + value,
+// missing → red ✗ + key. Editing happens in the Work Library (deep link).
+const PlanLine = ({ r }: { r: PlanRow }) => (
+  <div className="flex items-start gap-1.5 rounded-md bg-white border border-[#eaeef1] px-2.5 py-1.5">
+    <span className={(r.defined ? 'text-[#1e9e6a]' : 'text-[#dc2626]') + ' text-[13px] flex-shrink-0 leading-snug'}>{r.defined ? '✓' : '✗'}</span>
+    <span className="flex-1 min-w-0 text-[12px] leading-snug">
+      {r.defined
+        ? <><span className="text-[#8a94a0]">{r.key}: </span><span className="text-[#171717]">{r.value}</span></>
+        : <span className="text-[#6b7785]">{r.key}</span>}
+    </span>
+  </div>
+);
+
+function EditInLibrary({ nodeId, onNav }: { nodeId: string; onNav: (p: string) => void }) {
+  return (
+    <button onClick={() => onNav(`/work-library?type=task&id=${nodeId}`)}
+      className="mt-2.5 w-full rounded-md border border-[#9fb6e8] px-3 py-1.5 text-[11.5px] font-semibold text-[#2563eb] hover:bg-[#f0f6ff]">
+      Edit in Work library ↗
+    </button>
+  );
+}
+
+function PlanRollupSummary({ data, onNav, kind }: { data: Payload; onNav: (p: string) => void; kind: 'Checklist' | 'Testing' }) {
+  const r = data.planRollup;
+  if (!r || !r.total) return <Empty text={`No ${kind.toLowerCase()} plans recorded in this subtree yet.`} />;
+  const pct = Math.round((100 * r.defined) / r.total);
   return (
     <div>
-      {!data.checklist.length && !edit && <Empty text="No checklist items recorded here." />}
-      <div className="flex flex-col gap-1">
-        {data.checklist.map((c) => {
-          const isDetail = 'nodeChecklistId' in c;
-          return (
-            <div key={isDetail ? (c as CheckDetail).nodeChecklistId : (c as CheckRollup).checklistItemId}
-              className="rounded-md bg-white border border-[#eaeef1] px-2.5 py-1.5 flex items-center gap-2">
-              <span className="text-[#1e9e6a] text-[13px] flex-shrink-0">✓</span>
-              {isDetail && edit ? (
-                <input defaultValue={c.text}
-                  onBlur={async (e) => { const v = e.target.value.trim(); if (v && v !== c.text) { await api.patch(`/inspector/checklist/${(c as CheckDetail).checklistItemId}`, { text: v }); after('Updated', 'Saved to the single record'); } }}
-                  className="flex-1 min-w-0 text-[12px] text-[#171717] outline-none border-b border-transparent focus:border-[#9fb6e8]" />
-              ) : (
-                <span className="flex-1 min-w-0 text-[12px] text-[#171717]">{c.text}</span>
-              )}
-              {isDetail && edit && <DetachBtn onClick={async () => { await api.delete(`/inspector/checklist/${(c as CheckDetail).nodeChecklistId}`); after('Removed', 'Reverted'); }} />}
-            </div>
-          );
-        })}
-      </div>
-      {detail && edit && (
-        <div className="mt-2 flex items-center gap-2 rounded-md border border-[#9fb6e8] px-2.5 py-1.5">
-          <span className="text-[#1e9e6a] text-[13px]">✓</span>
-          <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addItem(); }}
-            placeholder="Add a checklist item…  ⏎" className="flex-1 text-[12px] outline-none" />
-          <button onClick={addItem} className="text-[12px] font-semibold text-[#2563eb]">⏎ Add</button>
+      <div className="rounded-lg bg-[#fbfcfd] border border-[#e2e6ea] px-3 py-2.5">
+        <div className="flex items-center gap-2">
+          <span className="text-[12px] font-semibold text-[#171717]">{kind} plans</span>
+          <span className={'text-[10px] px-1.5 py-px rounded-full ' + (pct === 100 ? 'bg-[#e9f7ef] text-[#196f3d]' : 'bg-[#fdf3e0] text-[#8a5a12]')}>
+            {r.defined.toLocaleString()} of {r.total.toLocaleString()} keys defined
+          </span>
         </div>
-      )}
+        <div className="h-1.5 rounded-full bg-[#eef1f4] mt-2">
+          <div className="h-1.5 rounded-full bg-[#1e9e6a]" style={{ width: `${pct}%` }} />
+        </div>
+        <div className="text-[10.5px] text-[#8a94a0] mt-1.5">{r.tasksWithPlan.toLocaleString()} of {r.tasks.toLocaleString()} tasks have a plan. Drill to a task to see and edit its keys.</div>
+      </div>
+      <button onClick={() => onNav('/work-library')} className="mt-2.5 w-full rounded-md border border-[#9fb6e8] px-3 py-1.5 text-[11.5px] font-semibold text-[#2563eb] hover:bg-[#f0f6ff]">
+        Open Work library ↗
+      </button>
     </div>
   );
 }
 
-// ── Testing template ────────────────────────────────────────────────────────
-function TestingTab({ data, edit, after }: {
-  data: Payload; edit: boolean;
-  after: (msg: string, sub: string, undo?: () => void) => void;
-}) {
-  if (!data.detail) {
-    const rows = (data.testing as TestingRollup[]) ?? [];
-    if (!rows.length) return <Empty text="No testing templates recorded here." />;
-    return (
-      <div>
-        <div className="flex flex-col gap-1.5">
-          {rows.map((t) => (
-            <div key={t.id} className="rounded-lg bg-[#fbfcfd] border border-[#e2e6ea] px-2.5 py-2 text-[11.5px] text-[#171717]">
-              <div><b>System:</b> {t.system || '—'} · <b>Location:</b> {t.location || '—'}</div>
-              <div><b>Check:</b> {t.checkType || '—'} · <b>Expected:</b> {t.expected || '—'}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-  return <TestingEditor data={data} edit={edit} after={after} />;
-}
-
-function TestingEditor({ data, edit, after }: {
-  data: Payload; edit: boolean;
-  after: (msg: string, sub: string, undo?: () => void) => void;
-}) {
-  const tpl = data.testing as TestingDetail;
-  const [form, setForm] = useState({ system: tpl.system ?? '', location: tpl.location ?? '', checkType: tpl.checkType ?? 'presence', expected: tpl.expected ?? '' });
-  useEffect(() => { setForm({ system: tpl.system ?? '', location: tpl.location ?? '', checkType: tpl.checkType ?? 'presence', expected: tpl.expected ?? '' }); }, [tpl.id, tpl.system, tpl.location, tpl.checkType, tpl.expected]);
-
-  const save = async () => { await api.put(`/inspector/${data.id}/testing`, form); after('Testing template saved', 'Reflected wherever the template is shown'); };
-  const field = (label: string, key: keyof typeof form) => (
-    <div>
-      <div className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-[#a3a3a3] mb-1">{label}</div>
-      {key === 'checkType' ? (
-        <Select value={form.checkType} w={140} options={['presence', 'absence']} onChange={(v) => setForm((f) => ({ ...f, checkType: v }))} />
-      ) : (
-        <input value={form[key]} disabled={!edit} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-          className={'w-full rounded-md border px-2 py-1 text-[11.5px] ' + (edit ? 'border-[#9fb6e8] bg-white' : 'border-[#e2e6ea] bg-[#fbfcfd] text-[#525252]')} />
-      )}
-    </div>
-  );
+function ChecklistTab({ data, onNav }: { data: Payload; onNav: (p: string) => void }) {
+  if (!data.detail) return <PlanRollupSummary data={data} onNav={onNav} kind="Checklist" />;
+  const rows = data.plan?.checklist ?? [];
   return (
     <div>
-      <div className="grid grid-cols-2 gap-2.5 rounded-lg bg-[#fbfcfd] border border-[#e2e6ea] p-3">
-        {field('System', 'system')}
-        {field('Location', 'location')}
-        {field('Check', 'checkType')}
-        {field('Expected', 'expected')}
-      </div>
-      <div className="text-[10px] text-[#a3a3a3] mt-1.5">Defines how this step is verified for the client's process.</div>
-      {edit && <button onClick={save} className="mt-2 rounded-md bg-[#2563eb] px-3 py-1.5 text-[11.5px] font-semibold text-white hover:bg-[#1d4ed8]">Save testing template</button>}
+      {!rows.length && <Empty text="No checklist pattern assigned yet — add one in the Work library." />}
+      <div className="flex flex-col gap-1">{rows.map((r, i) => <PlanLine key={i} r={r} />)}</div>
+      <EditInLibrary nodeId={data.id} onNav={onNav} />
+    </div>
+  );
+}
+
+function TestingTab({ data, onNav }: { data: Payload; onNav: (p: string) => void }) {
+  if (!data.detail) return <PlanRollupSummary data={data} onNav={onNav} kind="Testing" />;
+  const plan = data.plan;
+  const rows = plan?.testing ?? [];
+  const tied = [...(plan?.standards ?? []), ...(plan?.regulations ?? [])];
+  const tiedRows = tied.flatMap((t) => [...t.checklist, ...t.testing]);
+  return (
+    <div>
+      {!rows.length && <Empty text="No testing pattern assigned yet — pick one in the Work library." />}
+      <div className="flex flex-col gap-1">{rows.map((r, i) => <PlanLine key={i} r={r} />)}</div>
+      {tied.length > 0 && (
+        <div className="mt-2.5 rounded-lg bg-[#fbfcfd] border border-[#e2e6ea] px-3 py-2 text-[11px] text-[#525252]">
+          <div className="flex justify-between"><span>Standards applied</span><span>{plan!.standards.length} · {plan!.standards.flatMap((s) => [...s.checklist, ...s.testing]).filter((r) => r.defined).length} steps evidenced</span></div>
+          <div className="flex justify-between mt-1"><span>Regulations applied</span><span>{plan!.regulations.length} · {plan!.regulations.flatMap((s) => [...s.checklist, ...s.testing]).filter((r) => r.defined).length} steps evidenced</span></div>
+          {tiedRows.length === 0 && <div className="text-[10px] text-[#a3a3a3] mt-1">No evidence steps yet — add them in the Work library.</div>}
+        </div>
+      )}
+      <EditInLibrary nodeId={data.id} onNav={onNav} />
     </div>
   );
 }

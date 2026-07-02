@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
 import { useApi } from '../lib/useApi';
@@ -141,7 +141,6 @@ function RegulationTable({ rows, loading, firstLabel, emptyText, onOpen, leading
   rows: RequirementRow[]; loading: boolean; firstLabel: string; emptyText: string;
   onOpen: (code: string) => void; leading?: React.ReactNode;
 }) {
-  const vsNames = (r: RequirementRow) => r.valueStreamLinks.map((l) => l.valueStream.name);
   const cols: SheetCol<RequirementRow>[] = [
     {
       key: 'juris', label: firstLabel, width: '140px', align: 'center', value: (r) => r.jurisdiction.name,
@@ -171,8 +170,12 @@ function RegulationTable({ rows, loading, firstLabel, emptyText, onOpen, leading
       render: (r) => <span className="truncate text-[12px] text-[#525252]" title={r.contributors.map((c) => c.name).join(', ')}>{r.contributors.length ? r.contributors.map((c) => c.name).join(', ') : dash}</span>,
     },
     {
-      key: 'vs', label: 'Value streams', width: 'minmax(0,1.4fr)', align: 'center', values: (r) => vsNames(r),
-      render: (r) => { const vs = vsNames(r); return <span className="truncate text-[12px] text-[#525252]" title={vs.join(', ')}>{vs.length ? vs.join(', ') : dash}</span>; },
+      key: 'plan', label: 'Plan', width: '64px', align: 'center', value: () => '',
+      hint: 'Checklist & testing plan for this regulation in the Work Library',
+      render: (r) => (
+        <Link to={`/work-library?type=regulation&id=${r.id}`} onClick={(e) => e.stopPropagation()}
+          className="text-[11.5px] font-medium text-[#2563eb] hover:underline">Plan ↗</Link>
+      ),
     },
   ];
   return (

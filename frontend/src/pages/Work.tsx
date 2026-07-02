@@ -30,12 +30,14 @@ type Task = {
   valueStreamName: string | null;
   agentScore: number | null; agentRationale: string | null;
   test: string | null;
+  testPattern: string | null;
   standards: string[]; regulations: string[];
 };
 type WorkData = { deliverables: Deliverable[]; tasks: Task[]; valueStreams: { id: string; name: string }[] };
 
 // ── Drill-down shapes (mirror /work/deliverable/:id and /work/task/:id) ────────
 type RoleRef = { id: string; name: string };
+type PlanRow = { key: string; value: string | null; defined: boolean };
 type RoleSet = { roles: RoleRef[]; unresolved: string[] };
 type DeliverableDetail = {
   kind: 'deliverable'; id: string; title: string; description: string | null; type: string; owner: string | null;
@@ -46,14 +48,14 @@ type DeliverableDetail = {
   inputs: { name: string; dataElements: string[]; roles: RoleSet }[];
   assignedRoles: RoleRef[]; assignedExtra: string[];
   ownerRoles: RoleRef[]; contributorRoles: RoleRef[];
-  tests: { expected: string | null; checkType: string | null; system: string | null; location: string | null }[];
+  planRollup: { defined: number; total: number } | null;
   tasks: { id: string; title: string; owner: string | null; priority: string }[];
   downstream: { valueStreamId: string; valueStreamName: string; subProcess: string | null; roles: RoleSet }[];
 };
 type TaskDetail = {
   kind: 'task'; id: string; title: string; description: string | null; owner: string | null; priority: string;
   ownerRole: RoleRef | null;
-  tests: { expected: string | null; checkType: string | null }[];
+  plan: { checklist: PlanRow[]; testing: PlanRow[]; defined: number; total: number } | null;
   jiraKey: string | null; agentScore: number | null; agentRationale: string | null;
   valueStream: { id: string; name: string } | null; subProcess: string | null;
   level3: string | null; level4: string | null;
@@ -172,17 +174,38 @@ function DetailBody({ detail }: { detail: Detail }) {
         </div>
       )}
 
-      {/* Test — how presence is verified (deliverables + tasks) */}
-      {((detail.kind === 'deliverable' && detail.tests.length > 0) || (detail.kind === 'task' && detail.tests.length > 0)) && (
-        <Field label="Test (presence check)">
-          <ul className="space-y-1.5">
-            {detail.tests.map((t, i) => (
-              <li key={i} className="text-sm text-[#171717] flex gap-2">
-                <span className="pill-slate text-[10px] flex-shrink-0 mt-0.5">{t.checkType ?? 'presence'}</span>
-                <span>{t.expected}</span>
-              </li>
-            ))}
-          </ul>
+      {/* Work Library plan — checklist + testing keys (✓ defined / ✗ missing) */}
+      {detail.kind === 'task' && detail.plan && (detail.plan.checklist.length > 0 || detail.plan.testing.length > 0) && (
+        <>
+          {(['Checklist', 'Testing'] as const).map((label) => {
+            const rows = label === 'Checklist' ? detail.plan!.checklist : detail.plan!.testing;
+            if (!rows.length) return null;
+            return (
+              <Field key={label} label={label}>
+                <ul className="space-y-1">
+                  {rows.map((r, i) => (
+                    <li key={i} className="text-sm flex gap-1.5 items-start">
+                      <span className={(r.defined ? 'text-[#1e9e6a]' : 'text-[#dc2626]') + ' flex-shrink-0'}>{r.defined ? '✓' : '✗'}</span>
+                      {r.defined
+                        ? <span><span className="text-[#8a94a0]">{r.key}: </span><span className="text-[#171717]">{r.value}</span></span>
+                        : <span className="text-[#6b7785]">{r.key}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </Field>
+            );
+          })}
+          <Link to={`/work-library?type=task&id=${detail.id}`} className="text-sm font-medium text-[#2563eb] hover:underline">
+            Edit plan in Work library ↗
+          </Link>
+        </>
+      )}
+      {detail.kind === 'deliverable' && detail.planRollup && detail.planRollup.total > 0 && (
+        <Field label="Checklist & testing plans">
+          <div className="text-sm text-[#171717]">{detail.planRollup.defined} of {detail.planRollup.total} keys defined across this deliverable's tasks</div>
+          <div className="h-1.5 rounded-full bg-[#eef1f4] mt-1.5">
+            <div className="h-1.5 rounded-full bg-[#1e9e6a]" style={{ width: `${Math.round((100 * detail.planRollup.defined) / detail.planRollup.total)}%` }} />
+          </div>
         </Field>
       )}
 
@@ -325,6 +348,14 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
     { key: 'contributors', label: 'Contributors', width: 'minmax(0,0.9fr)', values: (t) => t.contributors ?? [], dim: true, render: (t) => rolesCell(t.contributors) },
     { key: 'standards', label: 'Standards', width: 'minmax(0,1fr)', values: (t) => (t.standards?.length ? t.standards : ['N/A']), dim: true, render: (t) => naCell(t.standards) },
     { key: 'regulations', label: 'Regulations', width: 'minmax(0,1fr)', values: (t) => (t.regulations?.length ? t.regulations : ['N/A']), dim: true, render: (t) => naCell(t.regulations) },
+    {
+      key: 'testPattern', label: 'Testing pattern', width: 'minmax(0,1fr)',
+      hint: 'Work Library testing pattern — filter by "Missing" to find tasks without one',
+      value: (t) => t.testPattern ?? 'Missing',
+      render: (t) => t.testPattern
+        ? <span className="truncate text-[12px] text-[#525252]" title={t.testPattern}>{t.testPattern}</span>
+        : <span className="text-[12px] text-[#dc2626]">✗ Missing</span>,
+    },
     {
       key: 'automatable', label: 'AI automatable', width: '140px',
       // Filter by band ("1 · Agent-ready" … "5 · Human-only"); leading digit sorts numerically.

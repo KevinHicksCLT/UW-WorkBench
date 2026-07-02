@@ -31,6 +31,9 @@ type Item = {
   responsible: Responsible | null; // accountable owner
   appliers: { roleId: string; roleName: string }[]; // who executes the control
   valueStreams: ValueStream[];
+  // Work Library plan keys (generic template keys + item-specific steps) —
+  // values are filled in the Work Library, this view shows the structure.
+  plan: { checklist: string[]; testing: string[] } | null;
 };
 // Top-level rows are groups; their decomposed child standards ride along.
 type Group = Item & { subs: Item[] };
@@ -244,28 +247,34 @@ export default function StandardArea() {
 // the ordered verification steps, the evidence they leave, who applies it, and
 // the tailored agent skill that enforces + tests it.
 function StandardMeta({ item, onViewSkill }: {
-  item: { testProcedure: string | null; evidence: string | null; agentSkill: string | null; appliers: { roleId: string; roleName: string }[] };
+  item: { id: string; plan: { checklist: string[]; testing: string[] } | null; agentSkill: string | null; appliers: { roleId: string; roleName: string }[] };
   onViewSkill: (skill: string) => void;
 }) {
-  const steps = item.testProcedure ? item.testProcedure.split('\n').filter(Boolean) : [];
-  if (!steps.length && !item.evidence && !item.appliers.length && !item.agentSkill) return null;
+  const checklist = item.plan?.checklist ?? [];
+  const testing = item.plan?.testing ?? [];
+  if (!checklist.length && !testing.length && !item.appliers.length && !item.agentSkill) return null;
   return (
     <div className="mt-1.5 space-y-1.5">
-      {steps.length > 0 && (
+      {checklist.length > 0 && (
         <div className="flex items-start gap-1.5">
-          <span className="mt-px text-[9px] font-semibold uppercase tracking-[0.08em] text-[#0070AD] bg-[#eef6fb] rounded px-1 py-px flex-shrink-0">Test</span>
-          {steps.length === 1 ? (
-            <p className="text-xs text-[#525252]">{steps[0]}</p>
-          ) : (
-            <ol className="text-xs text-[#525252] list-decimal pl-4 space-y-0.5">{steps.map((s, i) => <li key={i}>{s}</li>)}</ol>
-          )}
+          <span className="mt-px text-[9px] font-semibold uppercase tracking-[0.08em] text-[#047857] bg-[#ecfdf5] rounded px-1 py-px flex-shrink-0">Checklist</span>
+          <ol className="text-xs text-[#525252] list-decimal pl-4 space-y-0.5">{checklist.map((s, i) => <li key={i}>{s}</li>)}</ol>
         </div>
       )}
-      {item.evidence && (
+      {testing.length > 0 && (
         <div className="flex items-start gap-1.5">
-          <span className="mt-px text-[9px] font-semibold uppercase tracking-[0.08em] text-[#047857] bg-[#ecfdf5] rounded px-1 py-px flex-shrink-0">Evidence</span>
-          <p className="text-xs text-[#525252]">{item.evidence}</p>
+          <span className="mt-px text-[9px] font-semibold uppercase tracking-[0.08em] text-[#0070AD] bg-[#eef6fb] rounded px-1 py-px flex-shrink-0">Testing</span>
+          <ol className="text-xs text-[#525252] list-decimal pl-4 space-y-0.5">{testing.map((s, i) => <li key={i}>{s}</li>)}</ol>
         </div>
+      )}
+      {(checklist.length > 0 || testing.length > 0) && (
+        <Link
+          to={`/work-library?type=standard&id=${item.id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="inline-block text-[11px] font-medium text-[#2563eb] hover:underline"
+        >
+          Fill in values in the Work library ↗
+        </Link>
       )}
       {item.appliers.length > 0 && (
         <div className="flex items-start gap-1.5">

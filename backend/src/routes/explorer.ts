@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
+import { vsForStandards, type VsRef } from '../lib/govRollup.js';
 import { requireAuth } from '../middleware/auth.js';
 import { cacheResponses } from '../lib/responseCache.js';
 import { skillName } from '../lib/skillPacks.js';
@@ -913,14 +914,12 @@ type StdRow = {
   relatedCategory: string | null; link: string | null; agentSkill: string | null;
   sdlcGates: string | null; regCitation: string | null; testProcedure: string | null; evidence: string | null;
   ownerRole: { id: string; displayValue: string } | null;
-  nodeStandards: { processNode: { id: string; displayValue: string; parent: { displayValue: string } | null } | null }[];
   roleStandards: { role: { id: string; displayValue: string } | null }[];
 };
-function shapeItem(r: StdRow) {
-  const valueStreams = r.nodeStandards
-    .map((ns) => ns.processNode)
-    .filter((p): p is NonNullable<typeof p> => !!p)
-    .map((p) => ({ id: p.id, name: p.displayValue, domain: p.parent?.displayValue ?? null }));
+// Standards attach to TASK nodes only; the "applies to value streams" chips are
+// a rollup of the linked tasks' L2 ancestors (vsForStandards / govRollup.ts).
+function shapeItem(r: StdRow, vsMap: Map<string, VsRef[]>) {
+  const valueStreams = vsMap.get(r.id) ?? [];
   // Appliers = the roles that EXECUTE the control day-to-day (RoleStandard),
   // distinct from the accountable OWNER (ownerRole). De-duped by role id.
   const seen = new Set<string>();
@@ -955,7 +954,6 @@ const STD_ITEM_SELECT = {
   relatedRole: true, relatedCategory: true, link: true, agentSkill: true, sdlcGates: true, regCitation: true,
   testProcedure: true, evidence: true,
   ownerRole: { select: { id: true, displayValue: true } },
-  nodeStandards: { select: { processNode: { select: { id: true, displayValue: true, parent: { select: { displayValue: true } } } } } },
   roleStandards: { select: { role: { select: { id: true, displayValue: true } } } },
 } as const;
 
@@ -1068,17 +1066,47 @@ router.get('/standards/:id', async (req: Request, res: Response, next: NextFunct
       select: { ...STD_ITEM_SELECT, children: { orderBy: { name: 'asc' }, select: STD_ITEM_SELECT } },
     });
 
+    const allStdIds = groups.flatMap((g) => [g.id, ...g.children.map((c) => c.id)]);
+    // Work Library plan keys per standard: the assigned templates' generic keys
+    // (minus suppressed) + item-specific custom keys (testProcedure steps /
+    // evidence artifact). Keys only — values are filled in the Work Library.
+    const [vsMap, stdLinks, stdAnswers] = await Promise.all([
+      vsForStandards(allStdIds),
+      prisma.standardWorkTemplate.findMany({
+        where: { standardId: { in: allStdIds } },
+        select: {
+          standardId: true,
+          template: { select: { kind: true, sortOrder: true, keys: { orderBy: { sortOrder: 'asc' }, select: { id: true, key: true } } } },
+        },
+      }),
+      prisma.standardTemplateAnswer.findMany({
+        where: { standardId: { in: allStdIds } },
+        orderBy: { sortOrder: 'asc' },
+        select: { standardId: true, templateKeyId: true, customKey: true, kind: true, suppressed: true },
+      }),
+    ]);
+    const planFor = (id: string) => {
+      const links = stdLinks.filter((l) => l.standardId === id).sort((a, b) => a.template.sortOrder - b.template.sortOrder);
+      const answers = stdAnswers.filter((a) => a.standardId === id);
+      const suppressed = new Set(answers.filter((a) => a.suppressed && a.templateKeyId).map((a) => a.templateKeyId as string));
+      const rows = (kind: 'CHECKLIST' | 'TEST') => [
+        ...links.filter((l) => l.template.kind === kind).flatMap((l) => l.template.keys.filter((k) => !suppressed.has(k.id)).map((k) => k.key)),
+        ...answers.filter((a) => !a.templateKeyId && a.customKey && (kind === 'TEST') === (a.kind === 'TEST')).map((a) => a.customKey as string),
+      ];
+      return { checklist: rows('CHECKLIST'), testing: rows('TEST') };
+    };
+
     let leafTotal = 0;
     const categories = new Set<string>();
     let withOwnerRole = 0;
     const items = groups.map((g) => {
-      const shaped = shapeItem(g as StdRow);
-      const subs = g.children.map((c) => shapeItem(c as StdRow));
+      const shaped = shapeItem(g as StdRow, vsMap);
+      const subs = g.children.map((c) => ({ ...shapeItem(c as StdRow, vsMap), plan: planFor(c.id) }));
       categories.add(shaped.category);
       leafTotal += subs.length || 1;
       if (g.ownerRole) withOwnerRole++;
       for (const c of g.children) if (c.ownerRole) withOwnerRole++;
-      return { ...shaped, subs };
+      return { ...shaped, plan: planFor(g.id), subs };
     });
 
     res.json({

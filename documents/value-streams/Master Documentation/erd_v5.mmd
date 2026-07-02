@@ -210,6 +210,7 @@ erDiagram
     string processNodeId FK
     string regId FK "-> RegulatoryRequirement"
     string relationship
+    boolean excluded "task-level override: not applied at this node"
   }
   RegulationApplication {
     string status "NEW — reg -> apps + evidence"
@@ -240,6 +241,7 @@ erDiagram
     string companyId FK
     string processNodeId FK
     string standardId FK
+    boolean excluded "task-level override: not applied at this node"
   }
   RoleStandard {
     string status "NEW v3 — standard owned/followed by role"
@@ -269,6 +271,120 @@ erDiagram
     string companyId FK
     string processNodeId FK
     string checklistItemId FK
+  }
+  %% ---------- WORK LIBRARY (checklist/testing templates + per-item plans) ----------
+  WorkTemplate {
+    string status "NEW — generic checklist/test pattern (ADMIN-edited)"
+    string id PK
+    string companyId FK
+    string kind "CHECKLIST | TEST"
+    string name
+    string description
+    boolean isDefault
+    int sortOrder
+  }
+  WorkTemplateKey {
+    string status "NEW — one generic key/step; text lives here once"
+    string id PK
+    string templateId FK
+    string key
+    string guidance
+    string valueKind "TEXT | APPLICATION | ROLE | DELIVERABLE"
+    int sortOrder
+  }
+  NodeWorkTemplate {
+    string status "NEW — task plan pattern selection"
+    string id PK
+    string companyId FK
+    string processNodeId FK
+    string templateId FK
+  }
+  StandardWorkTemplate {
+    string status "NEW — standard plan pattern selection"
+    string id PK
+    string companyId FK
+    string standardId FK
+    string templateId FK
+  }
+  RegulationWorkTemplate {
+    string status "NEW — regulation plan pattern selection"
+    string id PK
+    string companyId FK
+    string regId FK
+    string templateId FK
+  }
+  NodeTemplateAnswer {
+    string status "NEW — per-task value; survives pattern switch; null key = custom step"
+    string id PK
+    string companyId FK
+    string processNodeId FK
+    string templateKeyId FK "nullable"
+    string customKey
+    string kind "CHECKLIST | TEST (custom step block)"
+    string value
+    string applicationId FK "entity-typed value"
+    string roleId FK "entity-typed value"
+    string deliverableId FK "entity-typed value"
+    boolean suppressed "generic key removed for this item"
+    int sortOrder
+  }
+  StandardTemplateAnswer {
+    string status "NEW — per-standard value (same shape)"
+    string id PK
+    string companyId FK
+    string standardId FK
+    string templateKeyId FK "nullable"
+    string customKey
+    string kind "CHECKLIST | TEST (custom step block)"
+    string value
+    string applicationId FK
+    string roleId FK
+    string deliverableId FK
+    boolean suppressed
+    int sortOrder
+  }
+  RegulationTemplateAnswer {
+    string status "NEW — per-regulation value (same shape)"
+    string id PK
+    string companyId FK
+    string regId FK
+    string templateKeyId FK "nullable"
+    string customKey
+    string kind "CHECKLIST | TEST (custom step block)"
+    string value
+    string applicationId FK
+    string roleId FK
+    string deliverableId FK
+    boolean suppressed
+    int sortOrder
+  }
+  NodeStandardEvidence {
+    string status "NEW — task-local checklist/test steps for an inherited standard"
+    string id PK
+    string companyId FK
+    string processNodeId FK
+    string standardId FK
+    string kind "CHECKLIST | TEST"
+    string step
+    string value
+    string applicationId FK
+    string roleId FK
+    string deliverableId FK
+    int sortOrder
+  }
+  NodeRegulationEvidence {
+    string status "NEW — task-local checklist/test steps for an inherited regulation"
+    string id PK
+    string companyId FK
+    string processNodeId FK
+    string regId FK
+    string kind "CHECKLIST | TEST"
+    string step
+    string value
+    string applicationId FK
+    string roleId FK
+    string deliverableId FK
+    int sortOrder
   }
   %% ---------- INITIATIVE & METRIC (UNPARKED) ----------
   Initiative {
@@ -693,6 +809,28 @@ erDiagram
   Application ||--o{ NodeAppUsage : ""
   ProcessNode ||--o{ NodeChecklist : ""
   ChecklistItem ||--o{ NodeChecklist : ""
+  %% work library
+  Company ||--o{ WorkTemplate : "owns"
+  WorkTemplate ||--o{ WorkTemplateKey : "keys"
+  ProcessNode ||--o{ NodeWorkTemplate : ""
+  WorkTemplate ||--o{ NodeWorkTemplate : ""
+  Standard ||--o{ StandardWorkTemplate : ""
+  WorkTemplate ||--o{ StandardWorkTemplate : ""
+  RegulatoryRequirement ||--o{ RegulationWorkTemplate : ""
+  WorkTemplate ||--o{ RegulationWorkTemplate : ""
+  ProcessNode ||--o{ NodeTemplateAnswer : ""
+  WorkTemplateKey |o--o{ NodeTemplateAnswer : "null = custom step"
+  Standard ||--o{ StandardTemplateAnswer : ""
+  WorkTemplateKey |o--o{ StandardTemplateAnswer : ""
+  RegulatoryRequirement ||--o{ RegulationTemplateAnswer : ""
+  WorkTemplateKey |o--o{ RegulationTemplateAnswer : ""
+  ProcessNode ||--o{ NodeStandardEvidence : ""
+  Standard ||--o{ NodeStandardEvidence : ""
+  ProcessNode ||--o{ NodeRegulationEvidence : ""
+  RegulatoryRequirement ||--o{ NodeRegulationEvidence : ""
+  Application |o--o{ NodeTemplateAnswer : "entity value"
+  Role |o--o{ NodeTemplateAnswer : "entity value"
+  Deliverable |o--o{ NodeTemplateAnswer : "entity value"
   %% initiative & metric
   Company ||--o{ Initiative : "runs"
   ProcessNode ||--o{ NodeInitiative : ""
@@ -844,3 +982,13 @@ erDiagram
   style RationalizationCapability fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
   style RationalizationMicroservice fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
   style RationalizationPlanStep fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style WorkTemplate fill:#E9F7EF,stroke:#27AE60,stroke-width:2px,color:#196F3D
+  style WorkTemplateKey fill:#E9F7EF,stroke:#27AE60,stroke-width:2px,color:#196F3D
+  style NodeWorkTemplate fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style StandardWorkTemplate fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style RegulationWorkTemplate fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style NodeTemplateAnswer fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style StandardTemplateAnswer fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style RegulationTemplateAnswer fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style NodeStandardEvidence fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style NodeRegulationEvidence fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
