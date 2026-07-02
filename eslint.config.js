@@ -27,6 +27,7 @@ export default tseslint.config(
       'backend/scripts/**',
       'scripts/**',
       '.claude/**',
+      '.husky/**',
       'playwright-report/**',
       'test-results/**',
       'backend/prisma/migrations/**',
