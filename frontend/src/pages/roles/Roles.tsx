@@ -1,54 +1,120 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { api } from '../../lib/api';
 import RolesListSheet from '../../components/RolesListSheet';
 import RolesOrgChart from '../../components/RolesOrgChart';
+import { TocView, ViewPills, type TocRow } from '../../components/TocView';
+import { ErrorMessage, LoadingState } from '../../components/ui';
 
-// Roles tab — mirrors the Value Streams / Organization tabs: a floating
-// segmented control toggles between two views, roles are the centerpiece:
+// Roles tab — mirrors the Value Streams / Organization tabs, roles are the
+// centerpiece:
+//   TOC  — (default) table of contents: one row per division with its role
+//          count and segment; click through to the List pre-filtered to it.
 //   List — flat spreadsheet, one row per role: Department, Division, Role, Role
 //          Type, participating value streams / deliverables / tasks / standards,
 //          checklist responsibilities.
 //   Map  — org chart hierarchy rooted at the CEO, drilling down to the lowest
 //          role (scaffold: just the CEO for now, see RolesOrgChart).
-type View = 'list' | 'map';
+type View = 'toc' | 'list' | 'map';
 
-// The segmented List/Map pill. In the list view it rides inline in the Sheet's
-// totals strip (the `leading` slot) — identical to the Standards tab, so the
-// toggle · counts · search sit on one row and scroll away together. In the org
-// chart view it floats (there's no strip to host it).
-function TogglePill({ view, onChange }: { view: View; onChange: (v: View) => void }) {
-  const btn = (active: boolean) =>
-    'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors duration-150 ' +
-    (active ? 'bg-[#171717] text-white' : 'text-[#525252] hover:text-[#171717]');
+// TOC rows — one per ORG division (OrgUnit L2) from the org-table bootstrap:
+// role counts homed in the division + its departments, and the parent segment.
+function RolesToc({
+  onPick,
+  leading,
+}: {
+  onPick: (divisionName: string) => void;
+  leading?: React.ReactNode;
+}) {
+  const [rows, setRows] = useState<TocRow[] | null>(null);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    api
+      .get<{
+        segments: {
+          divisions: { id: string; name: string; segment: string; roleCount: number }[];
+        }[];
+      }>('/explorer/org-table')
+      .then((t) => {
+        setRows(
+          t.segments
+            .flatMap((s) => s.divisions)
+            .filter((d) => d.id !== '__unassigned') // pseudo-bucket, not a division
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((d) => ({
+              id: d.id,
+              name: d.name,
+              count: d.roleCount,
+              extra: d.segment,
+              onClick: () => onPick(d.name),
+            })),
+        );
+      })
+      .catch((e) => setError(e.message ?? 'Failed to load'));
+  }, [onPick]);
+
+  if (error) return <ErrorMessage>{error}</ErrorMessage>;
+  if (!rows) return <LoadingState message="Loading roles…" className="animate-pulse" />;
   return (
-    <div className="inline-flex items-center gap-0.5 rounded-full border border-[#eaeaea] bg-white/90 backdrop-blur p-0.5 shadow-sm" role="tablist" aria-label="View mode">
-      <button type="button" role="tab" aria-selected={view === 'list'} className={btn(view === 'list')} onClick={() => onChange('list')}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
-        </svg>
-        List
-      </button>
-      <button type="button" role="tab" aria-selected={view === 'map'} className={btn(view === 'map')} onClick={() => onChange('map')}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M9 3L3 6v15l6-3 6 3 6-3V3l-6 3-6-3zM9 3v15M15 6v15" />
-        </svg>
-        Map
-      </button>
-    </div>
+    <TocView
+      rows={rows}
+      nameLabel="Division"
+      countLabel="Roles"
+      extraLabel="Segment"
+      unit="divisions"
+      searchPlaceholder="Search division, segment…"
+      leading={leading}
+      totals={`${rows.length} divisions · ${rows.reduce((a, r) => a + r.count, 0)} roles`}
+    />
   );
 }
 
 export default function Roles() {
-  const [view, setView] = useState<View>('list');
-  const toggle = <TogglePill view={view} onChange={setView} />;
+  const [view, setView] = useState<View>('toc');
+  // Division picked on the TOC — the List opens pre-filtered to it.
+  const [preFilter, setPreFilter] = useState<string | null>(null);
+
+  const pillOptions = [
+    { key: 'toc' as const, label: 'TOC' },
+    { key: 'list' as const, label: 'List' },
+    { key: 'map' as const, label: 'Map' },
+  ];
+  const pills = (
+    <ViewPills
+      options={pillOptions}
+      view={view}
+      onChange={(v) => {
+        if (v === 'toc') {
+          setPreFilter(null);
+        }
+        setView(v);
+      }}
+    />
+  );
 
   return (
     <div className="flex flex-col h-full min-h-0">
       <div className="relative flex-1 min-h-0 overflow-hidden">
-        {view === 'list' ? (
-          <RolesListSheet leading={toggle} />
+        {view === 'toc' ? (
+          <div className="h-full overflow-auto">
+            <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-6">
+              <RolesToc
+                leading={pills}
+                onPick={(division) => {
+                  setPreFilter(division);
+                  setView('list');
+                }}
+              />
+            </div>
+          </div>
+        ) : view === 'list' ? (
+          <RolesListSheet
+            key={`roles-${preFilter ?? ''}`}
+            leading={pills}
+            defaultFilters={preFilter ? { division: preFilter } : undefined}
+          />
         ) : (
           <>
-            <div className="absolute top-3 left-4 z-20">{toggle}</div>
+            <div className="absolute top-3 left-4 z-20">{pills}</div>
             <RolesOrgChart />
           </>
         )}

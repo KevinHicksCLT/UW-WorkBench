@@ -17,15 +17,22 @@ import { Card, EmptyState, ErrorMessage, LoadingState } from '../../components/u
 
 type Task = {
   id: string;
-  division: string | null; department: string | null; roleName: string | null;
-  owner: string | null; valueStreamName: string | null;
+  division: string | null;
+  department: string | null;
+  roleName: string | null;
+  owner: string | null;
+  valueStreamName: string | null;
   agentScore: number | null;
 };
 type WorkData = { tasks: Task[] };
 
 // Score → AI tier label (1 = most automatable … 5 = human-only).
 const TIER_LABEL: Record<number, string> = {
-  1: 'Autonomous Agent', 2: 'Workflow Agent', 3: 'AI Augmented', 4: 'AI Assistant', 5: 'Human-only',
+  1: 'Autonomous Agent',
+  2: 'Workflow Agent',
+  3: 'AI Augmented',
+  4: 'AI Assistant',
+  5: 'Human-only',
 };
 
 const ROLLUP_DIMS = [
@@ -43,9 +50,13 @@ export default function Automatable() {
   const [dim, setDim] = useState<(typeof ROLLUP_DIMS)[number]['key']>('division');
 
   useEffect(() => {
-    setLoading(true); setError('');
-    api.get<WorkData>(withCompany('/work', companyId))
-      .then(setData).catch((e) => setError(e.message)).finally(() => setLoading(false));
+    setLoading(true);
+    setError('');
+    api
+      .get<WorkData>(withCompany('/work', companyId))
+      .then(setData)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
   }, [companyId]);
 
   const tasks = useMemo(() => data?.tasks ?? [], [data]);
@@ -55,7 +66,11 @@ export default function Automatable() {
   const tiers = useMemo(() => {
     const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
     let scored = 0;
-    for (const t of tasks) if (typeof t.agentScore === 'number') { counts[t.agentScore]++; scored++; }
+    for (const t of tasks)
+      if (typeof t.agentScore === 'number') {
+        counts[t.agentScore]++;
+        scored++;
+      }
     return { counts, scored };
   }, [tasks]);
 
@@ -69,7 +84,10 @@ export default function Automatable() {
       m.get(k)!.push(t.agentScore);
     }
     return [...m.entries()]
-      .map(([name, scores]) => ({ name, ...(automatablePct(scores) ?? { pct: 0, auto: 0, scored: 0 }) }))
+      .map(([name, scores]) => ({
+        name,
+        ...(automatablePct(scores) ?? { pct: 0, auto: 0, scored: 0 }),
+      }))
       .filter((g) => g.scored > 0)
       .sort((a, b) => b.pct - a.pct);
   }, [tasks, active]);
@@ -91,11 +109,29 @@ export default function Automatable() {
         <div className="space-y-4">
           {/* Headline snapshot */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <Stat label="Automatable today" value={overall ? `${overall.pct}%` : '—'}
-              sub={overall ? `${overall.auto} of ${overall.scored} scored tasks` : 'no scored tasks'} accent />
-            <Stat label="Automatable tasks" value={String(autoCount)} sub="Workflow + Autonomous tier" />
-            <Stat label="Autonomous Agent" value={String(tiers.counts[1])} sub="agent runs end-to-end" />
-            <Stat label="Workflow Agent" value={String(tiers.counts[2])} sub="agent with light setup" />
+            <Stat
+              label="Automatable today"
+              value={overall ? `${overall.pct}%` : '—'}
+              sub={
+                overall ? `${overall.auto} of ${overall.scored} scored tasks` : 'no scored tasks'
+              }
+              accent
+            />
+            <Stat
+              label="Automatable tasks"
+              value={String(autoCount)}
+              sub="Workflow + Autonomous tier"
+            />
+            <Stat
+              label="Autonomous Agent"
+              value={String(tiers.counts[1])}
+              sub="agent runs end-to-end"
+            />
+            <Stat
+              label="Workflow Agent"
+              value={String(tiers.counts[2])}
+              sub="agent with light setup"
+            />
           </div>
 
           {/* Tier distribution — the full automatability spread */}
@@ -106,13 +142,26 @@ export default function Automatable() {
             <div className="flex w-full h-3 rounded-full overflow-hidden bg-[#f0f0f0]">
               {[1, 2, 3, 4, 5].map((s) => {
                 const w = tiers.scored ? (100 * tiers.counts[s]) / tiers.scored : 0;
-                return w > 0 ? <span key={s} title={`${TIER_LABEL[s]} — ${tiers.counts[s]}`} style={{ width: `${w}%`, background: SCORE_COLOR[s] }} /> : null;
+                return w > 0 ? (
+                  <span
+                    key={s}
+                    title={`${TIER_LABEL[s]} — ${tiers.counts[s]}`}
+                    style={{ width: `${w}%`, background: SCORE_COLOR[s] }}
+                  />
+                ) : null;
               })}
             </div>
             <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-3">
               {[1, 2, 3, 4, 5].map((s) => (
-                <div key={s} className="flex items-center gap-1.5 text-[11px]" title={SCORE_DESC[s]}>
-                  <span className="w-2.5 h-2.5 rounded-[2px]" style={{ background: SCORE_COLOR[s] }} />
+                <div
+                  key={s}
+                  className="flex items-center gap-1.5 text-[11px]"
+                  title={SCORE_DESC[s]}
+                >
+                  <span
+                    className="w-2.5 h-2.5 rounded-[2px]"
+                    style={{ background: SCORE_COLOR[s] }}
+                  />
                   <span className="text-[#525252]">{TIER_LABEL[s]}</span>
                   <span className="tnum font-medium text-[#171717]">{tiers.counts[s]}</span>
                   <span className="text-[#a3a3a3]">({SCORE_LABEL[s]})</span>
@@ -125,14 +174,24 @@ export default function Automatable() {
           <Card className="p-4">
             <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
               <div className="text-[11px] text-[#737373]">
-                <span className="font-semibold text-[#171717]">% automatable by {active.label.toLowerCase()}</span>
-                {' '}— share of scored tasks at the Workflow or Autonomous tier
+                <span className="font-semibold text-[#171717]">
+                  % automatable by {active.label.toLowerCase()}
+                </span>{' '}
+                — share of scored tasks at the Workflow or Autonomous tier
               </div>
               <div className="inline-flex items-center gap-0.5 rounded-full border border-[#eaeaea] bg-white p-0.5">
                 {ROLLUP_DIMS.map((d) => (
-                  <button key={d.key} type="button" onClick={() => setDim(d.key)}
-                    className={'rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors duration-150 ' +
-                      (dim === d.key ? 'bg-[#171717] text-white' : 'text-[#525252] hover:text-[#171717]')}>
+                  <button
+                    key={d.key}
+                    type="button"
+                    onClick={() => setDim(d.key)}
+                    className={
+                      'rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors duration-150 ' +
+                      (dim === d.key
+                        ? 'bg-[#171717] text-white'
+                        : 'text-[#525252] hover:text-[#171717]')
+                    }
+                  >
                     {d.label}
                   </button>
                 ))}
@@ -143,12 +202,23 @@ export default function Automatable() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
                 {groups.map((g) => (
-                  <div key={g.name} className="flex items-center gap-2.5 text-[11px]" title={`${g.auto}/${g.scored} tasks automatable`}>
-                    <span className="truncate text-[#525252] flex-1 min-w-0" title={g.name}>{g.name}</span>
-                    <span className="w-24 h-1.5 rounded-full bg-[#f0f0f0] overflow-hidden flex-shrink-0">
-                      <span className="block h-full rounded-full bg-[#059669]" style={{ width: `${g.pct}%` }} />
+                  <div
+                    key={g.name}
+                    className="flex items-center gap-2.5 text-[11px]"
+                    title={`${g.auto}/${g.scored} tasks automatable`}
+                  >
+                    <span className="truncate text-[#525252] flex-1 min-w-0" title={g.name}>
+                      {g.name}
                     </span>
-                    <span className="tnum text-[#171717] font-medium w-9 text-right flex-shrink-0">{g.pct}%</span>
+                    <span className="w-24 h-1.5 rounded-full bg-[#f0f0f0] overflow-hidden flex-shrink-0">
+                      <span
+                        className="block h-full rounded-full bg-[#059669]"
+                        style={{ width: `${g.pct}%` }}
+                      />
+                    </span>
+                    <span className="tnum text-[#171717] font-medium w-9 text-right flex-shrink-0">
+                      {g.pct}%
+                    </span>
                   </div>
                 ))}
               </div>
@@ -160,11 +230,29 @@ export default function Automatable() {
   );
 }
 
-function Stat({ label, value, sub, accent }: { label: string; value: string; sub: string; accent?: boolean }) {
+function Stat({
+  label,
+  value,
+  sub,
+  accent,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  accent?: boolean;
+}) {
   return (
-    <Card className="p-4">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</div>
-      <div className={'mt-1 text-2xl font-semibold tnum ' + (accent ? 'text-[#059669]' : 'text-[#171717]')}>{value}</div>
+    <Card className="p-4 text-center">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">
+        {label}
+      </div>
+      <div
+        className={
+          'mt-1 text-2xl font-semibold tnum ' + (accent ? 'text-[#059669]' : 'text-[#171717]')
+        }
+      >
+        {value}
+      </div>
       <div className="text-[11px] text-[#737373] mt-0.5">{sub}</div>
     </Card>
   );

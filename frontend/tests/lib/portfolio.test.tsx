@@ -68,7 +68,14 @@ describe('StatusPill / StageBar / StageChip', () => {
 describe('risk bands', () => {
   const BANDS: RiskBand[] = [
     { id: 'b1', label: 'Low', minScore: 1, maxScore: 8, color: '#047857', description: null },
-    { id: 'b2', label: 'High', minScore: 9, maxScore: 25, color: '#be123c', description: 'act now' },
+    {
+      id: 'b2',
+      label: 'High',
+      minScore: 9,
+      maxScore: 25,
+      color: '#be123c',
+      description: 'act now',
+    },
   ];
 
   it('bandFor picks the inclusive band, null outside every band', () => {
@@ -102,16 +109,18 @@ describe('risk bands', () => {
 
 describe('Tile / SectionCard / BarList / Modal', () => {
   it('Tile renders label/value/hint with tone colors', () => {
-    const { container } = render(<Tile label="Net benefit" value="$1.2M" hint="12 mo" tone="positive" />);
+    const { container } = render(
+      <Tile label="Net benefit" value="$1.2M" hint="12 mo" tone="positive" />,
+    );
     expect(screen.getByText('Net benefit')).toBeInTheDocument();
     expect(screen.getByText('12 mo')).toBeInTheDocument();
     expect(container.querySelector('.text-\\[\\#047857\\]')).toHaveTextContent('$1.2M');
   });
 
-  it('Tile compact mode renders the denser card (optionally centered)', () => {
-    const { container } = render(<Tile label="Risks" value={7} compact center tone="negative" />);
+  it('Tile compact mode renders the denser centered card', () => {
+    const { container } = render(<Tile label="Risks" value={7} compact tone="negative" />);
     const card = container.firstElementChild as HTMLElement;
-    expect(card.className).toContain('px-3 py-1.5');
+    expect(card.className).toContain('px-3 py-2');
     expect(card.className).toContain('text-center');
     expect(container.querySelector('.text-\\[\\#be123c\\]')).toHaveTextContent('7');
   });
@@ -128,7 +137,15 @@ describe('Tile / SectionCard / BarList / Modal', () => {
   });
 
   it('BarList scales bar widths against the max count', () => {
-    const { container } = render(<BarList groups={[{ key: 'A', count: 10 }, { key: 'B', count: 5 }, { key: 'C', count: 0 }]} />);
+    const { container } = render(
+      <BarList
+        groups={[
+          { key: 'A', count: 10 },
+          { key: 'B', count: 5 },
+          { key: 'C', count: 0 },
+        ]}
+      />,
+    );
     const bars = container.querySelectorAll('.h-full.rounded');
     expect((bars[0] as HTMLElement).style.width).toBe('100%');
     expect((bars[1] as HTMLElement).style.width).toBe('50%');
@@ -225,12 +242,27 @@ describe('month helpers', () => {
   });
 
   it('monthKeysFromLines collects sorted distinct YYYY-MM keys across line sets', () => {
-    const a = [line([{ periodStart: '2026-03-01', amount: 1 }, { periodStart: '2026-01-01', amount: 2 }])];
-    const b = [line([{ periodStart: '2026-03-15', amount: 3 }, { periodStart: '2026-02-01', amount: 4 }])];
+    const a = [
+      line([
+        { periodStart: '2026-03-01', amount: 1 },
+        { periodStart: '2026-01-01', amount: 2 },
+      ]),
+    ];
+    const b = [
+      line([
+        { periodStart: '2026-03-15', amount: 3 },
+        { periodStart: '2026-02-01', amount: 4 },
+      ]),
+    ];
     expect(monthKeysFromLines(a, b)).toEqual(['2026-01', '2026-02', '2026-03']);
   });
 
   it('generateMonths spans the contiguous range inclusive of the start month', () => {
-    expect(generateMonths('2026-11-15', '2027-02-10')).toEqual(['2026-11', '2026-12', '2027-01', '2027-02']);
+    expect(generateMonths('2026-11-15', '2027-02-10')).toEqual([
+      '2026-11',
+      '2026-12',
+      '2027-01',
+      '2027-02',
+    ]);
   });
 });

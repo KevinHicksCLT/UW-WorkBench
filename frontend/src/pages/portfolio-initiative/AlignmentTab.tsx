@@ -18,14 +18,22 @@ export function AlignmentTab({ init, reload }: { init: Initiative; reload: () =>
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api.get<Objective[]>(`/portfolio/objectives?companyId=${init.companyId}`).then(setObjectives).catch((e) => setError(e.message));
+    api
+      .get<Objective[]>(`/portfolio/objectives?companyId=${init.companyId}`)
+      .then(setObjectives)
+      .catch((e) => setError(e.message));
   }, [init.companyId]);
 
   const linkedIds = new Set(init.objectives.map((l) => l.objectiveId));
   const available = objectives.filter((o) => !linkedIds.has(o.id));
 
   async function run(fn: () => Promise<unknown>) {
-    try { await fn(); reload(); } catch (e) { dialogs.alert({ title: 'Change failed', message: (e as Error).message }); }
+    try {
+      await fn();
+      reload();
+    } catch (e) {
+      dialogs.alert({ title: 'Change failed', message: (e as Error).message });
+    }
   }
 
   return (
@@ -34,16 +42,19 @@ export function AlignmentTab({ init, reload }: { init: Initiative; reload: () =>
         <h3 className="text-sm font-semibold text-[#171717] mb-3">Linked strategic objectives</h3>
         {error && <ErrorMessage className="mb-2">{error}</ErrorMessage>}
         {init.objectives.length === 0 ? (
-          <EmptyState baseClassName="text-sm text-[#a3a3a3] py-2" message="No objectives linked yet." />
+          <EmptyState
+            baseClassName="text-sm text-[#a3a3a3] py-2"
+            message="No objectives linked yet."
+          />
         ) : (
           <div className="table-scroll">
             <table className="w-full table-fixed text-sm">
               <thead className="text-xs text-[#a3a3a3] border-b border-[#eaeaea]">
                 <tr>
                   <th className="text-left pb-2 font-semibold">Objective</th>
-                  <th className="text-left pb-2 font-semibold">Weight</th>
-                  <th className="text-left pb-2 font-semibold">Impact (1–5)</th>
-                  <th className="text-left pb-2 font-semibold">Contribution</th>
+                  <th className="text-center pb-2 font-semibold">Weight</th>
+                  <th className="text-center pb-2 font-semibold">Impact (1–5)</th>
+                  <th className="text-center pb-2 font-semibold">Contribution</th>
                   <th className="w-10" />
                 </tr>
               </thead>
@@ -51,23 +62,39 @@ export function AlignmentTab({ init, reload }: { init: Initiative; reload: () =>
                 {init.objectives.map((l) => (
                   <tr key={l.id} className="border-b border-[#f5f5f5]">
                     <td className="py-2.5 font-medium text-[#171717]">{l.objective.name}</td>
-                    <td className="py-2.5 text-left tnum text-[#666666]">{l.objective.weight}</td>
-                    <td className="py-2.5">
+                    <td className="py-2.5 text-center tnum text-[#666666]">{l.objective.weight}</td>
+                    <td className="py-2.5 text-center">
                       <Select
-                        className="text-xs w-24"
+                        className="text-xs w-24 mx-auto"
                         value={l.impact}
-                        onChange={(e) => run(() => api.patch(`/portfolio/initiatives/objectives/${l.id}`, { impact: Number(e.target.value) }))}
+                        onChange={(e) =>
+                          run(() =>
+                            api.patch(`/portfolio/initiatives/objectives/${l.id}`, {
+                              impact: Number(e.target.value),
+                            }),
+                          )
+                        }
                       >
-                        {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <option key={n} value={n}>
+                            {n}
+                          </option>
+                        ))}
                       </Select>
                     </td>
-                    <td className="py-2.5 text-left tnum text-[#171717]">{Math.round(l.impact * l.objective.weight * 10) / 10}</td>
-                    <td className="py-2.5 text-right">
+                    <td className="py-2.5 text-center tnum text-[#171717]">
+                      {Math.round(l.impact * l.objective.weight * 10) / 10}
+                    </td>
+                    <td className="py-2.5 text-center">
                       <button
                         className="text-[#be123c] hover:underline text-sm"
                         title="Remove link"
-                        onClick={() => run(() => api.delete(`/portfolio/initiatives/objectives/${l.id}`))}
-                      >×</button>
+                        onClick={() =>
+                          run(() => api.delete(`/portfolio/initiatives/objectives/${l.id}`))
+                        }
+                      >
+                        ×
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -81,20 +108,43 @@ export function AlignmentTab({ init, reload }: { init: Initiative; reload: () =>
             <Label>Add objective</Label>
             <Select value={addId} onChange={(e) => setAddId(e.target.value)}>
               <option value="">— select an objective —</option>
-              {available.map((o) => <option key={o.id} value={o.id}>{o.name} (weight {o.weight})</option>)}
+              {available.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.name} (weight {o.weight})
+                </option>
+              ))}
             </Select>
           </div>
           <div>
             <Label>Impact</Label>
-            <Select className="w-20" value={addImpact} onChange={(e) => setAddImpact(Number(e.target.value))}>
-              {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}
+            <Select
+              className="w-20"
+              value={addImpact}
+              onChange={(e) => setAddImpact(Number(e.target.value))}
+            >
+              {[1, 2, 3, 4, 5].map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
             </Select>
           </div>
           <Button
             className="text-xs"
             disabled={!addId}
-            onClick={() => run(async () => { await api.post(`/portfolio/initiatives/${init.id}/objectives`, { objectiveId: addId, impact: addImpact }); setAddId(''); setAddImpact(3); })}
-          >Link objective</Button>
+            onClick={() =>
+              run(async () => {
+                await api.post(`/portfolio/initiatives/${init.id}/objectives`, {
+                  objectiveId: addId,
+                  impact: addImpact,
+                });
+                setAddId('');
+                setAddImpact(3);
+              })
+            }
+          >
+            Link objective
+          </Button>
         </div>
       </Card>
     </div>

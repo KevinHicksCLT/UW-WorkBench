@@ -11,33 +11,114 @@ export type Stage = 'IDEA' | 'PLAN' | 'EXECUTE' | 'COMPLETE';
 export type Status = 'ON_TRACK' | 'AT_RISK' | 'OFF_TRACK';
 
 export type MetricValue = { dataset: string; periodStart: string; amount: number };
-export type Line = { id: string; name: string; category: string | null; startDate: string; endDate: string; values: MetricValue[] };
-export type Milestone = { id: string; name: string; dueDate: string; completedAt: string | null; isGate: boolean; status: string };
-export type Raid = { id: string; type: string; title: string; description: string | null; probability: number; impact: number; severity: number; mitigation: string | null; status: string };
+export type Line = {
+  id: string;
+  name: string;
+  category: string | null;
+  startDate: string;
+  endDate: string;
+  values: MetricValue[];
+};
+export type Milestone = {
+  id: string;
+  name: string;
+  dueDate: string;
+  completedAt: string | null;
+  isGate: boolean;
+  status: string;
+};
+export type Raid = {
+  id: string;
+  type: string;
+  title: string;
+  description: string | null;
+  probability: number;
+  impact: number;
+  severity: number;
+  mitigation: string | null;
+  status: string;
+};
 
-export type Objective = { id: string; name: string; description: string | null; weight: number; _count?: { links: number } };
-export type ObjectiveLink = { id: string; objectiveId: string; impact: number; objective: { id: string; name: string; weight: number } };
-export type Resource = { id: string; roleName: string | null; name: string; allocationPct: number; startDate: string; endDate: string };
-export type Activity = { id: string; name: string; startDate: string; endDate: string; status: string; assignedTo: string | null; dependsOnId: string | null; dependencyType: string | null; dependencyRefId: string | null; dependencyLabel: string | null; sortOrder: number };
+export type Objective = {
+  id: string;
+  name: string;
+  description: string | null;
+  weight: number;
+  _count?: { links: number };
+};
+export type ObjectiveLink = {
+  id: string;
+  objectiveId: string;
+  impact: number;
+  objective: { id: string; name: string; weight: number };
+};
+export type Resource = {
+  id: string;
+  roleName: string | null;
+  name: string;
+  allocationPct: number;
+  startDate: string;
+  endDate: string;
+};
+export type Activity = {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+  assignedTo: string | null;
+  dependsOnId: string | null;
+  dependencyType: string | null;
+  dependencyRefId: string | null;
+  dependencyLabel: string | null;
+  sortOrder: number;
+};
 
 export type InitiativeLinks = {
-  valueStreamId: string | null; divisionId: string | null; ownerRoleId: string | null; sponsorRoleId: string | null;
-  valueStreamName: string | null; divisionName: string | null; ownerRoleName: string | null; sponsorRoleName: string | null;
+  valueStreamId: string | null;
+  divisionId: string | null;
+  ownerRoleId: string | null;
+  sponsorRoleId: string | null;
+  valueStreamName: string | null;
+  divisionName: string | null;
+  ownerRoleName: string | null;
+  sponsorRoleName: string | null;
 };
 
 export type Initiative = InitiativeLinks & {
-  id: string; companyId: string; name: string; description: string | null;
-  stage: string; workflowAction: string | null; state: string;
-  status: string; statusNote: string | null; startDate: string; dueDate: string;
-  cumulativeBenefit: number; cumulativeCost: number; cumulativeNetBenefit: number;
-  complexityScore: number; valueScore: number;
+  id: string;
+  companyId: string;
+  name: string;
+  description: string | null;
+  charter: string | null;
+  stage: string;
+  workflowAction: string | null;
+  state: string;
+  status: string;
+  statusNote: string | null;
+  startDate: string;
+  dueDate: string;
+  cumulativeBenefit: number;
+  cumulativeCost: number;
+  cumulativeNetBenefit: number;
+  complexityScore: number;
+  valueScore: number;
   workstream: { id: string; name: string; program: { id: string; name: string } };
-  benefits: Line[]; costs: Line[]; milestones: Milestone[]; raidItems: Raid[];
-  objectives: ObjectiveLink[]; resources: Resource[]; activities: Activity[];
+  benefits: Line[];
+  costs: Line[];
+  milestones: Milestone[];
+  raidItems: Raid[];
+  objectives: ObjectiveLink[];
+  resources: Resource[];
+  activities: Activity[];
   _count?: { raidItems: number; milestones: number };
 };
 
-export type LinkOptions = { valueStreams: { id: string; name: string }[]; divisions: { id: string; name: string }[]; roles: { id: string; name: string }[] };
+export type LinkOptions = {
+  valueStreams: { id: string; name: string }[];
+  divisions: { id: string; name: string }[];
+  roles: { id: string; name: string }[];
+};
 
 // Append the active company to a query path.
 export function withCompany(path: string, companyId: string | null): string {
@@ -47,7 +128,11 @@ export function withCompany(path: string, companyId: string | null): string {
 
 // ─── Pills / badges ────────────────────────────────────────────────────────
 export function StatusPill({ status }: { status: string }) {
-  return <span className={STATUS_PILL_CLASS[status] ?? 'pill-slate'}>{STATUS_LABEL[status] ?? status}</span>;
+  return (
+    <span className={STATUS_PILL_CLASS[status] ?? 'pill-slate'}>
+      {STATUS_LABEL[status] ?? status}
+    </span>
+  );
 }
 
 // Five-segment stage progress bar (uses the global .stage-pip classes).
@@ -56,7 +141,11 @@ export function StageBar({ stage }: { stage: string }) {
   return (
     <div className="flex items-center gap-1">
       {STAGE_ORDER.map((s, i) => (
-        <div key={s} title={STAGE_LABELS[s]} className={'stage-pip ' + (i <= idx ? 'stage-pip-filled' : 'stage-pip-empty')} />
+        <div
+          key={s}
+          title={STAGE_LABELS[s]}
+          className={'stage-pip ' + (i <= idx ? 'stage-pip-filled' : 'stage-pip-empty')}
+        />
       ))}
     </div>
   );
@@ -64,7 +153,11 @@ export function StageBar({ stage }: { stage: string }) {
 
 export function StageChip({ stage }: { stage: string }) {
   const idx = STAGE_ORDER.indexOf(stage);
-  return <UIStatusPill tone="blue" className="tnum">{idx + 1}. {STAGE_LABELS[stage] ?? stage}</UIStatusPill>;
+  return (
+    <UIStatusPill tone="blue" className="tnum">
+      {idx + 1}. {STAGE_LABELS[stage] ?? stage}
+    </UIStatusPill>
+  );
 }
 
 // ── Risk scoring bands (DB-driven) ──────────────────────────────────────────
@@ -72,7 +165,14 @@ export function StageChip({ stage }: { stage: string }) {
 // that turn that number into a rating (Low/Moderate/High/Critical + color) are
 // company data — Data Admin → Initiatives → Risk scoring bands — fetched once
 // and cached for the session.
-export type RiskBand = { id: string; label: string; minScore: number; maxScore: number; color: string; description: string | null };
+export type RiskBand = {
+  id: string;
+  label: string;
+  minScore: number;
+  maxScore: number;
+  color: string;
+  description: string | null;
+};
 
 let bandsCache: RiskBand[] | null = null;
 let bandsPromise: Promise<RiskBand[]> | null = null;
@@ -80,7 +180,8 @@ const bandsListeners = new Set<(b: RiskBand[]) => void>();
 
 function loadBands(): Promise<RiskBand[]> {
   if (bandsCache) return Promise.resolve(bandsCache);
-  bandsPromise ??= api.get<{ bands: RiskBand[] }>('/portfolio/risk-bands')
+  bandsPromise ??= api
+    .get<{ bands: RiskBand[] }>('/portfolio/risk-bands')
     .then((r) => {
       bandsCache = r.bands ?? [];
       bandsListeners.forEach((fn) => fn(bandsCache!));
@@ -96,7 +197,9 @@ export function useRiskBands(): RiskBand[] {
     if (bandsCache) return;
     bandsListeners.add(setBands);
     void loadBands();
-    return () => { bandsListeners.delete(setBands); };
+    return () => {
+      bandsListeners.delete(setBands);
+    };
   }, []);
   return bands;
 }
@@ -108,16 +211,40 @@ export function bandFor(bands: RiskBand[], score: number): RiskBand | null {
 // Fallback bands for before the company's have loaded (match the seeded
 // defaults) — exported so band-driven visuals can render rows immediately.
 export const FALLBACK_BANDS: RiskBand[] = [
-  { id: 'fallback-low', label: 'Low', minScore: 1, maxScore: 8, color: '#047857', description: null },
-  { id: 'fallback-medium', label: 'Medium', minScore: 9, maxScore: 16, color: '#b45309', description: null },
-  { id: 'fallback-high', label: 'High', minScore: 17, maxScore: 25, color: '#be123c', description: null },
+  {
+    id: 'fallback-low',
+    label: 'Low',
+    minScore: 1,
+    maxScore: 8,
+    color: '#047857',
+    description: null,
+  },
+  {
+    id: 'fallback-medium',
+    label: 'Medium',
+    minScore: 9,
+    maxScore: 16,
+    color: '#b45309',
+    description: null,
+  },
+  {
+    id: 'fallback-high',
+    label: 'High',
+    minScore: 17,
+    maxScore: 25,
+    color: '#be123c',
+    description: null,
+  },
 ];
 
 // Shows only the RATING (Low/Medium/High …); the raw 5×5 score stays in the
 // tooltip so the number never reads as an unanchored magnitude.
 export function SeverityCell({ value }: { value: number }) {
   const bands = useRiskBands();
-  const band = bandFor(bands, value) ?? bandFor(FALLBACK_BANDS, value) ?? FALLBACK_BANDS[FALLBACK_BANDS.length - 1];
+  const band =
+    bandFor(bands, value) ??
+    bandFor(FALLBACK_BANDS, value) ??
+    FALLBACK_BANDS[FALLBACK_BANDS.length - 1];
   const { label, color } = band;
   return (
     <span
@@ -131,28 +258,57 @@ export function SeverityCell({ value }: { value: number }) {
 }
 
 // ─── Layout primitives ──────────────────────────────────────────────────────
-export function Tile({ label, value, hint, tone = 'neutral', compact = false, center = false }: { label: string; value: ReactNode; hint?: string; tone?: 'neutral' | 'positive' | 'negative'; compact?: boolean; center?: boolean }) {
-  const color = tone === 'positive' ? 'text-[#047857]' : tone === 'negative' ? 'text-[#be123c]' : 'text-[#171717]';
+export function Tile({
+  label,
+  value,
+  hint,
+  tone = 'neutral',
+  compact = false,
+}: {
+  label: string;
+  value: ReactNode;
+  hint?: string;
+  tone?: 'neutral' | 'positive' | 'negative';
+  compact?: boolean;
+}) {
+  const color =
+    tone === 'positive'
+      ? 'text-[#047857]'
+      : tone === 'negative'
+        ? 'text-[#be123c]'
+        : 'text-[#171717]';
   if (compact) {
     // Denser stat for headline strips (e.g. Regulations overview) — smaller box.
     return (
-      <Card variant="elevated" className={`px-3 py-1.5${center ? ' text-center' : ''}`}>
-        <div className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#a3a3a3]">{label}</div>
+      <Card variant="elevated" className="px-3 py-2 text-center">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#a3a3a3]">
+          {label}
+        </div>
         <div className={`text-lg font-semibold tnum leading-tight ${color}`}>{value}</div>
         {hint && <div className="text-[10px] text-[#a3a3a3] leading-tight">{hint}</div>}
       </Card>
     );
   }
   return (
-    <Card variant="elevated" className="p-4">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</div>
+    <Card variant="elevated" className="p-4 text-center">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">
+        {label}
+      </div>
       <div className={`text-2xl font-semibold mt-1 tnum ${color}`}>{value}</div>
       {hint && <div className="text-[11px] text-[#a3a3a3] mt-0.5">{hint}</div>}
     </Card>
   );
 }
 
-export function SectionCard({ title, actions, children }: { title: string; actions?: ReactNode; children: ReactNode }) {
+export function SectionCard({
+  title,
+  actions,
+  children,
+}: {
+  title: string;
+  actions?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <Card variant="elevated" className="p-5">
       <div className="flex items-center justify-between gap-3 mb-4">
@@ -165,19 +321,34 @@ export function SectionCard({ title, actions, children }: { title: string; actio
 }
 
 // Horizontal bar list (mirrors the Overview dashboard's BarList).
-export function BarList({ groups, color }: { groups: { key: string; count: number }[]; color?: string | ((k: string) => string) }) {
+export function BarList({
+  groups,
+  color,
+}: {
+  groups: { key: string; count: number }[];
+  color?: string | ((k: string) => string);
+}) {
   const max = Math.max(1, ...groups.map((g) => g.count));
   return (
     <div className="space-y-2">
       {groups.map((g) => {
-        const c = typeof color === 'function' ? color(g.key) : color ?? '#171717';
+        const c = typeof color === 'function' ? color(g.key) : (color ?? '#171717');
         return (
           <div key={g.key} className="flex items-center gap-3">
             <div className="w-28 text-xs text-[#525252] truncate flex-shrink-0">{g.key}</div>
             <div className="flex-1 h-5 bg-[#f5f5f5] rounded overflow-hidden">
-              <div className="h-full rounded" style={{ width: `${(g.count / max) * 100}%`, backgroundColor: c, minWidth: g.count ? 2 : 0 }} />
+              <div
+                className="h-full rounded"
+                style={{
+                  width: `${(g.count / max) * 100}%`,
+                  backgroundColor: c,
+                  minWidth: g.count ? 2 : 0,
+                }}
+              />
             </div>
-            <div className="w-8 text-right text-xs text-[#171717] tnum flex-shrink-0">{g.count}</div>
+            <div className="w-8 text-right text-xs text-[#171717] tnum flex-shrink-0">
+              {g.count}
+            </div>
           </div>
         );
       })}
@@ -186,9 +357,22 @@ export function BarList({ groups, color }: { groups: { key: string; count: numbe
 }
 
 // ─── Themed modal ────────────────────────────────────────────────────────────
-export function Modal({ title, children, onClose, wide }: { title: string; children: ReactNode; onClose: () => void; wide?: boolean }) {
+export function Modal({
+  title,
+  children,
+  onClose,
+  wide,
+}: {
+  title: string;
+  children: ReactNode;
+  onClose: () => void;
+  wide?: boolean;
+}) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 overflow-y-auto" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 overflow-y-auto"
+      onClick={onClose}
+    >
       <div
         className={`bg-white rounded-lg border border-[#eaeaea] shadow-lg w-full my-auto max-h-[calc(100vh-2rem)] overflow-y-auto ${wide ? 'max-w-2xl' : 'max-w-lg'}`}
         onClick={(e) => e.stopPropagation()}
@@ -206,7 +390,10 @@ export function Modal({ title, children, onClose, wide }: { title: string; child
 // Replaces Recharts. Renders a responsive line chart with a baseline, a max
 // gridline, and a legend. Series amounts share one y-scale.
 export function SvgLineChart({
-  labels, series, height = 240, formatValue,
+  labels,
+  series,
+  height = 240,
+  formatValue,
 }: {
   labels: string[];
   series: { name: string; color: string; data: number[]; dashed?: boolean }[];
@@ -214,12 +401,20 @@ export function SvgLineChart({
   formatValue?: (n: number) => string;
 }) {
   if (labels.length === 0) {
-    return <EmptyState baseClassName="text-sm text-[#a3a3a3] py-8 text-center" message="No data yet." />;
+    return (
+      <EmptyState baseClassName="text-sm text-[#a3a3a3] py-8 text-center" message="No data yet." />
+    );
   }
-  const W = 640, H = height, padL = 52, padR = 12, padT = 12, padB = 28;
+  const W = 640,
+    H = height,
+    padL = 52,
+    padR = 12,
+    padT = 12,
+    padB = 28;
   const max = Math.max(1, ...series.flatMap((s) => s.data));
   const n = labels.length;
-  const x = (i: number) => padL + (n <= 1 ? (W - padL - padR) / 2 : (i * (W - padL - padR)) / (n - 1));
+  const x = (i: number) =>
+    padL + (n <= 1 ? (W - padL - padR) / 2 : (i * (W - padL - padR)) / (n - 1));
   const y = (v: number) => padT + (1 - v / max) * (H - padT - padB);
   const fmtV = formatValue ?? ((v: number) => String(Math.round(v)));
   // Show at most ~8 x labels to avoid crowding.
@@ -229,8 +424,18 @@ export function SvgLineChart({
     <div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-2">
         {series.map((s) => (
-          <span key={s.name} className="inline-flex items-center gap-1.5 text-[11px] text-[#525252]">
-            <span className="inline-block w-3 h-0.5" style={{ backgroundColor: s.color, borderTop: s.dashed ? `2px dashed ${s.color}` : undefined, height: s.dashed ? 0 : 2 }} />
+          <span
+            key={s.name}
+            className="inline-flex items-center gap-1.5 text-[11px] text-[#525252]"
+          >
+            <span
+              className="inline-block w-3 h-0.5"
+              style={{
+                backgroundColor: s.color,
+                borderTop: s.dashed ? `2px dashed ${s.color}` : undefined,
+                height: s.dashed ? 0 : 2,
+              }}
+            />
             {s.name}
           </span>
         ))}
@@ -239,12 +444,20 @@ export function SvgLineChart({
         {/* gridlines */}
         <line x1={padL} y1={y(0)} x2={W - padR} y2={y(0)} stroke="#eaeaea" strokeWidth={1} />
         <line x1={padL} y1={y(max)} x2={W - padR} y2={y(max)} stroke="#f5f5f5" strokeWidth={1} />
-        <text x={padL - 6} y={y(max) + 4} textAnchor="end" fontSize={10} fill="#a3a3a3">{fmtV(max)}</text>
-        <text x={padL - 6} y={y(0) + 4} textAnchor="end" fontSize={10} fill="#a3a3a3">0</text>
+        <text x={padL - 6} y={y(max) + 4} textAnchor="end" fontSize={10} fill="#a3a3a3">
+          {fmtV(max)}
+        </text>
+        <text x={padL - 6} y={y(0) + 4} textAnchor="end" fontSize={10} fill="#a3a3a3">
+          0
+        </text>
         {/* x labels */}
-        {labels.map((l, i) => (i % labelStep === 0 ? (
-          <text key={i} x={x(i)} y={H - 8} textAnchor="middle" fontSize={10} fill="#a3a3a3">{l.slice(2)}</text>
-        ) : null))}
+        {labels.map((l, i) =>
+          i % labelStep === 0 ? (
+            <text key={i} x={x(i)} y={H - 8} textAnchor="middle" fontSize={10} fill="#a3a3a3">
+              {l.slice(2)}
+            </text>
+          ) : null,
+        )}
         {/* series */}
         {series.map((s) => (
           <polyline
@@ -265,34 +478,54 @@ export function SvgLineChart({
 // ─── Lightweight CSS timeline (Gantt) ────────────────────────────────────────
 // Maps dates onto a 0–100% horizontal axis padded two weeks either side, with
 // month tick marks. Shared by the initiative Workplan and the program Roadmap.
-export type TimelineScale = { min: number; max: number; pct: (d: string | Date) => number; ticks: { pct: number; label: string }[] };
+export type TimelineScale = {
+  min: number;
+  max: number;
+  pct: (d: string | Date) => number;
+  ticks: { pct: number; label: string }[];
+};
 
-export const ACTIVITY_STATUS_COLOR: Record<string, string> = { PLANNED: '#a3a3a3', IN_PROGRESS: '#4f46e5', DONE: '#047857' };
-export const ACTIVITY_STATUS_LABEL: Record<string, string> = { PLANNED: 'Planned', IN_PROGRESS: 'In progress', DONE: 'Done' };
+export const ACTIVITY_STATUS_COLOR: Record<string, string> = {
+  PLANNED: '#a3a3a3',
+  IN_PROGRESS: '#4f46e5',
+  DONE: '#047857',
+};
+export const ACTIVITY_STATUS_LABEL: Record<string, string> = {
+  PLANNED: 'Planned',
+  IN_PROGRESS: 'In progress',
+  DONE: 'Done',
+};
 
-export function makeTimelineScale(dates: (string | Date)[], unit: 'month' | 'quarter' = 'month'): TimelineScale | null {
+export function makeTimelineScale(
+  dates: (string | Date)[],
+  unit: 'month' | 'quarter' = 'month',
+): TimelineScale | null {
   const ts = dates.map((d) => new Date(d).getTime()).filter((n) => !Number.isNaN(n));
   if (ts.length === 0) return null;
   const TWO_WEEKS = 14 * 86400000;
   const min = Math.min(...ts) - TWO_WEEKS;
   const max = Math.max(...ts) + TWO_WEEKS;
   const span = Math.max(1, max - min);
-  const pct = (d: string | Date) => Math.min(100, Math.max(0, ((new Date(d).getTime() - min) / span) * 100));
+  const pct = (d: string | Date) =>
+    Math.min(100, Math.max(0, ((new Date(d).getTime() - min) / span) * 100));
   // Period-start ticks (month or calendar quarter), thinned to at most ~12 labels.
   const intervalMonths = unit === 'quarter' ? 3 : 1;
   const periodCount = Math.ceil(span / (intervalMonths * 30 * 86400000));
   const step = Math.max(1, Math.ceil(periodCount / 12));
-  const label = (d: Date) => unit === 'quarter'
-    ? `Q${Math.floor(d.getMonth() / 3) + 1} '${String(d.getFullYear()).slice(2)}`
-    : d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+  const label = (d: Date) =>
+    unit === 'quarter'
+      ? `Q${Math.floor(d.getMonth() / 3) + 1} '${String(d.getFullYear()).slice(2)}`
+      : d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
   const ticks: { pct: number; label: string }[] = [];
   const first = new Date(min);
-  let cur = unit === 'quarter'
-    ? new Date(first.getFullYear(), Math.floor(first.getMonth() / 3) * 3 + 3, 1)
-    : new Date(first.getFullYear(), first.getMonth() + 1, 1);
+  let cur =
+    unit === 'quarter'
+      ? new Date(first.getFullYear(), Math.floor(first.getMonth() / 3) * 3 + 3, 1)
+      : new Date(first.getFullYear(), first.getMonth() + 1, 1);
   let i = 0;
   while (cur.getTime() <= max) {
-    if (i % step === 0) ticks.push({ pct: ((cur.getTime() - min) / span) * 100, label: label(cur) });
+    if (i % step === 0)
+      ticks.push({ pct: ((cur.getTime() - min) / span) * 100, label: label(cur) });
     cur = new Date(cur.getFullYear(), cur.getMonth() + intervalMonths, 1);
     i++;
   }
@@ -305,7 +538,11 @@ export function TimelineGrid({ scale }: { scale: TimelineScale }) {
   return (
     <div className="absolute inset-0 pointer-events-none">
       {scale.ticks.map((t, i) => (
-        <div key={i} className="absolute top-0 bottom-0 border-l border-[#f5f5f5]" style={{ left: `${t.pct}%` }} />
+        <div
+          key={i}
+          className="absolute top-0 bottom-0 border-l border-[#f5f5f5]"
+          style={{ left: `${t.pct}%` }}
+        />
       ))}
     </div>
   );
@@ -315,7 +552,11 @@ export function TimelineAxis({ scale }: { scale: TimelineScale }) {
   return (
     <div className="relative h-5">
       {scale.ticks.map((t, i) => (
-        <span key={i} className="absolute top-0 text-[10px] text-[#a3a3a3] whitespace-nowrap" style={{ left: `${t.pct}%` }}>
+        <span
+          key={i}
+          className="absolute top-0 text-[10px] text-[#a3a3a3] whitespace-nowrap"
+          style={{ left: `${t.pct}%` }}
+        >
           {t.label}
         </span>
       ))}
@@ -326,15 +567,20 @@ export function TimelineAxis({ scale }: { scale: TimelineScale }) {
 // Roll month-keyed metric values into a sorted list of period keys (YYYY-MM).
 export function monthKeysFromLines(...lineSets: Line[][]): string[] {
   const keys = new Set<string>();
-  for (const set of lineSets) for (const l of set) for (const v of l.values) keys.add(v.periodStart.slice(0, 7));
+  for (const set of lineSets)
+    for (const l of set) for (const v of l.values) keys.add(v.periodStart.slice(0, 7));
   return [...keys].sort();
 }
 
 // Generate the contiguous YYYY-MM keys spanning a date range.
 export function generateMonths(start: string, end: string): string[] {
   const out: string[] = [];
-  const s = new Date(start), e = new Date(end);
+  const s = new Date(start),
+    e = new Date(end);
   let cur = new Date(s.getFullYear(), s.getMonth(), 1);
-  while (cur <= e) { out.push(`${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}`); cur = new Date(cur.getFullYear(), cur.getMonth() + 1, 1); }
+  while (cur <= e) {
+    out.push(`${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}`);
+    cur = new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
+  }
   return out;
 }

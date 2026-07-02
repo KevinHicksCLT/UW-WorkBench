@@ -12,7 +12,8 @@ import { Button, Card, ErrorMessage, Input, Label } from '../ui';
 // company out with the AI assistant.
 
 export default function CompanyOnboard({
-  companyEntity, onRequestAi,
+  companyEntity,
+  onRequestAi,
 }: {
   companyEntity: AdminEntity | null;
   onRequestAi: () => void;
@@ -27,7 +28,8 @@ export default function CompanyOnboard({
   const create = async () => {
     const v = name.trim();
     if (!v) return;
-    setCreating(true); setError('');
+    setCreating(true);
+    setError('');
     try {
       const co = await api.post('/companies', { name: v, seedRoots });
       setName('');
@@ -47,8 +49,9 @@ export default function CompanyOnboard({
       <Card variant="elevated" className="p-5">
         <h3 className="text-sm font-semibold text-[#171717] mb-1">Onboard a new company</h3>
         <p className="text-sm text-[#666666] mb-4 max-w-2xl">
-          Creates an isolated company workspace. We seed the root of the value-stream and organization
-          hierarchies so you can start building immediately — by hand in the tabs above, or with the AI assistant.
+          Creates an isolated company workspace. We seed the root of the value-stream and
+          organization hierarchies so you can start building immediately — by hand in the tabs
+          above, or with the AI assistant.
         </p>
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[240px]">
@@ -61,7 +64,12 @@ export default function CompanyOnboard({
             />
           </div>
           <label className="inline-flex items-center gap-2 text-sm text-[#525252] pb-2.5">
-            <input type="checkbox" checked={seedRoots} onChange={(e) => setSeedRoots(e.target.checked)} className="h-4 w-4 rounded border-[#d4d4d4]" />
+            <input
+              type="checkbox"
+              checked={seedRoots}
+              onChange={(e) => setSeedRoots(e.target.checked)}
+              className="h-4 w-4 rounded border-[#d4d4d4]"
+            />
             Seed hierarchy roots
           </label>
           <Button disabled={creating || !name.trim()} onClick={create}>
@@ -72,9 +80,12 @@ export default function CompanyOnboard({
         {justCreated && (
           <div className="mt-4 rounded-lg border border-[#bbf7d0] bg-[#f0fdf4] px-4 py-3 flex items-center justify-between gap-3">
             <div className="text-sm text-[#166534]">
-              <span className="font-medium">{justCreated}</span> is ready and now active. Build it out next.
+              <span className="font-medium">{justCreated}</span> is ready and now active. Build it
+              out next.
             </div>
-            <Button className="text-xs" onClick={onRequestAi}>Build with AI ✦</Button>
+            <Button className="text-xs" onClick={onRequestAi}>
+              Build with AI ✦
+            </Button>
           </div>
         )}
       </Card>
@@ -86,14 +97,26 @@ export default function CompanyOnboard({
           <table className="w-full text-sm">
             <tbody>
               {companies.map((c) => (
-                <tr key={c.id} className="border-b border-[#f5f5f5] last:border-0 hover:bg-[#fafafa]">
+                <tr
+                  key={c.id}
+                  className="border-b border-[#f5f5f5] last:border-0 hover:bg-[#fafafa]"
+                >
                   <td className="px-4 py-2.5">
                     <span className="font-medium text-[#171717]">{c.name}</span>
-                    {c.id === companyId && <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide text-[#166534] bg-[#dcfce7] px-1.5 py-0.5 rounded">Active</span>}
+                    {c.id === companyId && (
+                      <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide text-[#166534] bg-[#dcfce7] px-1.5 py-0.5 rounded">
+                        Active
+                      </span>
+                    )}
                   </td>
-                  <td className="px-4 py-2.5 text-right">
+                  <td className="px-4 py-2.5 text-center">
                     {c.id !== companyId && (
-                      <button onClick={() => setCompanyId(c.id)} className="text-xs font-medium text-[#0070AD] hover:text-[#005a8c]">Make active</button>
+                      <button
+                        onClick={() => setCompanyId(c.id)}
+                        className="text-xs font-medium text-[#0070AD] hover:text-[#005a8c]"
+                      >
+                        Make active
+                      </button>
                     )}
                   </td>
                 </tr>
