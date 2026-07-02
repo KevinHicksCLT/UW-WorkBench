@@ -1196,9 +1196,33 @@ model Program {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  workstreams Workstream[]
+  workstreams      Workstream[]
+  programResources ProgramResource[]
 
   @@index([companyId])
+}
+
+// Per-program resource finance profile — one row per person (InitiativeResource
+// assignments join by the same `name`). Carries the engagement window (roll
+// on/off), employment type, monthly cost rate, and manual month-amount
+// overrides for current/future months ({ "YYYY-MM": dollars }); past months
+// always show the calculated amount (rate × allocation) and are locked.
+model ProgramResource {
+  id           String    @id @default(cuid())
+  companyId    String
+  programId    String
+  program      Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
+  name         String // person label; matches InitiativeResource.name
+  roleType     String? // EMPLOYEE | CONTRACTOR
+  rate         Float? // monthly cost rate ($)
+  rollOn       DateTime?
+  rollOff      DateTime?
+  monthAmounts Json? // { "YYYY-MM": number } — manual overrides
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([programId, name])
+  @@index([companyId, programId])
 }
 
 model Workstream {
@@ -1230,6 +1254,7 @@ model PortfolioInitiative {
   workstream           Workstream   @relation(fields: [workstreamId], references: [id], onDelete: Cascade)
   name                 String
   description          String?
+  charter              String? // user-authored Project Charter (typed/pasted; Markdown)
   // Stage-gate workflow
   stage                String       @default("IDEA") // IDEA | PLAN | EXECUTE | COMPLETE
   workflowAction       String?
