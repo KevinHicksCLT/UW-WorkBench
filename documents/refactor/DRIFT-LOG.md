@@ -7,3 +7,5 @@ replicated onto `refactor` before the cutover merge.
 | Date | develop commit | Description | Replicated on refactor? |
 | --- | --- | --- | --- |
 | — | — | _none yet_ | — |
+
+<!-- pipeline-test: gated-deploy verification push 2026-07-02 -->
