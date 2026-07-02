@@ -9,32 +9,32 @@ import { BreadcrumbProvider } from './lib/breadcrumbs';
 // Layout (the app shell) and Login stay eager so the chrome renders instantly;
 // every page below is route-level code-split via React.lazy.
 import Layout from './components/Layout';
-import Login from './pages/Login';
+import Login from './pages/login/Login';
 
-const Overview = lazy(() => import('./pages/Overview'));
-const Explorer = lazy(() => import('./pages/Explorer'));
-const DivisionDetail = lazy(() => import('./pages/DivisionDetail'));
-const DepartmentDetail = lazy(() => import('./pages/DepartmentDetail'));
-const Organization = lazy(() => import('./pages/Organization'));
-const Roles = lazy(() => import('./pages/Roles'));
-const SearchResults = lazy(() => import('./pages/SearchResults'));
-const Admin = lazy(() => import('./pages/Admin'));
-const AuditTrail = lazy(() => import('./pages/AuditTrail'));
-const Standards = lazy(() => import('./pages/Standards'));
-const StandardArea = lazy(() => import('./pages/StandardArea'));
-const ActiveAI = lazy(() => import('./pages/ActiveAI'));
-const ActiveAIDetail = lazy(() => import('./pages/ActiveAIDetail'));
-const Portfolio = lazy(() => import('./pages/Portfolio'));
-const PortfolioProgram = lazy(() => import('./pages/PortfolioProgram'));
-const PortfolioInitiative = lazy(() => import('./pages/PortfolioInitiative'));
-const PortfolioRaid = lazy(() => import('./pages/PortfolioRaid'));
-const Work = lazy(() => import('./pages/Work'));
-const Automatable = lazy(() => import('./pages/Automatable'));
-const WorkLibrary = lazy(() => import('./pages/WorkLibrary'));
-const Applications = lazy(() => import('./pages/Applications'));
-const External = lazy(() => import('./pages/External'));
-const Regulations = lazy(() => import('./pages/Regulations'));
-const RegulationDetail = lazy(() => import('./pages/RegulationDetail'));
+const Overview = lazy(() => import('./pages/overview/Overview'));
+const Explorer = lazy(() => import('./pages/explorer/Explorer'));
+const DivisionDetail = lazy(() => import('./pages/division-detail/DivisionDetail'));
+const DepartmentDetail = lazy(() => import('./pages/department-detail/DepartmentDetail'));
+const Organization = lazy(() => import('./pages/organization/Organization'));
+const Roles = lazy(() => import('./pages/roles/Roles'));
+const SearchResults = lazy(() => import('./pages/search-results/SearchResults'));
+const Admin = lazy(() => import('./pages/admin/Admin'));
+const AuditTrail = lazy(() => import('./pages/audit-trail/AuditTrail'));
+const Standards = lazy(() => import('./pages/standards/Standards'));
+const StandardArea = lazy(() => import('./pages/standard-area/StandardArea'));
+const ActiveAI = lazy(() => import('./pages/active-ai/ActiveAI'));
+const ActiveAIDetail = lazy(() => import('./pages/active-ai-detail/ActiveAIDetail'));
+const Portfolio = lazy(() => import('./pages/portfolio/Portfolio'));
+const PortfolioProgram = lazy(() => import('./pages/portfolio-program/PortfolioProgram'));
+const PortfolioInitiative = lazy(() => import('./pages/portfolio-initiative/PortfolioInitiative'));
+const PortfolioRaid = lazy(() => import('./pages/portfolio-raid/PortfolioRaid'));
+const Work = lazy(() => import('./pages/work/Work'));
+const Automatable = lazy(() => import('./pages/automatable/Automatable'));
+const WorkLibrary = lazy(() => import('./pages/work-library/WorkLibrary'));
+const Applications = lazy(() => import('./pages/applications/Applications'));
+const External = lazy(() => import('./pages/external/External'));
+const Regulations = lazy(() => import('./pages/regulations/Regulations'));
+const RegulationDetail = lazy(() => import('./pages/regulation-detail/RegulationDetail'));
 
 // The standalone role page was retired (it repeated the Organization role
 // panel) — old /roles/:id links open that panel instead (now at /organization,
