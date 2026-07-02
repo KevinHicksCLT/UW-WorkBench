@@ -106,6 +106,33 @@ jobs:
           echo "Preview deployed after green gates: $url"
           echo "$url" >> "$GITHUB_STEP_SUMMARY"
 
+  # TEMPORARY one-shot job — remove after the lineage repair has run.
+  unweld-develop:
+    if: ${{ github.ref_name == 'pipeline-fix' && contains(github.event.head_commit.message, '[unweld-develop]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL 18 client
+        run: |
+          sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /usr/share/keyrings/pgdg.gpg
+          sudo sed -i 's|deb |deb [signed-by=/usr/share/keyrings/pgdg.gpg] |' /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client-18
+      - name: Rebuild develop under production (verified copy, then dissolve weld)
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+          DEVELOP_DIRECT_URL: ${{ secrets.DEVELOP_DATABASE_URL }}
+        run: PATH="/usr/lib/postgresql/18/bin:$PATH" node scripts/neon-unweld-develop.mjs
+      - name: Keep the dump as a safety artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: develop-dump-${{ github.sha }}
+          path: develop.dump
+          retention-days: 7
+          if-no-files-found: ignore
+
   # ─── develop/master: data-promote? → migrate → deploy → smoke → cleanup ───
   data-promote:
     # Whole-DATASET promotion as a LOGICAL COPY (pg_dump/pg_restore) — never a
