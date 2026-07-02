@@ -29,25 +29,31 @@ const BYPASS = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 const HEADERS = BYPASS ? { 'x-vercel-protection-bypass': BYPASS } : {};
 
 function isProtectionPage(res, text) {
+  // The interstitial 302-redirects to vercel.com/login (which answers 200),
+  // so detect protection by the FINAL url host, not just the status code.
+  let finalHost = '';
+  try {
+    finalHost = new URL(res.url).hostname;
+  } catch {
+    /* keep '' */
+  }
   return (
-    (res.status === 401 || res.status === 403) &&
-    /vercel|sso|authentication/i.test(text ?? '')
+    finalHost === 'vercel.com' ||
+    ((res.status === 401 || res.status === 403) && /vercel|sso|authentication/i.test(text ?? ''))
   );
 }
 
 async function check(url, validate) {
   const res = await fetch(url, { redirect: 'follow', headers: HEADERS });
   const text = await res.text();
-  if (!res.ok) {
-    if (!BYPASS && isProtectionPage(res, text)) {
-      console.log(
-        `${url} is behind Vercel Deployment Protection (HTTP ${res.status}). ` +
-          'Add the VERCEL_AUTOMATION_BYPASS_SECRET repo secret to smoke-check the real app.',
-      );
-      return 'protected';
-    }
-    throw new Error(`${url} -> HTTP ${res.status}`);
+  if (!BYPASS && isProtectionPage(res, text)) {
+    console.log(
+      `${url} is behind Vercel Deployment Protection (final URL ${res.url}, HTTP ${res.status}). ` +
+        'Add the VERCEL_AUTOMATION_BYPASS_SECRET repo secret to smoke-check the real app.',
+    );
+    return 'protected';
   }
+  if (!res.ok) throw new Error(`${url} -> HTTP ${res.status}`);
   await validate(text);
   return 'ok';
 }
