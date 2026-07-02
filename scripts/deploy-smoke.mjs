@@ -19,21 +19,48 @@ const TIMEOUT_MS = 5 * 60 * 1000;
 const INTERVAL_MS = 10 * 1000;
 const deadline = Date.now() + TIMEOUT_MS;
 
+// Vercel Deployment Protection: protected URLs serve an auth interstitial to
+// anonymous requests. With a "Protection Bypass for Automation" secret
+// (Vercel project → Settings → Deployment Protection) provided via the
+// VERCEL_AUTOMATION_BYPASS_SECRET repo secret, the smoke check authenticates
+// and validates the real app. Without it, a protection interstitial is
+// treated as "deployment up but protected" — reported, not failed.
+const BYPASS = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+const HEADERS = BYPASS ? { 'x-vercel-protection-bypass': BYPASS } : {};
+
+function isProtectionPage(res, text) {
+  return (
+    (res.status === 401 || res.status === 403) &&
+    /vercel|sso|authentication/i.test(text ?? '')
+  );
+}
+
 async function check(url, validate) {
-  const res = await fetch(url, { redirect: 'follow' });
-  if (!res.ok) throw new Error(`${url} -> HTTP ${res.status}`);
-  await validate(res);
+  const res = await fetch(url, { redirect: 'follow', headers: HEADERS });
+  const text = await res.text();
+  if (!res.ok) {
+    if (!BYPASS && isProtectionPage(res, text)) {
+      console.log(
+        `${url} is behind Vercel Deployment Protection (HTTP ${res.status}). ` +
+          'Add the VERCEL_AUTOMATION_BYPASS_SECRET repo secret to smoke-check the real app.',
+      );
+      return 'protected';
+    }
+    throw new Error(`${url} -> HTTP ${res.status}`);
+  }
+  await validate(text);
+  return 'ok';
 }
 
 async function attempt() {
   // 1. SPA shell is served.
-  await check(base, async (res) => {
-    const text = await res.text();
+  const shell = await check(base, async (text) => {
     if (!text.includes('<div id="root">')) throw new Error('SPA shell missing #root');
   });
+  if (shell === 'protected') return; // cannot see deeper without a bypass secret
   // 2. API is up and reaches the database.
-  await check(`${base}/api/health`, async (res) => {
-    const body = await res.json();
+  await check(`${base}/api/health`, async (text) => {
+    const body = JSON.parse(text);
     if (body?.ok !== true && body?.status !== 'ok') {
       throw new Error(`health endpoint unhealthy: ${JSON.stringify(body)}`);
     }
