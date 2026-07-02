@@ -78,7 +78,8 @@ jobs:
             prod_flag="--prod"
           fi
           npx vercel pull --yes $env_flag --token="$VERCEL_TOKEN"
-          url=$(npx vercel deploy $prod_flag --token="$VERCEL_TOKEN" 2>&1 | tail -1)
+          # URL arrives on stdout; CLI hints go to stderr — don't merge them.
+          url=$(npx vercel deploy $prod_flag --token="$VERCEL_TOKEN")
           echo "Deployed after green gates + migrations: $url"
           echo "$url" >> "$GITHUB_STEP_SUMMARY"
 
