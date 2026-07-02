@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 # Vercel "Ignored Build Step" (vercel.json ignoreCommand).
-# Gate: Vercel's git integration only auto-builds the protected environments
-# (develop, master); feature branches are deployed by CI AFTER the quality
-# gates pass (see .github/workflows/ci.yml deploy-preview job), never directly
-# on push.
-#
-# Exit 1 = proceed with build, exit 0 = skip build.
-case "$VERCEL_GIT_COMMIT_REF" in
-  develop|master) exit 1 ;;
-  *) echo "Skipping direct Vercel build for '$VERCEL_GIT_COMMIT_REF' — CI deploys feature branches after quality gates."; exit 0 ;;
-esac
+# ALL direct git-integration builds are skipped — every deployment goes
+# through GitHub Actions AFTER the quality gates (and, for develop/master,
+# after DB migrations) succeed:
+#   - feature branches: ci.yml deploy-preview job
+#   - develop/master:   promote.yml quality → migrate → deploy → smoke chain
+# Exit 0 = skip build.
+echo "Direct Vercel builds are disabled — deployments are gated behind CI (see promote.yml/ci.yml)."
+exit 0

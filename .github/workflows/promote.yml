@@ -1,21 +1,19 @@
 # Environment-synchronized promotion pipeline (refactor charter Task 21).
 #
-# One merge = one synchronized promotion of code + database schema + deployment:
-#   merge feature → develop : apply migrations to the Neon `develop` DB branch,
-#                             wait for the Vercel develop deployment, smoke-check it,
-#                             then delete the feature's git + Neon branches.
-#   merge develop → master  : same flow against the Neon `production` DB branch.
+# STRICT ORDER — nothing deploys before the gates: on every push to develop
+# or master the chain is
+#   quality gates (reused CI workflow) → DB migrations → deploy → smoke check
+#   → Neon feature-branch cleanup (develop only)
+# Vercel's direct git builds are fully disabled (scripts/vercel-ignore-build.sh),
+# so a deployment can only exist if quality and migrations succeeded first.
 #
-# Vercel deploys automatically from its git integration; this workflow's job is to
-# keep the DATABASE side in lockstep and to verify + clean up.
-#
-# Required repo secrets (Settings → Secrets and variables → Actions):
-#   NEON_API_KEY        — Neon API key (org: Kevin)
-#   NEON_PROJECT_ID     — billowing-salad-46113160
-#   DEVELOP_DATABASE_URL    — direct (non-pooler) URL of the Neon `develop` branch
-#   PRODUCTION_DATABASE_URL — direct (non-pooler) URL of the Neon `production` branch
+# Required repo secrets:
+#   NEON_API_KEY, NEON_PROJECT_ID
+#   DEVELOP_DATABASE_URL / PRODUCTION_DATABASE_URL — direct (non-pooler) Neon URLs
+#   VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
 # Optional:
-#   VERCEL_DEPLOY_HOOK_DEVELOP / _PRODUCTION — to force a redeploy after migration.
+#   VERCEL_AUTOMATION_BYPASS_SECRET — lets the smoke check see through Vercel
+#   Deployment Protection (project → Settings → Deployment Protection).
 name: Promote
 
 on:
@@ -27,19 +25,22 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  migrate-and-verify:
+  quality:
+    # Same gates as feature-branch CI — lint, typecheck, tests+coverage, build.
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  migrate:
+    needs: quality
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
       - name: Install dependencies
         run: npm ci
-
       - name: Apply migrations to the target Neon branch
         working-directory: backend
         env:
@@ -47,21 +48,57 @@ jobs:
           DIRECT_URL: ${{ github.ref_name == 'master' && secrets.PRODUCTION_DATABASE_URL || secrets.DEVELOP_DATABASE_URL }}
         run: npx prisma migrate deploy
 
-      - name: Wait for + smoke-check the Vercel deployment
+  deploy:
+    # Runs ONLY after gates + migrations. Git metadata env vars make Vercel
+    # attach the deployment to this branch (stable -git-develop- URL alias;
+    # --prod promotes the production domain on master).
+    needs: migrate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Deploy to Vercel (post-gate, post-migration)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_GIT_PROVIDER: github
+          VERCEL_GIT_REPO_OWNER: ${{ github.repository_owner }}
+          VERCEL_GIT_REPO_SLUG: ${{ github.event.repository.name }}
+          VERCEL_GIT_COMMIT_REF: ${{ github.ref_name }}
+          VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
+          VERCEL_GIT_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          env_flag="--environment=preview"
+          prod_flag=""
+          if [ "${{ github.ref_name }}" = "master" ]; then
+            env_flag="--environment=production"
+            prod_flag="--prod"
+          fi
+          npx vercel pull --yes $env_flag --token="$VERCEL_TOKEN"
+          url=$(npx vercel deploy $prod_flag --token="$VERCEL_TOKEN" 2>&1 | tail -1)
+          echo "Deployed after green gates + migrations: $url"
+          echo "$url" >> "$GITHUB_STEP_SUMMARY"
+
+  smoke:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Smoke-check the deployment
         env:
           TARGET_URL: ${{ github.ref_name == 'master' && 'https://transform-platform.vercel.app' || 'https://transform-platform-git-develop-kevins-projects-e3a4abb1.vercel.app' }}
-          # Optional: lets the smoke check see through Vercel Deployment
-          # Protection (project → Settings → Deployment Protection →
-          # Protection Bypass for Automation).
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: node scripts/deploy-smoke.mjs "$TARGET_URL"
 
   cleanup-merged-branches:
-    # After a feature merges to develop, delete its Neon DB branch (same name as
-    # the git branch) so stale branches never accumulate. Git branch deletion is
-    # handled by GitHub's "automatically delete head branches" repo setting.
+    # After a feature merges to develop, delete its Neon DB branch (same name
+    # as the git branch). Git branch deletion is handled by GitHub's
+    # "automatically delete head branches" repo setting.
     if: github.ref_name == 'develop'
-    needs: migrate-and-verify
+    needs: smoke
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

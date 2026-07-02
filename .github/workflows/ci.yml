@@ -1,13 +1,15 @@
 # CI quality gate (refactor charter Tasks 7, 8, 20).
 # Every push and PR: install → lint (zero warnings) → typecheck → unit tests
-# with coverage → production build. Vercel handles deployment previews;
-# SonarCloud job runs only when the token secret is configured.
+# with coverage → production build. NOTHING deploys before this passes:
+# feature previews via the deploy-preview job below; develop/master via the
+# Promote workflow, which calls this workflow first (workflow_call).
 name: CI
 
 on:
   push:
-    branches: [master, develop, refactor]
+    branches-ignore: [master, develop]
   pull_request:
+  workflow_call:
 
 concurrency:
   group: ci-${{ github.ref }}

@@ -35,11 +35,14 @@ Otherwise previews see production data and drift from the develop schema.
 
 ### Deployment gating
 
-Vercel does **not** build feature branches on push (`scripts/vercel-ignore-build.sh`
-skips everything except `develop`/`master`). Feature previews deploy from CI's
-`deploy-preview` job **after** the quality gates pass (activate with repo secrets
-`VERCEL_TOKEN`/`VERCEL_ORG_ID`/`VERCEL_PROJECT_ID` + variable `VERCEL_CI_DEPLOY=true`).
-`develop`/`master` build on Vercel directly; their protection is the PR gate.
+**Nothing deploys before the gates.** Vercel's direct git builds are fully disabled
+(`scripts/vercel-ignore-build.sh` skips every branch):
+
+- **Feature branches:** CI's `deploy-preview` job deploys a preview **after** the
+  quality job passes.
+- **`develop`/`master`:** the `Promote` workflow chains
+  `quality → DB migrations → deploy → smoke check → Neon cleanup` — a deployment can
+  only exist if lint/typecheck/tests/build succeeded AND migrations applied first.
 
 ### Rules
 
