@@ -12,8 +12,34 @@ feature/<name>  →  develop  →  master
   `develop` DB branch. Only receives merges from feature branches via pull request.
 - **`feature/<name>`** — all work happens here. Cut from `develop`. If your work needs
   schema or data changes, also cut a **Neon DB branch of the same name** from the Neon
-  `develop` branch and point `backend/.env` at it (see `scripts/README.md` and the
-  `neon-db-branch-ops` skill).
+  `develop` branch and point `backend/.env` at it — one command:
+  `node scripts/neon-branch-create.mjs <name>` (always forks from `develop`).
+
+### How database changes flow (no manual "DB merges")
+
+Neon branches are point-in-time **copies**, not git-style merges. What promotes between
+environments is the **schema, via committed migrations** — data never moves upward:
+
+1. Feature work: schema edits land as a migration (`npm run db:migrate -w
+cascade-backend`), applied to your feature DB branch as you develop.
+2. Merge feature → `develop`: the `Promote` workflow runs `prisma migrate deploy`
+   against the Neon `develop` branch, smoke-checks the deployment, then **deletes the
+   feature's Neon branch automatically** (same-name convention).
+3. Merge `develop` → `master`: same flow against the Neon `production` branch.
+
+⚠ If the Neon **Vercel integration** ("preview branching") is enabled, it auto-creates
+a DB branch per preview deployment and defaults the parent to the project's default
+branch (**production**). Set it to fork from **`develop`** instead: Vercel →
+Integrations → Neon → Configure → _Parent branch for preview branches_ → `develop`.
+Otherwise previews see production data and drift from the develop schema.
+
+### Deployment gating
+
+Vercel does **not** build feature branches on push (`scripts/vercel-ignore-build.sh`
+skips everything except `develop`/`master`). Feature previews deploy from CI's
+`deploy-preview` job **after** the quality gates pass (activate with repo secrets
+`VERCEL_TOKEN`/`VERCEL_ORG_ID`/`VERCEL_PROJECT_ID` + variable `VERCEL_CI_DEPLOY=true`).
+`develop`/`master` build on Vercel directly; their protection is the PR gate.
 
 ### Rules
 
