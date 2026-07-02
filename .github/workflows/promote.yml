@@ -1,0 +1,69 @@
+# Environment-synchronized promotion pipeline (refactor charter Task 21).
+#
+# One merge = one synchronized promotion of code + database schema + deployment:
+#   merge feature → develop : apply migrations to the Neon `develop` DB branch,
+#                             wait for the Vercel develop deployment, smoke-check it,
+#                             then delete the feature's git + Neon branches.
+#   merge develop → master  : same flow against the Neon `production` DB branch.
+#
+# Vercel deploys automatically from its git integration; this workflow's job is to
+# keep the DATABASE side in lockstep and to verify + clean up.
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   NEON_API_KEY        — Neon API key (org: Kevin)
+#   DEVELOP_DATABASE_URL    — direct (non-pooler) URL of the Neon `develop` branch
+#   PRODUCTION_DATABASE_URL — direct (non-pooler) URL of the Neon `production` branch
+# Required repo variable:
+#   NEON_PROJECT_ID     — billowing-salad-46113160
+# Optional:
+#   VERCEL_DEPLOY_HOOK_DEVELOP / _PRODUCTION — to force a redeploy after migration.
+name: Promote
+
+on:
+  push:
+    branches: [develop, master]
+
+concurrency:
+  group: promote-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  migrate-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply migrations to the target Neon branch
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ github.ref_name == 'master' && secrets.PRODUCTION_DATABASE_URL || secrets.DEVELOP_DATABASE_URL }}
+          DIRECT_URL: ${{ github.ref_name == 'master' && secrets.PRODUCTION_DATABASE_URL || secrets.DEVELOP_DATABASE_URL }}
+        run: npx prisma migrate deploy
+
+      - name: Wait for + smoke-check the Vercel deployment
+        env:
+          TARGET_URL: ${{ github.ref_name == 'master' && 'https://transform-platform.vercel.app' || 'https://transform-platform-git-develop-kevins-projects-e3a4abb1.vercel.app' }}
+        run: node scripts/deploy-smoke.mjs "$TARGET_URL"
+
+  cleanup-merged-branches:
+    # After a feature merges to develop, delete its Neon DB branch (same name as
+    # the git branch) so stale branches never accumulate. Git branch deletion is
+    # handled by GitHub's "automatically delete head branches" repo setting.
+    if: github.ref_name == 'develop'
+    needs: migrate-and-verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Delete the merged feature's Neon branch
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+        run: node scripts/neon-branch-cleanup.mjs

@@ -723,7 +723,7 @@ model WorkTemplate {
   isDefault   Boolean  @default(false) // seeded library default (Core evidence is always applied)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime @updatedAt @default(now())
 
   keys            WorkTemplateKey[]
   nodeLinks       NodeWorkTemplate[]
@@ -819,7 +819,7 @@ model NodeTemplateAnswer {
   suppressed    Boolean          @default(false)
   sortOrder     Int              @default(0)
   createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  updatedAt     DateTime         @updatedAt @default(now())
 
   @@unique([processNodeId, templateKeyId])
   @@index([processNodeId])
@@ -846,7 +846,7 @@ model StandardTemplateAnswer {
   suppressed    Boolean          @default(false)
   sortOrder     Int              @default(0)
   createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  updatedAt     DateTime         @updatedAt @default(now())
 
   @@unique([standardId, templateKeyId])
   @@index([standardId])
@@ -873,7 +873,7 @@ model RegulationTemplateAnswer {
   suppressed    Boolean               @default(false)
   sortOrder     Int                   @default(0)
   createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt
+  updatedAt     DateTime              @updatedAt @default(now())
 
   @@unique([regId, templateKeyId])
   @@index([regId])
@@ -903,7 +903,7 @@ model NodeStandardEvidence {
   deliverable   Deliverable? @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
   sortOrder     Int          @default(0)
   createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  updatedAt     DateTime     @updatedAt @default(now())
 
   @@index([processNodeId])
   @@index([standardId])
@@ -928,7 +928,7 @@ model NodeRegulationEvidence {
   deliverable   Deliverable?          @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
   sortOrder     Int                   @default(0)
   createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt
+  updatedAt     DateTime              @updatedAt @default(now())
 
   @@index([processNodeId])
   @@index([regId])
