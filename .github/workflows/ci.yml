@@ -90,10 +90,28 @@ jobs:
           echo "Preview deployed after green gates: $url"
           echo "$url" >> "$GITHUB_STEP_SUMMARY"
 
-  # ─── develop/master: migrate → deploy → smoke → cleanup ───────────────────
-  migrate:
+  # ─── develop/master: data-promote? → migrate → deploy → smoke → cleanup ───
+  data-promote:
+    # Whole-DATASET promotion (Neon branch restore with automatic backup).
+    # Deliberate opt-in: acts ONLY when the merge commit message contains
+    # `[promote-data]`; otherwise the step is a green no-op. master: restore
+    # production from develop. develop: restore develop from the merged
+    # feature's same-name Neon branch.
     needs: quality
     if: ${{ github.ref_name == 'master' || github.ref_name == 'develop' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Promote dataset if the merge requests it
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: node scripts/neon-data-promote.mjs
+
+  migrate:
+    needs: data-promote
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
