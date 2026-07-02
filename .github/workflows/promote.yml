@@ -50,6 +50,10 @@ jobs:
       - name: Wait for + smoke-check the Vercel deployment
         env:
           TARGET_URL: ${{ github.ref_name == 'master' && 'https://transform-platform.vercel.app' || 'https://transform-platform-git-develop-kevins-projects-e3a4abb1.vercel.app' }}
+          # Optional: lets the smoke check see through Vercel Deployment
+          # Protection (project → Settings → Deployment Protection →
+          # Protection Bypass for Automation).
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: node scripts/deploy-smoke.mjs "$TARGET_URL"
 
   cleanup-merged-branches:
