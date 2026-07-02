@@ -108,23 +108,34 @@ jobs:
 
   # ─── develop/master: data-promote? → migrate → deploy → smoke → cleanup ───
   data-promote:
-    # Whole-DATASET promotion (Neon branch restore with automatic backup).
-    # Deliberate opt-in: acts ONLY when the merge commit message contains
-    # `[promote-data]`; otherwise the step is a green no-op. master: restore
-    # production from develop. develop: restore develop from the merged
-    # feature's same-name Neon branch.
+    # Whole-DATASET promotion as a LOGICAL COPY (pg_dump/pg_restore) — never a
+    # Neon branch restore, which re-parents environment branches under feature
+    # branches and welds an undeletable lineage chain. Branch parentage never
+    # changes here; the target is snapshotted to a leaf-deletable
+    # backup/<target>-<sha> child first, and one backup per target is kept.
+    # Opt-in: acts ONLY when the merge TITLE ends with `[promote-data]`.
     needs: quality
     if: ${{ github.ref_name == 'master' || github.ref_name == 'develop' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install PostgreSQL 18 client (matches Neon server major)
+        run: |
+          sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /usr/share/keyrings/pgdg.gpg
+          sudo sed -i 's|deb |deb [signed-by=/usr/share/keyrings/pgdg.gpg] |' /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client-18
+          pg_dump --version
       - name: Promote dataset if the merge requests it
         env:
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
           NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           COMMIT_SHA: ${{ github.sha }}
-        run: node scripts/neon-data-promote.mjs
+          DEVELOP_DIRECT_URL: ${{ secrets.DEVELOP_DATABASE_URL }}
+          PRODUCTION_DIRECT_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: |
+          PATH="/usr/lib/postgresql/18/bin:$PATH" node scripts/neon-data-promote.mjs
 
   migrate:
     needs: data-promote
