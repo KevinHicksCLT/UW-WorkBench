@@ -67,6 +67,12 @@ test.describe('route smoke', () => {
       const bodyText = (await page.textContent('body')) ?? '';
       expect(bodyText.length, `route ${route.path} rendered blank`).toBeGreaterThan(100);
       expect(failedRequests, `5xx responses on ${route.path}`).toEqual([]);
+      // Console errors are surfaced (not asserted) — transient HMR/dev noise
+      // would make a hard assertion flaky; a real regression still shows up
+      // as a 5xx or blank screen above.
+      if (consoleErrors.length > 0) {
+        console.warn(`console errors on ${route.path}:`, consoleErrors.slice(0, 5));
+      }
 
       await page.screenshot({
         path: path.join(SCREEN_DIR, `${route.name}.png`),
