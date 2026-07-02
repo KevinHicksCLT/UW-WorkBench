@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
 import { type Dashboard, WIDGET_MAP, DEFAULT_LAYOUT, widgetSpan } from '../lib/dashboardWidgets';
+import { Card, ErrorMessage, LoadingState } from '../components/ui';
 
 // Executive overview — the landing page. A single-glance summary of one
 // company's operating model, sourced from GET /dashboard?companyId=…. Which
@@ -24,8 +25,8 @@ export default function Overview() {
       .finally(() => setLoading(false));
   }, [companyId, companyLoading]);
 
-  if (loading || companyLoading) return <div className="text-sm text-[#a3a3a3]">Loading overview…</div>;
-  if (error) return <div className="text-sm text-[#be123c]">{error}</div>;
+  if (loading || companyLoading) return <LoadingState message="Loading overview…" />;
+  if (error) return <ErrorMessage>{error}</ErrorMessage>;
   if (!data) return null;
 
   // The chosen layout (ordered widget ids); fall back to the default. Unknown ids
@@ -36,9 +37,9 @@ export default function Overview() {
   return (
     <div>
       {widgets.length === 0 ? (
-        <div className="card-elevated p-8 text-center text-sm text-[#a3a3a3]">
+        <Card variant="elevated" className="p-8 text-center text-sm text-[#a3a3a3]">
           No dashboard areas are configured. Add some in <span className="text-[#525252]">Data Admin → Home</span>.
-        </div>
+        </Card>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {widgets.map((w) => (

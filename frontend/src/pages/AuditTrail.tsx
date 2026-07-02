@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import PageHeader from '../components/PageHeader';
 import type { AdminEntity } from '../lib/adminTypes';
+import { Card, ErrorMessage, Select } from '../components/ui';
 
 // Read-only audit log viewer. Every create/update/delete made through the admin
 // console writes an AuditEntry; this page lists them, filterable by entity type.
@@ -23,25 +24,28 @@ const actionPill: Record<string, string> = {
   DELETE: 'pill-red',
 };
 
+type FieldChange = { from: unknown; to: unknown };
+const isFieldChange = (v: unknown): v is FieldChange =>
+  Boolean(v) && typeof v === 'object' && v !== null && 'from' in v && 'to' in v;
+
 function DiffView({ raw }: { raw: string | null }) {
   if (!raw) return <span className="text-[#a3a3a3]">—</span>;
-  let parsed: any;
+  let parsed: unknown;
   try { parsed = JSON.parse(raw); } catch { return <code className="text-xs">{raw}</code>; }
 
-  const entries = Object.entries(parsed);
+  const entries = Object.entries(parsed as Record<string, unknown>);
   return (
     <div className="space-y-0.5">
       {entries.map(([field, val]) => {
         // UPDATE diffs are { from, to }; CREATE/DELETE are plain field → value.
-        const isChange = val && typeof val === 'object' && 'from' in (val as any) && 'to' in (val as any);
         return (
           <div key={field} className="text-xs flex gap-1.5">
             <span className="text-[#666666] font-medium">{field}:</span>
-            {isChange ? (
+            {isFieldChange(val) ? (
               <span>
-                <span className="text-[#be123c] line-through">{String((val as any).from ?? '∅')}</span>
+                <span className="text-[#be123c] line-through">{String(val.from ?? '∅')}</span>
                 <span className="text-[#a3a3a3] mx-1">→</span>
-                <span className="text-[#047857]">{String((val as any).to ?? '∅')}</span>
+                <span className="text-[#047857]">{String(val.to ?? '∅')}</span>
               </span>
             ) : (
               <span className="text-[#171717]">{String(val ?? '∅')}</span>
@@ -74,12 +78,12 @@ export default function AuditTrail({ embedded }: { embedded?: boolean } = {}) {
   }, [filter]);
 
   const filterSelect = (
-    <select className="input max-w-[200px]" value={filter} onChange={(e) => setFilter(e.target.value)}>
+    <Select className="max-w-[200px]" value={filter} onChange={(e) => setFilter(e.target.value)}>
       <option value="">All entity types</option>
       {entities.map((e) => (
         <option key={e.slug} value={e.model}>{e.label}</option>
       ))}
-    </select>
+    </Select>
   );
 
   return (
@@ -94,9 +98,9 @@ export default function AuditTrail({ embedded }: { embedded?: boolean } = {}) {
         />
       )}
 
-      {error && <div className="text-sm text-[#be123c] mb-3">{error}</div>}
+      {error && <ErrorMessage className="mb-3">{error}</ErrorMessage>}
 
-      <div className="card-elevated overflow-hidden">
+      <Card variant="elevated" className="overflow-hidden">
         <div className="table-scroll">
           <table className="w-full text-sm">
             <thead>
@@ -127,7 +131,7 @@ export default function AuditTrail({ embedded }: { embedded?: boolean } = {}) {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
 
       <p className="text-xs text-[#a3a3a3] mt-3">
         Showing the most recent {entries.length} entries.

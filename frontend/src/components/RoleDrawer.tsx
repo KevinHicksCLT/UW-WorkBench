@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { PARTICIPATION_CLASS } from '../lib/format';
+import { DrawerShell, EmptyState, ErrorMessage, SkeletonLoader, StatusPill } from './ui';
 
 // RoleDrawer — the role's full detail (inputs & deliverables, process tasks,
 // responsibilities and value-stream participation), rendered as a wide
@@ -26,13 +27,7 @@ const SectionLabel = ({ children }: { children: ReactNode }) => (
 );
 
 const Empty = ({ text }: { text: string }) => (
-  <div className="text-sm text-[#a3a3a3] italic">{text}</div>
-);
-
-const Skeleton = () => (
-  <div className="space-y-2">
-    {Array.from({ length: 5 }).map((_, i) => <div key={i} className="skeleton rounded-md" style={{ height: 48 }} />)}
-  </div>
+  <EmptyState baseClassName="text-sm text-[#a3a3a3] italic" message={text} />
 );
 
 export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClose: () => void }) {
@@ -56,35 +51,28 @@ export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClos
   const processTaskCount = r?.processTasks?.length ?? 0;
 
   return (
-    <div className="absolute inset-0 z-30 flex justify-end" role="dialog" aria-modal="true">
-      {/* Backdrop dims the canvas; click to dismiss. */}
-      <div className="absolute inset-0 bg-black/20" onClick={onClose} />
-
-      <aside className="relative h-full bg-white border-l border-[#eaeaea] shadow-2xl flex flex-col" style={{ width: 720, maxWidth: '94vw' }}>
-        {/* Header */}
-        <div className="px-5 py-4 border-b border-[#eaeaea] flex items-start justify-between gap-3 flex-shrink-0">
-          <div className="min-w-0 flex items-start gap-2.5">
-            <div className="min-w-0">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3]">Role</div>
-              <div className="text-[15px] font-bold text-[#171717] leading-snug">
-                {r?.name ?? 'Loading…'}
-              </div>
-              <div className="text-[11px] text-[#a3a3a3] mt-0.5">
-                {[r?.roleFamily, r?.department?.name, r?.division?.name].filter(Boolean).join(' · ')}
-              </div>
+    <DrawerShell
+      onClose={onClose}
+      width={720}
+      maxWidth="94vw"
+      header={
+        <div className="min-w-0 flex items-start gap-2.5">
+          <div className="min-w-0">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3]">Role</div>
+            <div className="text-[15px] font-bold text-[#171717] leading-snug">
+              {r?.name ?? 'Loading…'}
+            </div>
+            <div className="text-[11px] text-[#a3a3a3] mt-0.5">
+              {[r?.roleFamily, r?.department?.name, r?.division?.name].filter(Boolean).join(' · ')}
             </div>
           </div>
-          <button onClick={onClose} aria-label="Close" className="-mr-1 flex-shrink-0 text-[#a3a3a3] hover:text-[#171717] w-7 h-7 rounded-md hover:bg-[#fafafa] flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
-          </button>
         </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-5">
+      }
+    >
           {error ? (
-            <div className="text-sm text-[#be123c]">{error}</div>
+            <ErrorMessage>{error}</ErrorMessage>
           ) : !r ? (
-            <Skeleton />
+            <SkeletonLoader count={5} height={48} className="space-y-2" />
           ) : (
             <>
               {/* Value-stream participation — compact chips up top so the long
@@ -120,7 +108,7 @@ export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClos
                         <ul className="mt-1.5 divide-y divide-slate-100">
                           {g.tasks.map((t, i) => (
                             <li key={i} className="flex items-start gap-2.5 py-2 first:pt-0">
-                              <span className={`${t.relation === 'Lead' ? 'pill-blue' : 'pill-slate'} mt-0.5 flex-shrink-0`}>{t.relation}</span>
+                              <StatusPill tone={t.relation === 'Lead' ? 'blue' : 'slate'} className="mt-0.5 flex-shrink-0">{t.relation}</StatusPill>
                               <div className="min-w-0 flex-1">
                                 <div className="text-[13px] text-slate-700 break-words">{t.name}</div>
                                 {t.outputs && <div className="text-[11px] text-[#a3a3a3] mt-0.5 break-words">→ {t.outputs}</div>}
@@ -135,8 +123,6 @@ export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClos
               </div>
             </>
           )}
-        </div>
-      </aside>
-    </div>
+    </DrawerShell>
   );
 }

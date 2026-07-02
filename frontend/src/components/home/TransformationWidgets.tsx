@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fmt } from '../../lib/format';
 import { StatusPill, SeverityCell, makeTimelineScale, TimelineGrid, TimelineAxis } from '../../lib/portfolio';
+import { EmptyState } from '../ui';
 
 // ─── Transformation command-center widgets (Home, D1) ────────────────────────
 // The widget BODIES for the Home dashboard's transformation widgets — the
@@ -59,7 +60,7 @@ function ProgressBar({ pct, color = '#4f46e5' }: { pct: number; color?: string }
 // ── Portfolio rollup: programs → initiatives, expandable ────────────────────
 export function PortfolioRollup({ t }: { t: TransformationData }) {
   const [open, setOpen] = useState<Record<string, boolean>>({});
-  if (t.programs.length === 0) return <div className="text-sm text-[#a3a3a3]">No programs yet.</div>;
+  if (t.programs.length === 0) return <EmptyState baseClassName="text-sm text-[#a3a3a3]" message="No programs yet." />;
   return (
     <div className="table-scroll">
       <table className="w-full text-sm">
@@ -132,7 +133,7 @@ function PortfolioRow({ p, color, open, onToggle }: { p: HomeProgram; color: str
 export function ProgramGantt({ t }: { t: TransformationData }) {
   const dates: (string | Date)[] = t.programs.flatMap((p) => [p.startDate, p.endDate, ...p.milestones.map((m) => m.dueDate)]);
   const scale = makeTimelineScale(dates, 'quarter');
-  if (!scale || t.programs.length === 0) return <div className="text-sm text-[#a3a3a3]">No dated programs yet.</div>;
+  if (!scale || t.programs.length === 0) return <EmptyState baseClassName="text-sm text-[#a3a3a3]" message="No dated programs yet." />;
   const now = Date.now();
   const showToday = now >= scale.min && now <= scale.max;
   // Quarter boundaries (ticks + both edges) → alternating background bands.
@@ -205,7 +206,7 @@ export function ProgramGantt({ t }: { t: TransformationData }) {
 // Severity shows as its RATING (Low / Medium / High via SeverityCell — the same
 // risk-band pill the RAID log uses), never as a raw 5×5 score.
 export function TopRisks({ t }: { t: TransformationData }) {
-  if (t.topRisks.length === 0) return <div className="text-sm text-[#a3a3a3]">No open risks.</div>;
+  if (t.topRisks.length === 0) return <EmptyState baseClassName="text-sm text-[#a3a3a3]" message="No open risks." />;
   return (
     <div className="space-y-0.5 -mx-2">
       {t.topRisks.map((r) => (
@@ -273,7 +274,7 @@ export function RaidSummary({ t }: { t: TransformationData }) {
 // The program name and every tile deep-link to that program's RAID tab; tiles
 // also preset the type filter there.
 export function RaidByProgram({ t }: { t: TransformationData }) {
-  if (t.programs.length === 0) return <div className="text-sm text-[#a3a3a3]">No programs yet.</div>;
+  if (t.programs.length === 0) return <EmptyState baseClassName="text-sm text-[#a3a3a3]" message="No programs yet." />;
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {t.programs.map((p) => (

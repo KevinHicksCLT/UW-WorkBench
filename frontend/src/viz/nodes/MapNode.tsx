@@ -4,6 +4,7 @@ import {
   DOMAIN_HEX, DOMAIN_BG, DOMAIN_BORDER, DOMAIN_TEXT,
   type NodeFocusState,
 } from '../model';
+import { Chip } from '../../components/ui';
 
 // ── Map card dimensions ───────────────────────────────────────────────────────
 // Deliberately smaller than the shared CARD_W/CARD_H in model.ts (220×96), per
@@ -482,9 +483,9 @@ const SubStepNodeImpl = memo(function SubStepNodeImpl({ data }: NodeProps) {
       </div>
       {/* L5 drill affordance */}
       {!!d.l5Count && (
-        <span className="chip-soft" style={{ fontSize: 9, padding: '2px 6px' }}>
+        <Chip style={{ fontSize: 9, padding: '2px 6px' }}>
           {d.l5Count} step{d.l5Count === 1 ? '' : 's'} ›
-        </span>
+        </Chip>
       )}
       {d.staged && <StagedDot />}
       <AllHandles />

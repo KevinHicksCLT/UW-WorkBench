@@ -1,4 +1,5 @@
 import PageHeader from '../components/PageHeader';
+import { Card } from '../components/ui';
 import ApplicationRationalization from './GreenfieldMigration';
 
 // Workspace — the Application Rationalization Workspace, full width.
@@ -10,9 +11,9 @@ export default function Portfolio() {
   return (
     <div>
       <PageHeader title="Workspace" />
-      <div className="card-elevated p-4 border-l-[3px] border-l-[#4f46e5]">
+      <Card variant="elevated" className="p-4 border-l-[3px] border-l-[#4f46e5]">
         <ApplicationRationalization embedded />
-      </div>
+      </Card>
     </div>
   );
 }

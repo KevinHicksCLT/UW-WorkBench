@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { EmptyState, ErrorMessage, SkeletonLoader } from './ui';
 
 // TestingTemplateModal — surfaces a ProcessNode's testing-template rows. Each
 // template's "Testing Plan" is parsed into two sections: a Generic pattern
@@ -106,13 +107,11 @@ export default function TestingTemplateModal({ nodeId, onClose }: { nodeId: stri
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-5">
           {error ? (
-            <div className="text-sm text-[#be123c]">{error}</div>
+            <ErrorMessage>{error}</ErrorMessage>
           ) : !data ? (
-            <div className="space-y-2">
-              {Array.from({ length: 5 }).map((_, i) => <div key={i} className="skeleton rounded-md" style={{ height: 72 }} />)}
-            </div>
+            <SkeletonLoader count={5} height={72} className="space-y-2" />
           ) : templates.length === 0 ? (
-            <div className="text-sm text-[#a3a3a3] italic">No testing templates for this node.</div>
+            <EmptyState baseClassName="text-sm text-[#a3a3a3] italic" message="No testing templates for this node." />
           ) : (
             <div className="space-y-4">
               {templates.map((t) => (

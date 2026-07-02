@@ -4,6 +4,7 @@ import { api } from '../lib/api';
 import { useApi } from '../lib/useApi';
 import { useAuth } from '../lib/auth';
 import { useDialogs } from '../lib/dialogs';
+import { EmptyState, LinkButton, LoadingState } from '../components/ui';
 
 // Work Library — checklist/testing plans at the atomic level of work (L5 task
 // ProcessNodes, leaf Standards, Regulations) built from reusable generic
@@ -388,15 +389,15 @@ function PlanBlock({ title, sections, customRows, blockKind, subject, refetch }:
           })}
           <tr className="border-t border-[#eef1f4]">
             <td colSpan={4} className="border border-[#e8ebee] px-3 py-2">
-              <button
-                className="text-[12px] text-[#1d4ed8] hover:underline"
+              <LinkButton
+                className="text-[12px]"
                 onClick={async () => {
                   const step = await dialogs.prompt({ title: 'Add specific step', label: 'Step' });
                   if (step?.trim()) await saveRows([{ customKey: step.trim(), kind: blockKind }]);
                 }}
               >
                 + Add specific step
-              </button>
+              </LinkButton>
               <span className="text-[10.5px] text-[#a3a3a3] ml-2.5">Generic steps come from the pattern — removable, not addable</span>
             </td>
           </tr>
@@ -510,7 +511,7 @@ function TiedBlock({ title, empty, items, scope, taskId, refetch }: {
         <span className="text-[10.5px] text-[#a3a3a3]">· tasks are the source of truth; higher levels roll up</span>
         <div className="ml-auto"><AddTiedPicker scope={scope} taskId={taskId} tiedIds={new Set(items.map((i) => i.id))} refetch={refetch} /></div>
       </div>
-      {items.length === 0 && <div className="px-3 py-3 text-[12px] text-[#a3a3a3]">{empty}</div>}
+      {items.length === 0 && <EmptyState baseClassName="px-3 py-3 text-[12px] text-[#a3a3a3]" message={empty} />}
       {items.map((item) => (
         <div key={item.id} className="border-t border-[#eef1f4] first:border-t-0">
           <div className="px-3 pt-2 pb-1 flex items-center gap-2">
@@ -588,15 +589,15 @@ function TiedStepsTable({ kind, rows, itemId, idField, scope, base, save, refetc
         })}
         <tr className="border-t border-[#f3f5f7]">
           <td colSpan={4} className="border border-[#e8ebee] px-3 py-2">
-            <button
-              className="text-[11.5px] text-[#1d4ed8] hover:underline"
+            <LinkButton
+              className="text-[11.5px]"
               onClick={async () => {
                 const step = await dialogs.prompt({ title: `Add ${kind === 'CHECKLIST' ? 'checklist' : 'testing'} step`, label: 'Step' });
                 if (step?.trim()) await save([{ kind, [idField]: itemId, step: step.trim() }]);
               }}
             >
               + Add {kind === 'CHECKLIST' ? 'checklist' : 'testing'} step
-            </button>
+            </LinkButton>
           </td>
         </tr>
       </tbody>
@@ -675,7 +676,7 @@ function TemplatesEditor({ templates, refetch, isAdmin }: { templates: Template[
       </div>
       <div className="p-4">
         {!selected ? (
-          <div className="text-[13px] text-[#a3a3a3]">Select a template.</div>
+          <EmptyState baseClassName="text-[13px] text-[#a3a3a3]" message="Select a template." />
         ) : (
           <>
             <div className="flex items-center gap-2 mb-1">
@@ -718,15 +719,15 @@ function TemplatesEditor({ templates, refetch, isAdmin }: { templates: Template[
                 ))}
                 <tr>
                   <td colSpan={4} className="border border-[#e8ebee] px-2 py-2">
-                    <button
-                      className="text-[12px] text-[#1d4ed8] hover:underline"
+                    <LinkButton
+                      className="text-[12px]"
                       onClick={async () => {
                         const key = await dialogs.prompt({ title: 'Add key', label: 'Key' });
                         if (key?.trim()) { await api.post(`/work-library/templates/${selected.id}/keys`, { key: key.trim() }); refetch(); }
                       }}
                     >
                       + Add key
-                    </button>
+                    </LinkButton>
                   </td>
                 </tr>
               </tbody>
@@ -894,7 +895,7 @@ export default function WorkLibrary() {
                   {missingOnly && <span className="float-right">clear</span>}
                 </button>
               )}
-              {subjectsLoading && <div className="px-1.5 py-1 text-[11px] text-[#a3a3a3]">Loading…</div>}
+              {subjectsLoading && <LoadingState baseClassName="px-1.5 py-1 text-[11px] text-[#a3a3a3]" />}
               {(subjectsData?.subjects ?? []).map((s) => (
                 <button
                   key={s.id}
@@ -909,9 +910,10 @@ export default function WorkLibrary() {
             </div>
             <div className="p-4 overflow-auto">
               {!plan ? (
-                <div className="text-[13px] text-[#a3a3a3] pt-6 text-center">
-                  {selectedId ? 'Loading plan…' : 'Pick a work item to open its checklist and testing plan.'}
-                </div>
+                <LoadingState
+                  baseClassName="text-[13px] text-[#a3a3a3] pt-6 text-center"
+                  message={selectedId ? 'Loading plan…' : 'Pick a work item to open its checklist and testing plan.'}
+                />
               ) : (
                 <>
                   <div className="mb-3">

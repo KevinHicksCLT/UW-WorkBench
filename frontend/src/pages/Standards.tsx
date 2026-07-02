@@ -4,6 +4,7 @@ import { api } from '../lib/api';
 import { useApi } from '../lib/useApi';
 import { Sheet, SheetCell, ListSearch, type SheetCol } from '../components/Sheet';
 import StandardDrawer from '../components/StandardDrawer';
+import { Card, EmptyState, ErrorMessage, LoadingState } from '../components/ui';
 
 // Standards — the company's department standards, in two views:
 //   • List (default): a flat spreadsheet of every individual standard in the
@@ -81,8 +82,8 @@ export default function Standards() {
     );
   }, [data, q]);
 
-  if (loading) return <div className="text-slate-500">Loading standards…</div>;
-  if (error) return <div className="text-red-600">{error}</div>;
+  if (loading) return <LoadingState baseClassName="text-slate-500" message="Loading standards…" />;
+  if (error) return <ErrorMessage baseClassName="text-red-600">{error}</ErrorMessage>;
   if (!data) return null;
 
   const t = data.totals;
@@ -150,7 +151,7 @@ export default function Standards() {
           </div>
 
           {/* Standards areas — click through to the area's individual standards */}
-          <div className="card overflow-hidden p-0">
+          <Card className="overflow-hidden p-0">
             <div className="hidden sm:flex items-center px-4 py-2 border-b border-[#eaeaea] text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3]">
               <span className="flex-1">Department</span>
               <span className="w-24 text-right tnum">Standards</span>
@@ -158,7 +159,7 @@ export default function Standards() {
             </div>
 
             {dRows.length === 0 ? (
-              <div className="px-4 py-8 text-sm text-slate-500 italic">No standards match.</div>
+              <EmptyState baseClassName="px-4 py-8 text-sm text-slate-500 italic" message="No standards match." />
             ) : (
               dRows.map((s) => (
                 <Link
@@ -177,7 +178,7 @@ export default function Standards() {
                 </Link>
               ))
             )}
-          </div>
+          </Card>
         </>
       )}
 

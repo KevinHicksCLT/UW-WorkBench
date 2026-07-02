@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { fieldLabel } from '../lib/adminFormat';
 import type { AdminEntity, AdminField } from '../lib/adminTypes';
+import { Button, ErrorMessage, Input, Label, Select, Textarea } from './ui';
 
 // Auto-generated create/edit form for a single admin entity. Renders one input
 // per editable field (type derived from the registry); FK fields become a
@@ -10,9 +11,9 @@ import type { AdminEntity, AdminField } from '../lib/adminTypes';
 type Props = {
   entity: AdminEntity;
   companyId: string | null; // active company — scopes writes + FK option lists
-  record: Record<string, any> | null; // null = create
-  fixed?: Record<string, any>; // values injected + hidden (e.g. a parent FK in master-detail)
-  defaults?: Record<string, any>; // prefilled-but-editable values on create (e.g. role name in keyRoles)
+  record: Record<string, unknown> | null; // null = create
+  fixed?: Record<string, unknown>; // values injected + hidden (e.g. a parent FK in master-detail)
+  defaults?: Record<string, string | boolean>; // prefilled-but-editable values on create (e.g. role name in keyRoles)
   onClose: () => void;
   onSaved: () => void;
 };
@@ -24,13 +25,13 @@ function withCompany(path: string, companyId: string | null) {
   return path + (path.includes('?') ? '&' : '?') + `companyId=${companyId}`;
 }
 
-function initialValue(field: AdminField, record: Record<string, any> | null) {
+function initialValue(field: AdminField, record: Record<string, unknown> | null) {
   const v = record ? record[field.name] : undefined;
   if (field.kind === 'boolean') return Boolean(v);
   if (v === null || v === undefined) return '';
   if (field.kind === 'datetime') {
     // ISO → value accepted by <input type="datetime-local"> (local, no seconds)
-    const d = new Date(v);
+    const d = new Date(v as string | number | Date);
     if (Number.isNaN(d.getTime())) return '';
     const pad = (n: number) => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -48,8 +49,8 @@ export default function EntityForm({ entity, companyId, record, fixed, defaults,
     (f) => !f.readonly && !(f.createOnly && record) && !(fixedKeys.has(f.name) && !record),
   );
 
-  const [values, setValues] = useState<Record<string, any>>(() => {
-    const init: Record<string, any> = {};
+  const [values, setValues] = useState<Record<string, string | boolean>>(() => {
+    const init: Record<string, string | boolean> = {};
     for (const f of formFields) init[f.name] = initialValue(f, record);
     // On create, apply editable defaults for any field the caller prefilled.
     if (!record && defaults) for (const k of Object.keys(defaults)) if (k in init) init[k] = defaults[k];
@@ -69,7 +70,7 @@ export default function EntityForm({ entity, companyId, record, fixed, defaults,
         // Scope FK options to the active company so you can only link in-company
         // records (the Company table ignores the param server-side).
         const res = await api.get(withCompany(`/admin/${rel.entity}?limit=200`, companyId));
-        const opts: Option[] = res.rows.map((r: any) => ({ id: r.id, label: String(r[rel.labelField] ?? r.id) }));
+        const opts: Option[] = res.rows.map((r: Record<string, unknown>) => ({ id: r.id as string, label: String(r[rel.labelField] ?? r.id) }));
         return [f.name, opts] as const;
       }),
     )
@@ -78,7 +79,7 @@ export default function EntityForm({ entity, companyId, record, fixed, defaults,
     return () => { active = false; };
   }, [entity.slug, companyId]);
 
-  const set = (name: string, v: any) => setValues((prev) => ({ ...prev, [name]: v }));
+  const set = (name: string, v: string | boolean) => setValues((prev) => ({ ...prev, [name]: v }));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,16 +116,15 @@ export default function EntityForm({ entity, companyId, record, fixed, defaults,
         <form id="entity-form" onSubmit={submit} className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
           {formFields.map((f) => (
             <div key={f.name}>
-              <label className="label" htmlFor={`f-${f.name}`}>
+              <Label htmlFor={`f-${f.name}`}>
                 {fieldLabel(entity.slug, f.name)}{f.required && <span className="text-[#be123c]"> *</span>}
                 {f.relation && <span className="text-[#a3a3a3] font-normal normal-case tracking-normal"> → {f.relation.entity}</span>}
-              </label>
+              </Label>
 
               {f.relation ? (
-                <select
+                <Select
                   id={`f-${f.name}`}
-                  className="input"
-                  value={values[f.name]}
+                  value={values[f.name] as string}
                   required={f.required}
                   onChange={(e) => set(f.name, e.target.value)}
                 >
@@ -132,7 +132,7 @@ export default function EntityForm({ entity, companyId, record, fixed, defaults,
                   {(fkOptions[f.name] ?? []).map((o) => (
                     <option key={o.id} value={o.id}>{o.label}</option>
                   ))}
-                </select>
+                </Select>
               ) : f.kind === 'boolean' ? (
                 <label className="inline-flex items-center gap-2 text-sm text-[#171717]">
                   <input
@@ -145,20 +145,19 @@ export default function EntityForm({ entity, companyId, record, fixed, defaults,
                   {values[f.name] ? 'true' : 'false'}
                 </label>
               ) : f.multiline ? (
-                <textarea
+                <Textarea
                   id={`f-${f.name}`}
-                  className="input min-h-[80px]"
-                  value={values[f.name]}
+                  className="min-h-[80px]"
+                  value={values[f.name] as string}
                   required={f.required}
                   onChange={(e) => set(f.name, e.target.value)}
                 />
               ) : (
-                <input
+                <Input
                   id={`f-${f.name}`}
-                  className="input"
                   type={f.kind === 'int' || f.kind === 'float' ? 'number' : f.kind === 'datetime' ? 'datetime-local' : 'text'}
                   step={f.kind === 'float' ? 'any' : undefined}
-                  value={values[f.name]}
+                  value={values[f.name] as string}
                   required={f.required}
                   onChange={(e) => set(f.name, e.target.value)}
                 />
@@ -168,12 +167,12 @@ export default function EntityForm({ entity, companyId, record, fixed, defaults,
         </form>
 
         <div className="flex-shrink-0 border-t border-[#eaeaea] px-5 py-3 space-y-2">
-          {error && <div className="text-xs text-[#be123c]">{error}</div>}
+          {error && <ErrorMessage baseClassName="text-xs text-[#be123c]">{error}</ErrorMessage>}
           <div className="flex justify-end gap-2">
-            <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
-            <button type="submit" form="entity-form" disabled={saving} className="btn-primary disabled:opacity-50">
+            <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+            <Button type="submit" form="entity-form" disabled={saving} className="disabled:opacity-50">
               {saving ? 'Saving…' : record ? 'Save changes' : 'Create'}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

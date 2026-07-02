@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { api } from '../lib/api';
 import AssistantMarkdown from './AssistantMarkdown';
+import { ErrorMessage } from './ui';
 
 // Floating AI Assistant — a launcher button (bottom-right) that opens a chat
 // popup, available on every page. The backend (/chat) answers each question by
@@ -298,7 +299,7 @@ export default function AssistantWidget() {
               </div>
             )}
 
-            {error && <div className="text-xs text-red-600">{error}</div>}
+            {error && <ErrorMessage baseClassName="text-xs text-red-600">{error}</ErrorMessage>}
           </div>
 
           {/* Composer */}

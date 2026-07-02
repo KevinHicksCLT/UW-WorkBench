@@ -6,6 +6,7 @@
 
 import { Fragment, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { SkeletonLoader } from './ui';
 
 export type Fmt = 'money' | 'years' | 'number';
 // `href` links out to an app page (e.g. /applications); `children` nests items
@@ -366,11 +367,7 @@ export default function MetricsSidebar({
       </div>
 
       {loading || !dash ? (
-        <div className="p-4 grid grid-cols-2 gap-2">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="skeleton rounded-md" style={{ height: 56 }} />
-          ))}
-        </div>
+        <SkeletonLoader count={6} height={56} className="p-4 grid grid-cols-2 gap-2" />
       ) : (
         <>
           {/* Stat tiles — tiles naming a drawer section open its consolidated list. */}

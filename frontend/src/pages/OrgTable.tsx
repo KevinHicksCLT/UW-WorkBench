@@ -5,6 +5,7 @@ import { useApi } from '../lib/useApi';
 import { useHeaderBreadcrumbSlot } from '../lib/breadcrumbs';
 import PageHeader from '../components/PageHeader';
 import RoleDrawer from '../components/RoleDrawer';
+import { Card, Chip, ErrorMessage, LoadingState } from '../components/ui';
 
 // ── Box drill-down: Divisions → Teams (departments) → Roles ─────────────────
 // The org spine is L2 Division → L3 Department → L4 Role. We start with every
@@ -90,8 +91,8 @@ export default function OrgTable() {
     setDivId(r.divisionId); setDeptId(r.departmentId ?? LOOSE); setRoleId(r.id);
   };
 
-  if (loading) return <div className="text-slate-500">Loading roles…</div>;
-  if (error) return <div className="text-red-600">{error}</div>;
+  if (loading) return <LoadingState baseClassName="text-slate-500" message="Loading roles…" />;
+  if (error) return <ErrorMessage baseClassName="text-red-600">{error}</ErrorMessage>;
   if (!data) return null;
 
   const t = data.totals;
@@ -115,14 +116,14 @@ export default function OrgTable() {
           {q ? (
             // ── Search results: matching roles (across all divisions/teams) ──────
             matches.length === 0 ? (
-              <div className="card text-sm text-slate-500 italic">No roles match “{query.trim()}”.</div>
+              <Card className="text-sm text-slate-500 italic">No roles match “{query.trim()}”.</Card>
             ) : (
               <section className="mb-8">
                 <div className="text-xs text-[#a3a3a3] mb-3">{matches.length} role{matches.length === 1 ? '' : 's'} matching “{query.trim()}”</div>
                 <Grid>
                   {matches.map((r) => (
                     <Box key={r.id} title={r.name}
-                      tag={r.roleLevel && r.roleLevel !== 'Individual Contributor' ? <span className="chip-soft">{r.roleLevel}</span> : undefined}
+                      tag={r.roleLevel && r.roleLevel !== 'Individual Contributor' ? <Chip>{r.roleLevel}</Chip> : undefined}
                       meta={[r.divisionName, r.departmentName].filter(Boolean).join(' · ')}
                       onClick={() => openRoleFromSearch(r)} />
                   ))}
@@ -157,14 +158,14 @@ export default function OrgTable() {
         <>
           <PageHeader title={division.name} subtitle={`${division.departments.length} teams · ${division.roleCount} roles`} />
           {division.departments.length === 0 && division.looseRoles.length === 0 ? (
-            <div className="card text-sm text-slate-500 italic">No teams or roles in this division.</div>
+            <Card className="text-sm text-slate-500 italic">No teams or roles in this division.</Card>
           ) : (
             <Grid>
               {division.departments.map((dp) => (
                 <Box key={dp.id} title={dp.name} meta={`${dp.roleCount} roles`} onClick={() => setDeptId(dp.id)} />
               ))}
               {division.looseRoles.length > 0 && (
-                <Box title="Direct to division" tag={<span className="chip-soft">No team</span>}
+                <Box title="Direct to division" tag={<Chip>No team</Chip>}
                   meta={`${division.looseRoles.length} roles`} onClick={() => setDeptId(LOOSE)} />
               )}
             </Grid>
@@ -175,12 +176,12 @@ export default function OrgTable() {
         <>
           <PageHeader title={deptId === LOOSE ? 'Direct to division' : dept?.name ?? ''} subtitle={`${rolesInView.length} roles · ${division.name}`} />
           {rolesInView.length === 0 ? (
-            <div className="card text-sm text-slate-500 italic">No roles here.</div>
+            <Card className="text-sm text-slate-500 italic">No roles here.</Card>
           ) : (
             <Grid>
               {rolesInView.map((r) => (
                 <Box key={r.id} title={r.name}
-                  tag={r.roleLevel && r.roleLevel !== 'Individual Contributor' ? <span className="chip-soft">{r.roleLevel}</span> : undefined}
+                  tag={r.roleLevel && r.roleLevel !== 'Individual Contributor' ? <Chip>{r.roleLevel}</Chip> : undefined}
                   meta={`${r.valueStreamCount} value streams`}
                   onClick={() => setRoleId(r.id)} />
               ))}
@@ -227,8 +228,8 @@ function Grid({ children }: { children: ReactNode }) {
 
 function Box({ title, meta, tag, onClick }: { title: string; meta: string; tag?: ReactNode; onClick: () => void }) {
   return (
-    <button onClick={onClick}
-      className="card text-left flex flex-col gap-2 group hover:border-[#d4d4d4] hover:shadow-md transition-all duration-150">
+    <Card as="button" onClick={onClick}
+      className="text-left flex flex-col gap-2 group hover:border-[#d4d4d4] hover:shadow-md transition-all duration-150">
       <div className="flex items-start justify-between gap-2">
         <span className="font-medium text-[#171717] leading-snug">{title}</span>
         {tag}
@@ -237,7 +238,7 @@ function Box({ title, meta, tag, onClick }: { title: string; meta: string; tag?:
       <div className="mt-1 flex items-center gap-1 text-[11px] text-[#a3a3a3] group-hover:text-[#525252]">
         Open <Chevron />
       </div>
-    </button>
+    </Card>
   );
 }
 

@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import PageHeader from '../components/PageHeader';
 import { MODES, HEAT, rolesUsing, efficiencyGain, type AiMode } from '../lib/aiAdoption';
+import { Card, EmptyState, ErrorMessage, LoadingState } from '../components/ui';
 
 // Active AI · value-stream drill-in. Reached from the heat map. Shows, for one
 // value stream: the share of its roles utilizing AI (and the efficiency gain),
@@ -26,11 +27,11 @@ type LegacyStream = { id: string; name: string; roleIds: string[] };
 
 function Tile({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
   return (
-    <div className="card-elevated p-4">
+    <Card variant="elevated" className="p-4">
       <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</div>
       <div className="text-2xl font-semibold text-[#171717] mt-1 tnum">{value}</div>
       {hint && <div className="text-[11px] text-[#a3a3a3] mt-0.5">{hint}</div>}
-    </div>
+    </Card>
   );
 }
 
@@ -99,8 +100,8 @@ export default function ActiveAIDetail() {
     return { N, rolesUsingCount, rolesUsingPct, avgEff, peak, useCaseCount };
   }, [vs, roleCount, modeRows]);
 
-  if (loading) return <div className="text-sm text-[#a3a3a3]">Loading value stream…</div>;
-  if (error) return <div className="text-sm text-[#be123c]">{error}</div>;
+  if (loading) return <LoadingState message="Loading value stream…" />;
+  if (error) return <ErrorMessage>{error}</ErrorMessage>;
   if (!vs || !summary) {
     return (
       <div>
@@ -133,7 +134,7 @@ export default function ActiveAIDetail() {
           const h = HEAT[r.level];
           const inactive = r.level === 0;
           return (
-            <div key={r.mode.key} className={'card-elevated overflow-hidden ' + (inactive ? 'opacity-70' : '')}>
+            <Card key={r.mode.key} variant="elevated" className={'overflow-hidden ' + (inactive ? 'opacity-70' : '')}>
               <div className="px-5 py-3.5 border-b border-[#eaeaea] flex flex-wrap items-center gap-x-6 gap-y-3">
                 {/* Mode + level (the level chip carries the traffic-light colour) */}
                 <div className="flex items-center gap-2.5 min-w-[210px]">
@@ -169,9 +170,9 @@ export default function ActiveAIDetail() {
 
               {/* Use cases */}
               {inactive ? (
-                <div className="px-5 py-3 text-[13px] text-[#a3a3a3] italic">Not yet adopted in this value stream.</div>
+                <EmptyState baseClassName="px-5 py-3 text-[13px] text-[#a3a3a3] italic" message="Not yet adopted in this value stream." />
               ) : r.useCases.length === 0 ? (
-                <div className="px-5 py-3 text-[13px] text-[#a3a3a3] italic">No use cases recorded yet — add them in Data Admin → Metrics → AI adoption.</div>
+                <EmptyState baseClassName="px-5 py-3 text-[13px] text-[#a3a3a3] italic" message="No use cases recorded yet — add them in Data Admin → Metrics → AI adoption." />
               ) : (
                 <ul className="divide-y divide-[#f5f5f5]">
                   {r.useCases.map((u) => (
@@ -185,7 +186,7 @@ export default function ActiveAIDetail() {
                   ))}
                 </ul>
               )}
-            </div>
+            </Card>
           );
         })}
       </div>

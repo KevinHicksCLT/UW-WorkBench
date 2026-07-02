@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../../lib/api';
 import { useDialogs } from '../../lib/dialogs';
+import { Card, EmptyState, ErrorMessage, Input, Label, LoadingState, Select, Textarea } from '../ui';
 
 // Interactive operating-model builder (rework P7). One surface to build the
 // structure (typed node tree), draw connections (typed links), and rename the
@@ -8,7 +9,7 @@ import { useDialogs } from '../../lib/dialogs';
 
 type NodeType = { key: string; label: string; pluralLabel: string; level: number; parentKeys: string[]; sortOrder: number };
 type TreeNode = { id: string; typeKey: string; parentId: string | null; name: string; description: string | null; sortOrder: number; provenance: string; hidden: boolean; inboundLinks: number };
-type LinkRow = { id: string; relationType: string; attributes: any; peer: { id: string; name: string; typeKey: string } };
+type LinkRow = { id: string; relationType: string; attributes: unknown; peer: { id: string; name: string; typeKey: string } };
 
 // Optional scope narrows the builder to one branch of the model so each Data
 // Admin tab only shows ITS nodes (gap fix: roles/external parties no longer
@@ -58,15 +59,15 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
   const load = () => {
     if (!companyId) return;
     Promise.all([api.get('/builder/types'), api.get(`/builder/tree?companyId=${companyId}`)])
-      .then(([t, tr]: any[]) => { setTypes(t.types); setRelationTypes(t.relationTypes); setNodes(tr.nodes); })
-      .catch((e: any) => setError(String(e?.message || e)));
+      .then(([t, tr]) => { setTypes(t.types); setRelationTypes(t.relationTypes); setNodes(tr.nodes); })
+      .catch((e: unknown) => setError(String((e as { message?: string })?.message || e)));
   };
-  useEffect(() => { setStack([]); setSelected(null); load(); /* eslint-disable-next-line */ }, [companyId]);
+  useEffect(() => { setStack([]); setSelected(null); load(); }, [companyId]);
 
   useEffect(() => {
     if (!selected || !companyId) { setLinks(null); return; }
     api.get(`/builder/nodes/${selected.id}/links?companyId=${companyId}`).then(setLinks).catch(() => setLinks(null));
-  }, [selected?.id, companyId]); // eslint-disable-line
+  }, [selected?.id, companyId]);
 
   if (!companyId) return <p className="text-sm text-[#a3a3a3]">Select a company to build its operating model.</p>;
 
@@ -138,17 +139,17 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
           {showTaxonomy ? 'Hide taxonomy' : 'Taxonomy…'}
         </button>
       </div>
-      {error && <div className="text-sm text-[#be123c] mb-3">{error}</div>}
+      {error && <ErrorMessage className="mb-3">{error}</ErrorMessage>}
 
       {showTaxonomy && (
-        <div className="card-elevated p-4 mb-4">
+        <Card variant="elevated" className="p-4 mb-4">
           <h4 className="text-xs font-semibold uppercase tracking-wide text-[#a3a3a3] mb-2">Level names (taxonomy)</h4>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {types.map((t) => (
               <div key={t.key} className="flex items-center gap-2 text-sm">
                 <span className="text-[10px] font-mono text-[#a3a3a3] w-24 truncate">{t.key}</span>
-                <input
-                  className="input py-1 text-sm flex-1"
+                <Input
+                  className="py-1 text-sm flex-1"
                   defaultValue={t.label}
                   onBlur={async (e) => {
                     const v = e.target.value.trim();
@@ -162,7 +163,7 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       )}
 
       <div className="flex flex-col lg:flex-row gap-5">
@@ -177,8 +178,8 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
               </span>
             ))}
           </nav>
-          <div className="card-elevated divide-y divide-[#f5f5f5]">
-            {children.length === 0 && <div className="px-4 py-6 text-sm text-[#a3a3a3] italic">No nodes yet at this level.</div>}
+          <Card variant="elevated" className="divide-y divide-[#f5f5f5]">
+            {children.length === 0 && <EmptyState baseClassName="px-4 py-6 text-sm text-[#a3a3a3] italic" message="No nodes yet at this level." />}
             {children.map((n) => {
               // Count only in-scope children — what drilling in will actually show.
               const kidCount = scoped.filter((x) => x.parentId === n.id).length;
@@ -230,34 +231,32 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
                 ))}
               </div>
             )}
-          </div>
+          </Card>
         </section>
 
         {/* ── Inspector ── */}
         <aside className="lg:w-96 flex-shrink-0">
           {!selected ? (
-            <div className="card-elevated p-6 text-sm text-[#a3a3a3]">Select a node to edit it and manage its connections.</div>
+            <Card variant="elevated" className="p-6 text-sm text-[#a3a3a3]">Select a node to edit it and manage its connections.</Card>
           ) : (
-            <div className="card-elevated p-4 space-y-4">
+            <Card variant="elevated" className="p-4 space-y-4">
               <div>
                 <div className="text-[10px] font-semibold uppercase tracking-wide text-[#a3a3a3] mb-1">{label(selected.typeKey)} · {selected.provenance}</div>
-                <label className="label">Name</label>
-                <input
-                  className="input"
+                <Label>Name</Label>
+                <Input
                   key={selected.id + ':name'}
                   defaultValue={selected.name}
                   onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== selected.name) void patchNode(selected, { name: v }); }}
                 />
-                <label className="label mt-2">Description</label>
-                <textarea
-                  className="input min-h-[64px]"
+                <Label className="mt-2">Description</Label>
+                <Textarea
+                  className="min-h-[64px]"
                   key={selected.id + ':desc'}
                   defaultValue={selected.description ?? ''}
                   onBlur={(e) => { const v = e.target.value; if (v !== (selected.description ?? '')) void patchNode(selected, { description: v || null }); }}
                 />
-                <label className="label mt-2">Parent</label>
-                <select
-                  className="input"
+                <Label className="mt-2">Parent</Label>
+                <Select
                   key={selected.id + ':parent'}
                   value={selected.parentId ?? ''}
                   onChange={(e) => void patchNode(selected, { parentId: e.target.value || null })}
@@ -266,7 +265,7 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
                   {nodes
                     .filter((p) => typeByKey.get(selected.typeKey)?.parentKeys.includes(p.typeKey) && p.id !== selected.id)
                     .map((p) => <option key={p.id} value={p.id}>{p.name} ({label(p.typeKey)})</option>)}
-                </select>
+                </Select>
                 <LevelMover
                   key={selected.id + ':level'}
                   node={selected}
@@ -279,7 +278,7 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
 
               <div>
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-[#a3a3a3] mb-1.5">Connections</h4>
-                {!links ? <div className="text-xs text-[#a3a3a3]">Loading…</div> : (
+                {!links ? <LoadingState baseClassName="text-xs text-[#a3a3a3]" /> : (
                   <div className="space-y-1 max-h-56 overflow-y-auto">
                     {links.out.map((l) => (
                       <ConnRow key={l.id} text={`${l.relationType.toLowerCase().replaceAll('_', ' ')} → ${l.peer.name}`} hint={label(l.peer.typeKey)} onDelete={async () => { await api.delete(`/builder/links/${l.id}?companyId=${companyId}`); setLinks((s) => s && { ...s, out: s.out.filter((x) => x.id !== l.id) }); }} />
@@ -287,7 +286,7 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
                     {links.in.map((l) => (
                       <ConnRow key={l.id} text={`${l.peer.name} ${l.relationType.toLowerCase().replaceAll('_', ' ')} →`} hint={label(l.peer.typeKey)} onDelete={async () => { await api.delete(`/builder/links/${l.id}?companyId=${companyId}`); setLinks((s) => s && { ...s, in: s.in.filter((x) => x.id !== l.id) }); }} />
                     ))}
-                    {links.in.length + links.out.length === 0 && <div className="text-xs text-[#a3a3a3] italic">No connections yet.</div>}
+                    {links.in.length + links.out.length === 0 && <EmptyState baseClassName="text-xs text-[#a3a3a3] italic" message="No connections yet." />}
                   </div>
                 )}
                 <DrawConnection
@@ -300,7 +299,7 @@ export default function ModelBuilder({ companyId, scope = 'all' }: { companyId: 
                   onError={setError}
                 />
               </div>
-            </div>
+            </Card>
           )}
         </aside>
       </div>
@@ -332,13 +331,13 @@ function InlineAddRow({ typeLabel, onCreate, onCancel }: {
   return (
     <div className="flex items-center gap-2 px-4 py-2 bg-[#fafafa]">
       <span className="text-[10px] font-semibold uppercase tracking-wide text-[#a3a3a3] flex-shrink-0">New {typeLabel}</span>
-      <input
+      <Input
         ref={inputRef}
-        className="input py-1 text-sm flex-1"
+        className="py-1 text-sm flex-1"
         placeholder={`${typeLabel} name…`}
         value={name}
         onChange={(e) => setName(e.target.value)}
-        onKeyDown={(e) => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') onCancel(); }}
+        onKeyDown={(e) => { if (e.key === 'Enter') { submit(); } if (e.key === 'Escape') { onCancel(); } }}
       />
       <button onClick={submit} disabled={!name.trim()} className="text-xs px-2.5 py-1 rounded-md bg-[#171717] text-white disabled:opacity-40 flex-shrink-0">Add</button>
       <button onClick={onCancel} className="text-xs px-2.5 py-1 rounded-md border border-[#e5e5e5] text-[#525252] hover:bg-white flex-shrink-0">Cancel</button>
@@ -399,22 +398,22 @@ function MoveNodeDialog({ node, nodes, typeByKey, typeLabel, descendants, onClos
       aria-modal="true"
       aria-label={`Move ${node.name}`}
     >
-      <div className="card-elevated bg-white max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
+      <Card variant="elevated" className="bg-white max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
         <h3 className="text-base font-semibold text-[#171717] mb-1">Move “{node.name}”</h3>
         <p className="text-sm text-[#525252] mb-3">
           Click where it should live. It moves together with everything under it
           {descendants > 0 && <> ({descendants} item{descendants === 1 ? '' : 's'})</>}.
         </p>
-        <input
+        <Input
           ref={inputRef}
-          className="input mb-2"
+          className="mb-2"
           placeholder="Search destinations…"
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
         <div className="border border-[#eeeeee] rounded divide-y divide-[#f5f5f5] max-h-72 overflow-y-auto">
           {candidates.length === 0 && (
-            <div className="px-3 py-4 text-sm text-[#a3a3a3] italic">No valid destinations{q ? ' match the search' : ''}.</div>
+            <EmptyState baseClassName="px-3 py-4 text-sm text-[#a3a3a3] italic" message={<>No valid destinations{q ? ' match the search' : ''}.</>} />
           )}
           {candidates.map((c) => {
             const isCurrent = c.id === node.parentId;
@@ -438,7 +437,7 @@ function MoveNodeDialog({ node, nodes, typeByKey, typeLabel, descendants, onClos
         <div className="flex justify-end mt-4">
           <button className="text-sm px-3 py-1.5 rounded-md border border-[#e5e5e5] text-[#525252] hover:bg-[#fafafa]" onClick={onClose}>Cancel</button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
@@ -461,10 +460,10 @@ function LevelMover({ node, nodes, types, typeLabel, onApply }: {
   const ready = Boolean(target) && (!needsParent || Boolean(newParent));
   return (
     <div className="mt-2 border-t border-[#f5f5f5] pt-2">
-      <label className="label">Move to level</label>
+      <Label>Move to level</Label>
       <div className="flex items-center gap-2">
-        <select
-          className="input py-1 text-xs"
+        <Select
+          className="py-1 text-xs"
           value={newType}
           onChange={(e) => { setNewType(e.target.value); setNewParent(''); }}
         >
@@ -472,12 +471,12 @@ function LevelMover({ node, nodes, types, typeLabel, onApply }: {
           {types.filter((t) => t.key !== node.typeKey).map((t) => (
             <option key={t.key} value={t.key}>{t.label}</option>
           ))}
-        </select>
+        </Select>
         {needsParent && (
-          <select className="input py-1 text-xs" value={newParent} onChange={(e) => setNewParent(e.target.value)}>
+          <Select className="py-1 text-xs" value={newParent} onChange={(e) => setNewParent(e.target.value)}>
             <option value="">Pick new parent…</option>
             {parentOptions.map((p) => <option key={p.id} value={p.id}>{p.name} ({typeLabel(p.typeKey)})</option>)}
-          </select>
+          </Select>
         )}
         <button
           disabled={!ready}
@@ -515,10 +514,10 @@ function DrawConnection({ companyId, fromId, nodes, relationTypes, typeLabel, on
   return (
     <div className="mt-2 border-t border-[#f5f5f5] pt-2">
       <div className="flex items-center gap-2">
-        <select className="input py-1 text-xs flex-shrink-0 w-40" value={rel} onChange={(e) => setRel(e.target.value)}>
+        <Select className="py-1 text-xs flex-shrink-0 w-40" value={rel} onChange={(e) => setRel(e.target.value)}>
           {relationTypes.map((r) => <option key={r} value={r}>{r.toLowerCase().replaceAll('_', ' ')}</option>)}
-        </select>
-        <input className="input py-1 text-xs" placeholder="Search a node to connect…" value={q} onChange={(e) => setQ(e.target.value)} />
+        </Select>
+        <Input className="py-1 text-xs" placeholder="Search a node to connect…" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
       {matches.length > 0 && (
         <div className="mt-1 border border-[#eeeeee] rounded divide-y divide-[#f5f5f5] max-h-40 overflow-y-auto">

@@ -25,6 +25,7 @@ import { useApi } from '../lib/useApi';
 import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
 import MetricsSidebar, { MetricsDrawer, type Dashboard, type MetricSection } from '../components/MetricsSidebar';
+import { ErrorMessage, LoadingState } from '../components/ui';
 
 // ── Org-table payload (same shapes as pages/OrgTable.tsx) ────────────────────
 
@@ -282,7 +283,7 @@ function OrgMapCanvasInner({ data, breadcrumbSlot, onSaved }: Props & { data: Or
       .catch(() => { if (!cancelled) setDash(null); })
       .finally(() => { if (!cancelled) setDashLoading(false); });
     return () => { cancelled = true; };
-  }, [target?.level, target?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [target?.level, target?.id]);  
 
   useEffect(() => { setDrawerSection(null); }, [target?.level, target?.id]);
 
@@ -386,7 +387,7 @@ function OrgMapCanvasInner({ data, breadcrumbSlot, onSaved }: Props & { data: Or
     else if (selDivId) openMetrics('division', selDivId, hexOf(selSegName));
   }
 
-  const crumbClear = useCallback(() => { setSelSegName(null); setSelDivId(null); setSelDeptId(null); closeMetrics(); }, []); // eslint-disable-line
+  const crumbClear = useCallback(() => { setSelSegName(null); setSelDivId(null); setSelDeptId(null); closeMetrics(); }, []);  
   const crumbToSegment = () => { setSelDivId(null); setSelDeptId(null); if (selSegName) openMetrics('domain', selSegName, hexOf(selSegName)); };
   const crumbToDivision = () => { setSelDeptId(null); if (selDivId) openMetrics('division', selDivId, hexOf(selSegName)); };
 
@@ -470,7 +471,11 @@ function OrgMapCanvasInner({ data, breadcrumbSlot, onSaved }: Props & { data: Or
 
   const nodeName = (n: Node): string => ((n.data as { name?: string }).name ?? '');
   const arraysEqual = (a: string[], b: string[]) => a.length === b.length && a.every((x, i) => x === b[i]);
-  const nodeById = useMemo(() => { const m = new Map<string, Node>(); for (const n of nodes) m.set(n.id, n); return m; }, [nodes]);
+  const nodeById = useMemo(() => {
+    const m = new Map<string, Node>();
+    for (const n of nodes) m.set(n.id, n);
+    return m;
+  }, [nodes]);
   const rowOrder = useCallback((parent: string, type: string): string[] =>
     nodes.filter((n) => n.type === type && currentParentRaw(n) === parent)
       .sort((a, b) => ((a.data as { pieceIndex?: number }).pieceIndex ?? 0) - ((b.data as { pieceIndex?: number }).pieceIndex ?? 0))
@@ -494,7 +499,7 @@ function OrgMapCanvasInner({ data, breadcrumbSlot, onSaved }: Props & { data: Or
     if (type === 'orgSegment') { const n = canvasId.slice(4); if (selSegName !== n) onSegmentClick(n); }
     else if (type === 'orgDivision') { const id = canvasId.slice(4); if (selDivId !== id) onDivisionClick(id); }
     else if (type === 'orgDept') { const id = canvasId.slice(5); if (selDeptId !== id) onDeptClick(id); }
-  }, [selSegName, selDivId, selDeptId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selSegName, selDivId, selDeptId]);  
   const scheduleHoverDrill = useCallback((canvasId: string | null, type: string | null) => {
     if (!canvasId || !type || !['orgSegment', 'orgDivision', 'orgDept'].includes(type)) { clearHoverDrill(); return; }
     if (hoverDrillRef.current.id === canvasId) return;
@@ -587,7 +592,15 @@ function OrgMapCanvasInner({ data, breadcrumbSlot, onSaved }: Props & { data: Or
       if (targetRaw && targetLevel) {
         const sameLevel = targetLevel + 1 === d.level;
         setPendingMoves((m) => { const next = new Map(m); next.set(d.rawId, { parent: targetRaw, sameLevel, level: d.level, name: d.name, cat: d.cat }); return next; });
-        setPendingOrder((m) => { if (!m.size) return m; const next = new Map(m); for (const [p, ids] of next) { const f = ids.filter((id) => id !== d.rawId); if (f.length !== ids.length) next.set(p, f); } return next; });
+        setPendingOrder((m) => {
+          if (!m.size) return m;
+          const next = new Map(m);
+          for (const [p, ids] of next) {
+            const f = ids.filter((id) => id !== d.rawId);
+            if (f.length !== ids.length) next.set(p, f);
+          }
+          return next;
+        });
         flash('ok', sameLevel ? 'Staged move — children follow.' : 'Staged — nested inside.');
         if (tgt) drillByCanvasId(nestId, tgt.type ?? '');
       }
@@ -600,14 +613,18 @@ function OrgMapCanvasInner({ data, breadcrumbSlot, onSaved }: Props & { data: Or
       const ids = rowOrder(g.parent, g.type).filter((id) => id !== d.rawId);
       ids.splice(Math.min(g.index, ids.length), 0, d.rawId);
       if (g.parent === d.originParent) {
-        setPendingOrder((m) => { const next = new Map(m); if (arraysEqual(ids, d.originOrder)) next.delete(g.parent); else next.set(g.parent, ids); return next; });
+        setPendingOrder((m) => {
+          const next = new Map(m);
+          if (arraysEqual(ids, d.originOrder)) next.delete(g.parent);
+          else next.set(g.parent, ids);
+          return next;
+        });
       } else {
         const sameLevel = (ORG_TYPE_LEVEL[g.type] ?? 0) === d.level;
         setPendingMoves((m) => { const next = new Map(m); next.set(d.rawId, { parent: g.parent, sameLevel, level: d.level, name: d.name, cat: d.cat }); return next; });
         setPendingOrder((m) => { const next = new Map(m); next.set(g.parent, ids); return next; });
         flash('ok', sameLevel ? 'Staged move — placed among siblings.' : 'Staged — placed inside (re-leveled).');
       }
-      return;
     }
   }, [clearHoverDrill, rowOrder, isVisibleDescendant, nodeById, rawNodeId, flash, drillByCanvasId, nodeScreenRect, pendingRenames]);
 
@@ -789,7 +806,7 @@ function OrgMapCanvasInner({ data, breadcrumbSlot, onSaved }: Props & { data: Or
     requestAnimationFrame(attempt);
   }, [rf, paneW, paneH]);
   const fitTopView = useCallback(() => {
-    void rf.fitView({ duration: 0, padding: 0.08, maxZoom: 0.95 }).then((applied) => {
+    rf.fitView({ duration: 0, padding: 0.08, maxZoom: 0.95 }).then((applied) => {
       if (!applied) return;
       const { x, zoom } = rf.getViewport();
       rf.setViewport({ x, y: 16, zoom }, { duration: 400 });
@@ -806,19 +823,19 @@ function OrgMapCanvasInner({ data, breadcrumbSlot, onSaved }: Props & { data: Or
     }, 60);
   }, [rf]);
 
-  useEffect(() => { fitTopView(); }, [companyOpen]); // eslint-disable-line
+  useEffect(() => { fitTopView(); }, [companyOpen]);  
   useEffect(() => {
     if (selSegName && selSegment) fitNodes([`seg:${selSegName}`, ...displayDivisions.map((d) => `div:${d.id}`)]);
     else if (companyOpen) fitTopView();
-  }, [selSegName]); // eslint-disable-line
+  }, [selSegName]);  
   useEffect(() => {
     if (selDivId && selDivision) fitNodes([`div:${selDivId}`, ...teams.map((t) => `dept:${t.id}`)]);
     else if (selSegName) moveCameraToNode(`seg:${selSegName}`, 1.2);
-  }, [selDivId]); // eslint-disable-line
+  }, [selDivId]);  
   useEffect(() => {
     if (selDeptId && selTeam) fitNodes([`dept:${selDeptId}`, ...roles.map((r) => `role:${r.id}`)]);
     else if (selDivId) moveCameraToNode(`div:${selDivId}`, 0.8);
-  }, [selDeptId]); // eslint-disable-line
+  }, [selDeptId]);  
 
   // ── Node click handler (drill / role nav) ────────────────────────────────────
   const onNodeClick: NodeMouseHandler = (_e, node) => {
@@ -951,10 +968,10 @@ export default function OrgMapCanvas({ breadcrumbSlot }: Props) {
   const { data, error, loading, refetch } = useApi<OrgData>('/explorer/org-table');
 
   if (loading && !data) {
-    return <div className="h-full grid place-items-center"><div className="text-sm text-[#a3a3a3] animate-pulse">Loading organization…</div></div>;
+    return <div className="h-full grid place-items-center"><LoadingState className="animate-pulse" message="Loading organization…" /></div>;
   }
   if (error) {
-    return <div className="h-full grid place-items-center"><div className="text-sm text-[#be123c]">{error}</div></div>;
+    return <div className="h-full grid place-items-center"><ErrorMessage>{error}</ErrorMessage></div>;
   }
   if (!data) return null;
 

@@ -5,6 +5,7 @@ import { useHeaderBreadcrumbSlot } from '../lib/breadcrumbs';
 import MapCanvas from '../viz/MapCanvas';
 import ListExplorer from '../components/ListExplorer';
 import type { DivisionSummary } from '../viz/model';
+import { ErrorMessage, LoadingState } from '../components/ui';
 
 type View = 'map' | 'list';
 
@@ -79,7 +80,7 @@ export default function Explorer() {
       .then((overview) => {
         // overview.divisions shape: { id, name, higherCategory, higherCategoryId, roles }
         // Null higherCategory → fold into "Core Business"
-        const divs: DivisionSummary[] = (overview.divisions ?? []).map((d: any) => ({
+        const divs: DivisionSummary[] = (overview.divisions ?? []).map((d: { id: string; name: string; higherCategory?: string | null; higherCategoryId?: string | null; roles?: number }) => ({
           id: d.id,
           name: d.name,
           higherCategory: d.higherCategory ?? 'Core Business',
@@ -113,11 +114,11 @@ export default function Explorer() {
           <ListExplorer divisions={divisions} companyName={companyName} streams={streams} focusVsId={focusVsId} focusVsName={focusVsName} />
         ) : loading ? (
           <div className="h-full grid place-items-center">
-            <div className="text-sm text-[#a3a3a3] animate-pulse">Loading operating model…</div>
+            <LoadingState className="animate-pulse" message="Loading operating model…" />
           </div>
         ) : error ? (
           <div className="h-full grid place-items-center">
-            <div className="text-sm text-[#be123c]">{error}</div>
+            <ErrorMessage>{error}</ErrorMessage>
           </div>
         ) : (
           <MapCanvas divisions={divisions} companyName={companyName} breadcrumbSlot={crumbSlot} focusVsId={focusVsId} onMoved={loadOverview} />

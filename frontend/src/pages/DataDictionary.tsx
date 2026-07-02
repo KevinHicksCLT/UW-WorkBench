@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import PageHeader from '../components/PageHeader';
 import { GLOSSARY, type GlossaryGroup } from '../lib/glossary';
+import { Card, Input } from '../components/ui';
 
 // Data dictionary — a plain-language glossary of the terms used across the
 // application, defined in the context of the operating model. Authored content
@@ -47,13 +48,13 @@ export default function DataDictionary({ embedded = false }: { embedded?: boolea
         {/* Jump-list sidebar */}
         <aside className="lg:w-56 flex-shrink-0">
           <div className="lg:sticky lg:top-4 space-y-3">
-            <input
-              className="input w-full"
+            <Input
+              className="w-full"
               placeholder="Search terms…"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
             />
-            <div className="card-elevated p-2 max-h-[70vh] overflow-y-auto">
+            <Card variant="elevated" className="p-2 max-h-[70vh] overflow-y-auto">
               <nav className="space-y-0.5">
                 {shown.map((g) => (
                   <a
@@ -69,14 +70,14 @@ export default function DataDictionary({ embedded = false }: { embedded?: boolea
                   <p className="px-3 py-2 text-xs text-[#a3a3a3] italic">No matches.</p>
                 )}
               </nav>
-            </div>
+            </Card>
           </div>
         </aside>
 
         {/* Glossary */}
         <section className="flex-1 min-w-0 space-y-6">
           {shown.map((g) => (
-            <div key={g.group} id={anchorId(g.group)} className="card-elevated overflow-hidden scroll-mt-4">
+            <Card key={g.group} id={anchorId(g.group)} variant="elevated" className="overflow-hidden scroll-mt-4">
               <div className="px-5 py-3 border-b border-[#eaeaea] bg-[#fafafa]">
                 <h2 className="text-sm font-semibold text-[#171717]">{g.group}</h2>
                 <p className="text-[11px] text-[#666666] mt-0.5">{g.blurb}</p>
@@ -106,12 +107,12 @@ export default function DataDictionary({ embedded = false }: { embedded?: boolea
                   </div>
                 ))}
               </dl>
-            </div>
+            </Card>
           ))}
           {shown.length === 0 && (
-            <div className="card-elevated px-5 py-10 text-center text-sm text-[#a3a3a3] italic">
+            <Card variant="elevated" className="px-5 py-10 text-center text-sm text-[#a3a3a3] italic">
               No terms match “{filter}”.
-            </div>
+            </Card>
           )}
         </section>
       </div>

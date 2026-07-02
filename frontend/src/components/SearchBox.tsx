@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
+import { EmptyState } from './ui';
 
 // Global search: debounced live dropdown across divisions/departments/roles/
 // value-streams/sub-streams.
+type SearchResult = { type: string; id: string; name: string; href: string; sublabel?: string | null };
+
 export default function SearchBox() {
   const [q, setQ] = useState('');
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const boxRef = useRef<HTMLDivElement>(null);
@@ -55,7 +58,7 @@ export default function SearchBox() {
         <div className="absolute left-0 right-0 mt-1 bg-white rounded-lg border border-[#eaeaea] max-h-80 overflow-y-auto z-50"
              style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)' }}>
           {results.length === 0 ? (
-            <div className="px-3 py-2.5 text-xs text-[#a3a3a3]">No matches</div>
+            <EmptyState baseClassName="px-3 py-2.5 text-xs text-[#a3a3a3]" message="No matches" />
           ) : (
             results.map((r) => (
               <button

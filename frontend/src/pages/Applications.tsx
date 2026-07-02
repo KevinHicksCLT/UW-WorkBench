@@ -10,6 +10,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useApi } from '../lib/useApi';
 import PageHeader from '../components/PageHeader';
 import { Sheet, SheetCell, type SheetCol } from '../components/Sheet';
+import { EmptyState, ErrorMessage } from '../components/ui';
 
 type App = {
   id: string; code: string | null; name: string; kind: string; category: string | null;
@@ -90,7 +91,7 @@ function AppDrawer({ app, onClose }: { app: App; onClose: () => void }) {
                   </Link>
                 ))}
               </div>
-            ) : <div className="text-sm text-[#a3a3a3] italic">None mapped.</div>}
+            ) : <EmptyState baseClassName="text-sm text-[#a3a3a3] italic" message="None mapped." />}
           </div>
 
           <div>
@@ -101,7 +102,7 @@ function AppDrawer({ app, onClose }: { app: App; onClose: () => void }) {
                   <Link key={r.id} to={`/roles/${r.id}`} className="inline-flex items-center rounded-full bg-[#eef2ff] text-[#4338ca] border border-[#d6dcff] px-2 py-0.5 text-[11px] font-medium hover:bg-[#e0e7ff] transition-colors">{r.name}</Link>
                 ))}
               </div>
-            ) : <div className="text-sm text-[#a3a3a3] italic">None resolved from process steps.</div>}
+            ) : <EmptyState baseClassName="text-sm text-[#a3a3a3] italic" message="None resolved from process steps." />}
           </div>
         </div>
       </aside>
@@ -123,7 +124,7 @@ export default function Applications() {
         subtitle="Applications and tools where the work is performed and/or memorialized"
       />
 
-      {error && <div className="text-sm text-red-600 mb-3">Failed to load applications.</div>}
+      {error && <ErrorMessage baseClassName="text-sm text-red-600 mb-3">Failed to load applications.</ErrorMessage>}
 
       <Sheet
         rows={apps}

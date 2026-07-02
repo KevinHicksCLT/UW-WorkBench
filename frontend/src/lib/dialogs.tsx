@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import { Card, Input, Label } from '../components/ui';
 
 // ─── In-app dialogs ──────────────────────────────────────────────────────────
 // Promise-based replacements for window.confirm / prompt / alert so the app
@@ -125,16 +126,15 @@ function DialogModal({ pending, onDone }: { pending: Pending; onDone: () => void
       aria-modal="true"
       aria-label={typeof title === 'string' ? title : undefined}
     >
-      <div className="card-elevated bg-white max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+      <Card variant="elevated" className="bg-white max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
         <h3 className={'text-base font-semibold mb-2 ' + (danger ? 'text-[#9f1239]' : 'text-[#171717]')}>{title}</h3>
         {pending.opts.message && <div className="text-sm text-[#525252] mb-3">{pending.opts.message}</div>}
 
         {pending.kind === 'prompt' && (
           <>
-            {pending.opts.label && <label className="label">{pending.opts.label}</label>}
-            <input
+            {pending.opts.label && <Label>{pending.opts.label}</Label>}
+            <Input
               ref={inputRef}
-              className="input"
               value={text}
               placeholder={pending.opts.placeholder}
               onChange={(e) => setText(e.target.value)}
@@ -145,12 +145,11 @@ function DialogModal({ pending, onDone }: { pending: Pending; onDone: () => void
 
         {pending.kind === 'confirm' && pending.opts.typedConfirm && (
           <>
-            <label className="label">
+            <Label>
               Type <span className="font-mono text-[#171717]">{pending.opts.typedConfirm}</span> to confirm
-            </label>
-            <input
+            </Label>
+            <Input
               ref={inputRef}
-              className="input"
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
@@ -179,7 +178,7 @@ function DialogModal({ pending, onDone }: { pending: Pending; onDone: () => void
             {confirmLabel}
           </button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

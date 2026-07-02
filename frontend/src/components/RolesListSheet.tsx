@@ -9,6 +9,7 @@ import { useState, type ReactNode } from 'react';
 import { useApi } from '../lib/useApi';
 import { Sheet, SheetCell, type SheetCol } from '../components/Sheet';
 import RoleDrawer from './RoleDrawer';
+import { ErrorMessage } from './ui';
 
 type RoleRow = {
   key: string; roleId: string; role: string; roleType: string | null;
@@ -45,7 +46,7 @@ export default function RolesListSheet({ leading }: { leading?: ReactNode }) {
     <>
       <div className="h-full overflow-y-auto">
         <div className="px-4 sm:px-6 pt-3 pb-6">
-          {error && <div className="text-sm text-red-600 mb-3">Failed to load roles.</div>}
+          {error && <ErrorMessage baseClassName="text-sm text-red-600 mb-3">Failed to load roles.</ErrorMessage>}
           <Sheet
             rows={rows}
             cols={cols}

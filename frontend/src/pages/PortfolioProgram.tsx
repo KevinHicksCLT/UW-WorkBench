@@ -4,6 +4,7 @@ import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
 import { fmt, STAGE_ORDER, STAGE_LABELS } from '../lib/format';
 import PageHeader from '../components/PageHeader';
+import { Button, Card, EmptyState, ErrorMessage, Input, Label, LoadingState, Select, Textarea } from '../components/ui';
 import {
   Tile, StatusPill, StageBar, Modal, withCompany,
   makeTimelineScale, TimelineAxis, TimelineGrid,
@@ -64,15 +65,15 @@ export default function PortfolioProgram() {
   useEffect(() => { load(); }, [id]);
   useEffect(() => { api.get(withCompany('/portfolio/links', companyId)).then(setLinks).catch(() => {}); }, [companyId]);
 
-  if (error) return <div className="text-sm text-[#be123c]">{error}</div>;
-  if (!program) return <div className="text-sm text-[#a3a3a3]">Loading…</div>;
+  if (error) return <ErrorMessage>{error}</ErrorMessage>;
+  if (!program) return <LoadingState />;
 
   return (
     <div>
       <PageHeader
         title={program.name}
         subtitle={program.description ?? undefined}
-        actions={<button className="btn-primary" onClick={() => setShowCreateWs(true)}>+ New Workstream</button>}
+        actions={<Button onClick={() => setShowCreateWs(true)}>+ New Workstream</Button>}
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
@@ -136,7 +137,7 @@ function BudgetSpendCard({ summary }: { summary: Summary | null }) {
     { label: 'Actual spend-to-date', value: actual, color: '#171717' },
   ];
   return (
-    <div className="card-elevated p-5 mb-6">
+    <Card variant="elevated" className="p-5 mb-6">
       <div className="flex items-center justify-between gap-3 mb-4">
         <h3 className="text-sm font-semibold text-[#171717]">Budget &amp; spend</h3>
         <span className="text-xs text-[#a3a3a3]">
@@ -154,7 +155,7 @@ function BudgetSpendCard({ summary }: { summary: Summary | null }) {
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -163,7 +164,7 @@ function WorkstreamsTab({ program, onCreateInit }: { program: Program; onCreateI
   return (
     <div className="space-y-4">
       {program.workstreams.map((ws) => (
-        <div key={ws.id} className="card-elevated p-5">
+        <Card key={ws.id} variant="elevated" className="p-5">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3 pb-3 border-b border-[#f5f5f5]">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
               <h3 className="font-semibold text-[#171717]">{ws.name}</h3>
@@ -171,10 +172,10 @@ function WorkstreamsTab({ program, onCreateInit }: { program: Program; onCreateI
               {ws.statusOverridden && <span className="text-[10px] text-[#b45309]" title={`Manually set to ${ws.status.replaceAll('_', ' ').toLowerCase()} — rolled-up health from its initiatives differs`}>override</span>}
               <span className="text-xs text-[#a3a3a3]">{ws.initiatives.length} initiative{ws.initiatives.length !== 1 && 's'}</span>
             </div>
-            <button className="btn-secondary text-xs" onClick={() => onCreateInit({ id: ws.id, name: ws.name })}>+ Initiative</button>
+            <Button variant="secondary" className="text-xs" onClick={() => onCreateInit({ id: ws.id, name: ws.name })}>+ Initiative</Button>
           </div>
           {ws.initiatives.length === 0 ? (
-            <div className="text-sm text-[#a3a3a3] py-2">No initiatives yet.</div>
+            <EmptyState baseClassName="text-sm text-[#a3a3a3] py-2" message="No initiatives yet." />
           ) : (
             <div className="table-scroll">
               <table className="w-full text-sm">
@@ -201,7 +202,7 @@ function WorkstreamsTab({ program, onCreateInit }: { program: Program; onCreateI
               </table>
             </div>
           )}
-        </div>
+        </Card>
       ))}
     </div>
   );
@@ -215,7 +216,7 @@ function PipelineTab({ program }: { program: Program }) {
       {STAGE_ORDER.map((stage) => {
         const inits = all.filter((i) => i.stage === stage);
         return (
-          <div key={stage} className="card-elevated p-3">
+          <Card key={stage} variant="elevated" className="p-3">
             <div className="flex items-center justify-between mb-2 pb-2 border-b border-[#f5f5f5]">
               <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{STAGE_LABELS[stage]}</span>
               <span className="text-xs text-[#171717] tnum">{inits.length}</span>
@@ -235,7 +236,7 @@ function PipelineTab({ program }: { program: Program }) {
                 ))}
               </div>
             )}
-          </div>
+          </Card>
         );
       })}
     </div>
@@ -268,7 +269,7 @@ function PrioritizationTab({ program }: { program: Program }) {
 
   return (
     <div className="space-y-4">
-      <div className="card-elevated p-5">
+      <Card variant="elevated" className="p-5">
         <h3 className="text-sm font-semibold text-[#171717] mb-1">Value vs. Complexity</h3>
         <p className="text-xs text-[#a3a3a3] mb-4">x = complexity score (0–10, charter), y = value score (Σ impact × objective weight).</p>
         <div className="flex gap-2">
@@ -306,9 +307,9 @@ function PrioritizationTab({ program }: { program: Program }) {
             <div className="text-right text-[10px] text-[#a3a3a3] mt-1">Complexity →</div>
           </div>
         </div>
-      </div>
+      </Card>
 
-      <div className="card-elevated p-5">
+      <Card variant="elevated" className="p-5">
         <h3 className="text-sm font-semibold text-[#171717] mb-3">Initiatives ranked</h3>
         <div className="table-scroll">
           <table className="w-full text-sm">
@@ -332,7 +333,7 @@ function PrioritizationTab({ program }: { program: Program }) {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
@@ -341,10 +342,10 @@ function PrioritizationTab({ program }: { program: Program }) {
 function RoadmapTab({ program }: { program: Program }) {
   const all = program.workstreams.flatMap((ws) => ws.initiatives);
   const scale = makeTimelineScale(all.flatMap((i) => [i.startDate, i.dueDate]));
-  if (!scale) return <div className="card-elevated p-5 text-sm text-[#a3a3a3]">No initiatives to plot.</div>;
+  if (!scale) return <Card variant="elevated" className="p-5 text-sm text-[#a3a3a3]">No initiatives to plot.</Card>;
 
   return (
-    <div className="card-elevated p-5">
+    <Card variant="elevated" className="p-5">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h3 className="text-sm font-semibold text-[#171717]">Roadmap</h3>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[#525252]">
@@ -394,7 +395,7 @@ function RoadmapTab({ program }: { program: Program }) {
           </div>
         </div>
       ))}
-    </div>
+    </Card>
   );
 }
 
@@ -404,13 +405,13 @@ function ProgramResourcesTab({ programId }: { programId: string }) {
   const [error, setError] = useState('');
   useEffect(() => { api.get(`/portfolio/programs/${programId}/resources`).then(setRows).catch((e) => setError(e.message)); }, [programId]);
 
-  if (error) return <div className="text-sm text-[#be123c]">{error}</div>;
-  if (!rows) return <div className="text-sm text-[#a3a3a3]">Loading…</div>;
+  if (error) return <ErrorMessage>{error}</ErrorMessage>;
+  if (!rows) return <LoadingState />;
 
   const over = rows.filter((r) => r.overUtilized).length;
 
   return (
-    <div className="card-elevated p-5">
+    <Card variant="elevated" className="p-5">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h3 className="text-sm font-semibold text-[#171717]">Resource utilization</h3>
         <span className={'text-xs ' + (over > 0 ? 'text-[#be123c] font-medium' : 'text-[#a3a3a3]')}>
@@ -418,7 +419,7 @@ function ProgramResourcesTab({ programId }: { programId: string }) {
         </span>
       </div>
       {rows.length === 0 ? (
-        <div className="text-sm text-[#a3a3a3] py-2">No resources assigned across this program's initiatives yet.</div>
+        <EmptyState baseClassName="text-sm text-[#a3a3a3] py-2" message="No resources assigned across this program's initiatives yet." />
       ) : (
         <div className="table-scroll">
           <table className="w-full text-sm">
@@ -453,7 +454,7 @@ function ProgramResourcesTab({ programId }: { programId: string }) {
           </table>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -470,14 +471,14 @@ function CreateWorkstreamModal({ programId, onClose, onCreated }: { programId: s
   return (
     <Modal title="New Workstream" onClose={onClose}>
       <form onSubmit={submit} className="space-y-3">
-        <div><label className="label">Name</label>
-          <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
-        <div><label className="label">Description</label>
-          <textarea className="input" rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-        {error && <div className="text-sm text-[#be123c]">{error}</div>}
+        <div><Label>Name</Label>
+          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
+        <div><Label>Description</Label>
+          <Textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+        {error && <ErrorMessage>{error}</ErrorMessage>}
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button className="btn-primary">Create</button>
+          <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button>Create</Button>
         </div>
       </form>
     </Modal>
@@ -511,15 +512,15 @@ function CreateInitiativeModal({ workstream, links, onClose, onCreated }: { work
   return (
     <Modal title={`New Initiative — ${workstream.name}`} onClose={onClose} wide>
       <form onSubmit={submit} className="space-y-3">
-        <div><label className="label">Name</label>
-          <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
-        <div><label className="label">Description</label>
-          <textarea className="input" rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+        <div><Label>Name</Label>
+          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
+        <div><Label>Description</Label>
+          <Textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
         <div className="grid grid-cols-2 gap-3">
-          <div><label className="label">Start</label>
-            <input className="input" type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required /></div>
-          <div><label className="label">Due</label>
-            <input className="input" type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} required /></div>
+          <div><Label>Start</Label>
+            <Input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required /></div>
+          <div><Label>Due</Label>
+            <Input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} required /></div>
         </div>
         <div className="pt-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">Operating-model links (optional)</div>
         <div className="grid grid-cols-2 gap-3">
@@ -528,10 +529,10 @@ function CreateInitiativeModal({ workstream, links, onClose, onCreated }: { work
           <LinkSelect label="Owner role" value={form.ownerRoleId} options={links?.roles} onChange={(v) => setForm({ ...form, ownerRoleId: v })} />
           <LinkSelect label="Sponsor role" value={form.sponsorRoleId} options={links?.roles} onChange={(v) => setForm({ ...form, sponsorRoleId: v })} />
         </div>
-        {error && <div className="text-sm text-[#be123c]">{error}</div>}
+        {error && <ErrorMessage>{error}</ErrorMessage>}
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button className="btn-primary">Create</button>
+          <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button>Create</Button>
         </div>
       </form>
     </Modal>
@@ -541,11 +542,11 @@ function CreateInitiativeModal({ workstream, links, onClose, onCreated }: { work
 export function LinkSelect({ label, value, options, onChange }: { label: string; value: string; options?: { id: string; name: string }[]; onChange: (v: string) => void }) {
   return (
     <div>
-      <label className="label">{label}</label>
-      <select className="input" value={value} onChange={(e) => onChange(e.target.value)}>
+      <Label>{label}</Label>
+      <Select value={value} onChange={(e) => onChange(e.target.value)}>
         <option value="">— none —</option>
         {(options ?? []).map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
-      </select>
+      </Select>
     </div>
   );
 }

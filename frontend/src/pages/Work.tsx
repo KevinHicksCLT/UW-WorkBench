@@ -6,6 +6,7 @@ import PageHeader from '../components/PageHeader';
 import { withCompany } from '../lib/portfolio';
 import { Sheet, SheetCell, type SheetCol } from '../components/Sheet';
 import { AutomatableMeter, SCORE_LABEL, SCORE_DESC, automatablePct } from '../lib/automatable';
+import { EmptyState, StatusPill } from '../components/ui';
 
 // Deliverables / Tasks — the standalone work tracker, now two top-level tabs
 // (/deliverables and /tasks) rendering this same page with a `tab` prop:
@@ -87,7 +88,7 @@ function RoleChips({ roles, extra, empty = '—' }: { roles: RoleRef[]; extra: s
       {roles.map((r) => (
         <Link key={r.id} to={`/roles/${r.id}`} className="pill-blue text-xs hover:ring-1 hover:ring-[#171717] transition-shadow duration-150">{r.name}</Link>
       ))}
-      {extra.map((e) => <span key={e} className="pill-slate text-xs">{e}</span>)}
+      {extra.map((e) => <StatusPill key={e} tone="slate" className="text-xs">{e}</StatusPill>)}
     </div>
   );
 }
@@ -119,13 +120,13 @@ function DetailBody({ detail }: { detail: Detail }) {
         )}
         <div className="flex flex-wrap gap-1.5 mt-2">
           {detail.kind === 'deliverable'
-            ? <span className="pill-slate text-xs">{detail.type}</span>
+            ? <StatusPill tone="slate" className="text-xs">{detail.type}</StatusPill>
             : <span className={`${PRIORITY_PILL[detail.priority] ?? 'pill-slate'} text-xs`}>{detail.priority}</span>}
-          {detail.owner && <span className="pill-slate text-xs">Owner · {detail.owner}</span>}
+          {detail.owner && <StatusPill tone="slate" className="text-xs">Owner · {detail.owner}</StatusPill>}
           {detail.jiraKey && (
-            <span className="pill-blue text-xs" title="Linked Jira issue (integration stub — no live sync yet)">
+            <StatusPill tone="blue" className="text-xs" title="Linked Jira issue (integration stub — no live sync yet)">
               JIRA {detail.jiraKey}
-            </span>
+            </StatusPill>
           )}
         </div>
       </div>
@@ -242,7 +243,7 @@ function DetailBody({ detail }: { detail: Detail }) {
                 <div className="text-sm font-medium text-[#171717]">{inp.name}</div>
                 {inp.dataElements.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-1.5">
-                    {inp.dataElements.map((e) => <span key={e} className="pill-slate text-xs">{e}</span>)}
+                    {inp.dataElements.map((e) => <StatusPill key={e} tone="slate" className="text-xs">{e}</StatusPill>)}
                   </div>
                 )}
                 {(inp.roles.roles.length > 0 || inp.roles.unresolved.length > 0) && (
@@ -257,12 +258,12 @@ function DetailBody({ detail }: { detail: Detail }) {
       {/* Data elements / outputs produced */}
       {detail.kind === 'deliverable' && detail.dataElements.length > 0 && (
         <Field label="Data elements">
-          <div className="flex flex-wrap gap-1.5">{detail.dataElements.map((e) => <span key={e} className="pill-slate text-xs">{e}</span>)}</div>
+          <div className="flex flex-wrap gap-1.5">{detail.dataElements.map((e) => <StatusPill key={e} tone="slate" className="text-xs">{e}</StatusPill>)}</div>
         </Field>
       )}
       {detail.kind === 'task' && detail.outputs.length > 0 && (
         <Field label="Outputs">
-          <div className="flex flex-wrap gap-1.5">{detail.outputs.map((o) => <span key={o} className="pill-slate text-xs">{o}</span>)}</div>
+          <div className="flex flex-wrap gap-1.5">{detail.outputs.map((o) => <StatusPill key={o} tone="slate" className="text-xs">{o}</StatusPill>)}</div>
         </Field>
       )}
 
@@ -273,7 +274,7 @@ function DetailBody({ detail }: { detail: Detail }) {
             Downstream impact ({detail.downstream.length})
           </div>
           {detail.downstream.length === 0 ? (
-            <div className="text-sm text-[#a3a3a3]">Not consumed elsewhere in the operating model.</div>
+            <EmptyState baseClassName="text-sm text-[#a3a3a3]" message="Not consumed elsewhere in the operating model." />
           ) : (
             <div className="space-y-2">
               {detail.downstream.map((ds, i) => (

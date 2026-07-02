@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../lib/api';
+import { Button, ErrorMessage } from '../ui';
 
 // ─── Data Admin AI overlay ───────────────────────────────────────────────────
 // A docked assistant that configures the operating model ON THE USER'S BEHALF.
@@ -14,7 +15,7 @@ type Op = {
   entity: string;
   entityLabel: string;
   id: string | null;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   reason: string;
   issues: string[];
 };
@@ -169,7 +170,7 @@ export default function AdminAssistant({
               Reading the data and drafting a plan…
             </div>
           )}
-          {error && <div className="text-xs text-[#be123c]">{error}</div>}
+          {error && <ErrorMessage baseClassName="text-xs text-[#be123c]">{error}</ErrorMessage>}
         </div>
 
         {/* Composer */}
@@ -218,13 +219,13 @@ function PlanCard({ plan, applied, applying, onApply }: { plan: Plan; applied?: 
         <span className="text-[11px] text-[#a3a3a3]">
           {applied ? 'Applied.' : blocked ? `${valid} ready · ${blocked} need attention` : `${valid} change${valid === 1 ? '' : 's'} ready`}
         </span>
-        <button
+        <Button
           onClick={onApply}
           disabled={applied || applying || valid === 0}
-          className="btn-primary text-xs disabled:opacity-50"
+          className="text-xs disabled:opacity-50"
         >
           {applied ? 'Applied ✓' : applying ? 'Applying…' : `Apply ${valid} change${valid === 1 ? '' : 's'}`}
-        </button>
+        </Button>
       </div>
     </div>
   );

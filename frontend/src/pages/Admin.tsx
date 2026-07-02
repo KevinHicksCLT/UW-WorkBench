@@ -8,6 +8,7 @@ import AdminSection from '../components/admin/AdminSection';
 import AdminAssistant from '../components/admin/AdminAssistant';
 import { ADMIN_TABS } from '../lib/adminConfig';
 import type { AdminEntity } from '../lib/adminTypes';
+import { Button, Card, ErrorMessage } from '../components/ui';
 
 // Two-letter abbreviations shown in the left nav when it's collapsed.
 const TAB_SHORT: Record<string, string> = {
@@ -77,10 +78,10 @@ export default function Admin() {
         }
         eyebrow={company ? 'Editing company' : undefined}
         actions={
-          <button onClick={() => setAiOpen(true)} className="btn-primary inline-flex items-center gap-1.5" disabled={!companyId}>
+          <Button onClick={() => setAiOpen(true)} className="inline-flex items-center gap-1.5" disabled={!companyId}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.9 5.6L19.5 9l-4.6 3.3 1.8 5.7L12 14.7 7.3 18l1.8-5.7L4.5 9l5.6-.4z" /></svg>
             AI assist
-          </button>
+          </Button>
         }
       />
 
@@ -97,7 +98,7 @@ export default function Admin() {
         ))}
       </div>
 
-      {error && <div className="text-sm text-[#be123c] mb-3">{error}</div>}
+      {error && <ErrorMessage className="mb-3">{error}</ErrorMessage>}
 
       {view === 'dictionary' ? (
         <DataDictionary embedded />
@@ -182,7 +183,7 @@ export default function Admin() {
             {/* The active editor. refreshKey forces a remount after AI applies edits. */}
             <div key={`${tab.key}:${section.key}:${refreshKey}`}>
               {entities.length === 0 ? (
-                <div className="card-elevated p-10 text-center text-sm text-[#a3a3a3]">Loading…</div>
+                <Card variant="elevated" className="p-10 text-center text-sm text-[#a3a3a3]">Loading…</Card>
               ) : (
                 <AdminSection
                   spec={section.editor}

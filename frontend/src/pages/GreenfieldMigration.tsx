@@ -12,8 +12,9 @@ import { withCompany } from '../lib/portfolio';
 import PageHeader from '../components/PageHeader';
 import {
   LAYERS, pct, statusDot, STATUS_META, CAPDAN_META, categoryTags,
-  type StageListItem, type StageDetail, type Layer, type Capdan, type CategoryTag, type Finding, type BoardLayout,
+  type StageListItem, type StageDetail, type Layer, type Capdan, type CategoryTag, type BoardLayout,
 } from '../lib/rationalization';
+import { Button, Card, EmptyState, ErrorMessage, Input, LoadingState, Textarea } from '../components/ui';
 
 const belongsHere = (c: Capdan) => c === 'Common' || c === 'Different';
 type DrillFn = (appId: string, layer: Layer, category: string) => void;
@@ -433,7 +434,7 @@ export default function ApplicationRationalization({ embedded = false }: { embed
     loadLog();
   }, [selectedId, loadDetail, loadLog]);
 
-  const onDrill = useCallback<DrillFn>((appId, layer, category) => { if (editingRef.current) return; setDrill({ kind: 'cell', appId, layer, category }); }, []);
+  const onDrill = useCallback<DrillFn>((appId, layer, category) => { if (editingRef.current) { return; } setDrill({ kind: 'cell', appId, layer, category }); }, []);
   const onNodeClick = useCallback((_e: unknown, node: Node) => {
     if (editingRef.current) return;
     if (node.id.startsWith('cap:')) setDrill({ kind: 'capdan', layer: node.id.slice(4) as Layer });
@@ -593,8 +594,8 @@ export default function ApplicationRationalization({ embedded = false }: { embed
     return { eyebrow: `Green-field${m ? ` · ${m.status}` : ''}`, title: m?.name ?? 'Service', capdan: undefined, meta: meta || undefined, findings };
   }, [detail, drill]);
 
-  if (loading || companyLoading) return <div className="text-sm text-[#a3a3a3]">Loading rationalization…</div>;
-  if (error) return <div className="text-sm text-[#be123c]">{error}</div>;
+  if (loading || companyLoading) return <LoadingState message="Loading rationalization…" />;
+  if (error) return <ErrorMessage>{error}</ErrorMessage>;
 
   const selectedStage = stages.find((s) => s.id === selectedId);
 
@@ -635,11 +636,11 @@ export default function ApplicationRationalization({ embedded = false }: { embed
           </>
         )}
         <div className="flex-1" />
-        <button onClick={() => { setNewName(''); setShowNew(true); }} className="btn-secondary text-[12px] flex-shrink-0">+ New application</button>
+        <Button variant="secondary" onClick={() => { setNewName(''); setShowNew(true); }} className="text-[12px] flex-shrink-0">+ New application</Button>
       </div>
 
       {stages.length === 0 ? (
-        <div className="card-elevated p-8 text-center text-sm text-[#a3a3a3]">No applications yet — use “+ New application” to start one.</div>
+        <Card variant="elevated" className="p-8 text-center text-sm text-[#a3a3a3]">No applications yet — use “+ New application” to start one.</Card>
       ) : (
        <>
       {detail && (
@@ -653,15 +654,15 @@ export default function ApplicationRationalization({ embedded = false }: { embed
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             {editing
-              ? <button onClick={discardBoard} disabled={saving} className="btn-ghost text-[12px]">Exit</button>
-              : <button onClick={() => setEditing(true)} className="btn-secondary text-[12px]">Edit board</button>}
+              ? <Button variant="ghost" onClick={discardBoard} disabled={saving} className="text-[12px]">Exit</Button>
+              : <Button variant="secondary" onClick={() => setEditing(true)} className="text-[12px]">Edit board</Button>}
           </div>
         </div>
       )}
 
       <div className="rounded-xl border border-[#eaeaea] bg-[#fafafa] overflow-hidden" style={{ height: '82vh', minHeight: 640 }}>
         {!detail ? (
-          <div className="h-full flex items-center justify-center text-sm text-[#a3a3a3]">Loading stage…</div>
+          <LoadingState baseClassName="h-full flex items-center justify-center text-sm text-[#a3a3a3]" message="Loading stage…" />
         ) : (
           <ReactFlowProvider key={selectedId}>
             <ReactFlow
@@ -753,11 +754,11 @@ export default function ApplicationRationalization({ embedded = false }: { embed
             <h3 className="text-[15px] font-semibold text-[#171717]">New application to rationalize</h3>
             <p className="text-[12px] text-[#666666] mt-1 leading-snug">Creates an application with a starter stage, two legacy-app columns, the five CAPDAN components and five layer-aligned green-field targets. Add findings and more stages in Data Admin.</p>
             <label className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[#525252] mt-4 mb-1.5">Application name</label>
-            <input autoFocus value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') createInitiative(); }}
-              placeholder="e.g. Billing & Finance Platform" className="input" />
+            <Input autoFocus value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') createInitiative(); }}
+              placeholder="e.g. Billing & Finance Platform" />
             <div className="flex justify-end gap-2 mt-5">
-              <button onClick={() => setShowNew(false)} disabled={creating} className="btn-ghost text-sm">Cancel</button>
-              <button onClick={createInitiative} disabled={creating || !newName.trim()} className="btn-primary text-sm">{creating ? 'Creating…' : 'Create application'}</button>
+              <Button variant="ghost" onClick={() => setShowNew(false)} disabled={creating} className="text-sm">Cancel</Button>
+              <Button onClick={createInitiative} disabled={creating || !newName.trim()} className="text-sm">{creating ? 'Creating…' : 'Create application'}</Button>
             </div>
           </div>
         </>
@@ -865,15 +866,15 @@ function EditBoxModal({ target, detail, onClose, onSaved }: { target: { kind: 'a
             <div key={f.key}>
               <label className="block text-[11px] font-medium text-[#525252] mb-1">{f.label}</label>
               {f.multiline
-                ? <textarea className="input" rows={2} value={form[f.key] ?? ''} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
-                : <input autoFocus={i === 0} className="input" value={form[f.key] ?? ''} placeholder={f.placeholder} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />}
+                ? <Textarea rows={2} value={form[f.key] ?? ''} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
+                : <Input autoFocus={i === 0} value={form[f.key] ?? ''} placeholder={f.placeholder} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />}
             </div>
           ))}
         </div>
-        {error && <div className="text-[12px] text-[#be123c] mt-2">{error}</div>}
+        {error && <ErrorMessage baseClassName="text-[12px] text-[#be123c] mt-2">{error}</ErrorMessage>}
         <div className="flex items-center justify-end gap-2 mt-4">
-          <button onClick={onClose} disabled={saving} className="btn-ghost text-sm">Cancel</button>
-          <button onClick={save} disabled={saving} className="btn-primary text-sm">{saving ? 'Saving…' : 'Save'}</button>
+          <Button variant="ghost" onClick={onClose} disabled={saving} className="text-sm">Cancel</Button>
+          <Button onClick={save} disabled={saving} className="text-sm">{saving ? 'Saving…' : 'Save'}</Button>
         </div>
       </div>
     </>
@@ -892,13 +893,13 @@ function CommitPanel({ changes, saving, onSubmit, onDiscard, error }: { changes:
           <span className="ml-2 inline-flex items-center justify-center min-w-[20px] h-[18px] rounded-full bg-white text-[11px] font-semibold text-[#4f46e5] px-1.5 tnum border border-[#c7d2fe]">{changes.length}</span>
         </span>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <button onClick={onDiscard} disabled={saving} className="btn-ghost text-[12px]">Discard</button>
-          <button onClick={onSubmit} disabled={saving || changes.length === 0} className="btn-primary text-[12px]">{saving ? 'Submitting…' : 'Submit changes'}</button>
+          <Button variant="ghost" onClick={onDiscard} disabled={saving} className="text-[12px]">Discard</Button>
+          <Button onClick={onSubmit} disabled={saving || changes.length === 0} className="text-[12px]">{saving ? 'Submitting…' : 'Submit changes'}</Button>
         </div>
       </div>
-      {error && <div className="text-[12px] text-[#be123c] mb-2">{error}</div>}
+      {error && <ErrorMessage baseClassName="text-[12px] text-[#be123c] mb-2">{error}</ErrorMessage>}
       {changes.length === 0 ? (
-        <div className="text-[12px] text-[#a3a3a3]">Nothing staged yet — drag a box or re-wire an arrow and it will appear here.</div>
+        <EmptyState baseClassName="text-[12px] text-[#a3a3a3]" message="Nothing staged yet — drag a box or re-wire an arrow and it will appear here." />
       ) : (
         <ul className="space-y-1.5 pl-1 border-l border-[#c7d2fe]">
           {changes.map((c, i) => (
@@ -934,7 +935,7 @@ function ChangeLog({ entries, open, onToggle }: { entries: LogEntry[]; open: boo
       {open && (
         <div className="border-t border-[#eaeaea] px-4 py-3 max-h-72 overflow-y-auto">
           {entries.length === 0 ? (
-            <div className="text-[12px] text-[#a3a3a3]">No changes recorded yet.</div>
+            <EmptyState baseClassName="text-[12px] text-[#a3a3a3]" message="No changes recorded yet." />
           ) : (
             <ul className="space-y-3">
               {entries.map((e) => <ChangeLogRow key={e.id} entry={e} />)}
@@ -947,7 +948,7 @@ function ChangeLog({ entries, open, onToggle }: { entries: LogEntry[]; open: boo
 }
 
 function ChangeLogRow({ entry }: { entry: LogEntry }) {
-  let parsed: CapdanDiff | null = null;
+  let parsed: CapdanDiff | null;
   try { parsed = entry.diff ? JSON.parse(entry.diff) : null; } catch { parsed = null; }
   const boardChanges = Array.isArray(parsed?.changes) ? (parsed!.changes as StagedChange[]) : null;
   const fieldChanges = parsed?.changes && !Array.isArray(parsed.changes) ? Object.entries(parsed.changes) : [];

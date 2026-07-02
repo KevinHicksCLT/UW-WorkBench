@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import EntityList from './EntityList';
 import EntityForm from '../EntityForm';
 import type { AdminEntity } from '../../lib/adminTypes';
+import { Button, Card } from '../ui';
 
 // Master-detail editor: a selectable parent list on the left, and on the right
 // the selected parent's own edit affordance plus one or more child collections
@@ -25,11 +27,11 @@ type Props = {
 };
 
 export default function MasterDetailEditor({ companyId, parent, parentTitle, childSpecs, intro }: Props) {
-  const [selected, setSelected] = useState<Record<string, any> | null>(null);
+  const [selected, setSelected] = useState<({ id: string } & Record<string, unknown>) | null>(null);
   const [editingParent, setEditingParent] = useState(false);
   const [parentRefresh, setParentRefresh] = useState(0);
 
-  const label = (row: Record<string, any>) => row[parent.labelField] ?? row.id;
+  const label = (row: Record<string, unknown>) => (row[parent.labelField] ?? row.id) as ReactNode;
 
   return (
     <div>
@@ -54,18 +56,18 @@ export default function MasterDetailEditor({ companyId, parent, parentTitle, chi
         {/* Detail pane */}
         <div className="flex-1 min-w-0">
           {!selected ? (
-            <div className="card-elevated p-10 text-center text-sm text-[#a3a3a3]">
+            <Card variant="elevated" className="p-10 text-center text-sm text-[#a3a3a3]">
               Select a {parent.label.toLowerCase()} on the left to edit it and manage its items.
-            </div>
+            </Card>
           ) : (
             <div className="space-y-5">
-              <div className="card p-4 flex items-start justify-between gap-3">
+              <Card className="p-4 flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{parent.label}</div>
                   <div className="text-base font-semibold text-[#171717] truncate">{label(selected)}</div>
                 </div>
-                <button className="btn-secondary flex-shrink-0" onClick={() => setEditingParent(true)}>Edit {parent.label.toLowerCase()}</button>
-              </div>
+                <Button variant="secondary" className="flex-shrink-0" onClick={() => setEditingParent(true)}>Edit {parent.label.toLowerCase()}</Button>
+              </Card>
 
               {childSpecs.map((spec) => (
                 <div key={spec.entity.slug}>

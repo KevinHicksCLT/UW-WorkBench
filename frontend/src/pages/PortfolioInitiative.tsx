@@ -5,10 +5,11 @@ import { useDialogs } from '../lib/dialogs';
 import { fmt, STAGE_ORDER, STAGE_LABELS } from '../lib/format';
 import PageHeader from '../components/PageHeader';
 import AssistantMarkdown from '../components/AssistantMarkdown';
+import { Button, Card, EmptyState, ErrorMessage, Input, Label, LoadingState, Select, StatusPill, Textarea } from '../components/ui';
 import {
-  Tile, StatusPill, SeverityCell, Modal, SvgLineChart, generateMonths,
+  Tile, SeverityCell, Modal, SvgLineChart, generateMonths,
   makeTimelineScale, TimelineAxis, TimelineGrid, ACTIVITY_STATUS_COLOR, ACTIVITY_STATUS_LABEL,
-  type Initiative, type Line, type Raid, type Milestone, type Objective, type Activity,
+  type Initiative, type Line, type Milestone, type Objective, type Activity,
 } from '../lib/portfolio';
 
 const TABS = ['Summary', 'Charter', 'Strategic Alignment', 'Financials', 'Workplan', 'Change Log', 'Resources', 'RAID', 'Audit'] as const;
@@ -28,15 +29,14 @@ export default function PortfolioInitiative() {
   async function workflow(action: string) {
     setBusy(true);
     try { await api.post(`/portfolio/initiatives/${id}/workflow`, { action }); load(); }
-    catch (e) { void dialogs.alert({ title: 'Workflow action failed', message: (e as Error).message }); }
+    catch (e) { dialogs.alert({ title: 'Workflow action failed', message: (e as Error).message }); }
     finally { setBusy(false); }
   }
   async function setStatus(status: string) { await api.patch(`/portfolio/initiatives/${id}`, { status }); load(); }
 
-  if (error) return <div className="text-sm text-[#be123c]">{error}</div>;
-  if (!init) return <div className="text-sm text-[#a3a3a3]">Loading…</div>;
+  if (error) return <ErrorMessage>{error}</ErrorMessage>;
+  if (!init) return <LoadingState />;
 
-  const program = init.workstream.program;
   const stageIdx = STAGE_ORDER.indexOf(init.stage);
 
   return (
@@ -46,27 +46,27 @@ export default function PortfolioInitiative() {
         actions={
           <>
             {init.workflowAction === 'SUBMIT' && (
-              <button className="btn-primary" disabled={busy} onClick={() => workflow('APPROVE')}>
+              <Button disabled={busy} onClick={() => workflow('APPROVE')}>
                 Approve → {STAGE_LABELS[STAGE_ORDER[stageIdx + 1]] ?? 'Done'}
-              </button>
+              </Button>
             )}
-            {stageIdx > 0 && <button className="btn-secondary" disabled={busy} onClick={() => workflow('MOVE_BACK')}>Roll Back</button>}
+            {stageIdx > 0 && <Button variant="secondary" disabled={busy} onClick={() => workflow('MOVE_BACK')}>Roll Back</Button>}
           </>
         }
       />
 
       {/* Status (FB-04 — stage label + stage ladder removed) */}
-      <div className="card-elevated p-5 mb-6">
+      <Card variant="elevated" className="p-5 mb-6">
         <div className="flex items-center gap-3">
           <span className="text-[11px] uppercase font-semibold tracking-[0.08em] text-[#a3a3a3]">Status</span>
-          <select className="input w-36" value={init.status} onChange={(e) => setStatus(e.target.value)}>
+          <Select className="w-36" value={init.status} onChange={(e) => setStatus(e.target.value)}>
             <option value="ON_TRACK">On Track</option>
             <option value="AT_RISK">At Risk</option>
             <option value="OFF_TRACK">Off Track</option>
-          </select>
-          {init.workflowAction === 'SUBMIT' && <span className="pill-amber">Pending approval</span>}
+          </Select>
+          {init.workflowAction === 'SUBMIT' && <StatusPill tone="amber">Pending approval</StatusPill>}
         </div>
-      </div>
+      </Card>
 
       {/* Tabs */}
       <div className="border-b border-[#eaeaea] mb-5 overflow-x-auto">
@@ -103,7 +103,7 @@ export default function PortfolioInitiative() {
 function SummaryTab({ init }: { init: Initiative }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <div className="card-elevated p-5 lg:col-span-2">
+      <Card variant="elevated" className="p-5 lg:col-span-2">
         <h3 className="text-sm font-semibold text-[#171717] mb-3">Description</h3>
         <p className="text-sm text-[#525252] whitespace-pre-line">{init.description || 'No description provided.'}</p>
         {init.statusNote && (
@@ -112,8 +112,8 @@ function SummaryTab({ init }: { init: Initiative }) {
             <p className="text-sm text-[#666666] italic">{init.statusNote}</p>
           </div>
         )}
-      </div>
-      <div className="card-elevated p-5">
+      </Card>
+      <Card variant="elevated" className="p-5">
         <h3 className="text-sm font-semibold text-[#171717] mb-3">Details</h3>
         <dl className="text-sm space-y-2">
           <Field label="Workstream" value={init.workstream.name} />
@@ -128,7 +128,7 @@ function SummaryTab({ init }: { init: Initiative }) {
           <Field label="Owner role" value={init.ownerRoleName} to={init.ownerRoleId ? `/roles/${init.ownerRoleId}` : undefined} />
           <Field label="Sponsor role" value={init.sponsorRoleName} to={init.sponsorRoleId ? `/roles/${init.sponsorRoleId}` : undefined} />
         </dl>
-      </div>
+      </Card>
     </div>
   );
 }
@@ -153,29 +153,29 @@ function CharterTab({ init, reload }: { init: Initiative; reload: () => void }) 
 
   async function save() {
     const n = Number(complexity);
-    if (Number.isNaN(n) || n < 0 || n > 10) { void dialogs.alert({ title: 'Invalid value', message: 'Complexity must be between 0 and 10.' }); return; }
+    if (Number.isNaN(n) || n < 0 || n > 10) { dialogs.alert({ title: 'Invalid value', message: 'Complexity must be between 0 and 10.' }); return; }
     setSaving(true);
     try { await api.patch(`/portfolio/initiatives/${init.id}`, { complexityScore: n }); reload(); }
-    catch (e) { void dialogs.alert({ title: 'Save failed', message: (e as Error).message }); }
+    catch (e) { dialogs.alert({ title: 'Save failed', message: (e as Error).message }); }
     finally { setSaving(false); }
   }
 
   return (
     <div className="space-y-4">
       <CharterNarrative init={init} />
-      <div className="card-elevated p-5">
+      <Card variant="elevated" className="p-5">
         <h3 className="text-sm font-semibold text-[#171717] mb-1">Complexity Score</h3>
         <p className="text-xs text-[#a3a3a3] mb-3">Delivery complexity, 0 (trivial) – 10 (extreme). Used as the x-axis of the program prioritization matrix.</p>
         <div className="flex items-center gap-3">
-          <input
-            className="input w-28 text-right tnum"
+          <Input
+            className="w-28 text-right tnum"
             type="number" min={0} max={10} step={0.5}
             value={complexity}
             onChange={(e) => setComplexity(e.target.value)}
           />
-          <button className="btn-primary text-xs" onClick={save} disabled={saving || !dirty}>{saving ? 'Saving…' : 'Save'}</button>
+          <Button className="text-xs" onClick={save} disabled={saving || !dirty}>{saving ? 'Saving…' : 'Save'}</Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
@@ -206,29 +206,28 @@ function CharterNarrative({ init }: { init: Initiative }) {
   // Auto-draft on first view when nothing is cached yet.
   useEffect(() => {
     if (!text && !loading && !error) void generate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [init.id]);
 
   return (
-    <div className="card-elevated p-5">
+    <Card variant="elevated" className="p-5">
       <div className="flex items-center justify-between gap-3 mb-3">
         <div>
           <h3 className="text-sm font-semibold text-[#171717]">Project Charter</h3>
           <p className="text-xs text-[#a3a3a3]">AI-drafted from this initiative's data — review before sharing.</p>
         </div>
-        <button className="btn-secondary text-xs" onClick={generate} disabled={loading}>
+        <Button variant="secondary" className="text-xs" onClick={generate} disabled={loading}>
           {loading ? 'Generating…' : text ? 'Regenerate' : 'Generate'}
-        </button>
+        </Button>
       </div>
-      {error && <div className="text-sm text-[#be123c]">{error}</div>}
-      {!error && loading && !text && <div className="text-sm text-[#a3a3a3] py-2">Drafting the charter…</div>}
+      {error && <ErrorMessage>{error}</ErrorMessage>}
+      {!error && loading && !text && <LoadingState className="py-2" message="Drafting the charter…" />}
       {text && (
         <div className={loading ? 'opacity-50 transition-opacity' : ''}>
           <AssistantMarkdown content={text} />
         </div>
       )}
-      {!text && !loading && !error && <div className="text-sm text-[#a3a3a3] py-2">No charter yet.</div>}
-    </div>
+      {!text && !loading && !error && <EmptyState baseClassName="text-sm text-[#a3a3a3] py-2" message="No charter yet." />}
+    </Card>
   );
 }
 
@@ -248,16 +247,16 @@ function AlignmentTab({ init, reload }: { init: Initiative; reload: () => void }
   const available = objectives.filter((o) => !linkedIds.has(o.id));
 
   async function run(fn: () => Promise<unknown>) {
-    try { await fn(); reload(); } catch (e) { void dialogs.alert({ title: 'Change failed', message: (e as Error).message }); }
+    try { await fn(); reload(); } catch (e) { dialogs.alert({ title: 'Change failed', message: (e as Error).message }); }
   }
 
   return (
     <div className="space-y-4">
-      <div className="card-elevated p-5">
+      <Card variant="elevated" className="p-5">
         <h3 className="text-sm font-semibold text-[#171717] mb-3">Linked strategic objectives</h3>
-        {error && <div className="text-sm text-[#be123c] mb-2">{error}</div>}
+        {error && <ErrorMessage className="mb-2">{error}</ErrorMessage>}
         {init.objectives.length === 0 ? (
-          <div className="text-sm text-[#a3a3a3] py-2">No objectives linked yet.</div>
+          <EmptyState baseClassName="text-sm text-[#a3a3a3] py-2" message="No objectives linked yet." />
         ) : (
           <div className="table-scroll">
             <table className="w-full table-fixed text-sm">
@@ -276,13 +275,13 @@ function AlignmentTab({ init, reload }: { init: Initiative; reload: () => void }
                     <td className="py-2.5 font-medium text-[#171717]">{l.objective.name}</td>
                     <td className="py-2.5 text-left tnum text-[#666666]">{l.objective.weight}</td>
                     <td className="py-2.5">
-                      <select
-                        className="input text-xs w-24"
+                      <Select
+                        className="text-xs w-24"
                         value={l.impact}
                         onChange={(e) => run(() => api.patch(`/portfolio/initiatives/objectives/${l.id}`, { impact: Number(e.target.value) }))}
                       >
                         {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}
-                      </select>
+                      </Select>
                     </td>
                     <td className="py-2.5 text-left tnum text-[#171717]">{Math.round(l.impact * l.objective.weight * 10) / 10}</td>
                     <td className="py-2.5 text-right">
@@ -301,25 +300,25 @@ function AlignmentTab({ init, reload }: { init: Initiative; reload: () => void }
 
         <div className="flex flex-wrap items-end gap-3 mt-4 pt-4 border-t border-[#f5f5f5]">
           <div className="flex-1 min-w-48">
-            <label className="label">Add objective</label>
-            <select className="input" value={addId} onChange={(e) => setAddId(e.target.value)}>
+            <Label>Add objective</Label>
+            <Select value={addId} onChange={(e) => setAddId(e.target.value)}>
               <option value="">— select an objective —</option>
               {available.map((o) => <option key={o.id} value={o.id}>{o.name} (weight {o.weight})</option>)}
-            </select>
+            </Select>
           </div>
           <div>
-            <label className="label">Impact</label>
-            <select className="input w-20" value={addImpact} onChange={(e) => setAddImpact(Number(e.target.value))}>
+            <Label>Impact</Label>
+            <Select className="w-20" value={addImpact} onChange={(e) => setAddImpact(Number(e.target.value))}>
               {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}
-            </select>
+            </Select>
           </div>
-          <button
-            className="btn-primary text-xs"
+          <Button
+            className="text-xs"
             disabled={!addId}
             onClick={() => run(async () => { await api.post(`/portfolio/initiatives/${init.id}/objectives`, { objectiveId: addId, impact: addImpact }); setAddId(''); setAddImpact(3); })}
-          >Link objective</button>
+          >Link objective</Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
@@ -383,7 +382,7 @@ function FinancialsTab({ init, reload }: { init: Initiative; reload: () => void 
       </div>
 
       {/* Budget vs forecast vs actuals — cumulative */}
-      <div className="card-elevated p-5">
+      <Card variant="elevated" className="p-5">
         <h3 className="text-sm font-semibold text-[#171717] mb-3">Budget vs Forecast vs Actuals — cumulative cost</h3>
         <SvgLineChart
           labels={months}
@@ -395,10 +394,10 @@ function FinancialsTab({ init, reload }: { init: Initiative; reload: () => void 
             { name: 'Actuals', color: '#047857', data: cumulative(actualM) },
           ]}
         />
-      </div>
+      </Card>
 
       {/* Change Impact on budget & timeline (FB-15) */}
-      <div className="card-elevated p-5">
+      <Card variant="elevated" className="p-5">
         <h3 className="text-sm font-semibold text-[#171717] mb-1">Change Impact</h3>
         <p className="text-xs text-[#a3a3a3] mb-4">How the current forecast and workplan move this initiative against its baselines.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -427,7 +426,7 @@ function FinancialsTab({ init, reload }: { init: Initiative; reload: () => void 
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
       <LineSection title="Costs" type="COST" lines={init.costs} onCreate={() => setShowCreate('COST')} onChange={reload} />
       <LineSection title="Benefits" type="BENEFIT" lines={init.benefits} onCreate={() => setShowCreate('BENEFIT')} onChange={reload} />
@@ -441,13 +440,13 @@ function LineSection({ title, type, lines, onCreate, onChange }: { title: string
   const dialogs = useDialogs();
   const [editing, setEditing] = useState<Line | null>(null);
   return (
-    <div className="card-elevated p-5">
+    <Card variant="elevated" className="p-5">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-[#171717]">{title}</h3>
-        <button className="btn-secondary text-xs" onClick={onCreate}>+ Add {type === 'BENEFIT' ? 'benefit' : 'cost'}</button>
+        <Button variant="secondary" className="text-xs" onClick={onCreate}>+ Add {type === 'BENEFIT' ? 'benefit' : 'cost'}</Button>
       </div>
       {lines.length === 0 ? (
-        <div className="text-sm text-[#a3a3a3] py-2">No lines yet.</div>
+        <EmptyState baseClassName="text-sm text-[#a3a3a3] py-2" message="No lines yet." />
       ) : (
         <div className="table-scroll">
           <table className="w-full text-sm">
@@ -479,7 +478,7 @@ function LineSection({ title, type, lines, onCreate, onChange }: { title: string
                     <td className="py-2.5 text-right">
                       <button
                         className="text-xs text-[#be123c] hover:underline"
-                        onClick={async (e) => { e.stopPropagation(); if (!(await dialogs.confirm({ title: 'Delete this line?', danger: true, message: `"${l.name}" and its monthly values will be deleted.` }))) return; await api.delete(`/portfolio/lines/${type}/${l.id}`); onChange(); }}
+                        onClick={async (e) => { e.stopPropagation(); if (!(await dialogs.confirm({ title: 'Delete this line?', danger: true, message: `"${l.name}" and its monthly values will be deleted.` }))) { return; } await api.delete(`/portfolio/lines/${type}/${l.id}`); onChange(); }}
                       >Delete</button>
                     </td>
                   </tr>
@@ -490,7 +489,7 @@ function LineSection({ title, type, lines, onCreate, onChange }: { title: string
         </div>
       )}
       {editing && <EditValuesModal type={type} line={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); onChange(); }} />}
-    </div>
+    </Card>
   );
 }
 
@@ -513,20 +512,20 @@ function CreateLineModal({ type, init, onClose, onCreated }: { type: 'BENEFIT' |
   return (
     <Modal title={`New ${type === 'BENEFIT' ? 'Benefit' : 'Cost'} Line`} onClose={onClose}>
       <form onSubmit={submit} className="space-y-3">
-        <div><label className="label">Name</label>
-          <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
-        <div><label className="label">Category</label>
-          <input className="input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} /></div>
+        <div><Label>Name</Label>
+          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
+        <div><Label>Category</Label>
+          <Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} /></div>
         <div className="grid grid-cols-2 gap-3">
-          <div><label className="label">Start</label>
-            <input className="input" type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required /></div>
-          <div><label className="label">End</label>
-            <input className="input" type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} required /></div>
+          <div><Label>Start</Label>
+            <Input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required /></div>
+          <div><Label>End</Label>
+            <Input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} required /></div>
         </div>
-        {error && <div className="text-sm text-[#be123c]">{error}</div>}
+        {error && <ErrorMessage>{error}</ErrorMessage>}
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button className="btn-primary">Create</button>
+          <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button>Create</Button>
         </div>
       </form>
     </Modal>
@@ -549,7 +548,10 @@ function EditValuesModal({ type, line, onClose, onSaved }: { type: 'BENEFIT' | '
 
   useEffect(() => {
     const v: Record<string, Record<string, number>> = { ACTUAL: {}, TARGET: {}, FORECAST: {} };
-    for (const x of line.values) (v[x.dataset] ??= {})[x.periodStart.slice(0, 7)] = x.amount;
+    for (const x of line.values) {
+      v[x.dataset] ??= {};
+      v[x.dataset][x.periodStart.slice(0, 7)] = x.amount;
+    }
     setValues(v);
   }, [line]);
 
@@ -581,9 +583,9 @@ function EditValuesModal({ type, line, onClose, onSaved }: { type: 'BENEFIT' | '
                 <td className="p-2 text-center text-[#666666]">{m}</td>
                 {VALUE_DATASETS.map((d) => (
                   <td key={d.key} className="p-2 text-center">
-                    <input
+                    <Input
                       type="number"
-                      className="input text-center w-28 mx-auto"
+                      className="text-center w-28 mx-auto"
                       value={values[d.key]?.[m] ?? ''}
                       onChange={(e) => setValues((prev) => ({ ...prev, [d.key]: { ...prev[d.key], [m]: e.target.value } }))}
                     />
@@ -595,8 +597,8 @@ function EditValuesModal({ type, line, onClose, onSaved }: { type: 'BENEFIT' | '
         </table>
       </div>
       <div className="flex justify-end gap-2 pt-3">
-        <button className="btn-secondary" onClick={onClose}>Cancel</button>
-        <button className="btn-primary" onClick={save} disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
+        <Button variant="secondary" onClick={onClose}>Cancel</Button>
+        <Button onClick={save} disabled={saving}>{saving ? 'Saving…' : 'Save'}</Button>
       </div>
     </Modal>
   );
@@ -621,12 +623,12 @@ function WorkplanTab({ init, reload }: { init: Initiative; reload: () => void })
   }
 
   return (
-    <div className="card-elevated p-5">
+    <Card variant="elevated" className="p-5">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h3 className="text-sm font-semibold text-[#171717]">Workplan timeline</h3>
         <div className="flex items-center gap-2">
-          <button className="btn-secondary text-xs" onClick={() => setShowCreateA(true)}>+ Activity</button>
-          <button className="btn-secondary text-xs" onClick={() => setShowCreateM(true)}>+ Milestone</button>
+          <Button variant="secondary" className="text-xs" onClick={() => setShowCreateA(true)}>+ Activity</Button>
+          <Button variant="secondary" className="text-xs" onClick={() => setShowCreateM(true)}>+ Milestone</Button>
         </div>
       </div>
 
@@ -649,7 +651,7 @@ function WorkplanTab({ init, reload }: { init: Initiative; reload: () => void })
       </div>
 
       {init.activities.length === 0 && init.milestones.length === 0 ? (
-        <div className="text-sm text-[#a3a3a3] py-3">No activities or milestones yet.</div>
+        <EmptyState baseClassName="text-sm text-[#a3a3a3] py-3" message="No activities or milestones yet." />
       ) : (
         <div className="flex gap-3">
           <div className="w-48 flex-shrink-0">
@@ -667,10 +669,10 @@ function WorkplanTab({ init, reload }: { init: Initiative; reload: () => void })
               <div key={m.id} className="h-10 flex items-center gap-2 px-1 min-w-0">
                 <input type="checkbox" checked={m.status === 'DONE'} onChange={() => toggle(m)} className="w-3.5 h-3.5 accent-[#171717] flex-shrink-0" />
                 <span className={'text-sm truncate ' + (m.status === 'DONE' ? 'line-through text-[#a3a3a3]' : 'text-[#171717]')}>{m.name}</span>
-                {m.isGate && <span className="pill-blue text-[10px] flex-shrink-0">GATE</span>}
+                {m.isGate && <StatusPill tone="blue" className="text-[10px] flex-shrink-0">GATE</StatusPill>}
                 <button
                   className="ml-auto text-[10px] text-[#be123c] hover:underline flex-shrink-0"
-                  onClick={async () => { if (!(await dialogs.confirm({ title: 'Delete milestone?', danger: true, message: `"${m.name}" will be deleted.` }))) return; await api.delete(`/portfolio/initiatives/milestones/${m.id}`); reload(); }}
+                  onClick={async () => { if (!(await dialogs.confirm({ title: 'Delete milestone?', danger: true, message: `"${m.name}" will be deleted.` }))) { return; } await api.delete(`/portfolio/initiatives/milestones/${m.id}`); reload(); }}
                 >del</button>
               </div>
             ))}
@@ -712,7 +714,7 @@ function WorkplanTab({ init, reload }: { init: Initiative; reload: () => void })
           onSaved={() => { setShowCreateA(false); setEditing(null); reload(); }}
         />
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -799,39 +801,38 @@ function ActivityModal({ init, activity, onClose, onSaved }: { init: Initiative;
   return (
     <Modal title={activity ? 'Edit Activity' : 'New Activity'} onClose={onClose}>
       <form onSubmit={submit} className="space-y-3">
-        <div><label className="label">Name</label>
-          <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
+        <div><Label>Name</Label>
+          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
         <div className="grid grid-cols-2 gap-3">
-          <div><label className="label">Start</label>
-            <input className="input" type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required /></div>
-          <div><label className="label">End</label>
-            <input className="input" type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} required /></div>
+          <div><Label>Start</Label>
+            <Input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required /></div>
+          <div><Label>End</Label>
+            <Input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} required /></div>
         </div>
-        <div><label className="label">Assigned to</label>
-          <input className="input" value={form.assignedTo} onChange={(e) => setForm({ ...form, assignedTo: e.target.value })} placeholder="e.g. Jane Smith" /></div>
+        <div><Label>Assigned to</Label>
+          <Input value={form.assignedTo} onChange={(e) => setForm({ ...form, assignedTo: e.target.value })} placeholder="e.g. Jane Smith" /></div>
         {activity && (
-          <div><label className="label">Status</label>
-            <select className="input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+          <div><Label>Status</Label>
+            <Select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
               <option value="PLANNED">Planned</option>
               <option value="IN_PROGRESS">In progress</option>
               <option value="DONE">Done</option>
-            </select></div>
+            </Select></div>
         )}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label">Depends on</label>
-            <select className="input" value={form.dependencyType} onChange={(e) => setType(e.target.value as DepType | '')}>
+            <Label>Depends on</Label>
+            <Select value={form.dependencyType} onChange={(e) => setType(e.target.value as DepType | '')}>
               <option value="">— none —</option>
               {DEP_TYPES.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
-            </select>
+            </Select>
           </div>
           <div>
-            <label className="label">{typeDef ? typeDef.label : 'Value'}</label>
+            <Label>{typeDef ? typeDef.label : 'Value'}</Label>
             {!form.dependencyType ? (
-              <select className="input" disabled><option>— select a type —</option></select>
+              <Select disabled><option>— select a type —</option></Select>
             ) : isList ? (
-              <select
-                className="input"
+              <Select
                 value={form.dependencyRefId}
                 onChange={(e) => {
                   const opt = valueOptions.find((o) => o.id === e.target.value);
@@ -840,10 +841,9 @@ function ActivityModal({ init, activity, onClose, onSaved }: { init: Initiative;
               >
                 <option value="">— select {typeDef!.label.toLowerCase()} —</option>
                 {valueOptions.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
-              </select>
+              </Select>
             ) : (
-              <input
-                className="input"
+              <Input
                 value={form.dependencyLabel}
                 onChange={(e) => setForm({ ...form, dependencyLabel: e.target.value })}
                 placeholder={form.dependencyType === 'PERSON' ? 'e.g. Jane Smith' : 'e.g. CR-1042'}
@@ -851,12 +851,12 @@ function ActivityModal({ init, activity, onClose, onSaved }: { init: Initiative;
             )}
           </div>
         </div>
-        {error && <div className="text-sm text-[#be123c]">{error}</div>}
+        {error && <ErrorMessage>{error}</ErrorMessage>}
         <div className="flex justify-between gap-2 pt-2">
           <div>{activity && <button type="button" className="text-xs text-[#be123c] hover:underline" onClick={remove}>Delete activity</button>}</div>
           <div className="flex gap-2">
-            <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-            <button className="btn-primary">{activity ? 'Save' : 'Create'}</button>
+            <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+            <Button>{activity ? 'Save' : 'Create'}</Button>
           </div>
         </div>
       </form>
@@ -884,15 +884,15 @@ function ChangeLogTab({ init }: { init: Initiative }) {
   }
 
   return (
-    <div className="card-elevated p-5">
+    <Card variant="elevated" className="p-5">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-[#171717]">Change log</h3>
-        <button className="btn-secondary text-xs" onClick={() => setShowCreate(true)}>+ New change request</button>
+        <Button variant="secondary" className="text-xs" onClick={() => setShowCreate(true)}>+ New change request</Button>
       </div>
       {!rows ? (
-        <div className="text-sm text-[#a3a3a3]">Loading…</div>
+        <LoadingState />
       ) : rows.length === 0 ? (
-        <div className="text-sm text-[#a3a3a3] py-2">No change requests yet.</div>
+        <EmptyState baseClassName="text-sm text-[#a3a3a3] py-2" message="No change requests yet." />
       ) : (
         <div className="table-scroll">
           <table className="w-full text-sm table-fixed">
@@ -922,9 +922,9 @@ function ChangeLogTab({ init }: { init: Initiative }) {
                     {cr.scheduleImpactDays > 0 ? '+' : ''}{cr.scheduleImpactDays}d
                   </td>
                   <td className="py-2.5 pl-6">
-                    <select className="input text-xs w-full" value={cr.status} onChange={(e) => setStatus(cr, e.target.value)}>
+                    <Select className="text-xs w-full" value={cr.status} onChange={(e) => setStatus(cr, e.target.value)}>
                       {CR_STATUS.map((s) => <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</option>)}
-                    </select>
+                    </Select>
                   </td>
                 </tr>
               ))}
@@ -933,7 +933,7 @@ function ChangeLogTab({ init }: { init: Initiative }) {
         </div>
       )}
       {showCreate && <CreateChangeRequestModal initId={init.id} onClose={() => setShowCreate(false)} onCreated={() => { setShowCreate(false); load(); }} />}
-    </div>
+    </Card>
   );
 }
 
@@ -959,26 +959,26 @@ function CreateChangeRequestModal({ initId, onClose, onCreated }: { initId: stri
   return (
     <Modal title="New Change Request" onClose={onClose}>
       <form onSubmit={submit} className="space-y-3">
-        <div><label className="label">Title</label>
-          <input className="input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></div>
-        <div><label className="label">Description</label>
-          <textarea className="input" rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-        <div><label className="label">Raised by</label>
-          <input className="input" value={form.raisedBy} onChange={(e) => setForm({ ...form, raisedBy: e.target.value })} placeholder="defaults to you" /></div>
+        <div><Label>Title</Label>
+          <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></div>
+        <div><Label>Description</Label>
+          <Textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+        <div><Label>Raised by</Label>
+          <Input value={form.raisedBy} onChange={(e) => setForm({ ...form, raisedBy: e.target.value })} placeholder="defaults to you" /></div>
         <div className="grid grid-cols-2 gap-3">
-          <div><label className="label">Change cost ($)</label>
-            <input className="input text-right tnum" type="number" value={form.costImpact} onChange={(e) => setForm({ ...form, costImpact: Number(e.target.value) })} /></div>
-          <div><label className="label">Schedule impact (days)</label>
-            <input className="input text-right tnum" type="number" value={form.scheduleImpactDays} onChange={(e) => setForm({ ...form, scheduleImpactDays: Number(e.target.value) })} /></div>
+          <div><Label>Change cost ($)</Label>
+            <Input className="text-right tnum" type="number" value={form.costImpact} onChange={(e) => setForm({ ...form, costImpact: Number(e.target.value) })} /></div>
+          <div><Label>Schedule impact (days)</Label>
+            <Input className="text-right tnum" type="number" value={form.scheduleImpactDays} onChange={(e) => setForm({ ...form, scheduleImpactDays: Number(e.target.value) })} /></div>
         </div>
-        <div><label className="label">Status</label>
-          <select className="input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+        <div><Label>Status</Label>
+          <Select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
             {CR_STATUS.map((s) => <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</option>)}
-          </select></div>
-        {error && <div className="text-sm text-[#be123c]">{error}</div>}
+          </Select></div>
+        {error && <ErrorMessage>{error}</ErrorMessage>}
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button className="btn-primary">Create</button>
+          <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button>Create</Button>
         </div>
       </form>
     </Modal>
@@ -1016,10 +1016,10 @@ function ResourcesTab({ init, reload }: { init: Initiative; reload: () => void }
   }
 
   return (
-    <div className="card-elevated p-5">
+    <Card variant="elevated" className="p-5">
       <h3 className="text-sm font-semibold text-[#171717] mb-3">Resources</h3>
       {init.resources.length === 0 ? (
-        <div className="text-sm text-[#a3a3a3] py-2">No resources assigned yet.</div>
+        <EmptyState baseClassName="text-sm text-[#a3a3a3] py-2" message="No resources assigned yet." />
       ) : (
         <div className="table-scroll">
           <table className="w-full text-sm">
@@ -1044,7 +1044,7 @@ function ResourcesTab({ init, reload }: { init: Initiative; reload: () => void }
                   <td className="py-2.5 text-right">
                     <button
                       className="text-xs text-[#be123c] hover:underline"
-                      onClick={async () => { if (!(await dialogs.confirm({ title: 'Remove this resource?', danger: true, message: `${r.name} will be unassigned from this initiative.`, confirmLabel: 'Remove' }))) return; await api.delete(`/portfolio/initiatives/resources/${r.id}`); reload(); }}
+                      onClick={async () => { if (!(await dialogs.confirm({ title: 'Remove this resource?', danger: true, message: `${r.name} will be unassigned from this initiative.`, confirmLabel: 'Remove' }))) { return; } await api.delete(`/portfolio/initiatives/resources/${r.id}`); reload(); }}
                     >Delete</button>
                   </td>
                 </tr>
@@ -1056,29 +1056,29 @@ function ResourcesTab({ init, reload }: { init: Initiative; reload: () => void }
 
       <form onSubmit={submit} className="flex flex-wrap items-end gap-3 mt-4 pt-4 border-t border-[#f5f5f5]">
         <div className="flex-1 min-w-44">
-          <label className="label">Name</label>
-          <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Type a name" required />
+          <Label>Name</Label>
+          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Type a name" required />
         </div>
         <div className="w-44">
-          <label className="label">Role</label>
-          <input className="input" value={form.roleName} onChange={(e) => setForm({ ...form, roleName: e.target.value })} placeholder="e.g. Delivery lead" />
+          <Label>Role</Label>
+          <Input value={form.roleName} onChange={(e) => setForm({ ...form, roleName: e.target.value })} placeholder="e.g. Delivery lead" />
         </div>
         <div className="w-24">
-          <label className="label">Alloc %</label>
-          <input className="input text-right tnum" type="number" min={1} max={100} value={form.allocationPct} onChange={(e) => setForm({ ...form, allocationPct: Number(e.target.value) })} required />
+          <Label>Alloc %</Label>
+          <Input className="text-right tnum" type="number" min={1} max={100} value={form.allocationPct} onChange={(e) => setForm({ ...form, allocationPct: Number(e.target.value) })} required />
         </div>
         <div>
-          <label className="label">Start</label>
-          <input className="input" type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required />
+          <Label>Start</Label>
+          <Input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required />
         </div>
         <div>
-          <label className="label">End</label>
-          <input className="input" type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} required />
+          <Label>End</Label>
+          <Input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} required />
         </div>
-        <button className="btn-primary text-xs">Add resource</button>
-        {error && <div className="w-full text-sm text-[#be123c]">{error}</div>}
+        <Button className="text-xs">Add resource</Button>
+        {error && <ErrorMessage baseClassName="w-full text-sm text-[#be123c]">{error}</ErrorMessage>}
       </form>
-    </div>
+    </Card>
   );
 }
 
@@ -1096,18 +1096,18 @@ function CreateMilestoneModal({ initId, onClose, onCreated }: { initId: string; 
   return (
     <Modal title="New Milestone" onClose={onClose}>
       <form onSubmit={submit} className="space-y-3">
-        <div><label className="label">Name</label>
-          <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
-        <div><label className="label">Due date</label>
-          <input className="input" type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} required /></div>
+        <div><Label>Name</Label>
+          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
+        <div><Label>Due date</Label>
+          <Input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} required /></div>
         <label className="flex items-center gap-2 text-sm text-[#525252]">
           <input type="checkbox" className="accent-[#171717]" checked={form.isGate} onChange={(e) => setForm({ ...form, isGate: e.target.checked })} />
           Stage-gate milestone
         </label>
-        {error && <div className="text-sm text-[#be123c]">{error}</div>}
+        {error && <ErrorMessage>{error}</ErrorMessage>}
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button className="btn-primary">Create</button>
+          <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button>Create</Button>
         </div>
       </form>
     </Modal>
@@ -1118,13 +1118,13 @@ function CreateMilestoneModal({ initId, onClose, onCreated }: { initId: string; 
 function RaidTab({ init, reload }: { init: Initiative; reload: () => void }) {
   const [showCreate, setShowCreate] = useState(false);
   return (
-    <div className="card-elevated p-5">
+    <Card variant="elevated" className="p-5">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-[#171717]">Risks, Assumptions, Issues, Decisions</h3>
-        <button className="btn-secondary text-xs" onClick={() => setShowCreate(true)}>+ RAID item</button>
+        <Button variant="secondary" className="text-xs" onClick={() => setShowCreate(true)}>+ RAID item</Button>
       </div>
       {init.raidItems.length === 0 ? (
-        <div className="text-sm text-[#a3a3a3]">No RAID items.</div>
+        <EmptyState baseClassName="text-sm text-[#a3a3a3]" message="No RAID items." />
       ) : (
         <div className="table-scroll">
           <table className="w-full text-sm">
@@ -1139,18 +1139,18 @@ function RaidTab({ init, reload }: { init: Initiative; reload: () => void }) {
             <tbody>
               {init.raidItems.map((r) => (
                 <tr key={r.id} className="border-b border-[#f5f5f5]">
-                  <td className="py-2.5"><span className="pill-slate text-xs">{r.type}</span></td>
+                  <td className="py-2.5"><StatusPill tone="slate" className="text-xs">{r.type}</StatusPill></td>
                   <td className="py-2.5">
                     <div className="font-medium text-[#171717]">{r.title}</div>
                     {r.mitigation && <div className="text-xs text-[#a3a3a3] mt-0.5">{r.mitigation}</div>}
                   </td>
                   <td className="py-2.5 text-center"><SeverityCell value={r.severity} /></td>
                   <td className="py-2.5">
-                    <select className="input text-xs" value={r.status} onChange={async (e) => { await api.patch(`/portfolio/raid/${r.id}`, { status: e.target.value }); reload(); }}>
+                    <Select className="text-xs" value={r.status} onChange={async (e) => { await api.patch(`/portfolio/raid/${r.id}`, { status: e.target.value }); reload(); }}>
                       <option value="OPEN">Open</option>
                       <option value="MITIGATED">Mitigated</option>
                       <option value="CLOSED">Closed</option>
-                    </select>
+                    </Select>
                   </td>
                 </tr>
               ))}
@@ -1159,7 +1159,7 @@ function RaidTab({ init, reload }: { init: Initiative; reload: () => void }) {
         </div>
       )}
       {showCreate && <CreateRaidModal initId={init.id} onClose={() => setShowCreate(false)} onCreated={() => { setShowCreate(false); reload(); }} />}
-    </div>
+    </Card>
   );
 }
 
@@ -1179,26 +1179,26 @@ function CreateRaidModal({ initId, onClose, onCreated }: { initId: string; onClo
   return (
     <Modal title="New RAID Item" onClose={onClose}>
       <form onSubmit={submit} className="space-y-3">
-        <div><label className="label">Type</label>
-          <select className="input" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+        <div><Label>Type</Label>
+          <Select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
             <option value="RISK">Risk</option><option value="ASSUMPTION">Assumption</option><option value="ISSUE">Issue</option><option value="DECISION">Decision</option>
-          </select></div>
-        <div><label className="label">Title</label>
-          <input className="input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></div>
-        <div><label className="label">Description</label>
-          <textarea className="input" rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+          </Select></div>
+        <div><Label>Title</Label>
+          <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></div>
+        <div><Label>Description</Label>
+          <Textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
         <div className="grid grid-cols-2 gap-3">
-          <div><label className="label">Probability (1–5)</label>
-            <input className="input" type="number" min={1} max={5} value={form.probability} onChange={(e) => setForm({ ...form, probability: Number(e.target.value) })} /></div>
-          <div><label className="label">Impact (1–5)</label>
-            <input className="input" type="number" min={1} max={5} value={form.impact} onChange={(e) => setForm({ ...form, impact: Number(e.target.value) })} /></div>
+          <div><Label>Probability (1–5)</Label>
+            <Input type="number" min={1} max={5} value={form.probability} onChange={(e) => setForm({ ...form, probability: Number(e.target.value) })} /></div>
+          <div><Label>Impact (1–5)</Label>
+            <Input type="number" min={1} max={5} value={form.impact} onChange={(e) => setForm({ ...form, impact: Number(e.target.value) })} /></div>
         </div>
-        <div><label className="label">Mitigation</label>
-          <textarea className="input" rows={2} value={form.mitigation} onChange={(e) => setForm({ ...form, mitigation: e.target.value })} /></div>
-        {error && <div className="text-sm text-[#be123c]">{error}</div>}
+        <div><Label>Mitigation</Label>
+          <Textarea rows={2} value={form.mitigation} onChange={(e) => setForm({ ...form, mitigation: e.target.value })} /></div>
+        {error && <ErrorMessage>{error}</ErrorMessage>}
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button className="btn-primary">Create</button>
+          <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button>Create</Button>
         </div>
       </form>
     </Modal>
@@ -1294,10 +1294,10 @@ function AuditTab({ initId }: { initId: string }) {
   const [entries, setEntries] = useState<AuditEntry[]>([]);
   useEffect(() => { api.get(`/audit?entityType=PortfolioInitiative&entityId=${initId}`).then(setEntries).catch(() => {}); }, [initId]);
   return (
-    <div className="card-elevated p-5">
+    <Card variant="elevated" className="p-5">
       <h3 className="text-sm font-semibold text-[#171717] mb-3">Audit trail</h3>
       {entries.length === 0 ? (
-        <div className="text-sm text-[#a3a3a3]">No history yet.</div>
+        <EmptyState baseClassName="text-sm text-[#a3a3a3]" message="No history yet." />
       ) : (
         <ul className="space-y-2">
           {entries.map((e) => (
@@ -1314,6 +1314,6 @@ function AuditTab({ initId }: { initId: string }) {
           ))}
         </ul>
       )}
-    </div>
+    </Card>
   );
 }

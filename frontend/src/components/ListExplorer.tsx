@@ -3,6 +3,7 @@ import { DOMAIN_HEX, type DivisionSummary } from '../viz/model';
 import { api } from '../lib/api';
 import Inspector from './Inspector';
 import { HeaderComboFilter, ListSearch } from './Sheet';
+import { Card, EmptyState, ErrorMessage, LinkButton, LoadingState } from './ui';
 
 // List view (R2 rework) — a FLAT spreadsheet of the operating model. No tree,
 // no expand/collapse: every row is one full process chain read left-to-right
@@ -77,7 +78,7 @@ function Cell({ text, num, accent, onClick, dim, dead }: { text: string; num?: n
 }
 
 const EmptyRow = ({ text }: { text: string }) => (
-  <div className="py-1.5 px-3 text-[11px] text-[#a3a3a3] italic">{text}</div>
+  <EmptyState baseClassName="py-1.5 px-3 text-[11px] text-[#a3a3a3] italic" message={text} />
 );
 
 export default function ListExplorer({ focusVsId = null, focusVsName = null }: { companyName?: string; divisions?: DivisionSummary[]; streams?: number; focusVsId?: string | null; focusVsName?: string | null }) {
@@ -106,7 +107,7 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
   // sheet to just that stream once the tree is loaded.
   useEffect(() => {
     if (focusVsId) openMetrics('valueStream', focusVsId);
-  }, [focusVsId]); // eslint-disable-line
+  }, [focusVsId]);  
 
   useEffect(() => {
     let cancelled = false; setLoading(true);
@@ -194,7 +195,7 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
     setVsSel([...names]); setDomainSel([]); setDivisionSel([]); setSubSel([]); setStepSel([]);
     const first = flat.find((r) => names.has(r.vsName));
     if (first) openMetrics('valueStream', first.vsId);
-  }, [focusVsName, flat]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [focusVsName, flat]);  
 
   // A row passes the filters; `skip` exempts one column so each combobox can
   // list the distinct values among rows passing the OTHER filters (Excel-style).
@@ -205,26 +206,26 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
     && (skip === 'sub' || subSel.length === 0 || subSel.includes(r.areaName))
     && (skip === 'step' || stepSel.length === 0 || stepSel.includes(r.stepName));
 
-  const selDeps = [flat, domainSel, divisionSel, vsSel, subSel, stepSel]; // eslint-disable-line
+  const selDeps = [flat, domainSel, divisionSel, vsSel, subSel, stepSel];  
   const optionList = (vals: Iterable<string>) => ['All', ...[...new Set([...vals].filter(Boolean))].sort()];
-  /* eslint-disable react-hooks/exhaustive-deps */
+   
   const domainOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'domain')).flatMap((r) => r.domains)), selDeps);
   const divisionOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'division')).flatMap((r) => r.divisions)), selDeps);
   const vsOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'vs')).map((r) => r.vsName)), selDeps);
   const subOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'sub')).map((r) => r.areaName)), selDeps);
   const stepOptions = useMemo(() => optionList(flat.filter((r) => matches(r, 'step')).map((r) => r.stepName)), selDeps);
-  /* eslint-enable react-hooks/exhaustive-deps */
+   
 
   // A pick can be invalidated by a later pick in another column — drop it.
   const prune = (sel: string[], options: string[], set: (v: string[]) => void) => {
     const kept = sel.filter((v) => options.includes(v));
     if (kept.length !== sel.length) set(kept);
   };
-  useEffect(() => { prune(domainSel, domainOptions, setDomainSel); }, [domainOptions, domainSel]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { prune(divisionSel, divisionOptions, setDivisionSel); }, [divisionOptions, divisionSel]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { prune(vsSel, vsOptions, setVsSel); }, [vsOptions, vsSel]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { prune(subSel, subOptions, setSubSel); }, [subOptions, subSel]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { prune(stepSel, stepOptions, setStepSel); }, [stepOptions, stepSel]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { prune(domainSel, domainOptions, setDomainSel); }, [domainOptions, domainSel]);  
+  useEffect(() => { prune(divisionSel, divisionOptions, setDivisionSel); }, [divisionOptions, divisionSel]);  
+  useEffect(() => { prune(vsSel, vsOptions, setVsSel); }, [vsOptions, vsSel]);  
+  useEffect(() => { prune(subSel, subOptions, setSubSel); }, [subOptions, subSel]);  
+  useEffect(() => { prune(stepSel, stepOptions, setStepSel); }, [stepOptions, stepSel]);  
 
   // Visible rows: filters + sort. Default sort = value stream, with the
   // process order (sub-process № then step №) as the tie-break so each stream
@@ -247,7 +248,7 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
         : a.stepName.localeCompare(b.stepName);
       return c * sort.dir || procOrder(a, b);
     });
-  }, [flat, domainSel, divisionSel, vsSel, subSel, stepSel, sort, needle]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [flat, domainSel, divisionSel, vsSel, subSel, stepSel, sort, needle]);  
 
   // Totals strip — distinct entities among the visible (filtered) rows.
   const totals = useMemo(() => {
@@ -296,7 +297,7 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
     const el = scrollRef.current; if (!el || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(measure); ro.observe(el);
     return () => ro.disconnect();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);  
   // Measure the live row height from the first rendered row (handles zoom/DPR).
   const measureRow = (el: HTMLDivElement | null) => {
     if (el && el.offsetHeight && Math.abs(el.offsetHeight - rowH) > 0.5) setRowH(el.offsetHeight);
@@ -304,7 +305,8 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
 
   const ticking = useRef(false);
   const onScroll = () => {
-    if (ticking.current) return; ticking.current = true;
+    if (ticking.current) return;
+    ticking.current = true;
     requestAnimationFrame(() => { ticking.current = false; const el = scrollRef.current; if (el) setScrollTop(el.scrollTop); });
   };
 
@@ -344,7 +346,7 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
                 <span className="text-[11px] text-[#737373] tnum">
                   {totals.vs} value streams · {totals.subs} L4 processes · {totals.steps} L5 processes
                 </span>
-                {anyFilter && <button onClick={clear} className="text-[11px] font-medium text-[#1d4ed8] hover:underline">Clear filters</button>}
+                {anyFilter && <LinkButton onClick={clear} className="text-[11px] font-medium">Clear filters</LinkButton>}
                 <div className="flex-1" />
                 <ListSearch value={search} onChange={setSearch} />
               </>
@@ -353,13 +355,13 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
           <div ref={scrollRef} onScroll={onScroll} className="flex-1 min-h-0 overflow-auto">
           <div className="px-3 sm:px-4 pb-4">
             {loading ? (
-              <div className="text-sm text-[#a3a3a3] animate-pulse py-8 text-center">Loading operating model…</div>
+              <LoadingState className="animate-pulse py-8 text-center" message="Loading operating model…" />
             ) : error ? (
-              <div className="text-sm text-[#be123c] py-8 text-center">{error}</div>
+              <ErrorMessage className="py-8 text-center">{error}</ErrorMessage>
             ) : (
               <>
                 {/* No overflow-hidden on the card — the combo dropdowns must escape it. */}
-                <div className="card p-0">
+                <Card className="p-0">
                   {/* Sticky spreadsheet header: each cell hosts its combobox filter + sort. */}
                   <div className={GRID_COLS + ' items-stretch divide-x divide-[#eaeaea] border-b border-[#eaeaea] bg-[#fafafa] rounded-t-lg sticky top-0 z-20'}>
                     <HeaderComboFilter label="Domain" value={domainSel} onChange={setDomainSel} options={domainOptions}
@@ -401,7 +403,7 @@ export default function ListExplorer({ focusVsId = null, focusVsName = null }: {
                     })}
                     {padBottom > 0 && <div style={{ height: padBottom }} />}
                   </div>
-                </div>
+                </Card>
               </>
             )}
           </div>

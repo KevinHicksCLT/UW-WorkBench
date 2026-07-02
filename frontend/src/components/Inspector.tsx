@@ -14,7 +14,8 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { DOMAIN_HEX } from '../viz/model';
-import { automatablePct, scoreToPct, AutomatableMeter, SCORE_DESC, SCORE_COLOR, SCORE_LABEL } from '../lib/automatable';
+import { scoreToPct, AutomatableMeter, SCORE_DESC, SCORE_COLOR, SCORE_LABEL } from '../lib/automatable';
+import { SkeletonLoader } from './ui';
 
 // ── Payload (mirrors GET /inspector/:nodeId) ─────────────────────────────────
 type Relation = 'Owner' | 'Participant';
@@ -292,7 +293,7 @@ export default function Inspector({ nodeId, onClose, onRetarget, accent, startCo
           reachable on every tab regardless of content height. */}
       <div className="flex-1 min-h-0 overflow-y-auto p-4">
         {loading || !data ? (
-          <div className="grid grid-cols-2 gap-2">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton rounded-md" style={{ height: 56 }} />)}</div>
+          <SkeletonLoader count={6} height={56} className="grid grid-cols-2 gap-2" />
         ) : (
           <>
             {tab === 'Overview' && <OverviewTab data={data} onTab={setTab} onRetarget={onRetarget} />}
@@ -645,7 +646,7 @@ function WorkTab({ data, edit, onNav, after }: {
   return (
     <div>
       {edit && <div className="flex justify-end mb-2"><AddPicker label="Associate / add deliverable" kind="deliverables" onPick={add} /></div>}
-      {loading ? <div className="skeleton rounded-md" style={{ height: 64 }} />
+      {loading ? <SkeletonLoader height={64} />
         : !chain.length ? <Empty text={edit ? 'Add the first deliverable above.' : 'No deliverables recorded here.'} />
         : <div className="flex flex-col gap-2">{chain.map((d) => <DelivChain key={d.deliverableId} d={d} edit={edit} onNav={onNav} onDetach={detach} />)}</div>}
     </div>

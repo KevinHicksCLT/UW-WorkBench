@@ -1,21 +1,24 @@
 import { useSearchParams, Link } from 'react-router-dom';
 import { useApi } from '../lib/useApi';
 import PageHeader from '../components/PageHeader';
+import { Card, EmptyState, LoadingState } from '../components/ui';
+
+type SearchResult = { type: string; id: string; href: string; name: string; sublabel?: string | null };
 
 export default function SearchResults() {
   const [params] = useSearchParams();
   const q = (params.get('q') ?? '').trim();
-  const { data: results, loading } = useApi<any[]>(q.length >= 2 ? `/search?q=${encodeURIComponent(q)}` : null);
+  const { data: results, loading } = useApi<SearchResult[]>(q.length >= 2 ? `/search?q=${encodeURIComponent(q)}` : null);
 
   return (
     <div>
       <PageHeader title="Search" subtitle={q ? `Results for “${q}”` : 'Type at least 2 characters'} />
       {loading && q ? (
-        <div className="text-slate-500">Searching…</div>
+        <LoadingState baseClassName="text-slate-500" message="Searching…" />
       ) : (
-        <div className="card">
+        <Card>
           {(results ?? []).length === 0 ? (
-            <div className="text-sm text-slate-500 py-1">No matches.</div>
+            <EmptyState baseClassName="text-sm text-slate-500 py-1" message="No matches." />
           ) : (
             <div className="divide-y divide-slate-100">
               {(results ?? []).map((r) => (
@@ -26,7 +29,7 @@ export default function SearchResults() {
               ))}
             </div>
           )}
-        </div>
+        </Card>
       )}
     </div>
   );

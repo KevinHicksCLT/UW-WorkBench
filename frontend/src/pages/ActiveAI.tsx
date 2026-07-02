@@ -4,6 +4,7 @@ import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
 import PageHeader from '../components/PageHeader';
 import SignalCatalog from '../components/SignalCatalog';
+import { Card, EmptyState, ErrorMessage, LoadingState } from '../components/ui';
 import { MODES, HEAT } from '../lib/aiAdoption';
 
 // Metrics — the AI program in two stages (D6.3), both DB-driven:
@@ -80,13 +81,13 @@ const fmtMonth = (d: string | null) =>
 // Compact headline stat — small padding/type (D6.2: no oversized boxes).
 function Stat({ label, value, hint, color }: { label: string; value: string | number; hint?: string; color?: string }) {
   return (
-    <div className="card-elevated px-3 py-1.5 flex items-baseline gap-2 flex-wrap">
+    <Card variant="elevated" className="px-3 py-1.5 flex items-baseline gap-2 flex-wrap">
       <span className="text-lg font-semibold tnum leading-snug" style={{ color: color ?? '#171717' }}>{value}</span>
       <span className="min-w-0">
         <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</span>
         {hint && <span className="text-[10px] text-[#a3a3a3]"> · {hint}</span>}
       </span>
-    </div>
+    </Card>
   );
 }
 
@@ -166,13 +167,13 @@ export default function ActiveAI() {
       {view === 'signals' ? (
         <SignalCatalog companyId={companyId} />
       ) : loading || companyLoading ? (
-        <div className="py-8 text-sm text-[#a3a3a3]">Loading…</div>
+        <LoadingState baseClassName="py-8 text-sm text-[#a3a3a3]" />
       ) : error ? (
-        <div className="py-8 text-sm text-[#be123c]">{error}</div>
+        <ErrorMessage baseClassName="py-8 text-sm text-[#be123c]">{error}</ErrorMessage>
       ) : (
       <>
       {/* ── Stage 1 · Current State Analysis ─────────────────────────────────── */}
-      <div className="card-elevated overflow-hidden mb-2.5">
+      <Card variant="elevated" className="overflow-hidden mb-2.5">
         <div className="px-4 py-2.5 border-b border-[#eaeaea]">
           <div className="flex items-baseline gap-2 flex-wrap">
             <span className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3]">Stage 1</span>
@@ -187,12 +188,12 @@ export default function ActiveAI() {
         {/* Baseline inventory — pure counts of each canonical entity (Stage 1). */}
         <div className="px-4 py-3 grid grid-cols-3 sm:grid-cols-6 gap-2 border-b border-[#eaeaea]">
           {INVENTORY.map(([key, label]) => (
-            <div key={key} className="card-elevated px-3 py-2.5 flex flex-col gap-0.5">
+            <Card key={key} variant="elevated" className="px-3 py-2.5 flex flex-col gap-0.5">
               <span className="text-2xl font-semibold tnum leading-none text-[#171717]">
                 {(summary?.inventory[key] ?? 0).toLocaleString()}
               </span>
               <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</span>
-            </div>
+            </Card>
           ))}
         </div>
 
@@ -240,10 +241,10 @@ export default function ActiveAI() {
             ))}
           </tbody>
         </table>
-      </div>
+      </Card>
 
       {/* ── Stage 2 · AI adoption ────────────────────────────────────────────── */}
-      <div className="card-elevated overflow-hidden mb-2.5">
+      <Card variant="elevated" className="overflow-hidden mb-2.5">
         <div className="px-4 py-2.5 border-b border-[#eaeaea] flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
             <div className="flex items-baseline gap-2 flex-wrap">
@@ -312,13 +313,13 @@ export default function ActiveAI() {
             })}
           </div>
           {breakdown.length === 0 && (
-            <div className="py-6 text-sm text-[#a3a3a3] italic">No assessed tasks yet for this breakdown.</div>
+            <EmptyState baseClassName="py-6 text-sm text-[#a3a3a3] italic" message="No assessed tasks yet for this breakdown." />
           )}
         </div>
-      </div>
+      </Card>
 
       {/* ── Value-stream × AI-mode heat map ────────────────────────────────── */}
-      <div className="card-elevated overflow-hidden">
+      <Card variant="elevated" className="overflow-hidden">
         <div className="px-4 py-2.5 border-b border-[#eaeaea] flex items-center justify-between gap-4 flex-wrap">
           <div>
             <h2 className="text-sm font-semibold text-[#171717]">Adoption by value stream</h2>
@@ -338,7 +339,7 @@ export default function ActiveAI() {
         </div>
 
         {rows.length === 0 ? (
-          <div className="px-5 py-10 text-sm text-[#a3a3a3] italic">No value streams defined for this company.</div>
+          <EmptyState baseClassName="px-5 py-10 text-sm text-[#a3a3a3] italic" message="No value streams defined for this company." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse min-w-[720px]">
@@ -372,7 +373,7 @@ export default function ActiveAI() {
             </div>
           ))}
         </div>
-      </div>
+      </Card>
 
       <p className="text-[11px] text-[#a3a3a3] mt-3 italic">
         Adoption levels are read from the operating model (the same value streams as Value Streams and Home) and edited in

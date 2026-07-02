@@ -5,6 +5,7 @@ import { useCompany } from '../lib/company';
 import { fmt } from '../lib/format';
 import PageHeader from '../components/PageHeader';
 import { FALLBACK_BANDS, SectionCard, SeverityCell, useRiskBands, withCompany } from '../lib/portfolio';
+import { StatusPill } from '../components/ui';
 import { Sheet, SheetCell, type SheetCol } from '../components/Sheet';
 
 // Portfolio-wide RAID log — open-risk counts per severity band (the same
@@ -60,7 +61,7 @@ export default function PortfolioRaid({ embedded = false, programId }: { embedde
   const cols: SheetCol<RaidRow>[] = [
     {
       key: 'type', label: 'Type', width: '130px', value: (r) => r.type,
-      render: (r) => <span className="pill-slate text-xs">{r.type}</span>,
+      render: (r) => <StatusPill tone="slate" className="text-xs">{r.type}</StatusPill>,
     },
     { key: 'title', label: 'Title', width: 'minmax(0,1.6fr)', value: (r) => r.title },
     {
@@ -137,7 +138,7 @@ export default function PortfolioRaid({ embedded = false, programId }: { embedde
 
       {isNew && (
         <div className="mb-2 flex items-center gap-2 text-xs text-[#525252]">
-          <span className="pill-blue">New only</span>
+          <StatusPill tone="blue">New only</StatusPill>
           <span>Showing RAID items raised in the last 24 hours.</span>
           <Link to={programId ? `/programs/${programId}?tab=RAID` : '/raid'} className="text-[#4f46e5] hover:underline">Show all</Link>
         </div>

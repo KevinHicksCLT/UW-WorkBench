@@ -4,6 +4,7 @@ import { useCompany } from '../lib/company';
 import { withCompany } from '../lib/portfolio';
 import PageHeader from '../components/PageHeader';
 import { SCORE_LABEL, SCORE_COLOR, SCORE_DESC, automatablePct } from '../lib/automatable';
+import { Card, EmptyState, ErrorMessage, LoadingState } from '../components/ui';
 
 // A-03 — Automatable is a SNAPSHOT of where the company sits in its AI
 // transformation, not a task list. It answers "how much of the work can an AI
@@ -73,7 +74,7 @@ export default function Automatable() {
       .sort((a, b) => b.pct - a.pct);
   }, [tasks, active]);
 
-  if (error) return <div className="text-sm text-[#be123c]">{error}</div>;
+  if (error) return <ErrorMessage>{error}</ErrorMessage>;
 
   const autoCount = tiers.counts[1] + tiers.counts[2];
 
@@ -85,7 +86,7 @@ export default function Automatable() {
       />
 
       {loading ? (
-        <div className="text-sm text-[#a3a3a3]">Loading…</div>
+        <LoadingState />
       ) : (
         <div className="space-y-4">
           {/* Headline snapshot */}
@@ -98,7 +99,7 @@ export default function Automatable() {
           </div>
 
           {/* Tier distribution — the full automatability spread */}
-          <div className="card p-4">
+          <Card className="p-4">
             <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-3">
               Automatability spread · {tiers.scored} scored tasks
             </div>
@@ -118,10 +119,10 @@ export default function Automatable() {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
 
           {/* A-02 rollup — % automatable by org / value dimension */}
-          <div className="card p-4">
+          <Card className="p-4">
             <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
               <div className="text-[11px] text-[#737373]">
                 <span className="font-semibold text-[#171717]">% automatable by {active.label.toLowerCase()}</span>
@@ -138,7 +139,7 @@ export default function Automatable() {
               </div>
             </div>
             {groups.length === 0 ? (
-              <div className="text-[11px] text-[#a3a3a3] italic">No scored tasks.</div>
+              <EmptyState className="italic" message="No scored tasks." />
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
                 {groups.map((g) => (
@@ -152,7 +153,7 @@ export default function Automatable() {
                 ))}
               </div>
             )}
-          </div>
+          </Card>
         </div>
       )}
     </div>
@@ -161,10 +162,10 @@ export default function Automatable() {
 
 function Stat({ label, value, sub, accent }: { label: string; value: string; sub: string; accent?: boolean }) {
   return (
-    <div className="card p-4">
+    <Card className="p-4">
       <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</div>
       <div className={'mt-1 text-2xl font-semibold tnum ' + (accent ? 'text-[#059669]' : 'text-[#171717]')}>{value}</div>
       <div className="text-[11px] text-[#737373] mt-0.5">{sub}</div>
-    </div>
+    </Card>
   );
 }

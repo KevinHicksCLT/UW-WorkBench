@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useApi } from '../lib/useApi';
 import PageHeader from '../components/PageHeader';
+import { Card, EmptyState, ErrorMessage, LoadingState } from '../components/ui';
 
 const PART_CLASS: Record<string, string> = { Lead: 'part-lead', Core: 'part-core', Control: 'part-control', Oversight: 'part-oversight', Support: 'part-support' };
 
@@ -19,10 +20,10 @@ export default function DepartmentDetail() {
   const { id } = useParams();
   const { data: d, error, loading } = useApi<Data>(`/departments/${id}`);
   const [open, setOpen] = useState<Set<string>>(new Set());
-  const toggle = (rid: string) => setOpen((p) => { const n = new Set(p); n.has(rid) ? n.delete(rid) : n.add(rid); return n; });
+  const toggle = (rid: string) => setOpen((p) => { const n = new Set(p); if (n.has(rid)) { n.delete(rid); } else { n.add(rid); } return n; });
 
-  if (loading) return <div className="text-slate-500">Loading department…</div>;
-  if (error) return <div className="text-red-600">{error}</div>;
+  if (loading) return <LoadingState baseClassName="text-slate-500" message="Loading department…" />;
+  if (error) return <ErrorMessage baseClassName="text-red-600">{error}</ErrorMessage>;
   if (!d) return null;
 
   return (
@@ -32,9 +33,9 @@ export default function DepartmentDetail() {
         subtitle={`${d.totals.roles} roles`}
       />
 
-      <div className="card p-0 overflow-hidden">
+      <Card className="p-0 overflow-hidden">
         {d.roles.length === 0 ? (
-          <div className="px-4 py-8 text-sm text-slate-500 italic">No roles.</div>
+          <EmptyState baseClassName="px-4 py-8 text-sm text-slate-500 italic" message="No roles." />
         ) : (
           <div className="table-scroll">
             <table className="w-full text-sm">
@@ -60,7 +61,7 @@ export default function DepartmentDetail() {
             </table>
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }
@@ -104,7 +105,7 @@ function RoleRows({ role: r, isOpen, onToggle }: { role: Role; isOpen: boolean; 
               Value-stream participation · L1 Domain → L2 Stream → L3 Process Area → L4 Sub-Process
             </div>
             {r.participations.length === 0 ? (
-              <div className="text-sm text-slate-500 italic">Not mapped to any value stream.</div>
+              <EmptyState baseClassName="text-sm text-slate-500 italic" message="Not mapped to any value stream." />
             ) : (
               <div className="space-y-1.5 max-w-3xl">
                 {r.participations.map((p, i) => (

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useApi } from '../lib/useApi';
 import PageHeader from '../components/PageHeader';
 import { Sheet, SheetCell, type SheetCol } from '../components/Sheet';
+import { Chip, ErrorMessage } from '../components/ui';
 
 // External Interactions — read-only view of the external dependency rows
 // (vendors, regulators, partners ↔ internal owner roles ↔ value streams),
@@ -52,7 +53,7 @@ export default function External() {
     { key: 'dependency', label: 'Dependency', width: '150px', value: (i) => i.dependencyType ?? DASH, dim: true },
   ];
 
-  if (error) return <div className="text-sm text-[#be123c]">{error}</div>;
+  if (error) return <ErrorMessage>{error}</ErrorMessage>;
 
   return (
     <div>
@@ -114,7 +115,7 @@ const has = (v: string | null) => !!v && v.trim() !== '' && v.trim() !== DASH;
 // fields (there is no free-text description field). Pulls the original third-party
 // category out of the provenance note when present.
 function describe(item: Interaction): string {
-  const cat = item.notes?.match(/Third-party type:\s*([^.]+)\./i)?.[1]?.trim();
+  const cat = item.notes?.match(/Third-party type:([^.]+)\./i)?.[1]?.trim();
   const kind = cat ?? item.partyType;
   const act = has(item.interactionType) ? item.interactionType!.toLowerCase() : null;
   const parts = [`${item.externalRole} engages with the company as a ${kind.toLowerCase()}`];
@@ -160,7 +161,7 @@ function InteractionDrawer({ item, onClose, onRole, onValueStream }: { item: Int
                 {jump ? <button onClick={jump} className={linkCls} title="Open in the value-stream list">{item.interactionType}</button> : item.interactionType}
               </Section>
             )}
-            {has(item.dependencyType) && <Section label="Dependency"><span className="chip-soft" style={{ background: c.bg, color: c.text, borderColor: c.bg }}>{item.dependencyType}</span></Section>}
+            {has(item.dependencyType) && <Section label="Dependency"><Chip style={{ background: c.bg, color: c.text, borderColor: c.bg }}>{item.dependencyType}</Chip></Section>}
             {vs && (
               <Section label="Value stream">
                 <button onClick={jump} className={linkCls} title="Open in the value-stream list">{vs}</button>

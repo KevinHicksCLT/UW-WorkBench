@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { useDialogs } from '../../lib/dialogs';
 import { skillLabel, describeSkillFile, SKILL_FILE_GROUP_ORDER } from '../../lib/skills';
+import { Button, ErrorMessage } from '../ui';
 
 // ─── Agent skill editor (Data Admin → Standards → Agent skills) ──────────────
 // Edits the SDLC compliance skill packs in place: pick a skill, pick a file
@@ -112,7 +113,7 @@ export default function SkillAdmin() {
         ))}
       </div>
 
-      {error && <div className="text-sm text-[#be123c] mb-3">{error}</div>}
+      {error && <ErrorMessage className="mb-3">{error}</ErrorMessage>}
 
       <div className="flex flex-col lg:flex-row gap-5 items-start">
         {/* File nav */}
@@ -156,10 +157,10 @@ export default function SkillAdmin() {
             <div className="flex items-center gap-2 flex-shrink-0">
               {savedAt && !dirty && <span className="text-xs text-[#16a34a]">Saved {savedAt}</span>}
               {dirty && <span className="text-xs text-[#be9b00]">Unsaved changes</span>}
-              <button className="btn-secondary" disabled={!dirty || saving} onClick={() => setContent(original)}>Revert</button>
-              <button className="btn-primary disabled:opacity-50" disabled={!dirty || saving} onClick={save}>
+              <Button variant="secondary" disabled={!dirty || saving} onClick={() => setContent(original)}>Revert</Button>
+              <Button className="disabled:opacity-50" disabled={!dirty || saving} onClick={save}>
                 {saving ? 'Saving…' : 'Save'}
-              </button>
+              </Button>
             </div>
           </div>
           <textarea

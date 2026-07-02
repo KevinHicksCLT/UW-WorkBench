@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { withCompany } from '../lib/portfolio';
 import { Sheet, SheetCell, type SheetCol } from './Sheet';
+import { EmptyState, ErrorMessage } from './ui';
 
 // SignalCatalog — the filterable inventory of every trackable signal/metric the
 // operating model can measure, rendered in the canonical Sheet format (see
@@ -91,7 +92,7 @@ export default function SignalCatalog({ companyId }: { companyId: string | null 
     },
   ];
 
-  if (error) return <div className="px-1 py-6 text-sm text-[#be123c]">{error}</div>;
+  if (error) return <ErrorMessage baseClassName="px-1 py-6 text-sm text-[#be123c]">{error}</ErrorMessage>;
 
   return (
     <div>
@@ -115,7 +116,7 @@ export default function SignalCatalog({ companyId }: { companyId: string | null 
             {s.description && <div>{s.description}</div>}
             {s.provenance && <div><span className="font-semibold text-[#171717]">Source:</span> {s.provenance}</div>}
             {s.calculation && <div><span className="font-semibold text-[#171717]">Calculation:</span> {s.calculation}</div>}
-            {!s.description && !s.provenance && !s.calculation && <div className="text-[#a3a3a3] italic">No further detail for this signal.</div>}
+            {!s.description && !s.provenance && !s.calculation && <EmptyState baseClassName="text-[#a3a3a3] italic" message="No further detail for this signal." />}
           </div>
         )}
       />

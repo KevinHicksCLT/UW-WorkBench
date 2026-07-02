@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../lib/auth';
 import { useNavigate } from 'react-router-dom';
+import { Button, ErrorMessage, Input, Label } from '../components/ui';
 
 export default function Login() {
   const { login } = useAuth();
@@ -36,9 +37,8 @@ export default function Login() {
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="label">Email</label>
-            <input
-              className="input"
+            <Label>Email</Label>
+            <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -47,19 +47,18 @@ export default function Login() {
             />
           </div>
           <div>
-            <label className="label">Password</label>
-            <input
-              className="input"
+            <Label>Password</Label>
+            <Input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
-          {error && <div className="text-sm text-red-600">{error}</div>}
-          <button type="submit" className="btn-primary w-full" disabled={loading}>
+          {error && <ErrorMessage baseClassName="text-sm text-red-600">{error}</ErrorMessage>}
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Signing in…' : 'Sign in'}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

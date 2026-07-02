@@ -8,6 +8,7 @@ import PageHeader from '../components/PageHeader';
 import AssistantMarkdown from '../components/AssistantMarkdown';
 import { LinkChips, LinksEditor, type VsLink, type VsOption } from '../components/RequirementLinks';
 import { FlagPill, catLabel } from './Regulations';
+import { EmptyState, ErrorMessage, LoadingState, StatusPill } from '../components/ui';
 
 // State detail — /regulations/:code. Regulator identity + taxonomy flags in the
 // header; sections for the compliance profile (FULL_PROFILE states), the
@@ -67,12 +68,12 @@ export default function RegulationDetail() {
     return (
       <div>
         <PageHeader title="Regulations" />
-        <div className="text-sm text-[#be123c]">{error === 'Not found' ? `No jurisdiction "${code}" found.` : error}</div>
+        <ErrorMessage>{error === 'Not found' ? `No jurisdiction "${code}" found.` : error}</ErrorMessage>
         <Link to="/regulations" className="text-sm text-[#4338ca] underline">Back to Regulations</Link>
       </div>
     );
   }
-  if (!detail) return <div className="text-sm text-[#a3a3a3]">Loading…</div>;
+  if (!detail) return <LoadingState />;
 
   const patchLinks = (id: string, links: VsLink[]) =>
     setDetail((prev) => prev && { ...prev, requirements: prev.requirements.map((r) => (r.id === id ? { ...r, valueStreamLinks: links } : r)) });
@@ -111,8 +112,8 @@ export default function RegulationDetail() {
         detail.summaryRegulator && <div className="mb-6 text-sm text-[#525252] leading-relaxed">{detail.summaryRegulator}</div>
       ) : (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-6 text-xs text-[#666666]">
-          {detail.priorityTier === 'PRIORITY' && <span className="pill-amber">Priority state</span>}
-          {detail.profileDepth === 'FULL_PROFILE' && <span className="pill-blue">Full compliance profile</span>}
+          {detail.priorityTier === 'PRIORITY' && <StatusPill tone="amber">Priority state</StatusPill>}
+          {detail.profileDepth === 'FULL_PROFILE' && <StatusPill tone="blue">Full compliance profile</StatusPill>}
           <span className="flex items-center gap-1.5">Filing portal <FlagPill value={detail.filingPortal} detail={detail.filingPortalDetail} /></span>
           <span className="flex items-center gap-1.5">Compact <FlagPill value={detail.compactStatus} /></span>
           <span className="flex items-center gap-1.5">Auto verify <FlagPill value={detail.autoVerification} detail={detail.autoVerificationDetail} /></span>
@@ -141,11 +142,11 @@ export default function RegulationDetail() {
               <div key={r.id} className="py-2.5">
                 <div className="text-sm font-medium text-[#171717]">{r.title}</div>
                 <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                  {r.regime && <span className="pill-blue">{r.regime}</span>}
-                  <span className="pill-slate">{catLabel(r.category)}</span>
-                  {r.lineOfBusiness !== 'ALL' && <span className="pill-slate">{label(r.lineOfBusiness)}</span>}
-                  {r.obligationType === 'FILING_GATE' && <span className="pill-amber">Filing gate</span>}
-                  {r.confidence !== 'BASELINE' && <span className={r.confidence === 'VERIFIED' ? 'pill-green' : r.confidence === 'STALE' ? 'pill-red' : 'pill-amber'}>{label(r.confidence)}</span>}
+                  {r.regime && <StatusPill tone="blue">{r.regime}</StatusPill>}
+                  <StatusPill tone="slate">{catLabel(r.category)}</StatusPill>
+                  {r.lineOfBusiness !== 'ALL' && <StatusPill tone="slate">{label(r.lineOfBusiness)}</StatusPill>}
+                  {r.obligationType === 'FILING_GATE' && <StatusPill tone="amber">Filing gate</StatusPill>}
+                  {r.confidence !== 'BASELINE' && <StatusPill tone={r.confidence === 'VERIFIED' ? 'green' : r.confidence === 'STALE' ? 'red' : 'amber'}>{label(r.confidence)}</StatusPill>}
                   <LinkChips links={r.valueStreamLinks} />
                   {canEdit && (
                     <button
@@ -221,7 +222,7 @@ export default function RegulationDetail() {
 
         {!isFederal && (<>
         <SectionCard title={`Bulletins (${detail.bulletins.length})`}>
-          {detail.bulletins.length === 0 && <div className="text-sm text-[#a3a3a3]">No bulletins on file for this state yet — the baseline document named only a handful; the Phase 2 pipeline appends here continuously.</div>}
+          {detail.bulletins.length === 0 && <EmptyState baseClassName="text-sm text-[#a3a3a3]" message="No bulletins on file for this state yet — the baseline document named only a handful; the Phase 2 pipeline appends here continuously." />}
           <div className="divide-y divide-[#f5f5f5]">
             {detail.bulletins.map((b) => (
               <div key={b.id} className="py-2">
@@ -264,9 +265,9 @@ export default function RegulationDetail() {
             {detail.sources.map((s) => (
               <div key={s.id} className="flex items-center gap-2 py-2 text-sm">
                 <a href={s.url} target="_blank" rel="noreferrer" className="font-medium text-[#171717] hover:underline truncate">{s.name} ↗</a>
-                <span className="pill-slate">{label(s.sourceType)}</span>
-                <span className={s.authority === 'OFFICIAL_REGULATOR' ? 'pill-green' : 'pill-blue'}>{label(s.authority)}</span>
-                {s.monitor && <span className="pill-amber" title={`Phase 2 pipeline tier: ${label(s.checkTier)}`}>Monitored · {s.checkTier === 'PRIORITY_DAILY' ? 'daily' : 'weekly'}</span>}
+                <StatusPill tone="slate">{label(s.sourceType)}</StatusPill>
+                <StatusPill tone={s.authority === 'OFFICIAL_REGULATOR' ? 'green' : 'blue'}>{label(s.authority)}</StatusPill>
+                {s.monitor && <StatusPill tone="amber" title={`Phase 2 pipeline tier: ${label(s.checkTier)}`}>Monitored · {s.checkTier === 'PRIORITY_DAILY' ? 'daily' : 'weekly'}</StatusPill>}
               </div>
             ))}
           </div>
