@@ -25,8 +25,10 @@ export const TEMPLATES: TemplateDef[] = [
     description: 'Base checklist applied to every atomic work item.',
     isDefault: true,
     keys: [
-      { key: 'Defined scope/population and period', valueKind: 'TEXT' },
-      { key: 'Named SOR/report/query and data owner', valueKind: 'APPLICATION' },
+      { key: 'Defined scope/population', valueKind: 'TEXT' },
+      { key: 'In-scope period', valueKind: 'TEXT' },
+      { key: 'Named SOR/report/query', valueKind: 'APPLICATION' },
+      { key: 'Data owner', valueKind: 'ROLE' },
       { key: 'Required fields populated and valid', valueKind: 'TEXT' },
       { key: 'Control totals or record counts reconcile', valueKind: 'TEXT' },
       { key: 'Evidence retained with timestamp/version', valueKind: 'TEXT' },
@@ -42,7 +44,8 @@ export const TEMPLATES: TemplateDef[] = [
     keys: [
       { key: 'Methodology/model version approved', valueKind: 'TEXT' },
       { key: 'Independent re-performance or reasonableness check completed', valueKind: 'ROLE' },
-      { key: 'Sensitivity/materiality thresholds documented', valueKind: 'TEXT' },
+      { key: 'Sensitivity thresholds documented', valueKind: 'TEXT' },
+      { key: 'Materiality thresholds documented', valueKind: 'TEXT' },
     ],
   },
   {
@@ -52,7 +55,8 @@ export const TEMPLATES: TemplateDef[] = [
     isDefault: false,
     keys: [
       { key: 'Sample records trace to source screens/documents', valueKind: 'TEXT' },
-      { key: 'Status/date fields align to workflow requirements', valueKind: 'TEXT' },
+      { key: 'Status fields align to workflow requirements', valueKind: 'TEXT' },
+      { key: 'Date fields align to workflow requirements', valueKind: 'TEXT' },
     ],
   },
   {
@@ -62,7 +66,8 @@ export const TEMPLATES: TemplateDef[] = [
     isDefault: false,
     keys: [
       { key: 'Regulatory/policy citation included', valueKind: 'TEXT' },
-      { key: 'Retention and filing deadline met', valueKind: 'TEXT' },
+      { key: 'Retention requirement met', valueKind: 'TEXT' },
+      { key: 'Filing deadline met', valueKind: 'TEXT' },
     ],
   },
   {
@@ -72,7 +77,8 @@ export const TEMPLATES: TemplateDef[] = [
     isDefault: false,
     keys: [
       { key: 'Pre/post implementation comparison passed', valueKind: 'TEXT' },
-      { key: 'System audit log or change ticket linked', valueKind: 'APPLICATION' },
+      { key: 'System audit log linked', valueKind: 'APPLICATION' },
+      { key: 'Change ticket linked', valueKind: 'TEXT' },
     ],
   },
   {
@@ -82,7 +88,8 @@ export const TEMPLATES: TemplateDef[] = [
     isDefault: false,
     keys: [
       { key: 'Approver has correct authority', valueKind: 'ROLE' },
-      { key: 'Decision and communication recipients documented', valueKind: 'TEXT' },
+      { key: 'Decision documented', valueKind: 'TEXT' },
+      { key: 'Communication recipients documented', valueKind: 'TEXT' },
     ],
   },
   // ── TEST patterns (8) — 4 universal keys + the pattern's dominant variant ──
@@ -92,7 +99,7 @@ export const TEMPLATES: TemplateDef[] = [
     description:
       'Test by defining expected evidence, tracing completion in the SOR, sampling supporting records, and confirming owner review and exception closure.',
     isDefault: true,
-    keys: [...UNIVERSAL_TEST_KEYS, { key: 'Documented acceptance criteria and evidence location', valueKind: 'TEXT' }],
+    keys: [...UNIVERSAL_TEST_KEYS, { key: 'Documented acceptance criteria', valueKind: 'TEXT' }, { key: 'Evidence location', valueKind: 'TEXT' }],
   },
   {
     kind: 'TEST',
@@ -100,7 +107,7 @@ export const TEMPLATES: TemplateDef[] = [
     description:
       'Test by confirming the analysis population is complete, re-running key analytics or agent prompts, validating material findings to source evidence, and checking that conclusions are supported and reviewed.',
     isDefault: false,
-    keys: [...UNIVERSAL_TEST_KEYS, { key: 'Documented acceptance criteria and evidence location', valueKind: 'TEXT' }],
+    keys: [...UNIVERSAL_TEST_KEYS, { key: 'Documented acceptance criteria', valueKind: 'TEXT' }, { key: 'Evidence location', valueKind: 'TEXT' }],
   },
   {
     kind: 'TEST',
@@ -108,7 +115,7 @@ export const TEMPLATES: TemplateDef[] = [
     description:
       'Test by inspecting the artifact for required sections, linkage to source data, version/date/owner fields, and approval or archival evidence in the designated repository.',
     isDefault: false,
-    keys: [...UNIVERSAL_TEST_KEYS, { key: 'Source-system field definitions and control totals', valueKind: 'TEXT' }],
+    keys: [...UNIVERSAL_TEST_KEYS, { key: 'Source-system field definitions', valueKind: 'TEXT' }, { key: 'Source-system control totals', valueKind: 'TEXT' }],
   },
   {
     kind: 'TEST',
@@ -116,7 +123,7 @@ export const TEMPLATES: TemplateDef[] = [
     description:
       'Test by tracing workflow history, confirming approver authority/segregation, timestamps, required attachments, and that the final disposition was communicated or filed as required.',
     isDefault: false,
-    keys: [...UNIVERSAL_TEST_KEYS, { key: 'Authorized approver and delegation matrix', valueKind: 'ROLE' }],
+    keys: [...UNIVERSAL_TEST_KEYS, { key: 'Authorized approver', valueKind: 'ROLE' }, { key: 'Delegation matrix documented', valueKind: 'TEXT' }],
   },
   {
     kind: 'TEST',
@@ -132,7 +139,7 @@ export const TEMPLATES: TemplateDef[] = [
     description:
       'Test by re-performing the calculation/model run with controlled inputs, checking formula/model version, reconciling outputs to expected benchmarks, and reviewing exception thresholds/sensitivity results.',
     isDefault: false,
-    keys: [...UNIVERSAL_TEST_KEYS, { key: 'Approved methodology/model version and parameter source', valueKind: 'TEXT' }],
+    keys: [...UNIVERSAL_TEST_KEYS, { key: 'Approved methodology/model version', valueKind: 'TEXT' }, { key: 'Parameter source', valueKind: 'TEXT' }],
   },
   {
     kind: 'TEST',
@@ -140,7 +147,7 @@ export const TEMPLATES: TemplateDef[] = [
     description:
       'Test by running an automated extract from the identified SOR, validating row counts/control totals to source screens or reports, checking required filters/date ranges, and sampling records back to original evidence.',
     isDefault: false,
-    keys: [...UNIVERSAL_TEST_KEYS, { key: 'Source-system field definitions and control totals', valueKind: 'TEXT' }],
+    keys: [...UNIVERSAL_TEST_KEYS, { key: 'Source-system field definitions', valueKind: 'TEXT' }, { key: 'Source-system control totals', valueKind: 'TEXT' }],
   },
   {
     kind: 'TEST',

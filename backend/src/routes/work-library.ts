@@ -169,6 +169,24 @@ router.post('/templates/:id/keys', requireRole('ADMIN'), async (req, res, next) 
   } catch (e) { next(e); }
 });
 
+// Persist a drag-reorder of a template's keys (order = array index).
+router.put('/templates/:id/keys/order', requireRole('ADMIN'), async (req, res, next) => {
+  try {
+    const { keyIds } = z.object({ keyIds: z.array(z.string()).max(200) }).parse(req.body);
+    const template = await prisma.workTemplate.findFirst({
+      where: { id: req.params.id, company: { tenantId: req.tenantId } },
+      select: { id: true, keys: { select: { id: true } } },
+    });
+    if (!template) return res.status(404).json({ error: 'Template not found' });
+    const valid = new Set(template.keys.map((k) => k.id));
+    let i = 0;
+    for (const id of keyIds) {
+      if (valid.has(id)) await prisma.workTemplateKey.update({ where: { id }, data: { sortOrder: i++ } });
+    }
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
 router.patch('/keys/:id', requireRole('ADMIN'), async (req, res, next) => {
   try {
     const body = keyBody.parse(req.body);

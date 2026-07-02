@@ -1,0 +1,333 @@
+{
+ "tasks": [
+  {
+   "id": "fb69a235-8de9-4b27-9f14-968e58ad124b",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All net-new and materially changed developer-facing docs for the current release: README, API reference (OpenAPI), architecture (C4/ADRs), runbooks and onboarding guide for repos merged to main this sprint. Excludes third-party vendor docs and archived (deprecated) service pages." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current release train (2-week sprint boundary); docs must be published within 2 business days of the release tag (e.g. v2025.07.0) being cut." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "52deb808-fc3d-469f-8652-e331ba334cbe" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each portal page carries frontmatter: title, owning team, source repo/path, last-reviewed date, and release version. Broken-link check passes with 0 dead internal links; all code samples reference a resolvable module/endpoint." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of published portal pages equals count of docs source files (docs/**/*.md) in the release tag; portal page count reconciled to the docs-as-code build manifest with 0 variance." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Portal publish CI job stores build log and rendered artifact hash with commit SHA and UTC timestamp in the CI/CD repository artifact store; retained 12 months per release." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Any page failing link-check or missing frontmatter is logged as a Jira ticket type 'DOC-DEFECT', linked to the release; disposition = fixed-and-republished or waived-with-owner-sign-off before release close." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb", "value": "All portal pages published for the release under test (typically 20-60 pages per release train)." },
+    { "templateKeyId": "cmr2oaoru0027lasblf4a3q5g", "value": "PASS = 100% of intended docs resolve at their portal URL (HTTP 200), 0 broken internal links, frontmatter complete; FAIL if any intended page returns 404 or link-check reports >0 dead internal links." },
+    { "templateKeyId": "cmr2oaot40029lasbqt4ono47", "value": "Failed publish reverts portal to prior release snapshot; defect raised as Jira 'DOC-DEFECT', owner = Software Engineer, 2-business-day republish SLA before release is marked done." },
+    { "templateKeyId": "cmr2v89b6000zxa9ivo819zn7", "value": "Portal frontmatter schema defined in docs/_meta/schema.yml: fields title (string), owner (team slug), source (repo#path), lastReviewed (ISO date), version (semver)." },
+    { "templateKeyId": "cmr2v89c10011xa9ijssevzvo", "value": "Docs build manifest emitted by the CI job lists total source files vs total rendered pages; the two counts must match exactly (0 delta) for the publish step to succeed." },
+    { "answerId": "cmr2ocdv90rqykaz3a2me3pn6", "value": "Acceptance = docs render on the developer portal (Backstage/Confluence space 'ENG'), link-check green, frontmatter validated in CI, and release ticket has the portal URL attached. Evidence: CI publish run URL + rendered artifact hash stored in the source code/CI-CD repository against the release SHA." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [ { "step": "Docs live as code beside source and republish on every merge to main", "value": "docs/ tree versioned in the same repo; CI publishes on merge so portal always reflects the latest release tag" } ], "testing": [ { "step": "Verify last-reviewed date is within current release", "value": "Sample 10 published pages; each frontmatter lastReviewed date >= release cut date, else fail" } ] },
+    { "standardId": "cmqscp5vv1n9smbk87l9mzurv", "checklist": [ { "step": "Every published service page covers purpose, setup, run, test, deploy", "value": "README template enforced by docs-lint; missing section blocks the publish job" } ], "testing": [ { "step": "Run docs-lint section check across published READMEs", "value": "0 READMEs missing any of the 5 required sections" } ] },
+    { "standardId": "cmqscp5ut1n9qmbk8f7w0sm1w", "checklist": [ { "step": "API reference auto-generated from OpenAPI spec, not hand-written", "value": "portal API pages built from openapi.yaml via redoc/swagger in CI; no manual endpoint prose" } ], "testing": [ { "step": "Confirm published OpenAPI matches served spec", "value": "diff published spec vs /openapi.json from staging = 0 differences" } ] },
+    { "standardId": "cmqscp5r61n9kmbk8xcnz45ig", "checklist": [ { "step": "Code samples included and compile-checked", "value": "doctest/snippet-runner executes embedded samples in CI before publish" } ], "testing": [ { "step": "Run snippet executor over published docs", "value": "100% of runnable samples exit 0" } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "4c036000-752a-42b4-8046-2bb7a329baba",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All demand-intake requests (new features, changes, defects) logged in the ITSM/agile backlog for the reporting month across the Engineering delivery org; excludes spam/duplicate tickets already merged." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Prior calendar month, closed on the 1st business day; report delivered to delivery leadership by the 3rd business day of the following month." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rsmbk8cr7zj5ho" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Every intake record has: submitted date, request type, priority, requesting business unit, assigned team, current status. Records missing type or priority are <1% of the month's volume." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Total intake count in the BI report reconciles to the ITSM export row count for the same date range with 0 variance; backlog closing balance = opening balance + intake - closed." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Report PDF/dashboard snapshot saved to the reporting repository with month tag and UTC generation timestamp; underlying warehouse query and dataset version pinned; retained 24 months." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Reconciliation variances or null-key records logged as a Jira 'DATA-DEFECT' with disposition (corrected at source vs excluded-with-note) before the report is issued." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oap6g002flasb12gpqsrx", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oap7x002hlasb21lclhgc", "value": "All intake tickets created or transitioned in the reporting month (typically 200-800 tickets)." },
+    { "templateKeyId": "cmr2oapa9002jlasbbht6cp5g", "value": "PASS = report total matches ITSM source count exactly and backlog-aging buckets sum to total backlog; FAIL if any variance >0 or an aging bucket is negative." },
+    { "templateKeyId": "cmr2oapbz002llasbwuwwn4mb", "value": "If figures do not reconcile, the report is held, a Jira 'DATA-DEFECT' is raised (owner = Business Analyst), and re-run occurs within 1 business day of correction." },
+    { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2v89li0015xa9ia4hiukkb", "value": "Report distribution and approval authority documented in the delivery-governance RACI on the ENG Confluence space; Tech Lead approves, delegate = PMO Manager if absent." },
+    { "answerId": "cmr2ocdva0rs2kaz3h2ko6awr", "value": "Acceptance = monthly BI dashboard published and emailed to delivery leadership with intake volume, backlog aging (0-30/31-60/61-90/90+ days), and MoM trend, reconciled to ITSM source. Evidence: dashboard URL + warehouse query hash stored in the reporting repository under the month tag." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp32w1n4imbk8cl9att9q", "checklist": [ { "step": "Report input data validated before rendering", "value": "warehouse view applies not-null and enum checks on request-type/priority; failing rows quarantined" } ], "testing": [ { "step": "Run validation query on the month's dataset", "value": "0 rows violate the type/priority/status enum constraints" } ] },
+    { "standardId": "cmqscp34t1n4mmbk8go3b2xdt", "checklist": [ { "step": "Report sourced only from the governed ITSM feed in the warehouse", "value": "BI dataset points at certified table edw.eng.demand_intake, not ad-hoc extracts" } ], "testing": [ { "step": "Confirm dataset lineage to certified source", "value": "catalog lineage shows report -> edw.eng.demand_intake with no uncertified upstream" } ] },
+    { "standardId": "cmqscp37s1n4smbk8v03mmcl5", "checklist": [ { "step": "Refresh cadence defined and automated", "value": "dashboard refresh scheduled monthly on business-day 2 via the BI platform scheduler" } ], "testing": [ { "step": "Verify last-refresh timestamp", "value": "dashboard last-refresh <= business-day 3 of reporting month, else fail" } ] },
+    { "standardId": "cmqscp4o01n7gmbk8nzsb85bd", "checklist": [ { "step": "Completeness of key metric fields enforced", "value": "intake records with populated type+priority >= 99% for the reporting period" } ], "testing": [ { "step": "Measure field completeness", "value": "completeness score computed and >= 99%, exceptions listed in the DATA-DEFECT log" } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "1e8b513d-ba20-4771-b54b-c313d04914d3",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All design-assurance and implementation-governance artefacts for the release: architecture review record, ADRs, security review sign-off, threat model, test evidence, and change approval, for services deployed to production this release." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current release; artefacts archived within 5 business days of production go-live and retained 7 years per SDLC records-retention policy." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "2240c6fc-a478-4473-8f0a-52371f5382e5" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each archived artefact tagged with release ID, change ticket number, artefact type, approver, and date; every governance gate (arch, security, test, change) has at least one linked evidence item." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of archived artefacts equals the governance checklist item count for the release (0 missing gates); evidence-repository index reconciles to the GRC control register with 0 gaps." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Artefacts stored in the compliance evidence repository with immutable version, SHA-256 hash, and UTC timestamp; index entry references the source change ticket and release SHA." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Any missing or unapproved artefact logged as a GRC issue (ServiceNow GRC), disposition = obtained-and-archived or risk-accepted-with-CISO-sign-off; 10-business-day remediation SLA." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03u7mbk8cs0skbzm" },
+    { "templateKeyId": "cmr2oan48000xlasba0u1ffd8", "value": "NYDFS 23 NYCRR 500.06 (audit trail) and 500.14; internal SDLC-GOV-01 records-retention standard cited on the archive index entry." },
+    { "templateKeyId": "cmr2v88hl000fxa9io24wujiz", "value": "7-year retention enforced via the evidence repository retention policy 'SDLC-7Y'; auto-purge disabled until retention elapses; legal-hold flag respected." },
+    { "templateKeyId": "cmr2v88il000hxa9icjpyq8mw", "value": "No external filing deadline; internal archive-completeness deadline is 5 business days post go-live, tracked on the release governance ticket." },
+    { "templateKeyId": "cmr2oandp0013lasb81a47aqo", "value": "Pre-archive checklist vs post-archive repository index compared; all expected artefacts present with matching hashes, comparison result attached to the release ticket." },
+    { "templateKeyId": "cmr2v88lm000jxa9iggiq99sw", "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f" },
+    { "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8", "value": "Change ticket (ServiceNow CHG#) referenced on each artefact index entry and linked back from the CHG record to the evidence repository folder URL." },
+    { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb", "value": "All governance gates for the release (arch, security, test, change) - typically 4-8 evidence items per service." },
+    { "templateKeyId": "cmr2oaoru0027lasblf4a3q5g", "value": "PASS = every required gate has a hashed, dated artefact in the repository linked to the CHG; FAIL if any gate lacks evidence or a hash mismatch is found." },
+    { "templateKeyId": "cmr2oaot40029lasbqt4ono47", "value": "Missing evidence blocks release closure; GRC issue raised (owner = Tech Lead), 10-business-day SLA, escalation to CISO for risk-acceptance if unresolved." },
+    { "templateKeyId": "cmr2v89b6000zxa9ivo819zn7", "value": "Artefact index schema (GRC): releaseId, changeTicket, artefactType, approverRole, hash, timestamp, retentionClass." },
+    { "templateKeyId": "cmr2v89c10011xa9ijssevzvo", "value": "Repository index count vs governance checklist count per release must match exactly (0 delta) as the archive-complete gate." },
+    { "answerId": "cmr2ocdvf0ry3kaz3ptqh4wqz", "value": "Applicable: NYDFS 23 NYCRR 500.06 audit-trail (3-yr) and 500.14 controls; internal standard SDLC-GOV-01 (7-year SDLC evidence retention). Cited on the compliance-evidence-repository index entry for the release." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp7ql1nd4mbk84sleiyni", "checklist": [ { "step": "ADRs for significant decisions archived with the release", "value": "each ADR in docs/adr/ exported and stored in the evidence repository against the release ID" } ], "testing": [ { "step": "Verify ADR presence for flagged decisions", "value": "every architecture decision on the review record has a matching archived ADR, else fail" } ] },
+    { "standardId": "cmqscp5o31n9embk822qt2buu", "checklist": [ { "step": "Architecture decision records captured as durable artefacts", "value": "ADRs numbered and immutable once accepted; superseding ADRs cross-link predecessors" } ], "testing": [ { "step": "Confirm ADR numbering continuity", "value": "no gaps or duplicate ADR numbers in the archived set" } ] },
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Every archived artefact linked to a work/change item", "value": "index enforces non-null changeTicket (CHG#) for each entry" } ], "testing": [ { "step": "Check for orphan artefacts", "value": "0 archived artefacts without a linked change ticket" } ] },
+    { "standardId": "cmqscp7rk1nd6mbk8bc5skece", "checklist": [ { "step": "ARB approval evidence archived for major initiatives", "value": "ARB minutes/decision stored with the release governance pack" } ], "testing": [ { "step": "Verify ARB sign-off present where required", "value": "releases flagged major have an archived ARB approval, else fail" } ] }
+   ],
+   "regulations": [
+    { "regId": "cmr2bss2v016254qdbpdw81an", "checklist": [ { "step": "Cybersecurity-relevant governance events retained 3 years", "value": "security review and change artefacts kept min 3 years in the evidence repository (SDLC-7Y policy exceeds minimum)" } ], "testing": [ { "step": "Verify retention class on security artefacts", "value": "sampled security sign-off artefacts show retention >= 3 years and legal-hold respected" } ] },
+    { "regId": "cmqwos0a7006dd29hvd4j01c9", "checklist": [ { "step": "SDLC governance evidence demonstrates secure-SDLC procedures", "value": "threat model, security review and change approval archived per release proving SDLC control operation" } ], "testing": [ { "step": "Confirm secure-SDLC gates evidenced", "value": "each production release has archived security review + change approval; missing = NYDFS finding" } ] }
+   ]
+  },
+  {
+   "id": "5ad67b38-fd44-413b-bbd8-21613c7bd471",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All active orchestration DAGs/jobs in the scheduling platform (Airflow/Control-M/ADF) and their on-call runbooks for common failure scenarios; excludes decommissioned pipelines." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Continuous; runbooks reviewed at least quarterly and updated within 5 business days of any orchestration change or post-incident action item." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "e3f0dab1-136a-4b10-89b4-5690c1d51009" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each runbook has: pipeline name, schedule, upstream/downstream deps, owner, alert-to-runbook link, and step-by-step recovery for timeout/retry/data-late failures. Every production DAG maps to exactly one current runbook." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of production DAGs equals count of published runbooks (0 orphan pipelines, 0 orphan runbooks); reconciled to the orchestration inventory export monthly." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Runbooks versioned in Confluence/Git with author, last-reviewed date, and change history; review evidence tagged with quarter (e.g. 2025-Q3) and UTC timestamp." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Stale or missing runbooks logged as Jira 'RUNBOOK-GAP' with disposition (authored/updated vs decommission-confirmed); 5-business-day remediation SLA." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Runbook template version 'RB-2.1' approved by the Platform Engineering Lead; all runbooks conform to this template structure." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xdmbk89kroddbt" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Runbook validated by a game-day dry-run at least once per quarter per critical pipeline; recovery steps must succeed in staging without author present." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Critical (tier-1) pipelines feeding regulatory/financial reporting require quarterly runbook validation; tier-2/3 require semi-annual review." },
+    { "templateKeyId": "cmr2oandp0013lasb81a47aqo", "value": "Pre/post: after an orchestration change, the affected runbook is diffed and updated; reviewer confirms recovery steps still match the new DAG topology." },
+    { "templateKeyId": "cmr2v88lm000jxa9iggiq99sw", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8", "value": "Each runbook update linked to the triggering change/incident ticket (Jira/ServiceNow) in the runbook change history header." },
+    { "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaq1y0035lasbt581hez0", "value": "All tier-1 critical pipeline runbooks (typically 15-40) validated per quarter." },
+    { "templateKeyId": "cmr2oaq320037lasb58si1owg", "value": "PASS = game-day recovery completes in staging following the runbook verbatim within the documented RTO; FAIL if any step is wrong, missing, or RTO is exceeded." },
+    { "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x", "value": "Failed validation flags the runbook 'needs-update', raises Jira 'RUNBOOK-GAP' (owner = Software Engineer), 5-business-day fix + re-validation SLA." },
+    { "templateKeyId": "cmr2v89xj0017xa9ikgynty6d", "value": "Runbook template RB-2.1; recovery procedures reference approved orchestration config version from IaC (Terraform state) at time of review." },
+    { "templateKeyId": "cmr2v89ze0019xa9i4s25sd76", "value": "Schedule/retry parameters sourced from the DAG definitions in the CI/CD repo and the orchestration platform config export, not from memory." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp68b1nacmbk8boqyksun", "checklist": [ { "step": "Every alert links to its runbook", "value": "monitoring alerts carry a runbook URL in the annotation so on-call opens the correct procedure" } ], "testing": [ { "step": "Verify alert-to-runbook links resolve", "value": "sample 10 alerts; each runbook URL returns a current page, else fail" } ] },
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [ { "step": "Runbooks kept current with pipeline reality", "value": "last-reviewed date on each runbook within one quarter; auto-flag if stale" } ], "testing": [ { "step": "Check staleness across the runbook set", "value": "0 tier-1 runbooks with last-reviewed older than 90 days" } ] },
+    { "standardId": "cmqscp65r1na8mbk85jxlakkb", "checklist": [ { "step": "On-call rotation references the runbooks", "value": "PagerDuty/Opsgenie schedule links the orchestration runbook index" } ], "testing": [ { "step": "Confirm on-call has runbook access", "value": "current on-call can open every tier-1 runbook from the alert" } ] },
+    { "standardId": "cmqscp3rz1n5smbk85axljifj", "checklist": [ { "step": "Pipelines have monitoring and alerting documented in the runbook", "value": "each runbook lists the SLA, alert thresholds, and escalation for its DAG" } ], "testing": [ { "step": "Trigger a synthetic failure in staging", "value": "alert fires, routes to on-call, and the runbook resolves it within RTO" } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "acde3032-f1d0-431f-8d4c-c99d6d84cb64",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The full orchestration flow under change (all DAG tasks, upstream/downstream deps) exercised end-to-end in staging including happy path plus injected failure and retry scenarios; scope excludes prod-only external endpoints (mocked)." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current release/sprint; e2e run executed against the staging environment on the release candidate build before promotion to production." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Test config specifies: seeded staging dataset version, failure-injection points (task kill, timeout, bad-data), expected retry counts, and SLA. All required test parameters present in the CI test manifest." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Row counts and control totals of the staging output reconcile to the seeded input expectations with 0 variance after successful run and after retry recovery." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "CI e2e run stores logs, DAG run IDs, and pass/fail report in the CI/CD repository artifact store with build SHA and UTC timestamp; retained per release." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Any failed scenario logged as Jira 'PIPE-DEFECT' with disposition (fixed-and-rerun vs waived-with-Tech-Lead-sign-off); blocks promotion until closed." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xsmbk8m22e2kle" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Orchestration test harness version pinned in the repo; test methodology approved by the Test Lead for the release." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03whmbk8fo25ufeu" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Retry sensitivity: task must recover within the configured max_retries (default 3) and backoff; a scenario needing >3 retries is a fail." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Data-completeness materiality: any missing/duplicated record in staging output above 0 rows fails the run for tier-1 pipelines." },
+    { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq", "value": "All tasks in the changed DAG plus the defined failure/retry scenario set (typically 8-20 scenarios per pipeline)." },
+    { "templateKeyId": "cmr2oao03001jlasb1coy37l2", "value": "PASS = happy-path completes, every injected failure triggers correct retry/alert and self-recovers, and output reconciles to expected control totals; FAIL if any scenario does not recover or output mismatches." },
+    { "templateKeyId": "cmr2oao16001llasbnlkf9nbu", "value": "Failing scenario blocks release; Jira 'PIPE-DEFECT' raised (owner = Software Engineer), fix + full re-run required before production promotion." },
+    { "templateKeyId": "cmr2v88x1000rxa9if2t45ukx", "value": "Acceptance criteria: 100% of defined scenarios pass, retries observed match config, alerts fire on failure, output control totals reconcile - documented in the release test plan." },
+    { "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m", "value": "Evidence stored in the CI/CD repository under artifacts/e2e/<release-SHA>/ plus the DAG run URLs in the orchestration platform." },
+    { "answerId": "cmr2ocdvt0sgekaz3knxdpacb", "value": "Approved methodology = orchestration e2e harness vX.Y (Test Lead approved for the release); parameters (retry counts, timeouts, seed dataset version) sourced from the DAG definitions in the CI/CD repo and the staging config export." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6fk1naombk8lfqdfywn", "checklist": [ { "step": "Integration tests cover external dependencies in the flow", "value": "e2e run exercises DB, warehouse, and messaging deps in staging (mocked only where prod-exclusive)" } ], "testing": [ { "step": "Verify each external dep is hit in the run", "value": "run trace shows calls to every declared dependency; 0 untested deps" } ] },
+    { "standardId": "cmqscp6bw1naimbk87degjlyb", "checklist": [ { "step": "Regression of the orchestration flow is automated", "value": "e2e suite runs in CI on every release candidate, not manually" } ], "testing": [ { "step": "Confirm suite runs in the pipeline", "value": "CI job 'e2e-orchestration' present and green on the RC build" } ] },
+    { "standardId": "cmqscp6mw1nb0mbk8k1cnga6l", "checklist": [ { "step": "Deterministic seeded test data used", "value": "staging seeded from versioned fixtures so runs are repeatable and reconcilable" } ], "testing": [ { "step": "Re-run with same seed", "value": "two runs with the same seed produce identical control totals" } ] },
+    { "standardId": "cmqscp3oz1n5mmbk8w0mgzz9i", "checklist": [ { "step": "Pipeline tasks proven idempotent under retry", "value": "retry scenario re-runs a task and output is unchanged (no duplicates)" } ], "testing": [ { "step": "Force a retry and check for duplication", "value": "post-retry row count equals single-run row count, else fail" } ] },
+    { "standardId": "cmqscoh7i1m24mbk8hmgrzh91", "checklist": [ { "step": "E2e pass is a promotion quality gate", "value": "CI blocks promotion to prod unless the e2e job passes" } ], "testing": [ { "step": "Attempt promote on a failing run", "value": "gate rejects promotion when e2e status != passed" } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "c05f33f3-7ec1-45b4-a319-52c64ec1d788",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Technical documentation for the release (architecture, C4/ADRs, API reference, operations runbooks) requiring review and formal sign-off by architecture and operations teams before publication." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current release; review completed and sign-off obtained within the release-hardening window (last 3 business days before release cut)." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "52deb808-fc3d-469f-8652-e331ba334cbe" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each doc under review has: author, reviewer(s), review comments resolved, and an approval record. All architecture + operations review comments are dispositioned (resolved or accepted-as-followup)." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of docs requiring sign-off equals count with a recorded approval (0 unsigned docs at release cut)." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Approval captured as a PR review approval / Confluence sign-off with reviewer identity, comment thread, and UTC timestamp; linked to the release ticket." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Unresolved review comments logged as Jira 'DOC-REVIEW' with disposition; blocking comments must be closed before sign-off, non-blocking may defer with owner agreement." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03u7mbk8cs0skbzm" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Documentation standard 'DOC-STD-3' (structure, C4 levels, ADR format) approved by the Enterprise Architect for the review cycle." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rp03u7mbk8cs0skbzm" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Any architecture deviation from approved patterns flagged in review; deviations require an ADR before sign-off." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Material docs (system architecture, security-relevant ops runbooks) require Enterprise Architect approval; minor edits require Tech Lead approval only." },
+    { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rp03u7mbk8cs0skbzm" },
+    { "templateKeyId": "cmr2v88pn000nxa9irjv495b3", "value": "Sign-off decision (approved / approved-with-conditions / rejected) recorded on the PR or Confluence page with rationale and conditions listed." },
+    { "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb", "value": "Approval notification sent to the delivery channel and release ticket watchers; recipients = release manager, service owner, on-call lead." },
+    { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj", "value": "All docs in the release documentation set requiring sign-off (typically 5-15)." },
+    { "templateKeyId": "cmr2oaodj001vlasbycmyhv72", "value": "PASS = every required doc carries an approval from a reviewer with correct authority and all blocking comments resolved; FAIL if any doc unsigned or a blocking comment open." },
+    { "templateKeyId": "cmr2oaof2001xlasbgo5bzael", "value": "Missing/invalid sign-off blocks release; escalate to Enterprise Architect; Jira 'DOC-REVIEW' owner = Software Engineer, must close before release." },
+    { "templateKeyId": "cmr2v8940000vxa9iz1ws174c", "value": "Acceptance: documents conform to DOC-STD-3, all review comments dispositioned, and authorized approver sign-off recorded against the release." },
+    { "templateKeyId": "cmr2v8953000xxa9izs452xrs", "value": "Evidence = PR approval record / Confluence sign-off URL linked from the release governance ticket." },
+    { "answerId": "cmr2ocdvv0sizkaz3fgrzpizv", "value": "Authorized approver = Enterprise Architect for architecture docs, Platform Engineering Lead for operations runbooks; delegation matrix on the ENG governance Confluence page names Tech Lead as backup for non-material docs." },
+    { "answerId": "cmr2ocdvv0sj0kaz3zhuhw7du", "value": "Approved methodology = documentation standard DOC-STD-3 (C4 + ADR format); parameter source = the review checklist template in the ENG Confluence space, versioned per release cycle." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp5iy1n94mbk8j5p53imq", "checklist": [ { "step": "Review covers functionality, tests, security, performance, maintainability", "value": "doc review checklist DOC-STD-3 includes accuracy, security-relevance, and ops-readiness dimensions" } ], "testing": [ { "step": "Confirm checklist fully completed", "value": "each reviewed doc has all checklist dimensions marked, else sign-off blocked" } ] },
+    { "standardId": "cmqscp7ql1nd4mbk84sleiyni", "checklist": [ { "step": "Architecture decisions in the docs backed by ADRs", "value": "any design choice or deviation surfaced in review must reference an accepted ADR" } ], "testing": [ { "step": "Cross-check decisions to ADRs", "value": "0 undocumented architecture decisions in signed-off docs" } ] },
+    { "standardId": "cmqscp7sw1nd8mbk8jhvmt9xd", "checklist": [ { "step": "Docs reference approved patterns with examples", "value": "reviewer confirms designs map to the approved-patterns catalog or an ADR justifies deviation" } ], "testing": [ { "step": "Verify pattern conformance", "value": "flagged deviations each have an ADR; unjustified deviation fails review" } ] },
+    { "standardId": "cmqscp6y21nbmmbk882oq68hf", "checklist": [ { "step": "Docs-as-code changes go through PR review before merge", "value": "documentation PRs require approval on main/develop, mirroring code review controls" } ], "testing": [ { "step": "Check merge protection on docs repo", "value": "branch protection requires >=1 approval to merge doc changes" } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "4cc245ca-baa4-4495-be0c-8e40d0257c3d",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Engineering knowledge gaps identified from onboarding-feedback surveys and incident post-mortem action items over the review period, across the engineering teams in scope; excludes non-engineering L&D topics." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Rolling quarter; gaps consolidated from onboarding feedback and post-mortems closed in the quarter, reviewed at the quarterly knowledge-management sync." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "2e7880d2-11f5-4003-b3d8-7dad2ad04a9c" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each identified gap has: source (onboarding vs post-mortem), affected topic/system, severity, recurrence count, and proposed remediation (doc, training, or tooling). No gap logged without a source reference." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Number of gaps traces to source items: every gap links to >=1 onboarding survey response or post-mortem action; sum of source-tagged gaps reconciles to the gap register total." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Gap register maintained in Confluence with version history, author, and last-updated UTC timestamp; each entry references its source survey/PIR ID." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Gaps without a clear owner or remediation path logged as Jira 'KM-GAP' with disposition (assigned vs deferred-with-rationale); reviewed next quarter." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oandp0013lasb81a47aqo", "value": "Compare gap register before/after the quarter: newly closed remediations removed from open list; recurring gaps flagged if they reappear across two quarters." },
+    { "templateKeyId": "cmr2v88lm000jxa9iggiq99sw", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8", "value": "Each remediation gap linked to a Jira 'KM-GAP' ticket and, where it drives a doc/tooling change, to the implementing change ticket." },
+    { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2v88pn000nxa9irjv495b3", "value": "The prioritized gap list and remediation plan decision recorded in the quarterly KM sync notes with owner assignments." },
+    { "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb", "value": "Gap summary distributed to engineering leads and the enablement team; recipients logged in the KM sync notes." },
+    { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj", "value": "All onboarding feedback responses and post-mortem action items for the quarter (typically 20-60 source items)." },
+    { "templateKeyId": "cmr2oaodj001vlasbycmyhv72", "value": "PASS = every source item triaged and either mapped to a gap or explicitly closed as no-gap; FAIL if any source item is untriaged at quarter close." },
+    { "templateKeyId": "cmr2oaof2001xlasbgo5bzael", "value": "Untriaged sources roll to the next sync; Jira 'KM-GAP' raised (owner = Software Engineer) with a 10-business-day triage SLA." },
+    { "templateKeyId": "cmr2v8940000vxa9iz1ws174c", "value": "Acceptance = gap register updated, each gap sourced and prioritized, and remediation owners assigned at the quarterly sync." },
+    { "templateKeyId": "cmr2v8953000xxa9izs452xrs", "value": "Evidence = Confluence gap register page URL + quarterly KM sync notes, linked from the engineering enablement space." },
+    { "answerId": "cmr2ocg010x6hkaz35toxeswg", "value": "Authorized approver = Tech Lead (owns the engineering knowledge base); delegation matrix on the ENG Confluence page names the Platform Engineering Lead as backup approver for the quarterly gap plan." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp5n41n9cmbk8timof83w", "checklist": [ { "step": "Gaps feed the weekly knowledge-sharing sessions", "value": "prioritized gaps drive brown-bag/knowledge-share topics scheduled from the register" } ], "testing": [ { "step": "Verify sessions map to logged gaps", "value": "each quarter's knowledge-share topics trace to entries in the gap register" } ] },
+    { "standardId": "cmqscp5tf1n9ombk8gq23fix3", "checklist": [ { "step": "Onboarding-guide gaps captured and remediated", "value": "onboarding feedback that cites missing guide content raises a doc gap against the onboarding guide" } ], "testing": [ { "step": "Check onboarding gaps close the loop", "value": "onboarding-sourced gaps result in an updated onboarding guide within one quarter" } ] },
+    { "standardId": "cmqscp68b1nacmbk8boqyksun", "checklist": [ { "step": "Post-mortem action items that reveal missing runbooks are logged", "value": "PIR actions naming a missing/incorrect runbook create a KM-GAP linked to that runbook" } ], "testing": [ { "step": "Trace PIR runbook actions to fixes", "value": "each such action results in an updated/created runbook, else stays open" } ] },
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [ { "step": "Knowledge base kept current from identified gaps", "value": "gap remediations update the relevant docs; register tracks doc-update status" } ], "testing": [ { "step": "Confirm doc updates land", "value": "closed doc-gaps show a merged docs PR referenced in the register" } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "3d1fae80-24fb-49e5-89b0-dba353d4a3d4",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All scheduled batch/orchestration windows across production pipelines reviewed for contention and throughput; scope = tier-1 and tier-2 pipelines sharing compute/warehouse capacity." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Quarterly (e.g. 2025-Q3); adjustments applied in a change window within 10 business days of the quarterly review." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rymbk81v0h0v7b" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each tuned window records: pipeline, prior schedule, new schedule, rationale, expected contention/throughput impact. All schedule changes have a rationale and a rollback schedule captured." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Post-change run durations and SLA-hit rates compared to baseline; count of pipelines still breaching SLA after tuning must be <= pre-tuning count (net improvement, 0 regressions)." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Schedule diff and performance before/after metrics stored in the scheduling-tuning report with quarter tag and UTC timestamp in the reporting repository; retained 24 months." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Windows that regress after tuning logged as Jira 'SCHED-REGRESSION' with disposition (re-tuned vs rolled-back); 5-business-day remediation SLA." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Scheduling-optimization methodology 'SCHED-OPT-1' (contention analysis + critical-path scheduling) approved by the Platform Engineering Lead." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xdmbk89kroddbt" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Sensitivity: a schedule change is applied only if projected P95 runtime improves >=5% or contention overlaps drop, without pushing any pipeline past its SLA." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Materiality: tier-1 (regulatory/financial-feed) pipelines require sign-off before any window change; changes to tier-3 pipelines self-approved by the owning engineer." },
+    { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj", "value": "All production pipeline schedules in scope for the quarter (typically 40-120 jobs)." },
+    { "templateKeyId": "cmr2oaodj001vlasbycmyhv72", "value": "PASS = post-tuning P95 runtime and SLA-hit rate improve or hold with 0 new SLA breaches over the following 2 weeks; FAIL if any pipeline newly breaches SLA post-change." },
+    { "templateKeyId": "cmr2oaof2001xlasbgo5bzael", "value": "A regressing change is rolled back to the prior schedule within the same change window; Jira 'SCHED-REGRESSION' raised (owner = Software Engineer), re-tune within 5 business days." },
+    { "templateKeyId": "cmr2v8940000vxa9iz1ws174c", "value": "Acceptance = tuned schedules applied via change ticket, before/after metrics show improvement or hold, 0 new SLA breaches, and results reviewed at the quarterly sync." },
+    { "templateKeyId": "cmr2v8953000xxa9izs452xrs", "value": "Evidence = scheduling-tuning report + Grafana/BI dashboard link and the change ticket, stored in the reporting repository under the quarter tag." },
+    { "answerId": "cmr2ocdvy0slxkaz372c6kvrl", "value": "In-scope period = the tuning quarter (e.g. 2025-Q3); effective date = the change-window date the new schedules go live, recorded on the change ticket, with a 2-week post-change observation window." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6ls1naymbk8q8t2kn8n", "checklist": [ { "step": "Performance baseline established before tuning", "value": "pre-change P95 runtimes and contention captured from the warehouse query history" } ], "testing": [ { "step": "Verify baseline snapshot exists", "value": "baseline metrics recorded for every pipeline before schedule changes, else no tuning applied" } ] },
+    { "standardId": "cmqscp3rz1n5smbk85axljifj", "checklist": [ { "step": "Contention and throughput monitored to drive tuning", "value": "scheduler and warehouse utilization dashboards feed the contention analysis" } ], "testing": [ { "step": "Confirm monitoring covers tuned windows", "value": "each tuned pipeline has runtime/utilization metrics for the observation window" } ] },
+    { "standardId": "cmqscp3q01n5ombk81drn9kwt", "checklist": [ { "step": "Incremental loads preferred to reduce window pressure", "value": "tuning favors incremental over full loads where the pipeline supports it to shrink windows" } ], "testing": [ { "step": "Check load mode of high-contention jobs", "value": "high-contention full-load jobs assessed for incremental conversion in the review" } ] },
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Every schedule change linked to a change ticket", "value": "window adjustments applied via ServiceNow CHG referenced in the tuning report" } ], "testing": [ { "step": "Trace applied changes to tickets", "value": "0 schedule changes applied without a linked change ticket" } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "7df829aa-3bfc-480d-9ffa-507d50a1b751",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The implementation being promoted to production this release, assessed for architecture fitness (pattern conformance, NFRs, security, resilience) before deployment; scope = the change set in the release candidate." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current release; sign-off obtained during the release-hardening window and no earlier than the RC build passing all quality gates." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Sign-off package contains: architecture review record, ADRs for deviations, NFR test results, security scan status, and rollback plan. All required package sections present and complete." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Every architecture review checklist item has a linked evidence artifact (0 unaddressed items); package section count reconciles to the ARB checklist." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Sign-off recorded in ServiceNow GRC / ARB register with approver identity, decision, conditions, and UTC timestamp; linked to the release change ticket." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Open architecture concerns logged as GRC issues with disposition (resolved vs conditionally-approved-with-followup-ADR); blocking concerns must close before sign-off." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03u7mbk8cs0skbzm" },
+    { "templateKeyId": "cmr2oandp0013lasb81a47aqo", "value": "Pre/post: proposed architecture compared to approved target-state patterns; any drift requires an accepted ADR before sign-off." },
+    { "templateKeyId": "cmr2v88lm000jxa9iggiq99sw", "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f" },
+    { "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8", "value": "Architecture sign-off linked to the deployment change ticket (ServiceNow CHG#); CHG cannot move to Implement without the recorded ARB approval." },
+    { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rp03u7mbk8cs0skbzm" },
+    { "templateKeyId": "cmr2v88pn000nxa9irjv495b3", "value": "Decision (approved / approved-with-conditions / rejected) documented in the ARB register with rationale and any conditions for production." },
+    { "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb", "value": "Sign-off notification sent to release manager, service owner, DevOps Engineer, and CISO delegate; recipients recorded on the CHG." },
+    { "templateKeyId": "cmr2oap6g002flasb12gpqsrx", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oap7x002hlasb21lclhgc", "value": "The release candidate change set and its architecture review package (1 package per release)." },
+    { "templateKeyId": "cmr2oapa9002jlasbbht6cp5g", "value": "PASS = ARB/Enterprise Architect approval recorded with all blocking items closed and rollback plan attached; FAIL if sign-off missing, an item open, or approver lacks authority." },
+    { "templateKeyId": "cmr2oapbz002llasbwuwwn4mb", "value": "No sign-off blocks the deployment gate; escalate to the ARB chair; Jira/CHG task owner = Software Engineer must obtain approval before the deploy window." },
+    { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rp03u7mbk8cs0skbzm" },
+    { "templateKeyId": "cmr2v89li0015xa9ia4hiukkb", "value": "Delegation matrix on the ENG governance Confluence page: Enterprise Architect signs; delegate = Solutions Architect for non-material changes; ARB chair for major initiatives." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp7rk1nd6mbk8bc5skece", "checklist": [ { "step": "ARB approval obtained for the release before deploy", "value": "ARB decision recorded in the register and linked to the deployment CHG" } ], "testing": [ { "step": "Verify ARB approval precedes deploy", "value": "CHG shows ARB approval timestamp earlier than the deploy window start, else fail" } ] },
+    { "standardId": "cmqscp7ql1nd4mbk84sleiyni", "checklist": [ { "step": "ADRs required for significant/deviating decisions", "value": "each architecture deviation in the release has an accepted ADR referenced in the sign-off package" } ], "testing": [ { "step": "Cross-check deviations to ADRs", "value": "0 deviations without an accepted ADR at sign-off" } ] },
+    { "standardId": "cmqscp7u31ndambk8oa603ruk", "checklist": [ { "step": "Automated architecture-compliance checks run in CI", "value": "fitness-function/ArchUnit tests gate the RC build for layering and dependency rules" } ], "testing": [ { "step": "Confirm arch-compliance job green", "value": "CI 'arch-compliance' job passed on the RC SHA feeding the sign-off" } ] },
+    { "standardId": "cmqscp7sw1nd8mbk8jhvmt9xd", "checklist": [ { "step": "Implementation conforms to approved patterns", "value": "review confirms use of the approved-patterns catalog; deviations justified by ADR" } ], "testing": [ { "step": "Verify pattern conformance in review", "value": "unjustified pattern deviations block sign-off" } ] }
+   ],
+   "regulations": [
+    { "regId": "cmqwos0a7006dd29hvd4j01c9", "checklist": [ { "step": "Secure-SDLC gate enforced before production", "value": "architecture sign-off confirms security review and secure-design controls before deploy" } ], "testing": [ { "step": "Confirm security review is part of sign-off", "value": "sign-off package includes a completed security review; absent = NYDFS secure-SDLC finding" } ] }
+   ]
+  },
+  {
+   "id": "cmr2fjmog10xbkfgzg8fawzd3",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The governance evidence pack for the release/audit period, updated to reflect remediation outcomes for all governance findings closed since the last update; scope = design-assurance and implementation-governance findings for in-scope services." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current audit/release period; pack updated within 5 business days of each finding being marked closed, and fully reconciled at period end." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "2240c6fc-a478-4473-8f0a-52371f5382e5" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each pack entry has: finding ID, remediation description, closure evidence link, closure date, and approver. Every closed finding has closure evidence attached; 0 closed-without-evidence." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of findings marked closed in GRC equals count reflected as closed in the evidence pack (0 variance); open + closed = total findings for the period." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Updated pack versioned in the compliance evidence repository with SHA-256 hash, version number, editor identity, and UTC timestamp; prior versions retained." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Findings closed in GRC but lacking evidence in the pack logged as GRC issue 'EVIDENCE-GAP', disposition = evidence-attached or re-opened; 10-business-day SLA." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03u7mbk8cs0skbzm" },
+    { "templateKeyId": "cmr2oandp0013lasb81a47aqo", "value": "Pre/post: pack contents compared against the GRC finding register; every state change (open->closed) in GRC is mirrored in the pack with matching evidence and date." },
+    { "templateKeyId": "cmr2v88lm000jxa9iggiq99sw", "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f" },
+    { "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8", "value": "Each remediation entry linked to its change/remediation ticket (ServiceNow CHG/GRC issue) and the implementing PR where code was changed." },
+    { "templateKeyId": "cmr2oaqo3003rlasb1r26nwor", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaqpd003tlasbyv59t5v5", "value": "All findings closed in the period plus the current open set carried into the pack (typically 10-50 findings)." },
+    { "templateKeyId": "cmr2oaqq9003vlasbyjg1pxll", "value": "PASS = pack finding states and closure evidence exactly match the GRC register (0 variance) and every closed item has hashed evidence; FAIL on any mismatch or missing evidence." },
+    { "templateKeyId": "cmr2oaqrf003xlasb2mopahy1", "value": "Mismatches block period sign-off; GRC 'EVIDENCE-GAP' raised (owner = Software Engineer), 10-business-day SLA, escalation to CISO if unresolved at period end." },
+    { "templateKeyId": "cmr2oaqsp003zlasbtvvkt534", "value": "In-scope period = current audit/release cycle; effective dates = each finding's closure date as recorded in GRC, reflected in the pack version for that cycle." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Every remediation entry linked to a work/change item", "value": "pack enforces non-null remediation ticket ID for each closed finding" } ], "testing": [ { "step": "Check for unlinked closures", "value": "0 closed findings in the pack without a linked remediation ticket" } ] },
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [ { "step": "Evidence pack kept current with remediation reality", "value": "pack updated within 5 business days of each closure so it never lags the GRC register" } ], "testing": [ { "step": "Verify pack freshness vs GRC", "value": "no finding closed in GRC >5 business days ago missing from the pack" } ] },
+    { "standardId": "cmqscp7ql1nd4mbk84sleiyni", "checklist": [ { "step": "Remediations that change architecture backed by ADRs", "value": "findings resolved via design change reference the accepted ADR in the pack entry" } ], "testing": [ { "step": "Cross-check design remediations to ADRs", "value": "design-related closures each cite an ADR, else flagged" } ] },
+    { "standardId": "cmqscp7u31ndambk8oa603ruk", "checklist": [ { "step": "Automated compliance checks evidence remediation", "value": "where a finding was a control gap, the re-run of the arch/security check is attached as closure evidence" } ], "testing": [ { "step": "Confirm re-run evidence attached", "value": "control-gap closures include a passing automated-check run link" } ] }
+   ],
+   "regulations": [
+    { "regId": "cmr2bss2v016254qdbpdw81an", "checklist": [ { "step": "Remediation evidence retained on the cybersecurity audit trail", "value": "security-finding closure evidence kept min 3 years in the evidence repository" } ], "testing": [ { "step": "Verify retention on security closures", "value": "sampled security-finding evidence shows retention >= 3 years and hash integrity" } ] },
+    { "regId": "cmqwos1rp007vd29hj6boysa1", "checklist": [ { "step": "Incident-driven remediations reflect the tested IR plan", "value": "findings from incident post-mortems close with evidence tying back to IR-plan action items" } ], "testing": [ { "step": "Trace incident findings to IR closure", "value": "each incident-sourced finding has remediation evidence in the pack, else re-opened" } ] }
+   ]
+  }
+ ]
+}

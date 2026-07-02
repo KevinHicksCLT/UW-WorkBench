@@ -1,0 +1,281 @@
+{
+ "tasks": [
+  {
+   "id": "a048b8cd-f6e7-4fb8-9cb1-3f119baec604",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Population = every demand item in Jira project 'DEMAND' with status 'Triage' and label 'funding-check-pending'; funding validated against the approved FY capital/opex plan line in the PPM tool (Clarity), capacity validated against the current PI capacity plan for the owning squad." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current fiscal quarter plus the next quarter (rolling 6-month planning horizon); funding effective date must fall within the approved FY budget period." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Demand record has non-null Funding Source, Approved Budget Amount (>0), Cost Center, Target PI, and Assigned Squad; funding amount and squad capacity in story points are both populated and > 0." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Sum of committed demand for the target PI reconciles to the squad's available capacity in Jira Align within +/- 5%; funding drawn reconciles to the Clarity plan line remaining balance to the dollar." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Funding/capacity confirmation comment posted to the Jira demand item with author, ISO-8601 timestamp, and Clarity plan line ID; Jira issue history version retained per Jira audit log (immutable)." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Items failing the funding or capacity check are moved to Jira status 'Blocked-Funding' with a comment stating the gap; disposition tracked to closure by the Product Owner within 5 business days." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oapmt002rlasbojqqymeh", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp", "value": "All demand items that entered status 'Triage' in the in-scope quarter (100% inspection, not a sample — typical volume 40-80 items/quarter)." },
+    { "templateKeyId": "cmr2oappx002vlasbp983y62z", "value": "PASS = both funding (Clarity plan line with remaining balance >= approved amount) and capacity (squad points available >= estimate) confirmed and recorded; FAIL if either is missing. Target: 100% of items progressed to analysis have a recorded funding+capacity confirmation; 0 exceptions." },
+    { "templateKeyId": "cmr2oaprq002xlasbn62pym1c", "value": "On FAIL, re-perform the check against Clarity and Jira Align; if still failing, raise a Jira ticket type 'SDLC-Exception' assigned to the Engineering Manager with a 10-business-day remediation SLA and hold the item in 'Blocked-Funding'." },
+    { "templateKeyId": "cmr2oapt3002zlasbvo2amzzy", "value": "Confirmations dated within the current PI; funding effective within the approved FY budget window." },
+    { "answerId": "cmr2ocg0m0xyakaz3374mm7mz", "value": "Acceptance = a Jira comment on the demand item recording confirmed funding source + Clarity plan line ID and confirmed squad capacity in points, authored by the Product Owner. Evidence lives on the Jira demand item (comment + issue history) and the Clarity plan line; link both in the demand item's 'Evidence' field." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp7rk1nd6mbk8bc5skece", "checklist": [ { "step": "Confirm ARB/portfolio approval is recorded before funding is committed", "value": "Demand item over the major-initiative threshold ($250k or cross-domain) carries an ARB decision ID in the 'Governance' field before status moves past Triage." } ], "testing": [ { "step": "Verify major initiatives have an ARB approval link", "value": "Query Jira for demand items >$250k lacking a populated ARB decision ID; expected result = 0." } ] },
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Link the funding/capacity confirmation to the originating work item", "value": "Every funding decision is captured as a comment on the specific Jira demand issue, not in a side spreadsheet." } ], "testing": [ { "step": "Verify traceability from decision to work item", "value": "Sample 10 confirmations; each must resolve to a Jira issue key with matching Clarity plan line — 10/10 pass." } ] },
+    { "standardId": "cmqscp3wr1n60mbk81e4azhgu", "checklist": [ { "step": "Ensure the demand-funding decision rubric is reviewed annually", "value": "Funding/capacity gate criteria reviewed and re-approved by the PMO Manager each fiscal year; review date stored in Confluence 'Demand Governance' page." } ], "testing": [ { "step": "Check last-review date currency", "value": "Confluence review date is within the last 12 months." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "ffc9ecdd-f01d-4963-a3c8-0d7543f9922b",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Population = all demand items in Jira project 'DEMAND' at status 'Triage' awaiting a T-shirt size (XS-XL) and value score (1-5 WSJF proxy) prior to backlog ranking." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current PI planning window (rolling 12 weeks); scores refreshed each PI." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "cmqsck0z203zhmbk8cuyn6zhs" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each scored item has non-null Size (enum XS/S/M/L/XL), Value Score (1-5), and a one-line scoring rationale; WSJF inputs (business value, time criticality, risk reduction, job size) all populated." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of items with a size AND value score equals count of items in 'Triage' for the PI (no unscored items); reconcile via Jira JQL filter saved as 'demand-scored-completeness'." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Score, rationale, and scorer recorded in Jira custom fields with issue-history timestamp; scoring session notes retained in Confluence with version and date." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Items that cannot be sized (missing requirements) get label 'needs-refinement' and are routed to a refinement session; disposition owner = Business Analyst, resolved within one sprint." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Record the score against the specific demand work item", "value": "Size and value fields set on the Jira issue itself, enabling ranked backlog ordering." } ], "testing": [ { "step": "Verify no orphaned scores", "value": "JQL: items with Value Score set but no parent demand epic = 0." } ] },
+    { "standardId": "cmqscp5o31n9embk822qt2buu", "checklist": [ { "step": "Capture the sizing/scoring rationale as a lightweight decision record", "value": "Each L/XL item carries a rationale comment explaining the size driver (integration count, data migration, etc.)." } ], "testing": [ { "step": "Verify rationale present for large items", "value": "All items sized L or XL have a non-empty rationale field — 100%." } ] },
+    { "standardId": "cmqscp3wr1n60mbk81e4azhgu", "checklist": [ { "step": "Review the scoring rubric annually", "value": "WSJF weighting reviewed and re-approved by the Product Owner and PMO each fiscal year." } ], "testing": [ { "step": "Confirm rubric review currency", "value": "Confluence 'Scoring Rubric' page last-reviewed within 12 months." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "66f069a6-24a2-4905-b4d6-4d984260942a",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Population = all active demand items in the Jira 'DEMAND' backlog register (statuses New/Triage/Analysis/Blocked); the register is the saved Jira board 'Demand Pipeline' plus its Confluence-embedded roll-up." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Live register; each item's status/priority/owner must have been touched within the last 10 business days or flagged stale." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Every register row has non-null Status, Priority (P1-P4), Assigned Owner, and Last-Updated date; no item in 'Analysis' older than 30 days without a status update." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Register item count reconciles to the Jira 'DEMAND' project open-issue count exactly (delta = 0); reconciliation run weekly via saved JQL export." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Weekly register snapshot exported to the compliance evidence repository (CSV + PDF) with export timestamp and generating user; prior snapshots retained 12 months." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Stale items (>10 business days untouched) auto-flagged 'register-stale'; owner must update or re-triage within 3 business days, disposition logged in the item comment." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb", "value": "All open items on the Demand Pipeline board at the weekly reconciliation cut (100% inspection)." },
+    { "templateKeyId": "cmr2oaoru0027lasblf4a3q5g", "value": "PASS = 100% of open items have Status, Priority, and Owner populated and Last-Updated within SLA; FAIL if any mandatory field null or >5% of items stale. Threshold: <=5% stale tolerated with waivers." },
+    { "templateKeyId": "cmr2oaot40029lasbqt4ono47", "value": "On FAIL, generate a gap list and assign each stale/incomplete item to its owner; unresolved after 3 business days escalates to the PMO Manager via Jira 'SDLC-Exception' ticket, 10-day SLA." },
+    { "templateKeyId": "cmr2v89b6000zxa9ivo819zn7", "value": "Source-system field definitions: Jira fields Status (workflow), Priority (P1-P4 scheme), Assignee, and custom field 'Demand Owner' as defined in the Jira admin field configuration for project DEMAND." },
+    { "templateKeyId": "cmr2v89c10011xa9ijssevzvo", "value": "Source-system control total: Jira REST count endpoint for project=DEMAND AND statusCategory!=Done, compared to the register export row count." },
+    { "answerId": "cmr2ocg0o0y0rkaz3dm7s9ske", "value": "Authorized approver = Product Owner (register owner) per the RACI on the Confluence 'Demand Governance' page; delegation to the Scrum Master permitted during PO absence, recorded in the delegation log with start/end dates." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [ { "step": "Keep the backlog register current, not stale", "value": "Register reflects live Jira state; stale-item automation flags anything untouched >10 business days." } ], "testing": [ { "step": "Verify freshness", "value": "Count of items with Last-Updated older than 10 business days and no stale flag = 0." } ] },
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Ensure each register row is a real work item", "value": "Register is a Jira board view; no free-standing spreadsheet rows without a Jira key." } ], "testing": [ { "step": "Verify 1:1 register-to-issue mapping", "value": "Register export rows reconcile exactly to Jira open-issue count (delta = 0)." } ] },
+    { "standardId": "cmqscp41u1n6ambk8av928k36", "checklist": [ { "step": "Every register item has an assigned owner", "value": "Assignee/Demand Owner mandatory on all open items via Jira field validation." } ], "testing": [ { "step": "Verify ownership completeness", "value": "JQL: project=DEMAND AND statusCategory!=Done AND assignee IS EMPTY returns 0." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "9c2c685b-4d2c-41a1-bf3f-cb21f2649f50",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Population = all approved business needs/features for the release under analysis mapped to their derived user stories; RTM covers 100% of in-scope features in the Jira Align capability plus their child stories in Jira." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The current release/PI increment; RTM baselined at design sign-off and re-verified at code-complete." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "b32dfbb5-304a-42cb-8758-4284f7369366" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rsmbk8cr7zj5ho" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each RTM row links Business Need ID -> Requirement/Feature -> User Story (Jira key) -> Test Case (Jira/Zephyr key), all four columns non-null; acceptance criteria present on every story." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of features in the RTM equals count of features in the Jira Align release; every story in the release appears exactly once (no orphan stories, no unmapped needs) — bidirectional trace delta = 0." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "RTM exported to Confluence and the source repo /docs as a versioned artifact tagged with the release version and generation timestamp; commit SHA recorded." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Requirements with no downstream story, or stories with no upstream need, are logged as RTM gaps in Jira and dispositioned (add story / descope / waiver) by the BA within one sprint." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "RTM methodology = bidirectional traceability template v2.1 approved by the BA Chapter; version recorded in the RTM header." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03xsmbk8m22e2kle" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Sensitivity: any change to a business need or scope item must trigger an RTM diff review; threshold = >3 unmapped rows blocks release readiness sign-off." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Materiality: RTM completeness must be >=98% (mapped rows / total rows); below 95% is a release blocker." },
+    { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb", "value": "All requirement/story/test rows in the RTM for the release (100% inspection)." },
+    { "templateKeyId": "cmr2oaoru0027lasblf4a3q5g", "value": "PASS = every requirement traces to >=1 story and >=1 test case, and every story traces to >=1 requirement; coverage >=98%. FAIL if any requirement or story is orphaned beyond the 2% tolerance." },
+    { "templateKeyId": "cmr2oaot40029lasbqt4ono47", "value": "On FAIL, list orphaned rows and assign remediation to the BA; unresolved gaps at release gate raise a Jira 'SDLC-Exception' to the Product Owner with a 10-business-day SLA and explicit descope/waiver decision." },
+    { "templateKeyId": "cmr2v89b6000zxa9ivo819zn7", "value": "Field definitions: Jira Align 'Feature', Jira 'Story' and 'Acceptance Criteria' field, Zephyr 'Test Case' — as defined in the tool field configurations for the release board." },
+    { "templateKeyId": "cmr2v89c10011xa9ijssevzvo", "value": "Control total: Jira Align feature count and Jira story count for the release fix-version, cross-checked against RTM row counts." },
+    { "answerId": "cmr2ocg0o0y1akaz3i7nt53dz", "value": "Acceptance = RTM shows 100% bidirectional trace (need<->story<->test) at >=98% completeness and is reviewed by the Test Lead. Evidence = versioned RTM in Confluence + source repo /docs, linked from the release readiness page." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Trace every requirement to its work item", "value": "RTM binds each business need to a Jira story key and test case key." } ], "testing": [ { "step": "Verify no untraceable requirements", "value": "Requirements with zero linked stories = 0." } ] },
+    { "standardId": "cmqscp6e01nammbk8u3kkbgln", "checklist": [ { "step": "Ensure API/interface requirements carry contract-test coverage in the RTM", "value": "Every requirement touching a service boundary maps to a contract test case row." } ], "testing": [ { "step": "Verify interface requirements have contract tests", "value": "API-tagged requirements with no linked contract test = 0." } ] },
+    { "standardId": "cmqscp3an1n4ymbk8z80rd202", "checklist": [ { "step": "Require UAT sign-off traced through the RTM", "value": "Each in-scope requirement links to a UAT case with a recorded sign-off." } ], "testing": [ { "step": "Verify UAT coverage of requirements", "value": "In-scope requirements without a signed-off UAT case = 0 at release gate." } ] },
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [ { "step": "Keep the RTM current across the release", "value": "RTM re-baselined at design sign-off and code-complete; header carries last-updated date." } ], "testing": [ { "step": "Verify currency", "value": "RTM last-updated date is within the current release window." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "b51fd13e-6cf0-46de-9e03-c034af0fdd5a",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Population = every delivery (release/epic) that reached Done in the in-scope quarter; each must have a retrospective and a lessons-learned record captured in the Confluence 'Engineering Retrospectives' space." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Prior quarter's completed deliveries; lessons captured within 10 business days of go-live." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "2e7880d2-11f5-4003-b3d8-7dad2ad04a9c" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03x8mbk8goc4tif8" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each lessons-learned record has non-null What-Went-Well, What-To-Improve, Root Cause, and >=1 Action Item with an owner and due date; action items created as Jira tickets labeled 'lessons-learned'." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of retrospective records equals count of completed deliveries for the quarter (100% coverage); reconcile Confluence page count to Jira released fix-versions." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Each retro page is versioned in Confluence with author and date; action-item Jira tickets carry created-date and link back to the retro page." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Deliveries with no retro within 10 business days flagged; Scrum Master schedules a catch-up retro within one sprint and records the exception reason." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" }
+   ],
+   "standards": [
+    { "standardId": "cmqscp5n41n9cmbk8timof83w", "checklist": [ { "step": "Run knowledge-sharing on captured lessons", "value": "Top improvement themes each quarter are presented in the weekly engineering knowledge-sharing session; slides stored in Confluence." } ], "testing": [ { "step": "Verify lessons feed knowledge-sharing", "value": "At least one knowledge-sharing session per quarter references the quarter's lessons-learned; check session log." } ] },
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [ { "step": "Keep the lessons-learned repository current", "value": "Retro pages added within 10 business days of each go-live; index page kept up to date." } ], "testing": [ { "step": "Verify timeliness", "value": "Deliveries with go-live >10 business days ago and no retro page = 0." } ] },
+    { "standardId": "cmqscp5o31n9embk822qt2buu", "checklist": [ { "step": "Promote durable decisions from lessons into ADRs", "value": "Recurring architectural lessons are converted into Architecture Decision Records in the repo /docs/adr folder." } ], "testing": [ { "step": "Verify ADR follow-through", "value": "Sample 5 architecture-themed action items; each resolved item has a linked ADR or a documented reason it did not warrant one." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "cmr2fiwpz0oi3kfgzh64jj6ed",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Population = all backlog items proposed for the upcoming sprint/PI in Jira project 'DEMAND'/team backlog; dependency analysis covers technical, data, team, and external-vendor dependencies for each candidate story." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The sprint or PI immediately prior to commitment; re-run at PI planning and again at sprint planning." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03x8mbk8goc4tif8" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each candidate story has its 'blocks/is-blocked-by' Jira links evaluated; CMDB CI dependencies checked for impacted services; every identified blocker recorded as a Jira 'Depends On' link with target date and owning team." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Number of stories reviewed equals number of committed candidates (100%); count of open blocking links reconciles to the sprint dependency board." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Dependency map exported from Jira and stored in Confluence with sprint/PI tag and timestamp; CMDB queries retained with run date." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Stories with unresolved hard blockers are pulled from the sprint commitment and labeled 'blocked-external'; Scrum Master tracks each to resolution or descope, disposition noted per item." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03x8mbk8goc4tif8" },
+    { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj", "value": "All stories proposed for the sprint/PI commitment (100% inspection)." },
+    { "templateKeyId": "cmr2oaodj001vlasbycmyhv72", "value": "PASS = every committed story has its dependencies identified and each hard blocker has a target resolution date <= sprint start; FAIL if any committed story carries an unmanaged open blocker. Threshold: 0 committed stories with unresolved hard dependencies." },
+    { "templateKeyId": "cmr2oaof2001xlasbgo5bzael", "value": "On FAIL, remove the blocked story from commitment or negotiate the dependency date; if a cross-team blocker cannot be dated, raise a Jira 'SDLC-Exception' to the Release Train Engineer with a 10-business-day SLA." },
+    { "templateKeyId": "cmr2v8940000vxa9iz1ws174c", "value": "Acceptance criteria: no committed story enters the sprint with an open, undated is-blocked-by link; all identified blockers have owner + target date." },
+    { "templateKeyId": "cmr2v8953000xxa9izs452xrs", "value": "Evidence location: Jira dependency links on each story + the Confluence dependency map page for the sprint/PI, linked from the sprint planning notes." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Record dependencies as work-item links", "value": "Blockers captured as Jira 'is-blocked-by' links on the story, not in prose." } ], "testing": [ { "step": "Verify dependency links exist", "value": "Committed stories with a known blocker but no Jira dependency link = 0." } ] },
+    { "standardId": "cmqscp6fk1naombk8lfqdfywn", "checklist": [ { "step": "Flag external-dependency stories for integration testing", "value": "Stories depending on an external service are tagged so integration tests are planned before commitment." } ], "testing": [ { "step": "Verify external deps are integration-tested", "value": "External-dependency stories reaching Done without an integration test = 0." } ] },
+    { "standardId": "cmqscp6s71nbambk8gf041kt6", "checklist": [ { "step": "Keep dependency-driven branches short-lived", "value": "Work blocked on a dependency is not started as a long-lived branch; branch age <3 days enforced." } ], "testing": [ { "step": "Verify branch age", "value": "Feature branches older than 3 days linked to blocked stories = 0." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "e0be521d-1f49-4e3c-85cf-8cbf402cc5f9",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Population = all test execution results for the release under test — unit, integration, system, regression, and UAT — pulled from Zephyr/Jira and the CI pipeline for the release fix-version; report covers 100% of executed test suites plus open defects." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The current release test cycle, from test-cycle open to code-freeze/go/no-go gate." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rr03xsmbk8m22e2kle" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Report has non-null Tests Planned/Executed/Passed/Failed/Blocked, Pass Rate, Coverage %, Open Defects by severity (S1-S4), and Outstanding Risk items with owners; each metric sourced from a named query." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Executed = Passed + Failed + Blocked (arithmetic reconciles); reported defect counts reconcile to Jira defect JQL for the fix-version; coverage % matches the CI/SonarQube report — all deltas = 0." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Signed test summary report (PDF) stored in the compliance evidence repository with release version, generation timestamp, and CI build number; underlying Zephyr export retained alongside." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Every S1/S2 defect open at report time is listed with a disposition (fix-before-release / deferred-with-waiver / accepted-risk) and an approver; deferrals require a Jira 'SDLC-Exception' with justification." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xsmbk8m22e2kle" },
+    { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb", "value": "All test cases and defects associated with the release fix-version (100% inspection)." },
+    { "templateKeyId": "cmr2oaoru0027lasblf4a3q5g", "value": "Release exit criteria: pass rate >=95% on planned tests, 0 open S1, 0 open S2 (or waived), regression suite 100% executed, coverage >=80% on changed lines. FAIL = any exit criterion unmet." },
+    { "templateKeyId": "cmr2oaot40029lasbqt4ono47", "value": "On FAIL, report a no-go recommendation; each unmet criterion gets a remediation owner and a Jira 'SDLC-Exception' (owner = Engineering Manager, 10-business-day SLA) before any conditional go decision." },
+    { "templateKeyId": "cmr2v89b6000zxa9ivo819zn7", "value": "Field definitions: Zephyr test statuses (Pass/Fail/Blocked/Not Executed), Jira defect Severity scheme (S1-S4), SonarQube coverage metric — per the QA tool configuration for the release board." },
+    { "templateKeyId": "cmr2v89c10011xa9ijssevzvo", "value": "Control totals: Zephyr executed-test count and Jira defect count for the fix-version, cross-checked against the report's summary tables." },
+    { "answerId": "cmr2ocg0w0ybfkaz34dq7wiij", "value": "Acceptance = report shows pass rate >=95%, 0 open S1/S2 (or waived), regression 100% executed, coverage >=80% on changed lines, and is signed by the Test Lead. Evidence = signed PDF in the compliance evidence repository + Zephyr export, linked from the release readiness page." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6nv1nb2mbk8k5f7up1n", "checklist": [ { "step": "Report against the test pyramid", "value": "Summary breaks results out by unit/integration/system so the pyramid shape is visible, not just an aggregate pass rate." } ], "testing": [ { "step": "Verify layered reporting", "value": "Report contains separate pass/fail figures for each test layer." } ] },
+    { "standardId": "cmqscp6bw1naimbk87degjlyb", "checklist": [ { "step": "Confirm regression is fully automated and executed", "value": "Regression suite runs in CI; report states regression executed = 100% with the CI build link." } ], "testing": [ { "step": "Verify regression completeness", "value": "Regression cases Not-Executed for the release = 0." } ] },
+    { "standardId": "cmqscp6jk1naumbk8glp27aai", "checklist": [ { "step": "Report line coverage against the minimum", "value": "Coverage % reported from SonarQube and checked against the 80% changed-lines gate." } ], "testing": [ { "step": "Verify coverage gate", "value": "Changed-lines coverage in the report >= 80%; below is a documented exception." } ] },
+    { "standardId": "cmqscoh7i1m24mbk8hmgrzh91", "checklist": [ { "step": "Tie the summary to CI quality gates", "value": "Report references the CI quality-gate outcome (pass required) for the release build." } ], "testing": [ { "step": "Verify gate status", "value": "Release build quality gate = Passed in the CI record cited by the report." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "c2c84724-a405-4e4d-8531-9f1f30310482",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Population = all non-functional requirements (performance, security, availability, scalability, recoverability) defined for the release; each NFR is reviewed for compliance against its measured/target threshold before the design-assurance gate." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The current release/milestone; NFR compliance assessed at design assurance and re-verified against pre-prod load/security test results." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "381b2c32-e821-4e74-a6fc-abb3414e690b" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each NFR row has non-null Category, Target (with number/unit, e.g. p95 latency <=300ms, availability >=99.9%), Measured Value, Source-of-Measurement, and Status (Met/Not Met/Waived)." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of NFRs assessed equals count of NFRs defined for the release (100%); measured values reconcile to their evidence source (load test report, SAST/DAST report, availability SLO dashboard)." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "NFR compliance assessment recorded in the GRC platform with release version, assessor, and timestamp; each measured value linked to its dated test/scan report artifact." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Each 'Not Met' NFR is logged as a GRC finding with severity, remediation owner, and target date; production go requires either remediation or a risk-accepted waiver signed by the CISO (security) or accountable exec." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rn03rgmbk84ftyo7we" },
+    { "templateKeyId": "cmr2oan48000xlasba0u1ffd8", "value": "Policy citations: internal NFR/Architecture Standard (performance, availability tiers) and the Secure SDLC policy; for security NFRs cite NYDFS 23 NYCRR 500.05 (pen testing/vuln mgmt) and 500.15 (secure development)." },
+    { "templateKeyId": "cmr2v88hl000fxa9io24wujiz", "value": "Retention: NFR assessment records and supporting test/scan reports retained 5 years in the GRC platform per audit policy." },
+    { "templateKeyId": "cmr2v88il000hxa9icjpyq8mw", "value": "The NFR compliance assessment must be completed and signed before the release go/no-go gate date recorded on the release plan; late assessment blocks the gate." },
+    { "templateKeyId": "cmr2oandp0013lasb81a47aqo", "value": "Pre/post comparison: measured NFR values from the release candidate compared to the prior production baseline; no regression beyond agreed tolerance (e.g. latency not worse than baseline +10%)." },
+    { "templateKeyId": "cmr2v88lm000jxa9iggiq99sw", "applicationId": "dcc8ff5d-a30b-4105-ac82-416dd797be2f" },
+    { "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8", "value": "Change ticket: linked ServiceNow change record for the release; the NFR sign-off is attached to the change as a gate approval." },
+    { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj", "value": "All defined NFRs for the release (100% inspection)." },
+    { "templateKeyId": "cmr2oaodj001vlasbycmyhv72", "value": "PASS = every NFR Met against its numeric target or covered by a signed waiver; e.g. p95 latency <=300ms, availability >=99.9%, 0 critical/high SAST/DAST findings, load test at 1.5x peak sustained. FAIL = any unmet NFR without a waiver." },
+    { "templateKeyId": "cmr2oaof2001xlasbgo5bzael", "value": "On FAIL, raise a GRC finding and a Jira 'SDLC-Exception'; security NFR failures route to the Application Security Lead/CISO for risk acceptance, others to the Solutions Architect, 10-business-day remediation SLA." },
+    { "templateKeyId": "cmr2v8940000vxa9iz1ws174c", "value": "Acceptance criteria: 100% of NFRs assessed with Met/Waived status, all measured values evidenced, no open critical security NFR, sign-off before the go/no-go gate." },
+    { "templateKeyId": "cmr2v8953000xxa9izs452xrs", "value": "Evidence location: GRC platform NFR assessment record + linked load test report, SAST/DAST scan reports, and SLO dashboard export, referenced from the ServiceNow change record." },
+    { "answerId": "cmr2ocg0w0ybokaz3p07jd2mz", "value": "Applicable citations: internal Architecture/NFR Standard and Secure SDLC policy; NYDFS 23 NYCRR 500.05 (annual penetration testing / vulnerability management) and 500.15 (secure application development) for the security and availability NFRs." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6gk1naqmbk8p8f0ok8y", "checklist": [ { "step": "Require load tests before production for performance NFRs", "value": "Performance NFRs verified by a pre-prod load test at >=1.5x expected peak; report attached to the assessment." } ], "testing": [ { "step": "Verify load test executed and met target", "value": "Load test report exists for the release and p95 latency/throughput meet the NFR targets." } ] },
+    { "standardId": "cmqscp6ls1naymbk8q8t2kn8n", "checklist": [ { "step": "Compare against a performance baseline", "value": "Measured NFR values compared to the established production baseline; regression flagged." } ], "testing": [ { "step": "Verify no performance regression", "value": "Release-candidate p95 latency <= baseline +10%." } ] },
+    { "standardId": "cmqscp5fz1n8ymbk8khdps7ca", "checklist": [ { "step": "Enforce SonarQube/security gates for security NFRs", "value": "SAST gate must pass: 0 critical/high findings before NFR sign-off." } ], "testing": [ { "step": "Verify security gate", "value": "SonarQube/SAST report shows 0 critical/high open findings for the release build." } ] },
+    { "standardId": "cmqscp7u31ndambk8oa603ruk", "checklist": [ { "step": "Run automated architecture-compliance checks for NFRs where possible", "value": "Fitness functions/automated checks assert availability and performance budgets in the pipeline." } ], "testing": [ { "step": "Verify automated NFR checks run", "value": "Pipeline includes NFR fitness-function stage; last run recorded green for the release." } ] }
+   ],
+   "regulations": [
+    { "regId": "cmqwos0a7006dd29hvd4j01c9", "checklist": [ { "step": "Confirm security NFRs are evaluated under the secure SDLC procedure", "value": "Security NFR review is part of the documented secure SDLC gate; assessment recorded in GRC." } ], "testing": [ { "step": "Verify secure-SDLC gate applied", "value": "Release change record shows the secure-SDLC security NFR gate completed and signed." } ] },
+    { "regId": "cmqwos2mq008rd29hee8nly31", "checklist": [ { "step": "Tie the security NFR to vulnerability management / pen testing", "value": "Security/availability NFR verification references the current vulnerability scan and annual pen-test results." } ], "testing": [ { "step": "Verify vuln/pen-test evidence", "value": "Latest vulnerability scan attached; 0 unremediated critical/high; annual pen test on file." } ] }
+   ]
+  },
+  {
+   "id": "44f86649-a00d-4e2f-b897-5b24a0a7498f",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Population = the release/milestone under design assurance; scoping covers which components, integrations, NFRs, security controls, and standards will be reviewed, plus review depth and participants." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The current release/milestone design phase; scope defined before design sign-off and baselined for the review cycle." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03u7mbk8cs0skbzm" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Review scope document has non-null In-Scope Components, Out-of-Scope items, Review Criteria/checklist reference, Participants (incl. an independent reviewer), Timeline, and Gate Date; risk-based rationale for depth included." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "In-scope component list reconciles to the solution architecture inventory / CMDB CIs for the release (no component silently excluded); count delta = 0 or each exclusion has a stated reason." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Scope/plan document stored in the GRC platform with release version, author, and timestamp; version-controlled and linked from the release readiness page." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Components proposed for exclusion require a documented risk rationale approved by the Enterprise Architect; unjustified exclusions logged as a GRC finding and resolved before review start." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03u7mbk8cs0skbzm" },
+    { "templateKeyId": "cmr2oandp0013lasb81a47aqo", "value": "Scope compared to the prior similar release's assurance scope to ensure no control area regressed out of coverage; deltas justified." },
+    { "templateKeyId": "cmr2v88lm000jxa9iggiq99sw", "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f" },
+    { "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8", "value": "Change ticket: linked ServiceNow change record for the release; the design-assurance scope is attached as the review plan." },
+    { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj", "value": "All components/controls proposed for the review scope (100% inspection of the scope list)." },
+    { "templateKeyId": "cmr2oaodj001vlasbycmyhv72", "value": "PASS = scope document complete (all mandatory sections populated), an independent reviewer named, and 100% of release components either in-scope or explicitly justified-out; FAIL if any component is silently omitted or no independent reviewer assigned." },
+    { "templateKeyId": "cmr2oaof2001xlasbgo5bzael", "value": "On FAIL, complete the missing scope sections or add the independent reviewer before review start; unresolved scoping gaps raise a Jira 'SDLC-Exception' to the Enterprise Architect, 10-business-day SLA." },
+    { "templateKeyId": "cmr2v8940000vxa9iz1ws174c", "value": "Acceptance criteria: scope/plan approved with in/out lists, criteria reference, independent reviewer, and gate date before the review kicks off." },
+    { "templateKeyId": "cmr2v8953000xxa9izs452xrs", "value": "Evidence location: GRC platform design-assurance scope record, linked from the release readiness page and the ServiceNow change record." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp7rk1nd6mbk8bc5skece", "checklist": [ { "step": "Require ARB approval scope for major initiatives", "value": "Scope flags whether the release crosses the ARB major-initiative threshold and includes ARB as a gate." } ], "testing": [ { "step": "Verify ARB inclusion where required", "value": "Major initiatives show ARB as a named gate in the scope document." } ] },
+    { "standardId": "cmqscp7ql1nd4mbk84sleiyni", "checklist": [ { "step": "Ensure significant design decisions are covered by ADRs in scope", "value": "Scope lists the ADRs to be reviewed for the release's significant decisions." } ], "testing": [ { "step": "Verify ADR coverage in scope", "value": "Each significant design decision for the release maps to an ADR listed in the review scope." } ] },
+    { "standardId": "cmqscp7u31ndambk8oa603ruk", "checklist": [ { "step": "Scope automated architecture-compliance checks", "value": "Plan specifies which fitness functions / automated conformance tests are part of the review." } ], "testing": [ { "step": "Verify automated checks are in scope", "value": "Scope document names the automated architecture-compliance checks to be evaluated." } ] },
+    { "standardId": "cmqscp7sw1nd8mbk8jhvmt9xd", "checklist": [ { "step": "Reference approved patterns as review criteria", "value": "Review criteria cite the approved-pattern catalog so deviations can be identified." } ], "testing": [ { "step": "Verify pattern criteria referenced", "value": "Scope's review-criteria section links the approved-patterns catalog version." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "2cdbc9a6-2ede-4a9d-ae5e-c242a90df9af",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Population = all findings from the design-assurance review for the release — deviations from standards/patterns, architecture/security risks, and recommended remediations; every observation raised during the review is captured." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The current review cycle; findings documented within 5 business days of the review session and before the go/no-go gate." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03u7mbk8cs0skbzm" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each finding record has non-null Description, Standard/Pattern Deviated, Severity (Critical/High/Medium/Low), Risk, Recommended Remediation, Owner, and Target Date; no finding without an owner." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of documented findings reconciles to the review meeting minutes / raised-issues list (no finding dropped); GRC finding count matches the review log exactly." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Findings logged in the GRC platform with review ID, author, and timestamp; each finding version-tracked and linked to the review scope record." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Each finding carries a disposition (remediate / accept-risk / defer); risk acceptances require sign-off by the accountable owner (CISO for security), deferrals require a Jira 'SDLC-Exception' with justification." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03u7mbk8cs0skbzm" },
+    { "templateKeyId": "cmr2oandp0013lasb81a47aqo", "value": "Findings checked against the prior review's open items to confirm no recurring deviation is re-introduced (pre/post comparison of the deviation register)." },
+    { "templateKeyId": "cmr2v88lm000jxa9iggiq99sw", "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f" },
+    { "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8", "value": "Change ticket: linked ServiceNow change record for the release; findings and their dispositions attached as the review outcome." },
+    { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb", "value": "All findings raised during the design-assurance review (100% inspection)." },
+    { "templateKeyId": "cmr2oaoru0027lasblf4a3q5g", "value": "PASS = every finding has severity, owner, target date, and disposition recorded; 0 Critical findings left without a remediation plan or signed risk acceptance. FAIL if any finding is unowned or undispositioned." },
+    { "templateKeyId": "cmr2oaot40029lasbqt4ono47", "value": "On FAIL, complete the missing finding fields; Critical/High findings without a plan block the gate and raise a Jira 'SDLC-Exception' to the Enterprise Architect/CISO, 10-business-day SLA." },
+    { "templateKeyId": "cmr2v89b6000zxa9ivo819zn7", "value": "Field definitions: GRC finding Severity scheme (Critical/High/Medium/Low), Disposition enum (Remediate/Accept/Defer), and Standard-Deviated reference per the GRC platform configuration." },
+    { "templateKeyId": "cmr2v89c10011xa9ijssevzvo", "value": "Control total: GRC finding count for the review ID reconciles to the count of issues raised in the review minutes." },
+    { "answerId": "cmr2ocg0w0yc4kaz3zgmqf73t", "value": "Materiality/tolerance: Critical findings = release blockers (0 tolerance to go without remediation/waiver); High = must have a dated plan; Medium/Low may be backlogged with a tracked ticket. Any risk acceptance requires accountable-exec sign-off." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp7ql1nd4mbk84sleiyni", "checklist": [ { "step": "Record decision-level deviations as/against ADRs", "value": "Findings that change a significant decision are tied to a new or updated ADR." } ], "testing": [ { "step": "Verify ADR linkage for decision findings", "value": "Decision-level findings each reference an ADR." } ] },
+    { "standardId": "cmqscp7sw1nd8mbk8jhvmt9xd", "checklist": [ { "step": "Cite the approved pattern each deviation departs from", "value": "Every deviation finding names the approved pattern it violates." } ], "testing": [ { "step": "Verify pattern citation", "value": "Deviation findings with no cited approved pattern = 0." } ] },
+    { "standardId": "cmqscp5o31n9embk822qt2buu", "checklist": [ { "step": "Document review decisions in durable records", "value": "Key remediation/accept decisions captured as Architecture Decision Records, not just meeting notes." } ], "testing": [ { "step": "Verify decision documentation", "value": "Sample 5 accepted-risk findings; each has a documented decision record with approver." } ] },
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [ { "step": "Keep the findings register current", "value": "Finding statuses updated as remediations land; register reflects live state." } ], "testing": [ { "step": "Verify register currency", "value": "Findings marked remediated with no linked closing evidence = 0." } ] }
+   ],
+   "regulations": []
+  }
+ ]
+}

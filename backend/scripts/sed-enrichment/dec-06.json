@@ -1,0 +1,289 @@
+{
+ "tasks": [
+  {
+   "id": "7641e222-e26b-4e97-ba08-9620861ecf97",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All Airflow/orchestration DAGs feeding Guidewire policy/claims/billing downstream reporting in the 'data-platform-orchestration' repo; scope = every task/operator that calls an external system or long-running job (approx. 40 DAGs). Excludes ad-hoc developer sandbox DAGs tagged env=dev." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current release train (2-week sprint window); handlers validated against the last 90 days of production run history in the orchestration platform." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each failure-prone operator declares retries (>=3), retry_delay with exponential backoff (base 60s, max 900s), execution_timeout, and an on_failure_callback wired to the alerting channel; circuit-breaker threshold set at 5 consecutive failures per operator. Config values checked into the DAG definition and reviewed in PR." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Post-retry record counts reconcile to source within 0 variance for idempotent loads; a synthetic fault-injection run confirms the retry handler re-processes without duplicate rows (dedupe key = business natural key)." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "PR merge commit SHA, CI run URL, and the fault-injection test log retained in the source repo and CI artifact store, tagged with the release version and UTC timestamp; retained 12 months." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Any operator that cannot support automated retry (non-idempotent external call) logged as a Jira ticket type 'SDLC-Exception', owner = Engineering Manager, with a documented manual-recovery runbook link and 10-business-day remediation SLA." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Retry/backoff and circuit-breaker pattern approved as v2.1 of the platform 'Resilience Handler' standard pattern, recorded as an ADR in the repo /docs/adr directory and referenced in the DAG's docstring." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xdmbk89kroddbt" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Circuit-breaker trips after 5 consecutive failures within a 30-minute window; alert severity escalates from WARN to CRITICAL when >=2 business-critical DAGs are simultaneously failing." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "A pipeline failure is business-material (page on-call) when it blocks a same-day regulatory or finance feed, or delays >=1000 policy/claims records past the 06:00 SLA." },
+    { "templateKeyId": "cmr2oandp0013lasb81a47aqo", "value": "Fault-injection run in the staging environment shows pre-change failure rate vs post-change: 0 unhandled failures and 100% of injected transient faults auto-recovered within the retry budget before change is promoted." },
+    { "templateKeyId": "cmr2v88lm000jxa9iggiq99sw", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8", "value": "Deployment linked to a ServiceNow/Jira change ticket (CHG-####) referencing the PR; change-ticket ID recorded in the CI/CD pipeline deploy step and in the DAG version tag." },
+    { "templateKeyId": "cmr2oaqo3003rlasb1r26nwor", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaqpd003tlasbyv59t5v5", "value": "10 representative DAGs covering the failure taxonomy: transient network, upstream data-late, downstream timeout, auth expiry, and partial-batch failure." },
+    { "templateKeyId": "cmr2oaqq9003vlasbyjg1pxll", "value": "PASS = every injected transient fault auto-recovers within the retry budget and every terminal fault raises exactly one alert + one incident ticket; FAIL = any silent failure, duplicate processing, or missing alert." },
+    { "templateKeyId": "cmr2oaqrf003xlasb2mopahy1", "value": "Terminal (non-recoverable) failures route to the on_failure_callback → PagerDuty/Jira incident with the runbook link; failures with no runbook logged as 'SDLC-Exception', Engineering Manager owner, 10-business-day SLA." },
+    { "templateKeyId": "cmr2oaqsp003zlasbtvvkt534", "value": "Validated against the current release; effective from the deploy date recorded on the change ticket." },
+    { "answerId": "cmr2ocdwl0tg1kaz3wv1piedo", "value": "Acceptance = fault-injection suite green (0 unhandled failures, 1 alert per terminal fault, 0 duplicate records), SonarQube quality gate passed, and 2 approvals on the PR. Evidence stored in the CI run artifacts and the PR in the source code/CI-CD repository, linked from the change ticket." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp5wt1n9umbk8zd85l89b", "checklist": [{ "step": "Alerts are actionable", "value": "Each on_failure_callback alert includes DAG id, task id, run id, error class, and a direct runbook URL; no bare 'job failed' alerts permitted." }], "testing": [{ "step": "Verify alert payload", "value": "Trigger a synthetic terminal fault and confirm the alert delivered to the on-call channel contains all five required fields and the runbook link resolves." }] },
+    { "standardId": "cmqscp68b1nacmbk8boqyksun", "checklist": [{ "step": "Runbook linked", "value": "Every business-critical DAG's on_failure_callback references a runbook in Confluence covering symptoms, blast radius, and manual recovery steps." }], "testing": [{ "step": "Runbook coverage check", "value": "Audit that 100% of DAGs tagged tier=critical have a resolvable runbook link; report any gaps as findings." }] },
+    { "standardId": "cmqscp3rz1n5smbk8w0mgzz9i", "checklist": [{ "step": "Monitoring and alerting configured", "value": "Circuit-breaker state and retry-exhaustion events emit metrics to the observability platform with alert thresholds defined per DAG tier." }], "testing": [{ "step": "Metric emission test", "value": "Confirm retry_count and circuit_open metrics appear in dashboards during a fault-injection run." }] },
+    { "standardId": "cmqscp3oz1n5mmbk8w0mgzz9i", "checklist": [{ "step": "Idempotent retries", "value": "Retried tasks use idempotent upserts on the business natural key so re-execution produces no duplicate rows." }], "testing": [{ "step": "Duplicate-run assertion", "value": "Run the same task twice against a fixed input; assert target row count is unchanged after the second run." }] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "5b5aacfa-058d-46c5-bbc8-e278b65a18bb",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All triaged demand items in the current intake queue for the Software Engineering & Delivery value stream in Jira/Jira Align; scope = every request that has completed triage and awaits routing to the Intake Committee or a team backlog." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current sprint intake window; items older than 10 business days without routing flagged as aging." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "26268b6c-720b-4d06-b3bc-f446c5374844" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rsmbk8cr7zj5ho" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each item has required intake fields populated: requester, business sponsor, value-stream, sizing (T-shirt), and triage decision code; Jira workflow validator blocks transition to 'Routed' if any are empty." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of items entering triage in the window reconciles to items routed + items held/rejected; 0 items left in 'Triaged' state with no destination at window close." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Jira transition history (with actor and UTC timestamp) and the intake decision log exported to the intake Confluence space, tagged with the sprint/window id; retained 12 months." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Items that cannot be routed (missing sponsor or unclear scope) moved to 'Needs Info' with a disposition comment; escalated to the Product Owner if unresolved after 5 business days." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" }
+   ],
+   "standards": [
+    { "standardId": "cmqscpmgi1o3umbk8ch6qqdgl", "checklist": [{ "step": "Dependencies identified at routing", "value": "Each routed item records cross-team dependency links in Jira before leaving triage." }], "testing": [{ "step": "Dependency link check", "value": "Sample 10 routed items and confirm dependency fields/links are present where flagged in triage." }] },
+    { "standardId": "cmqscpn7t1o58mbk8t2b6f6xd", "checklist": [{ "step": "Prioritization criteria applied", "value": "Routing decision references the documented WSJF/priority scoring so destination (committee vs backlog) is traceable to criteria, not opinion." }], "testing": [{ "step": "Criteria traceability", "value": "For each routed item verify a priority score or committee-referral reason is recorded in the item." }] },
+    { "standardId": "cmqscpo861o70mbk81azv4ew0", "checklist": [{ "step": "Issue logging", "value": "Un-routable or blocked demand logged as an issue in the intake tracker with owner and target resolution date." }], "testing": [{ "step": "Aging report", "value": "Run the intake aging report; confirm 0 items in 'Triaged' beyond 10 business days without a logged issue." }] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "09c4dbe9-ef16-4508-8547-aa599c12471f",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Version-controlled orchestration definitions (DAGs/pipeline YAML) being promoted to production this release from the 'data-platform-orchestration' repo main branch; scope = the exact set of definition files listed on the change ticket." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current release train; deployment window and effective date recorded on the change ticket." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "2240c6fc-a478-4473-8f0a-52371f5382e5" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Change record has all required fields: linked PR, approver, deployment window, rollback plan, and affected DAG list; GRC/ITSM workflow blocks CAB approval if any field is empty." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Number of definition files in the deploy artifact equals the count listed on the change ticket and the git tag manifest; 0 unlisted files deployed." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Signed change record, CI/CD deploy log, and git tag SHA retained in the compliance evidence repository, tagged with change-ticket ID and UTC deploy timestamp; retained 7 years." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Emergency/expedited deploys logged as 'SDLC-Exception' with post-implementation review scheduled within 3 business days; approver = Release/Environment Manager." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03wumbk841l1glrn" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Deployment follows the approved GitOps promotion runbook v3, recorded as an ADR; environments dev→test→prod are promoted from the same immutable git SHA." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Deploy blocked if smoke test post-deploy shows >0 DAG parse errors or the first scheduled run fails; auto-rollback triggered." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Any change touching a business-critical DAG (tier=critical feeding regulatory/finance) requires CAB approval; low-risk config-only changes eligible for standard change." },
+    { "templateKeyId": "cmr2oandp0013lasb81a47aqo", "value": "Post-deploy smoke test confirms all promoted DAGs parse and the first scheduled run completes green; pre/post record counts on the canary run match baseline within 0 variance." },
+    { "templateKeyId": "cmr2v88lm000jxa9iggiq99sw", "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f" },
+    { "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8", "value": "Deployment linked to change ticket CHG-#### in the GRC/ITSM platform; ticket ID stamped in the pipeline deploy job and git release notes." },
+    { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq", "value": "All definition files in the release manifest (typically 5-15 files per deploy)." },
+    { "templateKeyId": "cmr2oao03001jlasb1coy37l2", "value": "PASS = deployed SHA matches approved SHA, all DAGs parse, first run green, change ticket approved before deploy; FAIL = any drift between deployed and approved artifact." },
+    { "templateKeyId": "cmr2oao16001llasbnlkf9nbu", "value": "Deploy failure or parse error triggers auto-rollback to prior SHA and a Sev-defined incident; unrecoverable failures logged as 'SDLC-Exception', Release/Environment Manager owner, 10-business-day SLA." },
+    { "templateKeyId": "cmr2v88x1000rxa9if2t45ukx", "value": "Acceptance = approved change record, immutable-SHA promotion, green post-deploy smoke test, and rollback verified in staging." },
+    { "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m", "value": "Evidence in the compliance evidence repository and CI/CD deploy logs, cross-linked from the GRC change ticket." },
+    { "answerId": "cmr2ocdwm0tibkaz36hda2wy3", "value": "Approved methodology = GitOps immutable-promotion runbook v3; parameters (target env, SHA, approver, window) sourced from the change ticket and the git release manifest, not entered ad hoc." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp90c1nfkmbk8ckoav1oj", "checklist": [{ "step": "GitOps workflow", "value": "Prod state is driven from the git repo; deploys are pull-based from a tagged SHA, no manual edits to running definitions." }], "testing": [{ "step": "Drift detection", "value": "Run the drift check comparing live orchestration config to the git SHA; assert 0 drift post-deploy." }] },
+    { "standardId": "cmqscp5581n8cmbk8fi4s889z", "checklist": [{ "step": "Instant rollback capability", "value": "Prior release SHA retained and rollback is a single pipeline action; rollback tested in staging before prod deploy." }], "testing": [{ "step": "Rollback rehearsal", "value": "Execute rollback in staging and confirm the previous version is restored and DAGs parse within the deploy SLA." }] },
+    { "standardId": "cmqscp6y21nbmmbk882oq68hf", "checklist": [{ "step": "PR required for main", "value": "Definitions reach main only via reviewed PR; no direct commits to the branch that feeds prod." }], "testing": [{ "step": "Branch protection audit", "value": "Confirm branch protection on main requires PR + passing CI; attempt a direct push and confirm it is rejected." }] },
+    { "standardId": "cmqscp83r1ndsmbk8v4sv3rb3", "checklist": [{ "step": "Status tracked through lifecycle", "value": "Change record status moves through the defined gates (Draft→Approved→Deployed→Verified) with actor+timestamp at each step." }], "testing": [{ "step": "Gate completeness", "value": "Verify the change ticket shows all lifecycle states with sign-offs before closure." }] }
+   ],
+   "regulations": [
+    { "regId": "cmqwos0a7006dd29hvd4j01c9", "checklist": [{ "step": "SDLC change control followed", "value": "Deployment goes through the documented secure SDLC change process with segregation between author and approver; author cannot self-approve the prod change." }], "testing": [{ "step": "Segregation-of-duties check", "value": "Sample the change ticket and confirm the deploy approver differs from the PR author; flag any self-approval." }] }
+   ]
+  },
+  {
+   "id": "264ff840-ccf9-4251-9e5e-382db4e77ec8",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "SME knowledge contributions for the Software Engineering & Delivery domain captured in Confluence and linked runbooks; scope = the current quarter's identified knowledge gaps assigned to named SMEs." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current quarter; contributions tracked against the quarterly knowledge-management plan." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "2e7880d2-11f5-4003-b3d8-7dad2ad04a9c" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each contribution record has: topic, SME author, reviewer, target page/space, and due date; the KM board (Jira) blocks 'Done' until the page link and reviewer sign-off are present." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Number of planned contributions for the quarter reconciles to captured + carried-over + dropped, with 0 items in 'assigned' state past due at quarter close." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Confluence page version history (author, reviewer, UTC timestamp) plus the KM board export retained in the knowledge space; retained 24 months." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Contributions an SME cannot complete this quarter re-assigned or deferred with a disposition note; unresolved after 2 quarters escalated to the Tech Lead." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oap6g002flasb12gpqsrx", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oap7x002hlasb21lclhgc", "value": "All quarterly-planned knowledge contributions (typically 15-30 items)." },
+    { "templateKeyId": "cmr2oapa9002jlasbbht6cp5g", "value": "PASS = >=90% of planned contributions captured and peer-reviewed by quarter close; FAIL = any published page without a named reviewer sign-off." },
+    { "templateKeyId": "cmr2oapbz002llasbwuwwn4mb", "value": "Contributions blocked by SME availability escalated to the Tech Lead; logged as 'SDLC-Exception' if the gap is business-critical, with a 10-business-day remediation SLA." },
+    { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2v89li0015xa9ia4hiukkb", "value": "Delegation matrix in the KM space names, per topic area, the primary SME and a backup so contribution ownership is unambiguous when the primary is unavailable." },
+    { "answerId": "cmr2ocdwo0tkqkaz3zp0fn7t4", "value": "Acceptance = each contribution published to the target Confluence space, peer-reviewed, and linked from the KM index; evidence = Confluence page version history and KM board export in the knowledge space." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [{ "step": "Documentation kept current", "value": "Each captured contribution carries a last-reviewed date and next-review date; stale-content report drives re-solicitation." }], "testing": [{ "step": "Freshness audit", "value": "Sample published pages and confirm last-reviewed date is within the review cadence for the topic." }] },
+    { "standardId": "cmqscp5n41n9cmbk8timof83w", "checklist": [{ "step": "Knowledge sharing sessions", "value": "SME contributions feed the weekly knowledge-sharing agenda; session notes link back to the captured pages." }], "testing": [{ "step": "Session-to-artifact trace", "value": "For a sample of sessions, confirm the discussed topics resulted in or updated a captured page." }] },
+    { "standardId": "cmqscp5r61n9kmbk8xcnz45ig", "checklist": [{ "step": "Examples provided", "value": "Technical contributions include runnable examples or code snippets, not prose-only descriptions." }], "testing": [{ "step": "Example presence check", "value": "Review captured how-to pages and confirm each includes at least one concrete example or command." }] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "060f8c92-da98-4492-916d-c5c9f6c6d072",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The DAG being modeled for a specific pipeline in the 'data-platform-orchestration' repo; scope = all tasks, their upstream/downstream dependencies, trigger rules, and SLAs for the pipeline named on the design ticket." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current design sprint; DAG model reviewed before implementation begins." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "cmqsck0z203zhmbk8cuyn6zhs" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "DAG definition specifies for every task: task_id, dependency edges, trigger_rule, retries, SLA, and owner; the DAG parses with 0 cycles (acyclicity validated by the scheduler)." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of tasks and edges in the model matches the source design diagram; every terminal task has exactly one defined completion signal." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "DAG definition committed with the design diagram (Mermaid) in /docs, tagged with design-ticket ID and UTC timestamp; PR retained in the source repo." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Cross-pipeline dependencies that cannot be modeled as direct edges (external triggers) documented as ExternalTaskSensors with a disposition note; unresolved coupling logged as 'SDLC-Exception', Tech Lead owner." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" }
+   ],
+   "standards": [
+    { "standardId": "cmqscp3oz1n5mmbk8w0mgzz9i", "checklist": [{ "step": "Idempotent tasks", "value": "Each modeled task is designed to be safely re-runnable so a partial DAG failure can resume without side effects." }], "testing": [{ "step": "Re-run design review", "value": "Confirm the DAG design documents restart/backfill behavior for each task; no task depends on run-order side effects." }] },
+    { "standardId": "cmqscp5o31n9embk822qt2buu", "checklist": [{ "step": "ADR for the DAG design", "value": "Dependency structure and trigger-rule choices captured as an ADR in /docs/adr referenced by the DAG docstring." }], "testing": [{ "step": "ADR presence", "value": "Verify an ADR exists for the pipeline and matches the committed DAG topology." }] },
+    { "standardId": "cmqscp5p81n9gmbk81e66v7ui", "checklist": [{ "step": "Diagram maintained", "value": "A Mermaid/C4 dependency diagram is committed alongside the DAG and updated when edges change." }], "testing": [{ "step": "Diagram-vs-code check", "value": "Compare the committed diagram to the parsed DAG edges; assert they match." }] },
+    { "standardId": "cmqscp3qx1n5qmbk8vbdremm7", "checklist": [{ "step": "Medallion layering respected", "value": "Task dependencies follow bronze→silver→gold ordering; no gold task reads directly from a raw source." }], "testing": [{ "step": "Layer-order assertion", "value": "Inspect the DAG edges and confirm no dependency skips a medallion layer improperly." }] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "20310845-b0a3-4947-8c5c-85becdaadd52",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The open pull request under review in the source code/CI-CD repository; scope = all changed files in the PR plus their tests, for the feature/fix identified by the linked work item." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current sprint; review completed before merge, within the code-review SLA." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "52deb808-fc3d-469f-8652-e331ba334cbe" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "PR has a linked work item, description, passing CI, and self-review checklist complete; branch protection blocks merge until required fields and checks are green." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Every review comment is resolved or explicitly deferred with a follow-up ticket; count of unresolved threads = 0 at merge." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "PR review thread, approval records, and CI run URL retained in the repo with the merge commit SHA and UTC timestamp; retained per repo retention (12 months min)." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Findings not fixed in this PR logged as tech-debt tickets tagged in the backlog with owner; security findings that cannot be fixed pre-merge require a documented waiver ('SDLC-Exception', Engineering Manager, 10-business-day SLA)." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqscl46u1hljmbk8vyer552d" },
+    { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj", "value": "All changed files in the PR diff (the full changeset, not a sample)." },
+    { "templateKeyId": "cmr2oaodj001vlasbycmyhv72", "value": "PASS = >=2 approvals, 0 unresolved threads, CI green, SonarQube quality gate passed (0 new critical/high issues, coverage on changed lines >=80%); FAIL = any new critical/high finding or coverage below threshold." },
+    { "templateKeyId": "cmr2oaof2001xlasbgo5bzael", "value": "A PR open beyond 48 hours without action is escalated to the Tech Lead; disputed findings resolved by the Tech Lead as tiebreaker, decision recorded in the PR thread." },
+    { "templateKeyId": "cmr2v8940000vxa9iz1ws174c", "value": "Acceptance = functionality, tests, security, performance, and maintainability each explicitly checked and approved per the review checklist." },
+    { "templateKeyId": "cmr2v8953000xxa9izs452xrs", "value": "Evidence = the PR review thread, approvals, and CI/SonarQube run linked from the work item in the source code/CI-CD repository." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp5iy1n94mbk8j5p53imq", "checklist": [{ "step": "Full-dimension review", "value": "Reviewer confirms functionality, tests, security, performance, and maintainability against the PR checklist before approving." }], "testing": [{ "step": "Checklist completeness", "value": "Sample merged PRs and confirm the review checklist has all five dimensions marked." }] },
+    { "standardId": "cmqscp6zl1nbombk8bcpbmbyg", "checklist": [{ "step": "Two approvers required", "value": "Branch protection requires >=2 approving reviews from eligible reviewers before merge." }], "testing": [{ "step": "Approval-count enforcement", "value": "Attempt to merge with a single approval; confirm the merge is blocked by branch protection." }] },
+    { "standardId": "cmqscp5jw1n96mbk89uyy4g7f", "checklist": [{ "step": "No stale PRs", "value": "PRs open >48h without action are surfaced on the team board and escalated to the Tech Lead." }], "testing": [{ "step": "Stale-PR report", "value": "Run the open-PR age report; confirm 0 PRs exceed 48h without a comment or review action." }] },
+    { "standardId": "cmqscp5fz1n8ymbk8khdps7ca", "checklist": [{ "step": "SonarQube gates enforced", "value": "CI blocks merge unless the SonarQube quality gate passes (0 new critical/high, coverage on new code >=80%)." }], "testing": [{ "step": "Gate-fail simulation", "value": "Introduce a deliberate quality-gate violation on a test branch and confirm the merge is blocked." }] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "cmr2fk9n51aq8kfgzl1o5ndlq",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Engineering documentation set for the owned services: READMEs, runbooks, OpenAPI specs, and Confluence pages; scope = docs for services owned by the team, reviewed on the periodic accuracy cadence." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current quarter's documentation-accuracy review cycle." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "2e7880d2-11f5-4003-b3d8-7dad2ad04a9c" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each reviewed doc records reviewer, review date, and a pass/needs-update verdict; the review tracker blocks 'complete' until every in-scope doc has a verdict." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of docs in the review inventory reconciles to docs reviewed; 0 in-scope docs left unreviewed at cycle close." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Confluence/README version history and the review tracker export retained, tagged with the review-cycle id and UTC timestamp; retained 24 months." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Docs found inaccurate raise a 'docs-update' ticket in the backlog with owner and due date; unresolved after 2 cycles escalated to the Tech Lead." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj", "value": "All documentation pages/files in the review inventory for owned services (typically 20-50 artifacts)." },
+    { "templateKeyId": "cmr2oaodj001vlasbycmyhv72", "value": "PASS = 100% of in-scope docs reviewed and >=95% verified accurate or have a remediation ticket; FAIL = any critical runbook (incident/DR) found inaccurate with no fix ticket." },
+    { "templateKeyId": "cmr2oaof2001xlasbgo5bzael", "value": "Inaccurate critical runbooks fixed within the sprint; if fix is blocked, logged as 'SDLC-Exception', Engineering Manager owner, 10-business-day SLA." },
+    { "templateKeyId": "cmr2v8940000vxa9iz1ws174c", "value": "Acceptance = every in-scope doc has a dated reviewer verdict and inaccurate docs have a linked remediation ticket." },
+    { "templateKeyId": "cmr2v8953000xxa9izs452xrs", "value": "Evidence = doc version history plus the review-tracker export in the documentation space, linked from the review work item." },
+    { "answerId": "cmr2ocdwp0tlxkaz3cc0qfghh", "value": "In-scope period = the current quarterly documentation-accuracy review cycle; effective from the cycle start date recorded in the review tracker." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [{ "step": "Documentation kept current", "value": "Each doc carries last-reviewed and next-review dates; docs past next-review flagged for this cycle." }], "testing": [{ "step": "Freshness assertion", "value": "Run the stale-doc report and confirm 0 in-scope docs are past their next-review date after the cycle." }] },
+    { "standardId": "cmqscp5vv1n9smbk87l9mzurv", "checklist": [{ "step": "README completeness", "value": "Each service README covers purpose, setup, run, test, and deploy; reviewer verifies all five sections are present and correct." }], "testing": [{ "step": "Section audit", "value": "Sample service READMEs and confirm all five required sections exist and match current behavior." }] },
+    { "standardId": "cmqscp5ut1n9qmbk8f7w0sm1w", "checklist": [{ "step": "OpenAPI spec current", "value": "API docs are auto-generated from code so the spec matches the deployed contract; drift is treated as an inaccuracy finding." }], "testing": [{ "step": "Spec-vs-code diff", "value": "Regenerate the OpenAPI spec and diff against the published version; assert 0 drift." }] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "cmr2fk9vp1av3kfgzajupq89l",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Knowledge articles flagged stale during the accuracy review; scope = the specific article IDs marked for retirement in the KM space this cycle." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current quarter's documentation-review cycle; retirement executed within the same cycle." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "2e7880d2-11f5-4003-b3d8-7dad2ad04a9c" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each retirement record has: article ID, retirement reason, superseding link (if any), approver, and date; the KM workflow blocks archival until reason and approver are set." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of articles flagged for retirement reconciles to articles archived + retained-with-justification; 0 flagged articles left in active state at cycle close." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Confluence archival log (actor, UTC timestamp) and the redirect/tombstone record retained in the KM space, tagged with the review-cycle id; retained 24 months." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Articles proposed for retirement but still referenced by active runbooks are retained with a 'needs-rewrite' ticket instead of deletion; disposition noted; escalated to Tech Lead if unresolved after 1 cycle." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj", "value": "All articles flagged stale in the review (the full retirement candidate list)." },
+    { "templateKeyId": "cmr2oaodj001vlasbycmyhv72", "value": "PASS = 100% of flagged articles archived or explicitly retained with justification, and 0 broken inbound links after archival; FAIL = any archived article leaving a dangling link in an active runbook." },
+    { "templateKeyId": "cmr2oaof2001xlasbgo5bzael", "value": "Broken inbound links found post-archival fixed within the sprint (redirect or update); if blocked, logged as 'SDLC-Exception', Engineering Manager owner, 10-business-day SLA." },
+    { "templateKeyId": "cmr2v8940000vxa9iz1ws174c", "value": "Acceptance = flagged articles archived with reason + approver, superseding content linked where applicable, and no dangling references remain." },
+    { "templateKeyId": "cmr2v8953000xxa9izs452xrs", "value": "Evidence = the Confluence archival/version log and retirement tracker export in the KM space, linked from the review work item." },
+    { "answerId": "cmr2ocdwp0tlykaz3bqy1czg8", "value": "In-scope period = the current quarterly documentation-review cycle; effective from the cycle start date recorded in the review tracker." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [{ "step": "Documentation kept current", "value": "Stale articles are archived (not silently left live); active set contains only current, reviewed content." }], "testing": [{ "step": "Active-set freshness", "value": "After retirement, confirm 0 articles in the active KM space exceed the staleness threshold." }] },
+    { "standardId": "cmqscp5q71n9imbk88q7k8pe2", "checklist": [{ "step": "Changelog maintained", "value": "Each retirement recorded in the KM changelog with reason and superseding reference." }], "testing": [{ "step": "Changelog completeness", "value": "Verify every archived article this cycle has a corresponding changelog entry." }] },
+    { "standardId": "cmqscp5r61n9kmbk8xcnz45ig", "checklist": [{ "step": "Superseding examples linked", "value": "Where an article is replaced, the retirement record links to the current authoritative page/example." }], "testing": [{ "step": "Redirect check", "value": "Follow the superseding link on a sample of retired articles and confirm it resolves to current content." }] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "66e91d0f-6ac8-4a9a-9914-8512f4721524",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The team/value-stream backlog in Jira/Jira Align; scope = all items in states 'New', 'Refined', and 'Ready' eligible for reprioritization at the defined cadence, excluding items already in an active sprint." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Reprioritization cadence = start of each 2-week sprint; PI-level reranking each quarterly PI planning." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each reprioritized item has a priority score (WSJF components: business value, time criticality, risk reduction, job size) populated; the board view blocks 'Ready' without a score." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Backlog item count before and after the session reconciles (no items lost); rank order is strictly monotonic with 0 duplicate rank values." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Board snapshot (before/after) and the reprioritization decision notes exported to Confluence, tagged with the sprint/PI id and UTC timestamp; retained 12 months." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Items that cannot be scored (missing acceptance criteria) moved to 'Needs Refinement' with a note; unresolved after 2 cadences escalated to the Product Owner." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03x8mbk8goc4tif8" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Prioritization uses the approved WSJF model v1.2 documented in the Agile playbook; scoring rubric referenced in the board's field help." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "A rank change of >=10 positions on a committed item triggers stakeholder notification before the sprint commits." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Only items scored >= the cut-line (top of capacity) are pulled into the sprint; below-cut items remain ranked but uncommitted." },
+    { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj", "value": "All eligible backlog items in New/Refined/Ready at the cadence boundary." },
+    { "templateKeyId": "cmr2oaodj001vlasbycmyhv72", "value": "PASS = 100% of top-of-backlog (above cut-line) items carry a WSJF score and acceptance criteria; FAIL = any committed item without a score or with missing acceptance criteria." },
+    { "templateKeyId": "cmr2oaof2001xlasbgo5bzael", "value": "Disputes over ranking resolved by the Product Owner as decision authority; unresolvable strategic conflicts escalated to the portfolio Monthly Review." },
+    { "templateKeyId": "cmr2v8940000vxa9iz1ws174c", "value": "Acceptance = backlog reranked per WSJF, top items refined with acceptance criteria, and decision notes captured for the cadence." },
+    { "templateKeyId": "cmr2v8953000xxa9izs452xrs", "value": "Evidence = the before/after board snapshots and decision notes in Confluence, linked from the sprint/PI record." },
+    { "answerId": "cmr2ocdwp0tmikaz3k4igk92t", "value": "Approved methodology = WSJF prioritization model v1.2; parameter inputs (business value, time criticality, risk reduction, job size) sourced from the item fields and the Product Owner's rubric, not ad-hoc reordering." }
+   ],
+   "standards": [
+    { "standardId": "cmqscpn7t1o58mbk8t2b6f6xd", "checklist": [{ "step": "Prioritization criteria applied", "value": "Every reprioritized item ranked using the documented WSJF criteria; rank is traceable to component scores." }], "testing": [{ "step": "Score traceability", "value": "Sample top-20 items and confirm each has all WSJF components populated and the rank matches the computed score." }] },
+    { "standardId": "cmqscpmbn1o3kmbk8gj1ffhob", "checklist": [{ "step": "Acceptance criteria present", "value": "Items pulled above the cut-line have testable acceptance criteria before commitment." }], "testing": [{ "step": "AC completeness", "value": "Confirm 100% of committed items have non-empty acceptance criteria." }] },
+    { "standardId": "cmqscpmr91o4embk8lw5cq3aj", "checklist": [{ "step": "Velocity used for planning", "value": "The cut-line is set from the team's rolling velocity so reprioritization respects realistic capacity." }], "testing": [{ "step": "Capacity sanity check", "value": "Verify committed story points at the cut-line are within the trailing 3-sprint average velocity." }] },
+    { "standardId": "cmqscpmgi1o3umbk8ch6qqdgl", "checklist": [{ "step": "Dependencies identified", "value": "Reprioritization checks that higher-ranked items do not depend on lower-ranked ones; conflicts flagged." }], "testing": [{ "step": "Dependency-order check", "value": "Scan the reranked top items for dependency inversions; assert 0 unresolved inversions above the cut-line." }] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "1f249bd1-d30f-482d-a81e-e5a6d84b01a6",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Critical (Sev1/Sev2) pipeline failures affecting business processes, surfaced via alerting to the on-call engineer; scope = all tier=critical DAG failures in the current on-call rotation window." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current on-call rotation window (weekly); triage measured against MTTA/MTTR SLAs." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each incident ticket has severity, affected DAG/business process, detection time, and on-call owner populated; the incident workflow blocks 'In Progress' without a severity and owner." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Every triggered critical alert maps to exactly one incident ticket (no orphan alerts, no duplicate incidents); alert-to-incident reconciliation = 1:1 for the window." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Alert payload, incident timeline (detection, ack, escalation, resolution with UTC timestamps), and paging log retained in the ITSM platform, tagged with incident number; retained 24 months." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Alerts that are false positives closed with a 'false-positive' disposition and feed alert-tuning; missing runbook logged as 'SDLC-Exception', SRE lead owner, 10-business-day SLA." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xdmbk89kroddbt" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Triage follows the approved incident-severity matrix v2 in the IR runbook; Sev1 = business-critical feed down, Sev2 = degraded with workaround." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xdmbk89kroddbt" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Escalation to the next tier if not acknowledged within 15 minutes for Sev1 or 30 minutes for Sev2." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Sev1 declared when a regulatory/finance or customer-facing feed is fully blocked, or >=1000 policy/claims records miss the 06:00 SLA." },
+    { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq", "value": "All critical alerts fired during the on-call window (the full incident set for the rotation)." },
+    { "templateKeyId": "cmr2oao03001jlasb1coy37l2", "value": "PASS = Sev1 acknowledged <15 min and escalated per matrix, 100% of critical alerts have a triage disposition; FAIL = any Sev1 unacknowledged past 15 min or any critical alert with no incident ticket." },
+    { "templateKeyId": "cmr2oao16001llasbnlkf9nbu", "value": "Unacknowledged Sev1 auto-escalates to the secondary on-call then the Engineering Manager; incidents lacking a runbook logged as 'SDLC-Exception' with 10-business-day remediation SLA." },
+    { "templateKeyId": "cmr2v88x1000rxa9if2t45ukx", "value": "Acceptance = every critical failure triaged with severity + owner within SLA, escalated per the matrix, and a resolution/handoff recorded." },
+    { "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m", "value": "Evidence = the incident timeline and paging log in the ITSM platform, cross-linked to the failing DAG's run in the orchestration/observability tool." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp65r1na8mbk85jxlakkb", "checklist": [{ "step": "On-call rotation defined", "value": "A published on-call schedule with primary/secondary and documented escalation contacts covers the pipeline tier=critical services." }], "testing": [{ "step": "Rotation coverage check", "value": "Confirm the current window has a named primary and secondary on-call with reachable paging targets." }] },
+    { "standardId": "cmqscp68b1nacmbk8boqyksun", "checklist": [{ "step": "Runbook linked", "value": "Each critical alert references a runbook with triage and escalation steps so on-call can act without tribal knowledge." }], "testing": [{ "step": "Runbook resolution", "value": "For a sample of incidents confirm the alert's runbook link resolves and matches the failure type." }] },
+    { "standardId": "cmqscp5wt1n9umbk8zd85l89b", "checklist": [{ "step": "Actionable alerts", "value": "Critical alerts include severity, affected business process, and next action; non-actionable noise is tuned out." }], "testing": [{ "step": "Alert-quality audit", "value": "Review fired alerts and confirm each critical one is actionable; false-positive rate tracked and below the agreed threshold." }] },
+    { "standardId": "cmqscp66z1naambk8yr5ha7qw", "checklist": [{ "step": "RED metrics available", "value": "Rate, errors, and duration dashboards exist per pipeline so on-call can assess blast radius during triage." }], "testing": [{ "step": "Dashboard availability", "value": "Confirm the affected pipeline's RED dashboard renders current data during an incident." }] }
+   ],
+   "regulations": [
+    { "regId": "cmqwos1rp007vd29hj6boysa1", "checklist": [{ "step": "IR plan followed", "value": "Triage and escalation follow the written, annually tested incident response plan with defined severity levels and escalation timelines." }], "testing": [{ "step": "IR-plan conformance", "value": "Audit a sample of Sev1 incidents against the IR plan: severity assigned, escalation timeline met, and timeline documented." }] }
+   ]
+  }
+ ]
+}

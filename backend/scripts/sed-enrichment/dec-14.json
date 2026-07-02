@@ -1,0 +1,318 @@
+{
+ "tasks": [
+  {
+   "id": "cmr2fiaa70dwmkfgzpnkesylv",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All new/changed integration points for the component under delivery: REST/gRPC clients, Kafka producer/consumer bindings, and DB connections declared in the service's dependency manifest (build.gradle/pom.xml/package.json) and its OpenAPI 3.0 spec. Scope excludes third-party SaaS webhooks handled by MuleSoft." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The active development sprint (2-week cadence) in which the integration branch is opened through the release cut; integration wiring must be merged before the PI increment code-freeze date." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "52deb808-fc3d-469f-8652-e331ba334cbe" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Every downstream endpoint has a configured base URL, timeout, and retry/circuit-breaker policy externalized to config (no hardcoded hosts); all required request/response fields validated against the consumer-driven contract in the schema registry with 0 unresolved contract-test failures." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Integration smoke test asserts request count in = response count out across each wired dependency in the staging environment; reconcile message offsets for Kafka consumers to 0 lag before promotion." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "CI pipeline run URL, commit SHA, and integration-test report (JUnit XML) stored as build artifacts in the CI/CD system, retained 12 months, tagged with the Jira story key." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Failed integration or contract tests logged as Jira defects linked to the story; blocking failures gate the merge. Waiver path: Jira ticket type 'SDLC-Exception', owner = Engineering Manager, 10-business-day remediation SLA." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Integration design follows the approved solution architecture document (SAD) version referenced in the ADR; API version pinned per the twelve-month deprecation policy and recorded in the service README." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "4a7ec7f0-644e-4943-9829-914696d87ba1" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Timeout/retry sensitivity documented: p95 downstream latency budget 200ms; retries capped at 3 with exponential backoff; circuit opens at 50% error rate over a 30s window." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Materiality: any integration handling policy/claims financial transactions is treated as critical-path and requires 90% test coverage plus a load test before production." },
+    { "templateKeyId": "cmr2oamrz000rlasbaapuz8dr", "value": "Trace 5 sample transactions end-to-end from the calling component through each dependency to the persisted record in the target system, capturing correlation IDs at each hop." },
+    { "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g", "value": "Integration state transitions (pending/committed/failed/compensated) align to the Saga workflow defined in the SAD; verify compensating actions fire on downstream failure." },
+    { "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u", "value": "Event/record timestamps (createdAt, processedAt) are UTC and monotonic across hops; no clock-skew gaps exceeding 2s in the trace." },
+    { "templateKeyId": "cmr2oapmt002rlasbojqqymeh", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp", "value": "Contract + integration test suite executed against all wired dependencies in staging; 20 synthetic transactions covering happy path, downstream timeout, and malformed-payload cases." },
+    { "templateKeyId": "cmr2oappx002vlasbp983y62z", "value": "PASS = 100% of contract tests green, 0 unhandled exceptions, p95 latency <= 200ms; FAIL = any contract break or unrecovered downstream error." },
+    { "templateKeyId": "cmr2oaprq002xlasbn62pym1c", "value": "On FAIL, block the merge, open a Jira defect linked to the story, and route to the Integration Engineer; exception via 'SDLC-Exception' ticket, Engineering Manager approval, 10-business-day SLA." },
+    { "templateKeyId": "cmr2oapt3002zlasbvo2amzzy", "value": "Current sprint; tests run per pull request and again on the release-candidate build cut for the PI increment." },
+    { "answerId": "cmr2ocg020x7ikaz3cbap8vmf", "value": "Integration follows solution architecture document version and ADR referenced in the story; contract schemas pulled from the registered, version-pinned entries in the schema registry (subject + version recorded in service config)." },
+    { "answerId": "cmr2ocg020x7jkaz3rusa3dhp", "value": "Field definitions and control totals taken from each dependency's published OpenAPI 3.0 spec / Kafka schema; reconciliation counts sourced from the staging integration smoke-test report attached to the CI build." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6fk1naombk8lfqdfywn", "checklist": [{"step": "Integration tests exist for every external dependency", "value": "One integration test class per wired service (REST/gRPC/Kafka/DB), run in CI on every PR."}], "testing": [{"step": "Verify integration suite runs in pipeline", "value": "CI stage 'integration-test' present and green on the release-candidate build; report archived as artifact."}] },
+    { "standardId": "cmqscp6e01nammbk8u3kkbgln", "checklist": [{"step": "Contract tests defined for each API integration", "value": "Consumer-driven contracts published to the schema registry; provider verified against consumer expectations."}], "testing": [{"step": "Run contract verification in CI", "value": "0 unresolved contract-test failures before merge; failures gate deployment."}] },
+    { "standardId": "cmqscp52f1n86mbk8r0wpjzka", "checklist": [{"step": "No hardcoded endpoint hosts/ports/secrets", "value": "All dependency URLs, timeouts, and credentials injected from environment config / vault, not source."}], "testing": [{"step": "Scan config and grep for literals", "value": "SonarQube + secret scan report 0 hardcoded hosts or secrets in the changeset."}] },
+    { "standardId": "cmqscojy51m6ombk801mgkl6m", "checklist": [{"step": "Each integration handles downstream failure gracefully", "value": "Timeouts, retries with backoff, and circuit breaker configured per dependency."}], "testing": [{"step": "Inject downstream fault in staging", "value": "Fault-injection test confirms circuit opens at 50% error rate over 30s and compensating action fires."}] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "46947911-98d8-43ec-b062-5b0c3ddc5236",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All regulatory, statutory, and internal-policy obligations applicable to the requested capability across data privacy (GDPR/CCPA), cybersecurity (NYDFS 500), and insurance-specific rules; scoped to the systems, data domains, and jurisdictions named in the intake request." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The requirements-elaboration phase for the current initiative; catalogue must be complete before the solution architecture document is baselined." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rsmbk8cr7zj5ho" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each catalogued obligation records: rule citation, source regime, applicable jurisdiction, triggering data category or process, control owner, and mapped system(s); no obligation left without a named owner and a NIST CSF/ISO 27001 control mapping." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Cross-check catalogue count against the GRC platform's obligations library for the same scope; reconcile to 0 unaccounted-for in-scope obligations." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Compliance requirements register exported to the compliance evidence repository, versioned, timestamped, and linked to the Jira epic; retained per the applicable regime retention schedule." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Obligations that cannot be met in-scope logged in the regulatory filing/issue tracker with a risk rating and remediation plan; exception via 'SDLC-Exception' ticket, owner = Compliance Lead, tracked to closure." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03v5mbk8cz1pbndt" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Applicability assessment methodology follows the enterprise GRC obligations-mapping procedure, current version, recorded in the register header." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rp03v5mbk8cz1pbndt" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Sensitivity: any capability touching special-category or sensitive personal data escalates to a mandatory DPIA before build." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Materiality: obligations rated High (financial penalty or breach-notification exposure) require sign-off from Legal Counsel and the CISO before requirements baseline." },
+    { "templateKeyId": "cmr2oan48000xlasba0u1ffd8", "value": "Each requirement cites the specific rule (e.g., 'GDPR Art. 30 RoPA', 'NYDFS 500.16 IR plan', 'CCPA 1798.100 notice at collection') and the internal policy section it maps to." },
+    { "templateKeyId": "cmr2v88hl000fxa9io24wujiz", "value": "Register and supporting evidence retained per regime: GDPR/CCPA privacy records for the disclosed retention period; NYDFS cybersecurity records for a minimum of 3 years." },
+    { "templateKeyId": "cmr2v88il000hxa9icjpyq8mw", "value": "Any obligation with a statutory filing deadline (e.g., NYDFS annual certification by April 15) recorded with its due date and owner in the regulatory filing/issue tracker." },
+    { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "cmqsck0rp03v5mbk8cz1pbndt" },
+    { "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj", "value": "100% of in-scope data categories and processes assessed for applicability; sample 10 catalogued obligations for traceability back to primary regulatory text." },
+    { "templateKeyId": "cmr2oaodj001vlasbycmyhv72", "value": "PASS = every in-scope obligation has citation, owner, and control mapping and reconciles to the GRC library; FAIL = any missing citation/owner or unreconciled obligation." },
+    { "templateKeyId": "cmr2oaof2001xlasbgo5bzael", "value": "On FAIL, log gap in the regulatory filing/issue tracker, assign to Compliance Lead; exception via 'SDLC-Exception', 10-business-day SLA before baseline sign-off." },
+    { "templateKeyId": "cmr2v8940000vxa9iz1ws174c", "value": "Acceptance = compliance register reviewed and signed by Legal Counsel; all High-rated obligations have an accepted control approach." },
+    { "templateKeyId": "cmr2v8953000xxa9izs452xrs", "value": "Register stored in the compliance evidence repository (versioned) with a link recorded on the Jira epic and the GRC platform record." },
+    { "answerId": "cmr2ocg060xckkaz3fm2bzmvd", "value": "Each catalogued item cites the exact regulatory rule or filing requirement (regime + article/section + jurisdiction) and the mapped internal policy, sourced from the GRC platform obligations library and primary regulatory text." }
+   ],
+   "standards": [
+    { "standardId": "cmqscpgbe1nsmmbk84p8jjgen", "checklist": [{"step": "Map each obligation to NIST CSF/ISO 27001 controls", "value": "Every in-scope security obligation linked to a control ID in the GRC platform."}], "testing": [{"step": "Verify no unmapped security obligations", "value": "GRC report shows 0 security obligations without a mapped control for the initiative scope."}] },
+    { "standardId": "cmqscpg7k1nsgmbk8y7exe64w", "checklist": [{"step": "Record residual compliance risks in the enterprise risk register", "value": "Any obligation not fully satisfiable in-scope logged with rating and owner."}], "testing": [{"step": "Reconcile register entries", "value": "Each High/Critical gap has a risk-register ID and remediation date."}] },
+    { "standardId": "cmqscp38o1n4umbk8ne8wtn63", "checklist": [{"step": "Compliance requirements documented in the register", "value": "Structured register with citation, jurisdiction, owner, and mapped system per obligation."}], "testing": [{"step": "Inspect register completeness", "value": "Sample 10 rows; all fields populated and traceable to primary regulatory text."}] },
+    { "standardId": "cmqsconzs1mdqmbk87e84q6wh", "checklist": [{"step": "Define exception process for unmet obligations", "value": "Gaps routed via 'SDLC-Exception' with Compliance Lead approval and remediation SLA."}], "testing": [{"step": "Verify exceptions are tracked", "value": "All open exceptions have an owner and target date in the issue tracker."}] }
+   ],
+   "regulations": [
+    { "regId": "cmr213bec00hq14mjifw2udq8", "checklist": [{"step": "Confirm processing activities in scope are recorded in RoPA", "value": "Each personal-data processing activity for the capability has a RoPA entry with purpose, categories, and legal basis."}], "testing": [{"step": "Verify RoPA coverage", "value": "RoPA inventory reconciles to the data-flow diagram with 0 unrecorded personal-data flows."}] },
+    { "regId": "cmqwos24t0089d29h494yj6sf", "checklist": [{"step": "Identify and classify Nonpublic Information in scope", "value": "All NPI data elements the capability handles classified to the four-tier scheme in the GRC platform."}], "testing": [{"step": "Verify NPI classification completeness", "value": "0 unclassified NPI fields in the capability's data inventory."}] }
+   ]
+  },
+  {
+   "id": "19915c8a-550f-450b-8ce1-cbb34177ffc8",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The full functional and non-functional requirement set for the requested capability, covering performance (throughput/latency), security (authN/authZ, data protection), and availability (SLA/RTO/RPO); scoped to the epic under elaboration." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Requirements-elaboration phase of the current initiative; specification baselined before the solution architecture document and sprint-0 estimation." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "2e7880d2-11f5-4003-b3d8-7dad2ad04a9c" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Every requirement is atomic, testable, and has a unique ID, priority (MoSCoW), and acceptance criteria; NFRs quantified (e.g., p95 API latency <= 200ms, 99.9% availability, RTO 4h/RPO 15m) rather than qualitative." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Requirement count in the spec reconciles to the Jira story/backlog count for the epic; 0 orphan stories without a linked requirement and 0 requirements without a story." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Requirements specification stored in Confluence with page version history; PDF snapshot at baseline attached to the Jira epic, retained 12 months." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Ambiguous or conflicting requirements logged as Jira 'clarification' sub-tasks and resolved before baseline; exception via 'SDLC-Exception', owner = Product Owner, 10-business-day SLA." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Specification uses the enterprise requirements template (current version) and INVEST criteria; NFR taxonomy references the architecture Non-Functional Requirements standard." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "381b2c32-e821-4e74-a6fc-abb3414e690b" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Sensitivity: NFR targets flagged where a 10% miss materially affects customer SLA or regulatory posture, triggering architecture review." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Materiality: Must-have security/availability NFRs require Solutions Architect and Security sign-off before the spec is baselined." },
+    { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb", "value": "All requirements in the baselined spec (functional + NFR) reviewed in a peer walkthrough with the Solutions Architect and Test Lead." },
+    { "templateKeyId": "cmr2oaoru0027lasblf4a3q5g", "value": "PASS = 100% of requirements testable with acceptance criteria and all NFRs quantified; FAIL = any vague, untestable, or unquantified requirement." },
+    { "templateKeyId": "cmr2oaot40029lasbqt4ono47", "value": "On FAIL, return the requirement to the Product Owner/BA for rework; block baseline; exception via 'SDLC-Exception', 10-business-day SLA." },
+    { "templateKeyId": "cmr2v89b6000zxa9ivo819zn7", "value": "Data-related requirements reference field definitions from the enterprise data catalog / business glossary term links." },
+    { "templateKeyId": "cmr2v89c10011xa9ijssevzvo", "value": "Where the capability reports figures, expected control totals/reconciliation targets are stated in the requirement so QA can verify." },
+    { "answerId": "cmr2ocg060xdbkaz3wbgdfkmg", "value": "Each requirement has documented, testable acceptance criteria (Given/When/Then) recorded in the Jira story; the baselined specification is stored in Confluence with a version link on the epic as the evidence location." }
+   ],
+   "standards": [
+    { "standardId": "cmqscokis1m7qmbk80uj5nhuo", "checklist": [{"step": "Capture non-functional requirements explicitly", "value": "Performance, security, and availability NFRs quantified with numeric targets in the spec."}], "testing": [{"step": "Verify each NFR is measurable", "value": "0 NFRs without a numeric threshold and a verification method."}] },
+    { "standardId": "cmqscp5vv1n9smbk87l9mzurv", "checklist": [{"step": "Specification documents purpose, scope, and acceptance", "value": "Confluence spec includes purpose, scope, assumptions, and per-requirement acceptance criteria."}], "testing": [{"step": "Peer-review the spec for completeness", "value": "Review sign-off recorded; 0 required sections missing."}] },
+    { "standardId": "cmqscpmbn1o3kmbk8gj1ffhob", "checklist": [{"step": "Every story has acceptance criteria", "value": "Given/When/Then criteria present on all backlog items derived from the spec."}], "testing": [{"step": "Audit backlog", "value": "Sample 10 stories; all have acceptance criteria linked to a requirement ID."}] },
+    { "standardId": "cmqscp7wc1ndembk8k8ochcqt", "checklist": [{"step": "Detailed design/requirements reviewed by peers", "value": "Walkthrough with Solutions Architect and Test Lead before baseline."}], "testing": [{"step": "Confirm review record", "value": "Review meeting notes and approvals attached to the epic."}] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "56ed0b72-ebed-4733-b33c-34faff1e3ad2",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The engineering knowledge base content: reusable patterns, Architecture Decision Records (ADRs), code samples, and lessons-learned entries owned by the engineering guild; scoped to the domains the team maintains." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Continuous, with a mandatory review at each PI boundary (quarterly); entries not touched in 12 months flagged for review or archive." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "2e7880d2-11f5-4003-b3d8-7dad2ad04a9c" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each entry has: title, owning team, last-reviewed date, tags, and a working code sample or ADR link; ADRs follow the standard template (context/decision/consequences) and 0 entries lack an owner." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Knowledge-base entry count reconciles to the ADR index in the repo; 0 ADRs merged to main without a corresponding wiki index entry." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Confluence page version history plus git commit history for ADRs stored with code; each curation pass tagged with the PI and author, retained indefinitely as institutional record." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Stale or superseded entries marked 'deprecated' with a link to the replacement; unreviewed-past-12-months entries logged in a Jira 'KB-review' backlog. Exception via 'SDLC-Exception', owner = Tech Lead." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Curation follows the guild's documentation standard (current version); ADRs required for significant decisions and stored with code." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqscl46u1hljmbk8vyer552d" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Sensitivity: code samples referencing security patterns reviewed by a Security Champion before publication to avoid propagating insecure examples." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Materiality: ADRs affecting cross-team architecture require ARB acknowledgement before being marked authoritative." },
+    { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb", "value": "All KB entries modified in the current PI, plus a random sample of 10 existing entries for freshness/accuracy." },
+    { "templateKeyId": "cmr2oaoru0027lasblf4a3q5g", "value": "PASS = every sampled entry has an owner, a last-reviewed date within 12 months, and working links/samples; FAIL = broken sample, missing owner, or stale review." },
+    { "templateKeyId": "cmr2oaot40029lasbqt4ono47", "value": "On FAIL, create a 'KB-review' Jira task assigned to the entry owner; deprecate if unmaintainable. Exception via 'SDLC-Exception', 10-business-day SLA." },
+    { "templateKeyId": "cmr2v89b6000zxa9ivo819zn7", "value": "Entries describing data patterns link to enterprise data catalog term definitions rather than restating field meanings." },
+    { "templateKeyId": "cmr2v89c10011xa9ijssevzvo", "value": "Not a reporting task; control-total check is N/A but entry count is reconciled to the ADR/repo index per the reconcile check above." },
+    { "answerId": "cmr2ocg070xezkaz3birbwch4", "value": "Curation follows the engineering documentation standard and ADR template (current versions); source of truth for decisions is the ADR set stored with code in the source repository, indexed in Confluence." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp5o31n9embk822qt2buu", "checklist": [{"step": "Significant decisions captured as ADRs", "value": "ADR authored (context/decision/consequences) for each significant pattern or decision and stored with code."}], "testing": [{"step": "Verify ADR presence", "value": "ADR index reconciles to significant merged decisions; 0 undocumented significant decisions in the PI."}] },
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [{"step": "Knowledge base kept current", "value": "Every entry has a last-reviewed date; entries older than 12 months flagged."}], "testing": [{"step": "Freshness audit", "value": "Sample 10 entries; all reviewed within 12 months or deprecated."}] },
+    { "standardId": "cmqscp5r61n9kmbk8xcnz45ig", "checklist": [{"step": "Reusable patterns include working examples", "value": "Each pattern entry ships a compilable/runnable code sample."}], "testing": [{"step": "Validate samples", "value": "Sampled code examples build/run without error."}] },
+    { "standardId": "cmqscp5n41n9cmbk8timof83w", "checklist": [{"step": "Knowledge shared with the team", "value": "New/curated patterns presented in weekly knowledge-sharing sessions."}], "testing": [{"step": "Confirm sharing cadence", "value": "Session notes reference the curated entries for the PI."}] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "b330c293-c62d-4478-8cf5-57f4a467d56c",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The internal developer portal (Backstage-style) content: service catalog entries, software templates/scaffolders, tech-docs, and self-service actions; scoped to all production services owned by engineering teams onboarded to the portal." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Continuous maintenance with a monthly reconciliation against the CMDB; every new service must appear in the catalog within one sprint of first deploy." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Every catalog entry has an owning team, lifecycle state, on-call/runbook link, repo link, and tier; catalog-info.yaml validates against schema in CI; 0 services without an owner." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Portal service count reconciles to the CMDB production-service inventory within +/-0; discrepancies raised as ServiceNow tickets." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Portal config stored as code in git (GitOps); each change is a reviewed PR with commit SHA and author; deployment record retained in the CI/CD system 12 months." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Services in CMDB but missing from the portal (or vice versa) logged as ITSM tasks assigned to the owning team; exception via 'SDLC-Exception', owner = Platform Engineering Lead, 10-business-day SLA." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb", "value": "All catalog entries plus all self-service scaffolder templates; smoke-test one scaffolder run end-to-end per template family." },
+    { "templateKeyId": "cmr2oaoru0027lasblf4a3q5g", "value": "PASS = 100% of production services present with valid catalog-info.yaml and working self-service templates; FAIL = missing service, schema-invalid entry, or broken scaffolder." },
+    { "templateKeyId": "cmr2oaot40029lasbqt4ono47", "value": "On FAIL, open an ITSM task to the Platform team, roll back the bad portal PR via GitOps; exception via 'SDLC-Exception', 10-business-day SLA." },
+    { "templateKeyId": "cmr2v89b6000zxa9ivo819zn7", "value": "Catalog schema fields (owner, lifecycle, tier, system) defined by the portal's catalog-info.yaml specification, referenced in the contributor guide." },
+    { "templateKeyId": "cmr2v89c10011xa9ijssevzvo", "value": "Reconciliation totals: portal service count vs CMDB production count, published monthly to the platform dashboard." },
+    { "answerId": "cmr2ocg0a0xi9kaz3x59qj3dm", "value": "Acceptance = every production service resolvable in the portal with owner and runbook, and self-service templates execute successfully; evidence = GitOps repo history plus the monthly CMDB reconciliation report on the platform dashboard." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp90c1nfkmbk8ckoav1oj", "checklist": [{"step": "Portal configured via GitOps", "value": "All portal/catalog changes made through reviewed PRs to the config repo, auto-applied."}], "testing": [{"step": "Verify no manual portal edits", "value": "Drift detection shows portal state matches git; 0 out-of-band changes."}] },
+    { "standardId": "cmqscp7jr1ncqmbk8evwecgs6", "checklist": [{"step": "APIs published to the developer portal", "value": "Each service's OpenAPI spec surfaced in the portal catalog entry."}], "testing": [{"step": "Verify API discoverability", "value": "Sampled services expose their published API docs in the portal."}] },
+    { "standardId": "cmqscp5tf1n9ombk8gq23fix3", "checklist": [{"step": "Onboarding/self-service guidance available", "value": "Portal hosts a current onboarding guide and self-service scaffolders."}], "testing": [{"step": "Run onboarding path", "value": "New-developer scaffolder produces a working starter service."}] },
+    { "standardId": "cmqscp41u1n6ambk8av928k36", "checklist": [{"step": "Every catalog entry has an assigned owner", "value": "catalog-info.yaml owner field populated for all services."}], "testing": [{"step": "Audit ownership", "value": "0 catalog entries without a resolvable owning team."}] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "5cf3840e-0d91-435c-a2b4-5666a197e24e",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All incoming demand items (features, enhancements, defects, spikes) submitted for the current intake window; each triaged for business need, strategic alignment, duplication, and rough sizing." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The current intake cycle (weekly triage cadence); triage outcome recorded within 5 business days of submission." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each demand item has: requester, business sponsor, problem statement, expected value/ROI note, strategic-objective link, and a triage decision (accept/reject/park/need-info); 0 items left in 'new' beyond the SLA." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of items entering triage equals count with a recorded decision by cycle end; reconcile the Jira intake board to 0 undispositioned items at cutoff." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Triage decision and rationale recorded on the Jira intake ticket with timestamp and triager; board snapshot retained 12 months for portfolio audit." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Rejected/parked items get a documented reason and, if appealed, escalate via the intake escalation path to the PMO Manager; exception via 'SDLC-Exception', owner = Product Owner." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03vombk861ggluhk" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Triage uses the approved intake scoring model (current version) with weighted criteria for value, alignment, and effort, recorded on the board." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03vombk861ggluhk" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Sensitivity: items whose value hinges on an unvalidated assumption are flagged 'need-info' rather than accepted." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Materiality: demand above the effort threshold (e.g., > 40 story points or cross-team) requires a business case and PMO review before acceptance." },
+    { "templateKeyId": "cmr2oapmt002rlasbojqqymeh", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp", "value": "All demand items in the current intake window on the Jira intake board." },
+    { "templateKeyId": "cmr2oappx002vlasbp983y62z", "value": "PASS = 100% of items dispositioned with rationale and required fields; FAIL = any item missing sponsor, value note, alignment link, or decision." },
+    { "templateKeyId": "cmr2oaprq002xlasbn62pym1c", "value": "On FAIL, return item to requester as 'need-info' or escalate to PMO Manager; exception via 'SDLC-Exception', 10-business-day SLA." },
+    { "templateKeyId": "cmr2oapt3002zlasbvo2amzzy", "value": "Current weekly intake window; decisions time-boxed to the 5-business-day SLA from submission." },
+    { "answerId": "cmr2ocg0c0xkrkaz33helmi7z", "value": "Triage applies the approved intake scoring model (current version) with weighted value/alignment/effort criteria; scoring inputs and sponsor confirmation sourced from the Jira intake ticket and the business case where required." }
+   ],
+   "standards": [
+    { "standardId": "cmqscpn2h1o4ymbk8iv8o1v88", "checklist": [{"step": "Business case required for sizeable demand", "value": "Items above the effort threshold carry a business case before acceptance."}], "testing": [{"step": "Verify business-case attachment", "value": "All large accepted items have a linked business case."}] },
+    { "standardId": "cmqscpnc01o5gmbk8zd5bxalg", "checklist": [{"step": "Confirm strategic alignment", "value": "Each triaged item links to a strategic objective."}], "testing": [{"step": "Audit alignment links", "value": "0 accepted items without a strategic-objective link."}] },
+    { "standardId": "cmqscpn7t1o58mbk8t2b6f6xd", "checklist": [{"step": "Apply defined prioritization criteria", "value": "Weighted scoring model applied uniformly across the intake window."}], "testing": [{"step": "Verify scoring consistency", "value": "Sample 10 items; scores computed per the documented model."}] },
+    { "standardId": "cmqscpn4e1o52mbk8fe1tdq2i", "checklist": [{"step": "Escalation triggers defined for disputed demand", "value": "Rejected/appealed items follow the intake escalation path to the PMO."}], "testing": [{"step": "Confirm escalation handling", "value": "Escalated items have a PMO decision recorded."}] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "cmr2fiiab0hp2kfgzspl9r9l9",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The streaming topology (Kafka topics, partitions, keys, consumer groups) and the event schema contracts for all in-scope real-time flows for the capability; scoped to the domains/events named in the design ticket." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Design phase of the current initiative; topology and contracts specified before processor build begins in the following sprint." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0ro03tmmbk8ggz2wirh" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each topic defines: name (per {env}-{domain}-{event} convention), partition count, key strategy, retention, and cleanup policy; each event schema (Avro/Protobuf/JSON Schema) has required fields, types, and doc strings; 0 topics without an owner or schema." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Producer/consumer mapping matrix reconciles: every produced event has at least one declared consumer and every consumer subscribes to a defined topic; 0 orphan topics or dangling subscriptions." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Topology diagram and schema definitions stored as diagrams-as-code and .avsc/.proto files in git with commit SHA; design doc versioned in Confluence, retained 12 months." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Unresolved schema/topology questions logged as Jira design tasks; incompatible producer/consumer expectations blocked until reconciled. Exception via 'SDLC-Exception', owner = Data Architect, 10-business-day SLA." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03tlmbk8iahrj6cv" },
+    { "templateKeyId": "cmr2oamrz000rlasbaapuz8dr", "value": "Trace 5 sample business events from their source screen/system field to the proposed event schema fields, confirming each schema field has a source." },
+    { "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g", "value": "Event lifecycle states (created/updated/deleted/compensated) modeled align to the domain workflow in the SAD; verify event-type enum covers all required transitions." },
+    { "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u", "value": "Every event schema carries an eventTime (UTC) and ingestTime; ordering guarantees documented per partition key aligned to workflow sequencing needs." },
+    { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "cmqsck0ro03tlmbk8iahrj6cv" },
+    { "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb", "value": "All defined topics and schemas in the design; peer design review with a Data Architect and the consuming teams." },
+    { "templateKeyId": "cmr2oaoru0027lasblf4a3q5g", "value": "PASS = every topic has owner/partitions/retention and every schema is complete, documented, and backward-compatibility policy set; FAIL = any missing attribute or unmapped producer/consumer." },
+    { "templateKeyId": "cmr2oaot40029lasbqt4ono47", "value": "On FAIL, return to design; log a Jira task to the Data Architect; block build start. Exception via 'SDLC-Exception', 10-business-day SLA." },
+    { "templateKeyId": "cmr2v89b6000zxa9ivo819zn7", "value": "Schema field definitions link to the enterprise data catalog / business glossary terms; ACORD data-dictionary alignment for insurance events." },
+    { "templateKeyId": "cmr2v89c10011xa9ijssevzvo", "value": "Expected event volumes per topic (events/sec, peak) documented so downstream capacity and partitioning can be validated." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp3lx1n5gmbk8a2ok7wtg", "checklist": [{"step": "Define enforceable data contracts for events", "value": "Each event has a formal schema (Avro/Protobuf/JSON Schema) that will be enforced by the registry."}], "testing": [{"step": "Validate contract completeness", "value": "0 event fields without type and doc; contracts lint clean."}] },
+    { "standardId": "cmqscp3uh1n5wmbk8928m3303", "checklist": [{"step": "Plan for schema evolution", "value": "Backward-compatibility policy declared per subject (e.g., BACKWARD) with additive-only change rule."}], "testing": [{"step": "Verify evolution rules", "value": "Compatibility mode recorded per topic in the design doc."}] },
+    { "standardId": "cmqscois61m4mmbk8wzagy3ai", "checklist": [{"step": "Register and version-pin message schemas", "value": "Each schema assigned a subject and version to be registered before producers publish."}], "testing": [{"step": "Confirm registration plan", "value": "Every topic references a schema subject/version in the topology matrix."}] },
+    { "standardId": "cmqscp8wf1nfcmbk8e6bky2z8", "checklist": [{"step": "Use event-driven patterns for cross-domain flows", "value": "Cross-domain communication modeled as events, not synchronous coupling."}], "testing": [{"step": "Review topology coupling", "value": "0 cross-domain synchronous calls where an event fits the pattern."}] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "cmr2fiil10htekfgzbqscr5u4",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The set of event schema contracts to be registered in the schema registry for producer/consumer alignment; scoped to the topics defined in the approved streaming topology for this initiative." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current sprint; contracts registered before any producer is promoted to a shared (staging/prod) Kafka cluster." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "52deb808-fc3d-469f-8652-e331ba334cbe" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0ro03tmmbk8ggz2wirh" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each schema registered with a subject name per convention, a version, and a compatibility mode (BACKWARD or better); registration executed via the CI pipeline, not manual UI; 0 subjects without a set compatibility policy." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of registered subjects reconciles to the count of topics in the approved topology; 0 topology topics missing a registered schema." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Registry API confirmation (subject, version, id) captured in the CI build log; .avsc/.proto source committed with SHA; artifacts retained 12 months tagged to the Jira story." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Compatibility-check failures at registration block the pipeline and are logged as Jira defects; exception via 'SDLC-Exception', owner = Data Architect, 10-business-day SLA." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03tlmbk8iahrj6cv" },
+    { "templateKeyId": "cmr2oamrz000rlasbaapuz8dr", "value": "Trace 3 registered schemas back to their design-doc definitions and to a producing service commit, confirming the published schema matches the approved contract." },
+    { "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g", "value": "Subject naming and lifecycle (register/evolve/deprecate) align to the schema-governance workflow; deprecated subjects flagged, not deleted, while consumers migrate." },
+    { "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u", "value": "Registration timestamp and version recorded; effective-from date coordinated with the consumer migration window documented in the release plan." },
+    { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "cmqsck0ro03tlmbk8iahrj6cv" },
+    { "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb", "value": "All schemas targeted for registration in this release; automated compatibility check runs against the current registered versions." },
+    { "templateKeyId": "cmr2oaoru0027lasblf4a3q5g", "value": "PASS = all subjects register successfully with the required compatibility mode and 0 breaking-change violations; FAIL = any registration or compatibility check failure." },
+    { "templateKeyId": "cmr2oaot40029lasbqt4ono47", "value": "On FAIL, block promotion, open a Jira defect, route to Data Architect; exception via 'SDLC-Exception', 10-business-day SLA." },
+    { "templateKeyId": "cmr2v89b6000zxa9ivo819zn7", "value": "Field definitions in each schema align to enterprise data catalog / ACORD data-dictionary terms referenced in the topology design." },
+    { "templateKeyId": "cmr2v89c10011xa9ijssevzvo", "value": "Registry subject count vs topology topic count reconciled and published in the release notes." }
+   ],
+   "standards": [
+    { "standardId": "cmqscois61m4mmbk8wzagy3ai", "checklist": [{"step": "Register schemas and pin versions", "value": "Every event schema registered with subject + version in the schema registry before producer promotion."}], "testing": [{"step": "Verify registration", "value": "Registry query returns a version for each in-scope subject; 0 missing."}] },
+    { "standardId": "cmqscp3uh1n5wmbk8928m3303", "checklist": [{"step": "Enforce compatibility on registration", "value": "Compatibility mode BACKWARD or stricter set per subject."}], "testing": [{"step": "Run compatibility check in CI", "value": "0 breaking-change violations reported by the registry compatibility check."}] },
+    { "standardId": "cmqscp3lx1n5gmbk8a2ok7wtg", "checklist": [{"step": "Contracts enforced via registry", "value": "Producers configured to serialize against the registered schema id."}], "testing": [{"step": "Validate producer enforcement", "value": "Producer rejects messages that do not conform to the registered schema."}] },
+    { "standardId": "cmqscp7381nbumbk8769dvsyj", "checklist": [{"step": "Notify consumers of breaking changes", "value": "Any breaking change triggers a documented consumer notification and migration window."}], "testing": [{"step": "Confirm notification record", "value": "Release notes list affected consumers and migration dates for any major-version bump."}] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "4add4477-8d9a-41f2-8b6d-d9fb84c8f5ef",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The proposed schema change(s) for in-scope event contracts and the affected producers and consumers; scoped to the subjects being evolved in this change request, coordinated as backward-compatible updates." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current sprint through the agreed consumer migration window; change agreed and compatible before the new schema version is promoted to production." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "52deb808-fc3d-469f-8652-e331ba334cbe" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0ro03tmmbk8ggz2wirh" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Change is additive-only (new optional fields with defaults) or otherwise BACKWARD-compatible; every affected consumer identified with an owner and acknowledged migration approach; 0 unacknowledged consumers." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Producer/consumer impact matrix reconciles: count of consumers on the old version + migration status = total known consumers; verified against registry consumer-group offsets in staging." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Change proposal, compatibility-check output, and consumer acknowledgements recorded on the Jira story and in the schema PR; artifacts retained 12 months with commit SHA and new version id." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "A required breaking change escalates to a new major subject version with a dual-publish/deprecation plan; disputes logged and escalated to the Architecture Review Board. Exception via 'SDLC-Exception', owner = Data Architect, 10-business-day SLA." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03tlmbk8iahrj6cv" },
+    { "templateKeyId": "cmr2oamrz000rlasbaapuz8dr", "value": "Trace the changed fields back to the driving requirement and confirm each impacted consumer's handling in a sample of 3 consumer services." },
+    { "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g", "value": "Subject lifecycle state moves per the governance workflow (proposed -> compatible -> registered -> deprecated); deprecated versions retained until all consumers migrate." },
+    { "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u", "value": "Migration window dates recorded; old version deprecation date set only after the last consumer confirms cutover." },
+    { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "cmqsck0ro03tlmbk8iahrj6cv" },
+    { "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb", "value": "The evolving subject(s) plus all registered consumer groups; automated compatibility check against every prior version retained in the registry." },
+    { "templateKeyId": "cmr2oaoru0027lasblf4a3q5g", "value": "PASS = registry compatibility check green for all consumers and 100% consumer acknowledgement; FAIL = any compatibility break or unacknowledged consumer." },
+    { "templateKeyId": "cmr2oaot40029lasbqt4ono47", "value": "On FAIL, hold the change, escalate to ARB / Data Architect, and switch to a major-version dual-publish plan; exception via 'SDLC-Exception', 10-business-day SLA." },
+    { "templateKeyId": "cmr2v89b6000zxa9ivo819zn7", "value": "Changed field definitions reconciled against enterprise data catalog / ACORD data-dictionary terms to keep semantics consistent across consumers." },
+    { "templateKeyId": "cmr2v89c10011xa9ijssevzvo", "value": "Consumer count and per-consumer migration status totals reconciled and reported in the change record before promotion." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp3uh1n5wmbk8928m3303", "checklist": [{"step": "Handle schema evolution compatibly", "value": "Changes are additive/BACKWARD-compatible; major bumps use dual-publish and deprecation."}], "testing": [{"step": "Run registry compatibility check", "value": "0 compatibility violations across all retained versions."}] },
+    { "standardId": "cmqscp7381nbumbk8769dvsyj", "checklist": [{"step": "Notify consumers of any breaking change", "value": "Every affected consumer owner acknowledges before promotion."}], "testing": [{"step": "Verify acknowledgements", "value": "100% consumer sign-off recorded on the change ticket."}] },
+    { "standardId": "cmqscp78k1nc4mbk8j8j63i0r", "checklist": [{"step": "Honor consumer-driven contracts", "value": "Consumer expectations verified against the new schema before it registers."}], "testing": [{"step": "Run consumer contract verification", "value": "All consumer contract tests pass against the candidate schema."}] },
+    { "standardId": "cmqscp3lx1n5gmbk8a2ok7wtg", "checklist": [{"step": "Keep data contracts enforced through the change", "value": "New version registered and enforced; producers pinned to the new id post-cutover."}], "testing": [{"step": "Validate enforcement post-change", "value": "Producers reject non-conforming payloads on the new version."}] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "c7243152-b9b5-4a03-ba23-fe3ec7aa7f92",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The streaming processor implementation (Kafka Streams / Flink / Spark Structured Streaming) for the in-scope pipeline, including topology, state stores, and exactly-once (EOS) configuration; scoped to the topics defined in the approved design." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current build sprint; processor complete and EOS-verified before the release-candidate build for the PI increment." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "52deb808-fc3d-469f-8652-e331ba334cbe" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0ro03tmmbk8ggz2wirh" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Exactly-once enabled (e.g., processing.guarantee=exactly_once_v2 for Kafka Streams / checkpointing + transactional sink for Flink); idempotent producers, transactional writes, and correlation IDs on all records; 0 at-least-once paths on financial topics." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Duplicate-injection test confirms input record count equals distinct output record count (no dupes, no loss); consumer-group lag returns to 0 after a forced restart mid-processing." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "CI build URL, commit SHA, and the EOS/duplication test report stored as build artifacts in the CI/CD system, retained 12 months, tagged to the Jira story." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Poison/unprocessable messages routed to a dead-letter topic with the error and offset; DLQ non-empty raises an alert. Exception via 'SDLC-Exception', owner = Engineering Manager, 10-business-day SLA." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaq1y0035lasbt581hez0", "value": "A replayable set of 10,000 synthetic events including deliberate duplicates and an induced broker/task restart, run against the processor in staging." },
+    { "templateKeyId": "cmr2oaq320037lasb58si1owg", "value": "PASS = distinct output = distinct input (0 duplicates, 0 loss) across the restart, and state-store contents match the expected aggregate; FAIL = any duplicate, dropped, or miscounted record." },
+    { "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x", "value": "On FAIL, block the merge, open a Jira defect, route to the owning engineer; DLQ path handles bad records at runtime. Exception via 'SDLC-Exception', 10-business-day SLA." },
+    { "templateKeyId": "cmr2v89xj0017xa9ikgynty6d", "value": "Processor built to the approved streaming design doc version and the registered schema versions referenced in the story; EOS approach recorded in an ADR." },
+    { "templateKeyId": "cmr2v89ze0019xa9i4s25sd76", "value": "Runtime parameters (checkpoint interval, transaction timeout, commit interval, parallelism) sourced from externalized config per environment, not hardcoded, and documented in the service README." },
+    { "answerId": "cmr2ocg0d0xm1kaz32ntdklhc", "value": "Acceptance = exactly-once verified via the duplicate-injection + restart test with 0 duplicates/loss and green CI; evidence = the EOS test report and coverage report stored as CI build artifacts, linked from the Jira story." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp3oz1n5mmbk8w0mgzz9i", "checklist": [{"step": "Make processing idempotent", "value": "Transactional/idempotent writes so replays do not double-apply effects."}], "testing": [{"step": "Replay to confirm idempotency", "value": "Re-processing the same input yields identical state; 0 duplicated effects."}] },
+    { "standardId": "cmqscp6jk1naumbk8glp27aai", "checklist": [{"step": "Meet minimum test coverage on changed code", "value": "Unit + integration coverage >= 80% line coverage on changed lines; 90% for the EOS-critical path."}], "testing": [{"step": "Enforce coverage gate in CI", "value": "SonarQube coverage gate blocks merge below threshold."}] },
+    { "standardId": "cmqscp6fk1naombk8lfqdfywn", "checklist": [{"step": "Integration tests against Kafka and sinks", "value": "Testcontainers-based integration tests cover produce/consume and transactional sink."}], "testing": [{"step": "Run integration suite in CI", "value": "Integration stage green on the release-candidate build."}] },
+    { "standardId": "cmqscp61a1na2mbk84y76mky0", "checklist": [{"step": "Instrument the processor with dashboards", "value": "Per-service dashboard tracks lag, throughput, and DLQ rate."}], "testing": [{"step": "Verify metrics emitted", "value": "RED metrics and consumer lag visible on the service dashboard in staging."}] }
+   ],
+   "regulations": []
+  }
+ ]
+}

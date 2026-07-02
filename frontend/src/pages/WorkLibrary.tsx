@@ -45,6 +45,73 @@ type Plan = {
 
 const cellInput = 'w-full text-[12.5px] px-2 py-1.5 rounded-md border border-transparent hover:border-[#d4d4d4] focus:border-[#7aa7d9] focus:outline-none bg-transparent';
 
+// Pointer-based row reorder with live animation: grab the ⋮⋮ handle and the
+// row follows the cursor while the other rows slide out of the way; on release
+// the new order is applied optimistically and persisted. (Pointer events, not
+// HTML5 drag — so it animates and row inputs keep normal text selection.)
+type SortState = { from: number; over: number; dy: number; rowH: number };
+
+function useSortable(count: number, onMove: (from: number, to: number) => void) {
+  const [drag, setDrag] = useState<SortState | null>(null);
+  const live = useRef<SortState | null>(null);
+
+  const handleProps = (index: number) => ({
+    onPointerDown: (e: React.PointerEvent) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      const tr = (e.target as HTMLElement).closest('tr');
+      const rowH = tr?.getBoundingClientRect().height || 40;
+      const startY = e.clientY;
+      live.current = { from: index, over: index, dy: 0, rowH };
+      setDrag(live.current);
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'grabbing';
+      const move = (ev: PointerEvent) => {
+        const dy = ev.clientY - startY;
+        const over = Math.max(0, Math.min(count - 1, index + Math.round(dy / rowH)));
+        live.current = { from: index, over, dy, rowH };
+        setDrag(live.current);
+      };
+      const up = () => {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+        const d = live.current;
+        live.current = null;
+        setDrag(null);
+        if (d && d.over !== d.from) onMove(d.from, d.over);
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+    },
+  });
+
+  const rowStyle = (index: number): React.CSSProperties => {
+    if (!drag) return {};
+    const { from, over, dy, rowH } = drag;
+    if (index === from) {
+      return { transform: `translateY(${dy}px)`, position: 'relative', zIndex: 5, background: '#f0f6ff', boxShadow: '0 2px 10px rgba(15,40,80,0.15)', transition: 'none' };
+    }
+    if (from < over && index > from && index <= over) return { transform: `translateY(-${rowH}px)`, transition: 'transform 140ms ease' };
+    if (from > over && index >= over && index < from) return { transform: `translateY(${rowH}px)`, transition: 'transform 140ms ease' };
+    return { transform: 'translateY(0)', transition: 'transform 140ms ease' };
+  };
+
+  return { handleProps, rowStyle };
+}
+
+function moveItem<T>(list: T[], from: number, to: number): T[] {
+  const next = [...list];
+  const [x] = next.splice(from, 1);
+  next.splice(to, 0, x);
+  return next;
+}
+
+const DragHandle = (props: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span {...props} className="cursor-grab touch-none select-none mr-1.5 text-[#94a3b8] hover:text-[#475569]" title="Drag to reorder">⋮⋮</span>
+);
+
 function valueText(a: Answer | EvidenceRow | null | undefined): string {
   if (!a) return '';
   return a.application?.name ?? a.role?.name ?? a.deliverable?.name ?? a.value ?? '';
@@ -226,6 +293,16 @@ function PlanBlock({ title, sections, customRows, blockKind, subject, refetch }:
   const dialogs = useDialogs();
   const base = `/work-library/plan/${subject.type}/${subject.id}`;
   const saveRows = (rows: Record<string, unknown>[]) => api.put(`${base}/answers`, { rows }).then(refetch);
+  // Drag-reorder the item-specific steps (generic order comes from the template
+  // and is reordered in the Templates tab, propagating everywhere). Order is
+  // applied locally on release, then persisted.
+  const [orderedCustom, setOrderedCustom] = useState<Answer[]>(customRows);
+  useEffect(() => { setOrderedCustom(customRows); }, [customRows]);
+  const sort = useSortable(orderedCustom.length, (from, to) => {
+    const next = moveItem(orderedCustom, from, to);
+    setOrderedCustom(next);
+    saveRows(next.map((r, i) => ({ id: r.id, sortOrder: 100 + i })));
+  });
 
   let n = 0;
   return (
@@ -285,12 +362,12 @@ function PlanBlock({ title, sections, customRows, blockKind, subject, refetch }:
               })}
             </Fragment>
           ))}
-          {customRows.map((r) => {
+          {orderedCustom.map((r, ci) => {
             n += 1;
             const num = n;
             return (
-              <tr key={r.id} className="border-t border-[#eef1f4]">
-                <td className="border border-[#e8ebee] px-2 py-2.5 text-right align-top text-[11px] text-[#a3a3a3]">{num}</td>
+              <tr key={r.id} className="border-t border-[#eef1f4]" style={sort.rowStyle(ci)}>
+                <td className="border border-[#e8ebee] px-2 py-2.5 text-right align-top text-[11px] text-[#a3a3a3] whitespace-nowrap"><DragHandle {...sort.handleProps(ci)} />{num}</td>
                 <td className="border border-[#e8ebee] px-2 py-1.5 text-left align-top">
                   <CustomKeyInput row={r} onSave={(key) => saveRows([{ id: r.id, customKey: key }])} />
                 </td>
@@ -442,56 +519,88 @@ function TiedBlock({ title, empty, items, scope, taskId, refetch }: {
             </span>
             <button className="ml-auto text-[#dc2626] hover:text-[#b91c1c]" title="Remove from this task" onClick={() => removeTied(item)}>✕</button>
           </div>
-          {(['CHECKLIST', 'TEST'] as const).map((kind) => {
-            const rows = kind === 'CHECKLIST' ? item.checklist : item.testing;
-            return (
-              <table key={kind} className="w-full table-fixed border-collapse text-[12.5px]">
-                <colgroup><col style={{ width: 36 }} /><col style={{ width: '38%' }} /><col /><col style={{ width: 40 }} /></colgroup>
-                <tbody>
-                  <tr>
-                    <td colSpan={4} className="border border-[#e8ebee] bg-[#fafbfc] px-3 py-1.5 text-left text-[10.5px] font-medium text-[#8a94a0]">
-                      {kind === 'CHECKLIST' ? 'Checklist' : 'Testing'}
-                    </td>
-                  </tr>
-                  {rows.map((r, i) => (
-                    <tr key={r.id} className="border-t border-[#f3f5f7]">
-                      <td className="border border-[#e8ebee] px-2 py-2.5 text-right align-top text-[11px] text-[#a3a3a3]">{i + 1}</td>
-                      <td className="border border-[#e8ebee] px-2 py-1.5 text-left align-top">
-                        <EvidenceStepInput row={r} onSave={(step) => save([{ id: r.id, kind, [idField]: item.id, step }])} />
-                      </td>
-                      <td className="border border-[#e8ebee] px-2 py-1.5 text-left align-top">
-                        <ValueCell valueKind="TEXT" current={r} onSave={(patch) => save([{ id: r.id, kind, [idField]: item.id, ...patch }])} />
-                      </td>
-                      <td className="border border-[#e8ebee] px-2 py-2.5 align-top text-center">
-                        <button
-                          className="text-[#dc2626] hover:text-[#b91c1c]"
-                          onClick={() => api.delete(`${base}/${scope}/${r.id}`).then(refetch)}
-                        >
-                          ✕
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  <tr className="border-t border-[#f3f5f7]">
-                    <td colSpan={4} className="border border-[#e8ebee] px-3 py-2">
-                      <button
-                        className="text-[11.5px] text-[#1d4ed8] hover:underline"
-                        onClick={async () => {
-                          const step = await dialogs.prompt({ title: `Add ${kind === 'CHECKLIST' ? 'checklist' : 'testing'} step`, label: 'Step' });
-                          if (step?.trim()) await save([{ kind, [idField]: item.id, step: step.trim() }]);
-                        }}
-                      >
-                        + Add {kind === 'CHECKLIST' ? 'checklist' : 'testing'} step
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            );
-          })}
+          {(['CHECKLIST', 'TEST'] as const).map((kind) => (
+            <TiedStepsTable
+              key={kind}
+              kind={kind}
+              rows={kind === 'CHECKLIST' ? item.checklist : item.testing}
+              itemId={item.id}
+              idField={idField}
+              scope={scope}
+              base={base}
+              save={save}
+              refetch={refetch}
+            />
+          ))}
         </div>
       ))}
     </div>
+  );
+}
+
+function TiedStepsTable({ kind, rows, itemId, idField, scope, base, save, refetch }: {
+  kind: 'CHECKLIST' | 'TEST';
+  rows: EvidenceRow[];
+  itemId: string;
+  idField: string;
+  scope: 'standard' | 'regulation';
+  base: string;
+  save: (rows: Record<string, unknown>[]) => Promise<unknown>;
+  refetch: () => void;
+}) {
+  const dialogs = useDialogs();
+  const [ordered, setOrdered] = useState<EvidenceRow[]>(rows);
+  useEffect(() => { setOrdered(rows); }, [rows]);
+  const sort = useSortable(ordered.length, (from, to) => {
+    const next = moveItem(ordered, from, to);
+    setOrdered(next);
+    save(next.map((r, i) => ({ id: r.id, kind, [idField]: itemId, sortOrder: i })));
+  });
+  return (
+    <table className="w-full table-fixed border-collapse text-[12.5px]">
+      <colgroup><col style={{ width: 36 }} /><col style={{ width: '38%' }} /><col /><col style={{ width: 40 }} /></colgroup>
+      <tbody>
+        <tr>
+          <td colSpan={4} className="border border-[#e8ebee] bg-[#fafbfc] px-3 py-1.5 text-left text-[10.5px] font-medium text-[#8a94a0]">
+            {kind === 'CHECKLIST' ? 'Checklist' : 'Testing'}
+          </td>
+        </tr>
+        {ordered.map((r, i) => {
+          return (
+          <tr key={r.id} className="border-t border-[#f3f5f7]" style={sort.rowStyle(i)}>
+            <td className="border border-[#e8ebee] px-2 py-2.5 text-right align-top text-[11px] text-[#a3a3a3] whitespace-nowrap"><DragHandle {...sort.handleProps(i)} />{i + 1}</td>
+            <td className="border border-[#e8ebee] px-2 py-1.5 text-left align-top">
+              <EvidenceStepInput row={r} onSave={(step) => save([{ id: r.id, kind, [idField]: itemId, step }])} />
+            </td>
+            <td className="border border-[#e8ebee] px-2 py-1.5 text-left align-top">
+              <ValueCell valueKind="TEXT" current={r} onSave={(patch) => save([{ id: r.id, kind, [idField]: itemId, ...patch }])} />
+            </td>
+            <td className="border border-[#e8ebee] px-2 py-2.5 align-top text-center">
+              <button
+                className="text-[#dc2626] hover:text-[#b91c1c]"
+                onClick={() => api.delete(`${base}/${scope}/${r.id}`).then(refetch)}
+              >
+                ✕
+              </button>
+            </td>
+          </tr>
+          );
+        })}
+        <tr className="border-t border-[#f3f5f7]">
+          <td colSpan={4} className="border border-[#e8ebee] px-3 py-2">
+            <button
+              className="text-[11.5px] text-[#1d4ed8] hover:underline"
+              onClick={async () => {
+                const step = await dialogs.prompt({ title: `Add ${kind === 'CHECKLIST' ? 'checklist' : 'testing'} step`, label: 'Step' });
+                if (step?.trim()) await save([{ kind, [idField]: itemId, step: step.trim() }]);
+              }}
+            >
+              + Add {kind === 'CHECKLIST' ? 'checklist' : 'testing'} step
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   );
 }
 
@@ -516,6 +625,15 @@ function TemplatesEditor({ templates, refetch, isAdmin }: { templates: Template[
   const selected = templates.find((t) => t.id === selectedId) ?? templates[0] ?? null;
   const [name, setName] = useState(selected?.name ?? '');
   useEffect(() => { setName(selected?.name ?? ''); }, [selected?.id, selected?.name]);
+  // Drag-reorder the generic keys — the new order propagates to every plan.
+  const [orderedKeys, setOrderedKeys] = useState<TemplateKey[]>(selected?.keys ?? []);
+  useEffect(() => { setOrderedKeys(selected?.keys ?? []); }, [selected?.id, selected?.keys]);
+  const sort = useSortable(orderedKeys.length, (from, to) => {
+    if (!selected) return;
+    const next = moveItem(orderedKeys, from, to);
+    setOrderedKeys(next);
+    api.put(`/work-library/templates/${selected.id}/keys/order`, { keyIds: next.map((k) => k.id) }).then(refetch);
+  });
 
   if (!isAdmin) return <div className="p-6 text-[13px] text-[#6b7785]">Template editing requires the ADMIN role.</div>;
 
@@ -595,8 +713,8 @@ function TemplatesEditor({ templates, refetch, isAdmin }: { templates: Template[
                 </tr>
               </thead>
               <tbody>
-                {selected.keys.map((k, i) => (
-                  <TemplateKeyRow key={k.id} k={k} index={i} refetch={refetch} />
+                {orderedKeys.map((k, i) => (
+                  <TemplateKeyRow key={k.id} k={k} index={i} refetch={refetch} rowStyle={sort.rowStyle(i)} handleProps={sort.handleProps(i)} />
                 ))}
                 <tr>
                   <td colSpan={4} className="border border-[#e8ebee] px-2 py-2">
@@ -623,13 +741,17 @@ function TemplatesEditor({ templates, refetch, isAdmin }: { templates: Template[
   );
 }
 
-function TemplateKeyRow({ k, index, refetch }: { k: TemplateKey; index: number; refetch: () => void }) {
+function TemplateKeyRow({ k, index, refetch, rowStyle, handleProps }: {
+  k: TemplateKey; index: number; refetch: () => void;
+  rowStyle: React.CSSProperties;
+  handleProps: React.HTMLAttributes<HTMLSpanElement>;
+}) {
   const dialogs = useDialogs();
   const [text, setText] = useState(k.key);
   useEffect(() => { setText(k.key); }, [k.key]);
   return (
-    <tr className="border-t border-[#eef1f4]">
-      <td className="border border-[#e8ebee] px-2 py-2 text-right text-[11px] text-[#a3a3a3] align-middle">{index + 1}</td>
+    <tr className="border-t border-[#eef1f4]" style={rowStyle}>
+      <td className="border border-[#e8ebee] px-2 py-2 text-right text-[11px] text-[#a3a3a3] align-middle whitespace-nowrap"><DragHandle {...handleProps} />{index + 1}</td>
       <td className="border border-[#e8ebee] px-2 py-1.5 text-left">
         <input
           className="w-full rounded-md border border-[#e2e6ea] px-2 py-1.5 text-[12.5px] focus:border-[#7aa7d9] focus:outline-none"
