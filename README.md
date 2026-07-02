@@ -141,9 +141,7 @@ Promotion flow (git flow mirrored by Neon DB branches):
    the production URL.
 
 **Schema promotes automatically on every merge** (committed migrations replayed by the
-`migrate` stage). **Datasets promote only when you say so** — put the literal marker
-`[promote-data]` in the merge commit message (edit the commit title in GitHub's merge
-dialog, or from the CLI):
+`migrate` stage). **Datasets promote only when you say so** — end the merge commit **title** with the literal marker `[promote-data]` (edit the title in GitHub's merge dialog, or from the CLI) — mid-sentence mentions do not trigger it:
 
 ```bash
 # feature → develop, promoting the feature's Neon dataset over develop's:

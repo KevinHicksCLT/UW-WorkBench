@@ -27,8 +27,12 @@ const REF = process.env.GITHUB_REF_NAME ?? '';
 const MSG = process.env.COMMIT_MESSAGE ?? '';
 const SHA = (process.env.COMMIT_SHA ?? 'manual').slice(0, 7);
 
-if (!MSG.includes('[promote-data]')) {
-  console.log('No [promote-data] marker in the commit message — data promotion skipped.');
+// The marker must TERMINATE the merge title (first line). A title that merely
+// mentions the marker mid-sentence (e.g. a PR about this feature) must not
+// trigger a promotion — that exact accident re-parented develop once.
+const title = MSG.split('\n', 1)[0].trim();
+if (!/\[promote-data\]$/.test(title)) {
+  console.log('Merge title does not END with [promote-data] — data promotion skipped.');
   process.exit(0);
 }
 if (!KEY || !PROJECT) {
@@ -86,3 +90,17 @@ const result = await api(`/projects/${PROJECT}/branches/${target.id}/restore`, {
 });
 console.log(`Restore accepted. Previous ${targetName} state preserved as "${backupName}".`);
 console.log(JSON.stringify(result.branch ? { restored: result.branch.name, backup: backupName } : result));
+
+// ── Backup rotation: keep exactly ONE backup per target ──
+// The new backup above is the safety net for THIS promotion; older
+// backup/<target>-* branches are now superseded and pruned. A prune failure
+// (e.g. lineage children) must not fail the promotion — warn and continue.
+const stale = branches.filter((b) => b.name.startsWith(`backup/${targetName}-`) && b.name !== backupName);
+for (const b of stale) {
+  try {
+    await api(`/projects/${PROJECT}/branches/${b.id}`, { method: 'DELETE' });
+    console.log(`Pruned superseded backup "${b.name}" (${b.id}).`);
+  } catch (err) {
+    console.warn(`Could not prune old backup "${b.name}": ${err.message} — leaving it in place.`);
+  }
+}

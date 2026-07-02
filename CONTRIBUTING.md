@@ -28,8 +28,7 @@ cascade-backend`), applied to your feature DB branch as you develop.
 3. Merge `develop` → `master`: same flow against the Neon `production` branch.
 
 **Whole-DATASET promotions** (reseeds, bulk enrichment — when the feature's _data_ is
-the deliverable, not just its schema): put the literal marker **`[promote-data]`** in
-the merge commit message. The pipeline's `data-promote` stage then performs a Neon
+the deliverable, not just its schema): END the merge commit **title** with **`[promote-data]`** (mid-sentence mentions do not trigger). The pipeline's `data-promote` stage then performs a Neon
 branch restore _before_ migrating — merge → develop copies the feature's same-name
 Neon branch over `develop`; merge → master copies `develop` over `production`. The
 target's prior state is automatically preserved as `backup/<target>-<sha>` (restorable
