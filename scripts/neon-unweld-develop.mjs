@@ -44,7 +44,14 @@ const production = byName.get('production');
 const develop = byName.get('develop');
 const welded = branches.filter((b) => b.name === 'pipeline-fix' || b.name.startsWith('backup/develop-'));
 if (!production || !develop) throw new Error('production/develop branch not found');
-if (byName.get('develop-new')) throw new Error('develop-new already exists — clean up a previous attempt first');
+// A develop-new left by a previous failed attempt is scratch by definition —
+// replace it so the repair is rerunnable.
+const leftover = byName.get('develop-new');
+if (leftover) {
+  await api(`/projects/${PROJECT}/branches/${leftover.id}`, { method: 'DELETE' });
+  console.log(`Deleted scratch develop-new from a previous attempt (${leftover.id}).`);
+  await new Promise((r) => setTimeout(r, 5000));
+}
 
 // ── 1. Fresh branch under production ──
 const created = await api(`/projects/${PROJECT}/branches`, {
@@ -69,22 +76,33 @@ for (let i = 0; ; i++) {
 // ── 2. Logical copy ──
 console.log('Dumping develop…');
 run('pg_dump', ['--format=custom', '--no-owner', '--no-privileges', '--file=develop.dump', SOURCE_URL]);
-console.log('Resetting develop-new schema…');
-run('psql', [targetUrl, '-v', 'ON_ERROR_STOP=1', '-c', 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;']);
+console.log('Resetting develop-new schemas…');
+// Drop EVERY user schema (public + legacy operating_model + any future ones)
+// so the restore lands on a truly empty database — a partial reset leaves
+// "already exists" collisions from the branch fork.
+const RESET_SQL = `
+  DO $$ DECLARE s text; BEGIN
+    FOR s IN SELECT schema_name FROM information_schema.schemata
+             WHERE schema_name NOT IN ('information_schema') AND schema_name NOT LIKE 'pg\\_%'
+    LOOP EXECUTE format('DROP SCHEMA %I CASCADE', s); END LOOP;
+  END $$;
+  CREATE SCHEMA public;`;
+run('psql', [targetUrl, '-v', 'ON_ERROR_STOP=1', '-c', RESET_SQL]);
 console.log('Restoring into develop-new…');
 run('pg_restore', ['--no-owner', '--no-privileges', '--dbname=' + targetUrl, 'develop.dump']);
 
 // ── 3. Verify EVERY table's row count before touching anything ──
 // Exact per-table counts (pg_stat estimates lag right after a restore).
 const exactSql = `
-  SELECT string_agg(table_name || '=' || cnt, ',' ORDER BY table_name)
+  SELECT string_agg(table_schema || '.' || table_name || '=' || cnt, ',' ORDER BY table_schema, table_name)
   FROM (
-    SELECT table_name,
+    SELECT table_schema, table_name,
            (xpath('/row/cnt/text()',
                   query_to_xml(format('SELECT count(*) AS cnt FROM %I.%I', table_schema, table_name),
                                false, true, '')))[1]::text AS cnt
     FROM information_schema.tables
-    WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+    WHERE table_schema NOT IN ('information_schema') AND table_schema NOT LIKE 'pg\\_%'
+      AND table_type = 'BASE TABLE'
   ) counts`;
 const src = capture('psql', [SOURCE_URL, '-tAc', exactSql]).trim();
 const dst = capture('psql', [targetUrl, '-tAc', exactSql]).trim();

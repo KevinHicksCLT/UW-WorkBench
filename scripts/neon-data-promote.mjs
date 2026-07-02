@@ -119,8 +119,18 @@ const run = (cmd, args, opts = {}) =>
 console.log('Dumping source…');
 run('pg_dump', ['--format=custom', '--no-owner', '--no-privileges', '--file=promote.dump', sourceUrl]);
 
-console.log('Resetting target schema…');
-run('psql', [targetUrl, '-v', 'ON_ERROR_STOP=1', '-c', 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;']);
+console.log('Resetting target schemas…');
+// Drop EVERY user schema (public + legacy operating_model + any future ones)
+// so the restore lands on an empty database — a partial reset collides with
+// objects the dump also carries ("already exists", pg_restore exit 1).
+const RESET_SQL = `
+  DO $$ DECLARE s text; BEGIN
+    FOR s IN SELECT schema_name FROM information_schema.schemata
+             WHERE schema_name NOT IN ('information_schema') AND schema_name NOT LIKE 'pg\\_%'
+    LOOP EXECUTE format('DROP SCHEMA %I CASCADE', s); END LOOP;
+  END $$;
+  CREATE SCHEMA public;`;
+run('psql', [targetUrl, '-v', 'ON_ERROR_STOP=1', '-c', RESET_SQL]);
 
 console.log('Restoring into target…');
 run('pg_restore', ['--no-owner', '--no-privileges', '--dbname=' + targetUrl, 'promote.dump']);
