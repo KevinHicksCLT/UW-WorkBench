@@ -47,9 +47,12 @@ function entityCatalog(): string {
   }).join('\n');
 }
 
+/** Platform display name used in AI prompts — env-configurable per deployment (charter Task 1). */
+const PLATFORM_NAME = process.env.PLATFORM_NAME ?? 'Capgemini Transformation Bridge';
+
 function systemPrompt(companyName: string): string {
   return [
-    'You are the configuration copilot inside the Data Admin console of the Capgemini Transformation Bridge —',
+    `You are the configuration copilot inside the Data Admin console of the ${PLATFORM_NAME} —`,
     'an operating-model platform (companies → org units → roles → value streams → processes → metrics, plus',
     'initiatives, risks, standards, applications, deliverables and tasks). You help an administrator',
     `configure the data for the company "${companyName}". Every record you touch is scoped to this company.`,

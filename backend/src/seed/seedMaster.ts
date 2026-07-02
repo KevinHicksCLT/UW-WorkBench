@@ -324,7 +324,9 @@ async function main() {
     // Greenfield single-company rebuild: drop the company's graph (FK-cascades) and rebuild.
     await prisma.company.deleteMany({ where: { tenantId: tenant.id } });
     const company = await prisma.company.create({
-      data: { tenantId: tenant.id, name: m.company.displayValue, slug: 'abc-insurance', dbValue: m.company.dbValue, displayValue: m.company.displayValue },
+      // Slug is seed-time configuration (charter Task 1): override per company
+      // via SEED_COMPANY_SLUG; default preserves the demo company.
+      data: { tenantId: tenant.id, name: m.company.displayValue, slug: process.env.SEED_COMPANY_SLUG ?? 'abc-insurance', dbValue: m.company.dbValue, displayValue: m.company.displayValue },
     });
 
     await seedMaster(prisma, { tenantId: tenant.id, companyId: company.id });
