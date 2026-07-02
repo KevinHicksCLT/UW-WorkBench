@@ -1,45 +1,74 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { api } from '../../lib/api';
 import { useHeaderBreadcrumbSlot } from '../../lib/breadcrumbs';
 import OrgListExplorer from '../../components/OrgListExplorer';
 import OrgMapCanvas from '../../viz/org-map/OrgMapCanvas';
 import OrgTable from '../org-table/OrgTable';
 import RoleDrawer from '../../components/RoleDrawer';
+import { TocView, ViewPills, type TocRow } from '../../components/TocView';
+import { ErrorMessage, LoadingState } from '../../components/ui';
 
 // Organization tab — mirrors the Value Streams tab: a floating segmented control
-// toggles between two views of the SAME org spine:
-//   List — Excel-like drill-down grid (Domain › Division › Department › Role)
-//          with the shared metrics sidebar.
+// toggles views of the SAME org spine:
+//   TOC  — (default) table of contents: one row per division with its role
+//          count and segment; click through to the division detail.
 //   Map  — a literal spatial drill-down map (OrgMapCanvas, react-flow), like the
 //          Value Streams map: Company → Segment → Division → Team → Role.
-// A third, toggle-less surface — 'detail' — renders the old OrgTable drill-down
+//   List — Excel-like drill-down grid (Domain › Division › Department › Role)
+//          with the shared metrics sidebar.
+// A fourth, toggle-less surface — 'detail' — renders the old OrgTable drill-down
 // for the `?view=departments` deep link (the departments overview only exists
 // there). `?role=<id>` deep links land on the LIST view with the role's full
 // detail drawer open (the standalone role page was retired into RoleDrawer).
-type View = 'list' | 'map' | 'detail';
+type View = 'toc' | 'list' | 'map' | 'detail';
 
-// Floating segmented control — hovers over the content; List ↔ Map.
-function ViewToggle({ view, onChange }: { view: View; onChange: (v: View) => void }) {
-  const btn = (active: boolean) =>
-    'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors duration-150 ' +
-    (active ? 'bg-[#171717] text-white' : 'text-[#525252] hover:text-[#171717]');
+// TOC rows — one per ORG division (OrgUnit L2), from the org-table bootstrap:
+// real division ids (what /divisions/:id expects), role counts homed in the
+// division + its departments, and the parent segment. (/explorer/overview is
+// the VALUE-STREAM map bootstrap — its "divisions" are process L2 nodes.)
+function OrgToc({ leading }: { leading?: React.ReactNode }) {
+  const navigate = useNavigate();
+  const [rows, setRows] = useState<TocRow[] | null>(null);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    api
+      .get<{
+        segments: {
+          divisions: { id: string; name: string; segment: string; roleCount: number }[];
+        }[];
+      }>('/explorer/org-table')
+      .then((t) => {
+        setRows(
+          t.segments
+            .flatMap((s) => s.divisions)
+            .filter((d) => d.id !== '__unassigned') // pseudo-bucket, not a navigable division
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((d) => ({
+              id: d.id,
+              name: d.name,
+              count: d.roleCount,
+              extra: d.segment,
+              onClick: () => navigate(`/divisions/${d.id}`),
+            })),
+        );
+      })
+      .catch((e) => setError(e.message ?? 'Failed to load'));
+  }, [navigate]);
+
+  if (error) return <ErrorMessage>{error}</ErrorMessage>;
+  if (!rows) return <LoadingState message="Loading organization…" className="animate-pulse" />;
   return (
-    <div className="absolute top-3 left-4 z-20">
-      <div className="inline-flex items-center gap-0.5 rounded-full border border-[#eaeaea] bg-white/90 backdrop-blur p-0.5 shadow-sm" role="tablist" aria-label="View mode">
-        <button type="button" role="tab" aria-selected={view === 'list'} className={btn(view === 'list')} onClick={() => onChange('list')}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
-          </svg>
-          List
-        </button>
-        <button type="button" role="tab" aria-selected={view === 'map'} className={btn(view === 'map')} onClick={() => onChange('map')}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M9 3L3 6v15l6-3 6 3 6-3V3l-6 3-6-3zM9 3v15M15 6v15" />
-          </svg>
-          Map
-        </button>
-      </div>
-    </div>
+    <TocView
+      rows={rows}
+      nameLabel="Division"
+      countLabel="Roles"
+      extraLabel="Segment"
+      unit="divisions"
+      searchPlaceholder="Search division, segment…"
+      leading={leading}
+      totals={`${rows.length} divisions · ${rows.reduce((a, r) => a + r.count, 0)} roles`}
+    />
   );
 }
 
@@ -52,13 +81,20 @@ export default function Organization() {
   // stays exactly where they drilled to, in map or list. The param is consumed
   // and cleared here so re-clicking the same link re-opens the drawer.
   const [searchParams, setSearchParams] = useSearchParams();
-  const [view, setView] = useState<View>(searchParams.get('view') === 'departments' ? 'detail' : 'list');
+  const [view, setView] = useState<View>(() =>
+    searchParams.get('view') === 'departments'
+      ? 'detail'
+      : searchParams.get('role')
+        ? 'list'
+        : 'toc',
+  );
   const [roleDrawerId, setRoleDrawerId] = useState<string | null>(searchParams.get('role'));
   useEffect(() => {
     if (searchParams.get('view') === 'departments') setView('detail');
     const role = searchParams.get('role');
     if (role) {
       setRoleDrawerId(role);
+      setView('list');
       const next = new URLSearchParams(searchParams);
       next.delete('role');
       setSearchParams(next, { replace: true });
@@ -69,12 +105,30 @@ export default function Organization() {
   // BreadcrumbBar) and OrgMapCanvas portals into it — no in-page header strip.
   const crumbSlot = useHeaderBreadcrumbSlot(view === 'map');
 
+  const pillOptions = [
+    { key: 'toc' as const, label: 'TOC' },
+    { key: 'map' as const, label: 'Map' },
+    { key: 'list' as const, label: 'List' },
+  ];
+
   return (
     <div className="flex flex-col h-full min-h-0">
       <div className="relative flex-1 min-h-0 overflow-hidden">
-        <ViewToggle view={view} onChange={setView} />
+        {/* TOC hosts the pills inline in its header strip; the full-bleed
+            surfaces (map/list/detail) get the floating toggle. */}
+        {view !== 'toc' && (
+          <ViewPills floating options={pillOptions} view={view} onChange={setView} />
+        )}
 
-        {view === 'list' ? (
+        {view === 'toc' ? (
+          <div className="h-full overflow-auto">
+            <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-6">
+              <OrgToc
+                leading={<ViewPills options={pillOptions} view={view} onChange={setView} />}
+              />
+            </div>
+          </div>
+        ) : view === 'list' ? (
           <OrgListExplorer focusRoleId={roleDrawerId} />
         ) : view === 'map' ? (
           // Map view: a literal drill-down map of the org spine, full-bleed.
