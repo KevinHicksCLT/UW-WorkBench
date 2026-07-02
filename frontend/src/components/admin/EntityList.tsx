@@ -43,7 +43,19 @@ function withCompany(path: string, companyId: string | null) {
 const TYPED_CONFIRM_DELETE = new Set(['company']);
 
 export default function EntityList({
-  entity, companyId, title, newLabel, fixed, filter, selectable, selectedId, onSelect, onChanged, emptyHint, dense, bodyMaxHeight,
+  entity,
+  companyId,
+  title,
+  newLabel,
+  fixed,
+  filter,
+  selectable,
+  selectedId,
+  onSelect,
+  onChanged,
+  emptyHint,
+  dense,
+  bodyMaxHeight,
 }: Props) {
   const dialogs = useDialogs();
   const [list, setList] = useState<ListResponse | null>(null);
@@ -60,18 +72,33 @@ export default function EntityList({
 
   // `fixed` values double as server-side exact-match filters.
   const fixedQs = fixed
-    ? Object.entries(fixed).map(([k, v]) => `&f_${k}=${encodeURIComponent(String(v))}`).join('')
+    ? Object.entries(fixed)
+        .map(([k, v]) => `&f_${k}=${encodeURIComponent(String(v))}`)
+        .join('')
     : '';
 
   const load = (q: string) => {
-    setLoading(true); setError('');
-    api.get<ListResponse>(withCompany(`/admin/${entity.slug}?limit=200${fixedQs}${q ? `&search=${encodeURIComponent(q)}` : ''}`, companyId))
+    setLoading(true);
+    setError('');
+    api
+      .get<ListResponse>(
+        withCompany(
+          `/admin/${entity.slug}?limit=200${fixedQs}${q ? `&search=${encodeURIComponent(q)}` : ''}`,
+          companyId,
+        ),
+      )
       .then(setList)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   };
-  useEffect(() => { setSearch(''); load(''); }, [entity.slug, companyId, fixedQs]);
-  useEffect(() => { const t = setTimeout(() => load(search), 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => {
+    setSearch('');
+    load('');
+  }, [entity.slug, companyId, fixedQs]);
+  useEffect(() => {
+    const t = setTimeout(() => load(search), 250);
+    return () => clearTimeout(t);
+  }, [search]);
 
   const rows = useMemo(() => {
     const all = (list?.rows ?? []) as AdminRow[];
@@ -79,19 +106,32 @@ export default function EntityList({
     if (!sort) return filtered;
     const { col, dir } = sort;
     return [...filtered].sort((a, b) => {
-      const av = a[col], bv = b[col];
+      const av = a[col],
+        bv = b[col];
       if (av == null && bv == null) return 0;
       if (av == null) return 1;
       if (bv == null) return -1;
       if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir;
-      return String(av).localeCompare(String(bv), undefined, { numeric: true, sensitivity: 'base' }) * dir;
+      return (
+        String(av).localeCompare(String(bv), undefined, { numeric: true, sensitivity: 'base' }) *
+        dir
+      );
     });
   }, [list, filter, sort]);
 
-  const onSaved = () => { setEditing(null); load(search); onChanged?.(); };
+  const onSaved = () => {
+    setEditing(null);
+    load(search);
+    onChanged?.();
+  };
   const doDelete = async (row: AdminRow) => {
-    try { await api.delete(withCompany(`/admin/${entity.slug}/${row.id}`, companyId)); load(search); onChanged?.(); }
-    catch (e) { dialogs.alert({ title: 'Delete failed', message: (e as Error).message }); }
+    try {
+      await api.delete(withCompany(`/admin/${entity.slug}/${row.id}`, companyId));
+      load(search);
+      onChanged?.();
+    } catch (e) {
+      dialogs.alert({ title: 'Delete failed', message: (e as Error).message });
+    }
   };
   const remove = async (row: AdminRow) => {
     const name = String(row[entity.labelField] ?? row.id);
@@ -103,10 +143,11 @@ export default function EntityList({
           confirmLabel: 'Delete permanently',
           message: (
             <>
-              This permanently deletes <span className="font-medium text-[#171717]">{name}</span> and{' '}
-              <span className="font-medium">all of its data</span> — divisions, departments, roles, value
-              streams, applications, initiatives, deliverables, tasks, and everything else scoped to it. This cascades
-              and <span className="font-medium">cannot be undone</span>.
+              This permanently deletes <span className="font-medium text-[#171717]">{name}</span>{' '}
+              and <span className="font-medium">all of its data</span> — divisions, departments,
+              roles, value streams, applications, initiatives, deliverables, tasks, and everything
+              else scoped to it. This cascades and{' '}
+              <span className="font-medium">cannot be undone</span>.
             </>
           ),
         })
@@ -115,7 +156,8 @@ export default function EntityList({
           danger: true,
           message: (
             <>
-              <span className="font-medium text-[#171717]">{name}</span> will be deleted. This cannot be undone.
+              <span className="font-medium text-[#171717]">{name}</span> will be deleted. This
+              cannot be undone.
             </>
           ),
         });
@@ -139,19 +181,30 @@ export default function EntityList({
       {error && <ErrorMessage className="mb-3">{error}</ErrorMessage>}
 
       <Card variant="elevated" className="overflow-hidden">
-        <div className="table-scroll" style={bodyMaxHeight ? { maxHeight: bodyMaxHeight, overflowY: 'auto' } : undefined}>
+        <div
+          className="table-scroll"
+          style={bodyMaxHeight ? { maxHeight: bodyMaxHeight, overflowY: 'auto' } : undefined}
+        >
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[#eaeaea] text-left">
                 {columns.map((c) => (
-                  <th key={c.name} className={`px-3 ${dense ? 'py-1.5' : 'py-2'} font-medium text-[#666666] whitespace-nowrap`}>
+                  <th
+                    key={c.name}
+                    className={`px-3 ${dense ? 'py-1.5' : 'py-2'} font-medium text-[#666666] whitespace-nowrap${c.kind !== 'string' ? ' text-center' : ''}`}
+                  >
                     <button
                       onClick={() => toggleSort(c.name)}
                       className="inline-flex items-center gap-1 hover:text-[#171717]"
                       title={`Sort by ${fieldLabel(entity.slug, c.name)}`}
                     >
                       {fieldLabel(entity.slug, c.name)}
-                      <span className={'text-[10px] ' + (sort?.col === c.name ? 'text-[#171717]' : 'text-[#d4d4d4]')}>
+                      <span
+                        className={
+                          'text-[10px] ' +
+                          (sort?.col === c.name ? 'text-[#171717]' : 'text-[#d4d4d4]')
+                        }
+                      >
                         {sort?.col === c.name ? (sort.dir === 1 ? '▲' : '▼') : '↕'}
                       </span>
                     </button>
@@ -162,9 +215,20 @@ export default function EntityList({
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={columns.length + 1} className="px-3 py-8 text-center text-[#a3a3a3]">Loading…</td></tr>
+                <tr>
+                  <td colSpan={columns.length + 1} className="px-3 py-8 text-center text-[#a3a3a3]">
+                    Loading…
+                  </td>
+                </tr>
               ) : rows.length === 0 ? (
-                <tr><td colSpan={columns.length + 1} className="px-3 py-8 text-center text-[#a3a3a3] italic">{emptyHint ?? 'No records.'}</td></tr>
+                <tr>
+                  <td
+                    colSpan={columns.length + 1}
+                    className="px-3 py-8 text-center text-[#a3a3a3] italic"
+                  >
+                    {emptyHint ?? 'No records.'}
+                  </td>
+                </tr>
               ) : (
                 rows.map((row) => (
                   <tr
@@ -173,15 +237,38 @@ export default function EntityList({
                     className={
                       'border-b border-[#f5f5f5] last:border-0 ' +
                       (selectable ? 'cursor-pointer ' : '') +
-                      (selectedId === row.id ? 'bg-[#eef6fb] hover:bg-[#e3f0f9]' : 'hover:bg-[#fafafa]')
+                      (selectedId === row.id
+                        ? 'bg-[#eef6fb] hover:bg-[#e3f0f9]'
+                        : 'hover:bg-[#fafafa]')
                     }
                   >
                     {columns.map((c) => (
-                      <td key={c.name} className={`px-3 ${dense ? 'py-1.5' : 'py-2'} text-[#171717] align-top`}>{cellText(c, row[c.name])}</td>
+                      <td
+                        key={c.name}
+                        className={`px-3 ${dense ? 'py-1.5' : 'py-2'} text-[#171717] align-top${c.kind !== 'string' ? ' text-center' : ''}`}
+                      >
+                        {cellText(c, row[c.name])}
+                      </td>
                     ))}
                     <td className="px-3 py-2 text-right whitespace-nowrap">
-                      <button onClick={(e) => { e.stopPropagation(); setEditing(row); }} className="text-[#525252] hover:text-[#171717] text-xs font-medium">Edit</button>
-                      <button onClick={(e) => { e.stopPropagation(); void remove(row); }} className="ml-3 text-[#be123c] hover:text-[#9f1239] text-xs font-medium">Delete</button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditing(row);
+                        }}
+                        className="text-[#525252] hover:text-[#171717] text-xs font-medium"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void remove(row);
+                        }}
+                        className="ml-3 text-[#be123c] hover:text-[#9f1239] text-xs font-medium"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -201,7 +288,6 @@ export default function EntityList({
           onSaved={onSaved}
         />
       )}
-
     </div>
   );
 }

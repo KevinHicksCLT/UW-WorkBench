@@ -15,7 +15,9 @@ type UseCase = { title: string; persona: string; detail: string };
 type ModeStats = { rolesUsingPct: number; efficiencyGainPct: number };
 
 type AdoptionStream = {
-  id: string; name: string; domain: string | null;
+  id: string;
+  name: string;
+  domain: string | null;
   cells: number[]; // 0-4 level per mode, in MODES order
   useCases: Partial<Record<AiMode['key'], UseCase[]>> | null;
   stats: Partial<Record<AiMode['key'], ModeStats>> | null;
@@ -27,8 +29,10 @@ type LegacyStream = { id: string; name: string; roleIds: string[] };
 
 function Tile({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
   return (
-    <Card variant="elevated" className="p-4">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</div>
+    <Card variant="elevated" className="p-4 text-center">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">
+        {label}
+      </div>
       <div className="text-2xl font-semibold text-[#171717] mt-1 tnum">{value}</div>
       {hint && <div className="text-[11px] text-[#a3a3a3] mt-0.5">{hint}</div>}
     </Card>
@@ -49,7 +53,10 @@ export default function ActiveAIDetail() {
       api.get<{ valueStreams?: AdoptionStream[] }>('/explorer/value-stream-adoption'),
       api.get<{ valueStreams?: LegacyStream[] }>('/explorer/value-streams'),
     ])
-      .then(([a, v]) => { setStreams(a.valueStreams ?? []); setLegacy(v.valueStreams ?? []); })
+      .then(([a, v]) => {
+        setStreams(a.valueStreams ?? []);
+        setLegacy(v.valueStreams ?? []);
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [id]);
@@ -60,11 +67,11 @@ export default function ActiveAIDetail() {
     const byNode = streams.find((s) => s.id === id);
     if (byNode) return byNode;
     const old = legacy.find((s) => s.id === id);
-    return old ? streams.find((s) => s.name === old.name) ?? null : null;
+    return old ? (streams.find((s) => s.name === old.name) ?? null) : null;
   }, [streams, legacy, id]);
 
   const roleCount = useMemo(
-    () => (vs ? legacy.find((s) => s.name === vs.name)?.roleIds.length ?? 0 : 0),
+    () => (vs ? (legacy.find((s) => s.name === vs.name)?.roleIds.length ?? 0) : 0),
     [legacy, vs],
   );
 
@@ -80,7 +87,9 @@ export default function ActiveAIDetail() {
       const fallbackRoles = rolesUsing(level, roleCount);
       const rolesPct = s?.rolesUsingPct ?? fallbackRoles.pct;
       return {
-        mode, level, useCases: vs.useCases?.[mode.key] ?? [],
+        mode,
+        level,
+        useCases: vs.useCases?.[mode.key] ?? [],
         rolesPct,
         rolesCount: roleCount ? Math.round((rolesPct / 100) * roleCount) : fallbackRoles.count,
         effPct: s?.efficiencyGainPct ?? efficiencyGain(vs.name, mode.key, level),
@@ -97,7 +106,9 @@ export default function ActiveAIDetail() {
     const rolesUsingPct = N ? Math.round((100 * rolesUsingCount) / N) : 0;
     // Efficiency blended across active modes, weighted by how many roles use each.
     const wSum = active.reduce((s, r) => s + r.rolesCount, 0);
-    const avgEff = wSum ? Math.round(active.reduce((s, r) => s + r.effPct * r.rolesCount, 0) / wSum) : 0;
+    const avgEff = wSum
+      ? Math.round(active.reduce((s, r) => s + r.effPct * r.rolesCount, 0) / wSum)
+      : 0;
     const peak = [...modeRows].reverse().find((r) => r.level > 0)?.mode.label ?? 'None yet';
     const useCaseCount = active.reduce((s, r) => s + r.useCases.length, 0);
     return { N, rolesUsingCount, rolesUsingPct, avgEff, peak, useCaseCount };
@@ -109,7 +120,9 @@ export default function ActiveAIDetail() {
     return (
       <div>
         <PageHeader title="Value stream not found" />
-        <Link to="/metrics" className="text-sm text-[#4338ca] hover:underline">← Back to the AI heat map</Link>
+        <Link to="/metrics" className="text-sm text-[#4338ca] hover:underline">
+          ← Back to the AI heat map
+        </Link>
       </div>
     );
   }
@@ -120,13 +133,25 @@ export default function ActiveAIDetail() {
         eyebrow={vs.domain ?? undefined}
         title={vs.name}
         subtitle="How AI is applied in this value stream — role utilization, efficiency gain, and the use cases behind each mode."
-        actions={<Link to={`/overview?focus=${vs.id}`} className="btn-secondary">View in map →</Link>}
+        actions={
+          <Link to={`/overview?focus=${vs.id}`} className="btn-secondary">
+            View in map →
+          </Link>
+        }
       />
 
       {/* Headline */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <Tile label="Roles utilizing AI" value={`${summary.rolesUsingPct}%`} hint={`${summary.rolesUsingCount} of ${summary.N} ${summary.N === 1 ? 'role' : 'roles'}`} />
-        <Tile label="Avg efficiency gain" value={summary.avgEff ? `+${summary.avgEff}%` : '—'} hint="reported time saved" />
+        <Tile
+          label="Roles utilizing AI"
+          value={`${summary.rolesUsingPct}%`}
+          hint={`${summary.rolesUsingCount} of ${summary.N} ${summary.N === 1 ? 'role' : 'roles'}`}
+        />
+        <Tile
+          label="Avg efficiency gain"
+          value={summary.avgEff ? `+${summary.avgEff}%` : '—'}
+          hint="reported time saved"
+        />
         <Tile label="Active use cases" value={summary.useCaseCount} hint="across all modes" />
         <Tile label="Peak autonomy" value={summary.peak} hint="furthest mode in use" />
       </div>
@@ -137,7 +162,11 @@ export default function ActiveAIDetail() {
           const h = HEAT[r.level];
           const inactive = r.level === 0;
           return (
-            <Card key={r.mode.key} variant="elevated" className={'overflow-hidden ' + (inactive ? 'opacity-70' : '')}>
+            <Card
+              key={r.mode.key}
+              variant="elevated"
+              className={'overflow-hidden ' + (inactive ? 'opacity-70' : '')}
+            >
               <div className="px-5 py-3.5 border-b border-[#eaeaea] flex flex-wrap items-center gap-x-6 gap-y-3">
                 {/* Mode + level (the level chip carries the traffic-light colour) */}
                 <div className="flex items-center gap-2.5 min-w-[210px]">
@@ -148,8 +177,12 @@ export default function ActiveAIDetail() {
                     {h.short}
                   </span>
                   <div>
-                    <div className="text-sm font-semibold text-[#171717] leading-tight">{r.mode.label}</div>
-                    <div className="text-[11px] text-[#a3a3a3] leading-tight">{r.mode.short} · {h.name}</div>
+                    <div className="text-sm font-semibold text-[#171717] leading-tight">
+                      {r.mode.label}
+                    </div>
+                    <div className="text-[11px] text-[#a3a3a3] leading-tight">
+                      {r.mode.short} · {h.name}
+                    </div>
                   </div>
                 </div>
 
@@ -157,25 +190,42 @@ export default function ActiveAIDetail() {
                 <div className="flex-1 min-w-[180px]">
                   <div className="flex items-center justify-between text-[11px] mb-1">
                     <span className="text-[#666666]">Roles utilizing</span>
-                    <span className="tnum text-[#171717] font-medium">{r.rolesPct}% · {r.rolesCount}/{summary.N}</span>
+                    <span className="tnum text-[#171717] font-medium">
+                      {r.rolesPct}% · {r.rolesCount}/{summary.N}
+                    </span>
                   </div>
                   <div className="h-2 bg-[#f5f5f5] rounded overflow-hidden">
-                    <div className="h-full rounded" style={{ width: `${r.rolesPct}%`, backgroundColor: '#16a34a', minWidth: r.rolesPct ? 2 : 0 }} />
+                    <div
+                      className="h-full rounded"
+                      style={{
+                        width: `${r.rolesPct}%`,
+                        backgroundColor: '#16a34a',
+                        minWidth: r.rolesPct ? 2 : 0,
+                      }}
+                    />
                   </div>
                 </div>
 
                 {/* Efficiency gain */}
-                <div className="text-right min-w-[110px]">
+                <div className="text-center min-w-[110px]">
                   <div className="text-[11px] text-[#666666]">Efficiency gain</div>
-                  <div className="text-lg font-semibold tnum text-[#171717] leading-tight">{r.effPct ? `+${r.effPct}%` : '—'}</div>
+                  <div className="text-lg font-semibold tnum text-[#171717] leading-tight">
+                    {r.effPct ? `+${r.effPct}%` : '—'}
+                  </div>
                 </div>
               </div>
 
               {/* Use cases */}
               {inactive ? (
-                <EmptyState baseClassName="px-5 py-3 text-[13px] text-[#a3a3a3] italic" message="Not yet adopted in this value stream." />
+                <EmptyState
+                  baseClassName="px-5 py-3 text-[13px] text-[#a3a3a3] italic"
+                  message="Not yet adopted in this value stream."
+                />
               ) : r.useCases.length === 0 ? (
-                <EmptyState baseClassName="px-5 py-3 text-[13px] text-[#a3a3a3] italic" message="No use cases recorded yet — add them in Data Admin → Metrics → AI adoption." />
+                <EmptyState
+                  baseClassName="px-5 py-3 text-[13px] text-[#a3a3a3] italic"
+                  message="No use cases recorded yet — add them in Data Admin → Metrics → AI adoption."
+                />
               ) : (
                 <ul className="divide-y divide-[#f5f5f5]">
                   {r.useCases.map((u) => (
@@ -184,7 +234,9 @@ export default function ActiveAIDetail() {
                         <div className="text-sm font-medium text-[#171717]">{u.title}</div>
                         <div className="text-[11px] text-[#a3a3a3] mt-0.5">{u.persona}</div>
                       </div>
-                      <p className="text-[13px] text-[#525252] leading-relaxed min-w-0 flex-1">{u.detail}</p>
+                      <p className="text-[13px] text-[#525252] leading-relaxed min-w-0 flex-1">
+                        {u.detail}
+                      </p>
                     </li>
                   ))}
                 </ul>
@@ -195,7 +247,8 @@ export default function ActiveAIDetail() {
       </div>
 
       <p className="text-[11px] text-[#a3a3a3] mt-4 italic">
-        Adoption levels and use cases are read from the operating model and edited in Data Admin → Metrics → AI adoption.
+        Adoption levels and use cases are read from the operating model and edited in Data Admin →
+        Metrics → AI adoption.
       </p>
     </div>
   );

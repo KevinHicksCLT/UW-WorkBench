@@ -31,7 +31,11 @@ const isFieldChange = (v: unknown): v is FieldChange =>
 function DiffView({ raw }: { raw: string | null }) {
   if (!raw) return <span className="text-[#a3a3a3]">—</span>;
   let parsed: unknown;
-  try { parsed = JSON.parse(raw); } catch { return <code className="text-xs">{raw}</code>; }
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return <code className="text-xs">{raw}</code>;
+  }
 
   const entries = Object.entries(parsed as Record<string, unknown>);
   return (
@@ -65,13 +69,17 @@ export default function AuditTrail({ embedded }: { embedded?: boolean } = {}) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api.get<{ entities: AdminEntity[] }>('/admin/_meta').then((m) => setEntities(m.entities)).catch(() => {});
+    api
+      .get<{ entities: AdminEntity[] }>('/admin/_meta')
+      .then((m) => setEntities(m.entities))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
     setLoading(true);
     setError('');
-    api.get<Entry[]>(`/audit?limit=200${filter ? `&entityType=${encodeURIComponent(filter)}` : ''}`)
+    api
+      .get<Entry[]>(`/audit?limit=200${filter ? `&entityType=${encodeURIComponent(filter)}` : ''}`)
       .then(setEntries)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -81,7 +89,9 @@ export default function AuditTrail({ embedded }: { embedded?: boolean } = {}) {
     <Select className="max-w-[200px]" value={filter} onChange={(e) => setFilter(e.target.value)}>
       <option value="">All entity types</option>
       {entities.map((e) => (
-        <option key={e.slug} value={e.model}>{e.label}</option>
+        <option key={e.slug} value={e.model}>
+          {e.label}
+        </option>
       ))}
     </Select>
   );
@@ -105,8 +115,10 @@ export default function AuditTrail({ embedded }: { embedded?: boolean } = {}) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[#eaeaea] text-left">
-                <th className="px-3 py-2 font-medium text-[#666666] whitespace-nowrap">When</th>
-                <th className="px-3 py-2 font-medium text-[#666666]">Action</th>
+                <th className="px-3 py-2 font-medium text-[#666666] whitespace-nowrap text-center">
+                  When
+                </th>
+                <th className="px-3 py-2 font-medium text-[#666666] text-center">Action</th>
                 <th className="px-3 py-2 font-medium text-[#666666]">Entity</th>
                 <th className="px-3 py-2 font-medium text-[#666666]">Actor</th>
                 <th className="px-3 py-2 font-medium text-[#666666]">Change</th>
@@ -114,17 +126,31 @@ export default function AuditTrail({ embedded }: { embedded?: boolean } = {}) {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} className="px-3 py-8 text-center text-[#a3a3a3]">Loading…</td></tr>
+                <tr>
+                  <td colSpan={5} className="px-3 py-8 text-center text-[#a3a3a3]">
+                    Loading…
+                  </td>
+                </tr>
               ) : entries.length === 0 ? (
-                <tr><td colSpan={5} className="px-3 py-8 text-center text-[#a3a3a3] italic">No audit entries yet.</td></tr>
+                <tr>
+                  <td colSpan={5} className="px-3 py-8 text-center text-[#a3a3a3] italic">
+                    No audit entries yet.
+                  </td>
+                </tr>
               ) : (
                 entries.map((e) => (
                   <tr key={e.id} className="border-b border-[#f5f5f5] align-top">
-                    <td className="px-3 py-2 text-[#666666] whitespace-nowrap tnum">{new Date(e.createdAt).toLocaleString()}</td>
-                    <td className="px-3 py-2"><span className={actionPill[e.action] ?? 'pill-slate'}>{e.action}</span></td>
+                    <td className="px-3 py-2 text-[#666666] whitespace-nowrap tnum text-center">
+                      {new Date(e.createdAt).toLocaleString()}
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <span className={actionPill[e.action] ?? 'pill-slate'}>{e.action}</span>
+                    </td>
                     <td className="px-3 py-2 text-[#171717] whitespace-nowrap">{e.entityType}</td>
                     <td className="px-3 py-2 text-[#525252] whitespace-nowrap">{e.actorEmail}</td>
-                    <td className="px-3 py-2 max-w-md"><DiffView raw={e.diff} /></td>
+                    <td className="px-3 py-2 max-w-md">
+                      <DiffView raw={e.diff} />
+                    </td>
                   </tr>
                 ))
               )}
@@ -138,7 +164,9 @@ export default function AuditTrail({ embedded }: { embedded?: boolean } = {}) {
         {!embedded && (
           <>
             {' '}
-            <Link to="/admin" className="underline hover:text-[#171717]">Back to Data Admin</Link>
+            <Link to="/admin" className="underline hover:text-[#171717]">
+              Back to Data Admin
+            </Link>
           </>
         )}
       </p>

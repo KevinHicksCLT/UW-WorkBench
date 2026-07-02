@@ -516,12 +516,25 @@ erDiagram
     string name
     string status
   }
+  ProgramResource {
+    string status "per-program person finance profile; assignments join by name"
+    string id PK
+    string companyId FK
+    string programId FK
+    string name
+    string roleType "EMPLOYEE|CONTRACTOR"
+    float rate "monthly cost rate"
+    string rollOn
+    string rollOff
+    string monthAmounts "json { YYYY-MM: dollars } overrides"
+  }
   PortfolioInitiative {
     string status "stage-gate IDEA->...->COMPLETE; operating-model links = real FKs"
     string id PK
     string companyId FK
     string workstreamId FK
     string name
+    string charter "user-authored project charter (markdown)"
     string stage
     string valueStreamNodeId FK "-> ProcessNode (nullable)"
     string orgUnitId FK "-> OrgUnit (nullable)"
@@ -847,6 +860,7 @@ erDiagram
   %% portfolio SPM
   Company ||--o{ Program : "runs"
   Program ||--o{ Workstream : "groups"
+  Program ||--o{ ProgramResource : "staffs"
   Workstream ||--o{ PortfolioInitiative : "contains"
   ProcessNode |o--o{ PortfolioInitiative : "value-stream link"
   OrgUnit |o--o{ PortfolioInitiative : "division link"
@@ -939,6 +953,7 @@ erDiagram
   style AnalysisStatus fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
   style Program fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
   style Workstream fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
+  style ProgramResource fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
   style PortfolioInitiative fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
   style BenefitLine fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
   style CostLine fill:#E8F8F5,stroke:#16A085,stroke-width:2px,color:#0E6655
