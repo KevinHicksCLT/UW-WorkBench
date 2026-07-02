@@ -14,8 +14,6 @@ import { logAudit, computeDiff } from '../services/audit.js';
 const router = Router();
 router.use(requireAuth);
 
-const CAPDAN = ['Common', 'Different', 'Relocate', 'Eliminate'] as const;
-
 async function activeCompanyId(req: Request, res: Response): Promise<string | null> {
   const requested = typeof req.query.companyId === 'string' ? req.query.companyId : '';
   const company = await prisma.company.findFirst({

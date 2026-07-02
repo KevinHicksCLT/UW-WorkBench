@@ -1,0 +1,1483 @@
+[
+ {
+  "id": "7641e222-e26b-4e97-ba08-9620861ecf97",
+  "name": "Implement pipeline retry and failure-recovery handlers",
+  "description": "Implement retry logic, circuit breakers, alerting, and failure-recovery/notification handlers. Done when handlers are in place.",
+  "l4": "Pipeline Orchestration & Scheduling",
+  "roles": [
+   {
+    "id": "6abae0f4-5f21-4ac1-938d-5c925c925a7a",
+    "name": "Software Engineer",
+    "relation": "Owner"
+   },
+   {
+    "id": "9852dff3-1006-4d69-bf4f-f5cc2e846b2d",
+    "name": "Backend Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0rr03xzmbk8y0ixhqye",
+    "name": "UI Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0ro03tmmbk8ggz2wirh",
+    "name": "Data Engineer",
+    "relation": "Participant"
+   },
+   {
+    "id": "e3f0dab1-136a-4b10-89b4-5690c1d51009",
+    "name": "DevOps Engineer",
+    "relation": "Participant"
+   }
+  ],
+  "apps": [
+   {
+    "id": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+    "name": "Enterprise data warehouse/lakehouse"
+   },
+   {
+    "id": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+    "name": "BI/reporting platform"
+   },
+   {
+    "id": "89cd2109-63ff-4bf7-a31c-14e6b68e7ed9",
+    "name": "data catalog/quality tool"
+   },
+   {
+    "id": "875d0a08-2acb-43d5-b565-d21ed8b17224",
+    "name": "ITSM platform (ServiceNow/Jira)"
+   }
+  ],
+  "templates": [
+   {
+    "kind": "CHECKLIST",
+    "name": "Core evidence checklist",
+    "keys": [
+     {
+      "id": "cmr2oalvj0003lasbljnppmvk",
+      "key": "Defined scope/population",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87uz0001xa9i94umw6d6",
+      "key": "In-scope period",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87wy0003xa9i8jgziihd",
+      "key": "Named SOR/report/query",
+      "valueKind": "APPLICATION"
+     },
+     {
+      "id": "cmr2v87y40005xa9ir47s1qg4",
+      "key": "Data owner",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2oalzj0007lasbuo4mf8tq",
+      "key": "Required fields populated and valid",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam0y0009lasbg6ube3og",
+      "key": "Control totals or record counts reconcile",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam2m000blasb6n6f4ewh",
+      "key": "Evidence retained with timestamp/version",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam3s000dlasbu5w0fxn2",
+      "key": "Exceptions logged with disposition",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam5o000flasb2i5ekzh1",
+      "key": "Approver/reviewer sign-off captured",
+      "valueKind": "ROLE"
+     }
+    ]
+   },
+   {
+    "kind": "CHECKLIST",
+    "name": "Methodology/model validation",
+    "keys": [
+     {
+      "id": "cmr2oamel000jlasblc8uognb",
+      "key": "Methodology/model version approved",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oamg4000llasb5mlmokig",
+      "key": "Independent re-performance or reasonableness check completed",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2v88920007xa9iyuatdfi0",
+      "key": "Sensitivity thresholds documented",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v88a40009xa9ieiq8xqa0",
+      "key": "Materiality thresholds documented",
+      "valueKind": "TEXT"
+     }
+    ]
+   },
+   {
+    "kind": "CHECKLIST",
+    "name": "Implementation / change evidence",
+    "keys": [
+     {
+      "id": "cmr2oandp0013lasb81a47aqo",
+      "key": "Pre/post implementation comparison passed",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v88lm000jxa9iggiq99sw",
+      "key": "System audit log linked",
+      "valueKind": "APPLICATION"
+     },
+     {
+      "id": "cmr2v88mm000lxa9i1uqmp4n8",
+      "key": "Change ticket linked",
+      "valueKind": "TEXT"
+     }
+    ]
+   },
+   {
+    "kind": "TEST",
+    "name": "Config/output comparison",
+    "keys": [
+     {
+      "id": "cmr2oaqo3003rlasb1r26nwor",
+      "key": "Named process owner",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2oaqpd003tlasbyv59t5v5",
+      "key": "Test population",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oaqq9003vlasbyjg1pxll",
+      "key": "Pass/fail thresholds",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oaqrf003xlasb2mopahy1",
+      "key": "Exception handling path",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oaqsp003zlasbtvvkt534",
+      "key": "In-scope period/effective dates",
+      "valueKind": "TEXT"
+     }
+    ]
+   }
+  ],
+  "customTestKeys": [
+   {
+    "answerId": "cmr2ocdwl0tg1kaz3wv1piedo",
+    "key": "Documented acceptance criteria and evidence location",
+    "kind": "TEST"
+   }
+  ]
+ },
+ {
+  "id": "5b5aacfa-058d-46c5-bbc8-e278b65a18bb",
+  "name": "Route triaged demand to intake or backlog",
+  "description": "Route triaged demand to the intake committee or backlog. Done when the demand is routed to the correct destination.",
+  "l4": "Demand Intake & Triage",
+  "roles": [
+   {
+    "id": "6abae0f4-5f21-4ac1-938d-5c925c925a7a",
+    "name": "Software Engineer",
+    "relation": "Owner"
+   },
+   {
+    "id": "9852dff3-1006-4d69-bf4f-f5cc2e846b2d",
+    "name": "Backend Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0rr03xzmbk8y0ixhqye",
+    "name": "UI Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0rn03rsmbk8cr7zj5ho",
+    "name": "Business Analyst",
+    "relation": "Participant"
+   }
+  ],
+  "apps": [
+   {
+    "id": "26268b6c-720b-4d06-b3bc-f446c5374844",
+    "name": "Jira; Jira Align / Rally; Azure DevOps"
+   }
+  ],
+  "templates": [
+   {
+    "kind": "CHECKLIST",
+    "name": "Core evidence checklist",
+    "keys": [
+     {
+      "id": "cmr2oalvj0003lasbljnppmvk",
+      "key": "Defined scope/population",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87uz0001xa9i94umw6d6",
+      "key": "In-scope period",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87wy0003xa9i8jgziihd",
+      "key": "Named SOR/report/query",
+      "valueKind": "APPLICATION"
+     },
+     {
+      "id": "cmr2v87y40005xa9ir47s1qg4",
+      "key": "Data owner",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2oalzj0007lasbuo4mf8tq",
+      "key": "Required fields populated and valid",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam0y0009lasbg6ube3og",
+      "key": "Control totals or record counts reconcile",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam2m000blasb6n6f4ewh",
+      "key": "Evidence retained with timestamp/version",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam3s000dlasbu5w0fxn2",
+      "key": "Exceptions logged with disposition",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam5o000flasb2i5ekzh1",
+      "key": "Approver/reviewer sign-off captured",
+      "valueKind": "ROLE"
+     }
+    ]
+   }
+  ],
+  "customTestKeys": []
+ },
+ {
+  "id": "09c4dbe9-ef16-4508-8547-aa599c12471f",
+  "name": "Deploy orchestration definitions through change management",
+  "description": "Deploy orchestration definitions through the version-controlled change management process. Done when definitions are deployed.",
+  "l4": "Pipeline Orchestration & Scheduling",
+  "roles": [
+   {
+    "id": "6abae0f4-5f21-4ac1-938d-5c925c925a7a",
+    "name": "Software Engineer",
+    "relation": "Owner"
+   },
+   {
+    "id": "9852dff3-1006-4d69-bf4f-f5cc2e846b2d",
+    "name": "Backend Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0rr03xzmbk8y0ixhqye",
+    "name": "UI Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "e3f0dab1-136a-4b10-89b4-5690c1d51009",
+    "name": "DevOps Engineer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0rn03rymbk81v0h0v7b",
+    "name": "Capacity Planner",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0rp03txmbk8q8joq2m0",
+    "name": "DevOps / Platform Automation Engineer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0rp03uxmbk8tb753haq",
+    "name": "Infrastructure / Network Engineer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0rp03v0mbk8jpi3vgf1",
+    "name": "Integration Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0rr03xpmbk8kkxaxe27",
+    "name": "Tech Lead",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqscl3s11hkpmbk8pf94d480",
+    "name": "Junior Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqscl3w21hkxmbk8ec0g4ag4",
+    "name": "Mobile Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqscl3x21hkzmbk8ll8fj27y",
+    "name": "Network Administrator",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqscl46u1hljmbk8vyer552d",
+    "name": "Senior Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqz5zmje000j53crnex67qo4",
+    "name": "Integration Architect",
+    "relation": "Participant"
+   }
+  ],
+  "apps": [
+   {
+    "id": "bfba64d7-d43a-45d4-aac3-342683c98f2f",
+    "name": "GRC platform (Archer/ServiceNow GRC)"
+   },
+   {
+    "id": "2240c6fc-a478-4473-8f0a-52371f5382e5",
+    "name": "compliance evidence repository"
+   },
+   {
+    "id": "ea755917-1d17-4029-bab8-8b52f6d717e5",
+    "name": "regulatory filing/issue tracker"
+   },
+   {
+    "id": "b4674dd6-29b2-4b09-92af-41be51459817",
+    "name": "HRIS (Workday/SuccessFactors)"
+   }
+  ],
+  "templates": [
+   {
+    "kind": "CHECKLIST",
+    "name": "Core evidence checklist",
+    "keys": [
+     {
+      "id": "cmr2oalvj0003lasbljnppmvk",
+      "key": "Defined scope/population",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87uz0001xa9i94umw6d6",
+      "key": "In-scope period",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87wy0003xa9i8jgziihd",
+      "key": "Named SOR/report/query",
+      "valueKind": "APPLICATION"
+     },
+     {
+      "id": "cmr2v87y40005xa9ir47s1qg4",
+      "key": "Data owner",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2oalzj0007lasbuo4mf8tq",
+      "key": "Required fields populated and valid",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam0y0009lasbg6ube3og",
+      "key": "Control totals or record counts reconcile",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam2m000blasb6n6f4ewh",
+      "key": "Evidence retained with timestamp/version",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam3s000dlasbu5w0fxn2",
+      "key": "Exceptions logged with disposition",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam5o000flasb2i5ekzh1",
+      "key": "Approver/reviewer sign-off captured",
+      "valueKind": "ROLE"
+     }
+    ]
+   },
+   {
+    "kind": "CHECKLIST",
+    "name": "Methodology/model validation",
+    "keys": [
+     {
+      "id": "cmr2oamel000jlasblc8uognb",
+      "key": "Methodology/model version approved",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oamg4000llasb5mlmokig",
+      "key": "Independent re-performance or reasonableness check completed",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2v88920007xa9iyuatdfi0",
+      "key": "Sensitivity thresholds documented",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v88a40009xa9ieiq8xqa0",
+      "key": "Materiality thresholds documented",
+      "valueKind": "TEXT"
+     }
+    ]
+   },
+   {
+    "kind": "CHECKLIST",
+    "name": "Implementation / change evidence",
+    "keys": [
+     {
+      "id": "cmr2oandp0013lasb81a47aqo",
+      "key": "Pre/post implementation comparison passed",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v88lm000jxa9iggiq99sw",
+      "key": "System audit log linked",
+      "valueKind": "APPLICATION"
+     },
+     {
+      "id": "cmr2v88mm000lxa9i1uqmp4n8",
+      "key": "Change ticket linked",
+      "valueKind": "TEXT"
+     }
+    ]
+   },
+   {
+    "kind": "TEST",
+    "name": "Expected evidence + SOR tracing",
+    "keys": [
+     {
+      "id": "cmr2oanxo001flasbfucsrtbm",
+      "key": "Named process owner",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2oanyt001hlasb9c3kzvkq",
+      "key": "Test population",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oao03001jlasb1coy37l2",
+      "key": "Pass/fail thresholds",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oao16001llasbnlkf9nbu",
+      "key": "Exception handling path",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v88x1000rxa9if2t45ukx",
+      "key": "Documented acceptance criteria",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v88xv000txa9ih5f5ph5m",
+      "key": "Evidence location",
+      "valueKind": "TEXT"
+     }
+    ]
+   }
+  ],
+  "customTestKeys": [
+   {
+    "answerId": "cmr2ocdwm0tibkaz36hda2wy3",
+    "key": "Approved methodology/model version and parameter source",
+    "kind": "TEST"
+   }
+  ]
+ },
+ {
+  "id": "264ff840-ccf9-4251-9e5e-382db4e77ec8",
+  "name": "Coordinate SME knowledge contributions",
+  "description": "Coordinate subject-matter expert contributions to keep specialist knowledge current; done when contributions captured.",
+  "l4": "Engineering Knowledge Management",
+  "roles": [
+   {
+    "id": "6abae0f4-5f21-4ac1-938d-5c925c925a7a",
+    "name": "Software Engineer",
+    "relation": "Owner"
+   },
+   {
+    "id": "9852dff3-1006-4d69-bf4f-f5cc2e846b2d",
+    "name": "Backend Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0rr03xzmbk8y0ixhqye",
+    "name": "UI Developer",
+    "relation": "Participant"
+   }
+  ],
+  "apps": [
+   {
+    "id": "875d0a08-2acb-43d5-b565-d21ed8b17224",
+    "name": "ITSM platform (ServiceNow/Jira)"
+   },
+   {
+    "id": "d2ab52d9-6951-4e31-8b03-f3ba74183bfa",
+    "name": "CMDB"
+   },
+   {
+    "id": "52deb808-fc3d-469f-8652-e331ba334cbe",
+    "name": "source code/CI-CD repository"
+   },
+   {
+    "id": "b32dfbb5-304a-42cb-8758-4284f7369366",
+    "name": "PPM tool (Clarity/Planview/Jira Align)"
+   }
+  ],
+  "templates": [
+   {
+    "kind": "CHECKLIST",
+    "name": "Core evidence checklist",
+    "keys": [
+     {
+      "id": "cmr2oalvj0003lasbljnppmvk",
+      "key": "Defined scope/population",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87uz0001xa9i94umw6d6",
+      "key": "In-scope period",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87wy0003xa9i8jgziihd",
+      "key": "Named SOR/report/query",
+      "valueKind": "APPLICATION"
+     },
+     {
+      "id": "cmr2v87y40005xa9ir47s1qg4",
+      "key": "Data owner",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2oalzj0007lasbuo4mf8tq",
+      "key": "Required fields populated and valid",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam0y0009lasbg6ube3og",
+      "key": "Control totals or record counts reconcile",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam2m000blasb6n6f4ewh",
+      "key": "Evidence retained with timestamp/version",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam3s000dlasbu5w0fxn2",
+      "key": "Exceptions logged with disposition",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam5o000flasb2i5ekzh1",
+      "key": "Approver/reviewer sign-off captured",
+      "valueKind": "ROLE"
+     }
+    ]
+   },
+   {
+    "kind": "TEST",
+    "name": "Workflow history tracing",
+    "keys": [
+     {
+      "id": "cmr2oap6g002flasb12gpqsrx",
+      "key": "Named process owner",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2oap7x002hlasb21lclhgc",
+      "key": "Test population",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oapa9002jlasbbht6cp5g",
+      "key": "Pass/fail thresholds",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oapbz002llasbwuwwn4mb",
+      "key": "Exception handling path",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v89jj0013xa9iy2urljqv",
+      "key": "Authorized approver",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2v89li0015xa9ia4hiukkb",
+      "key": "Delegation matrix documented",
+      "valueKind": "TEXT"
+     }
+    ]
+   }
+  ],
+  "customTestKeys": [
+   {
+    "answerId": "cmr2ocdwo0tkqkaz3zp0fn7t4",
+    "key": "Documented acceptance criteria and evidence location",
+    "kind": "TEST"
+   }
+  ]
+ },
+ {
+  "id": "060f8c92-da98-4492-916d-c5c9f6c6d072",
+  "name": "Model pipeline DAG with task dependencies",
+  "description": "Model the pipeline DAG defining task dependencies. Done when the DAG model is defined.",
+  "l4": "Pipeline Orchestration & Scheduling",
+  "roles": [
+   {
+    "id": "6abae0f4-5f21-4ac1-938d-5c925c925a7a",
+    "name": "Software Engineer",
+    "relation": "Owner"
+   },
+   {
+    "id": "9852dff3-1006-4d69-bf4f-f5cc2e846b2d",
+    "name": "Backend Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0rr03xzmbk8y0ixhqye",
+    "name": "UI Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0ro03tmmbk8ggz2wirh",
+    "name": "Data Engineer",
+    "relation": "Participant"
+   },
+   {
+    "id": "e3f0dab1-136a-4b10-89b4-5690c1d51009",
+    "name": "DevOps Engineer",
+    "relation": "Participant"
+   }
+  ],
+  "apps": [
+   {
+    "id": "cmqsck0z203zhmbk8cuyn6zhs",
+    "name": "Okta / IAM Platform"
+   }
+  ],
+  "templates": [
+   {
+    "kind": "CHECKLIST",
+    "name": "Core evidence checklist",
+    "keys": [
+     {
+      "id": "cmr2oalvj0003lasbljnppmvk",
+      "key": "Defined scope/population",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87uz0001xa9i94umw6d6",
+      "key": "In-scope period",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87wy0003xa9i8jgziihd",
+      "key": "Named SOR/report/query",
+      "valueKind": "APPLICATION"
+     },
+     {
+      "id": "cmr2v87y40005xa9ir47s1qg4",
+      "key": "Data owner",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2oalzj0007lasbuo4mf8tq",
+      "key": "Required fields populated and valid",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam0y0009lasbg6ube3og",
+      "key": "Control totals or record counts reconcile",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam2m000blasb6n6f4ewh",
+      "key": "Evidence retained with timestamp/version",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam3s000dlasbu5w0fxn2",
+      "key": "Exceptions logged with disposition",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam5o000flasb2i5ekzh1",
+      "key": "Approver/reviewer sign-off captured",
+      "valueKind": "ROLE"
+     }
+    ]
+   }
+  ],
+  "customTestKeys": []
+ },
+ {
+  "id": "20310845-b0a3-4947-8c5c-85becdaadd52",
+  "name": "Conduct peer code review",
+  "description": "Conduct peer code review on the pull request and address feedback before merge. Done when review approval is obtained.",
+  "l4": "Solution Build & Code Delivery",
+  "roles": [
+   {
+    "id": "6abae0f4-5f21-4ac1-938d-5c925c925a7a",
+    "name": "Software Engineer",
+    "relation": "Owner"
+   },
+   {
+    "id": "9852dff3-1006-4d69-bf4f-f5cc2e846b2d",
+    "name": "Backend Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0rr03xzmbk8y0ixhqye",
+    "name": "UI Developer",
+    "relation": "Participant"
+   }
+  ],
+  "apps": [
+   {
+    "id": "875d0a08-2acb-43d5-b565-d21ed8b17224",
+    "name": "ITSM platform (ServiceNow/Jira)"
+   },
+   {
+    "id": "d2ab52d9-6951-4e31-8b03-f3ba74183bfa",
+    "name": "CMDB"
+   },
+   {
+    "id": "52deb808-fc3d-469f-8652-e331ba334cbe",
+    "name": "source code/CI-CD repository"
+   },
+   {
+    "id": "b32dfbb5-304a-42cb-8758-4284f7369366",
+    "name": "PPM tool (Clarity/Planview/Jira Align)"
+   }
+  ],
+  "templates": [
+   {
+    "kind": "CHECKLIST",
+    "name": "Core evidence checklist",
+    "keys": [
+     {
+      "id": "cmr2oalvj0003lasbljnppmvk",
+      "key": "Defined scope/population",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87uz0001xa9i94umw6d6",
+      "key": "In-scope period",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87wy0003xa9i8jgziihd",
+      "key": "Named SOR/report/query",
+      "valueKind": "APPLICATION"
+     },
+     {
+      "id": "cmr2v87y40005xa9ir47s1qg4",
+      "key": "Data owner",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2oalzj0007lasbuo4mf8tq",
+      "key": "Required fields populated and valid",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam0y0009lasbg6ube3og",
+      "key": "Control totals or record counts reconcile",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam2m000blasb6n6f4ewh",
+      "key": "Evidence retained with timestamp/version",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam3s000dlasbu5w0fxn2",
+      "key": "Exceptions logged with disposition",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam5o000flasb2i5ekzh1",
+      "key": "Approver/reviewer sign-off captured",
+      "valueKind": "ROLE"
+     }
+    ]
+   },
+   {
+    "kind": "TEST",
+    "name": "Analysis population + findings validation",
+    "keys": [
+     {
+      "id": "cmr2oaobk001rlasbp41b8ekd",
+      "key": "Named process owner",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2oaocj001tlasbyf7jjfrj",
+      "key": "Test population",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oaodj001vlasbycmyhv72",
+      "key": "Pass/fail thresholds",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oaof2001xlasbgo5bzael",
+      "key": "Exception handling path",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v8940000vxa9iz1ws174c",
+      "key": "Documented acceptance criteria",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v8953000xxa9izs452xrs",
+      "key": "Evidence location",
+      "valueKind": "TEXT"
+     }
+    ]
+   }
+  ],
+  "customTestKeys": []
+ },
+ {
+  "id": "cmr2fk9n51aq8kfgzl1o5ndlq",
+  "name": "Review documentation accuracy",
+  "description": "Conduct periodic documentation accuracy review; done when review completed.",
+  "l4": "Engineering Knowledge Management",
+  "roles": [
+   {
+    "id": "6abae0f4-5f21-4ac1-938d-5c925c925a7a",
+    "name": "Software Engineer",
+    "relation": "Owner"
+   },
+   {
+    "id": "9852dff3-1006-4d69-bf4f-f5cc2e846b2d",
+    "name": "Backend Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0rr03xzmbk8y0ixhqye",
+    "name": "UI Developer",
+    "relation": "Participant"
+   }
+  ],
+  "apps": [
+   {
+    "id": "875d0a08-2acb-43d5-b565-d21ed8b17224",
+    "name": "ITSM platform (ServiceNow/Jira)"
+   },
+   {
+    "id": "d2ab52d9-6951-4e31-8b03-f3ba74183bfa",
+    "name": "CMDB"
+   },
+   {
+    "id": "52deb808-fc3d-469f-8652-e331ba334cbe",
+    "name": "source code/CI-CD repository"
+   },
+   {
+    "id": "b32dfbb5-304a-42cb-8758-4284f7369366",
+    "name": "PPM tool (Clarity/Planview/Jira Align)"
+   }
+  ],
+  "templates": [
+   {
+    "kind": "CHECKLIST",
+    "name": "Core evidence checklist",
+    "keys": [
+     {
+      "id": "cmr2oalvj0003lasbljnppmvk",
+      "key": "Defined scope/population",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87uz0001xa9i94umw6d6",
+      "key": "In-scope period",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87wy0003xa9i8jgziihd",
+      "key": "Named SOR/report/query",
+      "valueKind": "APPLICATION"
+     },
+     {
+      "id": "cmr2v87y40005xa9ir47s1qg4",
+      "key": "Data owner",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2oalzj0007lasbuo4mf8tq",
+      "key": "Required fields populated and valid",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam0y0009lasbg6ube3og",
+      "key": "Control totals or record counts reconcile",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam2m000blasb6n6f4ewh",
+      "key": "Evidence retained with timestamp/version",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam3s000dlasbu5w0fxn2",
+      "key": "Exceptions logged with disposition",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam5o000flasb2i5ekzh1",
+      "key": "Approver/reviewer sign-off captured",
+      "valueKind": "ROLE"
+     }
+    ]
+   },
+   {
+    "kind": "TEST",
+    "name": "Analysis population + findings validation",
+    "keys": [
+     {
+      "id": "cmr2oaobk001rlasbp41b8ekd",
+      "key": "Named process owner",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2oaocj001tlasbyf7jjfrj",
+      "key": "Test population",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oaodj001vlasbycmyhv72",
+      "key": "Pass/fail thresholds",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oaof2001xlasbgo5bzael",
+      "key": "Exception handling path",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v8940000vxa9iz1ws174c",
+      "key": "Documented acceptance criteria",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v8953000xxa9izs452xrs",
+      "key": "Evidence location",
+      "valueKind": "TEXT"
+     }
+    ]
+   }
+  ],
+  "customTestKeys": [
+   {
+    "answerId": "cmr2ocdwp0tlxkaz3cc0qfghh",
+    "key": "In-scope period/effective dates",
+    "kind": "TEST"
+   }
+  ]
+ },
+ {
+  "id": "cmr2fk9vp1av3kfgzajupq89l",
+  "name": "Retire stale knowledge articles",
+  "description": "Retire stale knowledge articles found during review; done when articles retired.",
+  "l4": "Engineering Knowledge Management",
+  "roles": [
+   {
+    "id": "6abae0f4-5f21-4ac1-938d-5c925c925a7a",
+    "name": "Software Engineer",
+    "relation": "Owner"
+   },
+   {
+    "id": "9852dff3-1006-4d69-bf4f-f5cc2e846b2d",
+    "name": "Backend Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0rr03xzmbk8y0ixhqye",
+    "name": "UI Developer",
+    "relation": "Participant"
+   }
+  ],
+  "apps": [
+   {
+    "id": "875d0a08-2acb-43d5-b565-d21ed8b17224",
+    "name": "ITSM platform (ServiceNow/Jira)"
+   },
+   {
+    "id": "d2ab52d9-6951-4e31-8b03-f3ba74183bfa",
+    "name": "CMDB"
+   },
+   {
+    "id": "52deb808-fc3d-469f-8652-e331ba334cbe",
+    "name": "source code/CI-CD repository"
+   },
+   {
+    "id": "b32dfbb5-304a-42cb-8758-4284f7369366",
+    "name": "PPM tool (Clarity/Planview/Jira Align)"
+   }
+  ],
+  "templates": [
+   {
+    "kind": "CHECKLIST",
+    "name": "Core evidence checklist",
+    "keys": [
+     {
+      "id": "cmr2oalvj0003lasbljnppmvk",
+      "key": "Defined scope/population",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87uz0001xa9i94umw6d6",
+      "key": "In-scope period",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87wy0003xa9i8jgziihd",
+      "key": "Named SOR/report/query",
+      "valueKind": "APPLICATION"
+     },
+     {
+      "id": "cmr2v87y40005xa9ir47s1qg4",
+      "key": "Data owner",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2oalzj0007lasbuo4mf8tq",
+      "key": "Required fields populated and valid",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam0y0009lasbg6ube3og",
+      "key": "Control totals or record counts reconcile",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam2m000blasb6n6f4ewh",
+      "key": "Evidence retained with timestamp/version",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam3s000dlasbu5w0fxn2",
+      "key": "Exceptions logged with disposition",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam5o000flasb2i5ekzh1",
+      "key": "Approver/reviewer sign-off captured",
+      "valueKind": "ROLE"
+     }
+    ]
+   },
+   {
+    "kind": "TEST",
+    "name": "Analysis population + findings validation",
+    "keys": [
+     {
+      "id": "cmr2oaobk001rlasbp41b8ekd",
+      "key": "Named process owner",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2oaocj001tlasbyf7jjfrj",
+      "key": "Test population",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oaodj001vlasbycmyhv72",
+      "key": "Pass/fail thresholds",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oaof2001xlasbgo5bzael",
+      "key": "Exception handling path",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v8940000vxa9iz1ws174c",
+      "key": "Documented acceptance criteria",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v8953000xxa9izs452xrs",
+      "key": "Evidence location",
+      "valueKind": "TEXT"
+     }
+    ]
+   }
+  ],
+  "customTestKeys": [
+   {
+    "answerId": "cmr2ocdwp0tlykaz3bqy1czg8",
+    "key": "In-scope period/effective dates",
+    "kind": "TEST"
+   }
+  ]
+ },
+ {
+  "id": "66e91d0f-6ac8-4a9a-9914-8512f4721524",
+  "name": "Re-prioritize backlog at defined cadence",
+  "description": "Review and re-prioritize the backlog on cadence to incorporate new demand and changing priorities.",
+  "l4": "Backlog Shaping & Prioritization",
+  "roles": [
+   {
+    "id": "6abae0f4-5f21-4ac1-938d-5c925c925a7a",
+    "name": "Software Engineer",
+    "relation": "Owner"
+   },
+   {
+    "id": "9852dff3-1006-4d69-bf4f-f5cc2e846b2d",
+    "name": "Backend Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0rr03xzmbk8y0ixhqye",
+    "name": "UI Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0rn03rsmbk8cr7zj5ho",
+    "name": "Business Analyst",
+    "relation": "Participant"
+   }
+  ],
+  "apps": [
+   {
+    "id": "e4b067cd-f592-4cee-8050-bdedf48363b8",
+    "name": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+   },
+   {
+    "id": "7d39c802-174c-42c8-9aa9-fa0358edde69",
+    "name": "data warehouse/lake"
+   },
+   {
+    "id": "93c26f4e-2c06-4b8f-89ca-2e56818aaf8c",
+    "name": "model governance repository"
+   },
+   {
+    "id": "875d0a08-2acb-43d5-b565-d21ed8b17224",
+    "name": "ITSM platform (ServiceNow/Jira)"
+   }
+  ],
+  "templates": [
+   {
+    "kind": "CHECKLIST",
+    "name": "Core evidence checklist",
+    "keys": [
+     {
+      "id": "cmr2oalvj0003lasbljnppmvk",
+      "key": "Defined scope/population",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87uz0001xa9i94umw6d6",
+      "key": "In-scope period",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87wy0003xa9i8jgziihd",
+      "key": "Named SOR/report/query",
+      "valueKind": "APPLICATION"
+     },
+     {
+      "id": "cmr2v87y40005xa9ir47s1qg4",
+      "key": "Data owner",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2oalzj0007lasbuo4mf8tq",
+      "key": "Required fields populated and valid",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam0y0009lasbg6ube3og",
+      "key": "Control totals or record counts reconcile",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam2m000blasb6n6f4ewh",
+      "key": "Evidence retained with timestamp/version",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam3s000dlasbu5w0fxn2",
+      "key": "Exceptions logged with disposition",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam5o000flasb2i5ekzh1",
+      "key": "Approver/reviewer sign-off captured",
+      "valueKind": "ROLE"
+     }
+    ]
+   },
+   {
+    "kind": "CHECKLIST",
+    "name": "Methodology/model validation",
+    "keys": [
+     {
+      "id": "cmr2oamel000jlasblc8uognb",
+      "key": "Methodology/model version approved",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oamg4000llasb5mlmokig",
+      "key": "Independent re-performance or reasonableness check completed",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2v88920007xa9iyuatdfi0",
+      "key": "Sensitivity thresholds documented",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v88a40009xa9ieiq8xqa0",
+      "key": "Materiality thresholds documented",
+      "valueKind": "TEXT"
+     }
+    ]
+   },
+   {
+    "kind": "TEST",
+    "name": "Analysis population + findings validation",
+    "keys": [
+     {
+      "id": "cmr2oaobk001rlasbp41b8ekd",
+      "key": "Named process owner",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2oaocj001tlasbyf7jjfrj",
+      "key": "Test population",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oaodj001vlasbycmyhv72",
+      "key": "Pass/fail thresholds",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oaof2001xlasbgo5bzael",
+      "key": "Exception handling path",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v8940000vxa9iz1ws174c",
+      "key": "Documented acceptance criteria",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v8953000xxa9izs452xrs",
+      "key": "Evidence location",
+      "valueKind": "TEXT"
+     }
+    ]
+   }
+  ],
+  "customTestKeys": [
+   {
+    "answerId": "cmr2ocdwp0tmikaz3k4igk92t",
+    "key": "Approved methodology/model version and parameter source",
+    "kind": "TEST"
+   }
+  ]
+ },
+ {
+  "id": "1f249bd1-d30f-482d-a81e-e5a6d84b01a6",
+  "name": "Triage and escalate critical pipeline failures",
+  "description": "Perform on-call triage and escalation for critical pipeline failures affecting business processes. Done when incidents are triaged and escalated.",
+  "l4": "Pipeline Orchestration & Scheduling",
+  "roles": [
+   {
+    "id": "6abae0f4-5f21-4ac1-938d-5c925c925a7a",
+    "name": "Software Engineer",
+    "relation": "Owner"
+   },
+   {
+    "id": "9852dff3-1006-4d69-bf4f-f5cc2e846b2d",
+    "name": "Backend Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0rr03xzmbk8y0ixhqye",
+    "name": "UI Developer",
+    "relation": "Participant"
+   },
+   {
+    "id": "cmqsck0ro03tmmbk8ggz2wirh",
+    "name": "Data Engineer",
+    "relation": "Participant"
+   }
+  ],
+  "apps": [
+   {
+    "id": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e",
+    "name": "Enterprise data warehouse/lakehouse"
+   },
+   {
+    "id": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd",
+    "name": "BI/reporting platform"
+   },
+   {
+    "id": "89cd2109-63ff-4bf7-a31c-14e6b68e7ed9",
+    "name": "data catalog/quality tool"
+   },
+   {
+    "id": "875d0a08-2acb-43d5-b565-d21ed8b17224",
+    "name": "ITSM platform (ServiceNow/Jira)"
+   }
+  ],
+  "templates": [
+   {
+    "kind": "CHECKLIST",
+    "name": "Core evidence checklist",
+    "keys": [
+     {
+      "id": "cmr2oalvj0003lasbljnppmvk",
+      "key": "Defined scope/population",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87uz0001xa9i94umw6d6",
+      "key": "In-scope period",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v87wy0003xa9i8jgziihd",
+      "key": "Named SOR/report/query",
+      "valueKind": "APPLICATION"
+     },
+     {
+      "id": "cmr2v87y40005xa9ir47s1qg4",
+      "key": "Data owner",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2oalzj0007lasbuo4mf8tq",
+      "key": "Required fields populated and valid",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam0y0009lasbg6ube3og",
+      "key": "Control totals or record counts reconcile",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam2m000blasb6n6f4ewh",
+      "key": "Evidence retained with timestamp/version",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam3s000dlasbu5w0fxn2",
+      "key": "Exceptions logged with disposition",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oam5o000flasb2i5ekzh1",
+      "key": "Approver/reviewer sign-off captured",
+      "valueKind": "ROLE"
+     }
+    ]
+   },
+   {
+    "kind": "CHECKLIST",
+    "name": "Methodology/model validation",
+    "keys": [
+     {
+      "id": "cmr2oamel000jlasblc8uognb",
+      "key": "Methodology/model version approved",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oamg4000llasb5mlmokig",
+      "key": "Independent re-performance or reasonableness check completed",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2v88920007xa9iyuatdfi0",
+      "key": "Sensitivity thresholds documented",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v88a40009xa9ieiq8xqa0",
+      "key": "Materiality thresholds documented",
+      "valueKind": "TEXT"
+     }
+    ]
+   },
+   {
+    "kind": "TEST",
+    "name": "Expected evidence + SOR tracing",
+    "keys": [
+     {
+      "id": "cmr2oanxo001flasbfucsrtbm",
+      "key": "Named process owner",
+      "valueKind": "ROLE"
+     },
+     {
+      "id": "cmr2oanyt001hlasb9c3kzvkq",
+      "key": "Test population",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oao03001jlasb1coy37l2",
+      "key": "Pass/fail thresholds",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2oao16001llasbnlkf9nbu",
+      "key": "Exception handling path",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v88x1000rxa9if2t45ukx",
+      "key": "Documented acceptance criteria",
+      "valueKind": "TEXT"
+     },
+     {
+      "id": "cmr2v88xv000txa9ih5f5ph5m",
+      "key": "Evidence location",
+      "valueKind": "TEXT"
+     }
+    ]
+   }
+  ],
+  "customTestKeys": []
+ }
+]

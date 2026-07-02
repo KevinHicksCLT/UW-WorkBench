@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import SkillViewer from './SkillViewer';
 import { skillLabel } from '../lib/skills';
+import { Chip, DrawerShell, EmptyState, ErrorMessage, SkeletonLoader } from './ui';
 
 // StandardDrawer — one standard's full detail (description, enforcing agent
 // skill, SDLC gates, regulatory citation, responsible role, value streams),
@@ -23,7 +24,11 @@ type Item = {
   agentSkill: string | null;
   sdlcGates: string | null;
   regCitation: string | null;
+  testProcedure: string | null;
+  evidence: string | null;
+  plan: { checklist: string[]; testing: string[] } | null; // Work Library plan keys
   responsible: Responsible | null;
+  appliers: { roleId: string; roleName: string }[];
   valueStreams: ValueStream[];
 };
 // Top-level rows are groups: each carries its decomposed child standards.
@@ -48,7 +53,7 @@ export default function StandardDrawer({ areaId, itemId, onClose }: { areaId: st
   useEffect(() => {
     setData(null);
     setError('');
-    api.get(`/explorer/standards/${areaId}`).then(setData).catch((e: Error) => setError(e.message));
+    api.get<AreaData>(`/explorer/standards/${areaId}`).then(setData).catch((e: Error) => setError(e.message));
   }, [areaId]);
 
   useEffect(() => setActiveId(itemId), [itemId]);
@@ -61,39 +66,31 @@ export default function StandardDrawer({ areaId, itemId, onClose }: { areaId: st
   const gates = item?.sdlcGates ? item.sdlcGates.split(/;\s*/).filter(Boolean) : [];
 
   return (
-    <div className="absolute inset-0 z-30 flex justify-end" role="dialog" aria-modal="true">
-      {/* Backdrop dims the sheet; click to dismiss. */}
-      <div className="absolute inset-0 bg-black/20" onClick={onClose} />
-
-      <aside className="relative h-full bg-white border-l border-[#eaeaea] shadow-2xl flex flex-col" style={{ width: 560, maxWidth: '92vw' }}>
-        {/* Header */}
-        <div className="px-5 py-4 border-b border-[#eaeaea] flex items-start justify-between gap-3 flex-shrink-0">
-          <div className="min-w-0">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3]">Standard</div>
-            <div className="text-[15px] font-bold text-[#171717] leading-snug">{item?.name ?? (error ? '—' : 'Loading…')}</div>
-            {item && (
-              <div className="text-[11px] text-[#a3a3a3] mt-0.5">
-                <Link to={`/standards/${areaId}`} className="hover:underline hover:text-[#525252]">{data!.area.department}</Link>
-                {' · '}{item.category}
-                {isSub && <>{' · '}{group!.name}</>}
-              </div>
-            )}
-          </div>
-          <button onClick={onClose} aria-label="Close" className="-mr-1 flex-shrink-0 text-[#a3a3a3] hover:text-[#171717] w-7 h-7 rounded-md hover:bg-[#fafafa] flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-5">
-          {error ? (
-            <div className="text-sm text-[#be123c]">{error}</div>
-          ) : !data ? (
-            <div className="space-y-2">
-              {Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton rounded-md" style={{ height: 48 }} />)}
+    <DrawerShell
+      onClose={onClose}
+      width={560}
+      maxWidth="92vw"
+      header={
+        <div className="min-w-0">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a3a3a3]">Standard</div>
+          <div className="text-[15px] font-bold text-[#171717] leading-snug">{item?.name ?? (error ? '—' : 'Loading…')}</div>
+          {item && (
+            <div className="text-[11px] text-[#a3a3a3] mt-0.5">
+              <Link to={`/standards/${areaId}`} className="hover:underline hover:text-[#525252]">{data!.area.department}</Link>
+              {' · '}{item.category}
+              {isSub && <>{' · '}{group!.name}</>}
             </div>
+          )}
+        </div>
+      }
+      after={viewSkill && <SkillViewer skill={viewSkill} onClose={() => setViewSkill(null)} />}
+    >
+          {error ? (
+            <ErrorMessage>{error}</ErrorMessage>
+          ) : !data ? (
+            <SkeletonLoader count={4} height={48} className="space-y-2" />
           ) : !item ? (
-            <div className="text-sm text-[#a3a3a3] italic">Standard not found in this area.</div>
+            <EmptyState baseClassName="text-sm text-[#a3a3a3] italic" message="Standard not found in this area." />
           ) : (
             <div className="space-y-5">
               {/* What it means */}
@@ -146,7 +143,7 @@ export default function StandardDrawer({ areaId, itemId, onClose }: { areaId: st
                 <div>
                   <SectionLabel>SDLC gates</SectionLabel>
                   <div className="flex flex-wrap gap-1">
-                    {gates.map((g) => <span key={g} className="chip-soft">{g}</span>)}
+                    {gates.map((g) => <Chip key={g}>{g}</Chip>)}
                   </div>
                 </div>
               )}
@@ -170,7 +167,7 @@ export default function StandardDrawer({ areaId, itemId, onClose }: { areaId: st
                     )}
                     {item.responsible.roleLevel && item.responsible.roleLevel !== 'Individual Contributor' && (
                       <div className="text-xs text-[#a3a3a3] mt-0.5 flex items-center gap-1.5">
-                        <span className="chip-soft">{item.responsible.roleLevel}</span>
+                        <Chip>{item.responsible.roleLevel}</Chip>
                       </div>
                     )}
                   </div>
@@ -184,29 +181,58 @@ export default function StandardDrawer({ areaId, itemId, onClose }: { areaId: st
                 )}
               </div>
 
+              {/* Applied by — the roles that execute the control day-to-day */}
+              {item.appliers.length > 0 && (
+                <div>
+                  <SectionLabel>Applied by</SectionLabel>
+                  <div className="flex flex-wrap gap-1">
+                    {item.appliers.map((a) => (
+                      <Chip as={Link} key={a.roleId} to={`/roles/${a.roleId}`} className="hover:bg-[#eaeaea]">{a.roleName}</Chip>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Work Library plan — checklist + testing keys (values filled there) */}
+              {(item.plan?.checklist.length || item.plan?.testing.length) ? (
+                <div>
+                  {item.plan!.checklist.length > 0 && (
+                    <>
+                      <SectionLabel>Checklist</SectionLabel>
+                      <ol className="text-sm text-[#171717] leading-relaxed list-decimal pl-5 space-y-1 mb-2">{item.plan!.checklist.map((s, i) => <li key={i}>{s}</li>)}</ol>
+                    </>
+                  )}
+                  {item.plan!.testing.length > 0 && (
+                    <>
+                      <SectionLabel>Testing</SectionLabel>
+                      <ol className="text-sm text-[#171717] leading-relaxed list-decimal pl-5 space-y-1">{item.plan!.testing.map((s, i) => <li key={i}>{s}</li>)}</ol>
+                    </>
+                  )}
+                </div>
+              ) : null}
+
               {/* Applies to value streams */}
               {item.valueStreams.length > 0 && (
                 <div>
                   <SectionLabel>Applies to value streams</SectionLabel>
                   <div className="flex flex-wrap gap-1">
                     {item.valueStreams.map((vs) => (
-                      <Link key={vs.id} to={`/overview?focus=${vs.id}`} className="chip-soft hover:bg-[#eaeaea]" title={vs.domain ?? ''}>
+                      <Chip as={Link} key={vs.id} to={`/overview?focus=${vs.id}`} className="hover:bg-[#eaeaea]" title={vs.domain ?? ''}>
                         {vs.name}
-                      </Link>
+                      </Chip>
                     ))}
                   </div>
                 </div>
               )}
 
+              <Link to={`/work-library?type=standard&id=${itemId}`} className="inline-block w-full text-center rounded-md border border-[#9fb6e8] px-3 py-1.5 text-xs font-semibold text-[#2563eb] hover:bg-[#f0f6ff]">
+                Checklist &amp; testing plan in Work library ↗
+              </Link>
               <Link to={`/standards/${areaId}`} className="inline-block text-xs text-[#666666] hover:text-[#171717] underline decoration-[#d4d4d4]">
                 View standards area →
               </Link>
             </div>
           )}
-        </div>
-      </aside>
-
-      {viewSkill && <SkillViewer skill={viewSkill} onClose={() => setViewSkill(null)} />}
-    </div>
+    </DrawerShell>
   );
 }

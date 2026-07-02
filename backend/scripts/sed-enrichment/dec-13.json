@@ -1,0 +1,288 @@
+{
+ "tasks": [
+  {
+   "id": "9111d53f-af0b-44e3-a0c1-f819012c8790",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All end-to-end user journeys tagged @e2e in the acceptance-criteria suite for the release epic (Jira epic in project SWE); scope = every user story in the sprint marked 'Ready for QA', covering happy-path plus 2 negative paths per story." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current sprint window (2-week cadence); E2E run executes on every merge to the develop branch and as a gate before promotion to the staging/UAT environment." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "newApplication": "GitHub Actions" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Every acceptance criterion in each user story maps to at least one Playwright/Cypress E2E spec; test IDs referenced back to the Jira story key; no story marked Done with an unmapped criterion." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "E2E pass rate = 100% of critical-path flows and >=98% of full suite green; flaky-test quarantine <=2% of specs; run duration under 15 minutes on the CI runner." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "CI run artifact (JUnit XML + video/trace on failure) retained 90 days in GitHub Actions, tagged with commit SHA, build number, and dev-environment version; results posted to the PR check." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Each failing flow opens a Jira bug linked to the story with severity; blocking bugs stop promotion; non-blocking logged with owner and target sprint; flaky specs get a 'flaky' label and 5-day fix SLA." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xsmbk8m22e2kle" },
+    { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq", "value": "All 'Ready for QA' stories in the sprint; sampled against seeded synthetic test data covering policy/claims/billing personas in Guidewire dev." },
+    { "templateKeyId": "cmr2oao03001jlasb1coy37l2", "value": "Pass = every acceptance criterion assertion green; fail = any critical-path assertion red or E2E suite green rate <98%; regression = any previously-passing flow now failing." },
+    { "templateKeyId": "cmr2oao16001llasbnlkf9nbu", "value": "On failure, auto-create Jira bug type 'Defect', assign to owning developer; deployment gate remains red until fixed or waived via 'SDLC-Exception' ticket owned by Engineering Manager with 10-business-day remediation SLA." },
+    { "templateKeyId": "cmr2v88x1000rxa9if2t45ukx", "value": "Acceptance criteria written in Gherkin Given/When/Then on each Jira story, reviewed by Product Owner and Tech Lead before development starts; Definition of Done requires all criteria automated." },
+    { "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m", "value": "GitHub Actions run summary + Allure/HTML report attached to the PR and archived in the ITSM change record (ServiceNow/Jira) for the release; linked from the epic." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6nv1nb2mbk8k5f7up1n", "checklist": [{ "step": "Confirm E2E sits at the top of the pyramid", "value": "E2E specs limited to critical journeys (<=15% of total tests); bulk of coverage in unit/integration layers per the CI test-count dashboard." }], "testing": [{ "step": "Verify pyramid ratios", "value": "SonarQube/CI report shows unit:integration:e2e roughly 70:20:10; alert if E2E share exceeds 20%." }] },
+    { "standardId": "cmqscp6cw1nakmbk8o95bp77w", "checklist": [{ "step": "Automated regression detection wired to CI", "value": "E2E suite runs on every develop merge; a newly-red previously-green flow blocks the pipeline automatically." }], "testing": [{ "step": "Re-run baseline", "value": "Compare current run to last green baseline in GitHub Actions; any delta flagged as regression in the PR check." }] },
+    { "standardId": "cmqscoh7i1m24mbk8hmgrzh91", "checklist": [{ "step": "E2E gate enforced before promotion", "value": "Quality gate blocks promotion to staging unless E2E critical-path = 100% green." }], "testing": [{ "step": "Attempt promotion with red gate", "value": "Confirm pipeline rejects promotion job when the E2E check is failing." }] },
+    { "standardId": "cmqscp4zh1n80mbk8xzurv1a3", "checklist": [{ "step": "Keep E2E stage fast", "value": "Parallelized E2E shards keep total CI build under 15 minutes." }], "testing": [{ "step": "Measure build time", "value": "GitHub Actions timing report confirms end-to-end job <15 min over last 20 runs." }] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "df51430a-9641-4ed0-b996-932662e53a72",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Scope = all internal shared libraries, platform components, and services published to the inner-source org in the source-code/CI-CD repository; population = every repo tagged 'inner-source' with a published CONTRIBUTING.md and codeowners file." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Program runs continuously; contribution metrics and reuse rollups reported quarterly to the Platform Engineering Lead." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "52deb808-fc3d-469f-8652-e331ba334cbe" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each inner-source repo has: README with setup/run/test/deploy, CONTRIBUTING.md, CODEOWNERS, license/usage terms, and a maintainer contact; validated by a repo-scorecard CI check that fails below 100% of required files." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Reported reuse count reconciles: number of downstream repos declaring the shared package as a dependency (from the package registry / SBOM scan) matches the reuse figure in the quarterly program report within +/-2%." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Quarterly program report (contributions, reuse, maintainer response times) stored in Confluence with version/date; snapshot of CI scorecard results retained 12 months." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Repos missing required governance files logged as Jira tasks against the owning team with a 30-day fix window; repos with no maintainer response >10 business days flagged for reassignment via 'SDLC-Exception' ticket owned by Engineering Manager." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaq1y0035lasbt581hez0", "value": "Sample of 10 inner-source repos per quarter plus all repos with >5 external contributions, checked for governance completeness and PR review adherence." },
+    { "templateKeyId": "cmr2oaq320037lasb58si1owg", "value": "Pass = repo scorecard 100% required files present and mean maintainer first-response <2 business days; fail = any required file missing or response >10 business days." },
+    { "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x", "value": "Non-compliant repos get a remediation Jira task (30-day SLA); persistent non-compliance escalates to Platform Engineering Lead and may result in de-listing from the inner-source catalog." },
+    { "templateKeyId": "cmr2v89xj0017xa9ikgynty6d", "value": "Inner-source program charter v-current, approved by Platform Engineering Lead; contribution model (fork-and-PR with trusted-committer review) documented in Confluence." },
+    { "templateKeyId": "cmr2v89ze0019xa9i4s25sd76", "value": "Reuse and contribution metrics sourced from the source-code/CI-CD repository API and package-registry dependency graph; no manual spreadsheet counts." },
+    { "answerId": "cmr2ocfz00vu1kaz3n52m554x", "value": "Acceptance = every inner-source repo passes the governance scorecard and appears in the searchable component catalog with a named maintainer; evidence = quarterly program report + CI scorecard export stored in Confluence, linked from the program charter page." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp5vv1n9smbk87l9mzurv", "checklist": [{ "step": "README completeness enforced", "value": "Every inner-source repo README covers purpose, setup, run, test, and deploy; missing sections fail the repo scorecard CI check." }], "testing": [{ "step": "Scan READMEs", "value": "Scorecard job parses README headings across all inner-source repos; report lists any repo below the required sections." }] },
+    { "standardId": "cmqscp6zl1nbombk8bcpbmbyg", "checklist": [{ "step": "Two-approver rule via CODEOWNERS", "value": "Inner-source contributions require review by 2 approvers including a trusted committer named in CODEOWNERS." }], "testing": [{ "step": "Audit merged PRs", "value": "Sample 20 external-contribution PRs; confirm each has >=2 approvals from CODEOWNERS before merge." }] },
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [{ "step": "Work-item linkage on contributions", "value": "Each inner-source PR references a Jira issue key in title or body; enforced by a commit-lint / PR-lint check." }], "testing": [{ "step": "Verify linkage", "value": "PR-lint check log shows 0 merged PRs without a linked work item over the quarter." }] },
+    { "standardId": "cmqscp5o31n9embk822qt2buu", "checklist": [{ "step": "ADRs for shared components", "value": "Each published shared library keeps an /adr folder documenting key design decisions." }], "testing": [{ "step": "Check ADR presence", "value": "Scorecard confirms shared-library repos contain at least one ADR; flag repos with none." }] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "cmr2fhhks010skfgzvi15pyyr",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Scope = synthetic test data sets for every in-scope QA suite of the release: policy, claims, and billing scenarios in Guidewire dev/QA, plus edge/boundary and negative-path records; no production PII copied into non-prod." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Refreshed each sprint before QA execution and re-masked on every non-prod environment refresh from production." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0ro03tnmbk81o8c7c9i" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Every required field for each test scenario is populated with valid, referentially-consistent values (policy->claim->billing FKs intact); all direct identifiers masked/synthesized; data validated against source schema definitions before load." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Row counts per entity in the test set reconcile to the planned scenario matrix (expected vs loaded within +/-0); referential-integrity check returns 0 orphaned records." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Test-data generation script + manifest (dataset version, seed, row counts, masking rules) committed to the source-code repo and tagged; a copy of the load log retained 90 days with timestamp in the ITSM record." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Records failing validation or masking are quarantined and logged in Jira; any need to use production-derived data requires a 'SDLC-Exception' ticket owned by the Data Governance Lead with DPO sign-off." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03wgmbk8fo25ufeu" },
+    { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb", "value": "The full generated test-data set for the sprint plus a 5% sample manually inspected for realism and masking effectiveness." },
+    { "templateKeyId": "cmr2oaoru0027lasblf4a3q5g", "value": "Pass = 100% required fields valid, 0 unmasked direct identifiers detected by the PII scanner, 0 referential-integrity violations; fail = any unmasked PII or >0 orphaned records." },
+    { "templateKeyId": "cmr2oaot40029lasbqt4ono47", "value": "PII-scanner hits block the dataset from promotion; the record set is regenerated; exception to ship partial data requires 'SDLC-Exception' ticket owned by Engineering Manager, 5-business-day remediation SLA." },
+    { "templateKeyId": "cmr2v89b6000zxa9ivo819zn7", "value": "Field definitions taken from the Guidewire policy/claims/billing data dictionary and the data catalog/quality tool; each generated field maps to a cataloged source column with type and constraints." },
+    { "templateKeyId": "cmr2v89c10011xa9ijssevzvo", "value": "Control totals (record counts per entity, sum of key numeric fields) captured from the scenario matrix and compared to loaded totals in the test warehouse; variance must be 0." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6mw1nb0mbk8k1cnga6l", "checklist": [{ "step": "Test data managed as code", "value": "Deterministic seed/generation scripts version-controlled; datasets reproducible from a tagged manifest, no hand-edited data." }], "testing": [{ "step": "Reproduce dataset", "value": "Re-run generator from the tagged seed; confirm byte-for-byte identical row counts and checksums." }] },
+    { "standardId": "cmqscp4fb1n70mbk8lf9qj0kl", "checklist": [{ "step": "Masking applied to non-prod", "value": "All direct/quasi identifiers masked or synthesized before landing in dev/QA; encryption at rest on the test warehouse." }], "testing": [{ "step": "Run PII scan", "value": "data catalog/quality tool PII scanner over the dataset returns 0 clear-text PII findings." }] },
+    { "standardId": "cmqscp32w1n4imbk8cl9att9q", "checklist": [{ "step": "Validate against source schema", "value": "Generated records validated for type, range, and referential integrity against cataloged source-system field definitions." }], "testing": [{ "step": "Run validation suite", "value": "Validation job reports 0 schema violations and 0 orphaned foreign keys." }] },
+    { "standardId": "cmqscp4o01n7gmbk8nzsb85bd", "checklist": [{ "step": "Completeness of required fields", "value": "Every scenario-required field populated; completeness computed per entity." }], "testing": [{ "step": "Measure completeness", "value": "Profiling report shows required-field completeness >=99% across the test set." }] }
+   ],
+   "regulations": [
+    { "regId": "cmr2131ul00ft14mjwya5xkle", "checklist": [{ "step": "Minimize personal data in test", "value": "Use synthetic data by default; production personal data never copied to non-prod except under approved, masked exception." }], "testing": [{ "step": "Confirm no raw PII", "value": "PII scan over the non-prod dataset returns 0 unmasked personal-data records; exception register empty or fully signed off." }] }
+   ]
+  },
+  {
+   "id": "c14f90c8-2f9b-4b58-803b-9ab5796bed3a",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Scope = the candidate capability/epic under discovery; assess feasibility across the affected systems (Guidewire policy/claims/billing, integration layer, data platform) named in the epic's architecture context in Jira." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Discovery/elaboration phase for the epic, completed before the epic enters a sprint (typically 1-2 sprints ahead)." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Feasibility record captures: affected systems/CMDB CIs, integration points, estimated complexity (T-shirt or story-point range), key technical risks, and required non-functional constraints; no field left as TBD before ARB review." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Every dependency/system named in the feasibility note reconciles to a CMDB CI or a documented external service; count of named systems = count of linked CIs." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Feasibility findings recorded as an ADR + spike report attached to the epic in Jira, versioned with author and date; retained for the life of the initiative." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Open technical risks logged as Jira risk items with owner and mitigation; any 'not feasible as scoped' finding routes back to Product Owner for re-scoping via a documented decision." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03u7mbk8cs0skbzm" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Estimation/complexity methodology (reference-class story pointing + risk-adjusted T-shirt sizing) documented and approved by the Tech Lead; version noted on the feasibility record." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rp03u7mbk8cs0skbzm" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Sensitivity: if effort estimate varies >30% under best/worst-case assumptions, the epic is flagged high-uncertainty and requires a de-risking spike before commitment." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Materiality: initiatives estimated above 20 story points or touching >=2 core systems require formal ARB review before build." },
+    { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj", "value": "All feasibility records produced this quarter for epics entering the backlog; sampled for completeness and dependency accuracy." },
+    { "templateKeyId": "cmr2oaodj001vlasbycmyhv72", "value": "Pass = feasibility record complete (all mandatory sections), dependencies reconciled to CMDB, and ARB/Tech Lead sign-off present; fail = missing sections or unlinked dependencies." },
+    { "templateKeyId": "cmr2oaof2001xlasbgo5bzael", "value": "Incomplete feasibility routes the epic back to discovery; proceeding to build without sign-off requires a 'SDLC-Exception' ticket owned by the Engineering Manager with 10-business-day remediation SLA." },
+    { "templateKeyId": "cmr2v8940000vxa9iz1ws174c", "value": "Acceptance = documented feasibility verdict (feasible / feasible-with-conditions / not-feasible), complexity range, risk list, and dependency map, reviewed by Tech Lead and (where material) ARB." },
+    { "templateKeyId": "cmr2v8953000xxa9izs452xrs", "value": "ADR + spike report stored in the epic's Jira/Confluence space; ARB decision recorded in the architecture governance register." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp7ql1nd4mbk84sleiyni", "checklist": [{ "step": "Capture decision as ADR", "value": "Feasibility verdict and chosen approach recorded as an ADR linked to the epic." }], "testing": [{ "step": "Confirm ADR exists", "value": "Architecture register shows an ADR for the initiative before build starts." }] },
+    { "standardId": "cmqscp7rk1nd6mbk8bc5skece", "checklist": [{ "step": "ARB review for material initiatives", "value": "Epics >20 points or spanning >=2 core systems submitted to ARB with the feasibility pack." }], "testing": [{ "step": "Audit ARB coverage", "value": "Governance register confirms all material initiatives this quarter have an ARB decision on file." }] },
+    { "standardId": "cmqscp7sw1nd8mbk8jhvmt9xd", "checklist": [{ "step": "Reuse approved patterns", "value": "Feasibility references the approved-patterns catalog; deviations justified in the ADR." }], "testing": [{ "step": "Check pattern alignment", "value": "Reviewer confirms the proposed design maps to a documented approved pattern or has an ARB-approved exception." }] },
+    { "standardId": "cmqscp5o31n9embk822qt2buu", "checklist": [{ "step": "ADR for significant decisions", "value": "Any significant tech-choice in the feasibility captured as its own ADR." }], "testing": [{ "step": "Verify ADR quality", "value": "ADR includes context, options considered, decision, and consequences." }] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "165508f4-8088-4b4b-97bc-1f6cb55cad92",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Scope = all upstream/downstream dependencies for the capability: internal systems (Guidewire modules, integration layer, data platform), other delivery teams, and external/vendor services; population = every integration point in the epic's context diagram." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Elaboration phase before the epic is committed to a sprint; dependency list re-validated at sprint planning." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "d2ab52d9-6951-4e31-8b03-f3ba74183bfa" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqz5zmje000j53crnex67qo4" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each dependency entry records: system/team name, CMDB CI id, interface (API/event/file), direction, owner/contact, and readiness status; no entry missing an owner or CI reference." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Every named system dependency reconciles to a CMDB CI (count of dependencies = count of resolved CIs); cross-team dependencies each have a matching Jira link on both boards." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Dependency register maintained as a Confluence/Jira table attached to the epic, versioned with date and author; snapshot retained for the life of the initiative." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Unresolved or blocked dependencies logged as Jira 'Dependency' items with owner and target date; cross-team blockers escalated at scrum-of-scrums; unowned dependencies flagged for the Integration Architect." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Dependency-mapping approach (context diagram + CMDB traversal + interface catalog review) documented and approved by the Integration Architect; version noted on the register." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqz5zmje000j53crnex67qo4" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Sensitivity: any single external/vendor dependency on the critical path triggers a contingency/fallback plan requirement before commitment." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Materiality: dependencies that would delay the epic by >1 sprint if unmet are marked critical and reviewed at portfolio level." },
+    { "templateKeyId": "cmr2oandp0013lasb81a47aqo", "value": "Post-implementation, the realized integration set is compared to the pre-build dependency register; any integration built but not in the register is back-filled and reviewed." },
+    { "templateKeyId": "cmr2v88lm000jxa9iggiq99sw", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8", "value": "Each production integration change links to a ServiceNow/Jira change ticket referencing the dependency register entry it satisfies." },
+    { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj", "value": "The full dependency register for the epic plus a cross-check of critical dependencies against the affected teams' backlogs." },
+    { "templateKeyId": "cmr2oaodj001vlasbycmyhv72", "value": "Pass = 100% of dependencies have owner + CMDB CI + readiness status and all critical ones have a matched commitment; fail = any unowned/unlinked dependency or unconfirmed critical dependency." },
+    { "templateKeyId": "cmr2oaof2001xlasbgo5bzael", "value": "Unresolved critical dependencies block sprint commitment; proceeding at risk requires a 'SDLC-Exception' ticket owned by the Engineering Manager with a documented mitigation and 10-business-day review." },
+    { "templateKeyId": "cmr2v8940000vxa9iz1ws174c", "value": "Acceptance = complete, owner-attributed dependency register with readiness status and critical-path flags, reviewed by the Integration Architect and Tech Lead." },
+    { "templateKeyId": "cmr2v8953000xxa9izs452xrs", "value": "Dependency register + context diagram stored in the epic's Confluence page; CMDB relationships updated; cross-team links recorded on respective Jira boards." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6e01nammbk8u3kkbgln", "checklist": [{ "step": "Contract tests for each API dependency", "value": "Every consumed internal API dependency has a consumer-driven contract test defined in the plan." }], "testing": [{ "step": "Verify contract coverage", "value": "CI shows a contract test exists and passes for each API listed in the dependency register." }] },
+    { "standardId": "cmqscp6fk1naombk8lfqdfywn", "checklist": [{ "step": "Integration tests for external deps", "value": "Each external/vendor dependency covered by an integration test against a stub or sandbox." }], "testing": [{ "step": "Run integration suite", "value": "Integration tests execute against sandbox for all external dependencies; results attached to the epic." }] },
+    { "standardId": "cmqscp7rk1nd6mbk8bc5skece", "checklist": [{ "step": "ARB review of cross-system impact", "value": "Dependency map submitted to ARB when >=2 core systems or external vendors are impacted." }], "testing": [{ "step": "Confirm ARB decision", "value": "Governance register shows ARB reviewed the cross-system dependency set." }] },
+    { "standardId": "cmqscp7u31ndambk8oa603ruk", "checklist": [{ "step": "Automated architecture-compliance check", "value": "Dependency directions validated against allowed layering rules via an automated fitness function." }], "testing": [{ "step": "Run fitness function", "value": "Architecture-compliance test passes with 0 disallowed cross-boundary dependencies." }] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "bdc5c4e6-5405-4048-8e25-ab74269149ca",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Scope = the team's product backlog in Jira for the value stream; population = all 'Ready' and 'Refined' backlog items (epics/stories/spikes) eligible for the next 2-3 sprints." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Re-ranked every sprint at backlog refinement and again immediately before sprint planning (2-week cadence)." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "26268b6c-720b-4d06-b3bc-f446c5374844" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Every ranked item has: value/priority score (e.g. WSJF components), risk rating, estimate, dependency links, and a rank order with no ties in the top 20; unestimated items are excluded from the ranked zone." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of items in the prioritized backlog view equals the count of 'Ready/Refined' items in Jira (no dropped or duplicated stories); rank is a strict total order over the top slice." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Ranked backlog snapshot exported from Jira after each refinement, dated and versioned, attached to the sprint page in Confluence; WSJF scoring sheet retained." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Items that cannot be ranked (missing estimate, unclear value, blocked by dependency) moved to a 'Needs Refinement' status with owner and reason logged; escalated if blocking for >1 sprint." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [{ "step": "Backlog items linked to work items/epics", "value": "Each ranked story links to its parent epic and any dependency issues so priority reflects true dependency order." }], "testing": [{ "step": "Audit linkage", "value": "Jira query returns 0 top-slice stories without a parent epic or dependency link." }] },
+    { "standardId": "cmqscp5gy1n90mbk8jqes60sn", "checklist": [{ "step": "Tech debt represented in ranking", "value": "Tech-debt items tagged in the backlog and given a value/risk score so they compete for priority, not ignored." }], "testing": [{ "step": "Confirm debt visibility", "value": "Backlog report shows tech-debt items carry scores and appear in the ranked list." }] },
+    { "standardId": "cmqscp5b31n8ombk86nscxr7f", "checklist": [{ "step": "Debt ratio informs priority", "value": "If tech-debt exceeds 15% of velocity, debt items are boosted in rank per the team policy." }], "testing": [{ "step": "Check debt ratio", "value": "Velocity dashboard shows tech-debt share; ranking reviewed when it crosses 15%." }] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "5059fc6f-7f73-4b38-af93-fcaf01270817",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Scope = all engineering teams in the value stream; survey population = every active developer (IC and lead) with >=1 sprint tenure; toolchain areas covered: local dev, CI/CD, code review, testing, environments, and release." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Survey window = 2-week collection period; run quarterly with a lightweight monthly pulse on the top-2 friction areas." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each survey response has required fields: team, role, friction area, severity (1-5), and free-text example; incomplete or anonymous-but-unscored responses excluded from the quantitative rollup." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Response count reconciles: respondents / invited engineers >=60% for the result to be considered representative; per-team counts sum to the total." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Anonymized survey results, ranked friction list, and analysis deck stored in the BI/reporting platform and Confluence, dated and versioned; raw responses retained per privacy policy." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Low response rate (<60%) triggers a reminder and extension; unresolved top-5 friction items become DevEx backlog Jira items with owner and target quarter." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj", "value": "All submitted survey responses for the quarter plus DORA/DevEx metrics (lead time, deployment frequency, build time) as corroborating quantitative evidence." },
+    { "templateKeyId": "cmr2oaodj001vlasbycmyhv72", "value": "Pass = >=60% response rate and a ranked friction list produced with the top-5 items assigned owners; fail = response rate <60% or no actionable findings captured." },
+    { "templateKeyId": "cmr2oaof2001xlasbgo5bzael", "value": "Findings without a clear owner are escalated to the Platform Engineering Lead; disputed severity resolved by triangulating with DORA metrics before prioritization." },
+    { "templateKeyId": "cmr2v8940000vxa9iz1ws174c", "value": "Acceptance = a ranked, evidence-backed friction list with severity and affected teams, reviewed by the Platform Engineering Lead and fed into the DevEx backlog." },
+    { "templateKeyId": "cmr2v8953000xxa9izs452xrs", "value": "Survey report + ranked findings + metric appendix stored in the BI/reporting platform dashboard and linked from the DevEx Confluence space." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp4zh1n80mbk8xzurv1a3", "checklist": [{ "step": "Assess build-time friction quantitatively", "value": "Survey correlated with CI build-duration metrics; builds exceeding 15 min flagged as friction." }], "testing": [{ "step": "Pull build metrics", "value": "CI dashboard confirms median build time and lists repos over the 15-min threshold cited in findings." }] },
+    { "standardId": "cmqscp5l71n98mbk8z26weoo4", "checklist": [{ "step": "Assess code-review latency", "value": "Survey pairs review-friction feedback with actual PR-review-time metrics against the 4-hour target." }], "testing": [{ "step": "Measure review time", "value": "Repo analytics show median PR first-review time; deviations from target reported as findings." }] },
+    { "standardId": "cmqscp51f1n84mbk8i3h7eo38", "checklist": [{ "step": "Environment-parity friction", "value": "Survey captures dev/test/prod parity pain; findings mapped to specific environment gaps." }], "testing": [{ "step": "Verify environment config", "value": "IaC/config comparison confirms cited parity gaps between environments." }] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "1dcdb032-c76d-4578-8997-4994f988052f",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Scope = SAST over all first-party source in the release repos and DAST over the deployed application in the staging environment; SCA over all third-party dependencies; population = every service/repo in the release train plus running endpoints exposed by the app." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "SAST + SCA run on every pull request and nightly; DAST run each release candidate before promotion to production; full authenticated DAST at least monthly." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "newApplication": "SonarQube" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rgmbk84ftyo7we" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each finding record has: rule id/CWE, severity (CVSS), file/endpoint location, status, and remediation owner; scan configs (rulesets, DAST scope, auth) version-controlled and current." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Findings reconcile between the scanner dashboard and the tracking backlog: 100% of open critical/high findings have a matching Jira ticket; counts match within +/-0." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "SAST/DAST/SCA reports (SARIF + HTML) retained 12 months in the security ticketing/evidence repository, tagged with commit SHA, scan config version, and timestamp; attached to the release change record." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Each true-positive opens a security Jira ticket with severity SLA (critical 7 days, high 30, medium 90); false positives suppressed with justification in the tool; risk acceptances via 'SDLC-Exception' ticket approved by the CISO/Application Security Lead." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03y8mbk8jtjnklaz" },
+    { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq", "value": "All release repos (SAST/SCA) and all externally-reachable endpoints in staging (DAST); sampled with a known-vulnerable canary to confirm detection." },
+    { "templateKeyId": "cmr2oao03001jlasb1coy37l2", "value": "Release gate: 0 critical/high SAST or SCA findings unaddressed; <=5 medium permitted only with approved waivers; DAST returns no unremediated high-risk issues; fail = any un-waived critical/high." },
+    { "templateKeyId": "cmr2oao16001llasbnlkf9nbu", "value": "Un-waived critical/high blocks promotion via the CI security gate; remediation tracked to SLA; exceptions require 'SDLC-Exception' ticket owned by the Application Security Lead with CISO co-sign and a dated remediation plan." },
+    { "templateKeyId": "cmr2v88x1000rxa9if2t45ukx", "value": "Acceptance = scans executed with current rulesets on the full scope, all critical/high triaged, and the security quality gate green (or all exceptions formally approved) before release." },
+    { "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m", "value": "Scan results and gate status attached to the PR checks and the release change ticket in the ITSM/security ticketing system; SARIF stored in the compliance evidence repository." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp5fz1n8ymbk8khdps7ca", "checklist": [{ "step": "SonarQube/SAST quality gate enforced", "value": "Security quality gate blocks merge/release on new critical/high findings; gate config version-controlled." }], "testing": [{ "step": "Trip the gate", "value": "Inject a seeded vulnerability; confirm the pipeline fails and the merge is blocked." }] },
+    { "standardId": "cmqscoh7i1m24mbk8hmgrzh91", "checklist": [{ "step": "Security gate in CI/CD", "value": "SAST + SCA are mandatory pipeline stages; a failing security stage stops promotion." }], "testing": [{ "step": "Verify gate wiring", "value": "Pipeline definition shows security stages as required, non-skippable checks." }] },
+    { "standardId": "cmqscp5iy1n94mbk8j5p53imq", "checklist": [{ "step": "Security reviewed in code review", "value": "PR review checklist explicitly includes security; scan results surfaced on the PR." }], "testing": [{ "step": "Audit PR checklist", "value": "Sample PRs show the security item checked and scan status visible before approval." }] },
+    { "standardId": "cmqscp6mw1nb0mbk8k1cnga6l", "checklist": [{ "step": "No PII in scan/test data", "value": "DAST runs against masked/synthetic data only; no production PII in the scanned environment." }], "testing": [{ "step": "Confirm data safety", "value": "PII scan of the DAST target environment returns 0 clear-text personal data." }] }
+   ],
+   "regulations": [
+    { "regId": "cmqwos0a7006dd29hvd4j01c9", "checklist": [{ "step": "Secure SDLC scanning embedded", "value": "SAST/DAST/SCA are mandatory stages in the secure SDLC per NYDFS 500.08; results reviewed before release." }], "testing": [{ "step": "Evidence of SDLC scans", "value": "Pipeline logs and stored SARIF reports demonstrate scans ran on every release with critical/high triaged." }] },
+    { "regId": "cmqwos2mq008rd29hee8nly31", "checklist": [{ "step": "Vulnerability management program", "value": "Findings fed into the vulnerability-management backlog with severity SLAs; annual penetration test supplements automated scans." }], "testing": [{ "step": "Verify remediation SLAs", "value": "Vuln tracker shows critical/high remediation within SLA and the current-year pentest report on file." }] }
+   ]
+  },
+  {
+   "id": "cmr2fi96d0ddqkfgzih7y08x1",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Scope = all epics accepted into the value stream backlog for the upcoming PI/quarter; population = each epic to be decomposed into INVEST-compliant, sprint-sized user stories in Jira." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Backlog refinement across the elaboration horizon (1-2 sprints ahead of each sprint); revisited at every refinement session." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each story has: title, description, Gherkin acceptance criteria, estimate <=8 points, parent epic link, and a Definition-of-Ready checklist passed; stories >8 points are split further before entering a sprint." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Sum of decomposed story scope traces back to the parent epic (no orphan stories, no epic scope left uncovered); count of stories per epic recorded and reconciled at refinement." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Story breakdown captured in Jira with epic links and a refinement timestamp; refinement notes stored in Confluence, versioned by session date." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Stories failing Definition-of-Ready held in 'Needs Refinement' with the gap logged; oversized or ambiguous stories flagged for a spike; unresolved after 2 refinements escalated to the Product Owner." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03x8mbk8goc4tif8" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Decomposition method = INVEST + story-splitting patterns (workflow steps, business rules, happy/unhappy path), documented in the team working agreement and approved by the Scrum Master." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rn03rsmbk8cr7zj5ho" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Sensitivity: any story still estimated >8 points after splitting is treated as high-uncertainty and requires a spike or further decomposition before commitment." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Materiality: epics spanning >3 sprints of stories are reviewed with the Product Owner for possible re-scoping or MVP slicing." },
+    { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj", "value": "All stories decomposed for the upcoming PI, sampled for INVEST compliance and acceptance-criteria completeness." },
+    { "templateKeyId": "cmr2oaodj001vlasbycmyhv72", "value": "Pass = 100% of sprint-bound stories <=8 points with Gherkin acceptance criteria and a linked epic; fail = any story oversized, missing criteria, or orphaned." },
+    { "templateKeyId": "cmr2oaof2001xlasbgo5bzael", "value": "Non-ready stories are excluded from sprint planning; committing a non-ready story requires Scrum Master + Product Owner sign-off recorded on the story." },
+    { "templateKeyId": "cmr2v8940000vxa9iz1ws174c", "value": "Acceptance = a set of INVEST-compliant, estimated, criteria-bearing stories that fully cover each parent epic, reviewed at refinement by the team and Product Owner." },
+    { "templateKeyId": "cmr2v8953000xxa9izs452xrs", "value": "Decomposed stories live in the Jira backlog under their epics; refinement outcomes recorded in the sprint/PI Confluence page." },
+    { "answerId": "cmr2ocg000x5pkaz3o864sy86", "value": "Approved methodology = INVEST + team-agreed story-splitting patterns (working agreement v-current, Scrum Master approved); parameter source = the accepted epics and their acceptance criteria in Jira, with estimates from team planning-poker sessions." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [{ "step": "Stories linked to parent work items", "value": "Every decomposed story links to its epic so traceability from strategy to code is preserved." }], "testing": [{ "step": "Audit epic linkage", "value": "Jira query returns 0 refined stories without a parent epic link." }] },
+    { "standardId": "cmqscp6s71nbambk8gf041kt6", "checklist": [{ "step": "Stories sized for short-lived branches", "value": "Stories sized so a feature branch completes in <3 days, enabling small PRs." }], "testing": [{ "step": "Check branch lifetimes", "value": "Repo analytics show median feature-branch age <3 days for delivered stories." }] },
+    { "standardId": "cmqscp5o31n9embk822qt2buu", "checklist": [{ "step": "Capture design decisions during split", "value": "Notable technical decisions surfaced during decomposition recorded as ADRs on the epic." }], "testing": [{ "step": "Confirm ADR capture", "value": "Epics with architectural implications have at least one linked ADR." }] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "6a221296-95dd-4b9f-aeba-013afde2ade6",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Scope = unit tests for all new and changed code paths in the pull request; population = every changed public method and branch in the diff for the service/repo under change." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Authored with the code change; executed on every commit locally and on every pull request in CI; coverage gate evaluated per PR." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "newApplication": "SonarQube" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each test has clear arrange/act/assert, meaningful name, and asserts behavior not implementation; no changed public method left untested; tests deterministic (no reliance on wall-clock/network)." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Coverage reconciles: line coverage >=80% overall and >=90% on critical paths; coverage on changed lines >=80% (enforced by the PR coverage diff); test count increases with new public methods." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "JUnit/coverage (Cobertura/LCOV) reports published as CI artifacts retained 90 days, tagged with commit SHA; coverage trend tracked in SonarQube by build." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Coverage below threshold fails the PR; a documented shortfall is allowed only via 'SDLC-Exception' ticket owned by the Engineering Manager with a 10-business-day plan to raise coverage; flaky tests quarantined and fixed within 5 days." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "6abae0f4-5f21-4ac1-938d-5c925c925a7a" },
+    { "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq", "value": "All changed code paths in the PR diff; verified against a mutation-testing sample on critical modules to confirm assertion strength." },
+    { "templateKeyId": "cmr2oao03001jlasb1coy37l2", "value": "Pass = all unit tests green, line coverage >=80% (>=90% critical paths), changed-line coverage >=80%; fail = any red test or coverage below threshold on changed code." },
+    { "templateKeyId": "cmr2oao16001llasbnlkf9nbu", "value": "Failing tests block merge; coverage shortfall blocks merge unless waived via 'SDLC-Exception' ticket owned by the Engineering Manager; flaky specs labeled 'flaky' with a 5-business-day fix SLA." },
+    { "templateKeyId": "cmr2v88x1000rxa9if2t45ukx", "value": "Acceptance = new/changed public methods covered, suite green, and coverage thresholds met on changed lines, verified by the CI coverage gate and PR review." },
+    { "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m", "value": "Coverage report + test results attached to the PR check and archived in the CI system; coverage badge/trend visible in SonarQube for the repo." },
+    { "answerId": "cmr2ocg010x69kaz3oi5ned9n", "value": "Materiality/tolerance = minimum 80% line coverage overall, 90% on critical paths, and >=80% on changed lines per PR; any drop below these tolerances fails the build and requires an approved 'SDLC-Exception' with a remediation plan." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6jk1naumbk8glp27aai", "checklist": [{ "step": "Enforce 80% line coverage", "value": "CI coverage gate fails the PR when overall or changed-line coverage drops below 80%." }], "testing": [{ "step": "Verify gate threshold", "value": "SonarQube/CI config shows the 80% line-coverage quality gate active; a below-threshold PR is rejected." }] },
+    { "standardId": "cmqscp6aw1nagmbk8geywa493", "checklist": [{ "step": "90% coverage on critical paths", "value": "Critical modules tagged and held to >=90% coverage in the gate config." }], "testing": [{ "step": "Check critical-path coverage", "value": "Coverage report shows critical-path packages >=90%." }] },
+    { "standardId": "cmqscp6kn1nawmbk8i85nvdj6", "checklist": [{ "step": "No untested public methods", "value": "Every new/changed public method has at least one asserting unit test." }], "testing": [{ "step": "Scan for untested methods", "value": "Coverage-by-method report lists 0 uncovered changed public methods." }] },
+    { "standardId": "cmqscp6nv1nb2mbk8k5f7up1n", "checklist": [{ "step": "Unit tests form the pyramid base", "value": "Bulk of test coverage lives in fast unit tests, not slow E2E." }], "testing": [{ "step": "Confirm pyramid shape", "value": "Test-count report shows unit tests dominate the suite; run time per unit test suite <2 min." }] }
+   ],
+   "regulations": []
+  }
+ ]
+}

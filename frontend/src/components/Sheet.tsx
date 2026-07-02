@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Card, EmptyState, LinkButton, LoadingState } from './ui';
 
 // Sheet — the canonical spreadsheet list view (extracted from the Value
 // Streams / Organization list explorers so every list tab shares the EXACT
@@ -26,6 +27,8 @@ export type SheetCol<R> = {
   sortable?: boolean;   // default: has value/values
   filterable?: boolean; // default: has value/values
   dim?: boolean;
+  hint?: string; // header tooltip (title) — spell out acronyms like APCD/SBS
+  align?: 'left' | 'center' | 'right'; // header + cell horizontal alignment (default left)
 };
 
 type Sort = { col: string; dir: 1 | -1 };
@@ -55,8 +58,8 @@ const MAX_OPTIONS = 300;
 // selection (classic single-pick, closes the dropdown); ctrl/cmd/shift-click
 // toggles the option in/out of the selection and keeps the dropdown open.
 // Exported so the Value Streams / Organization list explorers share it.
-export function HeaderComboFilter({ label, value, onChange, options, sort }: {
-  label: string; value: string[]; onChange: (v: string[]) => void; options: string[]; sort?: React.ReactNode;
+export function HeaderComboFilter({ label, value, onChange, options, sort, hint, align }: {
+  label: string; value: string[]; onChange: (v: string[]) => void; options: string[]; sort?: React.ReactNode; hint?: string; align?: 'left' | 'center' | 'right';
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -84,8 +87,8 @@ export function HeaderComboFilter({ label, value, onChange, options, sort }: {
   const display = value.length === 0 ? 'All' : value.length === 1 ? value[0] : `${value.length} selected`;
 
   return (
-    <div ref={ref} className="px-2 py-1 min-w-0 relative" onClick={(e) => e.stopPropagation()}>
-      <HeaderLabel>{label}{sort}</HeaderLabel>
+    <div ref={ref} className="px-2 py-1 min-w-0 relative" onClick={(e) => e.stopPropagation()} title={hint}>
+      <div className={align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : ''}><HeaderLabel>{label}{sort}</HeaderLabel></div>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -111,7 +114,7 @@ export function HeaderComboFilter({ label, value, onChange, options, sort }: {
           </div>
           <div className="max-h-56 overflow-y-auto py-1">
             {shown.length === 0 ? (
-              <div className="px-2.5 py-1.5 text-xs text-[#a3a3a3]">No matches</div>
+              <EmptyState baseClassName="px-2.5 py-1.5 text-xs text-[#a3a3a3]" message="No matches" />
             ) : shown.map((o) => {
               const checked = o === 'All' ? value.length === 0 : value.includes(o);
               return (
@@ -184,7 +187,7 @@ export function SheetCell({ text, onClick, dim, title }: { text: string; onClick
 
 export function Sheet<R>({
   rows, cols, rowKey, defaultSort, defaultFilters, summarize, unit, loading, emptyText,
-  onRowClick, expand, selectedKey, scrollToKey, leading,
+  onRowClick, expand, selectedKey, scrollToKey, leading, stickyStrip,
 }: {
   rows: R[];
   cols: SheetCol<R>[];
@@ -205,6 +208,9 @@ export function Sheet<R>({
   // Rendered at the start of the totals strip (e.g. a List|Drilldown view
   // toggle) so pages can share one compact row instead of stacking headers.
   leading?: React.ReactNode;
+  // Pin the totals/leading strip to the top of the scroll area (with the column
+  // header stacking just below it) so both stay visible while scrolling.
+  stickyStrip?: boolean;
 }) {
   const filterCols = cols.filter((c) => (c.filterable ?? !!(c.value || c.values)));
   // Per-column multi-selection; [] = All (no filter on that column).
@@ -243,7 +249,7 @@ export function Sheet<R>({
     const out: Record<string, string[]> = {};
     for (const c of filterCols) out[c.key] = optionList(rows.filter((r) => matches(r, c.key)).flatMap((r) => valOf(c, r)));
     return out;
-  }, [rows, sel, cols]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [rows, sel, cols]);  
 
   // A pick can be invalidated by a later pick in another column — drop it.
   // (Skip while rows are still loading, so defaultFilters survive the empty state.)
@@ -254,7 +260,7 @@ export function Sheet<R>({
       const kept = picked.filter((p) => optionsByCol[c.key]?.includes(p));
       if (kept.length !== picked.length) setSel((p) => ({ ...p, [c.key]: kept }));
     }
-  }, [optionsByCol]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [optionsByCol]);  
 
   const needle = search.trim().toLowerCase();
   const searchMatch = (r: R) =>
@@ -272,7 +278,7 @@ export function Sheet<R>({
       if (!vb && va) return -1;
       return va.localeCompare(vb, undefined, { numeric: true }) * sort.dir;
     });
-  }, [rows, sel, sort, colByKey, needle]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [rows, sel, sort, colByKey, needle]);  
 
   const anyFilter = filterCols.some((c) => (sel[c.key] ?? []).length > 0) || !!needle;
   const clear = () => {
@@ -331,13 +337,17 @@ export function Sheet<R>({
       off[i + 1] = off[i] + (heights.current.get(k) ?? EST_ROW_H) + (k === expanded ? panelH : 0);
     }
     return off;
-  }, [visible, expanded, panelH, measureTick]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [visible, expanded, panelH, measureTick]);  
   const total = offsets[N];
 
   useLayoutEffect(() => {
     const rw = rowsWrapRef.current; if (!rw) return;
     let p: HTMLElement | null = rw.parentElement;
-    while (p) { const oy = getComputedStyle(p).overflowY; if (oy === 'auto' || oy === 'scroll') break; p = p.parentElement; }
+    while (p) {
+      const oy = getComputedStyle(p).overflowY;
+      if (oy === 'auto' || oy === 'scroll') break;
+      p = p.parentElement;
+    }
     const scroller = p;
     scrollerRef.current = scroller;
     const recompute = () => {
@@ -347,12 +357,16 @@ export function Sheet<R>({
     };
     recompute();
     let ticking = false;
-    const onScroll = () => { if (ticking) return; ticking = true; requestAnimationFrame(() => { ticking = false; recompute(); }); };
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => { ticking = false; recompute(); });
+    };
     const target: Window | HTMLElement = scroller ?? window;
     target.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
     return () => { target.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); };
-  }, [loading, visible.length === 0]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [loading, visible.length === 0]);  
 
   // Filtering/expanding changes total height while scrolled; the browser clamps
   // the scroller but no scroll event fires, leaving rel stale (→ a blank window).
@@ -389,20 +403,21 @@ export function Sheet<R>({
     if (scroller) scroller.scrollTop += rwTop - scroller.getBoundingClientRect().top + offsets[idx] - scroller.clientHeight / 2;
     else window.scrollBy(0, rwTop + offsets[idx] - window.innerHeight / 2);
     scrolledKey.current = scrollToKey;
-  }, [scrollToKey, visible, total]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [scrollToKey, visible, total]);  
 
   return (
     <>
       {/* Slim strip: optional leading control (view toggle) + totals + clear,
           then a free-text search box pushed to the right. */}
-      <div className="flex items-center gap-3 flex-wrap pb-1.5">
+      <div className={'flex items-center gap-3 flex-wrap pb-1.5 '
+        + (stickyStrip ? 'sticky top-0 z-30 bg-white pt-1' : '')}>
         {leading}
         {!loading && (
           <>
             <span className="text-[11px] text-[#737373] tnum">
               {summarize ? summarize(visible) + ' · ' : ''}{visible.length} {unit ?? 'rows'}
             </span>
-            {anyFilter && <button onClick={clear} className="text-[11px] font-medium text-[#1d4ed8] hover:underline">Clear filters</button>}
+            {anyFilter && <LinkButton onClick={clear} className="text-[11px] font-medium">Clear filters</LinkButton>}
             <div className="flex-1" />
             <ListSearch value={search} onChange={setSearch} />
           </>
@@ -410,26 +425,27 @@ export function Sheet<R>({
       </div>
 
       {/* No overflow-hidden on the card — the combo dropdowns must escape it. */}
-      <div className="card p-0">
+      <Card className="p-0">
         {/* Sticky spreadsheet header: each cell hosts its combobox filter + sort. */}
-        <div className="grid items-stretch divide-x divide-[#eaeaea] border-b border-[#eaeaea] bg-[#fafafa] rounded-t-lg sticky top-0 z-20" style={gridCols}>
+        <div className={'grid items-stretch divide-x divide-[#eaeaea] border-b border-[#eaeaea] bg-[#fafafa] rounded-t-lg sticky z-20 '
+          + (stickyStrip ? 'top-10' : 'top-0')} style={gridCols}>
           {cols.map((c) => {
             const filterable = c.filterable ?? !!(c.value || c.values);
             const sortable = c.sortable ?? !!(c.value || c.values);
             const sortNode = sortable ? <SortToggle col={c.key} sort={sort} onSort={toggleSort} /> : undefined;
             return filterable ? (
               <HeaderComboFilter key={c.key} label={c.label} value={sel[c.key] ?? []} onChange={(v) => setSel((p) => ({ ...p, [c.key]: v }))}
-                options={optionsByCol[c.key] ?? ['All']} sort={sortNode} />
+                options={optionsByCol[c.key] ?? ['All']} sort={sortNode} hint={c.hint} align={c.align} />
             ) : (
-              <div key={c.key} className="px-2 py-1 min-w-0"><HeaderLabel>{c.label}{sortNode}</HeaderLabel></div>
+              <div key={c.key} className={'px-2 py-1 min-w-0 ' + (c.align === 'center' ? 'text-center' : c.align === 'right' ? 'text-right' : '')} title={c.hint}><HeaderLabel>{c.label}{sortNode}</HeaderLabel></div>
             );
           })}
         </div>
         <div ref={rowsWrapRef} className="rounded-b-lg overflow-hidden">
           {loading ? (
-            <div className="py-1.5 px-3 text-[11px] text-[#a3a3a3] italic">Loading…</div>
+            <LoadingState baseClassName="py-1.5 px-3 text-[11px] text-[#a3a3a3] italic" />
           ) : visible.length === 0 ? (
-            <div className="py-1.5 px-3 text-[11px] text-[#a3a3a3] italic">{emptyText ?? 'No rows match the current filters.'}</div>
+            <EmptyState baseClassName="py-1.5 px-3 text-[11px] text-[#a3a3a3] italic" message={emptyText ?? 'No rows match the current filters.'} />
           ) : (
             <>
               {padTop > 0 && <div style={{ height: padTop }} />}
@@ -451,7 +467,8 @@ export function Sheet<R>({
                       style={gridCols}
                     >
                       {cols.map((c) => (
-                        <div key={c.key} className="px-2 py-[3px] flex items-center gap-1.5 min-w-0">
+                        <div key={c.key} className={'px-2 py-[3px] flex items-center gap-1.5 min-w-0 '
+                          + (c.align === 'center' ? 'justify-center text-center' : c.align === 'right' ? 'justify-end text-right' : '')}>
                           {c.render ? c.render(r) : <SheetCell text={valOf(c, r).join(', ')} dim={c.dim} />}
                         </div>
                       ))}
@@ -466,7 +483,7 @@ export function Sheet<R>({
             </>
           )}
         </div>
-      </div>
+      </Card>
     </>
   );
 }

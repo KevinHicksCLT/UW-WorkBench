@@ -48,10 +48,13 @@ const RUN_SQL_TOOL: Anthropic.Tool = {
   },
 };
 
+/** Platform display name used in AI prompts — env-configurable per deployment (charter Task 1). */
+const PLATFORM_NAME = process.env.PLATFORM_NAME ?? 'Capgemini Transformation Bridge';
+
 function buildSystemPrompt(schema: string): string {
   const today = new Date().toISOString().slice(0, 10);
   return [
-    'You are the analytics assistant embedded in the Capgemini Transformation Bridge — an operating-model',
+    `You are the analytics assistant embedded in the ${PLATFORM_NAME} — an operating-model`,
     'platform describing a company as org units, roles, value streams, processes (L1–L5), I/O elements,',
     'checklists, and metrics. You are a sharp, business-savvy advisor for leaders working through this',
     'transformation — not just a SQL runner.',

@@ -10,52 +10,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../../lib/api';
 import { useDialogs } from '../../lib/dialogs';
-
-type Row = Record<string, any>;
-const withCompany = (path: string, companyId: string | null) =>
-  companyId ? path + (path.includes('?') ? '&' : '?') + `companyId=${companyId}` : path;
-
-const USAGE_TYPES = ['Execution', 'System of Record', 'Approval', 'Reporting', 'Support'];
-const APPROVAL_TYPES = ['System Workflow', 'Manual Sign-off', 'E-Signature'];
-
-// Section accents mirror the sidebar's hue ladder so what you edit here is
-// visually the same thing you see on the map.
-const ACCENT = { steps: '#7c3aed', detail: '#b45309', who: '#059669', deliverable: '#0070AD', app: '#1d4ed8' } as const;
-
-function SectionCard({ title, accent, hint, children }: { title: string; accent: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-lg border border-[#e5e7eb] bg-white" style={{ borderLeft: `3px solid ${accent}` }}>
-      <div className="px-4 pt-3">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#525252]">{title}</div>
-        {hint && <div className="text-[11px] text-[#a3a3a3] mt-0.5">{hint}</div>}
-      </div>
-      <div className="px-4 py-3">{children}</div>
-    </div>
-  );
-}
-
-function Select({ value, onChange, options, allowEmpty }: {
-  value: string; onChange: (v: string) => void; options: { id: string; label: string }[]; allowEmpty?: string;
-}) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-md border border-[#e5e7eb] bg-white px-2 py-1.5 text-[12px] text-[#171717] focus:outline-none focus:ring-1 focus:ring-[#171717]"
-    >
-      {allowEmpty != null && <option value="">{allowEmpty}</option>}
-      {options.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
-    </select>
-  );
-}
-
-const Label = ({ children }: { children: React.ReactNode }) => (
-  <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-1">{children}</label>
-);
-
-const StepChip = ({ text }: { text: string }) => (
-  <span className="text-[9.5px] font-medium text-[#0369a1] bg-[#f0f9ff] border border-[#bae6fd] rounded px-1.5 py-0.5">{text}</span>
-);
+import { Card, EmptyState, LoadingState } from '../ui';
+import {
+  ACCENT, APPROVAL_TYPES, USAGE_TYPES, withCompany,
+  SectionCard, Select, Label, StepChip, SubProcessDetailCard,
+  type Row,
+} from './step-lens/parts';
 
 export default function StepLensEditor({ companyId, onNavigate }: {
   companyId: string | null;
@@ -77,12 +37,12 @@ export default function StepLensEditor({ companyId, onNavigate }: {
   const [saving, setSaving] = useState<string | null>(null);
   const [flash, setFlash] = useState('');
 
-  const rows = (r: any): Row[] => r?.rows ?? [];
+  const rows = (r: { rows?: Row[] } | null | undefined): Row[] => r?.rows ?? [];
   // Page through a table (the generic endpoint caps at 200/page).
   const fetchAll = async (slug: string): Promise<Row[]> => {
     const out: Row[] = [];
     for (let offset = 0; offset < 4000; offset += 200) {
-      const r: any = await api.get(withCompany(`/admin/${slug}?limit=200&offset=${offset}`, companyId));
+      const r = await api.get<{ rows?: Row[]; total?: number }>(withCompany(`/admin/${slug}?limit=200&offset=${offset}`, companyId));
       out.push(...rows(r));
       if (out.length >= (r?.total ?? 0)) break;
     }
@@ -98,24 +58,24 @@ export default function StepLensEditor({ companyId, onNavigate }: {
   // scope (stream / L4 / step) filters instantly client-side.
   useEffect(() => {
     if (!companyId) return;
-    api.get(withCompany('/admin/valueStream?limit=200', companyId)).then((r: any) => setStreams(rows(r)));
-    api.get(withCompany('/admin/application?limit=200', companyId)).then((r: any) => setApps(rows(r)));
+    api.get<{ rows?: Row[] }>(withCompany('/admin/valueStream?limit=200', companyId)).then((r) => setStreams(rows(r)));
+    api.get<{ rows?: Row[] }>(withCompany('/admin/application?limit=200', companyId)).then((r) => setApps(rows(r)));
     Promise.all([
-      api.get(withCompany('/admin/role?limit=200', companyId)),
-      api.get(withCompany('/admin/role?limit=200&offset=200', companyId)),
-    ]).then(([a, b]: any[]) => setRoles([...rows(a), ...rows(b)]));
+      api.get<{ rows?: Row[] }>(withCompany('/admin/role?limit=200', companyId)),
+      api.get<{ rows?: Row[] }>(withCompany('/admin/role?limit=200&offset=200', companyId)),
+    ]).then(([a, b]) => setRoles([...rows(a), ...rows(b)]));
     void reloadBridges();
-  }, [companyId]); // eslint-disable-line
+  }, [companyId]);
 
   // Steps of the selected stream.
   const loadSteps = () => {
     if (!companyId || !vsId) { setSteps([]); return; }
-    api.get(withCompany(`/admin/processStep?limit=200&f_valueStreamId=${vsId}`, companyId)).then((r: any) => setSteps(rows(r)));
+    api.get<{ rows?: Row[] }>(withCompany(`/admin/processStep?limit=200&f_valueStreamId=${vsId}`, companyId)).then((r) => setSteps(rows(r)));
   };
   useEffect(() => {
     setL4(''); setStepId(''); setSteps([]);
     loadSteps();
-  }, [companyId, vsId]); // eslint-disable-line
+  }, [companyId, vsId]);
 
   // The L4 sub-process detail record (inputs/outputs/hand-offs/notes shown in
   // the map sidebar at PL4). undefined = nothing selected / loading, null = the
@@ -124,10 +84,10 @@ export default function StepLensEditor({ companyId, onNavigate }: {
   const loadL4Row = () => {
     setL4Row(undefined);
     if (!companyId || !vsId || !l4) return;
-    api.get(withCompany(`/admin/subValueStream?limit=200&f_valueStreamId=${vsId}&f_level=4`, companyId))
-      .then((r: any) => setL4Row(rows(r).find((x: Row) => x.name === l4) ?? null));
+    api.get<{ rows?: Row[] }>(withCompany(`/admin/subValueStream?limit=200&f_valueStreamId=${vsId}&f_level=4`, companyId))
+      .then((r) => setL4Row(rows(r).find((x: Row) => x.name === l4) ?? null));
   };
-  useEffect(() => { loadL4Row(); }, [companyId, vsId, l4]); // eslint-disable-line
+  useEffect(() => { loadL4Row(); }, [companyId, vsId, l4]);
 
   const l4s = useMemo(() => {
     const seen = new Map<string, number>();
@@ -155,8 +115,8 @@ export default function StepLensEditor({ companyId, onNavigate }: {
   const scopeIds = useMemo(() => new Set(scopeSteps.map((s) => s.id)), [scopeSteps]);
   const scopeCodes = useMemo(() => new Set(scopeSteps.flatMap((s) => [s.code, s.parentProcessId]).filter(Boolean)), [scopeSteps]);
   const inScope = (r: Row) => (r.processStepId && scopeIds.has(r.processStepId)) || (r.activityCode && scopeCodes.has(r.activityCode));
-  const usages = useMemo(() => allUsage.filter(inScope), [allUsage, scopeIds, scopeCodes]); // eslint-disable-line
-  const delivs = useMemo(() => allDelivs.filter(inScope), [allDelivs, scopeIds, scopeCodes]); // eslint-disable-line
+  const usages = useMemo(() => allUsage.filter(inScope), [allUsage, scopeIds, scopeCodes]);
+  const delivs = useMemo(() => allDelivs.filter(inScope), [allDelivs, scopeIds, scopeCodes]);
 
   const stepContext = (r: Row): string => {
     const s = r.processStepId ? stepById.get(r.processStepId) : undefined;
@@ -165,7 +125,7 @@ export default function StepLensEditor({ companyId, onNavigate }: {
   };
 
   const note = (msg: string) => { setFlash(msg); setTimeout(() => setFlash(''), 2500); };
-  const patch = async (slug: string, id: string, data: Row) => {
+  const patch = async (slug: string, id: string, data: Record<string, unknown>) => {
     setSaving(id);
     try { await api.patch(withCompany(`/admin/${slug}/${id}`, companyId), data); note('Saved — the map sidebar reflects this on next load.'); }
     finally { setSaving(null); }
@@ -214,7 +174,7 @@ export default function StepLensEditor({ companyId, onNavigate }: {
   };
 
   // ── L4 sub-process detail (the PL4 sidebar narrative) ──────────────────────
-  const saveL4Detail = async (data: Row) => {
+  const saveL4Detail = async (data: Record<string, unknown>) => {
     if (!l4Row) return;
     await patch('subValueStream', l4Row.id, data);
     loadL4Row();
@@ -229,8 +189,8 @@ export default function StepLensEditor({ companyId, onNavigate }: {
   const roleOptions = roles.map((r) => ({ id: r.id, label: r.name })).sort((a, b) => a.label.localeCompare(b.label));
   const stepOptions = scopeSteps.map((s) => ({ id: s.id, label: `${s.stepNumber}. ${s.name}` }));
 
-  const updUsage = (id: string, field: string, v: any) => setAllUsage((list) => list.map((r) => (r.id === id ? { ...r, [field]: v } : r)));
-  const updDeliv = (id: string, field: string, v: any) => setAllDelivs((list) => list.map((r) => (r.id === id ? { ...r, [field]: v } : r)));
+  const updUsage = (id: string, field: string, v: unknown) => setAllUsage((list) => list.map((r) => (r.id === id ? { ...r, [field]: v } : r)));
+  const updDeliv = (id: string, field: string, v: unknown) => setAllDelivs((list) => list.map((r) => (r.id === id ? { ...r, [field]: v } : r)));
 
   const scopeLabel = stepId
     ? `this step (Process Level 5)`
@@ -267,9 +227,9 @@ export default function StepLensEditor({ companyId, onNavigate }: {
       {flash && <div className="mb-3 text-[12px] font-medium text-[#15803d] bg-[#f0fdf4] border border-[#bbf7d0] rounded-md px-3 py-2">{flash}</div>}
 
       {!vsId ? (
-        <div className="card-elevated p-8 text-center text-sm text-[#a3a3a3]">
+        <Card variant="elevated" className="p-8 text-center text-sm text-[#a3a3a3]">
           Pick a value stream to see and edit its sidebar content. Drilling deeper narrows the scope, just like the map.
-        </div>
+        </Card>
       ) : (
         <div className="space-y-4 max-w-4xl">
           <div className="text-[12px] text-[#525252]">Editing <strong>{scopeLabel}</strong>. The sidebar at this level aggregates everything below.</div>
@@ -294,7 +254,7 @@ export default function StepLensEditor({ companyId, onNavigate }: {
                   <button onClick={() => void removeStep(s)} className="flex-shrink-0 rounded-md border border-[#fecaca] text-[#b91c1c] px-2.5 py-1.5 text-[12px] font-semibold hover:bg-[#fef2f2]">Delete</button>
                 </div>
               ))}
-              {scopeSteps.length === 0 && <div className="text-[12px] text-[#a3a3a3] italic">No steps at this scope yet — add the first one below.</div>}
+              {scopeSteps.length === 0 && <EmptyState baseClassName="text-[12px] text-[#a3a3a3] italic" message="No steps at this scope yet — add the first one below." />}
               {!stepId && (
                 <div className="flex items-center gap-2 pt-1.5">
                   <span className="w-7 flex-shrink-0" />
@@ -319,7 +279,7 @@ export default function StepLensEditor({ companyId, onNavigate }: {
               hint="The narrative the sidebar shows for this sub-process — its inputs, outputs, upstream/downstream hand-offs, and notes."
             >
               {l4Row === undefined ? (
-                <div className="text-[12px] text-[#a3a3a3]">Loading…</div>
+                <LoadingState baseClassName="text-[12px] text-[#a3a3a3]" />
               ) : l4Row === null ? (
                 <div className="flex items-center gap-3">
                   <span className="text-[12px] text-[#a3a3a3] italic">This sub-process has no detail record yet.</span>
@@ -481,39 +441,6 @@ export default function StepLensEditor({ companyId, onNavigate }: {
           </SectionCard>
         </div>
       )}
-    </div>
-  );
-}
-
-// Editable inputs/outputs/hand-offs/notes of one L4 SubValueStream row.
-function SubProcessDetailCard({ row, saving, onSave }: { row: Row; saving: boolean; onSave: (data: Row) => void }) {
-  const FIELDS: [string, string][] = [
-    ['inputs', 'Inputs'], ['outputs', 'Outputs'],
-    ['upstream', 'Upstream hand-off'], ['downstream', 'Downstream hand-off'],
-    ['notes', 'Notes'],
-  ];
-  const [d, setD] = useState<Row>(() => Object.fromEntries(FIELDS.map(([k]) => [k, row[k] ?? ''])));
-  return (
-    <div>
-      <div className="grid gap-2.5 sm:grid-cols-2">
-        {FIELDS.map(([k, label]) => (
-          <div key={k} className={k === 'notes' ? 'sm:col-span-2' : ''}>
-            <Label>{label}</Label>
-            <textarea
-              value={d[k]}
-              onChange={(e) => setD((x) => ({ ...x, [k]: e.target.value }))}
-              className="w-full rounded-md border border-[#e5e7eb] px-2 py-1.5 text-[12px] min-h-[56px]"
-            />
-          </div>
-        ))}
-      </div>
-      <button
-        onClick={() => onSave(Object.fromEntries(FIELDS.map(([k]) => [k, d[k] || null])))}
-        disabled={saving}
-        className="mt-2.5 rounded-md bg-[#171717] text-white px-3 py-1.5 text-[12px] font-semibold hover:bg-black disabled:opacity-50"
-      >
-        Save
-      </button>
     </div>
   );
 }

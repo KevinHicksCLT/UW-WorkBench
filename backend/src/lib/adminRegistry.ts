@@ -171,18 +171,18 @@ function buildEntity(model: Prisma.DMMF.Model, companyModels: Set<string>, tenan
   }
 
   const hasCompanyId = model.fields.some((f) => f.name === 'companyId' && f.kind === 'scalar');
-  // Resolve how this table scopes to a company.
+  // Resolve how this table scopes to a company (Company itself scopes to none).
   let companyVia: CompanyVia = null;
-  if (model.name === 'Company') {
-    companyVia = null;
-  } else if (hasCompanyId) {
-    companyVia = { kind: 'direct' };
-  } else {
-    // Inherit company via the first FK whose target table carries companyId.
-    for (const f of model.fields) {
-      if (f.kind === 'object' && f.relationFromFields?.length === 1 && companyModels.has(f.type)) {
-        companyVia = { kind: 'relation', objectField: f.name, scalarField: f.relationFromFields[0], targetSlug: camel(f.type), targetHasTenantId: tenantModels.has(f.type) };
-        break;
+  if (model.name !== 'Company') {
+    if (hasCompanyId) {
+      companyVia = { kind: 'direct' };
+    } else {
+      // Inherit company via the first FK whose target table carries companyId.
+      for (const f of model.fields) {
+        if (f.kind === 'object' && f.relationFromFields?.length === 1 && companyModels.has(f.type)) {
+          companyVia = { kind: 'relation', objectField: f.name, scalarField: f.relationFromFields[0], targetSlug: camel(f.type), targetHasTenantId: tenantModels.has(f.type) };
+          break;
+        }
       }
     }
   }

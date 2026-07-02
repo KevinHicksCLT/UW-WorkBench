@@ -1,0 +1,168 @@
+# THE pipeline (refactor charter Tasks 7, 8, 20, 21) — one run per push,
+# staged jobs, nothing deploys before its gates:
+#
+#   feature branch push:  quality ──► deploy-preview
+#   develop/master push:  quality ──► migrate DB ──► deploy ──► smoke ──► neon-cleanup
+#
+# Vercel's direct git builds are disabled (vercel.json git.deploymentEnabled),
+# so every deployment is produced by this pipeline, after green gates.
+# Same-repo PRs show these checks via the branch's push run. Related but
+# separate lifecycles: neon-preview-branches.yml (per-PR DB branch from
+# develop, deleted on close).
+#
+# Secrets: NEON_API_KEY, NEON_PROJECT_ID, DEVELOP_DATABASE_URL,
+# PRODUCTION_DATABASE_URL, VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID.
+# Optional: VERCEL_AUTOMATION_BYPASS_SECRET (smoke through deployment
+# protection), SONAR_TOKEN + SONAR_ENABLED=true (hosted scan).
+name: Pipeline
+
+on:
+  push:
+
+concurrency:
+  group: pipeline-${{ github.ref }}
+  # Supersede in-flight runs on feature branches; never cancel a promotion.
+  cancel-in-progress: ${{ github.ref_name != 'master' && github.ref_name != 'develop' }}
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate -w cascade-backend
+        env:
+          # prisma generate does not connect; placeholder satisfies env validation.
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
+          DIRECT_URL: postgresql://user:pass@localhost:5432/db
+
+      - name: Lint (zero warnings)
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests + coverage
+        run: npm run test:coverage
+
+      - name: Build
+        run: npm run build -w cascade-frontend
+
+  # SonarCloud job intentionally absent until the account is configured — an
+  # always-skipped job is a permanent noise row in every merge box. To enable:
+  # restore the job from git history (SonarSource/sonarqube-scan-action@v5,
+  # gated on vars.SONAR_ENABLED) after adding SONAR_TOKEN. Sonar's rule engine
+  # (eslint-plugin-sonarjs) already runs inside the lint gate regardless.
+
+  # ─── Feature branches: preview deploy AFTER gates ─────────────────────────
+  deploy-preview:
+    needs: quality
+    if: ${{ vars.VERCEL_CI_DEPLOY == 'true' && github.ref_name != 'master' && github.ref_name != 'develop' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Deploy preview to Vercel (post-gate)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_GIT_PROVIDER: github
+          VERCEL_GIT_REPO_OWNER: ${{ github.repository_owner }}
+          VERCEL_GIT_REPO_SLUG: ${{ github.event.repository.name }}
+          VERCEL_GIT_COMMIT_REF: ${{ github.ref_name }}
+          VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
+        run: |
+          npx vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+          # URL arrives on stdout; CLI hints go to stderr — don't merge them.
+          url=$(npx vercel deploy --token="$VERCEL_TOKEN")
+          echo "Preview deployed after green gates: $url"
+          echo "$url" >> "$GITHUB_STEP_SUMMARY"
+
+  # ─── develop/master: migrate → deploy → smoke → cleanup ───────────────────
+  migrate:
+    needs: quality
+    if: ${{ github.ref_name == 'master' || github.ref_name == 'develop' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Apply migrations to the target Neon branch
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ github.ref_name == 'master' && secrets.PRODUCTION_DATABASE_URL || secrets.DEVELOP_DATABASE_URL }}
+          DIRECT_URL: ${{ github.ref_name == 'master' && secrets.PRODUCTION_DATABASE_URL || secrets.DEVELOP_DATABASE_URL }}
+        run: npx prisma migrate deploy
+
+  deploy:
+    needs: migrate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Deploy to Vercel (post-gate, post-migration)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_GIT_PROVIDER: github
+          VERCEL_GIT_REPO_OWNER: ${{ github.repository_owner }}
+          VERCEL_GIT_REPO_SLUG: ${{ github.event.repository.name }}
+          VERCEL_GIT_COMMIT_REF: ${{ github.ref_name }}
+          VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
+          VERCEL_GIT_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          env_flag="--environment=preview"
+          prod_flag=""
+          if [ "${{ github.ref_name }}" = "master" ]; then
+            env_flag="--environment=production"
+            prod_flag="--prod"
+          fi
+          npx vercel pull --yes $env_flag --token="$VERCEL_TOKEN"
+          # URL arrives on stdout; CLI hints go to stderr — don't merge them.
+          url=$(npx vercel deploy $prod_flag --token="$VERCEL_TOKEN")
+          echo "Deployed after green gates + migrations: $url"
+          echo "$url" >> "$GITHUB_STEP_SUMMARY"
+
+  smoke:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Smoke-check the deployment
+        env:
+          TARGET_URL: ${{ github.ref_name == 'master' && 'https://transform-platform.vercel.app' || 'https://transform-platform-git-develop-kevins-projects-e3a4abb1.vercel.app' }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: node scripts/deploy-smoke.mjs "$TARGET_URL"
+
+  neon-cleanup:
+    # After a feature merges to develop, delete its same-name Neon DB branch.
+    # (Per-PR preview/pr-N branches are handled by neon-preview-branches.yml.)
+    if: ${{ github.ref_name == 'develop' }}
+    needs: smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Delete the merged feature's Neon branch
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+        run: node scripts/neon-branch-cleanup.mjs

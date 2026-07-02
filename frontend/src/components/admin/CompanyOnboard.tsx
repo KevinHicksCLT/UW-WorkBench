@@ -3,6 +3,7 @@ import { api } from '../../lib/api';
 import { useCompany } from '../../lib/company';
 import EntityList from './EntityList';
 import type { AdminEntity } from '../../lib/adminTypes';
+import { Button, Card, ErrorMessage, Input, Label } from '../ui';
 
 // Company onboarding + profile management. Lists the tenant's companies (with the
 // active one marked), lets an admin spin up a brand-new company in one step
@@ -43,7 +44,7 @@ export default function CompanyOnboard({
   return (
     <div className="space-y-6">
       {/* Onboard new */}
-      <div className="card-elevated p-5">
+      <Card variant="elevated" className="p-5">
         <h3 className="text-sm font-semibold text-[#171717] mb-1">Onboard a new company</h3>
         <p className="text-sm text-[#666666] mb-4 max-w-2xl">
           Creates an isolated company workspace. We seed the root of the value-stream and organization
@@ -51,9 +52,8 @@ export default function CompanyOnboard({
         </p>
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[240px]">
-            <label className="label">Company name</label>
-            <input
-              className="input"
+            <Label>Company name</Label>
+            <Input
               placeholder="e.g. Northwind Mutual"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -64,25 +64,25 @@ export default function CompanyOnboard({
             <input type="checkbox" checked={seedRoots} onChange={(e) => setSeedRoots(e.target.checked)} className="h-4 w-4 rounded border-[#d4d4d4]" />
             Seed hierarchy roots
           </label>
-          <button className="btn-primary" disabled={creating || !name.trim()} onClick={create}>
+          <Button disabled={creating || !name.trim()} onClick={create}>
             {creating ? 'Creating…' : 'Create company'}
-          </button>
+          </Button>
         </div>
-        {error && <div className="text-sm text-[#be123c] mt-3">{error}</div>}
+        {error && <ErrorMessage className="mt-3">{error}</ErrorMessage>}
         {justCreated && (
           <div className="mt-4 rounded-lg border border-[#bbf7d0] bg-[#f0fdf4] px-4 py-3 flex items-center justify-between gap-3">
             <div className="text-sm text-[#166534]">
               <span className="font-medium">{justCreated}</span> is ready and now active. Build it out next.
             </div>
-            <button className="btn-primary text-xs" onClick={onRequestAi}>Build with AI ✦</button>
+            <Button className="text-xs" onClick={onRequestAi}>Build with AI ✦</Button>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Existing companies */}
       <div>
         <h3 className="text-sm font-semibold text-[#171717] mb-2">Companies in this workspace</h3>
-        <div className="card-elevated overflow-hidden mb-4">
+        <Card variant="elevated" className="overflow-hidden mb-4">
           <table className="w-full text-sm">
             <tbody>
               {companies.map((c) => (
@@ -100,7 +100,7 @@ export default function CompanyOnboard({
               ))}
             </tbody>
           </table>
-        </div>
+        </Card>
       </div>
 
       {/* Edit profiles */}

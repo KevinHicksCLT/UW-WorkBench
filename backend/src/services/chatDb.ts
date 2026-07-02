@@ -67,7 +67,10 @@ async function exec(sql: string, maxRows: number): Promise<SqlResult> {
 const FORBIDDEN = /\b(insert|update|delete|drop|alter|truncate|grant|revoke|create|merge|copy)\b/i;
 
 export function assertSelectOnly(sql: string): string {
-  const stmt = sql.trim().replace(/;+\s*$/, '');
+  // Strip trailing semicolons (the trim already removed trailing whitespace, so
+  // this is equivalent to the old /;+\s*$/ replace without regex backtracking).
+  let stmt = sql.trim();
+  while (stmt.endsWith(';')) stmt = stmt.slice(0, -1);
   if (!stmt) throw new Error('Empty query.');
   if (stmt.includes(';')) throw new Error('Only a single statement is allowed (no semicolons).');
   if (!/^(select|with)\b/i.test(stmt)) throw new Error('Only SELECT / WITH queries are allowed.');

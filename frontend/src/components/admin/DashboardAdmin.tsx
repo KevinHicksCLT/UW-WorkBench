@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { useCompany } from '../../lib/company';
 import { WIDGET_CATALOG, WIDGET_MAP, DEFAULT_LAYOUT, FOOTPRINT_STATS, FOOTPRINT_DEFAULT, type Widget } from '../../lib/dashboardWidgets';
+import { Button, Card, EmptyState, ErrorMessage, Input } from '../ui';
 
 // ─── Home dashboard configurator (Data Admin → Home) ─────────────────────────
 // The Home screen is a per-company layout of widgets drawn from a fixed catalog
@@ -28,7 +29,7 @@ function Chevron({ dir }: { dir: 'up' | 'down' }) {
   );
 }
 
-export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: string, section?: string) => void }) {
+export default function DashboardAdmin(_props: { onNavigate?: (tab: string, section?: string) => void }) {
   const { companyId, company, refresh } = useCompany();
   const [companyDbId, setCompanyDbId] = useState<string | null>(null);
 
@@ -57,8 +58,8 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
   useEffect(() => {
     if (!companyId) return;
     setError(''); setNameSavedAt(null); setLayoutSavedAt(null);
-    api.get(`/admin/company/${companyId}`)
-      .then((c: { id: string; name: string; dashboardConfig?: { widgets?: string[]; footprintStats?: string[]; widgetTitles?: Record<string, string> } | null }) => {
+    api.get<{ id: string; name: string; dashboardConfig?: { widgets?: string[]; footprintStats?: string[]; widgetTitles?: Record<string, string> } | null }>(`/admin/company/${companyId}`)
+      .then((c) => {
         setCompanyDbId(c.id);
         setName(c.name); setOrigName(c.name);
         // Keep only ids still in the catalog; fall back to the default layout.
@@ -133,19 +134,19 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
       </p>
 
       {/* Company profile — the dashboard title */}
-      <div className="card-elevated p-5">
+      <Card variant="elevated" className="p-5">
         <h3 className="text-sm font-semibold text-[#171717] mb-1">Dashboard title (company name)</h3>
         <p className="text-xs text-[#a3a3a3] mb-3">Shown as the heading on Home and in the company switcher.</p>
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[240px]">
-            <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Company name" />
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Company name" />
           </div>
           {nameSavedAt && !nameDirty && <span className="text-xs text-[#16a34a] pb-2.5">Saved {nameSavedAt}</span>}
-          <button className="btn-primary disabled:opacity-50" disabled={!nameDirty || savingName} onClick={saveName}>
+          <Button className="disabled:opacity-50" disabled={!nameDirty || savingName} onClick={saveName}>
             {savingName ? 'Saving…' : 'Save title'}
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
 
       {/* Layout — what appears on the dashboard */}
       <div>
@@ -160,16 +161,16 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
             >
               Reset to default
             </button>
-            <button className="btn-primary text-xs disabled:opacity-50" disabled={!layoutDirty || savingLayout} onClick={saveLayout}>
+            <Button className="text-xs disabled:opacity-50" disabled={!layoutDirty || savingLayout} onClick={saveLayout}>
               {savingLayout ? 'Saving…' : 'Save layout'}
-            </button>
+            </Button>
           </div>
         </div>
         <p className="text-xs text-[#a3a3a3] mb-3">Reorder with the arrows, remove with ×. Changes apply once you save.</p>
 
-        <div className="card-elevated overflow-hidden">
+        <Card variant="elevated" className="overflow-hidden">
           {layout.length === 0 && (
-            <div className="px-4 py-6 text-center text-sm text-[#a3a3a3]">No areas yet — add some below.</div>
+            <EmptyState baseClassName="px-4 py-6 text-center text-sm text-[#a3a3a3]" message="No areas yet — add some below." />
           )}
           {layout.map((id, i) => {
             const w = WIDGET_MAP.get(id);
@@ -207,8 +208,8 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
                   <div className="px-4 pb-4 pt-2 bg-[#fafafa] border-t border-[#f0f0f0] space-y-3">
                     <div className="max-w-sm">
                       <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-1">Display title</label>
-                      <input
-                        className="input text-sm"
+                      <Input
+                        className="text-sm"
                         placeholder={w.title}
                         value={customTitle}
                         onChange={(e) => setTitles((t) => ({ ...t, [id]: e.target.value }))}
@@ -234,7 +235,7 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
               </div>
             );
           })}
-        </div>
+        </Card>
       </div>
 
       {/* Add an area */}
@@ -242,7 +243,7 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
         <h3 className="text-sm font-semibold text-[#171717] mb-1">Add an area</h3>
         <p className="text-xs text-[#a3a3a3] mb-3">Pick any area to append it to the dashboard.</p>
         {available.length === 0 ? (
-          <div className="card-elevated px-4 py-6 text-center text-sm text-[#a3a3a3]">Every available area is already on the dashboard.</div>
+          <Card variant="elevated" className="px-4 py-6 text-center text-sm text-[#a3a3a3]">Every available area is already on the dashboard.</Card>
         ) : (
           <div className="space-y-5">
             {([['Headline tiles', availTiles], ['Cards', availCards]] as [string, Widget[]][]).map(([group, items]) =>
@@ -251,10 +252,12 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
                   <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-2">{group}</div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {items.map((w) => (
-                      <button
+                      <Card
+                        as="button"
+                        variant="elevated"
                         key={w.id}
                         onClick={() => add(w.id)}
-                        className="card-elevated px-3 py-2.5 text-left hover:border-[#4f46e5] transition-colors flex items-center gap-2"
+                        className="px-3 py-2.5 text-left hover:border-[#4f46e5] transition-colors flex items-center gap-2"
                       >
                         <span className="text-[#4f46e5] flex-shrink-0">
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
@@ -263,7 +266,7 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
                           <span className="text-sm font-medium text-[#171717] block truncate">{w.title}</span>
                           <span className="text-xs text-[#a3a3a3] block truncate">{w.desc}</span>
                         </span>
-                      </button>
+                      </Card>
                     ))}
                   </div>
                 </div>
@@ -273,7 +276,7 @@ export default function DashboardAdmin({ onNavigate }: { onNavigate?: (tab: stri
         )}
       </div>
 
-      {error && <div className="text-sm text-[#be123c]">{error}</div>}
+      {error && <ErrorMessage>{error}</ErrorMessage>}
     </div>
   );
 }

@@ -32,8 +32,8 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
 
   const refresh = () => {
     setLoading(true);
-    api.get('/companies')
-      .then((list: any[]) => {
+    api.get<{ id: string; name: string }[]>('/companies')
+      .then((list) => {
         const opts = list.map((c) => ({ id: c.id, name: c.name }));
         setCompanies(opts);
         // Keep the stored choice if still valid, else default to the first company.

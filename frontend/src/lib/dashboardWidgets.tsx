@@ -5,6 +5,7 @@ import {
   PortfolioRollup, ProgramGantt, TopRisks, RaidSummary, RaidByProgram,
   type TransformationData,
 } from '../components/home/TransformationWidgets';
+import { Card as UICard, EmptyState } from '../components/ui';
 
 // ─── Home dashboard widget catalog ───────────────────────────────────────────
 // The single source of truth for what the Home dashboard CAN show. Overview.tsx
@@ -59,12 +60,12 @@ function Tile({ label, value, hint, to }: { label: string; value: string | numbe
   );
   if (to) {
     return (
-      <Link to={to} className="card-elevated p-4 block h-full transition-colors hover:border-[#4f46e5] group">
+      <UICard as={Link} variant="elevated" to={to} className="p-4 block h-full transition-colors hover:border-[#4f46e5] group">
         {body}
-      </Link>
+      </UICard>
     );
   }
-  return <div className="card-elevated p-4 h-full">{body}</div>;
+  return <UICard variant="elevated" className="p-4 h-full">{body}</UICard>;
 }
 
 // Horizontal bar list. Bars are scaled to the largest value in the set.
@@ -90,7 +91,7 @@ function BarList({ groups, color }: { groups: Group[]; color?: string | ((k: str
 
 function Card({ title, children, to, toLabel }: { title: string; children: ReactNode; to?: string; toLabel?: string }) {
   return (
-    <div className="card-elevated p-5 h-full">
+    <UICard variant="elevated" className="p-5 h-full">
       <div className="flex items-center justify-between mb-4">
         {to ? (
           <Link to={to} className="text-sm font-semibold text-[#171717] hover:text-[#4f46e5]">{title}</Link>
@@ -100,7 +101,7 @@ function Card({ title, children, to, toLabel }: { title: string; children: React
         {to && <Link to={to} className="text-xs text-[#525252] hover:text-[#171717]">{toLabel ?? 'View'} →</Link>}
       </div>
       {children}
-    </div>
+    </UICard>
   );
 }
 
@@ -159,7 +160,7 @@ export const FOOTPRINT_DEFAULT: string[] = ['subProcesses', 'ioItems', 'external
 // Transformation widgets read the `transformation` slice; until the backend
 // serves it (older payloads), they render a quiet placeholder.
 const txn = (d: Dashboard, body: (t: TransformationData) => ReactNode): ReactNode =>
-  d.transformation ? body(d.transformation) : <div className="text-sm text-[#a3a3a3]">No transformation data yet.</div>;
+  d.transformation ? body(d.transformation) : <EmptyState baseClassName="text-sm text-[#a3a3a3]" message="No transformation data yet." />;
 
 export const WIDGET_CATALOG: Widget[] = [
   // ── Transformation command center (D1) ──
@@ -209,7 +210,7 @@ export const WIDGET_CATALOG: Widget[] = [
     ),
   },
   // Headline count tiles
-  tile('tile:divisions', 'Divisions', 'divisions', { hint: (t) => `${t.departments} departments`, to: '/roles', source: SRC.org }),
+  tile('tile:divisions', 'Divisions', 'divisions', { hint: (t) => `${t.departments} departments`, to: '/organization', source: SRC.org }),
   tile('tile:roles', 'Roles', 'roles', { to: '/roles', source: SRC.org }),
   tile('tile:valueStreams', 'Value Streams', 'valueStreams', { hint: (t) => `${t.domains} domains`, to: '/overview', source: SRC.vs }),
   // Initiative/scenario/risk tiles carry no deep-link: their list views are the
@@ -218,7 +219,7 @@ export const WIDGET_CATALOG: Widget[] = [
   tile('tile:initiatives', 'Initiatives', 'initiatives', { source: SRC.initiatives }),
   tile('tile:deliverables', 'Deliverables', 'deliverables', { to: '/deliverables', source: SRC.work }),
   tile('tile:tasks', 'Tasks', 'tasks', { to: '/tasks', source: SRC.work }),
-  tile('tile:departments', 'Departments', 'departments', { to: '/roles?view=departments', source: SRC.org }),
+  tile('tile:departments', 'Departments', 'departments', { to: '/organization?view=departments', source: SRC.org }),
   tile('tile:domains', 'Domains', 'domains', { to: '/overview', source: SRC.vs }),
   tile('tile:applications', 'Applications', 'applications', { to: '/applications', source: SRC.apps }),
   tile('tile:risks', 'Risks', 'risks', { source: SRC.risks }),
@@ -250,7 +251,7 @@ export const WIDGET_CATALOG: Widget[] = [
   },
   {
     id: 'card:divisionsByCategory', title: 'Divisions by segment', desc: 'Division counts by CEO segment (Core Business / IT / Corporate)', kind: 'card', source: SRC.org,
-    render: (d) => <Card title={wt(d, 'card:divisionsByCategory', 'Divisions by segment')} to="/roles" toLabel="Roles"><BarList groups={d.divisionsByCategory} color="#4f46e5" /></Card>,
+    render: (d) => <Card title={wt(d, 'card:divisionsByCategory', 'Divisions by segment')} to="/organization" toLabel="Organization"><BarList groups={d.divisionsByCategory} color="#4f46e5" /></Card>,
   },
   {
     id: 'card:initiativesByStatus', title: 'Initiatives by status', desc: 'Portfolio initiatives grouped by status', kind: 'card', source: SRC.initiatives,
@@ -308,7 +309,7 @@ export const WIDGET_CATALOG: Widget[] = [
   {
     id: 'card:topDivisions', title: 'Top divisions', desc: 'Divisions ranked by number of roles', kind: 'card', source: SRC.org,
     render: (d) => (
-      <Card title={wt(d, 'card:topDivisions', 'Top divisions')} to="/roles">
+      <Card title={wt(d, 'card:topDivisions', 'Top divisions')} to="/organization">
         <div className="space-y-2 text-sm">
           {d.topDivisions.map((v) => (
             <div key={v.id} className="flex items-center justify-between border-b border-[#f5f5f5] pb-1">

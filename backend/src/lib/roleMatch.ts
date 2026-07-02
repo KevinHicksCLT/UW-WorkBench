@@ -20,8 +20,12 @@ const ABBR: [RegExp, string][] = [
   [/\bcfo\b/g, 'chief financial officer'], [/\bceo\b/g, 'chief executive officer'],
 ];
 const baseNorm = (v: unknown): string =>
+  // eslint-disable-next-line sonarjs/super-linear-regex -- behavior-frozen refactor; safe rewrite deferred (paren-stripping over short role-name strings; the flagged backtracking needs atomic groups JS lacks)
   str(v).toLowerCase().replace(/\s*\([^)]*\)\s*/g, ' ').replace(/[^a-z0-9/ ]/g, ' ').replace(/\s+/g, ' ').trim();
-const expand = (s: string): string => { for (const [re, r] of ABBR) s = s.replace(re, r); return s.replace(/\s+/g, ' ').trim(); };
+const expand = (s: string): string => {
+  for (const [re, r] of ABBR) { s = s.replace(re, r); }
+  return s.replace(/\s+/g, ' ').trim();
+};
 
 // Normalized candidate forms for one name: the full expanded form and (when the
 // name is a "A / B" variant) the first segment. De-duplicated, empties dropped.

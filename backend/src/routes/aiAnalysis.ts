@@ -25,8 +25,7 @@ const SUBJECT_TYPES = [
   { type: 'role', spine: 'role', level: 0, label: 'Roles' },
 ] as const;
 
-const DISPOSITIONS = ['Automated', 'Discarded', 'Augmented', 'Manual'] as const;
-type Disposition = (typeof DISPOSITIONS)[number];
+type Disposition = 'Automated' | 'Discarded' | 'Augmented' | 'Manual';
 
 // ProcessNode.automatability → adoption disposition. Tiers: autonomous/workflow
 // (score 1-2, agent-runnable) → Automated; augmented/assist (score 3-4, AI in the

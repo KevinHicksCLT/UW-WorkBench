@@ -1,0 +1,297 @@
+{
+ "tasks": [
+  {
+   "id": "76da14a3-57b9-46b8-ac0d-3a0bb059b67d",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All defects in Jira with status 'Ready for Re-test' resolved against build artifact of the current release candidate (repo main branch, tagged rc-x.y.z); one re-test execution per defect." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current sprint window and the active release train cycle (e.g. Sprint 2026.07, Release 26.3), covering all defects moved to 'Fixed' since the last re-test cycle." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03wgmbk8l97vjt6e" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Every re-test record carries: defect key, build/tag re-tested against, test case ID, actual result, pass/fail verdict, tester, and timestamp; no record may be saved without a linked test-case execution." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of defects marked 'Fixed' at cycle start reconciles exactly to count of re-test executions recorded (delta = 0); any un-re-tested 'Fixed' defect blocks the release gate." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Re-test evidence (execution log, screenshots, console/API output) attached to the Jira defect and to the Xray/Zephyr test execution, stamped with build tag and UTC timestamp; retained per release for 12 months." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Defects that fail re-test are re-opened, assigned back to the fixing developer with 'reopened' label, and logged in the release exception register; blocked/untestable items get a 'test-blocked' Jira ticket with owner and target date." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xsmbk8m22e2kle" },
+    { "templateKeyId": "cmr2oandp0013lasb81a47aqo", "value": "For each re-tested defect the failing pre-fix behavior no longer reproduces and the documented expected result is observed on the fixed build; regression suite for the affected module re-run with 0 new failures." },
+    { "templateKeyId": "cmr2v88lm000jxa9iggiq99sw", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8", "value": "Each re-test links to the originating defect (Jira DEF-#) and to the change/PR that delivered the fix; verify the fix commit SHA in the re-tested build matches the merged PR." },
+    { "templateKeyId": "cmr2oaqo3003rlasb1r26nwor", "roleId": "cmqsck0rq03wgmbk8l97vjt6e" },
+    { "templateKeyId": "cmr2oaqpd003tlasbyv59t5v5", "value": "All defects flagged 'Fixed / Ready for Re-test' in the current release train; 100% must be re-tested, not sampled." },
+    { "templateKeyId": "cmr2oaqq9003vlasbyjg1pxll", "value": "PASS = documented expected result observed and no regression in the module suite; FAIL = original defect reproduces or any new regression appears. Release gate requires 100% of re-tested defects PASS or explicitly deferred with sign-off." },
+    { "templateKeyId": "cmr2oaqrf003xlasb2mopahy1", "value": "Failed re-test -> re-open defect to developer with reopened label; untestable -> raise 'test-blocked' Jira ticket, owner = QA Lead, resolve within 2 business days or escalate to Release Manager." },
+    { "templateKeyId": "cmr2oaqsp003zlasbtvvkt534", "value": "Re-test results are valid only for the exact build tag re-tested (rc-x.y.z); a new build supersedes prior re-test evidence and requires re-execution before release." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6bw1naimbk87degjlyb", "checklist": [ { "step": "Confirm regression coverage for re-tested defects is automated", "value": "Regression suite in the CI test project (Xray/Zephyr) runs automatically per build; manual re-test limited to exploratory confirmation only." } ], "testing": [ { "step": "Verify automated regression executed on the fixed build", "value": "CI run for tag rc-x.y.z shows the module regression suite executed with 0 new failures before defects are closed." } ] },
+    { "standardId": "cmqscp6cw1nakmbk8o95bp77w", "checklist": [ { "step": "Re-test triggers automated regression-detection on the affected component", "value": "Post-merge CI job re-runs the affected component suite; any new failure auto-creates a Jira regression defect." } ], "testing": [ { "step": "Confirm no regressions introduced by the fix", "value": "CI regression report for the re-tested build shows delta of 0 failing tests vs. the prior passing baseline." } ] },
+    { "standardId": "cmqscp6mw1nb0mbk8k1cnga6l", "checklist": [ { "step": "Re-test uses managed, representative test data", "value": "Re-tests run against the QA test-data set version tied to the release; PII masked, seeded via the test-data management pipeline." } ], "testing": [ { "step": "Verify test-data version recorded on each execution", "value": "Each Xray execution stores the test-data snapshot ID used, reproducible on demand." } ] },
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Every re-test execution is linked to a work item", "value": "Xray/Zephyr execution linked to the Jira defect and the delivering PR; unlinked executions rejected by the QA close gate." } ], "testing": [ { "step": "Verify linkage between defect, fix PR, and re-test", "value": "Trace defect DEF-# -> fix PR SHA -> re-test execution; all three present for 100% of closed defects." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "cmr2f85sp01qkbn7i8sxbg1f7",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The single approved pull request targeting the mainline (main/develop) in the service repository, containing only reviewed and CI-green changes for the feature/fix under delivery." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current sprint / release train iteration; merge performed within the iteration once all merge-gate conditions are satisfied." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "newApplication": "GitHub Enterprise" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "PR has: >=2 approvals, all conversations resolved, linked Jira work item, green required checks (build, unit, SAST, coverage), and a Conventional Commit title; merge blocked until all are true via branch protection." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Post-merge mainline HEAD SHA equals the merge commit; CI on main re-runs and is green; commit count and diff on main match the approved PR (no extra commits sneaked in)." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Merge commit SHA, PR number, approvers, and CI run URL recorded in the PR and in the release notes/Confluence page, timestamped in UTC; branch-protection audit log retained." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Any override of branch protection (admin merge, bypassed check) requires a 'SDLC-Exception' Jira ticket, owner = Engineering Manager, with justification and 10-business-day review; logged in the exception register." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6y21nbmmbk882oq68hf", "checklist": [ { "step": "Enforce PR-only merges to protected branches", "value": "GitHub branch protection on main/develop requires a pull request; direct pushes blocked." } ], "testing": [ { "step": "Verify no non-PR commits reached main", "value": "Audit main branch history: 100% of commits since last release arrive via merged PRs; 0 direct pushes." } ] },
+    { "standardId": "cmqscp6zl1nbombk8bcpbmbyg", "checklist": [ { "step": "Require two approvers before merge", "value": "Branch protection requires >=2 approving reviews, including 1 code owner, before the merge button is enabled." } ], "testing": [ { "step": "Confirm approval count on the merged PR", "value": "Merged PR shows >=2 approvals and code-owner sign-off in the review timeline." } ] },
+    { "standardId": "cmqscp6px1nb6mbk8u4b3r7yl", "checklist": [ { "step": "CI must pass before merge is allowed", "value": "Required status checks (build, unit tests, SAST, coverage gate) must be green; merge blocked otherwise." } ], "testing": [ { "step": "Verify all required checks green on merge commit", "value": "PR checks tab shows all required checks passed at the merged SHA." } ] },
+    { "standardId": "cmqscp6wb1nbimbk8xjdtaqkl", "checklist": [ { "step": "Prohibit direct commits to main/master", "value": "Branch protection blocks direct commits and force pushes to main and develop for all non-admin roles." } ], "testing": [ { "step": "Verify branch-protection settings and history", "value": "Settings screenshot + git log confirm no direct commits or force pushes to protected branches." } ] },
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Merge PR is linked to a work item", "value": "PR references the Jira story/defect key; unlinked PRs fail the pre-merge check." } ], "testing": [ { "step": "Trace merge to work item", "value": "Merged PR links to Jira key and the Jira item transitions to 'In Release'." } ] }
+   ],
+   "regulations": [
+    { "regId": "cmqwos0a7006dd29hvd4j01c9", "checklist": [ { "step": "Merge follows secure SDLC change-control gates", "value": "Mainline merge requires review, passing SAST/dependency scan, and approval per the documented secure SDLC procedure; enforced by branch protection." } ], "testing": [ { "step": "Verify SDLC gate evidence on the merge", "value": "Merge commit shows completed review, green security checks, and recorded approvers; sampled merges audited quarterly against the SDLC policy." } ] }
+   ]
+  },
+  {
+   "id": "cmr2f861501r3bn7iuzz1u2yc",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The immutable build artifact produced by CI from the merged mainline commit for this release; exactly one semantic-version tag applied to that commit and artifact." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "At release cut for the current release train iteration; tag applied once the release candidate build is green." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "newApplication": "GitHub Enterprise" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "f561d684-faf3-4a4a-9a14-b3259e20a5d2" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Tag follows SemVer vMAJOR.MINOR.PATCH, is annotated (author, date, release notes), points to the exact release commit SHA, and matches the artifact version and container image tag in Artifactory." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Git tag SHA == release build commit SHA == artifact metadata version == image tag; all four reconcile with no mismatch before the tag is pushed." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Annotated tag, tagged commit SHA, CI build number, and generated changelog recorded in the release notes and Confluence, timestamped in UTC; tag is immutable (no re-tag)." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "If a tag must be corrected, delete-and-retag is prohibited; issue a new patch version and log a 'SDLC-Exception' Jira ticket, owner = Release Engineer, documenting the superseded tag." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6be1n6smbk8q7c323vx", "checklist": [ { "step": "Tag is a versioned, immutable release marker", "value": "SemVer annotated tag applied to the release commit; tags are protected and never moved or reused." } ], "testing": [ { "step": "Verify tag immutability and versioning", "value": "Git shows the tag as annotated, protected, and unchanged; version follows SemVer and is unique." } ] },
+    { "standardId": "cmqscp5q71n9imbk88q7k8pe2", "checklist": [ { "step": "Changelog generated for the tagged release", "value": "Changelog auto-generated from Conventional Commits between the previous and current tag and attached to the release." } ], "testing": [ { "step": "Verify changelog completeness", "value": "Changelog lists every merged PR since the prior tag; count matches git log between tags." } ] },
+    { "standardId": "cmqscp6ou1nb4mbk8szeaebmz", "checklist": [ { "step": "Tag maps to atomic, traceable commits", "value": "Tagged commit is the merge of reviewed atomic commits; each links to a work item." } ], "testing": [ { "step": "Trace tag to work items", "value": "Every commit reachable from the tag since the last release links to a Jira key." } ] },
+    { "standardId": "cmqscpar41nimmbk8bzueuorm", "checklist": [ { "step": "Tagged artifact published to Artifactory", "value": "Build artifact and container image for the tag published to Artifactory with matching version metadata." } ], "testing": [ { "step": "Verify artifact version matches tag", "value": "Artifactory artifact version and image tag equal the git tag string." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "6d8ab888-677c-49e2-97ce-83e399917930",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Reusable CI/CD pipeline templates (build, test, SAST/SCA, package, deploy stages) covering the org's supported stacks (Java/Node/.NET), consumable by all delivery squads from the central pipeline-templates repo." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current platform-enablement PI/quarter; templates versioned and published by end of the increment, then maintained on a rolling basis." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "newApplication": "GitHub Actions" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each template defines required stages (build, unit test, coverage gate >=80% changed lines, SAST 0 critical/high, SCA, artifact publish, deploy) as reusable workflows with pinned action versions and documented inputs; no template ships without a README and example consumer." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Number of supported stacks == number of published templates; every template has at least one passing end-to-end pilot pipeline run recorded before publish." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Templates versioned via git tags in the pipeline-templates repo; release notes, example runs, and adoption guide stored in Confluence, timestamped; each version immutable and referenced by consumers via pinned ref." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "A squad needing to deviate from the standard template raises a 'SDLC-Exception' Jira ticket, owner = Engineering Manager, documenting the deviation and compensating controls; reviewed within 10 business days and logged." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03txmbk8q8joq2m0" }
+   ],
+   "standards": [
+    { "standardId": "cmqscp50i1n82mbk8li260ohf", "checklist": [ { "step": "Templates provide a CI pipeline usable by every repository", "value": "Reusable workflow templates cover build/test/scan/deploy so any repo can adopt CI by referencing the template." } ], "testing": [ { "step": "Verify template adoption produces working CI", "value": "Pilot repo referencing the template runs a full green pipeline end to end." } ] },
+    { "standardId": "cmqscoh7i1m24mbk8hmgrzh91", "checklist": [ { "step": "Templates embed quality gates", "value": "Template enforces coverage >=80% changed lines, SAST 0 critical/high, and SonarQube quality gate as mandatory stages." } ], "testing": [ { "step": "Verify gate failure blocks the pipeline", "value": "Seed a coverage/SAST breach in the pilot; pipeline fails at the gate as designed." } ] },
+    { "standardId": "cmqscp5481n8ambk8lcjqd1fi", "checklist": [ { "step": "Templates provision environments via IaC", "value": "Deploy stages reference IaC (Terraform/Bicep) modules so dev/test/prod are provisioned consistently from code." } ], "testing": [ { "step": "Verify environment parity from template", "value": "Two environments provisioned from the template show identical config drift report (0 drift)." } ] },
+    { "standardId": "cmqscp4zh1n80mbk8xzurv1a3", "checklist": [ { "step": "Templates keep builds fast", "value": "Template uses caching and parallel jobs so the standard build/test stage completes under 15 minutes." } ], "testing": [ { "step": "Verify build duration on pilot", "value": "Pilot pipeline build+test stage median duration < 15 min over 5 runs." } ] },
+    { "standardId": "cmqscp7sw1nd8mbk8jhvmt9xd", "checklist": [ { "step": "Templates are documented approved patterns with examples", "value": "Each template ships a README with purpose, inputs, and a working example consumer pipeline." } ], "testing": [ { "step": "Verify example runs green", "value": "The documented example pipeline for each template executes successfully in CI." } ] }
+   ],
+   "regulations": [
+    { "regId": "cmqwos0a7006dd29hvd4j01c9", "checklist": [ { "step": "Templates bake in secure SDLC controls", "value": "Standard stages include SAST, SCA/dependency scanning, and secrets scanning so every consuming pipeline enforces secure SDLC by default." } ], "testing": [ { "step": "Verify security stages present and enforced", "value": "Inspect template YAML: SAST, SCA, and secrets-scan stages are mandatory (non-skippable) and fail the build on critical findings." } ] }
+   ]
+  },
+  {
+   "id": "778abe52-b4b6-4949-8180-74751f507077",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All scheduled and event-driven pipeline runs in the orchestrator for the in-scope data/CI pipelines, monitored for run status, queue depth, and SLA-breach alerts in real time." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Continuous, 24x7, covering the current operational period; alert thresholds reviewed each release cycle." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0ro03tmmbk8ggz2wirh" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Monitoring dashboard exposes per-pipeline: last run status, start/end time, duration vs SLA, queue depth, and error rate; alerts fire on failure or SLA breach with runbook link and on-call routing." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Expected vs actual run counts per schedule reconcile (missed runs = 0); records processed reconcile to source control totals within +/- 0% for critical feeds before downstream consumption." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Run history, alert events, and acknowledgements retained in the orchestrator and ITSM with UTC timestamps and run IDs; dashboards versioned; 90-day hot retention, 12-month archive." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "SLA breach or failed run auto-creates a ServiceNow/Jira incident, routed to the on-call Data Engineer with severity by impact; unresolved P1 escalates to Platform Engineering Lead after 30 minutes." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Alert thresholds and SLA definitions are versioned in the monitoring-config repo and approved by the Platform Engineering Lead before activation; current version tagged and referenced by the dashboards." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xdmbk89kroddbt" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Alerting sensitivity documented: warn at 80% of SLA duration, breach at 100%; queue-depth warn at >50 pending, critical at >200; tuned to keep false-positive rate < 5%." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Materiality: only pipelines feeding regulatory, financial, or customer-facing outputs are P1; internal/dev pipelines are P3, distinguished by a criticality tag in the CMDB/catalog." },
+    { "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x", "roleId": "cmqsck0ro03tmmbk8ggz2wirh" },
+    { "templateKeyId": "cmr2oaq1y0035lasbt581hez0", "value": "All in-scope pipeline runs over a 7-day observation window; 100% of runs must appear on the dashboard with a status." },
+    { "templateKeyId": "cmr2oaq320037lasb58si1owg", "value": "PASS = every scheduled run has a recorded status and every failure/SLA-breach generated an alert within 60 seconds; FAIL = any silent failure (run failed with no alert) or missing run status." },
+    { "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x", "value": "Silent failure or missed alert -> raise a P2 monitoring-gap incident, owner = Site Reliability Engineer, fix alert rule within 2 business days; log root cause in the incident record." },
+    { "templateKeyId": "cmr2v89xj0017xa9ikgynty6d", "value": "Monitoring/alert ruleset at the version tagged in the monitoring-config repo and approved for the current operational period." },
+    { "templateKeyId": "cmr2v89ze0019xa9i4s25sd76", "value": "SLA targets and thresholds sourced from the service catalog / data-product SLA definitions in the CMDB; no hard-coded values outside the config repo." },
+    { "answerId": "cmr2ocfyt0vkukaz35yxlvdmw", "value": "Acceptance: 100% of in-scope runs visible with status, all failures/breaches alerted within 60s, false-positive rate <5%. Evidence: dashboard export + alert-event log + weekly monitoring-coverage report in ServiceNow, retained 12 months." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp3rz1n5smbk85axljifj", "checklist": [ { "step": "Monitoring and alerting active on all pipelines", "value": "Every in-scope pipeline emits status/duration metrics with alert rules for failure and SLA breach." } ], "testing": [ { "step": "Verify alert fires on failure", "value": "Inject a synthetic pipeline failure; alert and incident are generated within 60 seconds." } ] },
+    { "standardId": "cmqscp5wt1n9umbk8zd85l89b", "checklist": [ { "step": "Alerts are actionable", "value": "Each alert carries pipeline ID, failure reason, runbook link, and on-call target; no bare 'job failed' alerts." } ], "testing": [ { "step": "Verify alert payload completeness", "value": "Sample 10 alerts; 100% include runbook link and routing metadata." } ] },
+    { "standardId": "cmqscp5xq1n9wmbk8lehqrwzs", "checklist": [ { "step": "Alert fatigue is monitored and controlled", "value": "Weekly review of alert volume and false-positive rate; noisy rules tuned to keep FP <5%." } ], "testing": [ { "step": "Verify false-positive rate", "value": "Alert analytics show false-positive rate under 5% over the trailing 30 days." } ] },
+    { "standardId": "cmqscp66z1naambk8yr5ha7qw", "checklist": [ { "step": "RED metrics tracked per pipeline", "value": "Dashboards show rate, errors, and duration for each pipeline against its SLA." } ], "testing": [ { "step": "Verify RED metrics present", "value": "Each in-scope pipeline dashboard displays rate/errors/duration panels with live data." } ] },
+    { "standardId": "cmqscp65r1na8mbk85jxlakkb", "checklist": [ { "step": "On-call rotation receives breach alerts", "value": "SLA-breach alerts route to the active on-call schedule with defined escalation tiers." } ], "testing": [ { "step": "Verify escalation path", "value": "Unacknowledged P1 alert escalates to secondary/lead per the documented rotation." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "2754f3cb-e60c-4d32-9c74-6e4aca95dea3",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The current sprint plan and backlog status for the squad: committed stories, capacity, sprint goal, and burndown, published to all named stakeholders (Product Owner, Tech Lead, dependent squads)." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "The active sprint (e.g. Sprint 2026.07, 2-week iteration); plan published within 1 business day of sprint planning and refreshed at each daily standup." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "b32dfbb5-304a-42cb-8758-4284f7369366" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Published plan shows for every committed story: title, estimate, assignee, status, and linkage to epic/PI objective; sprint goal and total committed vs capacity points are stated." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Sum of committed story points on the published plan equals the committed points in Jira Align for the sprint (delta = 0); story count on the shared view matches the Jira board." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Published plan snapshot (Jira Align dashboard link or exported PDF) stored in Confluence with sprint ID and UTC timestamp; each republish is versioned." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Scope changes after publish are tracked as scope-change entries in Jira Align with rationale and PO approval; late additions flagged in the next standup and re-published." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqsck0rq03x8mbk8goc4tif8" },
+    { "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq", "value": "All committed sprint items in the published plan; 100% must be traceable to a Jira work item." },
+    { "templateKeyId": "cmr2oao03001jlasb1coy37l2", "value": "PASS = published plan reconciles to the Jira board (same items, estimates, statuses) and all stakeholders have access; FAIL = any committed item missing from the published view or points mismatch." },
+    { "templateKeyId": "cmr2oao16001llasbnlkf9nbu", "value": "Discrepancy between published plan and board -> Scrum Master re-syncs and republishes within the same business day; recurring drift logged as a process defect in Jira." },
+    { "templateKeyId": "cmr2v88x1000rxa9if2t45ukx", "value": "Acceptance: plan published to all named stakeholders within 1 business day of planning, reconciles 1:1 with the Jira board, includes sprint goal and capacity." },
+    { "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m", "value": "Confluence 'Sprint Plans' space, page named 'Sprint <id> Plan' with the Jira Align dashboard embed and export attachment." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Every published item links to a work item", "value": "Each story on the plan links to its Jira key; the plan is generated from the board, not hand-maintained." } ], "testing": [ { "step": "Verify plan-to-board traceability", "value": "Every item on the published plan resolves to a live Jira work item; 0 orphans." } ] },
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [ { "step": "Published plan is kept current", "value": "Plan re-published on scope change and reflected at each standup; stale plans flagged." } ], "testing": [ { "step": "Verify freshness", "value": "Published plan timestamp is within the current sprint and matches the latest board state." } ] },
+    { "standardId": "cmqscp5r61n9kmbk8xcnz45ig", "checklist": [ { "step": "Plan includes clear sprint goal and examples of scope", "value": "Published page states the sprint goal and lists in/out-of-scope items explicitly." } ], "testing": [ { "step": "Verify goal present", "value": "Sprint plan page contains a non-empty sprint goal and scope section." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "410766f8-78ef-4a37-a2fd-8c47ce874ec0",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "All backlog items in status Done or De-scoped/Won't-Do at sprint/PI close in Jira; archived with closure rationale to preserve the delivery audit trail." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "End of each sprint and PI (current iteration); archival run within 2 business days of iteration close." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03wdmbk8pgmhbxss" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each archived item carries: final status, closure rationale, resolver, closure date, and links to the delivering PR/release (for Done) or de-scope decision record (for de-scoped); items lacking rationale are not archivable." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of items eligible (Done + De-scoped at close) equals count archived (delta = 0); no eligible item remains in the active backlog after the archival run." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Archived items retain full Jira history (transitions, comments, links) and are moved to the archived project/board with iteration ID and UTC timestamp; export snapshot stored in the evidence repository." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "An item flagged Done/de-scoped but missing rationale is held back and a 'closure-rationale-missing' Jira sub-task assigned to the item owner, resolved within 3 business days before archival." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03x8mbk8goc4tif8" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Archival procedure version approved by the Scrum Master and documented in the team's Definition of Done; current version referenced in the runbook." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03x8mbk8goc4tif8" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Sensitivity: archival is reversible for 30 days (items can be restored from the archived board) to guard against premature closure." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Materiality: items linked to regulatory or audit deliverables are retained per the record-retention schedule (7 years) even after archival; ordinary items follow the 12-month operational retention." },
+    { "templateKeyId": "cmr2oan48000xlasba0u1ffd8", "value": "Retention driven by the enterprise records-retention policy; audit-relevant delivery records kept 7 years per internal SOX/records policy." },
+    { "templateKeyId": "cmr2v88hl000fxa9io24wujiz", "value": "Archived audit-relevant items retained 7 years in the compliance evidence repository; operational items 12 months, then purged per policy." },
+    { "templateKeyId": "cmr2v88il000hxa9icjpyq8mw", "value": "N/A - no external regulatory filing deadline; internal SLA is archival within 2 business days of iteration close." },
+    { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "cmqsck0rq03x8mbk8goc4tif8" },
+    { "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb", "value": "All items archived in the current run; 100% inspected for required closure metadata." },
+    { "templateKeyId": "cmr2oaoru0027lasblf4a3q5g", "value": "PASS = every archived item has final status + rationale + links and is retrievable from the archive; FAIL = any archived item missing rationale or not retrievable." },
+    { "templateKeyId": "cmr2oaot40029lasbqt4ono47", "value": "Missing-metadata or non-retrievable archive -> restore item, complete metadata, re-archive; log gap in the archival-quality checklist owned by the Scrum Master." },
+    { "templateKeyId": "cmr2v89b6000zxa9ivo819zn7", "value": "Jira field definitions: status, resolution, resolution-date, and the custom 'closure-rationale' field, as defined in the Jira project schema." },
+    { "templateKeyId": "cmr2v89c10011xa9ijssevzvo", "value": "Backlog item counts by status from the Jira board at iteration close serve as the archival control totals." },
+    { "answerId": "cmr2ocfyu0vlvkaz3vixr11z4", "value": "Archival procedure at the version documented in the team Definition of Done; parameters (retention periods, reversibility window) sourced from the enterprise records-retention policy, not hard-coded." },
+    { "answerId": "cmr2ocfyu0vlwkaz3m7aptiwx", "value": "Applicable policy: enterprise records-retention policy and SOX delivery-audit-trail requirement; audit-relevant delivery records retained 7 years." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Archived items retain work-item linkage", "value": "Each archived item keeps links to its PR/release or de-scope decision, preserving traceability." } ], "testing": [ { "step": "Verify links survive archival", "value": "Sampled archived items resolve their PR/release links from the archive board." } ] },
+    { "standardId": "cmqscp5s61n9mmbk85vslexc4", "checklist": [ { "step": "Backlog kept current by removing closed items", "value": "Done/de-scoped items are archived promptly so the active backlog reflects only live work." } ], "testing": [ { "step": "Verify active backlog cleanliness", "value": "Post-run active board contains 0 Done/de-scoped items." } ] },
+    { "standardId": "cmqscp5q71n9imbk88q7k8pe2", "checklist": [ { "step": "Closure rationale recorded as changelog of decisions", "value": "Each archived item's rationale documents why it was completed or de-scoped." } ], "testing": [ { "step": "Verify rationale present", "value": "100% of archived items have a non-empty closure-rationale field." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "ad023ddd-cd25-49a5-a025-3f99fc63e1de",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "The developer-experience / engineering-metrics dashboard covering DORA metrics (deployment frequency, lead time, change-fail rate, MTTR) plus DevEx signals (build time, PR cycle time, flaky-test rate) across all delivery squads." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Rolling trailing 90 days with weekly refresh; dashboard live for the current quarter." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "ff5e7dfc-6b35-4b53-945c-8192b2f69cbd" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each metric has a documented definition, source system, calculation, and refresh cadence; dashboard shows current value, trend, and target for every metric; no metric renders without a defined source query." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Dashboard metric values reconcile to the underlying source (CI/CD logs, Jira) within +/- 1%; deployment count on the dashboard equals the deployment count in the pipeline audit log for the period." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Dashboard definition (queries, data model) versioned in the analytics repo; published dashboard URL and a period snapshot stored in Confluence with UTC timestamp; metric-definition changes are versioned." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Metric data gaps or source outages are flagged on the dashboard with a data-quality banner and logged as a Jira data-quality ticket, owner = Platform Engineering Lead, resolved within 3 business days." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03xpmbk8kkxaxe27" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Metric definitions (DORA + DevEx) approved by the Platform Engineering Lead and versioned in the metrics-catalog repo; dashboard references the approved definition version." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rp03txmbk8q8joq2m0" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Sensitivity: metrics are reported at team/aggregate level only; no individual-developer ranking, to avoid gaming and preserve psychological safety." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Materiality: DORA metrics and change-fail rate are primary KPIs reviewed by leadership; secondary DevEx signals are informational and not gated." },
+    { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2v88pn000nxa9irjv495b3", "value": "Decision to publish and the target thresholds for each metric documented in the Confluence dashboard charter, approved by the Platform Engineering Lead." },
+    { "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb", "value": "Recipients: all engineering squads, Tech Leads, and Engineering Management; dashboard link distributed via the engineering Teams channel and the internal metrics portal." },
+    { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq", "value": "All metrics on the published dashboard for the trailing 90-day window; 100% validated against source." },
+    { "templateKeyId": "cmr2oao03001jlasb1coy37l2", "value": "PASS = every metric has a defined source and reconciles to source within +/- 1%, dashboard loads under 5 seconds, and is accessible to all stakeholders; FAIL = any unsourced metric or reconciliation variance > 1%." },
+    { "templateKeyId": "cmr2oao16001llasbnlkf9nbu", "value": "Reconciliation variance > 1% -> data-quality ticket to the Platform Engineering Lead, dashboard flagged, root cause fixed within 3 business days before the metric is treated as authoritative." },
+    { "templateKeyId": "cmr2v88x1000rxa9if2t45ukx", "value": "Acceptance: dashboard live, all metrics sourced and reconciled to +/-1%, loads < 5s, accessible to all engineering stakeholders, definitions documented." },
+    { "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m", "value": "BI/reporting platform workspace 'Engineering DevEx Metrics'; definitions and snapshots in Confluence 'DevEx Metrics' space." },
+    { "answerId": "cmr2ocfyu0vmikaz3dh4zdbv9", "value": "Authorized approver = Platform Engineering Lead per the engineering RACI/delegation matrix; publishing rights limited to the platform enablement team." },
+    { "answerId": "cmr2ocfyu0vmjkaz3f2xn98b1", "value": "Metric definitions at the approved version in the metrics-catalog repo; parameters (targets, windows) sourced from the dashboard charter, not hard-coded in queries." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp61a1na2mbk84y76mky0", "checklist": [ { "step": "Dashboards published per service/team", "value": "DevEx dashboard exposes DORA + DevEx panels per squad and aggregate." } ], "testing": [ { "step": "Verify dashboards render for each team", "value": "Each squad has a populated panel with live data over the trailing 90 days." } ] },
+    { "standardId": "cmqscp66z1naambk8yr5ha7qw", "checklist": [ { "step": "RED-style rate/error/duration signals captured", "value": "Dashboard includes deployment rate, change-fail rate, and lead/cycle time durations." } ], "testing": [ { "step": "Verify core metric panels present", "value": "Deployment frequency, lead time, change-fail rate, and MTTR panels all display data." } ] },
+    { "standardId": "cmqscp36t1n4qmbk8em43cf2h", "checklist": [ { "step": "Dashboard meets performance target", "value": "Published dashboard loads in under 5 seconds for the default 90-day view." } ], "testing": [ { "step": "Verify load time", "value": "Measured median load time < 5s over 5 loads." } ] },
+    { "standardId": "cmqscp34t1n4mmbk8go3b2xdt", "checklist": [ { "step": "Dashboard uses governed data sources only", "value": "Metrics sourced from governed CI/CD and Jira datasets in the warehouse, not ad-hoc extracts." } ], "testing": [ { "step": "Verify source governance", "value": "Every metric query references a catalogued, owned dataset." } ] },
+    { "standardId": "cmqscp37s1n4smbk8v03mmcl5", "checklist": [ { "step": "Refresh schedule defined and enforced", "value": "Weekly refresh scheduled and monitored; last-refresh timestamp shown on the dashboard." } ], "testing": [ { "step": "Verify refresh currency", "value": "Last-refresh timestamp within the defined cadence; stale-data banner appears if exceeded." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "cmr2flb5t1sxbkfgz24f6g5tv",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Developer satisfaction (DevSat/eNPS) scores collected from all engineers in the delivery organization via the quarterly DevEx survey; anonymized responses only." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Quarterly survey window for the current quarter (2-week collection period); trend compared to prior quarters." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each response records: anonymized respondent token, squad, survey question scores (1-5 Likert), and free-text; responses missing required Likert items are excluded from the score calculation." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Responses received reconcile to invitations sent for response-rate calc; target response rate >= 60% of engineers; score is computed only over completed responses." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Raw anonymized responses and computed scores exported and stored in the data warehouse and Confluence with survey ID and UTC timestamp; PII-free; retained 24 months for trend analysis." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Squads with response rate < 60% are flagged and re-surveyed once; incomplete/duplicate submissions excluded and logged in the survey-quality note owned by the Platform Engineering Lead." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Survey instrument and scoring methodology (question set, Likert scale, eNPS formula) approved by the Platform Engineering Lead and versioned; current version referenced on the survey." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rp03txmbk8q8joq2m0" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Sensitivity: results reported only at squad/org aggregate with minimum n=5 responses per group to protect anonymity; groups below threshold rolled up." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Materiality: overall DevSat/eNPS and quarter-over-quarter delta are the headline metrics driving platform investment; per-question scores are diagnostic only." },
+    { "templateKeyId": "cmr2oaqcs003flasbzagkqajt", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oaqdw003hlasbdzf9bntz", "value": "All completed survey responses for the current quarter; 100% of valid responses included in the score." },
+    { "templateKeyId": "cmr2oaqf0003jlasbcce2g3fi", "value": "PASS = response rate >= 60%, anonymity preserved (no group below n=5 shown), and scores computed per the approved methodology; FAIL = response rate < 60% or any identifiable small-group reporting." },
+    { "templateKeyId": "cmr2oaqg3003llasbj4ssgkij", "value": "Response rate < 60% -> extend/re-run collection once, owner = Platform Engineering Lead; if still short, report with a low-confidence caveat and log in the survey-quality note." },
+    { "templateKeyId": "cmr2v8a6b001bxa9irmnikgv0", "value": "Survey schema field definitions: respondent token (anonymized), squad, per-question Likert score, eNPS category, free-text; defined in the survey-tool export spec." },
+    { "templateKeyId": "cmr2v8a7b001dxa9ilxplwfp2", "value": "Invitations sent and responses received counts from the survey tool serve as control totals for response-rate reconciliation." },
+    { "answerId": "cmr2ocfyv0vnrkaz3hq2pgge7", "value": "Current quarter survey window (2-week collection); scores effective for that quarter and compared against prior-quarter baselines." },
+    { "answerId": "cmr2ocfyv0vnskaz3oyz0jkec", "value": "Survey instrument and eNPS scoring methodology at the approved version in the DevEx survey repo; scale/formula parameters sourced from that spec, not ad-hoc." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp2ye1n4ambk8m0v8mkq5", "checklist": [ { "step": "DevEx performance metrics tracked over time", "value": "DevSat/eNPS tracked quarterly with trend against prior periods." } ], "testing": [ { "step": "Verify trend captured", "value": "Score store contains at least the current and prior quarter for comparison." } ] },
+    { "standardId": "cmqscp4o01n7gmbk8nzsb85bd", "checklist": [ { "step": "Completeness of responses meets threshold", "value": "Response rate >= 60% before scores are treated as representative." } ], "testing": [ { "step": "Verify response-rate completeness", "value": "Computed response rate for the quarter is >= 60% or flagged low-confidence." } ] },
+    { "standardId": "cmqscp32w1n4imbk8cl9att9q", "checklist": [ { "step": "Collected scores validated before use", "value": "Incomplete/duplicate responses excluded; Likert values validated to the 1-5 range." } ], "testing": [ { "step": "Verify data validation", "value": "0 out-of-range or duplicate responses in the scored dataset." } ] }
+   ],
+   "regulations": []
+  },
+  {
+   "id": "cmr2flbeh1t2ukfgz459hoxtw",
+   "answers": [
+    { "templateKeyId": "cmr2oalvj0003lasbljnppmvk", "value": "Developer feedback items from the DevEx survey, retros, and platform support tickets, triaged and converted into prioritized backlog items in the platform-improvement backlog." },
+    { "templateKeyId": "cmr2v87uz0001xa9i94umw6d6", "value": "Current platform improvement cycle (per PI/quarter); feedback actioned into the backlog within 2 weeks of the survey/retro close." },
+    { "templateKeyId": "cmr2v87wy0003xa9i8jgziihd", "applicationId": "875d0a08-2acb-43d5-b565-d21ed8b17224" },
+    { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq", "value": "Each actioned feedback theme becomes a Jira item with: source reference, problem statement, priority, owner, and target increment; feedback items are tagged 'devex-feedback' and linked back to the originating survey/retro." },
+    { "templateKeyId": "cmr2oam0y0009lasbg6ube3og", "value": "Count of triaged feedback themes reconciles to backlog items created or explicitly declined-with-reason (delta = 0); no theme left untriaged after the cycle." },
+    { "templateKeyId": "cmr2oam2m000blasb6n6f4ewh", "value": "Feedback-to-backlog mapping (theme -> Jira key or decline rationale) recorded in Confluence with cycle ID and UTC timestamp; backlog items retain the source link; retained 12 months." },
+    { "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2", "value": "Feedback themes not actioned are logged with a documented decline rationale and communicated back to developers; disputed declines escalate to the Platform Engineering Lead for review." },
+    { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oamel000jlasblc8uognb", "value": "Triage/prioritization method (impact x reach scoring) approved by the Platform Engineering Lead and documented in the platform backlog policy; current version referenced during triage." },
+    { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rp03txmbk8q8joq2m0" },
+    { "templateKeyId": "cmr2v88920007xa9iyuatdfi0", "value": "Sensitivity: prioritization scores are recalculated when new feedback volume shifts reach estimates; high-impact/high-reach items promoted into the next increment." },
+    { "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0", "value": "Materiality: only themes affecting >=3 squads or a top-3 DevEx pain point are candidates for the current increment; smaller items parked in the backlog with a tag." },
+    { "templateKeyId": "cmr2oaqcs003flasbzagkqajt", "roleId": "cmqsck0rq03vumbk87s33wbi1" },
+    { "templateKeyId": "cmr2oaqdw003hlasbdzf9bntz", "value": "All triaged feedback themes for the cycle; 100% must resolve to a backlog item or a documented decline." },
+    { "templateKeyId": "cmr2oaqf0003jlasbcce2g3fi", "value": "PASS = every feedback theme has a Jira item or decline rationale, each carries a source link, and top themes are scheduled into the increment; FAIL = any untriaged theme or backlog item lacking a source link." },
+    { "templateKeyId": "cmr2oaqg3003llasbj4ssgkij", "value": "Untriaged or unlinked feedback -> Platform Engineering Lead completes triage in the next backlog refinement; recurring gaps logged as a process defect." },
+    { "templateKeyId": "cmr2v8a6b001bxa9irmnikgv0", "value": "Feedback record fields: source, theme, affected squads, impact score, reach score, priority, linked Jira key; defined in the platform backlog schema." },
+    { "templateKeyId": "cmr2v8a7b001dxa9ilxplwfp2", "value": "Total feedback themes ingested vs themes triaged serve as control totals for the reconciliation." },
+    { "answerId": "cmr2ocfyv0vntkaz3oukvdkj8", "value": "Current improvement cycle (PI/quarter); feedback effective for and actioned within that cycle, with carryover explicitly re-prioritized." },
+    { "answerId": "cmr2ocfyv0vnukaz3bzb4hru5", "value": "Prioritization methodology (impact x reach) at the approved version in the platform backlog policy; scoring parameters sourced from that policy, not ad-hoc." }
+   ],
+   "standards": [
+    { "standardId": "cmqscp5gy1n90mbk8jqes60sn", "checklist": [ { "step": "Feedback captured as tagged backlog items", "value": "DevEx feedback converted to Jira items tagged 'devex-feedback' and prioritized in the backlog." } ], "testing": [ { "step": "Verify backlog tagging", "value": "All feedback-derived items carry the devex-feedback tag and a source link." } ] },
+    { "standardId": "cmqscp5671n8embk8uhcmnqok", "checklist": [ { "step": "High-priority feedback addressed within two sprints", "value": "Top-priority DevEx items scheduled to be actioned within two sprints of intake." } ], "testing": [ { "step": "Verify turnaround", "value": "Sampled top-priority items reach 'In Progress' within two sprints of creation." } ] },
+    { "standardId": "cmqscp6ua1nbembk8rcpgs2wt", "checklist": [ { "step": "Each actioned item links to source feedback", "value": "Backlog items link back to the originating survey/retro/ticket." } ], "testing": [ { "step": "Verify traceability to source", "value": "100% of feedback-derived items resolve their source link." } ] }
+   ],
+   "regulations": []
+  }
+ ]
+}
