@@ -263,6 +263,7 @@ export default function Applications() {
       ) : (
         <Sheet
           key={`apps-${preFilter ?? ''}`}
+          sheetKey="applications"
           rows={apps}
           cols={cols}
           rowKey={(a) => a.id}

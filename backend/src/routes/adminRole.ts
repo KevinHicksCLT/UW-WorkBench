@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
-import { requireAuth, requireRole } from '../middleware/auth.js';
+import { requireAuth } from '../middleware/auth.js';
+import { requirePermission } from '../middleware/permissions.js';
 import { ancestorNames } from '../lib/resolvers/index.js';
 
 // ─── Role context for Data Admin (GET /admin/role-context/:id) ───────────────
@@ -15,7 +16,7 @@ import { ancestorNames } from '../lib/resolvers/index.js';
 
 const router = Router();
 router.use(requireAuth);
-router.use(requireRole('ADMIN'));
+router.use(requirePermission('data-admin.configure'));
 
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -37,7 +38,11 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       // Process-tree tasks this role leads (Owner) or supports (Participant).
       prisma.nodeRole.findMany({
         where: { roleId: role.id },
-        select: { id: true, role_: true, processNode: { select: { id: true, displayValue: true } } },
+        select: {
+          id: true,
+          role_: true,
+          processNode: { select: { id: true, displayValue: true } },
+        },
       }),
     ]);
 

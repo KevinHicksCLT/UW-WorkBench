@@ -15,12 +15,14 @@ router.use(requireAuth);
 // every non-alnum run to ONE dash, so at most a single leading/trailing dash can
 // remain — ^-|-$ is equivalent to ^-+|-+$.
 function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 60) || 'company';
+  return (
+    name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 60) || 'company'
+  );
 }
 
 // GET /companies — companies in the tenant, with spine counts (Home overview).
@@ -40,16 +42,24 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
           prisma.nodeRole.count({ where: { companyId: co.id } }),
         ]);
         return {
-          id: co.id, name: co.name, slug: co.slug,
+          id: co.id,
+          name: co.name,
+          slug: co.slug,
           counts: {
-            divisions: counts.divisions, departments: counts.departments, roles: counts.roles,
-            valueStreams: counts.valueStreams, checklistItems, roleTasks,
+            divisions: counts.divisions,
+            departments: counts.departments,
+            roles: counts.roles,
+            valueStreams: counts.valueStreams,
+            checklistItems,
+            roleTasks,
           },
         };
-      })
+      }),
     );
     res.json(withCounts);
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
 // POST /companies — onboard a new company. ADMIN only. Creates the Company row
@@ -64,47 +74,74 @@ const createSchema = z.object({
   seedRoots: z.boolean().optional().default(true),
 });
 
-router.post('/', requireRole('ADMIN'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { name, seedRoots } = createSchema.parse(req.body);
+router.post(
+  '/',
+  requireRole('SITE_ADMIN'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { name, seedRoots } = createSchema.parse(req.body);
 
-    // Ensure a slug that's unique within the tenant.
-    const base = slugify(name);
-    let slug = base;
-    let suffix = 2;
-    while (await prisma.company.findFirst({ where: { tenantId: req.tenantId, slug }, select: { id: true } })) {
-      slug = `${base}-${suffix}`;
-      suffix++;
+      // Ensure a slug that's unique within the tenant.
+      const base = slugify(name);
+      let slug = base;
+      let suffix = 2;
+      while (
+        await prisma.company.findFirst({
+          where: { tenantId: req.tenantId, slug },
+          select: { id: true },
+        })
+      ) {
+        slug = `${base}-${suffix}`;
+        suffix++;
+      }
+
+      const company = await prisma.company.create({
+        data: { tenantId: req.tenantId, name, slug },
+      });
+
+      if (seedRoots) {
+        const processLevel = await prisma.processLevelType.create({
+          data: { companyId: company.id, levelNumber: 1, dbValue: 'L1', displayValue: 'Domain' },
+        });
+        const processRoot = await prisma.processNode.create({
+          data: {
+            companyId: company.id,
+            processLevelTypeId: processLevel.id,
+            dbValue: name,
+            displayValue: name,
+          },
+        });
+        await processClosure.insertNode({ nodeId: processRoot.id, parentId: null });
+        const orgLevel = await prisma.orgLevelType.create({
+          data: { companyId: company.id, levelNumber: 1, dbValue: 'L1', displayValue: 'Segment' },
+        });
+        const orgRoot = await prisma.orgUnit.create({
+          data: {
+            companyId: company.id,
+            orgLevelTypeId: orgLevel.id,
+            dbValue: name,
+            displayValue: name,
+          },
+        });
+        await orgClosure.insertNode({ nodeId: orgRoot.id, parentId: null });
+      }
+
+      logAudit({
+        tenantId: req.tenantId,
+        actorEmail: req.user.email,
+        entityType: 'Company',
+        entityId: company.id,
+        action: 'CREATE',
+        diff: { name, slug },
+      });
+      res.status(201).json({ id: company.id, name: company.name, slug: company.slug });
+    } catch (e) {
+      if (e instanceof z.ZodError)
+        return res.status(400).json({ error: e.errors[0]?.message ?? 'Invalid body' });
+      next(e);
     }
-
-    const company = await prisma.company.create({
-      data: { tenantId: req.tenantId, name, slug },
-    });
-
-    if (seedRoots) {
-      const processLevel = await prisma.processLevelType.create({
-        data: { companyId: company.id, levelNumber: 1, dbValue: 'L1', displayValue: 'Domain' },
-      });
-      const processRoot = await prisma.processNode.create({
-        data: { companyId: company.id, processLevelTypeId: processLevel.id, dbValue: name, displayValue: name },
-      });
-      await processClosure.insertNode({ nodeId: processRoot.id, parentId: null });
-      const orgLevel = await prisma.orgLevelType.create({
-        data: { companyId: company.id, levelNumber: 1, dbValue: 'L1', displayValue: 'Segment' },
-      });
-      const orgRoot = await prisma.orgUnit.create({
-        data: { companyId: company.id, orgLevelTypeId: orgLevel.id, dbValue: name, displayValue: name },
-      });
-      await orgClosure.insertNode({ nodeId: orgRoot.id, parentId: null });
-    }
-
-    logAudit({ tenantId: req.tenantId, actorEmail: req.user.email, entityType: 'Company', entityId: company.id, action: 'CREATE', diff: { name, slug } });
-    res.status(201).json({ id: company.id, name: company.name, slug: company.slug });
-  } catch (e) {
-    if (e instanceof z.ZodError) return res.status(400).json({ error: e.errors[0]?.message ?? 'Invalid body' });
-    next(e);
-  }
-});
+  },
+);
 
 // GET /companies/:id/tree — division → (department) → role hierarchy.
 // erd_v5: divisions are OrgUnit nodes at level 2; there is no Department tier, so
@@ -118,7 +155,8 @@ router.get('/:id/tree', async (req: Request, res: Response, next: NextFunction) 
       where: { companyId: company.id, orgLevelType: { levelNumber: 2 } },
       orderBy: { displayValue: 'asc' },
       select: {
-        id: true, displayValue: true,
+        id: true,
+        displayValue: true,
         roles: { orderBy: { displayValue: 'asc' }, select: { id: true, displayValue: true } },
       },
     });
@@ -129,7 +167,9 @@ router.get('/:id/tree', async (req: Request, res: Response, next: NextFunction) 
       roles: u.roles.map((r) => ({ id: r.id, name: r.displayValue, roleFamily: null })),
     }));
     res.json({ id: company.id, name: company.name, divisions });
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
 export default router;

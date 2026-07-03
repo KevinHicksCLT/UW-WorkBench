@@ -733,6 +733,7 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
       ) : tab === 'deliverables' ? (
         <Sheet
           key={`d-${preFilter ? `${preFilter.col}:${preFilter.value}` : ''}`}
+          sheetKey="work.deliverables"
           rows={deliverables}
           cols={dCols}
           rowKey={(d) => d.id}
@@ -749,6 +750,7 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
         <>
           <Sheet
             key={`t-${preFilter ? `${preFilter.col}:${preFilter.value}` : ''}`}
+            sheetKey="work.tasks"
             rows={tasks}
             cols={tCols}
             rowKey={(t) => t.id}

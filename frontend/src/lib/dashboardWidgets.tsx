@@ -224,7 +224,7 @@ export const FOOTPRINT_STATS: Record<string, { key: string; label: string; to: s
   objectives: { key: 'objectives', label: 'Strategic objectives', to: '/portfolio' },
   openRaid: { key: 'openRaid', label: 'Open RAID items', to: '/raid' },
   connections: { key: 'connections', label: 'Model connections', to: '/overview' },
-  signals: { key: 'signals', label: 'Trackable signals', to: '/metrics' },
+  signals: { key: 'signals', label: 'Trackable signals', to: '/admin?view=signals' },
 };
 export const FOOTPRINT_DEFAULT: string[] = [
   'subProcesses',

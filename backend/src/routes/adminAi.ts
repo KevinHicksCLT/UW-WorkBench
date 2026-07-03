@@ -3,7 +3,8 @@ import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import Anthropic from '@anthropic-ai/sdk';
 import { prisma } from '../db/prisma.js';
-import { requireAuth, requireRole } from '../middleware/auth.js';
+import { requireAuth } from '../middleware/auth.js';
+import { requirePermission } from '../middleware/permissions.js';
 import { ENTITY_LIST, getEntity, companyWhere } from '../lib/adminRegistry.js';
 import { LEVEL_HANDLERS } from '../lib/valueStreamAdmin.js';
 
@@ -19,7 +20,9 @@ import { LEVEL_HANDLERS } from '../lib/valueStreamAdmin.js';
 
 const router = Router();
 router.use(requireAuth);
-router.use(requireRole('ADMIN'));
+// Planning assistant for the Data Admin studio — same gate as /admin. Always
+// 'update' (the assistant proposes writes even from POSTed prompts).
+router.use(requirePermission('data-admin.configure', 'update'));
 
 const MODEL = process.env.ADMIN_AI_MODEL ?? process.env.CHATBOT_MODEL ?? 'claude-sonnet-4-6';
 const MAX_TOOL_ITERATIONS = 8;
@@ -27,7 +30,9 @@ const MAX_TOOL_ITERATIONS = 8;
 let client: Anthropic | null = null;
 function anthropic(): Anthropic {
   if (!process.env.ANTHROPIC_API_KEY) {
-    throw Object.assign(new Error('AI overlay is not configured (ANTHROPIC_API_KEY missing)'), { status: 503 });
+    throw Object.assign(new Error('AI overlay is not configured (ANTHROPIC_API_KEY missing)'), {
+      status: 503,
+    });
   }
   if (!client) client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   return client;
@@ -90,8 +95,14 @@ const LIST_TOOL: Anthropic.Tool = {
   input_schema: {
     type: 'object',
     properties: {
-      entity: { type: 'string', description: 'Entity slug, e.g. risk, role, valueStreams, organization.' },
-      search: { type: 'string', description: 'Optional case-insensitive substring match on the label field.' },
+      entity: {
+        type: 'string',
+        description: 'Entity slug, e.g. risk, role, valueStreams, organization.',
+      },
+      search: {
+        type: 'string',
+        description: 'Optional case-insensitive substring match on the label field.',
+      },
       limit: { type: 'number', description: 'Max rows (1–100, default 30).' },
     },
     required: ['entity'],
@@ -104,7 +115,10 @@ const PLAN_TOOL: Anthropic.Tool = {
   input_schema: {
     type: 'object',
     properties: {
-      summary: { type: 'string', description: 'One short paragraph: what this plan does and any assumptions.' },
+      summary: {
+        type: 'string',
+        description: 'One short paragraph: what this plan does and any assumptions.',
+      },
       operations: {
         type: 'array',
         items: {
@@ -114,7 +128,10 @@ const PLAN_TOOL: Anthropic.Tool = {
             entity: { type: 'string' },
             id: { type: 'string', description: 'Required for update/delete.' },
             data: { type: 'object', description: 'Field values for create/update.' },
-            reason: { type: 'string', description: 'Short human-readable description of this single change.' },
+            reason: {
+              type: 'string',
+              description: 'Short human-readable description of this single change.',
+            },
           },
           required: ['op', 'entity', 'reason'],
         },
@@ -125,20 +142,34 @@ const PLAN_TOOL: Anthropic.Tool = {
 };
 
 // Read records the same way the admin GET route does (level trees + generic).
-async function listRecords(tenantId: string, companyId: string, entitySlug: string, search: string, take: number) {
+async function listRecords(
+  tenantId: string,
+  companyId: string,
+  entitySlug: string,
+  search: string,
+  take: number,
+) {
   const entity = getEntity(entitySlug);
   if (!entity) return { error: `Unknown entity "${entitySlug}".` };
 
   const lh = LEVEL_HANDLERS[entity.model];
   if (lh) {
-    const r = (await lh.list(tenantId, companyId, search, Math.min(take, 100), 0)) as { rows: unknown[] };
+    const r = (await lh.list(tenantId, companyId, search, Math.min(take, 100), 0)) as {
+      rows: unknown[];
+    };
     return { rows: r.rows };
   }
 
   const scope = entity.companyVia ? companyWhere(entity, companyId) : {};
   const where: Record<string, unknown> = { tenantId, ...scope };
-  if (search && entity.labelField !== 'id') where[entity.labelField] = { contains: search, mode: 'insensitive' };
-  const delegate = (prisma as unknown as Record<string, { findMany(args: unknown): Promise<Record<string, unknown>[]> }>)[entity.model];
+  if (search && entity.labelField !== 'id')
+    where[entity.labelField] = { contains: search, mode: 'insensitive' };
+  const delegate = (
+    prisma as unknown as Record<
+      string,
+      { findMany(args: unknown): Promise<Record<string, unknown>[]> }
+    >
+  )[entity.model];
   const rows = await delegate.findMany({ where, take: Math.min(take, 100) });
   return { rows };
 }
@@ -153,7 +184,13 @@ function slimRow(entitySlug: string, row: Record<string, unknown>): Record<strin
 }
 
 // Shape of one create/update/delete operation as proposed by the model.
-type ProposedOp = { op: string; entity: string; id?: string; data?: Record<string, unknown>; reason?: string };
+type ProposedOp = {
+  op: string;
+  entity: string;
+  id?: string;
+  data?: Record<string, unknown>;
+  reason?: string;
+};
 
 // Annotate a proposed op: validate entity + fields against the registry so the UI
 // can flag problems before the user applies it.
@@ -179,17 +216,26 @@ function annotateOp(op: ProposedOp) {
 
 const bodySchema = z.object({
   companyId: z.string().min(1),
-  messages: z.array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().min(1) })).min(1).max(30),
+  messages: z
+    .array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().min(1) }))
+    .min(1)
+    .max(30),
 });
 
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { companyId, messages } = bodySchema.parse(req.body);
-    const company = await prisma.company.findFirst({ where: { id: companyId, tenantId: req.tenantId }, select: { name: true } });
+    const company = await prisma.company.findFirst({
+      where: { id: companyId, tenantId: req.tenantId },
+      select: { name: true },
+    });
     if (!company) return res.status(404).json({ error: 'Company not found' });
 
     const system = systemPrompt(company.name);
-    const convo: Anthropic.MessageParam[] = messages.map((m) => ({ role: m.role, content: m.content }));
+    const convo: Anthropic.MessageParam[] = messages.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
     const tools: Anthropic.ToolUnion[] = [LIST_TOOL, PLAN_TOOL];
 
     let plan: { summary: string; operations: ReturnType<typeof annotateOp>[] } | null = null;
@@ -205,7 +251,11 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       });
 
       if (resp.stop_reason !== 'tool_use') {
-        answer = resp.content.filter((b): b is Anthropic.TextBlock => b.type === 'text').map((b) => b.text).join('\n').trim();
+        answer = resp.content
+          .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+          .map((b) => b.text)
+          .join('\n')
+          .trim();
         break;
       }
 
@@ -219,13 +269,28 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
             summary: String(input.summary ?? ''),
             operations: Array.isArray(input.operations) ? input.operations.map(annotateOp) : [],
           };
-          toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: 'Plan received.' });
+          toolResults.push({
+            type: 'tool_result',
+            tool_use_id: block.id,
+            content: 'Plan received.',
+          });
         } else if (block.name === 'list_records') {
           const input = block.input as { entity?: string; search?: string; limit?: number };
-          const result = await listRecords(req.tenantId, companyId, String(input.entity ?? ''), String(input.search ?? ''), Number(input.limit) || 30);
-          const content = 'rows' in result
-            ? JSON.stringify((result.rows as Record<string, unknown>[]).map((r) => slimRow(String(input.entity), r))).slice(0, 9000)
-            : JSON.stringify(result);
+          const result = await listRecords(
+            req.tenantId,
+            companyId,
+            String(input.entity ?? ''),
+            String(input.search ?? ''),
+            Number(input.limit) || 30,
+          );
+          const content =
+            'rows' in result
+              ? JSON.stringify(
+                  (result.rows as Record<string, unknown>[]).map((r) =>
+                    slimRow(String(input.entity), r),
+                  ),
+                ).slice(0, 9000)
+              : JSON.stringify(result);
           toolResults.push({ type: 'tool_result', tool_use_id: block.id, content });
         }
       }
@@ -233,11 +298,17 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     }
 
     if (!plan) {
-      return res.json({ summary: answer || 'I need a bit more detail to propose specific changes. What would you like to configure?', operations: [] });
+      return res.json({
+        summary:
+          answer ||
+          'I need a bit more detail to propose specific changes. What would you like to configure?',
+        operations: [],
+      });
     }
     res.json(plan);
   } catch (e) {
-    if (e instanceof z.ZodError) return res.status(400).json({ error: e.errors[0]?.message ?? 'Invalid body' });
+    if (e instanceof z.ZodError)
+      return res.status(400).json({ error: e.errors[0]?.message ?? 'Invalid body' });
     next(e);
   }
 });

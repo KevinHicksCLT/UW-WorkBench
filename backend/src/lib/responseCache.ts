@@ -8,6 +8,13 @@
 // Correctness: any mutation clears the whole cache (one global middleware in
 // app.ts bumps on every non-GET request), so a write is always followed by fresh
 // reads. The short TTL is only a backstop for data that changes outside the API.
+//
+// ⚠ Entitlements: the key is TENANT-scoped, not user-scoped. That is safe only
+// while permission enforcement is router-level and runs BEFORE this middleware
+// (requirePermission → cacheResponses), so every user who reaches a cached
+// endpoint is entitled to the identical body. The moment row-level ABAC
+// filtering (org / value-stream / geography data scoping) lands inside a cached
+// endpoint, this key MUST become `${tenantId}:${userId}:${originalUrl}`.
 import type { Request, Response, NextFunction } from 'express';
 
 type Entry = { exp: number; data: unknown };

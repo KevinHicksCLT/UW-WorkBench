@@ -1,4 +1,4 @@
-import type { User } from '@prisma/client';
+import type { ApiKey, User } from '@prisma/client';
 
 // requireAuth populates these on every authenticated request. Declared as
 // required (not optional) so route handlers can read them without `!` — the
@@ -16,6 +16,12 @@ declare module 'express-serve-static-core' {
   interface Request {
     user: User;
     tenantId: string;
+    /** Set by requireUserAdmin(): 'all' for SITE_ADMIN, else the administrable OrgUnit subtree. */
+    userAdminScope?: 'all' | { orgUnitIds: string[] };
+    /** Set by apiKeyAuth for the provisioning surface. */
+    apiKey?: ApiKey;
+    /** Raw request body captured by express.json verify — needed for webhook HMAC. */
+    rawBody?: Buffer;
   }
 }
 

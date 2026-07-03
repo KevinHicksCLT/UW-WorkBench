@@ -6,6 +6,7 @@
 // resolved from each role's FK links (NodeRole / RoleDeliverable / RoleStandard
 // / NodeChecklist). Unbounded columns are capped in the API; the drawer shows all.
 import { useState, type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { useApi } from '../lib/useApi';
 import { Sheet, SheetCell, type SheetCol } from '../components/Sheet';
 import RoleDrawer from './RoleDrawer';
@@ -47,7 +48,24 @@ const cols: SheetCol<RoleRow>[] = [
     value: (r) => r.division ?? DASH,
     dim: true,
   },
-  { key: 'role', label: 'Role', width: '170px', value: (r) => r.role },
+  {
+    key: 'role',
+    label: 'Role',
+    width: '170px',
+    value: (r) => r.role,
+    // Name navigates to the full profile page; row click still opens the
+    // quick-peek drawer (stopPropagation keeps the two gestures separate).
+    render: (r) => (
+      <Link
+        to={`/roles/${encodeURIComponent(r.roleId)}`}
+        onClick={(e) => e.stopPropagation()}
+        className="text-[#171717] hover:text-[#4338ca] hover:underline truncate block"
+        title={`${r.role} — open profile`}
+      >
+        {r.role}
+      </Link>
+    ),
+  },
   { key: 'roleType', label: 'Role Type', width: '100px', value: (r) => r.roleType ?? DASH },
   {
     key: 'valueStreams',
@@ -107,6 +125,7 @@ export default function RolesListSheet({
             </ErrorMessage>
           )}
           <Sheet
+            sheetKey="roles"
             rows={rows}
             cols={cols}
             rowKey={(r) => r.key}

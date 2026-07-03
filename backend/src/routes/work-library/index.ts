@@ -12,12 +12,14 @@
  */
 import { Router } from 'express';
 import { requireAuth } from '../../middleware/auth.js';
+import { requirePermission } from '../../middleware/permissions.js';
 import { registerTemplateRoutes } from './templates.js';
 import { registerPlanRoutes } from './plan.js';
 import { registerOptionRoutes } from './options.js';
 
 const router = Router();
 router.use(requireAuth);
+router.use(requirePermission('work-library'));
 
 registerTemplateRoutes(router);
 registerPlanRoutes(router);

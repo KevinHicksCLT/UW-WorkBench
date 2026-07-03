@@ -2,6 +2,10 @@
 // (request validation) and the frontend (typed forms / responses).
 import { z } from 'zod';
 
+export * from './menuRegistry.js';
+export * from './userTypes.js';
+export * from './entitlements.js';
+
 // ─── Auth ──────────────────────────────────────────────────────────────
 
 export const loginSchema = z.object({

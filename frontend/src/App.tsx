@@ -1,8 +1,11 @@
 // App.tsx
 
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { Routes, Route, Navigate, useParams } from 'react-router-dom';
+import type { MenuKey } from '@cascade/shared';
 import { useAuth } from './lib/auth';
+import { defaultRoute } from './lib/permissions';
+import { PreferencesProvider } from './lib/preferences';
 import { CompanyProvider } from './lib/company';
 import { DialogProvider } from './lib/dialogs';
 import { BreadcrumbProvider } from './lib/breadcrumbs';
@@ -10,6 +13,7 @@ import { BreadcrumbProvider } from './lib/breadcrumbs';
 // every page below is route-level code-split via React.lazy.
 import Layout from './components/Layout';
 import Login from './pages/login/Login';
+import RouteGuard from './components/RouteGuard';
 
 const Overview = lazy(() => import('./pages/overview/Overview'));
 const Explorer = lazy(() => import('./pages/explorer/Explorer'));
@@ -19,6 +23,7 @@ const Organization = lazy(() => import('./pages/organization/Organization'));
 const Roles = lazy(() => import('./pages/roles/Roles'));
 const SearchResults = lazy(() => import('./pages/search-results/SearchResults'));
 const Admin = lazy(() => import('./pages/admin/Admin'));
+const UserAdmin = lazy(() => import('./pages/user-admin/UserAdmin'));
 const AuditTrail = lazy(() => import('./pages/audit-trail/AuditTrail'));
 const Standards = lazy(() => import('./pages/standards/Standards'));
 const StandardArea = lazy(() => import('./pages/standard-area/StandardArea'));
@@ -35,14 +40,10 @@ const Applications = lazy(() => import('./pages/applications/Applications'));
 const External = lazy(() => import('./pages/external/External'));
 const Regulations = lazy(() => import('./pages/regulations/Regulations'));
 const RegulationDetail = lazy(() => import('./pages/regulation-detail/RegulationDetail'));
-
-// The standalone role page was retired (it repeated the Organization role
-// panel) — old /roles/:id links open that panel instead (now at /organization,
-// since /roles is the new Roles tab).
-function RoleRedirect() {
-  const { id } = useParams();
-  return <Navigate to={`/organization?role=${encodeURIComponent(id ?? '')}`} replace />;
-}
+const Settings = lazy(() => import('./pages/settings/Settings'));
+// The role profile page — revived /roles/:id (description, org, value streams,
+// deliverable drill-downs, task summary). Cross-app role links land here.
+const RoleProfile = lazy(() => import('./pages/role-profile/RoleProfile'));
 
 // The standalone value-stream page was retired too — its detail renders as an
 // in-place drawer on the map/list view. Old links land on the focused map.
@@ -65,15 +66,24 @@ function PortfolioDetailRedirect({ base }: { base: string }) {
   return <Navigate to={`/${base}/${encodeURIComponent(id ?? '')}`} replace />;
 }
 
+// Unknown paths land on the user's start page (or first readable tab). Falls
+// back to '/' — whose guard renders the no-access screen when truly nothing is
+// readable — so this can never redirect-loop.
+function CatchAll() {
+  const { permissions, startPage } = useAuth();
+  return <Navigate to={defaultRoute(permissions, startPage) ?? '/'} replace />;
+}
+
+// Shorthand: a permission-guarded route element (see components/RouteGuard).
+function G({ k, children }: { k: MenuKey; children: ReactNode }) {
+  return <RouteGuard menuKey={k}>{children}</RouteGuard>;
+}
+
 export default function App() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen text-slate-500">
-        Loading…
-      </div>
-    );
+    return <div className="flex items-center justify-center h-screen text-slate-500">Loading…</div>;
   }
 
   if (!user) {
@@ -87,81 +97,282 @@ export default function App() {
 
   return (
     <DialogProvider>
-    <CompanyProvider>
-    <BreadcrumbProvider>
-    <Layout>
-      {/* Single Suspense boundary for all lazy routes — an empty div keeps the
+      <PreferencesProvider>
+        <CompanyProvider>
+          <BreadcrumbProvider>
+            <Layout>
+              {/* Single Suspense boundary for all lazy routes — an empty div keeps the
           shell steady (no spinner flash) while a page chunk loads. */}
-      <Suspense fallback={<div />}>
-      <Routes>
-        {/* Home IS the executive dashboard — the application landing. */}
-        <Route path="/" element={<Overview />} />
-        {/* Value Streams IS the Operating Model Explorer (drill-down diagram).
+              <Suspense fallback={<div />}>
+                <Routes>
+                  {/* Home IS the executive dashboard — the application landing. */}
+                  <Route
+                    path="/"
+                    element={
+                      <G k="home">
+                        <Overview />
+                      </G>
+                    }
+                  />
+                  {/* Value Streams IS the Operating Model Explorer (drill-down diagram).
             `/n/*` carries the drill path (deep-linkable). */}
-        <Route path="/overview" element={<Explorer />} />
-        <Route path="/n/*" element={<Explorer />} />
-        <Route path="/explorer" element={<Navigate to="/overview" replace />} />
-        {/* Roles — the roles-centric tab: flat sheet + reporting-line org chart. */}
-        <Route path="/roles" element={<Roles />} />
-        {/* Organization — interactive table (org groupings → role, value-stream cross-link). */}
-        <Route path="/organization" element={<Organization />} />
-        {/* Detail pages remain as deep-link targets from inspector + search. */}
-        <Route path="/divisions/:id" element={<DivisionDetail />} />
-        <Route path="/departments/:id" element={<DepartmentDetail />} />
-        <Route path="/roles/:id" element={<RoleRedirect />} />
-        <Route path="/value-streams/:id" element={<ValueStreamRedirect />} />
-        <Route path="/search" element={<SearchResults />} />
-        {/* Standards & Greenfield Migration — placeholder tabs. */}
-        <Route path="/standards" element={<Standards />} />
-        <Route path="/standards/:id" element={<StandardArea />} />
-        {/* Metrics (formerly Telemetry) — AI adoption heat map + drill-in.
+                  <Route
+                    path="/overview"
+                    element={
+                      <G k="value-streams">
+                        <Explorer />
+                      </G>
+                    }
+                  />
+                  <Route
+                    path="/n/*"
+                    element={
+                      <G k="value-streams">
+                        <Explorer />
+                      </G>
+                    }
+                  />
+                  <Route path="/explorer" element={<Navigate to="/overview" replace />} />
+                  {/* Roles — the roles-centric tab: flat sheet + reporting-line org chart. */}
+                  <Route
+                    path="/roles"
+                    element={
+                      <G k="roles">
+                        <Roles />
+                      </G>
+                    }
+                  />
+                  {/* Organization — interactive table (org groupings → role, value-stream cross-link). */}
+                  <Route
+                    path="/organization"
+                    element={
+                      <G k="organization">
+                        <Organization />
+                      </G>
+                    }
+                  />
+                  {/* Detail pages remain as deep-link targets from inspector + search. */}
+                  <Route
+                    path="/divisions/:id"
+                    element={
+                      <G k="organization">
+                        <DivisionDetail />
+                      </G>
+                    }
+                  />
+                  <Route
+                    path="/departments/:id"
+                    element={
+                      <G k="organization">
+                        <DepartmentDetail />
+                      </G>
+                    }
+                  />
+                  <Route
+                    path="/roles/:id"
+                    element={
+                      <G k="roles">
+                        <RoleProfile />
+                      </G>
+                    }
+                  />
+                  <Route path="/value-streams/:id" element={<ValueStreamRedirect />} />
+                  <Route path="/search" element={<SearchResults />} />
+                  {/* Personal settings — auth-only, no menu-key guard (every user). */}
+                  <Route path="/settings" element={<Settings />} />
+                  {/* Standards & Greenfield Migration — placeholder tabs. */}
+                  <Route
+                    path="/standards"
+                    element={
+                      <G k="standards">
+                        <Standards />
+                      </G>
+                    }
+                  />
+                  <Route
+                    path="/standards/:id"
+                    element={
+                      <G k="standards">
+                        <StandardArea />
+                      </G>
+                    }
+                  />
+                  {/* Metrics (formerly Telemetry) — AI adoption heat map + drill-in.
             Old /active-ai links redirect. */}
-        <Route path="/metrics" element={<ActiveAI />} />
-        <Route path="/metrics/:id" element={<ActiveAIDetail />} />
-        <Route path="/active-ai" element={<Navigate to="/metrics" replace />} />
-        <Route path="/active-ai/:id" element={<ActiveAIRedirect />} />
-        {/* Application Rationalization now lives inside the Initiatives tab.
+                  <Route
+                    path="/metrics"
+                    element={
+                      <G k="metrics">
+                        <ActiveAI />
+                      </G>
+                    }
+                  />
+                  <Route
+                    path="/metrics/:id"
+                    element={
+                      <G k="metrics">
+                        <ActiveAIDetail />
+                      </G>
+                    }
+                  />
+                  <Route path="/active-ai" element={<Navigate to="/metrics" replace />} />
+                  <Route path="/active-ai/:id" element={<ActiveAIRedirect />} />
+                  {/* Application Rationalization now lives inside the Initiatives tab.
             Keep a redirect so old /greenfield links still resolve. */}
-        <Route path="/greenfield" element={<Navigate to="/portfolio" replace />} />
-        {/* Initiatives — strategic-portfolio tracker (Programs → Workstreams →
+                  <Route path="/greenfield" element={<Navigate to="/portfolio" replace />} />
+                  {/* Initiatives — strategic-portfolio tracker (Programs → Workstreams →
             Initiatives) integrated with the operating model. Hosts the
             Application Rationalization workspace as its focal feature. */}
-        <Route path="/portfolio" element={<Portfolio />} />
-        {/* Portfolio drill-downs live under Home — the command-center widgets
+                  <Route
+                    path="/portfolio"
+                    element={
+                      <G k="workspace">
+                        <Portfolio />
+                      </G>
+                    }
+                  />
+                  {/* Portfolio drill-downs live under Home — the command-center widgets
             on the dashboard are their entry point (not the Workspace tab). */}
-        <Route path="/programs/:id" element={<PortfolioProgram />} />
-        <Route path="/initiatives/:id" element={<PortfolioInitiative />} />
-        <Route path="/raid" element={<PortfolioRaid />} />
-        <Route path="/portfolio/programs/:id" element={<PortfolioDetailRedirect base="programs" />} />
-        <Route path="/portfolio/initiatives/:id" element={<PortfolioDetailRedirect base="initiatives" />} />
-        <Route path="/portfolio/raid" element={<Navigate to="/raid" replace />} />
-        {/* Deliverables / Tasks — standalone work tracker, one top-level tab
+                  <Route
+                    path="/programs/:id"
+                    element={
+                      <G k="home">
+                        <PortfolioProgram />
+                      </G>
+                    }
+                  />
+                  <Route
+                    path="/initiatives/:id"
+                    element={
+                      <G k="home">
+                        <PortfolioInitiative />
+                      </G>
+                    }
+                  />
+                  <Route
+                    path="/raid"
+                    element={
+                      <G k="home">
+                        <PortfolioRaid />
+                      </G>
+                    }
+                  />
+                  <Route
+                    path="/portfolio/programs/:id"
+                    element={<PortfolioDetailRedirect base="programs" />}
+                  />
+                  <Route
+                    path="/portfolio/initiatives/:id"
+                    element={<PortfolioDetailRedirect base="initiatives" />}
+                  />
+                  <Route path="/portfolio/raid" element={<Navigate to="/raid" replace />} />
+                  {/* Deliverables / Tasks — standalone work tracker, one top-level tab
             each. Old /work links land on Deliverables. */}
-        <Route path="/deliverables" element={<Work tab="deliverables" />} />
-        <Route path="/tasks" element={<Work tab="tasks" />} />
-        <Route path="/automatable" element={<Automatable />} />
-        {/* Work Library — checklist/testing plans at the atomic level of work. */}
-        <Route path="/work-library" element={<WorkLibrary />} />
-        <Route path="/work" element={<Navigate to="/deliverables" replace />} />
-        {/* Regulations — 50-state insurance regulatory baseline (states /
+                  <Route
+                    path="/deliverables"
+                    element={
+                      <G k="deliverables">
+                        <Work tab="deliverables" />
+                      </G>
+                    }
+                  />
+                  <Route
+                    path="/tasks"
+                    element={
+                      <G k="tasks">
+                        <Work tab="tasks" />
+                      </G>
+                    }
+                  />
+                  <Route
+                    path="/automatable"
+                    element={
+                      <G k="automatable">
+                        <Automatable />
+                      </G>
+                    }
+                  />
+                  {/* Work Library — checklist/testing plans at the atomic level of work. */}
+                  <Route
+                    path="/work-library"
+                    element={
+                      <G k="work-library">
+                        <WorkLibrary />
+                      </G>
+                    }
+                  />
+                  <Route path="/work" element={<Navigate to="/deliverables" replace />} />
+                  {/* Regulations — 50-state insurance regulatory baseline (states /
             requirements / coverage lenses) + per-state detail by USPS code. */}
-        <Route path="/regulations" element={<Regulations />} />
-        <Route path="/regulations/:code" element={<RegulationDetail />} />
-        {/* External Interactions — read-only external-party dependency view. */}
-        <Route path="/applications" element={<Applications />} />
-        <Route path="/external" element={<External />} />
-        {/* ADMIN-only data administration + audit trail. The Data Dictionary now
-            lives inside the Data Admin tab as a view. The backend also gates
-            every /admin and write endpoint behind requireRole('ADMIN'). */}
-        {user.role === 'ADMIN' && <Route path="/admin" element={<Admin />} />}
-        {user.role === 'ADMIN' && <Route path="/audit" element={<AuditTrail />} />}
-        <Route path="/login" element={<Navigate to="/" replace />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      </Suspense>
-    </Layout>
-    </BreadcrumbProvider>
-    </CompanyProvider>
+                  <Route
+                    path="/regulations"
+                    element={
+                      <G k="regulations">
+                        <Regulations />
+                      </G>
+                    }
+                  />
+                  <Route
+                    path="/regulations/:code"
+                    element={
+                      <G k="regulations">
+                        <RegulationDetail />
+                      </G>
+                    }
+                  />
+                  {/* External Interactions — read-only external-party dependency view. */}
+                  <Route
+                    path="/applications"
+                    element={
+                      <G k="applications">
+                        <Applications />
+                      </G>
+                    }
+                  />
+                  <Route
+                    path="/external"
+                    element={
+                      <G k="third-parties">
+                        <External />
+                      </G>
+                    }
+                  />
+                  {/* Data Admin + audit trail — permission-gated (SITE_ADMIN always; other
+            user types via an explicit data-admin grant). The backend enforces
+            the same menu keys via requirePermission. */}
+                  <Route
+                    path="/admin"
+                    element={
+                      <G k="data-admin">
+                        <Admin />
+                      </G>
+                    }
+                  />
+                  {/* User Admin — accounts, permission sets, import, API keys. */}
+                  <Route
+                    path="/user-admin"
+                    element={
+                      <G k="user-admin">
+                        <UserAdmin />
+                      </G>
+                    }
+                  />
+                  <Route
+                    path="/audit"
+                    element={
+                      <G k="data-admin.audit-log">
+                        <AuditTrail />
+                      </G>
+                    }
+                  />
+                  <Route path="/login" element={<Navigate to="/" replace />} />
+                  <Route path="*" element={<CatchAll />} />
+                </Routes>
+              </Suspense>
+            </Layout>
+          </BreadcrumbProvider>
+        </CompanyProvider>
+      </PreferencesProvider>
     </DialogProvider>
   );
 }

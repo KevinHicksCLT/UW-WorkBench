@@ -28,6 +28,8 @@ import { seedPortfolio } from './portfolio.js';
 import { seedRegulations } from './seedRegulations.js';
 import { seedFederalRegs } from './seedFederalRegs.js';
 import { seedStandards } from './seedStandards.js';
+import { seedPermissions } from './seedPermissions.js';
+import { seedRoleProfiles } from './seedRoleProfiles.js';
 import { decomposeSingleChild } from '../../scripts/decompose-single-child.js';
 
 const prisma = new PrismaClient();
@@ -39,13 +41,31 @@ const TELEMETRY = resolve(here, '../../data/telemetry-catalog.json');
 // ── Telemetry signals (system-of-record catalog) ──
 async function seedTelemetry(p: PrismaClient, ctx: { tenantId: string; companyId: string }) {
   await p.telemetrySignal.deleteMany({ where: { companyId: ctx.companyId } });
-  const catalog: { name: string; origin: string | null; source: string | null; category: string | null; dataType: string | null; queryType: string | null; description: string | null }[] =
-    JSON.parse(readFileSync(TELEMETRY, 'utf8'));
+  const catalog: {
+    name: string;
+    origin: string | null;
+    source: string | null;
+    category: string | null;
+    dataType: string | null;
+    queryType: string | null;
+    description: string | null;
+  }[] = JSON.parse(readFileSync(TELEMETRY, 'utf8'));
   let sort = 100;
   const rows = catalog.map((m) => ({
-    tenantId: ctx.tenantId, companyId: ctx.companyId, kind: 'system', name: m.name, description: m.description,
-    source: m.source, category: m.category, unit: m.dataType, frequency: null, direction: 'up',
-    origin: m.origin, queryType: m.queryType, isLive: false, sortOrder: sort++,
+    tenantId: ctx.tenantId,
+    companyId: ctx.companyId,
+    kind: 'system',
+    name: m.name,
+    description: m.description,
+    source: m.source,
+    category: m.category,
+    unit: m.dataType,
+    frequency: null,
+    direction: 'up',
+    origin: m.origin,
+    queryType: m.queryType,
+    isLive: false,
+    sortOrder: sort++,
   }));
   await p.telemetrySignal.createMany({ data: rows });
   console.log(`   + ${rows.length} telemetry signals`);
@@ -58,30 +78,62 @@ async function seedScenarios(
 ) {
   await p.scenario.deleteMany({ where: { companyId: ctx.companyId } });
   const spine = JSON.parse(readFileSync(SPINE, 'utf8')) as {
-    scenarios: { name: string; changeType: string | null; impactScope: string | null; divisionName: string | null; valueStreamName: string | null; application: string | null; roleImpact: string | null; oneTimeCost: number | null; annualBenefit: number | null; annualAddedCost: number | null; annualNetImpact: number | null; confidence: string | null }[];
+    scenarios: {
+      name: string;
+      changeType: string | null;
+      impactScope: string | null;
+      divisionName: string | null;
+      valueStreamName: string | null;
+      application: string | null;
+      roleImpact: string | null;
+      oneTimeCost: number | null;
+      annualBenefit: number | null;
+      annualAddedCost: number | null;
+      annualNetImpact: number | null;
+      confidence: string | null;
+    }[];
   };
   const rows = spine.scenarios.map((s) => ({
-    tenantId: ctx.tenantId, companyId: ctx.companyId, name: s.name, changeType: s.changeType, impactScope: s.impactScope,
+    tenantId: ctx.tenantId,
+    companyId: ctx.companyId,
+    name: s.name,
+    changeType: s.changeType,
+    impactScope: s.impactScope,
     orgUnitId: ctx.refs.orgUnitByName(s.divisionName),
     processNodeId: ctx.refs.nodeByName(s.valueStreamName),
-    application: s.application, roleImpact: s.roleImpact,
-    oneTimeCost: s.oneTimeCost, annualBenefit: s.annualBenefit, annualAddedCost: s.annualAddedCost,
-    annualNetImpact: s.annualNetImpact, confidence: s.confidence,
+    application: s.application,
+    roleImpact: s.roleImpact,
+    oneTimeCost: s.oneTimeCost,
+    annualBenefit: s.annualBenefit,
+    annualAddedCost: s.annualAddedCost,
+    annualNetImpact: s.annualNetImpact,
+    confidence: s.confidence,
   }));
   await p.scenario.createMany({ data: rows });
   console.log(`   + ${rows.length} scenarios`);
 }
 
 async function main() {
-  const m = JSON.parse(readFileSync(MASTER, 'utf8')) as { company: { dbValue: string; displayValue: string } };
+  const m = JSON.parse(readFileSync(MASTER, 'utf8')) as {
+    company: { dbValue: string; displayValue: string };
+  };
 
   // ── Tenant + admin user (preserved across reseeds) ──
   const tenant = await prisma.tenant.upsert({
-    where: { slug: 'strata' }, update: {}, create: { name: 'Strata Demo', slug: 'strata' },
+    where: { slug: 'strata' },
+    update: {},
+    create: { name: 'Strata Demo', slug: 'strata' },
   });
   await prisma.user.upsert({
-    where: { email: 'kevin.hicks@capgemini.com' }, update: {},
-    create: { tenantId: tenant.id, email: 'kevin.hicks@capgemini.com', name: 'Kevin Hicks', password: await bcrypt.hash('demo1234', 10), role: 'ADMIN' },
+    where: { email: 'kevin.hicks@capgemini.com' },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      email: 'kevin.hicks@capgemini.com',
+      name: 'Kevin Hicks',
+      password: await bcrypt.hash('demo1234', 10),
+      role: 'SITE_ADMIN',
+    },
   });
 
   // ── Greenfield single-company rebuild: drop + recreate the company graph ──
@@ -89,7 +141,13 @@ async function main() {
   const company = await prisma.company.create({
     // Slug is seed-time configuration (charter Task 1): override per company
     // via SEED_COMPANY_SLUG; default preserves the demo company.
-    data: { tenantId: tenant.id, name: m.company.displayValue, slug: process.env.SEED_COMPANY_SLUG ?? 'abc-insurance', dbValue: m.company.dbValue, displayValue: m.company.displayValue },
+    data: {
+      tenantId: tenant.id,
+      name: m.company.displayValue,
+      slug: process.env.SEED_COMPANY_SLUG ?? 'abc-insurance',
+      dbValue: m.company.dbValue,
+      displayValue: m.company.displayValue,
+    },
   });
   const ctx = { tenantId: tenant.id, companyId: company.id };
 
@@ -111,6 +169,12 @@ async function main() {
   // and wires domain-clear imported roles to the value-stream spine. Idempotent.
   console.log('▶ seedOrgFromDevelop …');
   await seedOrgFromDevelop(prisma, { companyId: company.id });
+
+  // ── 1b-3. Role profiles — research-sourced descriptions/family/level + homes
+  // for roles still un-homed after develop import (soft-skips if the merged
+  // role-profiles.json hasn't been generated yet). ──
+  console.log('▶ seedRoleProfiles …');
+  await seedRoleProfiles(prisma, { companyId: company.id });
 
   // ── 1c. Eliminate single-child L3/L4 parents (3 splits, +3 L4 → 4836) ──
   // Folded in so a single `npm run db:seed` reproduces the clean tree. Idempotent
@@ -142,6 +206,8 @@ async function main() {
   await run('regulations', () => seedRegulations(prisma, { ...ctx, refs }));
   await run('federalRegs', () => seedFederalRegs(prisma, { ...ctx, refs }));
   await run('standards', () => seedStandards(prisma, { ...ctx, refs }));
+  // Runs AFTER the org spine exists: demo users + kevin are homed to L1 OrgUnits.
+  await run('permissions', () => seedPermissions(prisma, ctx));
 
   // ── 4. Verify peripheral tables are non-empty + master counts intact ──
   const c = company.id;
@@ -154,26 +220,34 @@ async function main() {
     portfolioInitiative: await prisma.portfolioInitiative.count({ where: { companyId: c } }),
     benefitLine: await prisma.benefitLine.count({ where: { initiative: { companyId: c } } }),
     raidItem: await prisma.raidItem.count({ where: { initiative: { companyId: c } } }),
-    initiativeResource: await prisma.initiativeResource.count({ where: { initiative: { companyId: c } } }),
+    initiativeResource: await prisma.initiativeResource.count({
+      where: { initiative: { companyId: c } },
+    }),
     strategicObjective: await prisma.strategicObjective.count({ where: { companyId: c } }),
     riskScoringBand: await prisma.riskScoringBand.count({ where: { companyId: c } }),
     jurisdiction: await prisma.jurisdiction.count({ where: { companyId: c } }),
     regulatoryRequirement: await prisma.regulatoryRequirement.count({ where: { companyId: c } }),
     nodeRegulation: await prisma.nodeRegulation.count({ where: { companyId: c } }),
     standard: await prisma.standard.count({ where: { companyId: c } }),
-    rationalizationWorkspace: await prisma.rationalizationWorkspace.count({ where: { companyId: c } }),
+    rationalizationWorkspace: await prisma.rationalizationWorkspace.count({
+      where: { companyId: c },
+    }),
     scenario: await prisma.scenario.count({ where: { companyId: c } }),
     telemetrySignal: await prisma.telemetrySignal.count({ where: { companyId: c } }),
     nodeAiAdoption: await prisma.nodeAiAdoption.count({ where: { processNode: { companyId: c } } }),
     externalParty: await prisma.externalParty.count({ where: { companyId: c } }),
-    externalInteraction: await prisma.externalInteraction.count({ where: { externalParty: { companyId: c } } }),
+    externalInteraction: await prisma.externalInteraction.count({
+      where: { externalParty: { companyId: c } },
+    }),
     metric: await prisma.metric.count({ where: { companyId: c } }),
     initiative: await prisma.initiative.count({ where: { companyId: c } }),
     analysisStatus: await prisma.analysisStatus.count({ where: { companyId: c } }),
   };
 
   console.log('\n── Peripheral verification ──');
-  const mustBePositive = Object.entries(counts).filter(([k]) => !['processNode', 'role', 'application'].includes(k));
+  const mustBePositive = Object.entries(counts).filter(
+    ([k]) => !['processNode', 'role', 'application'].includes(k),
+  );
   // Role roster is now at develop/prod parity (257 master + 42 imported = 299).
   let allOk = counts.processNode === 4836 && counts.role === 299;
   for (const [k, v] of Object.entries(counts)) {
@@ -182,15 +256,24 @@ async function main() {
     if (positive && v === 0) allOk = false;
     console.log(`${mark}  ${k.padEnd(26)} ${String(v).padStart(7)}`);
   }
-  console.log(`${counts.processNode === 4836 ? 'OK' : 'XX'}  ProcessNode == 4836 (master 4833 + 3 decomposed L4)`);
+  console.log(
+    `${counts.processNode === 4836 ? 'OK' : 'XX'}  ProcessNode == 4836 (master 4833 + 3 decomposed L4)`,
+  );
 
   console.log('\n── Unresolved FK references per seeder ──');
   for (const [k, v] of Object.entries(tally)) console.log(`   ${k.padEnd(20)} ${v}`);
 
-  console.log(allOk ? '\n✅ Seed complete — all peripheral tables populated.' : '\n⚠ Some peripheral tables are empty — see XX above.');
+  console.log(
+    allOk
+      ? '\n✅ Seed complete — all peripheral tables populated.'
+      : '\n⚠ Some peripheral tables are empty — see XX above.',
+  );
   console.log('   Login: kevin.hicks@capgemini.com / demo1234');
 }
 
 main()
   .then(() => prisma.$disconnect())
-  .catch((e) => { console.error(e); return prisma.$disconnect().then(() => process.exit(1)); });
+  .catch((e) => {
+    console.error(e);
+    return prisma.$disconnect().then(() => process.exit(1));
+  });

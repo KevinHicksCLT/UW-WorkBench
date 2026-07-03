@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../../lib/auth';
+import { defaultRoute } from '../../lib/permissions';
 import { useNavigate } from 'react-router-dom';
 import { Button, ErrorMessage, Input, Label } from '../../components/ui';
 
@@ -16,8 +17,10 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
-      navigate('/');
+      // login() resolves with the /auth/me payload — land on the user's start
+      // page (already validated readable server-side), else first readable tab.
+      const me = await login(email, password);
+      navigate(defaultRoute(me.permissions, me.startPage) ?? '/');
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -31,8 +34,14 @@ export default function Login() {
         <div className="mb-8 text-center">
           <div className="flex items-baseline justify-center gap-2 mb-1">
             {/* sized so the logotype cap-height matches the heading; translate-y aligns the baseline */}
-            <img src="/capgemini-wordmark.svg" alt="Capgemini" className="h-[27px] w-auto translate-y-[7.5px]" />
-            <h1 className="text-xl font-bold text-[#0070AD] tracking-tight -translate-y-[2px]">Transformation Bridge</h1>
+            <img
+              src="/capgemini-wordmark.svg"
+              alt="Capgemini"
+              className="h-[27px] w-auto translate-y-[7.5px]"
+            />
+            <h1 className="text-xl font-bold text-[#0070AD] tracking-tight -translate-y-[2px]">
+              Transformation Bridge
+            </h1>
           </div>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">

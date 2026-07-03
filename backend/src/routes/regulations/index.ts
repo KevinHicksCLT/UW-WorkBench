@@ -13,12 +13,16 @@
  */
 import { Router } from 'express';
 import { requireAuth } from '../../middleware/auth.js';
+import { requirePermission } from '../../middleware/permissions.js';
 import { registerLensRoutes } from './lenses.js';
 import { registerWriteRoutes } from './writes.js';
 import { registerFeedRoutes } from './feeds.js';
 
 const router = Router();
 router.use(requireAuth);
+// Method-derived CRUD: GET→read, POST→create, PATCH/PUT→update, DELETE→delete.
+// Replaces the old per-route requireRole('ADMIN','MANAGER') write guards.
+router.use(requirePermission('regulations'));
 
 registerLensRoutes(router);
 registerWriteRoutes(router);

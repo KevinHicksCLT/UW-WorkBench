@@ -14,6 +14,7 @@
  */
 import { Router } from 'express';
 import { requireAuth } from '../../middleware/auth.js';
+import { requirePermission } from '../../middleware/permissions.js';
 import { cacheResponses } from '../../lib/responseCache.js';
 import { registerOverviewRoutes } from './overview.js';
 import { registerTelemetryRoutes } from './telemetry.js';
@@ -24,6 +25,9 @@ import { registerOrgStandardsRoutes } from './standards.js';
 
 const router = Router();
 router.use(requireAuth);
+// Permission BEFORE the cache: a denial must never be served from (or write
+// into) the tenant-keyed response cache.
+router.use(requirePermission('value-streams'));
 router.use(cacheResponses(15_000));
 
 registerOverviewRoutes(router);

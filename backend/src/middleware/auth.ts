@@ -11,7 +11,7 @@ export function signToken(user: User) {
   return jwt.sign(
     { sub: user.id, tenantId: user.tenantId, email: user.email, role: user.role },
     SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: '7d' },
   );
 }
 
@@ -24,6 +24,10 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     const payload = jwt.verify(header.slice(7), SECRET) as unknown as TokenPayload;
     const user = await prisma.user.findUnique({ where: { id: payload.sub } });
     if (!user) return res.status(401).json({ error: 'User no longer exists' });
+    // IAM deprovisioning kill-switch: a deactivated user's token is dead even
+    // though the JWT itself is still cryptographically valid for up to 7 days.
+    if (user.status === 'DEACTIVATED')
+      return res.status(401).json({ error: 'Account deactivated' });
     req.user = user;
     req.tenantId = user.tenantId;
     next();

@@ -338,6 +338,7 @@ function RegulationTable({
   ];
   return (
     <Sheet
+      sheetKey="regulations"
       rows={rows}
       cols={cols}
       rowKey={(r) => r.id}
