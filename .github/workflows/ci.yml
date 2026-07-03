@@ -113,7 +113,9 @@ jobs:
     # branches and welds an undeletable lineage chain. Branch parentage never
     # changes here; the target is snapshotted to a leaf-deletable
     # backup/<target>-<sha> child first, and one backup per target is kept.
-    # Opt-in: acts ONLY when the merge TITLE ends with `[promote-data]`.
+    # Policy: feature -> develop promotes AUTOMATICALLY on every PR merge whose
+    # feature has a same-name Neon branch; develop -> production stays opt-in
+    # (merge TITLE must end with `[promote-data]`).
     needs: quality
     if: ${{ github.ref_name == 'master' || github.ref_name == 'develop' }}
     runs-on: ubuntu-latest
