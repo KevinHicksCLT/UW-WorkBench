@@ -10,46 +10,8 @@
 // Idempotent: sets are upserted and their grants replaced wholesale.
 import type { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import {
-  DOMAIN_ADMIN_SCOPE,
-  MENU_TREE,
-  USER_TYPES,
-  isDomainAdmin,
-  type UserType,
-} from '@cascade/shared';
-
-const DATA_TAB_KEYS = MENU_TREE.filter((n) => n.key !== 'data-admin' && n.key !== 'user-admin').map(
-  (n) => n.key,
-);
-
-type GrantRow = {
-  menuKey: string;
-  canCreate: boolean;
-  canRead: boolean;
-  canUpdate: boolean;
-  canDelete: boolean;
-};
-
-function grantsFor(userType: UserType): GrantRow[] {
-  if (userType === 'SITE_ADMIN') return []; // bypass in permissionService
-  const full = (menuKey: string): GrantRow => ({
-    menuKey,
-    canCreate: true,
-    canRead: true,
-    canUpdate: true,
-    canDelete: true,
-  });
-  const readOnly = (menuKey: string): GrantRow => ({
-    menuKey,
-    canCreate: false,
-    canRead: true,
-    canUpdate: false,
-    canDelete: false,
-  });
-  if (isDomainAdmin(userType)) return [...DATA_TAB_KEYS.map(full), full('user-admin')];
-  if (userType === 'SUPER_USER') return DATA_TAB_KEYS.map(full);
-  return DATA_TAB_KEYS.map(readOnly); // MEMBER
-}
+import { DOMAIN_ADMIN_SCOPE, USER_TYPES, type UserType } from '@cascade/shared';
+import { grantsFor } from './entitlementGrants.js';
 
 export async function seedPermissions(
   p: PrismaClient,

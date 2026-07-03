@@ -155,6 +155,18 @@ jobs:
           DIRECT_URL: ${{ github.ref_name == 'master' && secrets.PRODUCTION_DATABASE_URL || secrets.DEVELOP_DATABASE_URL }}
         run: npx prisma migrate deploy
 
+      # Seed RBAC config data (permission sets + legacy admin-token
+      # normalisation) so entitlements travel with the schema to develop and
+      # production. Idempotent and writes ONLY through the target DATABASE_URL —
+      # no Neon branch operations, so it cannot re-parent branches or deadlock
+      # the lineage. Bulk datasets remain the domain of the [promote-data] job.
+      - name: Seed entitlements (config data) into the target Neon branch
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ github.ref_name == 'master' && secrets.PRODUCTION_DATABASE_URL || secrets.DEVELOP_DATABASE_URL }}
+          DIRECT_URL: ${{ github.ref_name == 'master' && secrets.PRODUCTION_DATABASE_URL || secrets.DEVELOP_DATABASE_URL }}
+        run: npm run db:seed:entitlements
+
   deploy:
     needs: migrate
     runs-on: ubuntu-latest
