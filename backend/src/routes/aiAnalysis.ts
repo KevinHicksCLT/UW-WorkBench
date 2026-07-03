@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
+import { requirePermission } from '../middleware/permissions.js';
 import { ancestorNames } from '../lib/resolvers/index.js';
 
 // Metrics tab (D6.3) — the two stages of the AI program, computed server-side
@@ -17,6 +18,7 @@ import { ancestorNames } from '../lib/resolvers/index.js';
 
 const router = Router();
 router.use(requireAuth);
+router.use(requirePermission('metrics'));
 
 // subjectType (AnalysisStatus) → process/org level used for the denominator.
 const SUBJECT_TYPES = [
@@ -32,8 +34,18 @@ type Disposition = 'Automated' | 'Discarded' | 'Augmented' | 'Manual';
 // loop) → Augmented; manual (score 5) → Manual. (No "Discarded" source in the
 // workbook, so that bucket stays at 0.) Legacy "automated" token kept as Automated.
 function dispositionOf(automatability: string | null): Disposition {
-  if (automatability === 'autonomous' || automatability === 'workflow' || automatability === 'automated') return 'Automated';
-  if (automatability === 'augmented' || automatability === 'assist' || automatability === 'assisted') return 'Augmented';
+  if (
+    automatability === 'autonomous' ||
+    automatability === 'workflow' ||
+    automatability === 'automated'
+  )
+    return 'Automated';
+  if (
+    automatability === 'augmented' ||
+    automatability === 'assist' ||
+    automatability === 'assisted'
+  )
+    return 'Augmented';
   return 'Manual';
 }
 
@@ -42,11 +54,16 @@ function dispositionOf(automatability: string | null): Disposition {
 // not a second copy of the data.
 function taskCategory(title: string): string {
   const t = title.toLowerCase();
-  if (/review|approv|sign-?off|validat|verif|confirm|reconcil|audit/.test(t)) return 'Review & Approve';
-  if (/analy|assess|evaluat|investigat|research|score|rate|model|estimat|calculat/.test(t)) return 'Analyze & Assess';
-  if (/draft|creat|prepar|develop|design|writ|document|generat|build|issue/.test(t)) return 'Create & Produce';
-  if (/coordinat|communicat|notif|schedul|meet|liais|escalat|share|present|respond|engag/.test(t)) return 'Coordinate & Communicate';
-  if (/monitor|track|report|measur|oversee|maintain|manage|updat/.test(t)) return 'Monitor & Manage';
+  if (/review|approv|sign-?off|validat|verif|confirm|reconcil|audit/.test(t))
+    return 'Review & Approve';
+  if (/analy|assess|evaluat|investigat|research|score|rate|model|estimat|calculat/.test(t))
+    return 'Analyze & Assess';
+  if (/draft|creat|prepar|develop|design|writ|document|generat|build|issue/.test(t))
+    return 'Create & Produce';
+  if (/coordinat|communicat|notif|schedul|meet|liais|escalat|share|present|respond|engag/.test(t))
+    return 'Coordinate & Communicate';
+  if (/monitor|track|report|measur|oversee|maintain|manage|updat/.test(t))
+    return 'Monitor & Manage';
   return 'Execute & Process';
 }
 
@@ -70,29 +87,57 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
     const requested = typeof req.query.companyId === 'string' ? req.query.companyId : '';
     const company = await prisma.company.findFirst({
       where: requested ? { id: requested, tenantId: req.tenantId } : { tenantId: req.tenantId },
-      orderBy: { createdAt: 'asc' }, select: { id: true },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true },
     });
     if (!company) return res.status(404).json({ error: 'No company' });
     const companyId = company.id;
     const now = new Date();
 
-    const [statuses, processLevels, orgLevels, roleCount, tasks, orgCount, deliverableCount, applicationCount] = await Promise.all([
+    const [
+      statuses,
+      processLevels,
+      orgLevels,
+      roleCount,
+      tasks,
+      orgCount,
+      deliverableCount,
+      applicationCount,
+    ] = await Promise.all([
       prisma.analysisStatus.findMany({
         where: { companyId },
         select: { subjectType: true, subjectId: true, status: true, plannedDate: true },
       }),
       // counts per process level (value-stream denominator)
-      prisma.processNode.groupBy({ by: ['processLevelTypeId'], where: { companyId }, _count: { _all: true } }),
-      prisma.orgUnit.groupBy({ by: ['orgLevelTypeId'], where: { companyId }, _count: { _all: true } }),
+      prisma.processNode.groupBy({
+        by: ['processLevelTypeId'],
+        where: { companyId },
+        _count: { _all: true },
+      }),
+      prisma.orgUnit.groupBy({
+        by: ['orgLevelTypeId'],
+        where: { companyId },
+        _count: { _all: true },
+      }),
       prisma.role.count({ where: { companyId } }),
       // L5 task nodes + their owning role (for division/role breakdowns).
       prisma.processNode.findMany({
         where: { companyId, isTask: true },
         select: {
-          id: true, displayValue: true, automatability: true,
+          id: true,
+          displayValue: true,
+          automatability: true,
           nodeRoles: {
             where: { role_: 'Owner' },
-            select: { role: { select: { id: true, displayValue: true, orgUnit: { select: { displayValue: true } } } } },
+            select: {
+              role: {
+                select: {
+                  id: true,
+                  displayValue: true,
+                  orgUnit: { select: { displayValue: true } },
+                },
+              },
+            },
           },
           nodeDeliverables: { select: { id: true } },
         },
@@ -106,15 +151,26 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
 
     // level-type id → levelNumber maps for the coverage denominators.
     const [pTypes, oTypes] = await Promise.all([
-      prisma.processLevelType.findMany({ where: { companyId }, select: { id: true, levelNumber: true } }),
-      prisma.orgLevelType.findMany({ where: { companyId }, select: { id: true, levelNumber: true } }),
+      prisma.processLevelType.findMany({
+        where: { companyId },
+        select: { id: true, levelNumber: true },
+      }),
+      prisma.orgLevelType.findMany({
+        where: { companyId },
+        select: { id: true, levelNumber: true },
+      }),
     ]);
     const pLevelOf = new Map(pTypes.map((t) => [t.id, t.levelNumber]));
     const oLevelOf = new Map(oTypes.map((t) => [t.id, t.levelNumber]));
     const totalForType = (s: (typeof SUBJECT_TYPES)[number]): number => {
       if (s.spine === 'role') return roleCount;
-      if (s.spine === 'process') return processLevels.filter((g) => pLevelOf.get(g.processLevelTypeId) === s.level).reduce((a, g) => a + g._count._all, 0);
-      return orgLevels.filter((g) => oLevelOf.get(g.orgLevelTypeId) === s.level).reduce((a, g) => a + g._count._all, 0);
+      if (s.spine === 'process')
+        return processLevels
+          .filter((g) => pLevelOf.get(g.processLevelTypeId) === s.level)
+          .reduce((a, g) => a + g._count._all, 0);
+      return orgLevels
+        .filter((g) => oLevelOf.get(g.orgLevelTypeId) === s.level)
+        .reduce((a, g) => a + g._count._all, 0);
     };
 
     // ── Stage 1: analysis coverage per subject type ─────────────────────────
@@ -128,12 +184,22 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
       const open = rows.filter((r) => r.status !== 'Complete' && r.plannedDate);
       const overdue = open.filter((r) => r.plannedDate! < now).length;
       const expectedFinish = open.length
-        ? open.reduce((max, r) => (r.plannedDate! > max ? r.plannedDate! : max), open[0].plannedDate!)
+        ? open.reduce(
+            (max, r) => (r.plannedDate! > max ? r.plannedDate! : max),
+            open[0].plannedDate!,
+          )
         : null;
       return {
-        type: type as string, label: label as string, total, complete, inProgress, notStarted,
+        type: type as string,
+        label: label as string,
+        total,
+        complete,
+        inProgress,
+        notStarted,
         pctComplete: total ? Math.round((100 * complete) / total) : 0,
-        expectedFinish, overdue, onPlan: overdue === 0,
+        expectedFinish,
+        overdue,
+        onPlan: overdue === 0,
       };
     });
 
@@ -142,17 +208,28 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
     // from the canonical Task tree, no planned dates → no overdue.
     const tasksAnalyzed = tasks.filter((t) => t.automatability != null).length;
     coverage.push({
-      type: 'task', label: 'Tasks', total: tasks.length, complete: tasksAnalyzed,
-      inProgress: 0, notStarted: tasks.length - tasksAnalyzed,
+      type: 'task',
+      label: 'Tasks',
+      total: tasks.length,
+      complete: tasksAnalyzed,
+      inProgress: 0,
+      notStarted: tasks.length - tasksAnalyzed,
       pctComplete: tasks.length ? Math.round((100 * tasksAnalyzed) / tasks.length) : 0,
-      expectedFinish: null, overdue: 0, onPlan: true,
+      expectedFinish: null,
+      overdue: 0,
+      onPlan: true,
     });
 
     // ── Stage 2: adoption breakdowns over the L5 task tree ──────────────────
     // value-stream (L2) name per task, resolved once via the closure.
     const vsByTask = await ancestorNames(tasks.map((t) => t.id));
 
-    const counts: Record<Lowercase<Disposition>, number> = { automated: 0, discarded: 0, augmented: 0, manual: 0 };
+    const counts: Record<Lowercase<Disposition>, number> = {
+      automated: 0,
+      discarded: 0,
+      augmented: 0,
+      manual: 0,
+    };
     const byDivision = new Map<string, Bucket>();
     const byRole = new Map<string, Bucket>();
     const byCategory = new Map<string, Bucket>();
@@ -192,8 +269,10 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
         totalTasks,
         counts,
         pct: {
-          automated: pct(counts.automated), discarded: pct(counts.discarded),
-          augmented: pct(counts.augmented), manual: pct(counts.manual),
+          automated: pct(counts.automated),
+          discarded: pct(counts.discarded),
+          augmented: pct(counts.augmented),
+          manual: pct(counts.manual),
         },
         breakdowns: {
           division: sorted(byDivision),
@@ -204,7 +283,9 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
         },
       },
     });
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
 export default router;

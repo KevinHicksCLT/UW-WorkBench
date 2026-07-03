@@ -176,6 +176,7 @@ export default function SignalCatalog({ companyId }: { companyId: string | null 
       </div>
 
       <Sheet
+        sheetKey="signals"
         rows={data?.signals ?? []}
         cols={cols}
         rowKey={(s) => s.id}

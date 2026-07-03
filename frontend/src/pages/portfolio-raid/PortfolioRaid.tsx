@@ -229,6 +229,7 @@ export default function PortfolioRaid({
       )}
 
       <Sheet
+        sheetKey="portfolio.raid"
         rows={shown}
         cols={cols}
         rowKey={(r) => r.id}

@@ -113,7 +113,9 @@ jobs:
     # branches and welds an undeletable lineage chain. Branch parentage never
     # changes here; the target is snapshotted to a leaf-deletable
     # backup/<target>-<sha> child first, and one backup per target is kept.
-    # Opt-in: acts ONLY when the merge TITLE ends with `[promote-data]`.
+    # Policy: feature -> develop promotes AUTOMATICALLY on every PR merge whose
+    # feature has a same-name Neon branch; develop -> production stays opt-in
+    # (merge TITLE must end with `[promote-data]`).
     needs: quality
     if: ${{ github.ref_name == 'master' || github.ref_name == 'develop' }}
     runs-on: ubuntu-latest
@@ -154,6 +156,18 @@ jobs:
           DATABASE_URL: ${{ github.ref_name == 'master' && secrets.PRODUCTION_DATABASE_URL || secrets.DEVELOP_DATABASE_URL }}
           DIRECT_URL: ${{ github.ref_name == 'master' && secrets.PRODUCTION_DATABASE_URL || secrets.DEVELOP_DATABASE_URL }}
         run: npx prisma migrate deploy
+
+      # Seed RBAC config data (permission sets + legacy admin-token
+      # normalisation) so entitlements travel with the schema to develop and
+      # production. Idempotent and writes ONLY through the target DATABASE_URL —
+      # no Neon branch operations, so it cannot re-parent branches or deadlock
+      # the lineage. Bulk datasets remain the domain of the [promote-data] job.
+      - name: Seed entitlements (config data) into the target Neon branch
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ github.ref_name == 'master' && secrets.PRODUCTION_DATABASE_URL || secrets.DEVELOP_DATABASE_URL }}
+          DIRECT_URL: ${{ github.ref_name == 'master' && secrets.PRODUCTION_DATABASE_URL || secrets.DEVELOP_DATABASE_URL }}
+        run: npm run db:seed:entitlements
 
   deploy:
     needs: migrate

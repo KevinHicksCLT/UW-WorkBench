@@ -1,5 +1,20 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Card, EmptyState, LinkButton, LoadingState } from './ui';
+import {
+  HeaderComboFilter,
+  HeaderLabel,
+  ListSearch,
+  SortToggle,
+  type Sort,
+} from './sheet/headerControls';
+import { useSheetColumns } from './sheet/useSheetColumns';
+import { ColumnPicker } from './sheet/ColumnPicker';
+import { HeaderDnd, SortableHeaderCell } from './sheet/SheetHeaderCell';
+
+// HeaderComboFilter/ListSearch moved to sheet/headerControls.tsx (file-size
+// budget); re-exported so the Value Streams / Organization explorers keep
+// importing them from here.
+export { HeaderComboFilter, ListSearch } from './sheet/headerControls';
 
 // Sheet — the canonical spreadsheet list view (extracted from the Value
 // Streams / Organization list explorers so every list tab shares the EXACT
@@ -24,161 +39,44 @@ export type SheetCol<R> = {
   value?: (r: R) => string;
   values?: (r: R) => string[];
   render?: (r: R) => React.ReactNode;
-  sortable?: boolean;   // default: has value/values
+  sortable?: boolean; // default: has value/values
   filterable?: boolean; // default: has value/values
   dim?: boolean;
   hint?: string; // header tooltip (title) — spell out acronyms like APCD/SBS
   align?: 'left' | 'center' | 'right'; // header + cell horizontal alignment (default left)
+  hideable?: boolean; // default true — key/title columns opt out with false
+  minPx?: number; // resize floor in px (default 60)
 };
-
-type Sort = { col: string; dir: 1 | -1 };
-
-function SortToggle({ col, sort, onSort }: { col: string; sort: Sort; onSort: (c: string) => void }) {
-  const active = sort.col === col;
-  return (
-    <button
-      type="button"
-      onClick={(e) => { e.stopPropagation(); onSort(col); }}
-      title="Sort by this column"
-      className={'ml-1 align-middle text-[10px] font-bold ' + (active ? 'text-[#171717]' : 'text-[#a3a3a3] hover:text-[#171717]')}
-    >
-      {active ? (sort.dir === 1 ? '▲' : '▼') : '⇅'}
-    </button>
-  );
-}
-
-const HeaderLabel = ({ children }: { children: React.ReactNode }) => (
-  <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] mb-1 whitespace-nowrap">{children}</div>
-);
-
-// Long option lists render at most this many entries — type-ahead narrows.
-const MAX_OPTIONS = 300;
-
-// `value` is the multi-selection ([] = All). A plain click replaces the
-// selection (classic single-pick, closes the dropdown); ctrl/cmd/shift-click
-// toggles the option in/out of the selection and keeps the dropdown open.
-// Exported so the Value Streams / Organization list explorers share it.
-export function HeaderComboFilter({ label, value, onChange, options, sort, hint, align }: {
-  label: string; value: string[]; onChange: (v: string[]) => void; options: string[]; sort?: React.ReactNode; hint?: string; align?: 'left' | 'center' | 'right';
-}) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  const ref = useRef<HTMLDivElement>(null);
-  const active = value.length > 0;
-
-  useEffect(() => {
-    if (!open) return;
-    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, [open]);
-
-  const q = query.trim().toLowerCase();
-  const filtered = options.filter((o) => o === 'All' || o.toLowerCase().includes(q));
-  const shown = filtered.slice(0, MAX_OPTIONS);
-  function pick(o: string, e: React.MouseEvent) {
-    if (o === 'All') { onChange([]); setOpen(false); setQuery(''); return; }
-    if (e.ctrlKey || e.metaKey || e.shiftKey) {
-      onChange(value.includes(o) ? value.filter((v) => v !== o) : [...value, o]);
-      return; // stay open for further picks
-    }
-    onChange([o]); setOpen(false); setQuery('');
-  }
-  const display = value.length === 0 ? 'All' : value.length === 1 ? value[0] : `${value.length} selected`;
-
-  return (
-    <div ref={ref} className="px-2 py-1 min-w-0 relative" onClick={(e) => e.stopPropagation()} title={hint}>
-      <div className={align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : ''}><HeaderLabel>{label}{sort}</HeaderLabel></div>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className={'flex items-center justify-between gap-1 w-full rounded border bg-white pl-2 pr-1.5 py-0.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-[#171717] transition-colors duration-150 '
-          + (active ? 'border-[#171717] text-[#171717] font-medium' : 'border-[#eaeaea] text-[#525252] hover:border-[#d4d4d4]')}
-      >
-        <span className="truncate" title={value.length > 1 ? value.join(', ') : undefined}>{display}</span>
-        <svg className={'flex-shrink-0 text-[#a3a3a3] transition-transform duration-150 ' + (open ? 'rotate-180' : '')} width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </button>
-      {open && (
-        <div className="absolute z-30 left-2 mt-1 w-[260px] rounded-md border border-[#eaeaea] bg-white shadow-lg">
-          <div className="p-1.5 border-b border-[#f5f5f5]">
-            <input
-              autoFocus
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search…"
-              aria-label={`Filter by ${label.toLowerCase()}`}
-              className="w-full rounded border border-[#eaeaea] bg-white px-2 py-1 text-xs text-[#171717] placeholder:text-[#a3a3a3] focus:outline-none focus:ring-1 focus:ring-[#171717]"
-            />
-          </div>
-          <div className="max-h-56 overflow-y-auto py-1">
-            {shown.length === 0 ? (
-              <EmptyState baseClassName="px-2.5 py-1.5 text-xs text-[#a3a3a3]" message="No matches" />
-            ) : shown.map((o) => {
-              const checked = o === 'All' ? value.length === 0 : value.includes(o);
-              return (
-                <button
-                  key={o}
-                  type="button"
-                  onClick={(e) => pick(o, e)}
-                  className={'flex w-full items-center gap-1.5 text-left px-2.5 py-1 text-xs hover:bg-[#fafafa] transition-colors duration-100 '
-                    + (checked ? 'text-[#171717] font-medium bg-[#fafafa]' : 'text-[#525252]')}
-                >
-                  <span className="w-3 flex-shrink-0 text-[#171717]">{checked && o !== 'All' ? '✓' : ''}</span>
-                  <span className="truncate">{o}</span>
-                </button>
-              );
-            })}
-            {filtered.length > MAX_OPTIONS && (
-              <div className="px-2.5 py-1.5 text-[10px] text-[#a3a3a3] italic">+{filtered.length - MAX_OPTIONS} more — type to narrow</div>
-            )}
-          </div>
-          <div className="px-2.5 py-1 border-t border-[#f5f5f5] text-[10px] text-[#a3a3a3]">Ctrl/Shift-click to select multiple</div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Shared free-text search box for the totals strip of every list view (the
-// canonical Sheet plus the hand-rolled Value Streams / Organization explorers).
-// A compact input that filters the whole sheet across all columns at once —
-// complements the per-column combobox filters in the header. One component so
-// the control looks identical on every list.
-export function ListSearch({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
-  return (
-    <div className="relative">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-        className="absolute left-2 top-1/2 -translate-y-1/2 text-[#a3a3a3] pointer-events-none" aria-hidden="true">
-        <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
-      </svg>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder ?? 'Search…'}
-        aria-label="Search list"
-        className="w-44 sm:w-56 rounded border border-[#eaeaea] bg-white pl-7 pr-6 py-1 text-[11px] text-[#171717] placeholder:text-[#a3a3a3] focus:outline-none focus:border-[#d4d4d4] focus:ring-2 focus:ring-[#f5f8ff] transition-colors duration-150"
-      />
-      {value && (
-        <button type="button" onClick={() => onChange('')} aria-label="Clear search"
-          className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 rounded flex items-center justify-center text-[#a3a3a3] hover:text-[#171717] hover:bg-[#fafafa]">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
-        </button>
-      )}
-    </div>
-  );
-}
 
 // One spreadsheet cell. Clickable cells underline on hover and stopPropagation
 // so a cell-level action doesn't also fire the row's default click.
-export function SheetCell({ text, onClick, dim, title }: { text: string; onClick?: () => void; dim?: boolean; title?: string }) {
+export function SheetCell({
+  text,
+  onClick,
+  dim,
+  title,
+}: {
+  text: string;
+  onClick?: () => void;
+  dim?: boolean;
+  title?: string;
+}) {
   return (
     <span
       title={title}
-      onClick={onClick ? (e) => { e.stopPropagation(); onClick(); } : undefined}
-      className={'truncate text-[12px] ' + (dim ? 'text-[#737373]' : 'text-[#171717]') + (onClick ? ' cursor-pointer hover:underline' : '')}
+      onClick={
+        onClick
+          ? (e) => {
+              e.stopPropagation();
+              onClick();
+            }
+          : undefined
+      }
+      className={
+        'truncate text-[12px] ' +
+        (dim ? 'text-[#737373]' : 'text-[#171717]') +
+        (onClick ? ' cursor-pointer hover:underline' : '')
+      }
     >
       {text}
     </span>
@@ -186,12 +84,30 @@ export function SheetCell({ text, onClick, dim, title }: { text: string; onClick
 }
 
 export function Sheet<R>({
-  rows, cols, rowKey, defaultSort, defaultFilters, summarize, unit, loading, emptyText,
-  onRowClick, expand, selectedKey, scrollToKey, leading, stickyStrip,
+  rows,
+  cols,
+  rowKey,
+  defaultSort,
+  defaultFilters,
+  summarize,
+  unit,
+  loading,
+  emptyText,
+  onRowClick,
+  expand,
+  selectedKey,
+  scrollToKey,
+  leading,
+  stickyStrip,
+  sheetKey,
 }: {
   rows: R[];
   cols: SheetCol<R>[];
   rowKey: (r: R) => string;
+  // Opt-in per-user column personalization (hide/show, drag reorder, width
+  // resize) persisted server-side under `sheet.columns.<sheetKey>`. Absent →
+  // behavior is identical to a non-personalized sheet.
+  sheetKey?: string;
   defaultSort?: Sort;
   defaultFilters?: Record<string, string>;
   // Extra entity totals for the strip (e.g. "13 areas · 96 categories"); the
@@ -212,7 +128,7 @@ export function Sheet<R>({
   // header stacking just below it) so both stay visible while scrolling.
   stickyStrip?: boolean;
 }) {
-  const filterCols = cols.filter((c) => (c.filterable ?? !!(c.value || c.values)));
+  const filterCols = cols.filter((c) => c.filterable ?? !!(c.value || c.values));
   // Per-column multi-selection; [] = All (no filter on that column).
   const [sel, setSel] = useState<Record<string, string[]>>(() => {
     const init: Record<string, string[]> = {};
@@ -222,7 +138,7 @@ export function Sheet<R>({
     }
     return init;
   });
-  const firstSortable = cols.find((c) => (c.sortable ?? !!(c.value || c.values)));
+  const firstSortable = cols.find((c) => c.sortable ?? !!(c.value || c.values));
   const [sort, setSort] = useState<Sort>(defaultSort ?? { col: firstSortable?.key ?? '', dir: 1 });
   const [expanded, setExpanded] = useState<string | null>(null);
   // Free-text search across every column with a value (complements the per-
@@ -244,12 +160,16 @@ export function Sheet<R>({
       return picked.some((p) => vals.includes(p));
     });
 
-  const optionList = (vals: Iterable<string>) => ['All', ...[...new Set([...vals].filter(Boolean))].sort()];
+  const optionList = (vals: Iterable<string>) => [
+    'All',
+    ...[...new Set([...vals].filter(Boolean))].sort(),
+  ];
   const optionsByCol = useMemo(() => {
     const out: Record<string, string[]> = {};
-    for (const c of filterCols) out[c.key] = optionList(rows.filter((r) => matches(r, c.key)).flatMap((r) => valOf(c, r)));
+    for (const c of filterCols)
+      out[c.key] = optionList(rows.filter((r) => matches(r, c.key)).flatMap((r) => valOf(c, r)));
     return out;
-  }, [rows, sel, cols]);  
+  }, [rows, sel, cols]);
 
   // A pick can be invalidated by a later pick in another column — drop it.
   // (Skip while rows are still loading, so defaultFilters survive the empty state.)
@@ -260,11 +180,14 @@ export function Sheet<R>({
       const kept = picked.filter((p) => optionsByCol[c.key]?.includes(p));
       if (kept.length !== picked.length) setSel((p) => ({ ...p, [c.key]: kept }));
     }
-  }, [optionsByCol]);  
+  }, [optionsByCol]);
 
   const needle = search.trim().toLowerCase();
   const searchMatch = (r: R) =>
-    !needle || cols.some((c) => (c.value || c.values) && valOf(c, r).some((v) => v.toLowerCase().includes(needle)));
+    !needle ||
+    cols.some(
+      (c) => (c.value || c.values) && valOf(c, r).some((v) => v.toLowerCase().includes(needle)),
+    );
 
   const visible = useMemo(() => {
     const list = rows.filter((r) => matches(r) && searchMatch(r));
@@ -272,13 +195,14 @@ export function Sheet<R>({
     if (!sc) return list;
     const get = (r: R) => valOf(sc, r).join(', ');
     return [...list].sort((a, b) => {
-      const va = get(a), vb = get(b);
+      const va = get(a),
+        vb = get(b);
       // Empty cells always trail, regardless of direction.
       if (!va && vb) return 1;
       if (!vb && va) return -1;
       return va.localeCompare(vb, undefined, { numeric: true }) * sort.dir;
     });
-  }, [rows, sel, sort, colByKey, needle]);  
+  }, [rows, sel, sort, colByKey, needle]);
 
   const anyFilter = filterCols.some((c) => (sel[c.key] ?? []).length > 0) || !!needle;
   const clear = () => {
@@ -287,9 +211,18 @@ export function Sheet<R>({
     setSel(init);
     setSearch('');
   };
-  const toggleSort = (col: string) => setSort((s) => (s.col === col ? { col, dir: s.dir === 1 ? -1 : 1 } : { col, dir: 1 }));
+  const toggleSort = (col: string) =>
+    setSort((s) => (s.col === col ? { col, dir: s.dir === 1 ? -1 : 1 } : { col, dir: 1 }));
 
-  const gridCols = { gridTemplateColumns: cols.map((c) => c.width).join(' ') };
+  // Per-user column personalization: effective (ordered/visible/resized)
+  // columns for RENDERING only — filtering, sorting and search stay on the
+  // declared `cols` so hidden columns keep their semantics. Without a
+  // sheetKey this passes the declared columns straight through.
+  const colState = useSheetColumns(sheetKey, cols);
+  const effCols = colState.cols;
+
+  // Header + rows share one grid template (width previews update it live).
+  const gridCols = useMemo(() => ({ gridTemplateColumns: colState.template }), [colState.template]);
 
   // ── Row virtualization (variable height) ──────────────────────────────────────
   // Sheets can be thousands of rows (e.g. ~3,800 tasks); rendering them all at
@@ -302,13 +235,24 @@ export function Sheet<R>({
   // expandable row (`expand`) folds its measured panel height into the offsets.
   const rowsWrapRef = useRef<HTMLDivElement>(null);
   const scrollerRef = useRef<HTMLElement | null>(null);
-  const [rel, setRel] = useState(0);   // px the rows-area top is scrolled above the viewport
+  const [rel, setRel] = useState(0); // px the rows-area top is scrolled above the viewport
   const [viewH, setViewH] = useState(0);
   const [panelH, setPanelH] = useState(0);
   const heights = useRef<Map<string, number>>(new Map());
   const [measureTick, setMeasureTick] = useState(0);
-  const EST_ROW_H = 30;  // estimate for not-yet-measured rows
+  const EST_ROW_H = 30; // estimate for not-yet-measured rows
   const OVERSCAN = 12;
+
+  // Any change to the effective column signature (order/hidden/widths) changes
+  // how cell content wraps, so every cached row height is stale — clear the
+  // cache and bump the tick or the window misplaces rows.
+  const colSigRef = useRef(colState.signature);
+  useLayoutEffect(() => {
+    if (colSigRef.current === colState.signature) return;
+    colSigRef.current = colState.signature;
+    heights.current.clear();
+    setMeasureTick((t) => t + 1);
+  }, [colState.signature]);
 
   // Measure each row by its stable key. A row's content is fixed, so its height
   // is stable once measured — the tick settles and there is no feedback loop.
@@ -323,7 +267,8 @@ export function Sheet<R>({
     }
   };
   const measurePanel = (el: HTMLDivElement | null) => {
-    if (el && el.offsetHeight && Math.abs(el.offsetHeight - panelH) > 0.5) setPanelH(el.offsetHeight);
+    if (el && el.offsetHeight && Math.abs(el.offsetHeight - panelH) > 0.5)
+      setPanelH(el.offsetHeight);
   };
 
   const N = visible.length;
@@ -337,11 +282,12 @@ export function Sheet<R>({
       off[i + 1] = off[i] + (heights.current.get(k) ?? EST_ROW_H) + (k === expanded ? panelH : 0);
     }
     return off;
-  }, [visible, expanded, panelH, measureTick]);  
+  }, [visible, expanded, panelH, measureTick]);
   const total = offsets[N];
 
   useLayoutEffect(() => {
-    const rw = rowsWrapRef.current; if (!rw) return;
+    const rw = rowsWrapRef.current;
+    if (!rw) return;
     let p: HTMLElement | null = rw.parentElement;
     while (p) {
       const oy = getComputedStyle(p).overflowY;
@@ -352,41 +298,66 @@ export function Sheet<R>({
     scrollerRef.current = scroller;
     const recompute = () => {
       const rwTop = rowsWrapRef.current?.getBoundingClientRect().top ?? 0;
-      if (scroller) { const c = scroller.getBoundingClientRect(); setRel(Math.max(0, c.top - rwTop)); setViewH(scroller.clientHeight); }
-      else { setRel(Math.max(0, -rwTop)); setViewH(window.innerHeight); }
+      if (scroller) {
+        const c = scroller.getBoundingClientRect();
+        setRel(Math.max(0, c.top - rwTop));
+        setViewH(scroller.clientHeight);
+      } else {
+        setRel(Math.max(0, -rwTop));
+        setViewH(window.innerHeight);
+      }
     };
     recompute();
     let ticking = false;
     const onScroll = () => {
       if (ticking) return;
       ticking = true;
-      requestAnimationFrame(() => { ticking = false; recompute(); });
+      requestAnimationFrame(() => {
+        ticking = false;
+        recompute();
+      });
     };
     const target: Window | HTMLElement = scroller ?? window;
     target.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
-    return () => { target.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); };
-  }, [loading, visible.length === 0]);  
+    return () => {
+      target.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [loading, visible.length === 0]);
 
   // Filtering/expanding changes total height while scrolled; the browser clamps
   // the scroller but no scroll event fires, leaving rel stale (→ a blank window).
   // Recompute rel/viewH off live rects whenever the list or total height changes.
   useLayoutEffect(() => {
-    const rw = rowsWrapRef.current; if (!rw) return;
+    const rw = rowsWrapRef.current;
+    if (!rw) return;
     const scroller = scrollerRef.current;
     const rwTop = rw.getBoundingClientRect().top;
-    if (scroller) { const c = scroller.getBoundingClientRect(); setRel(Math.max(0, c.top - rwTop)); setViewH(scroller.clientHeight); }
-    else { setRel(Math.max(0, -rwTop)); setViewH(window.innerHeight); }
+    if (scroller) {
+      const c = scroller.getBoundingClientRect();
+      setRel(Math.max(0, c.top - rwTop));
+      setViewH(scroller.clientHeight);
+    } else {
+      setRel(Math.max(0, -rwTop));
+      setViewH(window.innerHeight);
+    }
   }, [N, expanded, panelH, total, loading]);
 
   // First visible index whose bottom passes `y` (binary search over offsets).
   const idxAt = (y: number) => {
-    let lo = 0, hi = N;
-    while (lo < hi) { const mid = (lo + hi) >> 1; if (offsets[mid + 1] <= y) lo = mid + 1; else hi = mid; }
+    let lo = 0,
+      hi = N;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (offsets[mid + 1] <= y) lo = mid + 1;
+      else hi = mid;
+    }
     return lo;
   };
   const vStart = Math.max(0, idxAt(rel) - OVERSCAN);
-  const vEnd = viewH > 0 ? Math.min(N, idxAt(rel + viewH) + 1 + OVERSCAN) : Math.min(N, OVERSCAN * 4);
+  const vEnd =
+    viewH > 0 ? Math.min(N, idxAt(rel + viewH) + 1 + OVERSCAN) : Math.min(N, OVERSCAN * 4);
   const slice = visible.slice(vStart, vEnd);
   const padTop = offsets[vStart];
   const padBottom = Math.max(0, total - offsets[vEnd]);
@@ -397,29 +368,86 @@ export function Sheet<R>({
   useLayoutEffect(() => {
     if (!scrollToKey || !N || scrolledKey.current === scrollToKey) return;
     const idx = visible.findIndex((r) => rowKey(r) === scrollToKey);
-    const rw = rowsWrapRef.current; if (idx < 0 || !rw) return;
+    const rw = rowsWrapRef.current;
+    if (idx < 0 || !rw) return;
     const scroller = scrollerRef.current;
     const rwTop = rw.getBoundingClientRect().top;
-    if (scroller) scroller.scrollTop += rwTop - scroller.getBoundingClientRect().top + offsets[idx] - scroller.clientHeight / 2;
+    if (scroller)
+      scroller.scrollTop +=
+        rwTop - scroller.getBoundingClientRect().top + offsets[idx] - scroller.clientHeight / 2;
     else window.scrollBy(0, rwTop + offsets[idx] - window.innerHeight / 2);
     scrolledKey.current = scrollToKey;
-  }, [scrollToKey, visible, total]);  
+  }, [scrollToKey, visible, total]);
+
+  // One header cell's content (combobox filter or plain label) — shared by the
+  // personalized (sortable-wrapped) and plain header paths.
+  const renderHeadCell = (c: SheetCol<R>) => {
+    const filterable = c.filterable ?? !!(c.value || c.values);
+    const sortable = c.sortable ?? !!(c.value || c.values);
+    const sortNode = sortable ? (
+      <SortToggle col={c.key} sort={sort} onSort={toggleSort} />
+    ) : undefined;
+    return filterable ? (
+      <HeaderComboFilter
+        key={c.key}
+        label={c.label}
+        value={sel[c.key] ?? []}
+        onChange={(v) => setSel((p) => ({ ...p, [c.key]: v }))}
+        options={optionsByCol[c.key] ?? ['All']}
+        sort={sortNode}
+        hint={c.hint}
+        align={c.align}
+      />
+    ) : (
+      <div
+        key={c.key}
+        className={
+          'px-2 py-1 min-w-0 ' +
+          (c.align === 'center' ? 'text-center' : c.align === 'right' ? 'text-right' : '')
+        }
+        title={c.hint}
+      >
+        <HeaderLabel>
+          {c.label}
+          {sortNode}
+        </HeaderLabel>
+      </div>
+    );
+  };
 
   return (
     <>
       {/* Slim strip: optional leading control (view toggle) + totals + clear,
           then a free-text search box pushed to the right. */}
-      <div className={'flex items-center gap-3 flex-wrap pb-1.5 '
-        + (stickyStrip ? 'sticky top-0 z-30 bg-white pt-1' : '')}>
+      <div
+        className={
+          'flex items-center gap-3 flex-wrap pb-1.5 ' +
+          (stickyStrip ? 'sticky top-0 z-30 bg-white pt-1' : '')
+        }
+      >
         {leading}
         {!loading && (
           <>
             <span className="text-[11px] text-[#737373] tnum">
-              {summarize ? summarize(visible) + ' · ' : ''}{visible.length} {unit ?? 'rows'}
+              {summarize ? summarize(visible) + ' · ' : ''}
+              {visible.length} {unit ?? 'rows'}
             </span>
-            {anyFilter && <LinkButton onClick={clear} className="text-[11px] font-medium">Clear filters</LinkButton>}
+            {anyFilter && (
+              <LinkButton onClick={clear} className="text-[11px] font-medium">
+                Clear filters
+              </LinkButton>
+            )}
             <div className="flex-1" />
             <ListSearch value={search} onChange={setSearch} />
+            {colState.enabled && (
+              <ColumnPicker
+                cols={colState.allCols}
+                hiddenKeys={colState.hiddenKeys}
+                visibleCount={effCols.length}
+                onToggle={colState.setHidden}
+                onReset={colState.reset}
+              />
+            )}
           </>
         )}
       </div>
@@ -427,25 +455,41 @@ export function Sheet<R>({
       {/* No overflow-hidden on the card — the combo dropdowns must escape it. */}
       <Card className="p-0">
         {/* Sticky spreadsheet header: each cell hosts its combobox filter + sort. */}
-        <div className={'grid items-stretch divide-x divide-[#eaeaea] border-b border-[#eaeaea] bg-[#fafafa] rounded-t-lg sticky z-20 '
-          + (stickyStrip ? 'top-10' : 'top-0')} style={gridCols}>
-          {cols.map((c) => {
-            const filterable = c.filterable ?? !!(c.value || c.values);
-            const sortable = c.sortable ?? !!(c.value || c.values);
-            const sortNode = sortable ? <SortToggle col={c.key} sort={sort} onSort={toggleSort} /> : undefined;
-            return filterable ? (
-              <HeaderComboFilter key={c.key} label={c.label} value={sel[c.key] ?? []} onChange={(v) => setSel((p) => ({ ...p, [c.key]: v }))}
-                options={optionsByCol[c.key] ?? ['All']} sort={sortNode} hint={c.hint} align={c.align} />
-            ) : (
-              <div key={c.key} className={'px-2 py-1 min-w-0 ' + (c.align === 'center' ? 'text-center' : c.align === 'right' ? 'text-right' : '')} title={c.hint}><HeaderLabel>{c.label}{sortNode}</HeaderLabel></div>
-            );
-          })}
+        <div
+          className={
+            'grid items-stretch divide-x divide-[#eaeaea] border-b border-[#eaeaea] bg-[#fafafa] rounded-t-lg sticky z-20 ' +
+            (stickyStrip ? 'top-10' : 'top-0')
+          }
+          style={gridCols}
+        >
+          {colState.enabled ? (
+            <HeaderDnd items={effCols.map((c) => c.key)} onReorder={colState.reorder}>
+              {effCols.map((c) => (
+                <SortableHeaderCell
+                  key={c.key}
+                  colKey={c.key}
+                  label={c.label}
+                  onPreviewWidth={colState.previewWidth}
+                  onCommitWidth={colState.commitWidth}
+                  onCancelWidth={colState.cancelWidth}
+                >
+                  {renderHeadCell(c)}
+                </SortableHeaderCell>
+              ))}
+              {colState.filler && <div className="min-w-0" aria-hidden="true" />}
+            </HeaderDnd>
+          ) : (
+            cols.map(renderHeadCell)
+          )}
         </div>
         <div ref={rowsWrapRef} className="rounded-b-lg overflow-hidden">
           {loading ? (
             <LoadingState baseClassName="py-1.5 px-3 text-[11px] text-[#a3a3a3] italic" />
           ) : visible.length === 0 ? (
-            <EmptyState baseClassName="py-1.5 px-3 text-[11px] text-[#a3a3a3] italic" message={emptyText ?? 'No rows match the current filters.'} />
+            <EmptyState
+              baseClassName="py-1.5 px-3 text-[11px] text-[#a3a3a3] italic"
+              message={emptyText ?? 'No rows match the current filters.'}
+            />
           ) : (
             <>
               {padTop > 0 && <div style={{ height: padTop }} />}
@@ -455,26 +499,50 @@ export function Sheet<R>({
                 const clickable = !!onRowClick || !!expand;
                 const handleClick = expand
                   ? () => setExpanded(isOpen ? null : k)
-                  : onRowClick ? () => onRowClick(r) : undefined;
+                  : onRowClick
+                    ? () => onRowClick(r)
+                    : undefined;
                 return (
                   <div key={k}>
                     <div
                       ref={measureRow(k)}
                       onClick={handleClick}
-                      className={'grid items-stretch divide-x divide-[#f0f0f0] border-b border-[#f5f5f5] last:border-0 transition-colors duration-100 '
-                        + (clickable ? 'cursor-pointer ' : '')
-                        + (selectedKey === k || k === scrollToKey ? 'bg-[#f5f8ff] ' : '') + 'hover:bg-[#fafafa]'}
+                      className={
+                        'grid items-stretch divide-x divide-[#f0f0f0] border-b border-[#f5f5f5] last:border-0 transition-colors duration-100 ' +
+                        (clickable ? 'cursor-pointer ' : '') +
+                        (selectedKey === k || k === scrollToKey ? 'bg-[#f5f8ff] ' : '') +
+                        'hover:bg-[#fafafa]'
+                      }
                       style={gridCols}
                     >
-                      {cols.map((c) => (
-                        <div key={c.key} className={'px-2 py-[3px] flex items-center gap-1.5 min-w-0 '
-                          + (c.align === 'center' ? 'justify-center text-center' : c.align === 'right' ? 'justify-end text-right' : '')}>
-                          {c.render ? c.render(r) : <SheetCell text={valOf(c, r).join(', ')} dim={c.dim} />}
+                      {effCols.map((c) => (
+                        <div
+                          key={c.key}
+                          className={
+                            'px-2 py-[3px] flex items-center gap-1.5 min-w-0 ' +
+                            (c.align === 'center'
+                              ? 'justify-center text-center'
+                              : c.align === 'right'
+                                ? 'justify-end text-right'
+                                : '')
+                          }
+                        >
+                          {c.render ? (
+                            c.render(r)
+                          ) : (
+                            <SheetCell text={valOf(c, r).join(', ')} dim={c.dim} />
+                          )}
                         </div>
                       ))}
+                      {colState.filler && <div className="min-w-0" aria-hidden="true" />}
                     </div>
                     {isOpen && expand && (
-                      <div ref={measurePanel} className="border-b border-[#f5f5f5] bg-[#fafafa] px-4 py-2.5">{expand(r)}</div>
+                      <div
+                        ref={measurePanel}
+                        className="border-b border-[#f5f5f5] bg-[#fafafa] px-4 py-2.5"
+                      >
+                        {expand(r)}
+                      </div>
                     )}
                   </div>
                 );

@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useCompany } from '../../lib/company';
 import PageHeader from '../../components/PageHeader';
-import SignalCatalog from '../../components/SignalCatalog';
 import { Card, EmptyState, ErrorMessage, LoadingState } from '../../components/ui';
 import { MODES, HEAT } from '../../lib/aiAdoption';
 
@@ -134,7 +133,6 @@ export default function ActiveAI() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [view, setView] = useState<'adoption' | 'signals'>('adoption');
   const [dimension, setDimension] = useState<DimensionKey>('division');
 
   useEffect(() => {
@@ -190,32 +188,7 @@ export default function ActiveAI() {
         dense
       />
 
-      {/* Sub-view switcher — AI adoption vs the trackable-signal catalog. */}
-      <div className="border-b border-[#eaeaea] mb-2 flex gap-1">
-        {(
-          [
-            ['adoption', 'AI Adoption'],
-            ['signals', 'Trackable Metrics'],
-          ] as const
-        ).map(([v, label]) => (
-          <button
-            key={v}
-            onClick={() => setView(v)}
-            className={
-              'px-4 py-1.5 text-sm font-medium border-b-2 -mb-px transition-colors duration-150 ' +
-              (view === v
-                ? 'text-[#171717] border-[#171717]'
-                : 'text-[#a3a3a3] border-transparent hover:text-[#525252]')
-            }
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {view === 'signals' ? (
-        <SignalCatalog companyId={companyId} />
-      ) : loading || companyLoading ? (
+      {loading || companyLoading ? (
         <LoadingState baseClassName="py-8 text-sm text-[#a3a3a3]" />
       ) : error ? (
         <ErrorMessage baseClassName="py-8 text-sm text-[#be123c]">{error}</ErrorMessage>

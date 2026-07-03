@@ -2,10 +2,12 @@ import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
+import { requirePermission } from '../middleware/permissions.js';
 import { streamAncestry } from '../lib/resolvers/index.js';
 
 const router = Router();
 router.use(requireAuth);
+router.use(requirePermission('third-parties'));
 
 // GET /external-interactions — rows feeding the dependency graph
 // (external party ↔ internal owner role ↔ related value stream).
@@ -33,7 +35,10 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     // of its task nodes roll up to).
     const roleIds = [...new Set(items.map((i) => i.role?.id).filter((x): x is string => !!x))];
     const nodeRoles = roleIds.length
-      ? await prisma.nodeRole.findMany({ where: { roleId: { in: roleIds } }, select: { roleId: true, processNodeId: true } })
+      ? await prisma.nodeRole.findMany({
+          where: { roleId: { in: roleIds } },
+          select: { roleId: true, processNodeId: true },
+        })
       : [];
     const ancestry = await streamAncestry(nodeRoles.map((n) => n.processNodeId));
     const vsCountByRole = new Map<string, Map<string, number>>();
@@ -64,9 +69,11 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         dependencyType: e.nature,
         frequency: null,
         notes: null,
-      }))
+      })),
     );
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
 export default router;

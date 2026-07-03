@@ -23,24 +23,159 @@ datasource db {
 // ─── Tenancy & Identity (reusable infra) ────────────────────────────────
 
 model Tenant {
-  id           String       @id @default(cuid())
-  name         String
-  slug         String       @unique
-  createdAt    DateTime     @default(now())
-  users        User[]
-  companies    Company[]
-  auditEntries AuditEntry[]
+  id             String          @id @default(cuid())
+  name           String
+  slug           String          @unique
+  createdAt      DateTime        @default(now())
+  users          User[]
+  companies      Company[]
+  auditEntries   AuditEntry[]
+  permissionSets PermissionSet[]
+  apiKeys        ApiKey[]
 }
 
 model User {
+  id         String  @id @default(cuid())
+  tenantId   String
+  tenant     Tenant  @relation(fields: [tenantId], references: [id])
+  email      String  @unique
+  name       String
+  password   String // bcrypt hash
+  role       String  @default("MEMBER") // SITE_ADMIN | CORE_BUSINESS_ADMIN | TECHNOLOGY_ADMIN | CORPORATE_FUNCTIONS_ADMIN | SUPER_USER | MEMBER
+  status     String  @default("ACTIVE") // ACTIVE | DEACTIVATED — soft-delete for IAM deprovisioning
+  externalId String? // IAM (Okta) subject id — provisioning upsert key
+
+  // ── ABAC attributes ── (FKs point at company-scoped spine rows; writes must
+  // verify ref.company.tenantId === user.tenantId — see services/userProvisioning)
+  orgUnitId       String?
+  orgUnit         OrgUnit? @relation("UserOrgUnit", fields: [orgUnitId], references: [id], onDelete: SetNull)
+  geography       String? // NORTH_AMERICA | UK_EUROPE | APAC | LATAM
+  operatingRoleId String? // link to the operating-model Role (job role), not User.role
+  operatingRole   Role?    @relation("UserOperatingRole", fields: [operatingRoleId], references: [id], onDelete: SetNull)
+  isManager       Boolean  @default(false)
+  reportsToId     String?
+  reportsTo       User?    @relation("UserReportsTo", fields: [reportsToId], references: [id], onDelete: SetNull)
+  directReports   User[]   @relation("UserReportsTo")
+  isApprover      Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  valueStreams UserValueStream[]
+  overrides    UserPermissionOverride[]
+  preferences  UserPreference[]
+
+  @@unique([tenantId, externalId])
+  @@index([tenantId])
+  @@index([orgUnitId])
+  @@index([reportsToId])
+}
+
+// ─── Entitlements (RBAC/ABAC) & per-user preferences ───────────────────
+// Menu keys reference shared/src/menuRegistry.ts MENU_TREE. A grant on a parent
+// key covers its whole subtree; an explicit child row is a subset carve-out.
+
+// User ↔ value stream (L2 ProcessNode) involvement — ABAC attribute.
+model UserValueStream {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  processNodeId String
+  processNode   ProcessNode @relation(fields: [processNodeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, processNodeId])
+  @@index([processNodeId])
+}
+
+// One editable permission set per user type per tenant.
+model PermissionSet {
   id        String   @id @default(cuid())
   tenantId  String
   tenant    Tenant   @relation(fields: [tenantId], references: [id])
-  email     String   @unique
-  name      String
-  password  String // bcrypt hash
-  role      String   @default("MEMBER") // ADMIN | MANAGER | MEMBER | VIEWER
+  userType  String // matches User.role values
   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  grants PermissionGrant[]
+
+  @@unique([tenantId, userType])
+}
+
+// CRUD booleans per menu key within a set.
+model PermissionGrant {
+  id              String        @id @default(cuid())
+  permissionSetId String
+  permissionSet   PermissionSet @relation(fields: [permissionSetId], references: [id], onDelete: Cascade)
+  menuKey         String // shared MENU_TREE key, e.g. "value-streams" or "data-admin.audit-log"
+  canCreate       Boolean       @default(false)
+  canRead         Boolean       @default(false)
+  canUpdate       Boolean       @default(false)
+  canDelete       Boolean       @default(false)
+
+  @@unique([permissionSetId, menuKey])
+}
+
+// Tri-state per-user override; a null action inherits from the user-type set.
+model UserPermissionOverride {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  menuKey   String
+  canCreate Boolean?
+  canRead   Boolean?
+  canUpdate Boolean?
+  canDelete Boolean?
+
+  @@unique([userId, menuKey])
+}
+
+// Row-per-key auto-saved user preference. Reserved keys: startPage,
+// notification, dashboard. Dynamic families: sheet.columns.<sheetKey>,
+// work.toc.group.<tab> (the former localStorage bridge.* keys).
+model UserPreference {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key       String
+  value     Json
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([userId, key])
+  @@index([userId])
+}
+
+// Tenant-scoped machine credential for the provisioning API + inbound webhooks.
+// Raw keys ("tbk_…") are shown once; only the sha256 hash is stored.
+model ApiKey {
+  id            String    @id @default(cuid())
+  tenantId      String
+  tenant        Tenant    @relation(fields: [tenantId], references: [id])
+  name          String
+  keyPrefix     String // first 12 chars of the raw key, for display + lookup
+  keyHash       String    @unique // sha256(rawKey) hex
+  webhookSecret String? // HMAC-SHA256 secret for inbound webhook signatures
+  scopes        String    @default("provisioning")
+  lastUsedAt    DateTime?
+  revokedAt     DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([tenantId])
+  @@index([keyPrefix])
+}
+
+// Idempotency ledger for inbound IAM webhook deliveries.
+model WebhookEvent {
+  id              String   @id @default(cuid())
+  tenantId        String
+  apiKeyId        String?
+  externalEventId String
+  eventType       String // user.created | user.updated | user.deactivated
+  status          String   @default("PROCESSED") // PROCESSED | FAILED | SKIPPED
+  error           String?
+  createdAt       DateTime @default(now())
+
+  @@unique([tenantId, externalEventId])
+  @@index([tenantId, createdAt])
 }
 
 // ─── Company ────────────────────────────────────────────────────────────
@@ -150,6 +285,7 @@ model OrgUnit {
   metrics              Metric[]
   portfolioInitiatives PortfolioInitiative[]
   scenarios            Scenario[]
+  users                User[]                @relation("UserOrgUnit")
 
   @@index([companyId, orgLevelTypeId])
   @@index([parentId])
@@ -180,6 +316,10 @@ model Role {
   roleType      String? // Approver | Reviewer | Contributor — governance classification (Roles tab)
   dbValue       String
   displayValue  String // EDITABLE label
+  // Role profile (research-sourced via seedRoleProfiles; editable in Data Admin)
+  description   String? // 3–5 sentence job description grounded in the role's tasks/deliverables
+  roleFamily    String? // functional family, e.g. Actuarial, Claims, Engineering
+  roleLevel     String? // Executive | Senior Leadership | Manager | Individual Contributor
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -206,6 +346,7 @@ model Role {
   regulationTemplateAnswers     RegulationTemplateAnswer[]
   nodeStandardEvidences         NodeStandardEvidence[]
   nodeRegulationEvidences       NodeRegulationEvidence[]
+  users                         User[]                        @relation("UserOperatingRole")
 
   @@unique([companyId, dbValue])
   @@index([companyId])
@@ -292,6 +433,7 @@ model ProcessNode {
   portfolioInitiatives      PortfolioInitiative[]
   scenarios                 Scenario[]
   rationalizationWorkspaces RationalizationWorkspace[]
+  userValueStreams          UserValueStream[]
 
   @@index([companyId, processLevelTypeId])
   @@index([parentId])

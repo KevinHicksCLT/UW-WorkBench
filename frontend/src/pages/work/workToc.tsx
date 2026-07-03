@@ -3,11 +3,11 @@
  * switchable grouping. The volume is high, so users can re-group on the fly;
  * each group definition maps to the List column it filters, so picking a TOC
  * row jumps to the List pre-filtered to that group. The chosen grouping is
- * remembered per tab in localStorage (interim "remembers how you left it"
- * until the planned permissions/preferences system persists per-user defaults
- * server-side).
+ * remembered per tab in the per-user preference store (work.toc.group.<tab>);
+ * the old localStorage bridge.* values are migrated by PreferencesProvider.
  */
 import { useEffect, useMemo, useState } from 'react';
+import { usePreferences } from '../../lib/preferences';
 import type { TocRow } from '../../components/TocView';
 
 export type WorkGroup = { key: string; label: string; unit: string; col: string };
@@ -40,21 +40,26 @@ export function useWorkToc(
   dash: string,
 ) {
   const groups = tab === 'deliverables' ? D_GROUPS : T_GROUPS;
-  const groupStorageKey = `bridge.work.toc.group.${tab}`;
+  const { prefs, update } = usePreferences();
+  const prefKey = `work.toc.group.${tab}`;
+  const saved = typeof prefs[prefKey] === 'string' ? (prefs[prefKey] as string) : null;
 
   const [view, setView] = useState<'toc' | 'list'>('toc');
-  const [groupBy, setGroupBy] = useState<string>(
-    () => localStorage.getItem(groupStorageKey) ?? 'valueStream',
-  );
+  const [groupBy, setGroupBy] = useState<string>(saved ?? 'valueStream');
   const [preFilter, setPreFilter] = useState<{ col: string; value: string } | null>(null);
   useEffect(() => {
     setView('toc');
     setPreFilter(null);
-    setGroupBy(localStorage.getItem(`bridge.work.toc.group.${tab}`) ?? 'valueStream');
   }, [tab]);
+  // Sync the grouping when the tab switches or the async preference load lands
+  // (kept separate from the view reset so a background save can't yank the
+  // user out of a drilled-in list).
+  useEffect(() => {
+    setGroupBy(saved ?? 'valueStream');
+  }, [tab, saved]);
   function pickGroup(key: string) {
     setGroupBy(key);
-    localStorage.setItem(groupStorageKey, key);
+    update({ [prefKey]: key });
   }
 
   const group = groups.find((g) => g.key === groupBy) ?? groups[0];

@@ -132,6 +132,16 @@ describe('requireAuth', () => {
     expect(res.body).toEqual({ error: 'User no longer exists' });
     expect(next).not.toHaveBeenCalled();
   });
+
+  it('rejects a DEACTIVATED user with 401 even though the JWT is still valid', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({ ...dbUser, status: 'DEACTIVATED' });
+    const res = makeRes();
+    const next = makeNext();
+    await requireAuth(makeReq(`Bearer ${signToken(dbUser)}`), res, next);
+    expect(res.statusCode).toBe(401);
+    expect(res.body).toEqual({ error: 'Account deactivated' });
+    expect(next).not.toHaveBeenCalled();
+  });
 });
 
 describe('requireRole', () => {

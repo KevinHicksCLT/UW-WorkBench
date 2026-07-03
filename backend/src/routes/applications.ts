@@ -7,16 +7,21 @@ import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
+import { requirePermission } from '../middleware/permissions.js';
 import { cacheResponses } from '../lib/responseCache.js';
 import { ancestorNames, rolesForNodes } from '../lib/resolvers/index.js';
 
 const router = Router();
 router.use(requireAuth);
+router.use(requirePermission('applications'));
 router.use(cacheResponses(15_000));
 
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const company = await prisma.company.findFirst({ where: { tenantId: req.tenantId }, select: { id: true } });
+    const company = await prisma.company.findFirst({
+      where: { tenantId: req.tenantId },
+      select: { id: true },
+    });
     if (!company) return res.status(404).json({ error: 'No company' });
     const companyId = company.id;
 
@@ -25,8 +30,15 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         where: { companyId },
         orderBy: [{ code: 'asc' }, { name: 'asc' }],
         select: {
-          id: true, code: true, name: true, kind: true, category: true, vendor: true,
-          criticality: true, systemOfRecord: true, illustrative: true,
+          id: true,
+          code: true,
+          name: true,
+          kind: true,
+          category: true,
+          vendor: true,
+          criticality: true,
+          systemOfRecord: true,
+          illustrative: true,
           totalTco: true,
           orgUnit: { select: { displayValue: true } },
           _count: { select: { nodeAppUsages: true } },
@@ -47,10 +59,16 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     ]);
 
     // applicationId → { value-stream names, roleId → name, division → usage count }
-    const enrich = new Map<string, { vs: Set<string>; roles: Map<string, string>; div: Map<string, number> }>();
+    const enrich = new Map<
+      string,
+      { vs: Set<string>; roles: Map<string, string>; div: Map<string, number> }
+    >();
     for (const u of usages) {
       let b = enrich.get(u.applicationId);
-      if (!b) { b = { vs: new Set(), roles: new Map(), div: new Map() }; enrich.set(u.applicationId, b); }
+      if (!b) {
+        b = { vs: new Set(), roles: new Map(), div: new Map() };
+        enrich.set(u.applicationId, b);
+      }
       const loc = vsNames.get(u.processNodeId);
       if (loc?.valueStreamName) b.vs.add(loc.valueStreamName);
       if (loc?.division) b.div.set(loc.division, (b.div.get(loc.division) ?? 0) + 1);
@@ -63,19 +81,32 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     res.json({
       applications: apps.map((a) => {
         const b = enrich.get(a.id);
-        const roleList = [...(b?.roles ?? new Map()).entries()].map(([id, name]) => ({ id, name }))
+        const roleList = [...(b?.roles ?? new Map()).entries()]
+          .map(([id, name]) => ({ id, name }))
           .sort((x, y) => x.name.localeCompare(y.name));
         return {
-          id: a.id, code: a.code, name: a.name, kind: a.kind, category: a.category, vendor: a.vendor,
-          criticality: a.criticality, description: null, systemOfRecord: a.systemOfRecord, illustrative: a.illustrative,
-          totalTco: a.totalTco, primaryDivisionName: a.orgUnit?.displayValue ?? topDiv(b?.div),
-          stepUsages: a._count.nodeAppUsages, sorDeliverables: 0,
+          id: a.id,
+          code: a.code,
+          name: a.name,
+          kind: a.kind,
+          category: a.category,
+          vendor: a.vendor,
+          criticality: a.criticality,
+          description: null,
+          systemOfRecord: a.systemOfRecord,
+          illustrative: a.illustrative,
+          totalTco: a.totalTco,
+          primaryDivisionName: a.orgUnit?.displayValue ?? topDiv(b?.div),
+          stepUsages: a._count.nodeAppUsages,
+          sorDeliverables: 0,
           valueStreams: [...(b?.vs ?? new Set<string>())].sort((x, y) => x.localeCompare(y)),
           roles: roleList,
         };
       }),
     });
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
 export default router;

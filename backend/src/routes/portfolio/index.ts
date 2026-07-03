@@ -11,6 +11,7 @@
  */
 import { Router } from 'express';
 import { requireAuth } from '../../middleware/auth.js';
+import { requirePermission } from '../../middleware/permissions.js';
 import { registerDashboardRoutes } from './dashboard.js';
 import { registerProgramRoutes } from './programs.js';
 import { registerInitiativeRoutes } from './initiatives.js';
@@ -20,6 +21,7 @@ import { registerFinanceRaidRoutes } from './finance.js';
 
 const router = Router();
 router.use(requireAuth);
+router.use(requirePermission('workspace'));
 
 registerDashboardRoutes(router);
 registerProgramRoutes(router);

@@ -3,9 +3,11 @@ import type { Request, Response, NextFunction } from 'express';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
+import { requirePermission } from '../middleware/permissions.js';
 
 const router = Router();
 router.use(requireAuth);
+router.use(requirePermission('data-admin.audit-log'));
 
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -18,7 +20,9 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       take: Math.min(Number(req.query.limit) || 100, 500),
     });
     res.json(entries);
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
 export default router;

@@ -14,10 +14,12 @@
  * leaf-deletable). After a successful copy, older backups of the same target
  * are pruned so exactly one backup per target exists.
  *
- * Trigger policy (unchanged):
- *   - only when the merge TITLE (first line) ENDS with `[promote-data]`
- *   - master push:  source develop        -> target production
- *   - develop push: source <feature>      -> target develop (same-name branch)
+ * Trigger policy:
+ *   - develop push: ALWAYS promotes — source <feature> (same-name Neon branch
+ *     from the merge commit) -> target develop. Skips gracefully when the push
+ *     is not a PR merge or the feature has no Neon branch.
+ *   - master push:  ONLY when the merge TITLE (first line) ENDS with
+ *     `[promote-data]` — source develop -> target production.
  *
  * Requires pg_dump/pg_restore/psql >= the server major version on PATH.
  * Env: NEON_API_KEY, NEON_PROJECT_ID, GITHUB_REF_NAME, COMMIT_MESSAGE,
@@ -32,11 +34,12 @@ const REF = process.env.GITHUB_REF_NAME ?? '';
 const MSG = process.env.COMMIT_MESSAGE ?? '';
 const SHA = (process.env.COMMIT_SHA ?? 'manual').slice(0, 7);
 
-// The marker must TERMINATE the merge title. Mid-sentence mentions (e.g. a PR
-// about this feature) must never trigger a promotion.
+// Production promotion stays opt-in: the marker must TERMINATE the merge
+// title. Mid-sentence mentions (e.g. a PR about this feature) must never
+// trigger a promotion. Feature -> develop promotes automatically (no marker).
 const title = MSG.split('\n', 1)[0].trim();
-if (!/\[promote-data\]$/.test(title)) {
-  console.log('Merge title does not END with [promote-data] — data promotion skipped.');
+if (REF === 'master' && !/\[promote-data\]$/.test(title)) {
+  console.log('Merge title does not END with [promote-data] — production data promotion skipped.');
   process.exit(0);
 }
 if (!KEY || !PROJECT) {
@@ -74,15 +77,17 @@ if (REF === 'master') {
 } else if (REF === 'develop') {
   targetName = 'develop';
   targetUrl = process.env.DEVELOP_DIRECT_URL;
+  // Auto-promotion: not every develop push is a PR merge with a Neon branch —
+  // direct pushes, squash merges, or DB-less features skip without failing.
   const featureName = featureNameFromMergeCommit();
   if (!featureName) {
-    console.error('[promote-data] on develop but no feature branch found in the merge commit message.');
-    process.exit(1);
+    console.log('Develop push is not a PR merge commit — data promotion skipped.');
+    process.exit(0);
   }
   const feature = byName.get(featureName);
   if (!feature) {
-    console.error(`[promote-data] source Neon branch "${featureName}" not found — nothing to promote.`);
-    process.exit(1);
+    console.log(`No Neon branch named "${featureName}" — data promotion skipped.`);
+    process.exit(0);
   }
   const params = new URLSearchParams({
     branch_id: feature.id,
