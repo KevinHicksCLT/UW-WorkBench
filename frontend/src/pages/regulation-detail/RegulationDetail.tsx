@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
+import { can } from '../../lib/permissions';
 import { useCompany } from '../../lib/company';
 import { withCompany, SectionCard } from '../../lib/portfolio';
 import PageHeader from '../../components/PageHeader';
@@ -124,9 +125,9 @@ const label = (v: string) =>
 
 export default function RegulationDetail() {
   const { code } = useParams();
-  const { user } = useAuth();
+  const { permissions } = useAuth();
   const { companyId } = useCompany();
-  const canEdit = user?.role === 'ADMIN' || user?.role === 'MANAGER';
+  const canEdit = can(permissions, 'regulations', 'update');
 
   const [detail, setDetail] = useState<Detail | null>(null);
   const [error, setError] = useState('');

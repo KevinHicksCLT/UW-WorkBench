@@ -51,6 +51,9 @@ erDiagram
     string managerRoleId FK "self -> Role (solid-line reporting)"
     string dbValue
     string displayValue "EDITABLE label"
+    string description "job description (research-sourced, nullable)"
+    string roleFamily "functional family (nullable)"
+    string roleLevel "Executive|Senior Leadership|Manager|Individual Contributor (nullable)"
   }
   RoleOrgAssignment {
     string status "NEW — role at multiple levels (M:N)"
@@ -749,6 +752,78 @@ erDiagram
     string ownerRoleId FK "-> Role (nullable; was ownerRole)"
     string status_
   }
+  %% ---------- IDENTITY & ENTITLEMENTS (RBAC/ABAC + preferences) ----------
+  Tenant {
+    string id PK
+    string name
+    string slug
+  }
+  User {
+    string status "role = user type; ABAC attrs point at company spine"
+    string id PK
+    string tenantId FK
+    string email
+    string name
+    string role "SITE_ADMIN|CORE_BUSINESS_ADMIN|TECHNOLOGY_ADMIN|CORPORATE_FUNCTIONS_ADMIN|SUPER_USER|MEMBER"
+    string status_ "ACTIVE|DEACTIVATED"
+    string externalId "IAM subject id (nullable)"
+    string orgUnitId FK "-> OrgUnit (nullable)"
+    string geography "NORTH_AMERICA|UK_EUROPE|APAC|LATAM"
+    string operatingRoleId FK "-> Role (nullable)"
+    bool isManager
+    string reportsToId FK "self -> User (nullable)"
+    bool isApprover
+  }
+  UserValueStream {
+    string status "user involved-in value stream (L2 ProcessNode)"
+    string id PK
+    string userId FK
+    string processNodeId FK
+  }
+  PermissionSet {
+    string status "one editable set per user type per tenant"
+    string id PK
+    string tenantId FK
+    string userType
+  }
+  PermissionGrant {
+    string status "CRUD per menu key; parent key covers subtree"
+    string id PK
+    string permissionSetId FK
+    string menuKey "shared MENU_TREE key"
+    bool canCreate
+    bool canRead
+    bool canUpdate
+    bool canDelete
+  }
+  UserPermissionOverride {
+    string status "tri-state per-user override; null = inherit"
+    string id PK
+    string userId FK
+    string menuKey
+  }
+  UserPreference {
+    string status "row-per-key auto-saved preference (Json value)"
+    string id PK
+    string userId FK
+    string key "startPage|notification|dashboard|sheet.columns.*|work.toc.group.*"
+  }
+  ApiKey {
+    string status "provisioning credential; sha256 hash stored, raw shown once"
+    string id PK
+    string tenantId FK
+    string name
+    string keyPrefix
+    string keyHash
+    string webhookSecret "HMAC secret (nullable)"
+  }
+  WebhookEvent {
+    string status "idempotency ledger for inbound IAM webhooks"
+    string id PK
+    string tenantId FK
+    string externalEventId
+    string eventType "user.created|user.updated|user.deactivated"
+  }
   %% ================= RELATIONSHIPS =================
   %% org spine
   Company ||--o{ OrgLevelType : "defines"
@@ -906,6 +981,19 @@ erDiagram
   Role |o--o{ RationalizationPlanStep : "owns"
   %% derived
   Role }o..o{ ProcessNode : "derived (via work)"
+  %% identity & entitlements
+  Tenant ||--o{ User : "has"
+  Tenant ||--o{ Company : "owns"
+  Tenant ||--o{ PermissionSet : "defines"
+  Tenant ||--o{ ApiKey : "issues"
+  User ||--o{ User : "reports-to"
+  OrgUnit |o--o{ User : "homes"
+  Role |o--o{ User : "operating-role"
+  User ||--o{ UserValueStream : "involved-in"
+  ProcessNode ||--o{ UserValueStream : "value stream"
+  PermissionSet ||--o{ PermissionGrant : "grants"
+  User ||--o{ UserPermissionOverride : "overrides"
+  User ||--o{ UserPreference : "prefers"
   %% ================= COLOR CODING =================
   %% red=connection tables · blue=value stream · orange=org · green=work · purple=other · teal=peripheral
   style RoleOrgAssignment fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
@@ -987,3 +1075,12 @@ erDiagram
   style RegulationTemplateAnswer fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style NodeStandardEvidence fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style NodeRegulationEvidence fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style Tenant fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
+  style User fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
+  style UserValueStream fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style PermissionSet fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
+  style PermissionGrant fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
+  style UserPermissionOverride fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
+  style UserPreference fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
+  style ApiKey fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
+  style WebhookEvent fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A

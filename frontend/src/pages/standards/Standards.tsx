@@ -145,6 +145,7 @@ export default function Standards() {
     <div>
       {view === 'list' ? (
         <Sheet
+          sheetKey="standards"
           rows={items ?? []}
           cols={cols}
           rowKey={(r) => r.id}

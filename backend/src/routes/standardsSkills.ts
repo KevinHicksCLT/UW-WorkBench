@@ -1,10 +1,19 @@
 import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { basename } from 'node:path';
-import { requireAuth, requireRole } from '../middleware/auth.js';
+import { requireAuth } from '../middleware/auth.js';
+import { requirePermission } from '../middleware/permissions.js';
 import { logAudit } from '../services/audit.js';
 import { prisma } from '../db/prisma.js';
-import { buildGroupings, generatedPackFiles, skillName, KEEP, findStandardSkill, generatedStandardPackFiles, type Grouping } from '../lib/skillPacks.js';
+import {
+  buildGroupings,
+  generatedPackFiles,
+  skillName,
+  KEEP,
+  findStandardSkill,
+  generatedStandardPackFiles,
+  type Grouping,
+} from '../lib/skillPacks.js';
 
 // ─── SDLC compliance agent skills (/standards-skills) ────────────────────────
 // No filesystem. Two kinds of pack:
@@ -16,6 +25,7 @@ import { buildGroupings, generatedPackFiles, skillName, KEEP, findStandardSkill,
 
 const router = Router();
 router.use(requireAuth);
+router.use(requirePermission('standards'));
 
 const SKILL_RE = /^[a-z0-9-]+$/;
 const bytes = (s: string) => Buffer.byteLength(s, 'utf8');
@@ -27,7 +37,10 @@ async function activeCompanyId(req: Request, res: Response): Promise<string | nu
     orderBy: { createdAt: 'asc' },
     select: { id: true },
   });
-  if (!company) { res.status(404).json({ error: 'No company found' }); return null; }
+  if (!company) {
+    res.status(404).json({ error: 'No company found' });
+    return null;
+  }
   return company.id;
 }
 
@@ -43,14 +56,23 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const companyId = await activeCompanyId(req, res);
     if (!companyId) return;
     const groupings = await buildGroupings(companyId);
-    const generated = groupings.map((g) => ({ name: skillName(g.category), files: generatedPackFiles(g).length }));
+    const generated = groupings.map((g) => ({
+      name: skillName(g.category),
+      files: generatedPackFiles(g).length,
+    }));
 
-    const handGroups = await prisma.skillFile.groupBy({ by: ['skill'], where: { companyId }, _count: true });
+    const handGroups = await prisma.skillFile.groupBy({
+      by: ['skill'],
+      where: { companyId },
+      _count: true,
+    });
     const handAuthored = handGroups.map((h) => ({ name: h.skill, files: h._count }));
 
     const skills = [...generated, ...handAuthored].sort((a, b) => a.name.localeCompare(b.name));
     res.json({ skills });
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
 // GET /standards-skills/:skill — manifest + the SKILL.md content.
@@ -67,7 +89,9 @@ router.get('/:skill', async (req: Request, res: Response, next: NextFunction) =>
         const packFiles = generatedPackFiles(g);
         const files = packFiles
           .map((f) => ({ path: f.path, bytes: bytes(f.content) }))
-          .sort((a, b) => (a.path === 'SKILL.md' ? -1 : b.path === 'SKILL.md' ? 1 : a.path.localeCompare(b.path)));
+          .sort((a, b) =>
+            a.path === 'SKILL.md' ? -1 : b.path === 'SKILL.md' ? 1 : a.path.localeCompare(b.path),
+          );
         const skillMd = packFiles.find((f) => f.path === 'SKILL.md')?.content ?? null;
         return res.json({ name: skill, files, primary: 'SKILL.md', skillMd, editable: false });
       }
@@ -77,20 +101,29 @@ router.get('/:skill', async (req: Request, res: Response, next: NextFunction) =>
         const packFiles = generatedStandardPackFiles(control);
         const files = packFiles
           .map((f) => ({ path: f.path, bytes: bytes(f.content) }))
-          .sort((a, b) => (a.path === 'SKILL.md' ? -1 : b.path === 'SKILL.md' ? 1 : a.path.localeCompare(b.path)));
+          .sort((a, b) =>
+            a.path === 'SKILL.md' ? -1 : b.path === 'SKILL.md' ? 1 : a.path.localeCompare(b.path),
+          );
         const skillMd = packFiles.find((f) => f.path === 'SKILL.md')?.content ?? null;
         return res.json({ name: skill, files, primary: 'SKILL.md', skillMd, editable: false });
       }
     }
 
-    const rows = await prisma.skillFile.findMany({ where: { companyId, skill }, select: { path: true, bytes: true, content: true } });
+    const rows = await prisma.skillFile.findMany({
+      where: { companyId, skill },
+      select: { path: true, bytes: true, content: true },
+    });
     if (!rows.length) return res.status(404).json({ error: 'Skill not found' });
     const files = rows
       .map((r) => ({ path: r.path, bytes: r.bytes }))
-      .sort((a, b) => (a.path === 'SKILL.md' ? -1 : b.path === 'SKILL.md' ? 1 : a.path.localeCompare(b.path)));
+      .sort((a, b) =>
+        a.path === 'SKILL.md' ? -1 : b.path === 'SKILL.md' ? 1 : a.path.localeCompare(b.path),
+      );
     const skillMd = rows.find((r) => r.path === 'SKILL.md')?.content ?? null;
     res.json({ name: skill, files, primary: 'SKILL.md', skillMd, editable: true });
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
 // GET /standards-skills/:skill/file?path=<relative> — raw text of one file.
@@ -124,45 +157,62 @@ router.get('/:skill/file', async (req: Request, res: Response, next: NextFunctio
     });
     if (!row) return res.status(404).json({ error: 'File not found' });
     res.json({ path: rel, name: basename(rel), content: row.content });
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
 });
 
 // PUT /standards-skills/:skill/file — overwrite a file's content. ADMIN only.
 // Generated packs are read-only (edit the underlying standards). Hand-authored
 // packs write to the SkillFile row (which must already exist). Audited.
-router.put('/:skill/file', requireRole('ADMIN'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const skill = req.params.skill;
-    if (!SKILL_RE.test(skill)) return res.status(404).json({ error: 'Skill not found' });
-    const rel = typeof req.body?.path === 'string' ? req.body.path : '';
-    const content = req.body?.content;
-    if (!rel) return res.status(400).json({ error: 'Invalid file path' });
-    if (typeof content !== 'string') return res.status(400).json({ error: 'content (string) is required' });
-    const companyId = await activeCompanyId(req, res);
-    if (!companyId) return;
+router.put(
+  '/:skill/file',
+  requirePermission('data-admin.configure', 'update'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const skill = req.params.skill;
+      if (!SKILL_RE.test(skill)) return res.status(404).json({ error: 'Skill not found' });
+      const rel = typeof req.body?.path === 'string' ? req.body.path : '';
+      const content = req.body?.content;
+      if (!rel) return res.status(400).json({ error: 'Invalid file path' });
+      if (typeof content !== 'string')
+        return res.status(400).json({ error: 'content (string) is required' });
+      const companyId = await activeCompanyId(req, res);
+      if (!companyId) return;
 
-    if (!KEEP.has(skill)) {
-      const g = await findGenerated(companyId, skill);
-      if (g) return res.status(405).json({ error: 'Generated packs are read-only; edit the underlying standards instead.' });
+      if (!KEEP.has(skill)) {
+        const g = await findGenerated(companyId, skill);
+        if (g)
+          return res
+            .status(405)
+            .json({
+              error: 'Generated packs are read-only; edit the underlying standards instead.',
+            });
+      }
+
+      const existing = await prisma.skillFile.findUnique({
+        where: { companyId_skill_path: { companyId, skill, path: rel } },
+        select: { id: true },
+      });
+      if (!existing) return res.status(404).json({ error: 'File not found' });
+
+      await prisma.skillFile.update({
+        where: { id: existing.id },
+        data: { content, bytes: bytes(content) },
+      });
+      logAudit({
+        tenantId: req.tenantId,
+        actorEmail: req.user.email,
+        entityType: 'SkillFile',
+        entityId: `${skill}/${rel}`,
+        action: 'UPDATE',
+        diff: { bytes: content.length },
+      });
+      res.json({ path: rel, name: basename(rel), bytes: content.length });
+    } catch (e) {
+      next(e);
     }
-
-    const existing = await prisma.skillFile.findUnique({
-      where: { companyId_skill_path: { companyId, skill, path: rel } },
-      select: { id: true },
-    });
-    if (!existing) return res.status(404).json({ error: 'File not found' });
-
-    await prisma.skillFile.update({ where: { id: existing.id }, data: { content, bytes: bytes(content) } });
-    logAudit({
-      tenantId: req.tenantId,
-      actorEmail: req.user.email,
-      entityType: 'SkillFile',
-      entityId: `${skill}/${rel}`,
-      action: 'UPDATE',
-      diff: { bytes: content.length },
-    });
-    res.json({ path: rel, name: basename(rel), bytes: content.length });
-  } catch (e) { next(e); }
-});
+  },
+);
 
 export default router;

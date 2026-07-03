@@ -12,11 +12,16 @@
  */
 import { Router } from 'express';
 import { requireAuth } from '../../middleware/auth.js';
+import { requirePermission } from '../../middleware/permissions.js';
 import { registerDetailRoutes } from './detail.js';
 import { registerMutationRoutes } from './mutations.js';
 
 const router = Router();
 router.use(requireAuth);
+// The inspector is the value-stream drill sidebar (List + Map dock on it).
+// Known caveat: it also surfaces cross-tab detail (roles, apps, governance) —
+// v1 gates menus, not data classification.
+router.use(requirePermission('value-streams'));
 
 registerDetailRoutes(router);
 registerMutationRoutes(router);

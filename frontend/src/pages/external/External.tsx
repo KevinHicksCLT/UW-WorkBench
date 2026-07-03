@@ -36,11 +36,26 @@ export default function External() {
   const [selected, setSelected] = useState<Interaction | null>(null);
 
   const cols: SheetCol<Interaction>[] = [
-    { key: 'party', label: 'External party', width: 'minmax(0,1.2fr)', value: (i) => i.externalRole },
-    { key: 'type', label: 'Party type', width: '130px', value: (i) => i.partyType, dim: true },
-    { key: 'vs', label: 'Value stream', width: 'minmax(0,1fr)', value: (i) => i.relatedValueStream ?? DASH, dim: true },
     {
-      key: 'owner', label: 'Internal owner', width: 'minmax(0,1fr)', value: (i) => i.internalRoleName ?? DASH, dim: true,
+      key: 'party',
+      label: 'External party',
+      width: 'minmax(0,1.2fr)',
+      value: (i) => i.externalRole,
+    },
+    { key: 'type', label: 'Party type', width: '130px', value: (i) => i.partyType, dim: true },
+    {
+      key: 'vs',
+      label: 'Value stream',
+      width: 'minmax(0,1fr)',
+      value: (i) => i.relatedValueStream ?? DASH,
+      dim: true,
+    },
+    {
+      key: 'owner',
+      label: 'Internal owner',
+      width: 'minmax(0,1fr)',
+      value: (i) => i.internalRoleName ?? DASH,
+      dim: true,
       render: (i) => (
         <SheetCell
           text={i.internalRoleName ?? DASH}
@@ -49,8 +64,20 @@ export default function External() {
         />
       ),
     },
-    { key: 'interaction', label: 'Interaction', width: 'minmax(0,1fr)', value: (i) => i.interactionType ?? DASH, dim: true },
-    { key: 'dependency', label: 'Dependency', width: '150px', value: (i) => i.dependencyType ?? DASH, dim: true },
+    {
+      key: 'interaction',
+      label: 'Interaction',
+      width: 'minmax(0,1fr)',
+      value: (i) => i.interactionType ?? DASH,
+      dim: true,
+    },
+    {
+      key: 'dependency',
+      label: 'Dependency',
+      width: '150px',
+      value: (i) => i.dependencyType ?? DASH,
+      dim: true,
+    },
   ];
 
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
@@ -63,21 +90,30 @@ export default function External() {
       />
 
       <Sheet
+        sheetKey="external-parties"
         rows={items}
         cols={cols}
         rowKey={(i) => i.id}
         loading={loading}
         unit="third parties"
         onRowClick={(i) => setSelected(i)}
-        summarize={(v) => `${new Set(v.map((i) => i.partyType)).size} party types · ${new Set(v.map((i) => i.relatedValueStream).filter(Boolean)).size} value streams`}
+        summarize={(v) =>
+          `${new Set(v.map((i) => i.partyType)).size} party types · ${new Set(v.map((i) => i.relatedValueStream).filter(Boolean)).size} value streams`
+        }
       />
 
       {selected && (
         <InteractionDrawer
           item={selected}
           onClose={() => setSelected(null)}
-          onRole={(id) => { setSelected(null); navigate(`/roles/${id}`); }}
-          onValueStream={(name) => { setSelected(null); navigate(`/overview?vs=${encodeURIComponent(name)}`); }}
+          onRole={(id) => {
+            setSelected(null);
+            navigate(`/roles/${id}`);
+          }}
+          onValueStream={(name) => {
+            setSelected(null);
+            navigate(`/overview?vs=${encodeURIComponent(name)}`);
+          }}
         />
       )}
     </div>
@@ -87,7 +123,9 @@ export default function External() {
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] mb-1">{label}</div>
+      <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] mb-1">
+        {label}
+      </div>
       <div className="text-sm text-[#171717]">{children}</div>
     </div>
   );
@@ -105,7 +143,8 @@ const PARTY_COLOR: Record<string, { bg: string; text: string; bar: string }> = {
   Regulator: { bg: '#fef2f2', text: '#b91c1c', bar: '#ef4444' },
   Customer: { bg: '#fff1f2', text: '#be123c', bar: '#f43f5e' },
 };
-const partyColor = (t: string) => PARTY_COLOR[t] ?? { bg: '#f5f5f5', text: '#525252', bar: '#a3a3a3' };
+const partyColor = (t: string) =>
+  PARTY_COLOR[t] ?? { bg: '#f5f5f5', text: '#525252', bar: '#a3a3a3' };
 
 // A real value vs. an empty "—" / null. The seed writes nulls; guard against the
 // literal dash too.
@@ -126,7 +165,17 @@ function describe(item: Interaction): string {
 }
 
 // Right-hand slide-over with the full interaction detail.
-function InteractionDrawer({ item, onClose, onRole, onValueStream }: { item: Interaction; onClose: () => void; onRole: (id: string) => void; onValueStream: (name: string) => void }) {
+function InteractionDrawer({
+  item,
+  onClose,
+  onRole,
+  onValueStream,
+}: {
+  item: Interaction;
+  onClose: () => void;
+  onRole: (id: string) => void;
+  onValueStream: (name: string) => void;
+}) {
   const c = partyColor(item.partyType);
   // Interaction + Value stream jump to the value-stream list filtered to this
   // party's stream (the interaction lives within that stream).
@@ -135,46 +184,100 @@ function InteractionDrawer({ item, onClose, onRole, onValueStream }: { item: Int
   const linkCls = 'text-left text-[#0070AD] hover:underline';
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/30" onClick={onClose}>
-      <aside className="bg-white h-full w-full max-w-md shadow-2xl border-l border-[#eaeaea] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="px-5 py-4 border-b border-[#eaeaea] sticky top-0 bg-white flex items-start justify-between gap-3" style={{ borderTop: `3px solid ${c.bar}` }}>
+      <aside
+        className="bg-white h-full w-full max-w-md shadow-2xl border-l border-[#eaeaea] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className="px-5 py-4 border-b border-[#eaeaea] sticky top-0 bg-white flex items-start justify-between gap-3"
+          style={{ borderTop: `3px solid ${c.bar}` }}
+        >
           <div className="min-w-0">
-            <span className="inline-block text-[10px] font-semibold uppercase tracking-[0.10em] px-2 py-0.5 rounded-full mb-1.5" style={{ background: c.bg, color: c.text }}>
+            <span
+              className="inline-block text-[10px] font-semibold uppercase tracking-[0.10em] px-2 py-0.5 rounded-full mb-1.5"
+              style={{ background: c.bg, color: c.text }}
+            >
               {item.partyType}
             </span>
-            <h2 className="text-[16px] font-bold text-[#171717] leading-snug">{item.externalRole}</h2>
+            <h2 className="text-[16px] font-bold text-[#171717] leading-snug">
+              {item.externalRole}
+            </h2>
           </div>
-          <button onClick={onClose} aria-label="Close" className="-mr-1 flex-shrink-0 text-[#a3a3a3] hover:text-[#171717] w-7 h-7 rounded-md hover:bg-[#fafafa] flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="-mr-1 flex-shrink-0 text-[#a3a3a3] hover:text-[#171717] w-7 h-7 rounded-md hover:bg-[#fafafa] flex items-center justify-center"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            >
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
           {/* What they do at the company */}
-          <div className="rounded-lg p-3.5 text-sm leading-relaxed" style={{ background: c.bg, color: '#171717' }}>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.10em] mb-1" style={{ color: c.text }}>What they do at the company</div>
+          <div
+            className="rounded-lg p-3.5 text-sm leading-relaxed"
+            style={{ background: c.bg, color: '#171717' }}
+          >
+            <div
+              className="text-[10px] font-semibold uppercase tracking-[0.10em] mb-1"
+              style={{ color: c.text }}
+            >
+              What they do at the company
+            </div>
             {describe(item)}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             {has(item.interactionType) && (
               <Section label="Interaction">
-                {jump ? <button onClick={jump} className={linkCls} title="Open in the value-stream list">{item.interactionType}</button> : item.interactionType}
+                {jump ? (
+                  <button onClick={jump} className={linkCls} title="Open in the value-stream list">
+                    {item.interactionType}
+                  </button>
+                ) : (
+                  item.interactionType
+                )}
               </Section>
             )}
-            {has(item.dependencyType) && <Section label="Dependency"><Chip style={{ background: c.bg, color: c.text, borderColor: c.bg }}>{item.dependencyType}</Chip></Section>}
+            {has(item.dependencyType) && (
+              <Section label="Dependency">
+                <Chip style={{ background: c.bg, color: c.text, borderColor: c.bg }}>
+                  {item.dependencyType}
+                </Chip>
+              </Section>
+            )}
             {vs && (
               <Section label="Value stream">
-                <button onClick={jump} className={linkCls} title="Open in the value-stream list">{vs}</button>
+                <button onClick={jump} className={linkCls} title="Open in the value-stream list">
+                  {vs}
+                </button>
               </Section>
             )}
             {has(item.frequency) && <Section label="Frequency">{item.frequency}</Section>}
           </div>
 
-          {has(item.divisionFunction) && <Section label="Division / function">{item.divisionFunction}</Section>}
+          {has(item.divisionFunction) && (
+            <Section label="Division / function">{item.divisionFunction}</Section>
+          )}
 
           <Section label="Internal owner">
             {item.internalRoleId ? (
-              <button onClick={() => onRole(item.internalRoleId!)} className="text-[#0070AD] hover:underline">{item.internalRoleName}</button>
+              <button
+                onClick={() => onRole(item.internalRoleId!)}
+                className="text-[#0070AD] hover:underline"
+              >
+                {item.internalRoleName}
+              </button>
             ) : (
               <span className="text-[#a3a3a3] italic">Unassigned</span>
             )}

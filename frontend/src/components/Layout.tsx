@@ -1,9 +1,9 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { useCompany } from '../lib/company';
 import { api } from '../lib/api';
-import { withCompany } from '../lib/portfolio';
+import { navItems, prefetchPathFor } from '../lib/navigation';
 import { useBreadcrumbHeader } from '../lib/breadcrumbs';
 import SearchBox from './SearchBox';
 import AssistantWidget from './AssistantWidget';
@@ -11,43 +11,53 @@ import BreadcrumbBar from './BreadcrumbBar';
 
 type IndexItem = { id: string; name: string; valueStreams?: number; roles?: number };
 
-// Tab → the page's primary list endpoint, warmed on hover/focus so the page
-// paints instantly on click (api.get dedups, so the warm + the page's own fetch
-// share one round-trip). Company-scoped endpoints must match the page's exact
-// keyed path (withCompany), or the cache key won't match. Returns null to skip.
-const PREFETCH: Record<string, (companyId: string | null) => string | null> = {
-  '/overview':     () => '/explorer/tree',
-  '/roles':        () => '/roles',
-  '/organization': () => '/explorer/org-table',
-  '/standards':    () => '/explorer/standards-flat',
-  '/applications': () => '/applications',
-  '/external':     () => '/external-interactions',
-  '/metrics':      (c) => (c ? withCompany('/explorer/telemetry-catalog', c) : null),
-  '/deliverables': (c) => (c ? withCompany('/work', c) : null),
-  '/tasks':        (c) => (c ? withCompany('/work', c) : null),
-  '/regulations':  (c) => (c ? withCompany('/regulations/jurisdictions', c) : null),
-};
-
 export default function Layout({ children }: { children: ReactNode }) {
-  const { user, logout } = useAuth();
+  const { user, permissions, logout } = useAuth();
   const { companies, companyId, setCompanyId } = useCompany();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
   const [domains, setDomains] = useState<IndexItem[]>([]);
   const [divisions, setDivisions] = useState<IndexItem[]>([]);
-  const isExplorer = location.pathname.startsWith('/overview') || location.pathname.startsWith('/n/')
-    || location.pathname === '/roles' || location.pathname === '/organization';
+  // Permission-filtered nav — the single list both the desktop tab bar and the
+  // mobile menu render from (mirrors the backend's requirePermission gates).
+  const tabs = navItems(permissions);
+  const isExplorer =
+    location.pathname.startsWith('/overview') ||
+    location.pathname.startsWith('/n/') ||
+    location.pathname === '/roles' ||
+    location.pathname === '/organization';
 
-  useEffect(() => { setMobileMenuOpen(false); }, [location.pathname]);
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setUserMenuOpen(false);
+  }, [location.pathname]);
+  // Close the user dropdown on any outside click.
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node))
+        setUserMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [userMenuOpen]);
   useEffect(() => {
     document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [mobileMenuOpen]);
   useEffect(() => {
     if (!user) return;
-    api.get<{ domains?: IndexItem[]; divisions?: IndexItem[] }>('/explorer/overview')
-      .then((o) => { setDomains(o.domains ?? []); setDivisions(o.divisions ?? []); })
+    api
+      .get<{ domains?: IndexItem[]; divisions?: IndexItem[] }>('/explorer/overview')
+      .then((o) => {
+        setDomains(o.domains ?? []);
+        setDivisions(o.divisions ?? []);
+      })
       .catch(() => {});
   }, [user]);
 
@@ -56,12 +66,17 @@ export default function Layout({ children }: { children: ReactNode }) {
   const here = (key: string) => location.pathname.includes(key);
   // Nav-menu navigation is an explicit fresh start — re-root the breadcrumb
   // trail at the chosen tab (no-op for non-tab URLs like the drill-down rows).
-  const go = (url: string) => { resetToTab(url); navigate(url); setMobileMenuOpen(false); };
+  const go = (url: string) => {
+    resetToTab(url);
+    navigate(url);
+    setMobileMenuOpen(false);
+  };
 
   // The portfolio drill-downs (program / initiative / RAID log) live under Home —
   // their entry points are the Home dashboard widgets, so Home stays the active tab.
-  const onHome = location.pathname === '/'
-    || ['/programs/', '/initiatives/', '/raid'].some((p) => location.pathname.startsWith(p));
+  const onHome =
+    location.pathname === '/' ||
+    ['/programs/', '/initiatives/', '/raid'].some((p) => location.pathname.startsWith(p));
 
   // ── Nav link helper ────────────────────────────────────────────────────────
   // Underline-style tab: sits on the nav row's hairline, dark indicator when active.
@@ -69,8 +84,12 @@ export default function Layout({ children }: { children: ReactNode }) {
   // warm + the page's own fetch share one round-trip) — the page paints instantly
   // on click instead of waiting on the network.
   const NavLink = ({ to, children: label }: { to: string; children: ReactNode }) => {
-    const active = to === '/' ? onHome : location.pathname === to || location.pathname.startsWith(to);
-    const warm = () => { const p = PREFETCH[to]?.(companyId); if (p) api.prefetch(p); };
+    const active =
+      to === '/' ? onHome : location.pathname === to || location.pathname.startsWith(to);
+    const warm = () => {
+      const p = prefetchPathFor(to, companyId);
+      if (p) api.prefetch(p);
+    };
     return (
       <Link
         to={to}
@@ -92,8 +111,18 @@ export default function Layout({ children }: { children: ReactNode }) {
 
   // ── Mobile dropdown row ────────────────────────────────────────────────────
   const MobileRow = ({
-    item, url, active, count, unit,
-  }: { item: IndexItem; url: string; active: boolean; count?: number; unit: string }) => (
+    item,
+    url,
+    active,
+    count,
+    unit,
+  }: {
+    item: IndexItem;
+    url: string;
+    active: boolean;
+    count?: number;
+    unit: string;
+  }) => (
     <button
       onClick={() => go(url)}
       className={
@@ -105,26 +134,34 @@ export default function Layout({ children }: { children: ReactNode }) {
     >
       <span className="truncate flex-1">{item.name}</span>
       {count != null && (
-        <span className="text-[10px] tnum text-[#a3a3a3]">{count} {unit}</span>
+        <span className="text-[10px] tnum text-[#a3a3a3]">
+          {count} {unit}
+        </span>
       )}
     </button>
   );
 
   return (
     <div className="flex flex-col h-screen bg-white">
-
       {/* ── Top navigation ──────────────────────────────────────────────────── */}
       {/* Two-tier, Vercel/Linear-style: brand + utilities on top, a dedicated
           full-width tab bar below so all tabs get room. Mounted at all sizes. */}
       <header className="flex-shrink-0 z-30 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/75 safe-pt safe-px">
-
         {/* Row 1 — brand + utilities */}
         <div className="flex items-center gap-4 px-4 sm:px-6 h-10 border-b border-[#eaeaea] sm:border-b-0">
-
           {/* Wordmark — Capgemini logotype flowing into the product name as one lockup */}
-          <Link to="/" onClick={() => resetToTab('/')} className="flex items-baseline gap-2 flex-shrink-0 group" aria-label="Capgemini Transformation Bridge — home">
+          <Link
+            to="/"
+            onClick={() => resetToTab('/')}
+            className="flex items-baseline gap-2 flex-shrink-0 group"
+            aria-label="Capgemini Transformation Bridge — home"
+          >
             {/* h-[20px] matches the logotype cap-height to the text; translate-y aligns its baseline */}
-            <img src="/capgemini-wordmark.svg" alt="Capgemini" className="h-[20px] w-auto translate-y-[5.5px]" />
+            <img
+              src="/capgemini-wordmark.svg"
+              alt="Capgemini"
+              className="h-[20px] w-auto translate-y-[5.5px]"
+            />
             <span className="font-semibold text-[#0070AD] text-[15px] tracking-tight whitespace-nowrap -translate-y-[1.5px] group-hover:text-[#12abdb] transition-colors duration-150">
               Transformation Bridge
             </span>
@@ -142,8 +179,15 @@ export default function Layout({ children }: { children: ReactNode }) {
                   {/* Leading building glyph */}
                   <svg
                     className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
-                    width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
                   >
                     <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4M9 9h.01M9 13h.01M9 17h.01" />
                   </svg>
@@ -154,14 +198,23 @@ export default function Layout({ children }: { children: ReactNode }) {
                     onChange={(e) => setCompanyId(e.target.value)}
                   >
                     {companies.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
                     ))}
                   </select>
                   {/* Custom chevron */}
                   <svg
                     className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a3a3a3]"
-                    width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
                   >
                     <path d="M6 9l6 6 6-6" />
                   </svg>
@@ -175,18 +228,64 @@ export default function Layout({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          {/* User + sign-out — desktop */}
-          <div className="hidden sm:flex items-center gap-3 pl-1">
-            <span className="flex items-center justify-center h-7 w-7 rounded-full bg-[#f5f5f5] text-[11px] font-semibold text-[#525252] flex-shrink-0" aria-hidden="true">
-              {(user?.name ?? '?').slice(0, 1).toUpperCase()}
-            </span>
-            <span className="text-sm text-[#525252] truncate max-w-[140px]">{user?.name}</span>
+          {/* User menu — desktop (Settings + sign-out dropdown) */}
+          <div className="hidden sm:block relative pl-1" ref={userMenuRef}>
             <button
-              onClick={logout}
-              className="text-sm text-[#525252] hover:text-[#171717] transition-colors duration-150"
+              onClick={() => setUserMenuOpen((v) => !v)}
+              aria-haspopup="menu"
+              aria-expanded={userMenuOpen}
+              className="flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-[#fafafa] transition-colors duration-150"
             >
-              Sign out
+              <span
+                className="flex items-center justify-center h-7 w-7 rounded-full bg-[#f5f5f5] text-[11px] font-semibold text-[#525252] flex-shrink-0"
+                aria-hidden="true"
+              >
+                {(user?.name ?? '?').slice(0, 1).toUpperCase()}
+              </span>
+              <span className="text-sm text-[#525252] truncate max-w-[140px]">{user?.name}</span>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-[#a3a3a3]"
+                aria-hidden="true"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
             </button>
+            {userMenuOpen && (
+              <div
+                role="menu"
+                className="absolute right-0 top-full mt-1 w-44 rounded-lg border border-[#eaeaea] bg-white shadow-md py-1 z-40"
+              >
+                <div className="px-3 py-2 border-b border-[#eaeaea]">
+                  <div className="text-sm font-medium text-[#171717] truncate">{user?.name}</div>
+                  <div className="text-[11px] text-[#a3a3a3] truncate">{user?.email}</div>
+                </div>
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    setUserMenuOpen(false);
+                    go('/settings');
+                  }}
+                  className="w-full text-left px-3 py-2 text-sm text-[#525252] hover:bg-[#fafafa] hover:text-[#171717] transition-colors duration-150"
+                >
+                  Settings
+                </button>
+                <button
+                  role="menuitem"
+                  onClick={logout}
+                  className="w-full text-left px-3 py-2 text-sm text-[#525252] hover:bg-[#fafafa] hover:text-[#171717] transition-colors duration-150"
+                >
+                  Sign out
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Mobile hamburger */}
@@ -198,11 +297,29 @@ export default function Layout({ children }: { children: ReactNode }) {
             className="sm:hidden p-2 -mr-1 rounded-md text-[#525252] hover:text-[#171717] hover:bg-[#fafafa] transition-colors duration-150"
           >
             {mobileMenuOpen ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
                 <path d="M6 6l12 12M18 6L6 18" />
               </svg>
             ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
                 <path d="M3 6h18M3 12h18M3 18h18" />
               </svg>
             )}
@@ -214,21 +331,11 @@ export default function Layout({ children }: { children: ReactNode }) {
           className="hidden sm:flex items-center gap-7 px-4 sm:px-6 border-b border-[#eaeaea] overflow-x-auto"
           aria-label="Main navigation"
         >
-          <NavLink to="/">Home</NavLink>
-          <NavLink to="/overview">Value Streams</NavLink>
-          <NavLink to="/roles">Roles</NavLink>
-          <NavLink to="/organization">Organization</NavLink>
-          <NavLink to="/standards">Standards</NavLink>
-          <NavLink to="/regulations">Regulations</NavLink>
-          <NavLink to="/metrics">Metrics</NavLink>
-          <NavLink to="/portfolio">Workspace</NavLink>
-          <NavLink to="/deliverables">Deliverables</NavLink>
-          <NavLink to="/tasks">Tasks</NavLink>
-          <NavLink to="/work-library">Work Library</NavLink>
-          <NavLink to="/automatable">Automatable</NavLink>
-          <NavLink to="/applications">Applications</NavLink>
-          <NavLink to="/external">Third-Parties</NavLink>
-          {user?.role === 'ADMIN' && <NavLink to="/admin">Data Admin</NavLink>}
+          {tabs.map((t) => (
+            <NavLink key={t.key} to={t.path}>
+              {t.label}
+            </NavLink>
+          ))}
         </nav>
 
         {/* Row 3 — the app's single breadcrumb: the cross-tab visited trail,
@@ -254,113 +361,40 @@ export default function Layout({ children }: { children: ReactNode }) {
             {/* Active company */}
             {companies.length > 0 && (
               <div className="px-4 py-3 border-b border-[#eaeaea]">
-                <label className="block text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] mb-1">Company</label>
+                <label className="block text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] mb-1">
+                  Company
+                </label>
                 <select
                   className="w-full rounded-md border border-[#eaeaea] bg-white px-2 py-1.5 text-sm text-[#171717]"
                   value={companyId ?? ''}
                   onChange={(e) => setCompanyId(e.target.value)}
                 >
                   {companies.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
                   ))}
                 </select>
               </div>
             )}
 
-            {/* Nav links */}
+            {/* Nav links — same permission-filtered list as the desktop tab bar */}
             <div className="py-1">
-              <button
-                onClick={() => go('/')}
-                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (onHome ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
-              >
-                Home
-              </button>
-              <button
-                onClick={() => go('/overview')}
-                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/overview') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
-              >
-                Value Streams
-              </button>
-              <button
-                onClick={() => go('/roles')}
-                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/roles') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
-              >
-                Roles
-              </button>
-              <button
-                onClick={() => go('/organization')}
-                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/organization') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
-              >
-                Organization
-              </button>
-              <button
-                onClick={() => go('/standards')}
-                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/standards') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
-              >
-                Standards
-              </button>
-              <button
-                onClick={() => go('/regulations')}
-                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/regulations') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
-              >
-                Regulations
-              </button>
-              <button
-                onClick={() => go('/metrics')}
-                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/metrics') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
-              >
-                Metrics
-              </button>
-              <button
-                onClick={() => go('/portfolio')}
-                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/portfolio') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
-              >
-                Workspace
-              </button>
-              <button
-                onClick={() => go('/deliverables')}
-                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/deliverables') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
-              >
-                Deliverables
-              </button>
-              <button
-                onClick={() => go('/tasks')}
-                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/tasks') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
-              >
-                Tasks
-              </button>
-              <button
-                onClick={() => go('/work-library')}
-                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/work-library') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
-              >
-                Work Library
-              </button>
-              <button
-                onClick={() => go('/automatable')}
-                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/automatable') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
-              >
-                Automatable
-              </button>
-              <button
-                onClick={() => go('/applications')}
-                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/applications') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
-              >
-                Applications
-              </button>
-              <button
-                onClick={() => go('/external')}
-                className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/external') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
-              >
-                Third-Parties
-              </button>
-              {user?.role === 'ADMIN' && (
-                <button
-                  onClick={() => go('/admin')}
-                  className={'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' + (here('/admin') ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')}
-                >
-                  Data Admin
-                </button>
-              )}
+              {tabs.map((t) => {
+                const active = t.path === '/' ? onHome : here(t.path);
+                return (
+                  <button
+                    key={t.key}
+                    onClick={() => go(t.path)}
+                    className={
+                      'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' +
+                      (active ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')
+                    }
+                  >
+                    {t.label}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Operating Model */}
@@ -370,7 +404,14 @@ export default function Layout({ children }: { children: ReactNode }) {
                   Operating Model
                 </div>
                 {domains.map((d) => (
-                  <MobileRow key={d.id} item={d} url={`/n/domain:${d.id}`} active={here(`domain:${d.id}`)} count={d.valueStreams} unit="streams" />
+                  <MobileRow
+                    key={d.id}
+                    item={d}
+                    url={`/n/domain:${d.id}`}
+                    active={here(`domain:${d.id}`)}
+                    count={d.valueStreams}
+                    unit="streams"
+                  />
                 ))}
               </>
             )}
@@ -382,18 +423,36 @@ export default function Layout({ children }: { children: ReactNode }) {
                   Organization
                 </div>
                 {divisions.map((d) => (
-                  <MobileRow key={d.id} item={d} url={`/n/division:${d.id}`} active={here(`division:${d.id}`)} count={d.roles} unit="roles" />
+                  <MobileRow
+                    key={d.id}
+                    item={d}
+                    url={`/n/division:${d.id}`}
+                    active={here(`division:${d.id}`)}
+                    count={d.roles}
+                    unit="roles"
+                  />
                 ))}
               </>
             )}
 
-            {/* Sign out */}
+            {/* Settings + sign out */}
             <div className="px-4 py-3 border-t border-[#eaeaea] mt-1">
               <div className="text-sm font-medium text-[#171717]">{user?.name}</div>
               <div className="text-[11px] text-[#a3a3a3] mt-0.5">{user?.email}</div>
-              <button onClick={logout} className="mt-2 text-sm text-[#525252] hover:text-[#171717] transition-colors duration-150">
-                Sign out
-              </button>
+              <div className="mt-2 flex items-center gap-4">
+                <button
+                  onClick={() => go('/settings')}
+                  className="text-sm text-[#525252] hover:text-[#171717] transition-colors duration-150"
+                >
+                  Settings
+                </button>
+                <button
+                  onClick={logout}
+                  className="text-sm text-[#525252] hover:text-[#171717] transition-colors duration-150"
+                >
+                  Sign out
+                </button>
+              </div>
             </div>
           </div>
         </>

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
+import { requirePermission } from '../middleware/permissions.js';
 import { structureCounts } from '../lib/resolvers/index.js';
 
 // Executive overview — one tenant-wide rollup across every part of the operating
@@ -12,6 +13,7 @@ import { structureCounts } from '../lib/resolvers/index.js';
 
 const router = Router();
 router.use(requireAuth);
+router.use(requirePermission('home'));
 
 type Group = { key: string; count: number };
 

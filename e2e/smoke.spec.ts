@@ -32,6 +32,8 @@ const ROUTES: Array<{ path: string; name: string; readySelector?: string }> = [
   { path: '/search?q=payroll', name: 'search' },
   { path: '/admin', name: 'admin' },
   { path: '/audit', name: 'audit' },
+  { path: '/settings', name: 'settings' },
+  { path: '/user-admin', name: 'user-admin' },
 ];
 
 async function login(page: Page): Promise<void> {

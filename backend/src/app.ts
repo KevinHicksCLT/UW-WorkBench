@@ -9,6 +9,7 @@ import { logger, httpLogger } from './lib/logger.js';
 
 import { prisma } from './db/prisma.js';
 import authRoutes from './routes/auth.js';
+import meRoutes from './routes/me/index.js';
 import auditRoutes from './routes/audit.js';
 import companyRoutes from './routes/companies.js';
 import divisionRoutes from './routes/divisions.js';
@@ -33,6 +34,8 @@ import workLibraryRoutes from './routes/work-library/index.js';
 import chatRoutes from './routes/chat.js';
 import standardsSkillsRoutes from './routes/standardsSkills.js';
 import regulationsRoutes from './routes/regulations/index.js';
+import usersRoutes from './routes/users/index.js';
+import provisioningRoutes from './routes/provisioning/index.js';
 import { clearResponseCache } from './lib/responseCache.js';
 
 const app = express();
@@ -44,7 +47,16 @@ app.use(cors());
 // Gzip every response — the /work and /explorer payloads are MB-scale JSON
 // that compresses ~10×, which is most of the tab-load latency.
 app.use(compression());
-app.use(express.json({ limit: '5mb' }));
+app.use(
+  express.json({
+    limit: '5mb',
+    // Keep the raw body around for webhook HMAC verification (X-Signature is
+    // computed over the exact bytes, not the re-serialized JSON).
+    verify: (req, _res, buf) => {
+      (req as unknown as { rawBody?: Buffer }).rawBody = buf;
+    },
+  }),
+);
 // Any write invalidates the GET response cache (see lib/responseCache.ts), so a
 // mutation on any router is always followed by fresh reads.
 app.use((req, _res, next) => {
@@ -73,6 +85,7 @@ app.get('/health', async (_req: Request, res: Response) => {
 });
 
 app.use('/auth', authRoutes);
+app.use('/me', meRoutes);
 app.use('/audit', auditRoutes);
 app.use('/companies', companyRoutes);
 app.use('/divisions', divisionRoutes);
@@ -99,6 +112,8 @@ app.use('/work-library', workLibraryRoutes);
 app.use('/chat', chatRoutes);
 app.use('/standards-skills', standardsSkillsRoutes);
 app.use('/regulations', regulationsRoutes);
+app.use('/users', usersRoutes);
+app.use('/provisioning', provisioningRoutes);
 
 /**
  * Central error handler — logs the full error with request context (request id,
