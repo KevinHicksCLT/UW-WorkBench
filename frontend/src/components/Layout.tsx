@@ -7,6 +7,7 @@ import { navItems, prefetchPathFor } from '../lib/navigation';
 import { useBreadcrumbHeader } from '../lib/breadcrumbs';
 import SearchBox from './SearchBox';
 import AssistantWidget from './AssistantWidget';
+import FeedbackWidget from './FeedbackWidget';
 import BreadcrumbBar from './BreadcrumbBar';
 
 type IndexItem = { id: string; name: string; valueStreams?: number; roles?: number };
@@ -226,6 +227,11 @@ export default function Layout({ children }: { children: ReactNode }) {
                 <SearchBox />
               </div>
             </div>
+          </div>
+
+          {/* Feedback capture — header button + modal, on every authenticated screen */}
+          <div className="hidden sm:block">
+            <FeedbackWidget />
           </div>
 
           {/* User menu — desktop (Settings + sign-out dropdown) */}

@@ -35,6 +35,7 @@ import chatRoutes from './routes/chat.js';
 import standardsSkillsRoutes from './routes/standardsSkills.js';
 import regulationsRoutes from './routes/regulations/index.js';
 import usersRoutes from './routes/users/index.js';
+import feedbackRoutes from './routes/feedback.js';
 import provisioningRoutes from './routes/provisioning/index.js';
 import { clearResponseCache } from './lib/responseCache.js';
 
@@ -114,6 +115,7 @@ app.use('/standards-skills', standardsSkillsRoutes);
 app.use('/regulations', regulationsRoutes);
 app.use('/users', usersRoutes);
 app.use('/provisioning', provisioningRoutes);
+app.use('/feedback', feedbackRoutes);
 
 /**
  * Central error handler — logs the full error with request context (request id,

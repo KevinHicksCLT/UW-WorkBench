@@ -178,6 +178,34 @@ model WebhookEvent {
   @@index([tenantId, createdAt])
 }
 
+// Operational ledger of in-app feedback submissions and their delivery
+// pipeline (LLM ticket generation → Jira issue → notification email).
+// Deliberately relationless like WebhookEvent: rows are an ops/audit log,
+// not part of the operating-model domain graph.
+model Feedback {
+  id                   String    @id @default(cuid())
+  tenantId             String
+  userId               String
+  name                 String? // optional display name typed into the form
+  text                 String
+  route                String // client route the feedback was submitted from
+  commitSha            String
+  userAgent            String
+  screenshot           Bytes? // captured client-side; served at /feedback/:id/screenshot
+  screenshotMime       String?
+  status               String    @default("PENDING") // PENDING | GENERATED | TICKETED | NOTIFIED | FAILED
+  ticket               Json? // generated { title, summary, story, acceptanceCriteria }
+  jiraKey              String?
+  screenshotAttachedAt DateTime?
+  notifiedAt           DateTime?
+  error                String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @default(now()) @updatedAt
+
+  @@index([tenantId, createdAt])
+  @@index([userId, createdAt])
+}
+
 // ─── Company ────────────────────────────────────────────────────────────
 
 model Company {
