@@ -14,10 +14,12 @@ import { sendNotification } from './notify.js';
  * Status walk: PENDING → GENERATED → TICKETED → NOTIFIED, with FAILED + error
  * recorded on any step failure (retryable via POST /feedback/:id/retry).
  *
- * Execution model: invoked fire-and-forget from the route. That is correct on
- * the persistent dev server (tsx watch); on Vercel serverless the function
- * freezes after the response, so production needs a durable runner (Inngest —
- * these steps are already shaped as its step.run() blocks) before go-live.
+ * Execution model: started from the route after the response is sent, kept
+ * alive on Vercel via waitUntil (see routes/feedback.ts) and running plainly
+ * on the persistent dev server. Rows that still die mid-flight (deploy,
+ * timeout) surface as PENDING/partial in GET /feedback and resume via retry.
+ * A durable runner (Inngest — these steps are already shaped as its
+ * step.run() blocks) remains the hardening upgrade if volume grows.
  */
 
 async function markFailed(feedbackId: string, error: unknown): Promise<void> {

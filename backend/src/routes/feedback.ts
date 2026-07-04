@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
+import { waitUntil } from '@vercel/functions';
 import { z } from 'zod';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { prisma } from '../db/prisma.js';
@@ -80,11 +81,15 @@ router.post(
         select: { id: true, status: true, createdAt: true },
       });
 
-      // Fire-and-forget: correct on the persistent dev server; production needs
-      // a durable runner (Inngest) before go-live — see lib/feedback/pipeline.ts.
-      runFeedbackPipeline(row.id).catch((e) =>
+      // Respond immediately; the pipeline continues in the background.
+      // waitUntil keeps the Vercel function alive until the pipeline settles
+      // (without it the lambda freezes the moment the response is sent and
+      // tickets/emails stall until a later invocation thaws it). Outside
+      // Vercel it is a no-op and the promise runs on the persistent process.
+      const pipeline = runFeedbackPipeline(row.id).catch((e) =>
         logger.error({ err: e, feedbackId: row.id }, 'feedback pipeline crashed'),
       );
+      waitUntil(pipeline);
 
       res.status(201).json(row);
     } catch (e) {
