@@ -4,7 +4,7 @@
 //
 // Column contract (headers case-insensitive, values trimmed):
 //   email (required) · name (required) · userType (USER_TYPES value) ·
-//   orgUnit (name/dbValue) · geography (NORTH_AMERICA|UK_EUROPE|APAC|LATAM) ·
+//   orgUnit (name/dbValue) · geography (GLOBAL|NORTH_AMERICA|UK_EUROPE|APAC|LATAM) ·
 //   operatingRole (name/dbValue) · isManager / isApprover (yes/no/true/false/1/0) ·
 //   reportsTo (email — may reference another row in the same file; resolved in
 //   a second pass) · valueStreams (semicolon-separated L2 names).

@@ -41,10 +41,12 @@ export function isUserAdminType(t: string): boolean {
 // SITE_ADMIN can mint admins).
 export const DOMAIN_ADMIN_ASSIGNABLE: readonly UserType[] = ['MEMBER', 'SUPER_USER'];
 
-export const GEOGRAPHIES = ['NORTH_AMERICA', 'UK_EUROPE', 'APAC', 'LATAM'] as const;
+// GLOBAL = worldwide remit (e.g. Shared Platforms), not tied to one region.
+export const GEOGRAPHIES = ['GLOBAL', 'NORTH_AMERICA', 'UK_EUROPE', 'APAC', 'LATAM'] as const;
 export type Geography = (typeof GEOGRAPHIES)[number];
 
 export const GEOGRAPHY_LABELS: Readonly<Record<Geography, string>> = {
+  GLOBAL: 'Global',
   NORTH_AMERICA: 'North America',
   UK_EUROPE: 'UK/Europe',
   APAC: 'APAC',
