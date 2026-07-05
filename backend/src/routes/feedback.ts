@@ -3,6 +3,7 @@ import type { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import { waitUntil } from '@vercel/functions';
 import { z } from 'zod';
+import { FEEDBACK_CATEGORIES } from '@cascade/shared';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { prisma } from '../db/prisma.js';
 import { logger } from '../lib/logger.js';
@@ -27,6 +28,7 @@ const upload = multer({
 
 const submissionSchema = z.object({
   text: z.string().trim().min(1).max(10_000),
+  category: z.enum(FEEDBACK_CATEGORIES),
   name: z.string().trim().max(200).optional(),
   route: z.string().trim().min(1).max(500),
   commitSha: z.string().trim().max(64).default('unknown'),
@@ -72,6 +74,7 @@ router.post(
           userId: req.user.id,
           name: body.name || null,
           text: body.text,
+          category: body.category,
           route: body.route,
           commitSha: body.commitSha,
           userAgent: body.userAgent,
@@ -113,6 +116,7 @@ router.get(
           id: true,
           name: true,
           text: true,
+          category: true,
           route: true,
           commitSha: true,
           status: true,

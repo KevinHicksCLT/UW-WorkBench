@@ -18,6 +18,7 @@ const settings = {
 
 const feedback = {
   text: 'Sidebar loses scroll position',
+  category: 'FUNCTIONAL_DEFECT',
   name: 'Kevin',
   route: '/roles',
   commitSha: 'abc1234',
@@ -55,12 +56,18 @@ describe('buildDescriptionAdf', () => {
     expect(JSON.stringify(lists.at(-1))).toContain('No console errors');
   });
 
-  it('records the captured context (route, commit, tenant, user)', () => {
+  it('records the captured context (category, route, commit, tenant, user)', () => {
     const json = JSON.stringify(buildDescriptionAdf(feedback, ticket));
+    expect(json).toContain('Category: Functional Defect');
     expect(json).toContain('/roles');
     expect(json).toContain('abc1234');
     expect(json).toContain('ten1');
     expect(json).toContain('usr1');
+  });
+
+  it('labels a null category (legacy rows) as Unclassified', () => {
+    const json = JSON.stringify(buildDescriptionAdf({ ...feedback, category: null }, ticket));
+    expect(json).toContain('Category: Unclassified');
   });
 });
 

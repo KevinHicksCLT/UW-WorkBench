@@ -1,3 +1,4 @@
+import { feedbackCategoryLabel } from '@cascade/shared';
 import type { FeedbackConfig } from './config.js';
 import type { TicketContent } from './generateTicket.js';
 
@@ -38,6 +39,7 @@ function bulletList(items: string[]): AdfBulletList {
 
 export type FeedbackContext = {
   text: string;
+  category: string | null; // FeedbackCategory; null on rows predating the field
   name: string | null;
   route: string;
   commitSha: string;
@@ -57,6 +59,7 @@ export function buildDescriptionAdf(feedback: FeedbackContext, ticket: TicketCon
       { type: 'blockquote', content: [paragraph(feedback.text)] },
       heading('Captured context'),
       bulletList([
+        `Category: ${feedbackCategoryLabel(feedback.category)}`,
         `Submitted by: ${feedback.name ?? 'anonymous'} (user ${feedback.userId}, tenant ${feedback.tenantId})`,
         `Screen: ${feedback.route}`,
         `Commit: ${feedback.commitSha}`,
