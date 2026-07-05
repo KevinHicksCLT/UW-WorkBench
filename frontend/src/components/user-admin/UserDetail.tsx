@@ -10,6 +10,7 @@ import {
   type UserUpsertRequest,
 } from '@cascade/shared';
 import { api } from '../../lib/api';
+import { isHeldResponse, notifyHeld } from '../../lib/approvals';
 import { useAuth } from '../../lib/auth';
 import { useDialogs } from '../../lib/dialogs';
 import { Button, Chip, ErrorMessage, Input, Label, LoadingState, Select } from '../ui';
@@ -104,7 +105,8 @@ export default function UserDetail({
   onSaved: () => void;
 }) {
   const auth = useAuth();
-  const { confirm } = useDialogs();
+  const dialogs = useDialogs();
+  const { confirm } = dialogs;
   const isCreate = user === null;
   const isSelf = !isCreate && user.id === auth.user?.id;
   const isSiteAdmin = auth.user?.role === 'SITE_ADMIN';
@@ -195,7 +197,14 @@ export default function UserDetail({
           valueStreamIds: form.valueStreamIds,
           ...(form.password ? { password: form.password } : {}),
         };
-        await api.post('/users', body);
+        const res = await api.post('/users', body);
+        // Minting an admin is governed — a 202-held response means the user
+        // was NOT created; close without refetching as if it succeeded.
+        if (isHeldResponse(res)) {
+          await notifyHeld(dialogs, res);
+          onClose();
+          return;
+        }
       } else {
         // PATCH only what changed.
         const initial = formFromUser(user);
@@ -213,7 +222,16 @@ export default function UserDetail({
         if (form.reportsToId !== initial.reportsToId) patch.reportsToId = form.reportsToId || null;
         if (!sameIds(form.valueStreamIds, initial.valueStreamIds))
           patch.valueStreamIds = form.valueStreamIds;
-        if (Object.keys(patch).length > 0) await api.patch(`/users/${user.id}`, patch);
+        if (Object.keys(patch).length > 0) {
+          const res = await api.patch(`/users/${user.id}`, patch);
+          // e.g. promoting a user to SITE_ADMIN routes through approval — the
+          // patch has NOT applied, so don't report the edit as saved.
+          if (isHeldResponse(res)) {
+            await notifyHeld(dialogs, res);
+            onClose();
+            return;
+          }
+        }
       }
       onSaved();
     } catch (e) {

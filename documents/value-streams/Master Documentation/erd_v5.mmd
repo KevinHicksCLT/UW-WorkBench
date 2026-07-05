@@ -833,7 +833,53 @@ erDiagram
     string route
     string jiraKey
   }
+  ApprovalPolicy {
+    string note "creator->approver framework: which decision needs approval + definition of done"
+    string id PK
+    string tenantId FK
+    string decisionKey "unique per tenant, e.g. portfolio.initiative.stage-gate"
+    bool enabled
+    int slaHours
+  }
+  ApprovalPolicyStage {
+    string id PK
+    string policyId FK
+    int order_ "1-based; stage N+1 dispatches after N completes"
+    string quorum "MANAGER|ANY_OF|ALL_OF|N_OF_M"
+    json seats "seat rules: MANAGER|ROLES|USERS|ENTITY_ROLE|SITE_ADMINS"
+  }
+  ApprovalRequest {
+    string note "held mutation: payload replayed on final approval"
+    string id PK
+    string tenantId FK
+    string policyId FK
+    string entityType
+    string entityId "nullable"
+    json payload "validated body"
+    json subjectAttrs "ABAC subject (orgUnit, geography, valueStream...)"
+    string requestedById FK "-> User"
+    int currentStage
+    string status_ "PENDING|APPROVED|REJECTED|CANCELLED|EXPIRED"
+    datetime dueAt
+  }
+  ApprovalAssignment {
+    string note "one approver-candidate per seat; first decision fills the seat"
+    string id PK
+    string requestId FK
+    int stageOrder
+    string seatKey
+    string assigneeId FK "-> User"
+    string status_ "PENDING|APPROVED|REJECTED|SUPERSEDED|CANCELLED"
+    datetime assignedAt "wait-time clock start"
+    datetime decidedAt
+    string method "IN_APP|ADAPTIVE_CARD_TEAMS|ADAPTIVE_CARD_EMAIL|SERVICENOW|API"
+    string externalRef "e.g. ServiceNow ticket #"
+  }
   %% ================= RELATIONSHIPS =================
+  %% approvals
+  ApprovalPolicy ||--o{ ApprovalPolicyStage : "defines stages"
+  ApprovalPolicy ||--o{ ApprovalRequest : "governs"
+  ApprovalRequest ||--o{ ApprovalAssignment : "seats"
   %% org spine
   Company ||--o{ OrgLevelType : "defines"
   Company ||--o{ OrgUnit : "has"
@@ -1094,3 +1140,7 @@ erDiagram
   style ApiKey fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
   style WebhookEvent fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
   style Feedback fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
+  style ApprovalPolicy fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
+  style ApprovalPolicyStage fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
+  style ApprovalRequest fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
+  style ApprovalAssignment fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
