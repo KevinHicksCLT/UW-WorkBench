@@ -56,8 +56,11 @@ import { NewApplicationModal } from './NewApplicationModal';
 
 // What the side drawer is showing. Legacy-cell categories no longer drill to
 // the drawer — they expand inside their box (WR-10); the drawer stays for the
-// Normalize / Greenfield boxes.
-type Drill = { kind: 'capdan'; layer: Layer } | { kind: 'service'; serviceId: string };
+// Normalize / Greenfield / shared-service boxes.
+type Drill =
+  | { kind: 'capdan'; layer: Layer }
+  | { kind: 'service'; serviceId: string }
+  | { kind: 'shared'; appId: string };
 
 // A stage's application display label / stable multi-select key (WR-01).
 const appLabel = (s: StageRow) => s.application ?? 'Unassigned';
@@ -274,6 +277,7 @@ export default function ApplicationRationalization({
     if (editingRef.current) return;
     if (node.id.startsWith('cap:')) setDrill({ kind: 'capdan', layer: node.id.slice(4) as Layer });
     else if (node.id.startsWith('svc:')) setDrill({ kind: 'service', serviceId: node.id.slice(4) });
+    else if (node.id.startsWith('shared:')) setDrill({ kind: 'shared', appId: node.id.slice(7) });
   }, []);
   // In edit mode, double-clicking a box opens its edit popup. Brown-field cells
   // (and their column header) edit the app; CAPDAN boxes edit the component;
@@ -286,6 +290,8 @@ export default function ApplicationRationalization({
     else if (node.id.startsWith('cap:') && d.componentId)
       setEditTarget({ kind: 'component', id: d.componentId });
     else if (node.id.startsWith('svc:')) setEditTarget({ kind: 'service', id: node.id.slice(4) });
+    // Shared services are RationalizationApp rows — same editor (WR-15).
+    else if (node.id.startsWith('shared:')) setEditTarget({ kind: 'app', id: node.id.slice(7) });
   }, []);
 
   // The data-derived board (before any user overlay) — see greenfield/boardNodes.
@@ -377,6 +383,16 @@ export default function ApplicationRationalization({
         title: comp?.name ?? drill.layer,
         meta: meta || undefined,
         findings,
+      };
+    }
+    // A shared service absorbs the Relocate findings pointing at it (WR-15).
+    if (drill.kind === 'shared') {
+      const a = detail.apps.find((x) => x.id === drill.appId);
+      return {
+        eyebrow: 'Shared service',
+        title: a?.name ?? 'Shared service',
+        meta: a?.techStack ?? undefined,
+        findings: detail.findings.filter((f) => f.sharedServiceId === drill.appId),
       };
     }
     const m = detail.microservices.find((x) => x.id === drill.serviceId);

@@ -35,16 +35,20 @@ export type CellNodeData = {
   screens: Record<string, CellScreen>;
   /** Anatomy-catalog descriptions for this layer, by category name. */
   tips: Record<string, string>;
+  /** Shared-service names by app id — labels shared-service relocations (WR-15). */
+  sharedNames: Record<string, string>;
 };
 
 function FindingRow({
   f,
   capdan,
   screens,
+  sharedNames,
 }: {
   f: Finding;
   capdan: CategoryTag['capdan'];
   screens: Record<string, CellScreen>;
+  sharedNames: Record<string, string>;
 }) {
   // Plain language is the DEFAULT; the technical version (code location,
   // rationale, migration approach) lives on mouseover (WR feedback 2026-07-06).
@@ -53,7 +57,10 @@ function FindingRow({
     .filter((v): v is string => Boolean(v) && v !== summary)
     .join('  ·  ');
   const screen = f.screenRef ? screens[f.screenRef] : undefined;
-  const dest = f.recommendedLayer ?? f.targetLayer;
+  // A relocation lands either in a shared service (WR-15) or another layer.
+  const dest = f.sharedServiceId
+    ? (sharedNames[f.sharedServiceId] ?? 'a shared service')
+    : (f.recommendedLayer ?? f.targetLayer);
   return (
     <div
       className="rounded-md border border-[#f0e4cf] bg-white/60 px-2 py-1"
@@ -136,7 +143,13 @@ function TagChips({ tags, d }: { tags: CategoryTag[]; d: CellNodeData }) {
             {chip}
             <div className="mt-1 space-y-1">
               {t.findings.map((f) => (
-                <FindingRow key={f.id} f={f} capdan={t.capdan} screens={d.screens} />
+                <FindingRow
+                  key={f.id}
+                  f={f}
+                  capdan={t.capdan}
+                  screens={d.screens}
+                  sharedNames={d.sharedNames}
+                />
               ))}
             </div>
           </div>

@@ -705,11 +705,12 @@ erDiagram
     bool illustrative
   }
   RationalizationApp {
-    string status "brown-field legacy app (grid column)"
+    string status "brown-field legacy app (grid column) or shared service (own lane, WR-15)"
     string id PK
     string companyId FK
     string workspaceId FK
     string name
+    string kind "LEGACY|SHARED_SERVICE (WR-15)"
     string disposition
     string techStack
   }
@@ -730,6 +731,7 @@ erDiagram
     string workspaceId FK
     string appId FK
     string componentId FK "nullable"
+    string sharedServiceId FK "-> RationalizationApp SHARED_SERVICE relocate target (nullable, WR-15)"
     string layer
     string view "COMPONENT|BEHAVIOR (anatomy lens, WR-06)"
     string screenRef "screen/modal tag (UI findings, nullable)"
@@ -1015,6 +1017,7 @@ erDiagram
   ProcessNode |o--o{ ScreenAsset : "serves L4"
   Company ||--o{ AnatomyCategory : "defines taxonomy"
   RationalizationApp ||--o{ RationalizationCapability : "exposes"
+  RationalizationApp |o--o{ RationalizationCapability : "relocate-target (shared service)"
   RationalizationComponent ||--o{ RationalizationCapability : "folds-in"
   RationalizationMicroservice ||--o{ RationalizationComponent : "lands"
   Role |o--o{ RationalizationMicroservice : "owns"

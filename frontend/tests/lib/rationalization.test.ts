@@ -45,6 +45,7 @@ describe('categoryTags', () => {
     recommendedLayer: null,
     capdan: 'Common',
     targetLayer: null,
+    sharedServiceId: null,
     name: 'f',
     codeRef: null,
     migrationApproach: null,

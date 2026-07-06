@@ -20,7 +20,7 @@ Branch `workspace-renovation` · from Kevin's 15-item request (2026-07-06) again
 | WR-12 | Semantic search, not keyword-only | R2 | Planned |
 | WR-13 | Green items map to same layer in Normalize; red to AI-recommended layer; multi-app normalize with duplicate detection + "clean up duplicates" | R2 | Planned |
 | WR-14 | Drop Building/Planned labels; show which Normalize capabilities exist in the greenfield vs where they'll be added; Normalize→Greenfield 1:N | R3 | Planned |
-| WR-15 | E2E view includes shared applications/services (e.g. MDM/RDM call replacing local reference data) | R1 | Planned |
+| WR-15 | E2E view includes shared applications/services (e.g. MDM/RDM call replacing local reference data) | R1 | **SHIPPED 2026-07-06** (SHARED_SERVICE app kind + full-width lane below the grid; Relocate findings target a service via `sharedServiceId`) |
 
 ## Phase R0 — shipped on this branch (2026-07-06)
 
@@ -33,7 +33,7 @@ WR-02/04/05/09 live and verified: headers read **Normalize** and **Greenfield** 
 - **WR-01 — tri-mode lens.** Replace the Application/L3/L4 cascade with a mode switch (`Applications | Value streams | Roles`) + multi-select combobox. Mode drives the board: applications mode = one legacy column per selected app (board already supports 2; generalize `appX[]`); value-stream / role modes pivot the same findings by `valueStreamNodeId` / owner-role joins. Needs `RationalizationWorkspace.application` promoted from free text to an FK (`applicationId → Application`) — the db-data-model rule this string always violated.
 - ~~WR-03~~ — **done in R0** (Option C). Note for WR-01: the panel model was chosen partly because multi-app selection simply adds panels (`panelX(i)` already generalizes past two apps).
 - **WR-06 + WR-10 — anatomy catalog inside the boxes.** Seed Kevin's layer taxonomy as reference data (`AnatomyCategory`: layer × view × name × plain-language description × belongs-here flag — the Components list, the Behavior list, and the per-layer "misplaced" lists incl. the Modern-vs-Legacy summary table). Extend `RationalizationCapability` with `view` (COMPONENT|BEHAVIOR), `screenRef` (screen/modal tag), `plainSummary` (non-technical sentence), `recommendedLayer` (AI-suggested correct layer for misplaced items). Boxes get: Components/Behavior toggle, expand/collapse (+/−) rows *inside* the box (React Flow nodes re-measure on size change — the drawer stays only for deep detail), screen links (per-L4 `ScreenAsset` rows: name, kind screen|modal, url/image).
-- **WR-15 — shared services lane.** `RationalizationApp.kind` gains `SHARED_SERVICE`; shared boxes (MDM/RDM, auth, document services) render in a separate lane and can be targets of relocate edges, so the E2E L4 picture includes calls that replace local hard-coding.
+- **WR-15 — shared services lane** *(shipped 2026-07-06)*. `RationalizationApp.kind` (`LEGACY | SHARED_SERVICE`); `RationalizationCapability.sharedServiceId` FK marks a Relocate finding whose destination is a shared service instead of a layer (`targetLayer` stays null so a finding never draws both arrows). Shared boxes render in a full-width lane below the layer grid with dashed relocate edges landing on them; clicking one drills to the findings it absorbs. TB self-anatomy seeds two: Enterprise Reference Data (MDM/RDM) ← 5 findings, Identity & Access ← 2. Ontology regen deferred to merge (toolchain lives on `kevins-070526-feature-branch`).
 
 ## Phase R2 — semantics (self-anatomy, search, chat context)
 

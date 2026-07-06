@@ -1703,6 +1703,7 @@ model RationalizationApp {
   workspace    RationalizationWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   name         String
   description  String?
+  kind         String                   @default("LEGACY") // LEGACY | SHARED_SERVICE — shared services (MDM/RDM, auth, docs) render in their own lane (WR-15)
   disposition  String                   @default("Refactor") // Retain | Refactor | Replace | Retire
   techStack    String?
   vendor       String?
@@ -1717,6 +1718,8 @@ model RationalizationApp {
 
   capabilities RationalizationCapability[]
   screens      ScreenAsset[]
+  // Relocate findings whose destination is this shared service (WR-15).
+  relocatedFindings RationalizationCapability[] @relation("CapabilitySharedService")
 
   @@index([companyId])
   @@index([workspaceId])
@@ -1808,6 +1811,10 @@ model RationalizationCapability {
   recommendedLayer  String? // rule/AI-suggested correct layer for misplaced items (targetLayer = the human decision)
   capdan            String                    @default("Common") // Common | Different | Relocate | Eliminate
   targetLayer       String?
+  // Relocate findings can land in a SHARED_SERVICE app instead of a layer —
+  // e.g. a hard-coded state list replaced by an MDM/RDM call (WR-15).
+  sharedServiceId   String?
+  sharedService     RationalizationApp?       @relation("CapabilitySharedService", fields: [sharedServiceId], references: [id], onDelete: SetNull)
   treatment         String                    @default("Retain") // Retain | Eliminate
   migrationStatus   String                    @default("Identified")
   componentId       String?
@@ -1827,6 +1834,7 @@ model RationalizationCapability {
   @@index([workspaceId])
   @@index([appId])
   @@index([componentId])
+  @@index([sharedServiceId])
 }
 
 model RationalizationMicroservice {

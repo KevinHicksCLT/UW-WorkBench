@@ -28,6 +28,8 @@ import {
   PANEL_W,
   PANEL_GAP,
   HEADER_H,
+  LANE_GAP,
+  LANE_H,
   ROW_H,
   X,
   belongsHere,
@@ -107,17 +109,42 @@ function ServiceNode({ data }: NodeProps) {
   );
 }
 
+// A shared application/service (WR-15) — MDM/RDM, auth, document services.
+// Lives in its own lane below the layer grid; Relocate findings whose local
+// implementation a call to it replaces point at it.
+function SharedServiceNode({ data }: NodeProps) {
+  const d = data as { name: string; tech: string | null; count: number };
+  return (
+    <div
+      className="rounded-xl border-2 border-[#bae6fd] bg-[#f0f9ff] shadow-sm px-4 py-3 cursor-pointer hover:border-[#7dd3fc]"
+      style={{ width: BOX_W }}
+      title="Click for the findings this shared service absorbs"
+    >
+      {sideHandles}
+      <div className="flex items-center justify-between">
+        <div className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#0369a1]">
+          Shared service
+        </div>
+        <div className="text-[12px] text-[#0369a1] tnum">{d.count} ›</div>
+      </div>
+      <div className="text-[18px] font-bold text-[#171717] leading-tight mt-0.5">{d.name}</div>
+      {d.tech && <div className="text-[12px] text-[#a3a3a3] mt-1.5 leading-snug">{d.tech}</div>}
+    </div>
+  );
+}
+
 // Option C (WR-03): each stage — every legacy app, Normalize, Greenfield — is
 // a framed panel; the header lives INSIDE the panel band so it can never
 // drift from its column. The panel itself is pointer-transparent scaffolding
 // (pan/zoom passes through); the interactive header text is a separate locked
 // node overlaid on the band, keeping double-click-to-edit-app behavior.
+// The shared-services lane (WR-15) reuses it with a width override.
 function PanelNode({ data }: NodeProps) {
-  const d = data as { height: number };
+  const d = data as { height: number; width?: number };
   return (
     <div
       className="rounded-xl border border-[#e3e6e8] bg-[#f7f8f9]"
-      style={{ width: PANEL_W, height: d.height }}
+      style={{ width: d.width ?? PANEL_W, height: d.height }}
     >
       <div
         className="bg-white border-b border-[#e3e6e8] rounded-t-xl"
@@ -204,6 +231,7 @@ export const nodeTypes = {
   cell: CellNode,
   capdan: CapdanNode,
   service: ServiceNode,
+  shared: SharedServiceNode,
   header: HeaderNode,
   layerLabel: LayerLabelNode,
 };
@@ -236,6 +264,10 @@ export function buildBoardBase(
   const layerIndex = Object.fromEntries(LAYERS.map((l, i) => [l, i])) as Record<Layer, number>;
   const lock = { draggable: false, selectable: false } as const;
 
+  // Shared services (WR-15) live in their own lane, not the legacy columns.
+  const legacyApps = detail.apps.filter((a) => a.kind !== 'SHARED_SERVICE');
+  const sharedApps = detail.apps.filter((a) => a.kind === 'SHARED_SERVICE');
+
   // layers owned by each green-field service + kept-finding counts.
   // Normalize/Greenfield counts stay based on ALL findings (view-independent).
   const layersByService = new Map<string, Layer[]>();
@@ -256,12 +288,13 @@ export function buildBoardBase(
     const forLayer = (tipsByLayer[row.layer] ??= {});
     if (row.description && !forLayer[row.name]) forLayer[row.name] = row.description;
   }
+  const sharedNameById = Object.fromEntries(sharedApps.map((s) => [s.id, s.name]));
 
   // Variable slot heights (WR-10): tags per layer × app are view-filtered, the
   // estimator turns tags + expansion into a deterministic per-cell height, and
   // each layer's slot grows to fit its tallest box so rows stay aligned
   // across panels.
-  const two = detail.apps.slice(0, 2);
+  const two = legacyApps.slice(0, 2);
   const expandedFor = (appId: string, layer: Layer) => expanded[`cell:${appId}:${layer}`] ?? [];
   const tagsByLayerApp = LAYERS.map((layer) =>
     two.map((a) => categoryTags(detail.findings, layer, a.id, view)),
@@ -334,6 +367,7 @@ export function buildBoardBase(
           onToggle: onToggleCategory,
           screens: screenByName,
           tips: tipsByLayer[layer] ?? {},
+          sharedNames: sharedNameById,
         },
         selectable: false,
       });
@@ -448,6 +482,65 @@ export function buildBoardBase(
       style: { stroke: '#5eead4', strokeWidth: 1.75 },
       markerEnd: { type: MarkerType.ArrowClosed, color: '#14b8a6', width: 15, height: 15 },
     });
+  }
+
+  // Shared-services lane (WR-15) — shared applications (MDM/RDM, auth,
+  // document services) render in a full-width band below the layer grid;
+  // Relocate findings that a call to one of them replaces point at its box.
+  if (sharedApps.length > 0) {
+    const laneTop = boardHeight + PANEL_PAD + LANE_GAP;
+    const columnsW = panelX(headApps.length + 1) + PANEL_W; // span all stage columns
+    const boxesW = PANEL_PAD * 2 + sharedApps.length * BOX_W + (sharedApps.length - 1) * PANEL_GAP;
+    nodes.push({
+      id: 'panel:sharedLane',
+      type: 'panel',
+      position: { x: 0, y: laneTop },
+      data: { height: LANE_H, width: Math.max(columnsW, boxesW) },
+      zIndex: -10,
+      focusable: false,
+      style: { pointerEvents: 'none' },
+      ...lock,
+    });
+    nodes.push({
+      id: 'hdr:sharedLane',
+      type: 'header',
+      position: { x: PANEL_PAD, y: laneTop + 14 },
+      data: { title: 'Shared services' },
+      ...lock,
+    });
+    const countByService = new Map<string, number>();
+    for (const f of detail.findings)
+      if (f.sharedServiceId)
+        countByService.set(f.sharedServiceId, (countByService.get(f.sharedServiceId) ?? 0) + 1);
+    sharedApps.forEach((s, i) => {
+      nodes.push({
+        id: `shared:${s.id}`,
+        type: 'shared',
+        position: { x: PANEL_PAD + i * (BOX_W + PANEL_GAP), y: laneTop + HEADER_H + PANEL_PAD },
+        data: { name: s.name, tech: s.techStack, count: countByService.get(s.id) ?? 0 },
+      });
+    });
+    // One arrow per (cell → shared service) pair with relocating findings.
+    const pairs = new Set<string>();
+    for (const f of detail.findings) {
+      if (!f.sharedServiceId || !two.some((a) => a.id === f.appId)) continue;
+      const key = `${f.appId}:${f.layer}:${f.sharedServiceId}`;
+      if (pairs.has(key)) continue;
+      pairs.add(key);
+      const svcName = sharedApps.find((s) => s.id === f.sharedServiceId)?.name;
+      edges.push({
+        id: `sh-${key}`,
+        source: `cell:${f.appId}:${f.layer}`,
+        target: `shared:${f.sharedServiceId}`,
+        sourceHandle: 'r',
+        targetHandle: 'l',
+        type: 'relocate',
+        data: { label: `→ ${svcName ?? 'shared service'}` },
+        animated: true,
+        style: { stroke: '#0284c7', strokeWidth: 1.75, strokeDasharray: '5 3' },
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#0284c7', width: 16, height: 16 },
+      });
+    }
   }
 
   return { nodes, edges };

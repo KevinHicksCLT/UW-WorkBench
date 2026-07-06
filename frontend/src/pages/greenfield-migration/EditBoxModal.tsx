@@ -27,12 +27,14 @@ function buildBoxConfig(
   if (target.kind === 'app') {
     const a = detail.apps.find((x) => x.id === target.id);
     if (!a) return null;
+    const sharedService = a.kind === 'SHARED_SERVICE';
     return {
       endpoint: `/rationalization/apps/${a.id}`,
-      eyebrow: 'Brown-field · legacy app',
-      title: 'Edit application',
+      eyebrow: sharedService ? 'Shared service' : 'Brown-field · legacy app',
+      title: sharedService ? 'Edit shared service' : 'Edit application',
       fields: [
         { key: 'name', label: 'Name' },
+        { key: 'kind', label: 'Kind', placeholder: 'LEGACY | SHARED_SERVICE' },
         { key: 'techStack', label: 'Tech stack', placeholder: 'e.g. C# / .NET, SQL Server' },
         {
           key: 'disposition',
@@ -40,7 +42,12 @@ function buildBoxConfig(
           placeholder: 'Retain | Refactor | Replace | Retire',
         },
       ],
-      values: { name: v(a.name), techStack: v(a.techStack), disposition: v(a.disposition) },
+      values: {
+        name: v(a.name),
+        kind: v(a.kind),
+        techStack: v(a.techStack),
+        disposition: v(a.disposition),
+      },
     };
   }
   if (target.kind === 'component') {

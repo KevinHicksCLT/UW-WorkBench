@@ -323,10 +323,11 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       progress: progressFor(caps),
       counts: { findings: caps.length, ...capdanCounts(caps) },
       byLayer,
-      // Brown-field apps (the grid columns).
+      // Brown-field apps (the grid columns) + shared services (own lane, WR-15).
       apps: w.apps.map((a) => ({
         id: a.id,
         name: a.name,
+        kind: a.kind,
         techStack: a.techStack,
         disposition: a.disposition,
         position: a.position,
@@ -374,6 +375,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         recommendedLayer: c.recommendedLayer,
         capdan: c.capdan,
         targetLayer: c.targetLayer,
+        sharedServiceId: c.sharedServiceId,
         name: c.name,
         codeRef: c.codeRef,
         migrationApproach: c.migrationApproach,
@@ -518,17 +520,23 @@ async function patchBoxEntity(
   return updated;
 }
 
-// PATCH /rationalization/apps/:id — edit a brown-field legacy app (column).
+// PATCH /rationalization/apps/:id — edit a brown-field legacy app (column)
+// or a shared service (WR-15: kind toggles which lane the box renders in).
 const APP_FIELDS = [
   'name',
+  'kind',
   'techStack',
   'disposition',
   'vendor',
   'hosting',
   'criticality',
 ] as const;
+const APP_KINDS = ['LEGACY', 'SHARED_SERVICE'];
 router.patch('/apps/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const kind = (req.body ?? {}).kind;
+    if (kind !== undefined && !APP_KINDS.includes(kind as string))
+      return res.status(400).json({ error: `kind must be one of ${APP_KINDS.join(' | ')}` });
     const updated = await patchBoxEntity(
       req,
       res,
@@ -544,6 +552,7 @@ router.patch('/apps/:id', async (req: Request, res: Response, next: NextFunction
       res.json({
         id: updated.id,
         name: updated.name,
+        kind: updated.kind,
         techStack: updated.techStack ?? null,
         disposition: updated.disposition ?? null,
         position: updated.position,

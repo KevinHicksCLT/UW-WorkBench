@@ -26,9 +26,12 @@ type Finding = {
   capdan: 'Common' | 'Relocate' | 'Eliminate';
   recommendedLayer: string | null;
   rationale: string | null;
+  sharedService?: string; // WR-15: relocation lands in this shared service, not a layer
 };
 type Payload = {
   apps: { key: 'frontend' | 'backend'; name: string; techStack: string }[];
+  // WR-15: shared applications (MDM/RDM, IAM) that absorb Relocate findings.
+  sharedServices: { key: string; name: string; techStack: string }[];
   screens: { name: string; kind: 'SCREEN' | 'MODAL'; route: string | null }[];
   findings: Finding[];
 };
@@ -76,6 +79,28 @@ const appRows = await Promise.all(
 );
 const appIdByKey = Object.fromEntries(payload.apps.map((a, i) => [a.key, appRows[i].id]));
 const frontendAppId = appIdByKey.frontend;
+
+// Shared services (WR-15) — SHARED_SERVICE apps render in their own lane and
+// receive the Relocate findings whose local implementation a call replaces.
+const sharedRows = await Promise.all(
+  payload.sharedServices.map((s, i) =>
+    prisma.rationalizationApp.create({
+      data: {
+        ...scope,
+        workspaceId: w.id,
+        name: s.name,
+        kind: 'SHARED_SERVICE',
+        techStack: s.techStack,
+        disposition: 'Retain',
+        position: payload.apps.length + i,
+        illustrative: false,
+      },
+    }),
+  ),
+);
+const sharedIdByKey = Object.fromEntries(
+  payload.sharedServices.map((s, i) => [s.key, sharedRows[i].id]),
+);
 
 await prisma.screenAsset.createMany({
   data: payload.screens.map((s) => ({
@@ -131,9 +156,12 @@ await prisma.rationalizationCapability.createMany({
     codeRef: f.codeRef,
     screenRef: f.screenRef,
     capdan: f.capdan,
-    // targetLayer drives the relocation arrows; the recommendation IS the
+    // A relocation lands either in a shared service (WR-15) or a layer;
+    // targetLayer drives the layer arrows and stays null for shared-service
+    // relocations so a finding never draws both. The recommendation IS the
     // target until a human overrides it.
-    targetLayer: f.capdan === 'Relocate' ? f.recommendedLayer : null,
+    sharedServiceId: f.sharedService ? (sharedIdByKey[f.sharedService] ?? null) : null,
+    targetLayer: f.capdan === 'Relocate' && !f.sharedService ? f.recommendedLayer : null,
     recommendedLayer: f.recommendedLayer,
     rationale: f.rationale,
     treatment: f.capdan === 'Eliminate' ? 'Eliminate' : 'Retain',
@@ -147,6 +175,8 @@ const counts = {
   findings: payload.findings.length,
   misplaced: payload.findings.filter((f) => f.capdan !== 'Common').length,
   screens: payload.screens.length,
+  sharedServices: payload.sharedServices.length,
+  sharedRelocations: payload.findings.filter((f) => f.sharedService).length,
 };
 console.log(`Seeded "${WORKSPACE_NAME}":`, JSON.stringify(counts));
 await prisma.$disconnect();

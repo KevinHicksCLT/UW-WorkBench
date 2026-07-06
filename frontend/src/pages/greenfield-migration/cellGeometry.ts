@@ -28,6 +28,12 @@ export const panelX = (i: number) => i * STRIDE;
 export const X = { label: -160 };
 export const ROW_H = SLOT_H; // relocation-edge label math
 
+// Shared-services lane (WR-15) — a horizontal band below the layer grid for
+// SHARED_SERVICE apps (MDM/RDM, auth, document services).
+export const LANE_GAP = 44; // gap between the panels' bottom edge and the lane
+export const SHARED_BOX_H = 96; // ceiling of a rendered shared-service box
+export const LANE_H = HEADER_H + SHARED_BOX_H + PANEL_PAD * 2;
+
 // ── Cell height estimation (WR-10) ──────────────────────────────────────────
 // Component sizing assumptions (each a ceiling of the rendered CellNode CSS):
 export const EMPTY_CELL_H = 52; // "—" placeholder box

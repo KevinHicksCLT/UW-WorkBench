@@ -80,6 +80,9 @@ function boardNodeLabel(id: string, detail: StageDetail): string {
   if (id.startsWith('svc:')) {
     return detail.microservices.find((m) => m.id === id.slice(4))?.name ?? 'Greenfield service';
   }
+  if (id.startsWith('shared:')) {
+    return detail.apps.find((a) => a.id === id.slice(7))?.name ?? 'Shared service';
+  }
   return id;
 }
 

@@ -87,6 +87,7 @@ export type Finding = {
   recommendedLayer: string | null; // misplaced items: where this belongs
   capdan: Capdan;
   targetLayer: Layer | null;
+  sharedServiceId: string | null; // Relocate target when it's a SHARED_SERVICE app (WR-15)
   name: string;
   codeRef: string | null;
   migrationApproach: string | null;
@@ -102,6 +103,7 @@ export const findingView = (f: Finding): FindingView => f.view ?? 'COMPONENT';
 export type AppCol = {
   id: string;
   name: string;
+  kind: string; // LEGACY | SHARED_SERVICE — shared services render in their own lane (WR-15)
   techStack: string | null;
   disposition: string | null;
   position: number;
