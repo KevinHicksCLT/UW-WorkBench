@@ -8,7 +8,7 @@ Branch `workspace-renovation` · from Kevin's 15-item request (2026-07-06) again
 |----|-----------------|-------|--------|
 | WR-01 | Three explicit inspection modes — multiple **Applications** OR **Value streams** OR **Roles** | R1 | Planned |
 | WR-02 | Remove status verbiage; generic "+ New…" label; Edit board moved onto the selector row | R0 | **SHIPPED** |
-| WR-03 | Structured label/row/column alignment — options to review first | R0/R1 | **Options delivered** (artifact); winner implemented in R1 |
+| WR-03 | Structured label/row/column alignment — options to review first | R0 | **SHIPPED — Option C chosen (Kevin, 2026-07-06)**: contained-column panels, in-band headers, shared baseline slot grid |
 | WR-04 | "Green-field" → "Greenfield" | R0 | **SHIPPED** |
 | WR-05 | Tan/lavender/green boxes larger; content uncramped | R0 | **SHIPPED** (widths 250/240/260→290/285/300, row height 155→180, padding up) |
 | WR-06 | Robust layer boxes: screen links per L4; Components vs Behavior views; "should NOT be here" categories per layer | R1 | Planned |
@@ -31,7 +31,7 @@ WR-02/04/05/09 live and verified: headers read **Normalize** and **Greenfield** 
 **Goal:** the board becomes a legible anatomy instrument rather than a diagram.
 
 - **WR-01 — tri-mode lens.** Replace the Application/L3/L4 cascade with a mode switch (`Applications | Value streams | Roles`) + multi-select combobox. Mode drives the board: applications mode = one legacy column per selected app (board already supports 2; generalize `appX[]`); value-stream / role modes pivot the same findings by `valueStreamNodeId` / owner-role joins. Needs `RationalizationWorkspace.application` promoted from free text to an FK (`applicationId → Application`) — the db-data-model rule this string always violated.
-- **WR-03 — implement the chosen layout option** (from the artifact review), replacing hand-tuned pixel offsets with computed lane geometry.
+- ~~WR-03~~ — **done in R0** (Option C). Note for WR-01: the panel model was chosen partly because multi-app selection simply adds panels (`panelX(i)` already generalizes past two apps).
 - **WR-06 + WR-10 — anatomy catalog inside the boxes.** Seed Kevin's layer taxonomy as reference data (`AnatomyCategory`: layer × view × name × plain-language description × belongs-here flag — the Components list, the Behavior list, and the per-layer "misplaced" lists incl. the Modern-vs-Legacy summary table). Extend `RationalizationCapability` with `view` (COMPONENT|BEHAVIOR), `screenRef` (screen/modal tag), `plainSummary` (non-technical sentence), `recommendedLayer` (AI-suggested correct layer for misplaced items). Boxes get: Components/Behavior toggle, expand/collapse (+/−) rows *inside* the box (React Flow nodes re-measure on size change — the drawer stays only for deep detail), screen links (per-L4 `ScreenAsset` rows: name, kind screen|modal, url/image).
 - **WR-15 — shared services lane.** `RationalizationApp.kind` gains `SHARED_SERVICE`; shared boxes (MDM/RDM, auth, document services) render in a separate lane and can be targets of relocate edges, so the E2E L4 picture includes calls that replace local hard-coding.
 
