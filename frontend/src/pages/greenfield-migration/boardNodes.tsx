@@ -44,7 +44,7 @@ function CellNode({ data }: NodeProps) {
   return (
     <div
       className="rounded-lg border-2 border-[#e7d3b5] bg-[#fdf8f0] shadow-sm px-4 py-3"
-      style={{ width: 290 }}
+      style={{ width: BOX_W }}
     >
       {sideHandles}
       <div className="flex flex-wrap gap-1.5">
@@ -92,7 +92,7 @@ function CapdanNode({ data }: NodeProps) {
   return (
     <div
       className="rounded-lg border-2 border-[#c7d2fe] bg-[#f5f7ff] shadow-sm px-4 py-3 cursor-pointer hover:border-[#a5b4fc]"
-      style={{ width: 285 }}
+      style={{ width: BOX_W }}
       title="Click for the normalized findings"
     >
       {sideHandles}
@@ -116,7 +116,7 @@ function ServiceNode({ data }: NodeProps) {
   return (
     <div
       className="rounded-xl border-2 border-[#a7f3d0] bg-[#ecfdf5] shadow-sm px-4 py-3 cursor-pointer hover:border-[#6ee7b7]"
-      style={{ width: 300 }}
+      style={{ width: BOX_W }}
       title="Click for the granular detail of this greenfield service"
     >
       {sideHandles}
@@ -146,12 +146,33 @@ function ServiceNode({ data }: NodeProps) {
   );
 }
 
+// Option C (WR-03): each stage — every legacy app, Normalize, Greenfield — is
+// a framed panel; the header lives INSIDE the panel band so it can never
+// drift from its column. The panel itself is pointer-transparent scaffolding
+// (pan/zoom passes through); the interactive header text is a separate locked
+// node overlaid on the band, keeping double-click-to-edit-app behavior.
+function PanelNode({ data }: NodeProps) {
+  const d = data as { height: number };
+  return (
+    <div
+      className="rounded-xl border border-[#e3e6e8] bg-[#f7f8f9]"
+      style={{ width: PANEL_W, height: d.height }}
+    >
+      <div
+        className="bg-white border-b border-[#e3e6e8] rounded-t-xl"
+        style={{ height: HEADER_H }}
+      />
+    </div>
+  );
+}
+
 function HeaderNode({ data }: NodeProps) {
   const d = data as { title: string; appId?: string };
   return (
     <div
-      className="text-[19px] font-bold text-[#171717] leading-tight truncate"
-      style={{ maxWidth: 300 }}
+      className="text-[15px] font-bold text-[#171717] leading-tight truncate text-center"
+      style={{ width: BOX_W }}
+      title={d.title}
     >
       {d.title}
     </div>
@@ -162,8 +183,8 @@ function LayerLabelNode({ data }: NodeProps) {
   const d = data as { layer: string };
   return (
     <div
-      className="text-[19px] font-bold text-[#171717] text-right leading-tight"
-      style={{ width: 120 }}
+      className="text-[11px] font-bold uppercase tracking-[0.07em] text-[#68727a] text-right leading-tight"
+      style={{ width: 140 }}
     >
       {d.layer}
     </div>
@@ -218,6 +239,7 @@ function RelocateEdge({
 }
 
 export const nodeTypes = {
+  panel: PanelNode,
   cell: CellNode,
   capdan: CapdanNode,
   service: ServiceNode,
@@ -226,15 +248,23 @@ export const nodeTypes = {
 };
 export const edgeTypes = { relocate: RelocateEdge };
 
-// Wider boxes + taller rows (WR-05): content was cramped at the original
-// 250/240/260 widths; the inter-column lanes stay wide enough for the
-// relocation curves to travel without crossing boxes.
-export const X = { label: -140, app0: 0, app1: 330, capdan: 705, service: 1075 };
-export const ROW_H = 180;
+// Option C geometry — one shared baseline grid across all panels: every box
+// sits top-aligned in its layer SLOT, panels differ only in x. The gap
+// between panels is the arrow lane.
+export const BOX_W = 290; // unified box width (WR-05 sizing preserved)
+export const PANEL_PAD = 14;
+export const PANEL_W = BOX_W + PANEL_PAD * 2;
+export const PANEL_GAP = 46;
+export const HEADER_H = 46; // in-panel header band
+export const SLOT_H = 180; // layer slot height (shared across panels)
+const STRIDE = PANEL_W + PANEL_GAP;
+export const panelX = (i: number) => i * STRIDE;
+export const X = { label: -160 };
+export const ROW_H = SLOT_H; // relocation-edge label math
 
-// The data-derived board (before any user overlay). Headers and layer labels
-// are scaffolding — always locked; the cell / CAPDAN / service boxes follow
-// the global `nodesDraggable` flag so they can be dragged in edit mode.
+// The data-derived board (before any user overlay). Panels, headers and layer
+// labels are scaffolding — always locked; the cell / CAPDAN / service boxes
+// follow the global `nodesDraggable` flag so they can be dragged in edit mode.
 export function buildBoardBase(
   detail: StageDetail | null,
   onDrill: DrillFn,
@@ -242,7 +272,6 @@ export function buildBoardBase(
   if (!detail) return { nodes: [] as Node[], edges: [] as Edge[] };
   const nodes: Node[] = [];
   const edges: Edge[] = [];
-  const appX = [X.app0, X.app1];
   const layerIndex = Object.fromEntries(LAYERS.map((l, i) => [l, i])) as Record<Layer, number>;
   const lock = { draggable: false, selectable: false } as const;
 
@@ -257,39 +286,47 @@ export function buildBoardBase(
   const keptCountByLayer = (layer: Layer) =>
     detail.findings.filter((f) => f.layer === layer && belongsHere(f.capdan)).length;
 
-  // Headers — one top row: the legacy app names (no "Brown-field" section
-  // label) followed by the Normalize and Greenfield labels; all the same style.
-  nodes.push({
-    id: 'hdr:cap',
-    type: 'header',
-    position: { x: X.capdan, y: -54 },
-    data: { title: 'Normalize' },
-    ...lock,
-  });
-  nodes.push({
-    id: 'hdr:svc',
-    type: 'header',
-    position: { x: X.service, y: -54 },
-    data: { title: 'Greenfield' },
-    ...lock,
-  });
+  // Panels — one framed column per stage (each legacy app, Normalize,
+  // Greenfield); header text is a separate node ON the band so the panel can
+  // stay pointer-transparent (pan/zoom passes through, dblclick-app works).
   const headApps = detail.apps.slice(0, 2);
-  headApps.forEach((a, i) => {
+  const appXs = headApps.map((_, i) => panelX(i));
+  const capX = panelX(headApps.length);
+  const svcX = panelX(headApps.length + 1);
+  const panelHeight = HEADER_H + LAYERS.length * SLOT_H + PANEL_PAD;
+  const columns: { key: string; x: number; title: string; appId?: string }[] = [
+    ...headApps.map((a, i) => ({ key: `app${i}`, x: appXs[i], title: a.name, appId: a.id })),
+    { key: 'cap', x: capX, title: 'Normalize' },
+    { key: 'svc', x: svcX, title: 'Greenfield' },
+  ];
+  for (const col of columns) {
     nodes.push({
-      id: `hdr:${a.id}`,
-      type: 'header',
-      position: { x: appX[i], y: -54 },
-      data: { title: a.name, appId: a.id },
+      id: `panel:${col.key}`,
+      type: 'panel',
+      position: { x: col.x, y: -HEADER_H },
+      data: { height: panelHeight },
+      zIndex: -10,
+      focusable: false,
+      style: { pointerEvents: 'none' },
       ...lock,
     });
-  });
+    nodes.push({
+      id: col.appId ? `hdr:${col.appId}` : `hdr:${col.key}`,
+      type: 'header',
+      position: { x: col.x + PANEL_PAD, y: -HEADER_H + 14 },
+      data: { title: col.title, ...(col.appId ? { appId: col.appId } : {}) },
+      ...lock,
+    });
+  }
+
+  // Shared baseline grid: every box top-aligns in its layer slot.
+  const slotY = (li: number) => li * SLOT_H + PANEL_PAD;
 
   LAYERS.forEach((layer, li) => {
-    const y = li * ROW_H;
     nodes.push({
       id: `lbl:${layer}`,
       type: 'layerLabel',
-      position: { x: X.label, y: y + 18 },
+      position: { x: X.label, y: li * SLOT_H + SLOT_H / 2 - 8 },
       data: { layer },
       ...lock,
     });
@@ -303,7 +340,7 @@ export function buildBoardBase(
       nodes.push({
         id: `cell:${a.id}:${layer}`,
         type: 'cell',
-        position: { x: appX[i], y },
+        position: { x: appXs[i] + PANEL_PAD, y: slotY(li) },
         data: { layer, appId: a.id, tags: tagsByApp[i], onDrill },
         selectable: false,
       });
@@ -364,7 +401,7 @@ export function buildBoardBase(
       nodes.push({
         id: `cap:${layer}`,
         type: 'capdan',
-        position: { x: X.capdan, y: y + 8 },
+        position: { x: capX + PANEL_PAD, y: slotY(li) },
         data: {
           name: comp.name,
           destination: comp.destination,
@@ -376,19 +413,33 @@ export function buildBoardBase(
     }
   });
 
-  // Green-field services — positioned at the centre of the layers they own.
-  const span = (LAYERS.length - 1) * ROW_H;
+  // Greenfield services — slotted onto the shared baseline grid at the slot
+  // nearest the centre of the layers they own (multi-layer ownership shows as
+  // chips on the box, per the Option C trade-off). Collisions advance to the
+  // nearest free slot; overflow stacks within the slot.
+  const usedSlots = new Map<number, number>();
+  const pickSlot = (want: number) => {
+    const clamp = Math.min(Math.max(want, 0), LAYERS.length - 1);
+    if (!usedSlots.has(clamp)) return clamp;
+    for (let d = 1; d < LAYERS.length; d++) {
+      if (clamp + d < LAYERS.length && !usedSlots.has(clamp + d)) return clamp + d;
+      if (clamp - d >= 0 && !usedSlots.has(clamp - d)) return clamp - d;
+    }
+    return clamp;
+  };
   detail.microservices.forEach((m) => {
     const owned = (layersByService.get(m.id) ?? [])
       .slice()
       .sort((a, b) => layerIndex[a] - layerIndex[b]);
-    const ys = owned.length ? owned.map((l) => layerIndex[l] * ROW_H) : [span / 2];
-    const y = ys.reduce((s, v) => s + v, 0) / ys.length;
+    const idxs = owned.length ? owned.map((l) => layerIndex[l]) : [Math.floor(LAYERS.length / 2)];
+    const slot = pickSlot(Math.round(idxs.reduce((s, v) => s + v, 0) / idxs.length));
+    const stack = usedSlots.get(slot) ?? 0;
+    usedSlots.set(slot, stack + 1);
     const count = owned.reduce((s, l) => s + keptCountByLayer(l), 0);
     nodes.push({
       id: `svc:${m.id}`,
       type: 'service',
-      position: { x: X.service, y: y + 2 },
+      position: { x: svcX + PANEL_PAD, y: slotY(slot) + stack * 92 },
       data: { name: m.name, status: m.status, tech: m.techStack, layers: owned, count },
     });
   });
