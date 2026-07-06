@@ -6,7 +6,7 @@ Branch `workspace-renovation` · from Kevin's 15-item request (2026-07-06) again
 
 | WR | Ask (condensed) | Phase | Status |
 |----|-----------------|-------|--------|
-| WR-01 | Three explicit inspection modes — multiple **Applications** OR **Value streams** OR **Roles** | R1 | Planned |
+| WR-01 | Three explicit inspection modes — multiple **Applications** OR **Value streams** OR **Roles** | R1 | **SHIPPED 2026-07-06** (tri-mode multi-select lens; server-side role→stream resolution; workspace applicationId FK) |
 | WR-02 | Remove status verbiage; generic "+ New…" label; Edit board moved onto the selector row | R0 | **SHIPPED** |
 | WR-03 | Structured label/row/column alignment — options to review first | R0 | **SHIPPED — Option C chosen (Kevin, 2026-07-06)**: contained-column panels, in-band headers, shared baseline slot grid |
 | WR-04 | "Green-field" → "Greenfield" | R0 | **SHIPPED** |
