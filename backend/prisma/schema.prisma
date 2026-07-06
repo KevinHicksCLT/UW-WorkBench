@@ -261,6 +261,7 @@ model Company {
   regulatorySources         RegulatorySource[]
   // App Rationalization
   rationalizationWorkspaces RationalizationWorkspace[]
+  anatomyCategories         AnatomyCategory[]
   // Scenario / telemetry / analysis
   scenarios                 Scenario[]
   telemetrySignals          TelemetrySignal[]
@@ -462,6 +463,7 @@ model ProcessNode {
   scenarios                 Scenario[]
   rationalizationWorkspaces RationalizationWorkspace[]
   userValueStreams          UserValueStream[]
+  screenAssets              ScreenAsset[]
 
   @@index([companyId, processLevelTypeId])
   @@index([parentId])
@@ -1679,6 +1681,7 @@ model RationalizationWorkspace {
   components    RationalizationComponent[]
   microservices RationalizationMicroservice[]
   planSteps     RationalizationPlanStep[]
+  screens       ScreenAsset[]
 
   @@unique([tenantId, companyId, name])
   @@index([companyId])
@@ -1706,6 +1709,7 @@ model RationalizationApp {
   updatedAt    DateTime                 @updatedAt
 
   capabilities RationalizationCapability[]
+  screens      ScreenAsset[]
 
   @@index([companyId])
   @@index([workspaceId])
@@ -1737,6 +1741,49 @@ model RationalizationComponent {
   @@index([microserviceId])
 }
 
+// Reference catalog for the anatomy taxonomy (WR-06): per layer × view, the
+// element/behavior categories that BELONG there, plus the MISPLACED view —
+// categories that must NOT be in the layer, each with the layer they belong
+// in. Seeded from the dispositioned renovation taxonomy; admin-editable later.
+model AnatomyCategory {
+  id               String  @id @default(cuid())
+  tenantId         String
+  companyId        String
+  company          Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  layer            String // UI | Integration | Business Service | Data | Infrastructure
+  view             String // COMPONENT | BEHAVIOR | MISPLACED
+  name             String
+  description      String // plain-language, non-technical
+  recommendedLayer String? // MISPLACED rows: the layer this concern belongs in
+  sortOrder        Int     @default(0)
+
+  @@unique([companyId, layer, view, name])
+  @@index([companyId, layer])
+}
+
+// A concrete screen or modal of a legacy application, linkable from UI-layer
+// findings (WR-06: "clickable link to see the actual UI screen(s) that align
+// to an L4 process"). Optional FK to the L4 ProcessNode it serves.
+model ScreenAsset {
+  id            String                   @id @default(cuid())
+  tenantId      String
+  companyId     String
+  workspaceId   String
+  workspace     RationalizationWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  appId         String?
+  app           RationalizationApp?      @relation(fields: [appId], references: [id], onDelete: Cascade)
+  name          String
+  kind          String                   @default("SCREEN") // SCREEN | MODAL
+  url           String? // deep link to the live screen (or image/asset)
+  processNodeId String?
+  processNode   ProcessNode?             @relation(fields: [processNodeId], references: [id], onDelete: SetNull)
+
+  @@unique([workspaceId, name])
+  @@index([companyId])
+  @@index([appId])
+  @@index([processNodeId])
+}
+
 model RationalizationCapability {
   id                String                    @id @default(cuid())
   tenantId          String
@@ -1748,6 +1795,10 @@ model RationalizationCapability {
   layer             String
   name              String
   category          String?
+  view              String                    @default("COMPONENT") // COMPONENT | BEHAVIOR — anatomy lens (WR-06)
+  screenRef         String? // UI findings: screen or modal it lives on (e.g. "User Admin › Users")
+  plainSummary      String? // one-sentence non-technical explanation (WR-10)
+  recommendedLayer  String? // rule/AI-suggested correct layer for misplaced items (targetLayer = the human decision)
   capdan            String                    @default("Common") // Common | Different | Relocate | Eliminate
   targetLayer       String?
   treatment         String                    @default("Retain") // Retain | Eliminate

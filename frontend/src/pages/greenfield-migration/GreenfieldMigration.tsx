@@ -28,13 +28,20 @@ import {
   statusDot,
   STATUS_META,
   CAPDAN_META,
+  type AnatomyCategory,
+  type FindingView,
   type StageListItem,
   type StageDetail,
   type Layer,
-  type Capdan,
 } from '../../lib/rationalization';
 import { Button, Card, ErrorMessage, Input, LoadingState } from '../../components/ui';
-import { belongsHere, buildBoardBase, nodeTypes, edgeTypes, type DrillFn } from './boardNodes';
+import {
+  belongsHere,
+  buildBoardBase,
+  nodeTypes,
+  edgeTypes,
+  type ToggleCategoryFn,
+} from './boardNodes';
 import {
   EMPTY_OVERLAY,
   USER_EDGE,
@@ -46,11 +53,16 @@ import { CommitPanel, ChangeLog, type LogEntry } from './BoardPanels';
 import { EditBoxModal } from './EditBoxModal';
 import { lensTokens, lensScore, LensField, LENS_SELECT_CLS, type LensL3 } from './lens';
 
-// What the side drawer is showing.
-type Drill =
-  | { kind: 'cell'; appId: string; layer: Layer; category: string }
-  | { kind: 'capdan'; layer: Layer }
-  | { kind: 'service'; serviceId: string };
+// What the side drawer is showing. Legacy-cell categories no longer drill to
+// the drawer — they expand inside their box (WR-10); the drawer stays for the
+// Normalize / Greenfield boxes.
+type Drill = { kind: 'capdan'; layer: Layer } | { kind: 'service'; serviceId: string };
+
+// WR-06 anatomy lens options for the segmented control.
+const VIEWS: { value: FindingView; label: string }[] = [
+  { value: 'COMPONENT', label: 'Components' },
+  { value: 'BEHAVIOR', label: 'Behavior' },
+];
 
 // ── Board ───────────────────────────────────────────────────────────────────
 // Embeddable: pass `embedded` to render inside another page (Initiatives tab)
@@ -77,6 +89,10 @@ export default function ApplicationRationalization({
   const [showLog, setShowLog] = useState(false);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  // WR-06 view toggle + WR-10 in-box expansion (cell:appId:layer → categories).
+  const [view, setView] = useState<FindingView>('COMPONENT');
+  const [expanded, setExpanded] = useState<Record<string, string[]>>({});
+  const [catalog, setCatalog] = useState<AnatomyCategory[]>([]);
   const [bnodes, setBNodes, onNodesChange] = useNodesState<Node>([]);
   const [bedges, setBEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const editingRef = useRef(false);
@@ -113,6 +129,15 @@ export default function ApplicationRationalization({
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [companyLoading, loadList]);
+
+  // Anatomy reference taxonomy — powers the category chip tooltips (WR-06).
+  useEffect(() => {
+    if (companyLoading) return;
+    api
+      .get<AnatomyCategory[]>(withCompany('/rationalization/anatomy-catalog', companyId))
+      .then(setCatalog)
+      .catch(() => setCatalog([])); // tooltips degrade to the built-in hint
+  }, [companyId, companyLoading]);
 
   // Initiatives (unique applications) + the selected initiative's stages.
   const initiatives = useMemo(() => [...new Set(list.map(appOf))], [list]);
@@ -272,6 +297,7 @@ export default function ApplicationRationalization({
   useEffect(() => {
     setDrill(null);
     setEditing(false); // leave any in-progress board edit when switching stages
+    setExpanded({}); // in-box expansions are per-stage
     if (!selectedId) {
       setDetail(null);
       setLog([]);
@@ -282,11 +308,15 @@ export default function ApplicationRationalization({
     loadLog();
   }, [selectedId, loadDetail, loadLog]);
 
-  const onDrill = useCallback<DrillFn>((appId, layer, category) => {
-    if (editingRef.current) {
-      return;
-    }
-    setDrill({ kind: 'cell', appId, layer, category });
+  // WR-10: a category chip toggles its in-box expansion (read mode only).
+  const onToggleCategory = useCallback<ToggleCategoryFn>((appId, layer, category) => {
+    if (editingRef.current) return;
+    setExpanded((prev) => {
+      const key = `cell:${appId}:${layer}`;
+      const cur = prev[key] ?? [];
+      const next = cur.includes(category) ? cur.filter((c) => c !== category) : [...cur, category];
+      return { ...prev, [key]: next };
+    });
   }, []);
   const onNodeClick = useCallback((_e: unknown, node: Node) => {
     if (editingRef.current) return;
@@ -307,7 +337,11 @@ export default function ApplicationRationalization({
   }, []);
 
   // The data-derived board (before any user overlay) — see greenfield/boardNodes.
-  const base = useMemo(() => buildBoardBase(detail, onDrill), [detail, onDrill]);
+  // View + expansion reshape the cell tags and the slot heights (WR-06/WR-10).
+  const base = useMemo(
+    () => buildBoardBase(detail, { view, expanded, onToggleCategory, catalog }),
+    [detail, view, expanded, onToggleCategory, catalog],
+  );
 
   // Saved overlay + the effective (data + saved overlay) board shown read-only.
   const savedOverlay = useMemo(() => normalizeOverlay(detail?.layout), [detail]);
@@ -374,25 +408,10 @@ export default function ApplicationRationalization({
     setEditing(false);
   }, []); // sync effect re-seeds from effective
 
-  // What the drawer shows for the current drill subject.
+  // What the drawer shows for the current drill subject (Normalize / Greenfield
+  // boxes only — legacy-cell categories expand in place instead, WR-10).
   const drillView = useMemo(() => {
     if (!detail || !drill) return null;
-    if (drill.kind === 'cell') {
-      const findings = detail.findings.filter(
-        (f) =>
-          f.appId === drill.appId &&
-          f.layer === drill.layer &&
-          (f.category ?? 'Other') === drill.category,
-      );
-      const app = detail.apps.find((a) => a.id === drill.appId)?.name ?? '';
-      return {
-        eyebrow: `${app} · ${drill.layer}`,
-        title: drill.category,
-        capdan: findings[0]?.capdan as Capdan | undefined,
-        meta: undefined as string | undefined,
-        findings,
-      };
-    }
     if (drill.kind === 'capdan') {
       const comp = detail.components.find((c) => c.layer === drill.layer);
       const findings = detail.findings.filter(
@@ -404,7 +423,6 @@ export default function ApplicationRationalization({
       return {
         eyebrow: `Normalized · ${drill.layer}`,
         title: comp?.name ?? drill.layer,
-        capdan: undefined,
         meta: meta || undefined,
         findings,
       };
@@ -426,7 +444,6 @@ export default function ApplicationRationalization({
     return {
       eyebrow: `Greenfield${m ? ` · ${m.status}` : ''}`,
       title: m?.name ?? 'Service',
-      capdan: undefined,
       meta: meta || undefined,
       findings,
     };
@@ -502,6 +519,30 @@ export default function ApplicationRationalization({
         <div className="flex-1" />
         {/* WR-02: actions live on the selector row — no separate status bar,
             so the board reclaims the vertical space. */}
+        {/* WR-06: anatomy lens — which findings feed the legacy cells. */}
+        {detail && (
+          <div
+            role="group"
+            aria-label="Findings view"
+            className="flex h-7 rounded-md border border-[#eaeaea] overflow-hidden flex-shrink-0"
+          >
+            {VIEWS.map((v) => (
+              <button
+                key={v.value}
+                type="button"
+                onClick={() => setView(v.value)}
+                aria-pressed={view === v.value}
+                className={`px-2.5 text-[12px] font-medium ${
+                  view === v.value
+                    ? 'bg-[#171717] text-white'
+                    : 'bg-white text-[#525252] hover:bg-[#fafafa]'
+                }`}
+              >
+                {v.label}
+              </button>
+            ))}
+          </div>
+        )}
         {detail &&
           (editing ? (
             <Button
@@ -515,7 +556,12 @@ export default function ApplicationRationalization({
           ) : (
             <Button
               variant="secondary"
-              onClick={() => setEditing(true)}
+              onClick={() => {
+                // Expansion is a read-mode feature — collapse everything so
+                // the edit overlay's drag positions stay sane (WR-10).
+                setExpanded({});
+                setEditing(true);
+              }}
               className="text-[12px] flex-shrink-0"
             >
               Edit board
@@ -624,13 +670,6 @@ export default function ApplicationRationalization({
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
                   <h3 className="text-[15px] font-semibold text-[#171717]">{drillView.title}</h3>
-                  {drillView.capdan && (
-                    <span
-                      className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-medium ${CAPDAN_META[drillView.capdan].chip}`}
-                    >
-                      {CAPDAN_META[drillView.capdan].label}
-                    </span>
-                  )}
                 </div>
                 {drillView.meta && (
                   <div className="text-[11px] text-[#0f766e] mt-1 leading-snug">

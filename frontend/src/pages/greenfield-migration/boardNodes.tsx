@@ -1,13 +1,11 @@
 /**
  * React Flow node/edge components and the data-derived board builder for the
- * Application Rationalization (green-field migration) board. Extracted
- * verbatim from GreenfieldMigration.tsx — layout constants, custom nodes,
- * the relocation edge, and buildBoardBase (data → nodes/edges).
+ * Application Rationalization (green-field migration) board. Layout constants
+ * and the cell height estimator live in cellGeometry.ts; the legacy-cell node
+ * (with WR-10 in-box expansion) lives in CellNode.tsx.
  */
 import {
   MarkerType,
-  Handle,
-  Position,
   BaseEdge,
   EdgeLabelRenderer,
   getBezierPath,
@@ -19,68 +17,31 @@ import {
 import {
   LAYERS,
   categoryTags,
+  type AnatomyCategory,
+  type FindingView,
   type StageDetail,
   type Layer,
-  type Capdan,
-  type CategoryTag,
 } from '../../lib/rationalization';
+import {
+  BOX_W,
+  PANEL_PAD,
+  PANEL_W,
+  PANEL_GAP,
+  HEADER_H,
+  ROW_H,
+  X,
+  belongsHere,
+  estimateCellHeight,
+  panelX,
+  slotHeightFor,
+  slotOffsets,
+} from './cellGeometry';
+import { CellNode, sideHandles, type CellScreen, type ToggleCategoryFn } from './CellNode';
 
-export const belongsHere = (c: Capdan) => c === 'Common' || c === 'Different';
-export type DrillFn = (appId: string, layer: Layer, category: string) => void;
+export { belongsHere, BOX_W, PANEL_PAD, PANEL_W, PANEL_GAP, HEADER_H, panelX };
+export type { ToggleCategoryFn };
 
 // ── Custom React Flow nodes ─────────────────────────────────────────────────
-// Handles are hidden in read mode and revealed via the `.board-editing` CSS
-// class on the canvas when editing; connectability follows the global
-// `nodesConnectable` flag, so no per-handle override is needed.
-const sideHandles = (
-  <>
-    <Handle id="l" type="target" position={Position.Left} className="board-handle" />
-    <Handle id="r" type="source" position={Position.Right} className="board-handle" />
-  </>
-);
-
-function CellNode({ data }: NodeProps) {
-  const d = data as { layer: Layer; appId: string; tags: CategoryTag[]; onDrill: DrillFn };
-  return (
-    <div
-      className="rounded-lg border-2 border-[#e7d3b5] bg-[#fdf8f0] shadow-sm px-4 py-3"
-      style={{ width: BOX_W }}
-    >
-      {sideHandles}
-      <div className="flex flex-wrap gap-1.5">
-        {d.tags.length === 0 ? (
-          <span className="text-[13px] text-[#cfcfcf]">—</span>
-        ) : (
-          d.tags.map((t) => {
-            const ok = belongsHere(t.capdan);
-            const cls = ok
-              ? 'bg-[#ecfdf5] text-[#047857] border-[#a7f3d0]'
-              : 'bg-[#fff1f2] text-[#be123c] border-[#fecdd3]';
-            return (
-              <button
-                key={`${t.category}-${t.capdan}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  d.onDrill(d.appId, d.layer, t.category);
-                }}
-                className={`inline-flex items-center gap-1 rounded-md border pl-2 pr-1 py-0.5 text-[13px] font-medium hover:shadow-sm ${cls}`}
-                title={`${t.count} ${t.category} · ${ok ? 'belongs here' : t.capdan === 'Relocate' ? `move to ${t.targetLayer}` : 'eliminate'} — click for detail`}
-              >
-                <span className="truncate max-w-[190px]">{t.category}</span>
-                {t.capdan === 'Relocate' && t.targetLayer && (
-                  <span className="opacity-80">→ {t.targetLayer}</span>
-                )}
-                <span className="inline-flex items-center justify-center min-w-[18px] h-[17px] rounded-full bg-white/70 text-[12px] font-semibold px-0.5">
-                  {t.count}
-                </span>
-              </button>
-            );
-          })
-        )}
-      </div>
-    </div>
-  );
-}
 
 function CapdanNode({ data }: NodeProps) {
   const d = data as {
@@ -248,34 +209,35 @@ export const nodeTypes = {
 };
 export const edgeTypes = { relocate: RelocateEdge };
 
-// Option C geometry — one shared baseline grid across all panels: every box
-// sits top-aligned in its layer SLOT, panels differ only in x. The gap
-// between panels is the arrow lane.
-export const BOX_W = 290; // unified box width (WR-05 sizing preserved)
-export const PANEL_PAD = 14;
-export const PANEL_W = BOX_W + PANEL_PAD * 2;
-export const PANEL_GAP = 46;
-export const HEADER_H = 46; // in-panel header band
-export const SLOT_H = 180; // layer slot height (shared across panels)
-const STRIDE = PANEL_W + PANEL_GAP;
-export const panelX = (i: number) => i * STRIDE;
-export const X = { label: -160 };
-export const ROW_H = SLOT_H; // relocation-edge label math
+// ── Data → board ────────────────────────────────────────────────────────────
+
+/** Inputs that shape the derived board beyond the stage detail itself. */
+export type BoardBuildOptions = {
+  /** WR-06 anatomy lens — which findings feed the legacy cells. */
+  view: FindingView;
+  /** WR-10 in-box expansion state: `cell:<appId>:<layer>` → expanded categories. */
+  expanded: Record<string, string[]>;
+  onToggleCategory: ToggleCategoryFn;
+  /** Anatomy-catalog rows for category chip tooltips (optional — degrades). */
+  catalog?: AnatomyCategory[];
+};
 
 // The data-derived board (before any user overlay). Panels, headers and layer
 // labels are scaffolding — always locked; the cell / CAPDAN / service boxes
 // follow the global `nodesDraggable` flag so they can be dragged in edit mode.
 export function buildBoardBase(
   detail: StageDetail | null,
-  onDrill: DrillFn,
+  opts: BoardBuildOptions,
 ): { nodes: Node[]; edges: Edge[] } {
   if (!detail) return { nodes: [] as Node[], edges: [] as Edge[] };
+  const { view, expanded, onToggleCategory, catalog } = opts;
   const nodes: Node[] = [];
   const edges: Edge[] = [];
   const layerIndex = Object.fromEntries(LAYERS.map((l, i) => [l, i])) as Record<Layer, number>;
   const lock = { draggable: false, selectable: false } as const;
 
-  // layers owned by each green-field service + kept-finding counts
+  // layers owned by each green-field service + kept-finding counts.
+  // Normalize/Greenfield counts stay based on ALL findings (view-independent).
   const layersByService = new Map<string, Layer[]>();
   for (const c of detail.components)
     if (c.microserviceId) {
@@ -286,14 +248,41 @@ export function buildBoardBase(
   const keptCountByLayer = (layer: Layer) =>
     detail.findings.filter((f) => f.layer === layer && belongsHere(f.capdan)).length;
 
+  // Screen lookup + per-layer catalog tooltips for the cell nodes.
+  const screenByName: Record<string, CellScreen> = {};
+  for (const s of detail.screens) screenByName[s.name] = { url: s.url, kind: s.kind };
+  const tipsByLayer: Record<string, Record<string, string>> = {};
+  for (const row of catalog ?? []) {
+    const forLayer = (tipsByLayer[row.layer] ??= {});
+    if (row.description && !forLayer[row.name]) forLayer[row.name] = row.description;
+  }
+
+  // Variable slot heights (WR-10): tags per layer × app are view-filtered, the
+  // estimator turns tags + expansion into a deterministic per-cell height, and
+  // each layer's slot grows to fit its tallest box so rows stay aligned
+  // across panels.
+  const two = detail.apps.slice(0, 2);
+  const expandedFor = (appId: string, layer: Layer) => expanded[`cell:${appId}:${layer}`] ?? [];
+  const tagsByLayerApp = LAYERS.map((layer) =>
+    two.map((a) => categoryTags(detail.findings, layer, a.id, view)),
+  );
+  const slotHeights = LAYERS.map((layer, li) =>
+    slotHeightFor(
+      two.map((a, i) => estimateCellHeight(tagsByLayerApp[li][i], expandedFor(a.id, layer))),
+    ),
+  );
+  const offsets = slotOffsets(slotHeights);
+  const slotY = (li: number) => offsets[li] + PANEL_PAD;
+  const boardHeight = slotHeights.reduce((s, h) => s + h, 0);
+
   // Panels — one framed column per stage (each legacy app, Normalize,
   // Greenfield); header text is a separate node ON the band so the panel can
   // stay pointer-transparent (pan/zoom passes through, dblclick-app works).
-  const headApps = detail.apps.slice(0, 2);
+  const headApps = two;
   const appXs = headApps.map((_, i) => panelX(i));
   const capX = panelX(headApps.length);
   const svcX = panelX(headApps.length + 1);
-  const panelHeight = HEADER_H + LAYERS.length * SLOT_H + PANEL_PAD;
+  const panelHeight = HEADER_H + boardHeight + PANEL_PAD;
   const columns: { key: string; x: number; title: string; appId?: string }[] = [
     ...headApps.map((a, i) => ({ key: `app${i}`, x: appXs[i], title: a.name, appId: a.id })),
     { key: 'cap', x: capX, title: 'Normalize' },
@@ -319,14 +308,11 @@ export function buildBoardBase(
     });
   }
 
-  // Shared baseline grid: every box top-aligns in its layer slot.
-  const slotY = (li: number) => li * SLOT_H + PANEL_PAD;
-
   LAYERS.forEach((layer, li) => {
     nodes.push({
       id: `lbl:${layer}`,
       type: 'layerLabel',
-      position: { x: X.label, y: li * SLOT_H + SLOT_H / 2 - 8 },
+      position: { x: X.label, y: offsets[li] + slotHeights[li] / 2 - 8 },
       data: { layer },
       ...lock,
     });
@@ -334,14 +320,21 @@ export function buildBoardBase(
     // Edges flow strictly left → right so nothing crosses a box: app0 chains
     // into app1, and only the LAST app column connects across to CAPDAN
     // (kept + relocate findings of both apps are unioned onto that edge).
-    const two = detail.apps.slice(0, 2);
-    const tagsByApp = two.map((a) => categoryTags(detail.findings, layer, a.id));
+    const tagsByApp = tagsByLayerApp[li];
     two.forEach((a, i) => {
       nodes.push({
         id: `cell:${a.id}:${layer}`,
         type: 'cell',
         position: { x: appXs[i] + PANEL_PAD, y: slotY(li) },
-        data: { layer, appId: a.id, tags: tagsByApp[i], onDrill },
+        data: {
+          layer,
+          appId: a.id,
+          tags: tagsByApp[i],
+          expanded: expandedFor(a.id, layer),
+          onToggle: onToggleCategory,
+          screens: screenByName,
+          tips: tipsByLayer[layer] ?? {},
+        },
         selectable: false,
       });
     });

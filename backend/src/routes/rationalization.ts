@@ -199,6 +199,30 @@ router.post('/initiatives', async (req: Request, res: Response, next: NextFuncti
   }
 });
 
+// GET /rationalization/anatomy-catalog — the WR-06 reference taxonomy: per
+// layer × view (COMPONENT | BEHAVIOR | MISPLACED), what belongs and what must
+// not be there. Registered BEFORE /:id so the literal path isn't swallowed.
+router.get('/anatomy-catalog', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const companyId = await activeCompanyId(req, res);
+    if (!companyId) return;
+    const rows = await prisma.anatomyCategory.findMany({
+      where: { companyId },
+      orderBy: [{ layer: 'asc' }, { view: 'asc' }, { sortOrder: 'asc' }],
+      select: {
+        layer: true,
+        view: true,
+        name: true,
+        description: true,
+        recommendedLayer: true,
+      },
+    });
+    res.json(rows);
+  } catch (e) {
+    next(e);
+  }
+});
+
 // GET /rationalization/:id — one stage's full decomposition: findings by layer,
 // CAPDAN rollups, relocation targets, and per-finding code + migration detail.
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
@@ -213,6 +237,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         },
         components: true,
         capabilities: true,
+        screens: { orderBy: { name: 'asc' } },
       },
     });
     if (!w) return res.status(404).json({ error: 'Not found' });
@@ -276,12 +301,25 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         // ownerRole is the linked Role's display label (erd_v5 ownerRoleId FK).
         ownerRole: m.ownerRole?.displayValue ?? null,
       })),
-      // Flat findings; the board groups by (appId, layer, category).
+      // Screens/modals of the legacy apps (WR-06: clickable per-L4 links).
+      screens: w.screens.map((s) => ({
+        id: s.id,
+        appId: s.appId,
+        name: s.name,
+        kind: s.kind,
+        url: s.url,
+        processNodeId: s.processNodeId,
+      })),
+      // Flat findings; the board groups by (appId, layer, view, category).
       findings: caps.map((c) => ({
         id: c.id,
         appId: c.appId,
         layer: c.layer,
         category: c.category,
+        view: c.view,
+        screenRef: c.screenRef,
+        plainSummary: c.plainSummary,
+        recommendedLayer: c.recommendedLayer,
         capdan: c.capdan,
         targetLayer: c.targetLayer,
         name: c.name,

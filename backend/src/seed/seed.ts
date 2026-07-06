@@ -29,6 +29,7 @@ import { seedRegulations } from './seedRegulations.js';
 import { seedFederalRegs } from './seedFederalRegs.js';
 import { seedStandards } from './seedStandards.js';
 import { seedPermissions } from './seedPermissions.js';
+import { seedAnatomyCatalog } from './seedAnatomyCatalog.js';
 import { seedRoleProfiles } from './seedRoleProfiles.js';
 import { decomposeSingleChild } from '../../scripts/decompose-single-child.js';
 
@@ -202,6 +203,7 @@ async function main() {
   await run('telemetry', () => seedTelemetry(prisma, ctx));
   await run('scenarios', () => seedScenarios(prisma, { ...ctx, refs }));
   await run('rationalization', () => seedRationalization(prisma, { ...ctx, refs }));
+  await run('anatomyCatalog', () => seedAnatomyCatalog(prisma, ctx));
   await run('portfolio', () => seedPortfolio(prisma, { ...ctx, refs }));
   await run('regulations', () => seedRegulations(prisma, { ...ctx, refs }));
   await run('federalRegs', () => seedFederalRegs(prisma, { ...ctx, refs }));
