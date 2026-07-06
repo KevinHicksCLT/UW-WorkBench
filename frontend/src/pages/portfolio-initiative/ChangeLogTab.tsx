@@ -5,6 +5,8 @@
  */
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
+import { isHeldResponse, notifyHeld } from '../../lib/approvals';
+import { useDialogs } from '../../lib/dialogs';
 import { fmt } from '../../lib/format';
 import {
   Button,
@@ -33,6 +35,7 @@ type ChangeRequest = {
 const CR_STATUS = ['PENDING', 'APPROVED', 'REJECTED'] as const;
 
 export function ChangeLogTab({ init }: { init: Initiative }) {
+  const dialogs = useDialogs();
   const [rows, setRows] = useState<ChangeRequest[] | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
@@ -47,7 +50,14 @@ export function ChangeLogTab({ init }: { init: Initiative }) {
   }, [init.id]);
 
   async function setStatus(cr: ChangeRequest, status: string) {
-    await api.patch(`/portfolio/change-requests/${cr.id}`, { status });
+    try {
+      const res = await api.patch(`/portfolio/change-requests/${cr.id}`, { status });
+      // Change-request approval is governed — a 202-held response means the
+      // status did NOT change; the reload below snaps the select back.
+      if (isHeldResponse(res)) await notifyHeld(dialogs, res);
+    } catch (e) {
+      await dialogs.alert({ title: 'Status change failed', message: (e as Error).message });
+    }
     load();
   }
 

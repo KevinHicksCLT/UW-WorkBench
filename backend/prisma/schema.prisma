@@ -32,6 +32,8 @@ model Tenant {
   auditEntries   AuditEntry[]
   permissionSets PermissionSet[]
   apiKeys        ApiKey[]
+  approvalPolicies ApprovalPolicy[]
+  approvalRequests ApprovalRequest[]
 }
 
 model User {
@@ -64,6 +66,9 @@ model User {
   valueStreams UserValueStream[]
   overrides    UserPermissionOverride[]
   preferences  UserPreference[]
+
+  approvalRequests    ApprovalRequest[]    @relation("ApprovalRequestedBy")
+  approvalAssignments ApprovalAssignment[] @relation("ApprovalAssignee")
 
   @@unique([tenantId, externalId])
   @@index([tenantId])
@@ -182,6 +187,98 @@ model WebhookEvent {
 // pipeline (LLM ticket generation → Jira issue → notification email).
 // Deliberately relationless like WebhookEvent: rows are an ops/audit log,
 // not part of the operating-model domain graph.
+// ─── Approvals (creator → approver framework, Phase 1) ─────────────────
+// A policy declares which decision requires approval and what "approved"
+// means (ordered stages, each with a quorum). Governed mutations are HELD:
+// the validated body is stored as ApprovalRequest.payload and replayed
+// through the same code path on final approval (lib/approvals/).
+
+model ApprovalPolicy {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  decisionKey String // shared/src/approvals.ts DECISION_KEYS, e.g. "portfolio.initiative.stage-gate"
+  name        String
+  description String?
+  enabled     Boolean  @default(false)
+  slaHours    Int      @default(72) // response SLA (~3 working days; escalation lands in Phase 4)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  stages   ApprovalPolicyStage[]
+  requests ApprovalRequest[]
+
+  @@unique([tenantId, decisionKey])
+}
+
+// One ordered stage of a policy's definition of done. Stage N+1's assignments
+// are created only when stage N completes; a rejection anywhere terminates.
+model ApprovalPolicyStage {
+  id       String         @id @default(cuid())
+  policyId String
+  policy   ApprovalPolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  order    Int // 1-based
+  quorum   String // MANAGER | ANY_OF | ALL_OF | N_OF_M
+  n        Int? // for N_OF_M
+  seats    Json // ApprovalSeatRule[]: {kind:"MANAGER"} | {kind:"ROLES",roleIds} | {kind:"USERS",userIds} | {kind:"ENTITY_ROLE",attr} | {kind:"SITE_ADMINS"}
+
+  @@unique([policyId, order])
+}
+
+model ApprovalRequest {
+  id            String         @id @default(cuid())
+  tenantId      String
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  policyId      String
+  policy        ApprovalPolicy @relation(fields: [policyId], references: [id], onDelete: Restrict) // history outlives config edits
+  entityType    String
+  entityId      String?
+  action        String // e.g. STAGE_ADVANCE | REPLACE_GRANTS | MINT_ADMIN | POLICY_CHANGE | CR_APPROVE
+  summary       String // one-liner shown in inboxes/cards
+  payload       Json // the zod-validated body, replayed on final approval
+  subjectAttrs  Json? // ABAC subject: { orgUnitId?, geography?, valueStreamNodeId?, sponsorRoleId? … }
+  requestedById String
+  requestedBy   User           @relation("ApprovalRequestedBy", fields: [requestedById], references: [id])
+  currentStage  Int            @default(1)
+  status        String         @default("PENDING") // PENDING | APPROVED | REJECTED | CANCELLED | EXPIRED
+  dueAt         DateTime?
+  decidedAt     DateTime?
+  applyError    String? // replay failure — request stays APPROVED, retryable by an admin
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now()) @updatedAt
+
+  assignments ApprovalAssignment[]
+
+  @@index([tenantId, status, createdAt])
+  @@index([tenantId, entityType, entityId])
+  @@index([requestedById])
+  @@index([policyId])
+}
+
+// One approver-candidate on one seat of one stage. Several rows may share a
+// seat (any eligible role-holder); the first decision fills the seat and
+// SUPERSEDEs its siblings. assignedAt→decidedAt is the wait-time measurement.
+model ApprovalAssignment {
+  id          String          @id @default(cuid())
+  requestId   String
+  request     ApprovalRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  stageOrder  Int
+  seatKey     String // "manager" | "site-admins" | role/user id — stable within the stage
+  assigneeId  String
+  assignee    User            @relation("ApprovalAssignee", fields: [assigneeId], references: [id])
+  escalated   Boolean         @default(false) // seat filled via fallback chain, not the primary rule
+  status      String          @default("PENDING") // PENDING | APPROVED | REJECTED | SUPERSEDED | CANCELLED
+  assignedAt  DateTime        @default(now())
+  decidedAt   DateTime?
+  method      String? // IN_APP | ADAPTIVE_CARD_TEAMS | ADAPTIVE_CARD_EMAIL | SERVICENOW | API
+  externalRef String? // e.g. ServiceNow ticket #
+  comment     String?
+
+  @@unique([requestId, stageOrder, seatKey, assigneeId])
+  @@index([assigneeId, status])
+  @@index([requestId])
+}
+
 model Feedback {
   id                   String    @id @default(cuid())
   tenantId             String

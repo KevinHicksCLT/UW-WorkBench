@@ -5,6 +5,7 @@ import { z } from 'zod';
 export * from './menuRegistry.js';
 export * from './userTypes.js';
 export * from './entitlements.js';
+export * from './approvals.js';
 
 // ─── Auth ──────────────────────────────────────────────────────────────
 

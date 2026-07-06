@@ -4,8 +4,9 @@
 // services/userProvisioning (the single user write path).
 import type { Router, Request, Response, NextFunction, RequestHandler } from 'express';
 import { z } from 'zod';
-import { userUpsertSchema } from '@cascade/shared';
+import { userUpsertSchema, isUserAdminType } from '@cascade/shared';
 import { prisma } from '../../db/prisma.js';
+import { maybeHold } from '../../lib/approvals/engine.js';
 import {
   requirePermission,
   requireUserAdmin,
@@ -31,6 +32,36 @@ async function findScopedUser(req: Request, id: string) {
   return prisma.user.findFirst({
     where: { id, tenantId: req.tenantId, ...userScopeWhere(req) },
   });
+}
+
+/** DA-03: roles whose minting/promotion requires a second SITE_ADMIN. */
+function isPrivilegedRole(role: string | undefined): role is string {
+  return role !== undefined && (isUserAdminType(role) || role === 'SUPER_USER');
+}
+
+/** Hold an admin mint/promotion; returns the 202 body or null (not governed). */
+async function holdAdminMint(
+  req: Request,
+  spec: {
+    email: string;
+    role: string;
+    orgUnitId: string | null;
+    payload: unknown;
+    entityId?: string;
+  },
+) {
+  return maybeHold(
+    { tenantId: req.tenantId, userId: req.user.id, email: req.user.email },
+    {
+      decisionKey: 'user-admin.users.mint-admin',
+      entityType: 'User',
+      entityId: spec.entityId ?? null,
+      action: 'MINT_ADMIN',
+      summary: `Grant ${spec.role} to ${spec.email}`,
+      payload: spec.payload,
+      subjectAttrs: { orgUnitId: spec.orgUnitId },
+    },
+  );
 }
 
 export function registerManageRoutes(router: Router): void {
@@ -95,6 +126,17 @@ export function registerManageRoutes(router: Router): void {
       if (refErrors.length > 0)
         return res.status(400).json({ error: 'Invalid references', fields: refErrors });
 
+      // DA-03: creating a user WITH a privileged role is held for four-eyes.
+      if (isPrivilegedRole(body.role)) {
+        const held = await holdAdminMint(req, {
+          email: body.email,
+          role: body.role,
+          orgUnitId: body.orgUnitId ?? null,
+          payload: { data: body },
+        });
+        if (held) return res.status(202).json(held);
+      }
+
       const { user, created } = await upsertUser({
         tenantId: req.tenantId,
         actorLabel: req.user.email,
@@ -131,6 +173,19 @@ export function registerManageRoutes(router: Router): void {
       const refErrors = await validateUserRefs(req.tenantId, body);
       if (refErrors.length > 0)
         return res.status(400).json({ error: 'Invalid references', fields: refErrors });
+
+      // DA-03: PROMOTING a user to a privileged role is held for four-eyes.
+      // (Edits that keep or lower the role pass straight through.)
+      if (isPrivilegedRole(body.role) && body.role !== target.role) {
+        const held = await holdAdminMint(req, {
+          email: target.email,
+          role: body.role,
+          orgUnitId: ('orgUnitId' in body ? body.orgUnitId : target.orgUnitId) ?? null,
+          payload: { data: body, byId: target.id },
+          entityId: target.id,
+        });
+        if (held) return res.status(202).json(held);
+      }
 
       const { user } = await upsertUser({
         tenantId: req.tenantId,

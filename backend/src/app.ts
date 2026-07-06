@@ -37,6 +37,8 @@ import regulationsRoutes from './routes/regulations/index.js';
 import usersRoutes from './routes/users/index.js';
 import feedbackRoutes from './routes/feedback.js';
 import provisioningRoutes from './routes/provisioning/index.js';
+import approvalsRoutes from './routes/approvals/index.js';
+import './lib/approvals/applyHandlers.js'; // registers replay handlers (side-effect import)
 import { clearResponseCache } from './lib/responseCache.js';
 
 const app = express();
@@ -116,6 +118,7 @@ app.use('/regulations', regulationsRoutes);
 app.use('/users', usersRoutes);
 app.use('/provisioning', provisioningRoutes);
 app.use('/feedback', feedbackRoutes);
+app.use('/approvals', approvalsRoutes);
 
 /**
  * Central error handler — logs the full error with request context (request id,

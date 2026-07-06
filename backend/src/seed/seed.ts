@@ -29,6 +29,7 @@ import { seedRegulations } from './seedRegulations.js';
 import { seedFederalRegs } from './seedFederalRegs.js';
 import { seedStandards } from './seedStandards.js';
 import { seedPermissions } from './seedPermissions.js';
+import { seedApprovalPolicies } from './seedApprovalPolicies.js';
 import { seedRoleProfiles } from './seedRoleProfiles.js';
 import { decomposeSingleChild } from '../../scripts/decompose-single-child.js';
 
@@ -208,6 +209,7 @@ async function main() {
   await run('standards', () => seedStandards(prisma, { ...ctx, refs }));
   // Runs AFTER the org spine exists: demo users + kevin are homed to L1 OrgUnits.
   await run('permissions', () => seedPermissions(prisma, ctx));
+  await run('approvalPolicies', () => seedApprovalPolicies(prisma, { tenantId: ctx.tenantId }));
 
   // ── 4. Verify peripheral tables are non-empty + master counts intact ──
   const c = company.id;

@@ -49,6 +49,15 @@ export async function seedPermissions(
     isManager: boolean;
   }[] = [
     {
+      // Second SITE_ADMIN so four-eyes approval policies (DA-01/03/08) are
+      // exercisable in the demo tenant — Kevin alone can't approve his own asks.
+      email: 'site.admin@abc-insurance.demo',
+      name: 'Sid Adams',
+      role: 'SITE_ADMIN',
+      org: 'Technology',
+      isManager: true,
+    },
+    {
       email: 'core.admin@abc-insurance.demo',
       name: 'Cora Marsh',
       role: 'CORE_BUSINESS_ADMIN',
@@ -110,6 +119,25 @@ export async function seedPermissions(
     });
   }
   console.log(`   + ${demoUsers.length} demo users (…@abc-insurance.demo / demo1234)`);
+
+  // Manager chain so MANAGER approval seats resolve in the demo tenant:
+  // member → core.admin, super.user → tech.admin, domain admins → kevin.
+  const reporting: Record<string, string> = {
+    'member@abc-insurance.demo': 'core.admin@abc-insurance.demo',
+    'super.user@abc-insurance.demo': 'tech.admin@abc-insurance.demo',
+    'core.admin@abc-insurance.demo': 'kevin.hicks@capgemini.com',
+    'tech.admin@abc-insurance.demo': 'kevin.hicks@capgemini.com',
+    'corp.admin@abc-insurance.demo': 'kevin.hicks@capgemini.com',
+  };
+  for (const [report, manager] of Object.entries(reporting)) {
+    const mgr = await p.user.findUnique({ where: { email: manager }, select: { id: true } });
+    if (mgr) {
+      await p.user.update({
+        where: { email: report },
+        data: { reportsToId: mgr.id, isApprover: true },
+      });
+    }
+  }
 
   // Kevin — SITE_ADMIN with a full attribute profile (also repairs role for
   // environments where the ADMIN→SITE_ADMIN data migration hasn't run).
