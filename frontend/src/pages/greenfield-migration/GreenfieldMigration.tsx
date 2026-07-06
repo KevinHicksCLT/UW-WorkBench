@@ -632,7 +632,8 @@ export default function ApplicationRationalization({
                   className={editing ? 'board-editing' : undefined}
                 >
                   <Background color="#e5e5e5" gap={20} />
-                  <Controls showInteractive={false} />
+                  {/* Top-right so zoom is visible without scrolling the tall canvas. */}
+                  <Controls showInteractive={false} position="top-right" />
                 </ReactFlow>
               </ReactFlowProvider>
             )}

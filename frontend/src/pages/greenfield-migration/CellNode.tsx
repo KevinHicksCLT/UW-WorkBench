@@ -46,11 +46,19 @@ function FindingRow({
   capdan: CategoryTag['capdan'];
   screens: Record<string, CellScreen>;
 }) {
+  // Plain language is the DEFAULT; the technical version (code location,
+  // rationale, migration approach) lives on mouseover (WR feedback 2026-07-06).
   const summary = f.plainSummary ?? f.rationale ?? f.migrationApproach ?? '';
+  const technical = [f.codeRef, f.rationale, f.migrationApproach]
+    .filter((v): v is string => Boolean(v) && v !== summary)
+    .join('  ·  ');
   const screen = f.screenRef ? screens[f.screenRef] : undefined;
   const dest = f.recommendedLayer ?? f.targetLayer;
   return (
-    <div className="rounded-md border border-[#f0e4cf] bg-white/60 px-2 py-1">
+    <div
+      className="rounded-md border border-[#f0e4cf] bg-white/60 px-2 py-1"
+      title={technical ? `Technical: ${technical}` : undefined}
+    >
       <div
         className="text-[12.5px] font-semibold text-[#171717] leading-snug truncate"
         title={f.name}
