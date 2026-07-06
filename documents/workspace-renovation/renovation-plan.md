@@ -11,11 +11,11 @@ Branch `workspace-renovation` · from Kevin's 15-item request (2026-07-06) again
 | WR-03 | Structured label/row/column alignment — options to review first | R0 | **SHIPPED — Option C chosen (Kevin, 2026-07-06)**: contained-column panels, in-band headers, shared baseline slot grid |
 | WR-04 | "Green-field" → "Greenfield" | R0 | **SHIPPED** |
 | WR-05 | Tan/lavender/green boxes larger; content uncramped | R0 | **SHIPPED** (widths 250/240/260→290/285/300, row height 155→180, padding up) |
-| WR-06 | Robust layer boxes: screen links per L4; Components vs Behavior views; "should NOT be here" categories per layer | R1 | Planned |
-| WR-07 | Transformation Bridge as a self-anatomy example; chatbot answers ("all business validations for screen/L4 X"); semantic diff between two legacy apps | R2 | Planned |
+| WR-06 | Robust layer boxes: screen links per L4; Components vs Behavior views; "should NOT be here" categories per layer | R1 | **SHIPPED 2026-07-06** (anatomy fields + 57-row catalog + ScreenAsset; Components\|Behavior toggle; screen links) |
+| WR-07 | Transformation Bridge as a self-anatomy example; chatbot answers ("all business validations for screen/L4 X"); semantic diff between two legacy apps | R2 | **Self-anatomy board SHIPPED** (79 findings, 13 misplaced, 30 screens — in-session analysis, no API key); chatbot suggestions + semantic diff remain R2 |
 | WR-08 | Chatbot edits the board on a human's instruction (audit shows the human); approval-held changes visible as *proposed* on the board | R3 | Planned |
 | WR-09 | "CAPDAN — Normalize" → "Normalize" | R0 | **SHIPPED** |
-| WR-10 | Sub-section expansion IN the box (+/−), plain-language for non-technical readers (replace sparse technical drawer) | R1 | Planned |
+| WR-10 | Sub-section expansion IN the box (+/−), plain-language for non-technical readers (replace sparse technical drawer) | R1 | **SHIPPED 2026-07-06** (in-box expansion with variable slot heights preserving Option C alignment; cell drawer removed) |
 | WR-11 | Context-aware chatbot (who I am, role, value streams, deliverables/tasks, current screen; Jira/Rally + HR later) | R2 | Planned |
 | WR-12 | Semantic search, not keyword-only | R2 | Planned |
 | WR-13 | Green items map to same layer in Normalize; red to AI-recommended layer; multi-app normalize with duplicate detection + "clean up duplicates" | R2 | Planned |
