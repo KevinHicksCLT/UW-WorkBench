@@ -20,7 +20,11 @@ export type LensL3 = { id: string; name: string; l4s: LensL4[] };
 const LENS_STOP = new Set(['and', 'the', 'for', 'with', 'mgmt', 'management']);
 // Lowercased, lightly-stemmed name tokens ("Channels" matches "channel").
 export const lensTokens = (s: string) =>
-  s.toLowerCase().split(/[^a-z0-9]+/).map((t) => t.replace(/s$/, '')).filter((t) => t.length >= 3 && !LENS_STOP.has(t));
+  s
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .map((t) => t.replace(/s$/, ''))
+    .filter((t) => t.length >= 3 && !LENS_STOP.has(t));
 // Overlap score — hits on the L4 name count double vs hits on its parent L3.
 export function lensScore(stage: string[], l4: string[], l3: string[]): number {
   const s = new Set(stage);
@@ -30,13 +34,36 @@ export function lensScore(stage: string[], l4: string[], l3: string[]): number {
   return n;
 }
 
-// Tiny labelled control for the cascade row.
-export function LensField({ label, children }: { label: string; children: ReactNode }) {
+// Tiny labelled control for the cascade row. `interactive` swaps the wrapping
+// <label> for a <div> when the child hosts its own interactive controls (the
+// WR-01 multi-select popover) so label activation can't misfire clicks.
+export function LensField({
+  label,
+  children,
+  interactive = false,
+}: {
+  label: string;
+  children: ReactNode;
+  interactive?: boolean;
+}) {
+  const caption = (
+    <span className="text-[9px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">
+      {label}
+    </span>
+  );
+  if (interactive)
+    return (
+      <div className="flex flex-col gap-0.5 min-w-0">
+        {caption}
+        {children}
+      </div>
+    );
   return (
     <label className="flex flex-col gap-0.5 min-w-0">
-      <span className="text-[9px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">{label}</span>
+      {caption}
       {children}
     </label>
   );
 }
-export const LENS_SELECT_CLS = 'h-7 rounded-md border border-[#eaeaea] bg-white px-1.5 text-[12px] text-[#171717] max-w-[240px] focus:outline-none focus:border-[#d4d4d4]';
+export const LENS_SELECT_CLS =
+  'h-7 rounded-md border border-[#eaeaea] bg-white px-1.5 text-[12px] text-[#171717] max-w-[240px] focus:outline-none focus:border-[#d4d4d4]';

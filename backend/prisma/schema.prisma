@@ -641,6 +641,7 @@ model Application {
   regulationTemplateAnswers RegulationTemplateAnswer[]
   nodeStandardEvidences     NodeStandardEvidence[]
   nodeRegulationEvidences   NodeRegulationEvidence[]
+  rationalizationWorkspaces RationalizationWorkspace[]
 
   @@index([companyId])
   @@index([orgUnitId])
@@ -1662,7 +1663,12 @@ model RationalizationWorkspace {
   companyId         String
   company           Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   name              String
-  application       String?
+  application       String? // display label; canonical link is applicationId (WR-01)
+  // Estate-application link as a real FK (WR-01 — the free-text `application`
+  // string always violated the no-free-text-references rule; kept as fallback
+  // label for boards whose name matches no Application row).
+  applicationId     String?
+  applicationRef    Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
   stageOrder        Int          @default(0)
   businessProcess   String?
   description       String?
@@ -1686,6 +1692,7 @@ model RationalizationWorkspace {
   @@unique([tenantId, companyId, name])
   @@index([companyId])
   @@index([valueStreamNodeId])
+  @@index([applicationId])
 }
 
 model RationalizationApp {

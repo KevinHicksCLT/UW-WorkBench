@@ -1035,6 +1035,23 @@ export async function seedRationalization(
     // ("Underwriting Platform" → Underwriting, "Claims Platform" → Claims).
     // eslint-disable-next-line sonarjs/super-linear-regex -- behavior-frozen refactor; safe rewrite deferred (input is the short static app literals above)
     const vsNodeId = refs.nodeByName(initiative.app.replace(/\s*Platform$/i, ''));
+    // WR-01: the platform is an estate Application — real FK, not just a label.
+    const existingApp = await prisma.application.findFirst({
+      where: { companyId, name: initiative.app },
+      select: { id: true },
+    });
+    const estateApp =
+      existingApp ??
+      (await prisma.application.create({
+        data: {
+          companyId,
+          name: initiative.app,
+          kind: 'SystemOfRecord',
+          isInternal: true,
+          illustrative: true,
+        },
+        select: { id: true },
+      }));
     for (const stage of initiative.stages) {
       const wsId = `rw_${stage.key}`;
       wsRows.push({
@@ -1043,6 +1060,7 @@ export async function seedRationalization(
         companyId,
         name: stage.name,
         application: initiative.app,
+        applicationId: estateApp.id,
         stageOrder: stage.order,
         businessProcess: stage.name,
         description: `Rationalize the "${stage.name}" stage of the ${initiative.app} value stream.`,

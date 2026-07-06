@@ -38,15 +38,65 @@ function capdanCounts(rows: { capdan: string }[]) {
   return m;
 }
 
+/** CSV query param → id list (empty array when absent). */
+const csv = (v: unknown): string[] =>
+  typeof v === 'string' && v.trim()
+    ? v
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
+
+/**
+ * WR-01 roles lens: roles → the tasks they own/participate in (NodeRole) →
+ * the L2 value streams above those tasks (closure) — the streams a role
+ * actually works in. Batched: two queries + one level lookup, no fan-out.
+ */
+async function valueStreamIdsForRoles(companyId: string, roleIds: string[]): Promise<string[]> {
+  if (roleIds.length === 0) return [];
+  const links = await prisma.nodeRole.findMany({
+    where: { companyId, roleId: { in: roleIds } },
+    select: { processNodeId: true },
+  });
+  const nodeIds = [...new Set(links.map((l) => l.processNodeId))];
+  if (nodeIds.length === 0) return [];
+  const l2 = await prisma.processNode.findMany({
+    where: {
+      companyId,
+      processLevelType: { levelNumber: 2 },
+      ancestorEdges: { some: { descendantId: { in: nodeIds } } },
+    },
+    select: { id: true },
+  });
+  return l2.map((n) => n.id);
+}
+
 // GET /rationalization — value-stream stages (chevrons) for the active company,
 // ordered along the stream, each with its rollup. Powers the chevron flow.
+// WR-01 lens filters: ?applicationIds=a,b · ?valueStreamIds=v1,v2 (L2 node
+// ids) · ?roleIds=r1,r2 (roles → owned/participated tasks → their L2 streams).
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const companyId = await activeCompanyId(req, res);
     if (!companyId) return;
 
+    const applicationIds = csv(req.query.applicationIds);
+    const roleIds = csv(req.query.roleIds);
+    let valueStreamIds = csv(req.query.valueStreamIds);
+    if (roleIds.length > 0) {
+      const fromRoles = await valueStreamIdsForRoles(companyId, roleIds);
+      valueStreamIds = [...new Set([...valueStreamIds, ...fromRoles])];
+      // A role lens that resolves to no streams must return no boards, not all.
+      if (valueStreamIds.length === 0) return res.json([]);
+    }
+
     const stages = await prisma.rationalizationWorkspace.findMany({
-      where: { tenantId: req.tenantId, companyId },
+      where: {
+        tenantId: req.tenantId,
+        companyId,
+        ...(applicationIds.length > 0 ? { applicationId: { in: applicationIds } } : {}),
+        ...(valueStreamIds.length > 0 ? { valueStreamNodeId: { in: valueStreamIds } } : {}),
+      },
       orderBy: [{ stageOrder: 'asc' }, { name: 'asc' }],
       include: { capabilities: { select: { migrationStatus: true, capdan: true } } },
     });
@@ -56,6 +106,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         id: s.id,
         name: s.name,
         application: s.application,
+        applicationId: s.applicationId,
+        valueStreamNodeId: s.valueStreamNodeId,
         stageOrder: s.stageOrder,
         businessProcess: s.businessProcess,
         status: s.status,
