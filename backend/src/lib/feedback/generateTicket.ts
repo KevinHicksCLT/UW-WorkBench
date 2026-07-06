@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
+import { feedbackCategoryLabel } from '@cascade/shared';
 
 /**
  * Ticket-content generation — the single LLM step of the feedback pipeline.
@@ -19,6 +20,7 @@ export type TicketContent = z.infer<typeof ticketContentSchema>;
 
 export type FeedbackInput = {
   text: string;
+  category: string | null; // FeedbackCategory; null on rows predating the field
   name: string | null;
   route: string;
   commitSha: string;
@@ -77,11 +79,14 @@ const TICKET_TOOL: Anthropic.Tool = {
 export function buildTicketPrompt(input: FeedbackInput): string {
   return [
     'A user of the Transformation Bridge web application submitted in-app feedback.',
-    'Triage it into a backlog ticket using the file_ticket tool. Classify implicitly',
-    '(bug vs enhancement) through the wording of the title and story — do not invent',
-    'details that are not supported by the feedback or the captured context.',
+    'Triage it into a backlog ticket using the file_ticket tool. The submitter',
+    'classified the feedback themselves (see below) — write the title and story in',
+    'that register (defect: symptom + expected behavior; enhancement: capability to',
+    'add; data issue: which data is wrong/missing). Do not invent details that are',
+    'not supported by the feedback or the captured context.',
     '',
     `Feedback text (verbatim): """${input.text}"""`,
+    `Submitter's classification: ${feedbackCategoryLabel(input.category)}`,
     `Submitted by: ${input.name ?? 'anonymous'}`,
     `Screen (client route): ${input.route}`,
     `App commit SHA: ${input.commitSha}`,

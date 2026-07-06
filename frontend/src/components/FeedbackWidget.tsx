@@ -2,9 +2,14 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { domToBlob } from 'modern-screenshot';
+import {
+  FEEDBACK_CATEGORIES,
+  FEEDBACK_CATEGORY_LABELS,
+  type FeedbackCategory,
+} from '@cascade/shared';
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
-import { Button, Input, Label, Textarea, ErrorMessage } from './ui';
+import { Button, Input, Label, Select, Textarea, ErrorMessage } from './ui';
 
 // Header feedback button + NON-BLOCKING right-side panel. Deliberately not
 // ui/DrawerShell: that shell is modal (dimming click-to-dismiss backdrop +
@@ -31,6 +36,7 @@ export default function FeedbackWidget() {
   const [enabled, setEnabled] = useState(false);
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
+  const [category, setCategory] = useState<FeedbackCategory | ''>('');
   const [name, setName] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,22 +89,24 @@ export default function FeedbackWidget() {
   const close = () => {
     setOpen(false);
     setError(null);
-    // Deliberately keep `text`/`name`: closing after a failed submit must not
-    // lose what the user typed.
+    // Deliberately keep `text`/`category`/`name`: closing after a failed
+    // submit must not lose what the user typed.
     if (sent) {
       setText('');
+      setCategory('');
       setName('');
       setSent(false);
     }
   };
 
   const submit = async () => {
-    if (!text.trim() || submitting) return;
+    if (!text.trim() || !category || submitting) return;
     setSubmitting(true);
     setError(null);
     const screenshot = await captureScreenshot();
     const form = new FormData();
     form.append('text', text.trim());
+    form.append('category', category);
     if (name.trim()) form.append('name', name.trim());
     form.append('route', location.pathname + location.search);
     form.append('commitSha', __COMMIT_SHA__);
@@ -108,6 +116,7 @@ export default function FeedbackWidget() {
       await api.upload('/feedback', form);
       setSent(true);
       setText('');
+      setCategory('');
       setName('');
     } catch (e) {
       setError(
@@ -204,6 +213,23 @@ export default function FeedbackWidget() {
               ) : (
                 <div className="space-y-3">
                   <div>
+                    <Label htmlFor="feedback-category">Category</Label>
+                    <Select
+                      id="feedback-category"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value as FeedbackCategory | '')}
+                    >
+                      <option value="" disabled>
+                        What kind of feedback is this?
+                      </option>
+                      {FEEDBACK_CATEGORIES.map((c) => (
+                        <option key={c} value={c}>
+                          {FEEDBACK_CATEGORY_LABELS[c]}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                  <div>
                     <Label htmlFor="feedback-name">Name (optional)</Label>
                     <Input
                       id="feedback-name"
@@ -232,7 +258,7 @@ export default function FeedbackWidget() {
                     <Button variant="secondary" onClick={close} disabled={submitting}>
                       Cancel
                     </Button>
-                    <Button onClick={submit} disabled={!text.trim() || submitting}>
+                    <Button onClick={submit} disabled={!text.trim() || !category || submitting}>
                       {submitting ? 'Sending…' : error ? 'Retry' : 'Submit'}
                     </Button>
                   </div>

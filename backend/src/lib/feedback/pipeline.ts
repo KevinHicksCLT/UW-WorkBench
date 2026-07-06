@@ -65,6 +65,7 @@ export async function runFeedbackPipeline(feedbackId: string): Promise<void> {
       log.info('step 1: generating ticket content (Anthropic)');
       ticket = await generateTicket({
         text: feedback.text,
+        category: feedback.category,
         name: feedback.name,
         route: feedback.route,
         commitSha: feedback.commitSha,
