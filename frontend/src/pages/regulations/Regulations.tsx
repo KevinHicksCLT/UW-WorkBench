@@ -89,13 +89,6 @@ const OBLIGATION_TONE: Record<string, 'amber' | 'blue' | 'green' | 'slate'> = {
   EVENT_DRIVEN: 'green',
   INFORMATIONAL: 'slate',
 };
-const CONFIDENCE_TONE: Record<string, 'green' | 'amber' | 'red' | 'slate'> = {
-  VERIFIED: 'green',
-  DERIVED: 'amber',
-  STALE: 'red',
-  BASELINE: 'slate',
-};
-
 const TABS = ['International', 'Federal', 'State'] as const;
 type Tab = (typeof TABS)[number];
 
@@ -303,6 +296,20 @@ function RegulationTable({
       ),
     },
     {
+      key: 'lob',
+      label: 'Line of business',
+      width: '110px',
+      align: 'center',
+      value: (r) => flagLabel(r.lineOfBusiness),
+      hint: 'Which insurance line the obligation applies to — All means every line the company writes; filter here to cut cross-line noise',
+      render: (r) =>
+        r.lineOfBusiness === 'ALL' ? (
+          <span className="text-[12px] text-[#a3a3a3]">All lines</span>
+        ) : (
+          <span className="truncate text-[12px] text-[#525252]">{flagLabel(r.lineOfBusiness)}</span>
+        ),
+    },
+    {
       key: 'regime',
       label: 'Regulation',
       width: '120px',
@@ -318,46 +325,23 @@ function RegulationTable({
       width: 'minmax(0,2fr)',
       align: 'center',
       value: (r) => r.title,
-      hint: 'The single atomic obligation this regulation produces — hover a row for the full requirement text',
+      hint: 'The single atomic obligation this regulation produces — the tag shows how it binds (Filing gate: blocks a transaction until approved · Ongoing: always in force · Event-driven: fires on a trigger · Informational: monitoring-only); hover a row for the full requirement text',
       render: (r) => (
-        <span
-          className="truncate text-[12px] text-[#262626]"
-          title={`${r.title}\n\n${r.requirement}`}
-        >
-          {r.title}
+        <span className="inline-flex items-center gap-1.5 min-w-0">
+          <span
+            className="truncate text-[12px] text-[#262626]"
+            title={`${r.title}\n\n${r.requirement}`}
+          >
+            {r.title}
+          </span>
+          <StatusPill
+            tone={OBLIGATION_TONE[r.obligationType] ?? 'slate'}
+            title={OBLIGATION_HELP[r.obligationType]}
+            className="flex-shrink-0"
+          >
+            {flagLabel(r.obligationType)}
+          </StatusPill>
         </span>
-      ),
-    },
-    {
-      key: 'type',
-      label: 'Type',
-      width: '100px',
-      align: 'center',
-      value: (r) => flagLabel(r.obligationType),
-      hint: 'How the obligation binds — Filing gate: blocks a transaction until approved · Ongoing: always in force · Event-driven: fires on a trigger · Informational: monitoring-only',
-      render: (r) => (
-        <StatusPill
-          tone={OBLIGATION_TONE[r.obligationType] ?? 'slate'}
-          title={OBLIGATION_HELP[r.obligationType]}
-        >
-          {flagLabel(r.obligationType)}
-        </StatusPill>
-      ),
-    },
-    {
-      key: 'confidence',
-      label: 'Confidence',
-      width: '96px',
-      align: 'center',
-      value: (r) => flagLabel(r.confidence),
-      hint: 'Provenance of the entry — Baseline: from the 50-state baseline research · Derived: decomposed from a broader regime · Verified: confirmed against the official source · Stale: needs re-verification',
-      render: (r) => (
-        <StatusPill
-          tone={CONFIDENCE_TONE[r.confidence] ?? 'slate'}
-          title={CONFIDENCE_HELP[r.confidence]}
-        >
-          {flagLabel(r.confidence)}
-        </StatusPill>
       ),
     },
     {
@@ -370,47 +354,6 @@ function RegulationTable({
       render: (r) => (
         <span className="truncate text-[12px] text-[#525252]">{catLabel(r.category)}</span>
       ),
-    },
-    {
-      key: 'lob',
-      label: 'Line of business',
-      width: '110px',
-      align: 'center',
-      value: (r) => flagLabel(r.lineOfBusiness),
-      hint: 'Which insurance line the obligation applies to — All means every line the company writes; filter here to cut cross-line noise',
-      render: (r) =>
-        r.lineOfBusiness === 'ALL' ? (
-          <span className="text-[12px] text-[#a3a3a3]">All lines</span>
-        ) : (
-          <span className="truncate text-[12px] text-[#525252]">{flagLabel(r.lineOfBusiness)}</span>
-        ),
-    },
-    {
-      key: 'vstreams',
-      label: 'Value streams',
-      width: 'minmax(0,1fr)',
-      align: 'center',
-      values: (r) =>
-        r.valueStreamLinks.length
-          ? r.valueStreamLinks.map((l) => l.valueStream.name)
-          : ['Unmapped'],
-      hint: 'Value streams whose tasks this regulation governs — every active regulation should be mapped to the streams it applies to (edit links on the jurisdiction page)',
-      render: (r) =>
-        r.valueStreamLinks.length ? (
-          <span
-            className="truncate text-[12px] text-[#525252]"
-            title={r.valueStreamLinks.map((l) => l.valueStream.name).join(', ')}
-          >
-            {r.valueStreamLinks.map((l) => l.valueStream.name).join(', ')}
-          </span>
-        ) : (
-          <StatusPill
-            tone="amber"
-            title="Not yet mapped to any value stream — open the jurisdiction page and use edit links"
-          >
-            Unmapped
-          </StatusPill>
-        ),
     },
     {
       key: 'owner',
