@@ -165,6 +165,46 @@ export const CATEGORY_HELP: Record<string, string> = {
   DATA_PRIVACY: 'Collection, use, and protection of personal data',
   OTHER: 'Obligations outside the named compliance domains',
 };
+// What each named regulation / regime IS — shown on the regime page header.
+// Static copy map (regime is a string on the requirement rows, not an entity);
+// unknown regimes fall back to a generic line via regimeHelp().
+export const REGIME_HELP: Record<string, string> = {
+  IIPRC:
+    'The Interstate Insurance Product Regulation Commission — a multi-state compact for filing life, annuity, disability and LTC products once, with effect in every member state.',
+  'NAIC iSite+':
+    "The NAIC's centralized regulatory data repository — insurers submit statutory financial statements and market conduct data here for distribution to state regulators.",
+  SERFF:
+    'The System for Electronic Rate and Form Filing — the NAIC platform through which insurers file product rates, rules, and forms with state regulators.',
+  'IAIABC EDI':
+    "The IAIABC's electronic data interchange standard for workers' compensation — insurers report first and subsequent reports of injury (FROI/SROI) to state agencies through it.",
+  GDPR: 'The EU General Data Protection Regulation — governs collection, processing, and protection of EU residents’ personal data, with extraterritorial reach.',
+  NIPR: 'The National Insurance Producer Registry — the NAIC-affiliated gateway for producer licensing, renewals, and appointments across states.',
+  UCAA: 'The Uniform Certificate of Authority Application — the standardized process for insurer company licensing and corporate amendments across states.',
+  'CCPA-CPRA':
+    'The California Consumer Privacy Act as amended by the CPRA — consumer rights over personal data and business obligations for companies handling California residents’ data.',
+  'NAIC MCAS':
+    'The NAIC Market Conduct Annual Statement — yearly line-of-business conduct data (claims handling, underwriting, lawsuits) filed with participating states.',
+  'NYDFS 500':
+    'New York DFS Cybersecurity Regulation (23 NYCRR 500) — cybersecurity program, incident notification, and annual certification duties for NY-licensed financial institutions.',
+  OPTins:
+    "The NAIC's Online Premium Tax for Insurance — electronic filing and payment of state premium taxes and assessments.",
+  'Reg BI':
+    'SEC Regulation Best Interest — the broker-dealer conduct standard for recommendations to retail customers.',
+};
+/** Regime description with graceful fallbacks for regime families. */
+export const regimeHelp = (regime: string): string => {
+  if (REGIME_HELP[regime]) return REGIME_HELP[regime];
+  if (/finra/i.test(regime))
+    return `FINRA conduct rule (${regime}) — a binding rule of the Financial Industry Regulatory Authority governing broker-dealer conduct.`;
+  if (/msrb/i.test(regime))
+    return `MSRB rule (${regime}) — a Municipal Securities Rulemaking Board rule governing municipal securities dealers.`;
+  if (/apcd/i.test(regime))
+    return `${regime} — an all-payer claims database mandate: submitting health claims data to the state's APCD.`;
+  if (/cpra|cppa/i.test(regime))
+    return `${regime} — California privacy regime obligations (CPRA amendments / the California Privacy Protection Agency).`;
+  return 'A named regulation or regulatory regime from the baseline research.';
+};
+
 export const LOB_HELP: Record<string, string> = {
   ALL: 'Applies to every line of business the company writes',
   LIFE_ANNUITY: 'Life insurance and annuity products',

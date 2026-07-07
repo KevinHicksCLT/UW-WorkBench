@@ -14,7 +14,7 @@ import {
   type VsOption,
 } from '../../components/RequirementLinks';
 import { FlagPill, catLabel, CONFIDENCE_HELP, OBLIGATION_HELP } from '../regulations/Regulations';
-import { EmptyState, ErrorMessage, LoadingState, StatusPill } from '../../components/ui';
+import { BackButton, ErrorMessage, LoadingState, StatusPill } from '../../components/ui';
 
 // State detail — /regulations/:code. Regulator identity + taxonomy flags in the
 // header; sections for the compliance profile (FULL_PROFILE states), the
@@ -189,6 +189,7 @@ export default function RegulationDetail() {
         }
         actions={
           <div className="flex items-center gap-2">
+            <BackButton />
             {detail.regulatorWebsite && (
               <a
                 href={detail.regulatorWebsite}
@@ -336,15 +337,23 @@ export default function RegulationDetail() {
                 <div className="flex flex-wrap gap-x-4 mt-1 text-xs text-[#a3a3a3]">
                   {r.owner && (
                     <span>
-                      Owner: <span className="text-[#525252]">{r.owner.name}</span>
+                      Owner:{' '}
+                      <Link to={`/roles/${r.owner.id}`} className="text-[#525252] hover:underline">
+                        {r.owner.name}
+                      </Link>
                     </span>
                   )}
                   {r.contributors.length > 0 && (
                     <span>
                       Contributors:{' '}
-                      <span className="text-[#525252]">
-                        {r.contributors.map((c) => c.name).join(', ')}
-                      </span>
+                      {r.contributors.map((c, i) => (
+                        <span key={c.id}>
+                          {i > 0 && ', '}
+                          <Link to={`/roles/${c.id}`} className="text-[#525252] hover:underline">
+                            {c.name}
+                          </Link>
+                        </span>
+                      ))}
                     </span>
                   )}
                   {r.citation && <span>Citation: {r.citation}</span>}
@@ -426,59 +435,75 @@ export default function RegulationDetail() {
           </SectionCard>
         )}
 
+        {/* Baseline-document narratives — research context, not structured data
+            (the requirements above are the extracted, structured form). Kept
+            collapsed so the page stays organized around the requirements. */}
         {detail.summaryIntegration && (
-          <SectionCard title="Integration narrative (from the baseline document)">
-            <AssistantMarkdown content={detail.summaryIntegration} />
-          </SectionCard>
+          <details className="rounded-xl border border-[#eaeaea] bg-white px-5 py-4">
+            <summary className="text-sm font-semibold text-[#171717] cursor-pointer">
+              Integration narrative{' '}
+              <span className="font-normal text-xs text-[#a3a3a3]">
+                research context from the baseline document
+              </span>
+            </summary>
+            <div className="mt-3">
+              <AssistantMarkdown content={detail.summaryIntegration} />
+            </div>
+          </details>
         )}
         {detail.summaryStatutes && (
-          <SectionCard title="Statutes & regulations (from the baseline document)">
-            <AssistantMarkdown content={detail.summaryStatutes} />
-          </SectionCard>
+          <details className="rounded-xl border border-[#eaeaea] bg-white px-5 py-4">
+            <summary className="text-sm font-semibold text-[#171717] cursor-pointer">
+              Statutes &amp; regulations{' '}
+              <span className="font-normal text-xs text-[#a3a3a3]">
+                research context from the baseline document
+              </span>
+            </summary>
+            <div className="mt-3">
+              <AssistantMarkdown content={detail.summaryStatutes} />
+            </div>
+          </details>
         )}
 
         {!isFederal && (
           <>
-            <SectionCard title={`Bulletins (${detail.bulletins.length})`}>
-              <p className="text-xs text-[#a3a3a3] mb-2">
-                Official notices this regulator has published — interpreting legislation, announcing
-                rate-filing expectations, or setting fees. Captured during the baseline research.
-              </p>
-              {detail.bulletins.length === 0 && (
-                <EmptyState
-                  baseClassName="text-sm text-[#a3a3a3]"
-                  message="No bulletins on file for this state yet."
-                />
-              )}
-              <div className="divide-y divide-[#f5f5f5]">
-                {detail.bulletins.map((b) => (
-                  <div key={b.id} className="py-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-[#171717]">
-                        {b.url ? (
-                          <a
-                            className="hover:underline"
-                            href={b.url}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            {b.reference} ↗
-                          </a>
-                        ) : (
-                          b.reference
-                        )}
-                      </span>
-                      {b.issuedDate && (
-                        <span className="text-xs text-[#a3a3a3] tnum">
-                          {new Date(b.issuedDate).toLocaleDateString()}
+            {detail.bulletins.length > 0 && (
+              <SectionCard title={`Bulletins (${detail.bulletins.length})`}>
+                <p className="text-xs text-[#a3a3a3] mb-2">
+                  Official notices this regulator has published — interpreting legislation,
+                  announcing rate-filing expectations, or setting fees. Captured during the baseline
+                  research.
+                </p>
+                <div className="divide-y divide-[#f5f5f5]">
+                  {detail.bulletins.map((b) => (
+                    <div key={b.id} className="py-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-[#171717]">
+                          {b.url ? (
+                            <a
+                              className="hover:underline"
+                              href={b.url}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {b.reference} ↗
+                            </a>
+                          ) : (
+                            b.reference
+                          )}
                         </span>
-                      )}
+                        {b.issuedDate && (
+                          <span className="text-xs text-[#a3a3a3] tnum">
+                            {new Date(b.issuedDate).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                      {b.summary && <p className="text-xs text-[#525252] mt-0.5">{b.summary}</p>}
                     </div>
-                    {b.summary && <p className="text-xs text-[#525252] mt-0.5">{b.summary}</p>}
-                  </div>
-                ))}
-              </div>
-            </SectionCard>
+                  ))}
+                </div>
+              </SectionCard>
+            )}
 
             <SectionCard title={`Compliance rules (${detail.rules.length})`}>
               <p className="text-xs text-[#a3a3a3] mb-3">
@@ -491,11 +516,14 @@ export default function RegulationDetail() {
                 {detail.rules.map((r) => (
                   <div key={r.id} className="py-2">
                     <button
-                      className="flex items-center gap-2 w-full text-left"
+                      className="flex items-center gap-2 w-full text-left group"
                       onClick={() => setOpenRule(openRule === r.id ? null : r.id)}
                       aria-expanded={openRule === r.id}
+                      title="Expand the machine-readable rule"
                     >
-                      <span className="text-sm font-medium tnum text-[#171717]">{r.ruleCode}</span>
+                      <span className="text-sm font-medium tnum text-[#171717] group-hover:underline">
+                        {r.ruleCode}
+                      </span>
                       <span className="flex-1" />
                       <span className="text-[#a3a3a3] text-xs">
                         {openRule === r.id ? '▾' : '▸'}

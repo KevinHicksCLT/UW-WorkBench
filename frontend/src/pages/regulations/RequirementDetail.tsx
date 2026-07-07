@@ -12,7 +12,7 @@ import {
   type VsLink,
   type VsOption,
 } from '../../components/RequirementLinks';
-import { ErrorMessage, LoadingState } from '../../components/ui';
+import { BackButton, ErrorMessage, LoadingState } from '../../components/ui';
 import {
   catLabel,
   CATEGORY_HELP,
@@ -70,7 +70,15 @@ type Requirement = {
 
 // Work Library plan shape (GET /work-library/plan/regulation/:id) — the same
 // endpoint the Work Library page consumes, so both screens always agree.
-type PlanAnswer = { id: string; value: string | null; suppressed?: boolean } | null;
+type EntityRef = { id: string; name: string } | null;
+type PlanAnswer = {
+  id: string;
+  value: string | null;
+  suppressed?: boolean;
+  application: EntityRef;
+  role: EntityRef;
+  deliverable: EntityRef;
+} | null;
 type PlanSection = {
   id: string;
   kind: string; // CHECKLIST | TEST
@@ -78,10 +86,16 @@ type PlanSection = {
   description: string | null;
   keys: { id: string; key: string; guidance: string | null; answer: PlanAnswer }[];
 };
-type Plan = {
-  sections: PlanSection[];
-  customRows: { id: string; kind: string; customKey: string | null; value: string | null }[];
+type PlanCustomRow = {
+  id: string;
+  kind: string;
+  customKey: string | null;
+  value: string | null;
+  application: EntityRef;
+  role: EntityRef;
+  deliverable: EntityRef;
 };
+type Plan = { sections: PlanSection[]; customRows: PlanCustomRow[] };
 
 const label = (v: string) =>
   v
@@ -131,6 +145,7 @@ export default function RequirementDetail() {
         subtitle={r.jurisdiction.regulatorName + (r.regime ? ` · ${r.regime}` : '')}
         actions={
           <div className="flex items-center gap-2">
+            <BackButton />
             {r.citationUrl && (
               <a
                 href={r.citationUrl}
@@ -228,16 +243,31 @@ export default function RequirementDetail() {
         <SectionCard title="Accountability">
           <div className="text-sm">
             <div>
-              <span className="text-xs text-[#a3a3a3]">Owner</span>{' '}
-              <span className="text-[#171717] font-medium">{r.owner?.name ?? '—'}</span>
+              <div className="text-xs text-[#a3a3a3]">Owner</div>
+              {r.owner ? (
+                <ul className="list-disc pl-5 mt-1">
+                  <li>
+                    <Link
+                      to={`/roles/${r.owner.id}`}
+                      className="text-[#171717] font-medium hover:underline"
+                    >
+                      {r.owner.name}
+                    </Link>
+                  </li>
+                </ul>
+              ) : (
+                <span className="text-[#525252]">—</span>
+              )}
             </div>
             <div className="mt-2">
               <div className="text-xs text-[#a3a3a3]">Contributors</div>
               {r.contributors.length ? (
                 <ul className="list-disc pl-5 mt-1 space-y-0.5">
                   {r.contributors.map((c) => (
-                    <li key={c.id} className="text-[#525252]">
-                      {c.name}
+                    <li key={c.id}>
+                      <Link to={`/roles/${c.id}`} className="text-[#525252] hover:underline">
+                        {c.name}
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -346,7 +376,17 @@ function ClassRow({ name, value, help }: { name: string; value: React.ReactNode;
   );
 }
 
-/** Read-only render of the Work Library plan (checklist + testing sections). */
+/** Answer display: text value, or the linked application/role/deliverable name. */
+function answerText(a: PlanAnswer | PlanCustomRow | null): string {
+  if (!a) return '';
+  return a.value ?? a.application?.name ?? a.role?.name ?? a.deliverable?.name ?? '';
+}
+
+/**
+ * Read-only render of the Work Library plan — the same numbered key/value
+ * matrix the Work Library page shows (one table per Checklist / Testing
+ * block), minus the editing affordances.
+ */
 function PlanSections({ plan }: { plan: Plan | null }) {
   const sections = plan?.sections ?? [];
   const custom = plan?.customRows ?? [];
@@ -358,46 +398,50 @@ function PlanSections({ plan }: { plan: Plan | null }) {
     );
   }
   const kindTitle = (k: string) => (k === 'CHECKLIST' ? 'Checklist' : 'Testing template');
-  const customFor = (k: string) => custom.filter((c) => c.kind === k && c.customKey);
   const kinds = [...new Set([...sections.map((s) => s.kind), ...custom.map((c) => c.kind)])];
   return (
     <div className="space-y-4">
-      {kinds.map((kind) => (
-        <div key={kind}>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.04em] text-[#525252] mb-1.5">
-            {kindTitle(kind)}
+      {kinds.map((kind) => {
+        const rows: { id: string; key: string; text: string }[] = [];
+        for (const s of sections.filter((x) => x.kind === kind)) {
+          for (const k of s.keys) {
+            if (k.answer?.suppressed) continue;
+            rows.push({ id: k.id, key: k.key, text: answerText(k.answer) || (k.guidance ?? '') });
+          }
+        }
+        for (const c of custom.filter((x) => x.kind === kind && x.customKey)) {
+          rows.push({ id: c.id, key: c.customKey as string, text: answerText(c) });
+        }
+        return (
+          <div key={kind} className="rounded-xl border border-[#dfe3e8] overflow-hidden bg-white">
+            <div className="px-3 py-2 bg-[#f7f8fa] border-b border-[#e5e5e5] text-[13px] font-semibold text-[#171717]">
+              {kindTitle(kind)}
+            </div>
+            <table className="w-full table-fixed border-collapse text-[12.5px]">
+              <colgroup>
+                <col style={{ width: 36 }} />
+                <col style={{ width: '38%' }} />
+                <col />
+              </colgroup>
+              <tbody>
+                {rows.map((row, i) => (
+                  <tr key={row.id} className="border-t border-[#eef1f4]">
+                    <td className="border border-[#e8ebee] px-2 py-2.5 text-right align-top text-[11px] text-[#a3a3a3]">
+                      {i + 1}
+                    </td>
+                    <td className="border border-[#e8ebee] px-3 py-2.5 text-left align-top text-[#8a94a0]">
+                      {row.key}
+                    </td>
+                    <td className="border border-[#e8ebee] px-3 py-2.5 text-left align-top text-[#262626]">
+                      {row.text}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          {sections
-            .filter((s) => s.kind === kind)
-            .map((s) => (
-              <ul key={s.id} className="list-disc pl-5 space-y-1">
-                {s.keys
-                  .filter((k) => !k.answer?.suppressed)
-                  .map((k) => (
-                    <li key={k.id} className="text-sm text-[#525252]">
-                      <span className="text-[#262626]">{k.key}</span>
-                      {k.answer?.value && (
-                        <span className="text-[#525252]"> — {k.answer.value}</span>
-                      )}
-                      {!k.answer?.value && k.guidance && (
-                        <span className="text-[#a3a3a3]"> — {k.guidance}</span>
-                      )}
-                    </li>
-                  ))}
-              </ul>
-            ))}
-          {customFor(kind).length > 0 && (
-            <ul className="list-disc pl-5 space-y-1 mt-1">
-              {customFor(kind).map((c) => (
-                <li key={c.id} className="text-sm text-[#525252]">
-                  <span className="text-[#262626]">{c.customKey}</span>
-                  {c.value && <span> — {c.value}</span>}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

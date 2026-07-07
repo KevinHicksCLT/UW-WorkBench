@@ -5,7 +5,7 @@ import { useApi } from '../../lib/useApi';
 import { withCompany, Tile, SectionCard } from '../../lib/portfolio';
 import PageHeader from '../../components/PageHeader';
 import { useRegisterCrumb } from '../../lib/breadcrumbs';
-import { EmptyState, Input, LoadingState, StatusPill } from '../../components/ui';
+import { BackButton, EmptyState, Input, LoadingState, StatusPill } from '../../components/ui';
 import { catLabel, CONFIDENCE_HELP, type Overview } from './Regulations';
 
 // Overview-card insight pages — /regulations/{jurisdictions,catalog,rules,sources}.
@@ -37,6 +37,7 @@ type ReqRow = {
   confidence: string;
   regime: string | null;
   jurisdiction: { code: string; name: string; regulatorType: string };
+  valueStreamLinks: { valueStreamId: string }[];
 };
 type RuleRow = {
   id: string;
@@ -191,12 +192,15 @@ export default function RegulationsInsight({ kind }: { kind: InsightKind }) {
         eyebrow="Regulations"
         title={META[kind].title}
         actions={
-          <Link
-            to="/regulations"
-            className="rounded-md border border-[#eaeaea] bg-white px-3 py-1.5 text-xs font-medium text-[#171717] hover:border-[#d4d4d4] transition-colors duration-150"
-          >
-            All regulations
-          </Link>
+          <div className="flex items-center gap-2">
+            <BackButton />
+            <Link
+              to="/regulations"
+              className="rounded-md border border-[#eaeaea] bg-white px-3 py-1.5 text-xs font-medium text-[#171717] hover:border-[#d4d4d4] transition-colors duration-150"
+            >
+              All regulations
+            </Link>
+          </div>
         }
       />
       <p className="text-sm text-[#525252] leading-relaxed mb-5 max-w-3xl">{META[kind].blurb}</p>
@@ -230,17 +234,58 @@ function JurisdictionsBody({
   overview: Overview | null;
 }) {
   const navigate = useNavigate();
+  const [tileFilter, setTileFilter] = useState<'all' | 'priority' | 'verified' | 'full'>('all');
   if (loading || !rows) return <LoadingState />;
   const priority = rows.filter((j) => j.priorityTier === 'PRIORITY').length;
   const verified = rows.filter((j) => j.lastVerifiedAt).length;
   const full = rows.filter((j) => j.profileDepth === 'FULL_PROFILE').length;
+  const shown = rows.filter((j) =>
+    tileFilter === 'priority'
+      ? j.priorityTier === 'PRIORITY'
+      : tileFilter === 'verified'
+        ? !!j.lastVerifiedAt
+        : tileFilter === 'full'
+          ? j.profileDepth === 'FULL_PROFILE'
+          : true,
+  );
+  const listTitle =
+    tileFilter === 'all'
+      ? 'All jurisdictions'
+      : tileFilter === 'priority'
+        ? 'Priority states'
+        : tileFilter === 'verified'
+          ? 'Verified jurisdictions'
+          : 'Full profiles';
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <Tile compact label="Jurisdictions" value={rows.length} />
-        <Tile compact label="Priority states" value={priority} hint="deep compliance profiles" />
-        <Tile compact label="Verified" value={verified} hint="confirmed against the regulator" />
-        <Tile compact label="Full profiles" value={full} hint="complete operating detail" />
+        <Tile
+          compact
+          label="Jurisdictions"
+          value={rows.length}
+          onClick={() => setTileFilter('all')}
+        />
+        <Tile
+          compact
+          label="Priority states"
+          value={priority}
+          hint="deep compliance profiles"
+          onClick={() => setTileFilter('priority')}
+        />
+        <Tile
+          compact
+          label="Verified"
+          value={verified}
+          hint="confirmed against the regulator"
+          onClick={() => setTileFilter('verified')}
+        />
+        <Tile
+          compact
+          label="Full profiles"
+          value={full}
+          hint="complete operating detail"
+          onClick={() => setTileFilter('full')}
+        />
       </div>
       <div className="grid md:grid-cols-2 gap-5">
         <SectionCard title="Filing portal landscape">
@@ -258,9 +303,9 @@ function JurisdictionsBody({
           />
         </SectionCard>
       </div>
-      <SectionCard title="All jurisdictions">
+      <SectionCard title={`${listTitle} (${shown.length})`}>
         <div className="divide-y divide-[#f5f5f5]">
-          {rows.map((j) => (
+          {shown.map((j) => (
             <button
               key={j.id}
               type="button"
@@ -302,6 +347,8 @@ function CatalogBody({
 }) {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
+  // Tile drill filter — clicking a stat card narrows the list below it.
+  const [tileFilter, setTileFilter] = useState<'all' | 'mapped' | 'unmapped' | 'verified'>('all');
   const byCategory = useMemo(() => tally(rows ?? [], (r) => catLabel(r.category)), [rows]);
   const byLob = useMemo(
     () =>
@@ -312,29 +359,41 @@ function CatalogBody({
   );
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return rows ?? [];
-    return (rows ?? []).filter(
-      (row) =>
+    return (rows ?? []).filter((row) => {
+      if (tileFilter === 'mapped' && !row.valueStreamLinks.length) return false;
+      if (tileFilter === 'unmapped' && row.valueStreamLinks.length) return false;
+      if (tileFilter === 'verified' && row.confidence !== 'VERIFIED') return false;
+      if (!q) return true;
+      return (
         row.title.toLowerCase().includes(q) ||
         row.requirement.toLowerCase().includes(q) ||
         row.jurisdiction.name.toLowerCase().includes(q) ||
         (row.regime ?? '').toLowerCase().includes(q) ||
-        catLabel(row.category).toLowerCase().includes(q),
-    );
-  }, [rows, query]);
+        catLabel(row.category).toLowerCase().includes(q)
+      );
+    });
+  }, [rows, query, tileFilter]);
   if (loading || !rows || !overview) return <LoadingState />;
   const r = overview.requirements;
-  const coverage = overview.coverageByValueStream ?? [];
+  const listTitle =
+    tileFilter === 'all'
+      ? 'All requirements'
+      : tileFilter === 'verified'
+        ? 'Verified requirements'
+        : tileFilter === 'mapped'
+          ? 'Mapped requirements'
+          : 'Unmapped requirements';
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <Tile compact label="Requirements" value={r.total} />
+        <Tile compact label="Requirements" value={r.total} onClick={() => setTileFilter('all')} />
         <Tile
           compact
           label="Mapped"
           value={r.mapped}
           tone="positive"
           hint="linked to value streams"
+          onClick={() => setTileFilter('mapped')}
         />
         <Tile
           compact
@@ -342,12 +401,14 @@ function CatalogBody({
           value={r.unmapped}
           tone="negative"
           hint="still need mapping"
+          onClick={() => setTileFilter('unmapped')}
         />
         <Tile
           compact
           label="Verified"
           value={r.byConfidence.VERIFIED ?? 0}
           hint="confirmed at the source"
+          onClick={() => setTileFilter('verified')}
         />
       </div>
       <div className="grid md:grid-cols-2 gap-5">
@@ -359,13 +420,6 @@ function CatalogBody({
             legendHelp={CONFIDENCE_HELP}
           />
         </SectionCard>
-        <SectionCard title="Coverage by value stream">
-          {coverage.length === 0 ? (
-            <EmptyState message="No requirements are mapped to value streams yet." />
-          ) : (
-            <BarList data={coverage.map((c) => [c.valueStream ?? '—', c.requirementCount])} />
-          )}
-        </SectionCard>
         <SectionCard title="By category">
           <BarList data={byCategory} />
         </SectionCard>
@@ -373,17 +427,20 @@ function CatalogBody({
           <BarList data={byLob} />
         </SectionCard>
       </div>
-      <SectionCard title={`All requirements (${filtered.length})`}>
-        <div className="mb-3 max-w-xs">
+      <SectionCard
+        title={`${listTitle} (${filtered.length})`}
+        actions={
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search requirements…"
             aria-label="Search requirements"
+            className="max-w-xs"
           />
-        </div>
+        }
+      >
         {filtered.length === 0 ? (
-          <EmptyState message="No requirements match the search." />
+          <EmptyState message="No requirements match." />
         ) : (
           <div className="divide-y divide-[#f5f5f5]">
             {filtered.map((row) => (
@@ -443,15 +500,18 @@ function RulesBody({ rows, loading }: { rows: RuleRow[] | null; loading: boolean
       <SectionCard title="Rules by category">
         <BarList data={byCategory.slice(0, 15)} />
       </SectionCard>
-      <SectionCard title={`All rules (${filtered.length})`}>
-        <div className="mb-3 max-w-xs">
+      <SectionCard
+        title={`All rules (${filtered.length})`}
+        actions={
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search rules…"
             aria-label="Search rules"
+            className="max-w-xs"
           />
-        </div>
+        }
+      >
         {filtered.length === 0 && <EmptyState message="No rules match the search." />}
         {grouped.map(([cat, list]) => (
           <div key={cat} className="mb-4 last:mb-0">

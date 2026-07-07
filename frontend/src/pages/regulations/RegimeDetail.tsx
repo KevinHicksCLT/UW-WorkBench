@@ -5,9 +5,9 @@ import { useApi } from '../../lib/useApi';
 import { withCompany, Tile, SectionCard } from '../../lib/portfolio';
 import PageHeader from '../../components/PageHeader';
 import { useRegisterCrumb } from '../../lib/breadcrumbs';
-import { EmptyState, Input, LoadingState, StatusPill } from '../../components/ui';
+import { BackButton, EmptyState, Input, LoadingState, StatusPill } from '../../components/ui';
 import { type VsLink } from '../../components/RequirementLinks';
-import { catLabel } from './Regulations';
+import { catLabel, regimeHelp } from './Regulations';
 
 // Regulation (regime) page — /regulations/regulation/:regime. One named
 // regulation (GDPR, CCPA-CPRA, SERFF, NYDFS-500, …) and every atomic
@@ -40,6 +40,7 @@ export default function RegimeDetail() {
   const name = regime ? decodeURIComponent(regime) : '';
   useRegisterCrumb(name || 'Regulation');
   const [query, setQuery] = useState('');
+  const [mappedOnly, setMappedOnly] = useState(false);
 
   const { data: rows, loading } = useApi<ReqRow[]>(
     companyId && name
@@ -49,15 +50,17 @@ export default function RegimeDetail() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return rows ?? [];
-    return (rows ?? []).filter(
-      (r) =>
+    return (rows ?? []).filter((r) => {
+      if (mappedOnly && !r.valueStreamLinks.length) return false;
+      if (!q) return true;
+      return (
         r.title.toLowerCase().includes(q) ||
         r.requirement.toLowerCase().includes(q) ||
         r.jurisdiction.name.toLowerCase().includes(q) ||
-        catLabel(r.category).toLowerCase().includes(q),
-    );
-  }, [rows, query]);
+        catLabel(r.category).toLowerCase().includes(q)
+      );
+    });
+  }, [rows, query, mappedOnly]);
 
   if (loading || !rows) return <LoadingState />;
 
@@ -71,35 +74,55 @@ export default function RegimeDetail() {
         title={name}
         subtitle={`${rows.length} requirements across ${jurisdictions.size} jurisdiction${jurisdictions.size === 1 ? '' : 's'}`}
         actions={
-          <Link
-            to="/regulations"
-            className="rounded-md border border-[#eaeaea] bg-white px-3 py-1.5 text-xs font-medium text-[#171717] hover:border-[#d4d4d4] transition-colors duration-150"
-          >
-            All regulations
-          </Link>
+          <div className="flex items-center gap-2">
+            <BackButton />
+            <Link
+              to="/regulations"
+              className="rounded-md border border-[#eaeaea] bg-white px-3 py-1.5 text-xs font-medium text-[#171717] hover:border-[#d4d4d4] transition-colors duration-150"
+            >
+              All regulations
+            </Link>
+          </div>
         }
       />
 
+      {/* What this regulation IS — static copy keyed by regime name. */}
+      <p className="text-sm text-[#525252] leading-relaxed mb-5 max-w-3xl">{regimeHelp(name)}</p>
+
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-5">
-        <Tile compact label="Requirements" value={rows.length} />
+        <Tile
+          compact
+          label="Requirements"
+          value={rows.length}
+          onClick={() => setMappedOnly(false)}
+        />
         <Tile compact label="Jurisdictions" value={jurisdictions.size} />
-        <Tile compact label="Mapped" value={mapped} hint="linked to value streams" />
+        <Tile
+          compact
+          label="Mapped"
+          value={mapped}
+          hint="linked to value streams"
+          onClick={() => setMappedOnly(true)}
+        />
       </div>
 
-      <SectionCard title={`Requirements (${filtered.length})`}>
-        <div className="mb-3 max-w-xs">
+      <SectionCard
+        title={`${mappedOnly ? 'Mapped requirements' : 'Requirements'} (${filtered.length})`}
+        actions={
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search requirements…"
             aria-label="Search requirements"
+            className="max-w-xs"
           />
-        </div>
+        }
+      >
         {rows.length === 0 && (
           <EmptyState message="No requirements recorded for this regulation." />
         )}
         {rows.length > 0 && filtered.length === 0 && (
-          <EmptyState message="No requirements match the search." />
+          <EmptyState message="No requirements match." />
         )}
         <div className="divide-y divide-[#f5f5f5]">
           {filtered.map((r) => (
@@ -125,7 +148,20 @@ export default function RegimeDetail() {
                 {r.obligationType === 'FILING_GATE' && (
                   <StatusPill tone="amber">Filing gate</StatusPill>
                 )}
-                {r.owner && <span className="text-xs text-[#a3a3a3]">Owner: {r.owner.name}</span>}
+                {r.owner && (
+                  <span className="text-xs text-[#a3a3a3]">
+                    Owner:{' '}
+                    <span
+                      className="text-[#525252] hover:underline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/roles/${r.owner!.id}`);
+                      }}
+                    >
+                      {r.owner.name}
+                    </span>
+                  </span>
+                )}
               </div>
             </button>
           ))}
