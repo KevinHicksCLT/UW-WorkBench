@@ -372,6 +372,20 @@ function RegulationTable({
       ),
     },
     {
+      key: 'lob',
+      label: 'Line of business',
+      width: '110px',
+      align: 'center',
+      value: (r) => flagLabel(r.lineOfBusiness),
+      hint: 'Which insurance line the obligation applies to — All means every line the company writes; filter here to cut cross-line noise',
+      render: (r) =>
+        r.lineOfBusiness === 'ALL' ? (
+          <span className="text-[12px] text-[#a3a3a3]">All lines</span>
+        ) : (
+          <span className="truncate text-[12px] text-[#525252]">{flagLabel(r.lineOfBusiness)}</span>
+        ),
+    },
+    {
       key: 'vstreams',
       label: 'Value streams',
       width: 'minmax(0,1fr)',
