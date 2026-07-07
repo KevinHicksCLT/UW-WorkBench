@@ -82,21 +82,6 @@ export const OBLIGATION_HELP: Record<string, string> = {
   EVENT_DRIVEN: 'Fires when a triggering event occurs',
   INFORMATIONAL: 'Monitoring-only — no direct action required',
 };
-// Compliance tier (SCRUM-77) — collapses the obligation type into the
-// critical-compliance vs general-monitoring distinction so users can filter
-// to what legally binds them. Machine-readable ComplianceRule rows are a
-// separate artifact (state pages + the Compliance rules card).
-export const complianceTier = (obligationType: string): 'Critical' | 'Compliance' | 'Monitoring' =>
-  obligationType === 'FILING_GATE'
-    ? 'Critical'
-    : obligationType === 'INFORMATIONAL'
-      ? 'Monitoring'
-      : 'Compliance';
-const TIER_HELP: Record<string, string> = {
-  Critical: 'Blocking compliance obligation — business cannot proceed until the filing is approved',
-  Compliance: 'Legally binding obligation (ongoing or event-driven)',
-  Monitoring: 'Informational — watch, no direct action required',
-};
 const TABS = ['International', 'Federal', 'State'] as const;
 type Tab = (typeof TABS)[number];
 
@@ -340,27 +325,6 @@ function RegulationTable({
           {r.title}
         </span>
       ),
-    },
-    {
-      key: 'priority',
-      label: 'Priority',
-      width: '104px',
-      value: (r) => complianceTier(r.obligationType),
-      hint: 'Whether the row legally binds the business — Critical: filing gate, blocks business until approved · Compliance: binding ongoing/event-driven obligation · Monitoring: informational only. Machine-readable compliance rules are a separate artifact (see the Compliance rules card and each state page).',
-      render: (r) => {
-        const tier = complianceTier(r.obligationType);
-        return (
-          <span
-            className={
-              'text-[12px] ' +
-              (tier === 'Critical' ? 'font-medium text-[#be123c]' : 'text-[#525252]')
-            }
-            title={TIER_HELP[tier]}
-          >
-            {tier}
-          </span>
-        );
-      },
     },
     {
       key: 'category',
