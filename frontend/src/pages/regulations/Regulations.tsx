@@ -6,7 +6,6 @@ import { useApi } from '../../lib/useApi';
 import { withCompany, Tile } from '../../lib/portfolio';
 import { useRegisterCrumb } from '../../lib/breadcrumbs';
 import { Sheet, type SheetCol } from '../../components/Sheet';
-import { StatusPill } from '../../components/ui';
 import { type VsLink } from '../../components/RequirementLinks';
 import { RegOverviewDrawer, type DrillKind } from './OverviewDrawers';
 
@@ -83,13 +82,6 @@ export const OBLIGATION_HELP: Record<string, string> = {
   EVENT_DRIVEN: 'Fires when a triggering event occurs',
   INFORMATIONAL: 'Monitoring-only — no direct action required',
 };
-const OBLIGATION_TONE: Record<string, 'amber' | 'blue' | 'green' | 'slate'> = {
-  FILING_GATE: 'amber',
-  ONGOING: 'blue',
-  EVENT_DRIVEN: 'green',
-  INFORMATIONAL: 'slate',
-};
-
 // Compliance tier (SCRUM-77) — collapses the obligation type into the
 // critical-compliance vs general-monitoring distinction so users can filter
 // to what legally binds them. Machine-readable ComplianceRule rows are a
@@ -100,11 +92,6 @@ export const complianceTier = (obligationType: string): 'Critical' | 'Compliance
     : obligationType === 'INFORMATIONAL'
       ? 'Monitoring'
       : 'Compliance';
-const TIER_TONE: Record<string, 'red' | 'blue' | 'slate'> = {
-  Critical: 'red',
-  Compliance: 'blue',
-  Monitoring: 'slate',
-};
 const TIER_HELP: Record<string, string> = {
   Critical: 'Blocking compliance obligation — business cannot proceed until the filing is approved',
   Compliance: 'Legally binding obligation (ongoing or event-driven)',
@@ -344,37 +331,34 @@ function RegulationTable({
       label: 'Obligation',
       width: 'minmax(0,2fr)',
       value: (r) => r.title,
-      hint: 'The single atomic obligation this regulation produces — the tag shows how it binds (Filing gate: blocks a transaction until approved · Ongoing: always in force · Event-driven: fires on a trigger · Informational: monitoring-only); hover a row for the full requirement text',
+      hint: 'The single atomic obligation this regulation produces — hover a row for the full requirement text',
       render: (r) => (
-        <span className="inline-flex items-center gap-1.5 min-w-0">
-          <span
-            className="truncate text-[12px] text-[#262626]"
-            title={`${r.title}\n\n${r.requirement}`}
-          >
-            {r.title}
-          </span>
-          <StatusPill
-            tone={OBLIGATION_TONE[r.obligationType] ?? 'slate'}
-            title={OBLIGATION_HELP[r.obligationType]}
-            className="flex-shrink-0"
-          >
-            {flagLabel(r.obligationType)}
-          </StatusPill>
+        <span
+          className="truncate text-[12px] text-[#262626]"
+          title={`${r.title}\n\n${r.requirement}`}
+        >
+          {r.title}
         </span>
       ),
     },
     {
-      key: 'compliance',
-      label: 'Compliance',
+      key: 'priority',
+      label: 'Priority',
       width: '104px',
       value: (r) => complianceTier(r.obligationType),
       hint: 'Whether the row legally binds the business — Critical: filing gate, blocks business until approved · Compliance: binding ongoing/event-driven obligation · Monitoring: informational only. Machine-readable compliance rules are a separate artifact (see the Compliance rules card and each state page).',
       render: (r) => {
         const tier = complianceTier(r.obligationType);
         return (
-          <StatusPill tone={TIER_TONE[tier]} title={TIER_HELP[tier]}>
+          <span
+            className={
+              'text-[12px] ' +
+              (tier === 'Critical' ? 'font-medium text-[#be123c]' : 'text-[#525252]')
+            }
+            title={TIER_HELP[tier]}
+          >
             {tier}
-          </StatusPill>
+          </span>
         );
       },
     },
