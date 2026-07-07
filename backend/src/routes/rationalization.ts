@@ -38,15 +38,65 @@ function capdanCounts(rows: { capdan: string }[]) {
   return m;
 }
 
+/** CSV query param → id list (empty array when absent). */
+const csv = (v: unknown): string[] =>
+  typeof v === 'string' && v.trim()
+    ? v
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
+
+/**
+ * WR-01 roles lens: roles → the tasks they own/participate in (NodeRole) →
+ * the L2 value streams above those tasks (closure) — the streams a role
+ * actually works in. Batched: two queries + one level lookup, no fan-out.
+ */
+async function valueStreamIdsForRoles(companyId: string, roleIds: string[]): Promise<string[]> {
+  if (roleIds.length === 0) return [];
+  const links = await prisma.nodeRole.findMany({
+    where: { companyId, roleId: { in: roleIds } },
+    select: { processNodeId: true },
+  });
+  const nodeIds = [...new Set(links.map((l) => l.processNodeId))];
+  if (nodeIds.length === 0) return [];
+  const l2 = await prisma.processNode.findMany({
+    where: {
+      companyId,
+      processLevelType: { levelNumber: 2 },
+      ancestorEdges: { some: { descendantId: { in: nodeIds } } },
+    },
+    select: { id: true },
+  });
+  return l2.map((n) => n.id);
+}
+
 // GET /rationalization — value-stream stages (chevrons) for the active company,
 // ordered along the stream, each with its rollup. Powers the chevron flow.
+// WR-01 lens filters: ?applicationIds=a,b · ?valueStreamIds=v1,v2 (L2 node
+// ids) · ?roleIds=r1,r2 (roles → owned/participated tasks → their L2 streams).
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const companyId = await activeCompanyId(req, res);
     if (!companyId) return;
 
+    const applicationIds = csv(req.query.applicationIds);
+    const roleIds = csv(req.query.roleIds);
+    let valueStreamIds = csv(req.query.valueStreamIds);
+    if (roleIds.length > 0) {
+      const fromRoles = await valueStreamIdsForRoles(companyId, roleIds);
+      valueStreamIds = [...new Set([...valueStreamIds, ...fromRoles])];
+      // A role lens that resolves to no streams must return no boards, not all.
+      if (valueStreamIds.length === 0) return res.json([]);
+    }
+
     const stages = await prisma.rationalizationWorkspace.findMany({
-      where: { tenantId: req.tenantId, companyId },
+      where: {
+        tenantId: req.tenantId,
+        companyId,
+        ...(applicationIds.length > 0 ? { applicationId: { in: applicationIds } } : {}),
+        ...(valueStreamIds.length > 0 ? { valueStreamNodeId: { in: valueStreamIds } } : {}),
+      },
       orderBy: [{ stageOrder: 'asc' }, { name: 'asc' }],
       include: { capabilities: { select: { migrationStatus: true, capdan: true } } },
     });
@@ -56,6 +106,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         id: s.id,
         name: s.name,
         application: s.application,
+        applicationId: s.applicationId,
+        valueStreamNodeId: s.valueStreamNodeId,
         stageOrder: s.stageOrder,
         businessProcess: s.businessProcess,
         status: s.status,
@@ -199,6 +251,30 @@ router.post('/initiatives', async (req: Request, res: Response, next: NextFuncti
   }
 });
 
+// GET /rationalization/anatomy-catalog — the WR-06 reference taxonomy: per
+// layer × view (COMPONENT | BEHAVIOR | MISPLACED), what belongs and what must
+// not be there. Registered BEFORE /:id so the literal path isn't swallowed.
+router.get('/anatomy-catalog', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const companyId = await activeCompanyId(req, res);
+    if (!companyId) return;
+    const rows = await prisma.anatomyCategory.findMany({
+      where: { companyId },
+      orderBy: [{ layer: 'asc' }, { view: 'asc' }, { sortOrder: 'asc' }],
+      select: {
+        layer: true,
+        view: true,
+        name: true,
+        description: true,
+        recommendedLayer: true,
+      },
+    });
+    res.json(rows);
+  } catch (e) {
+    next(e);
+  }
+});
+
 // GET /rationalization/:id — one stage's full decomposition: findings by layer,
 // CAPDAN rollups, relocation targets, and per-finding code + migration detail.
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
@@ -213,6 +289,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         },
         components: true,
         capabilities: true,
+        screens: { orderBy: { name: 'asc' } },
       },
     });
     if (!w) return res.status(404).json({ error: 'Not found' });
@@ -246,10 +323,11 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       progress: progressFor(caps),
       counts: { findings: caps.length, ...capdanCounts(caps) },
       byLayer,
-      // Brown-field apps (the grid columns).
+      // Brown-field apps (the grid columns) + shared services (own lane, WR-15).
       apps: w.apps.map((a) => ({
         id: a.id,
         name: a.name,
+        kind: a.kind,
         techStack: a.techStack,
         disposition: a.disposition,
         position: a.position,
@@ -276,14 +354,28 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         // ownerRole is the linked Role's display label (erd_v5 ownerRoleId FK).
         ownerRole: m.ownerRole?.displayValue ?? null,
       })),
-      // Flat findings; the board groups by (appId, layer, category).
+      // Screens/modals of the legacy apps (WR-06: clickable per-L4 links).
+      screens: w.screens.map((s) => ({
+        id: s.id,
+        appId: s.appId,
+        name: s.name,
+        kind: s.kind,
+        url: s.url,
+        processNodeId: s.processNodeId,
+      })),
+      // Flat findings; the board groups by (appId, layer, view, category).
       findings: caps.map((c) => ({
         id: c.id,
         appId: c.appId,
         layer: c.layer,
         category: c.category,
+        view: c.view,
+        screenRef: c.screenRef,
+        plainSummary: c.plainSummary,
+        recommendedLayer: c.recommendedLayer,
         capdan: c.capdan,
         targetLayer: c.targetLayer,
+        sharedServiceId: c.sharedServiceId,
         name: c.name,
         codeRef: c.codeRef,
         migrationApproach: c.migrationApproach,
@@ -428,17 +520,23 @@ async function patchBoxEntity(
   return updated;
 }
 
-// PATCH /rationalization/apps/:id — edit a brown-field legacy app (column).
+// PATCH /rationalization/apps/:id — edit a brown-field legacy app (column)
+// or a shared service (WR-15: kind toggles which lane the box renders in).
 const APP_FIELDS = [
   'name',
+  'kind',
   'techStack',
   'disposition',
   'vendor',
   'hosting',
   'criticality',
 ] as const;
+const APP_KINDS = ['LEGACY', 'SHARED_SERVICE'];
 router.patch('/apps/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const kind = (req.body ?? {}).kind;
+    if (kind !== undefined && !APP_KINDS.includes(kind as string))
+      return res.status(400).json({ error: `kind must be one of ${APP_KINDS.join(' | ')}` });
     const updated = await patchBoxEntity(
       req,
       res,
@@ -454,6 +552,7 @@ router.patch('/apps/:id', async (req: Request, res: Response, next: NextFunction
       res.json({
         id: updated.id,
         name: updated.name,
+        kind: updated.kind,
         techStack: updated.techStack ?? null,
         disposition: updated.disposition ?? null,
         position: updated.position,

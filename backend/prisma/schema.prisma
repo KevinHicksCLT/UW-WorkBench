@@ -359,6 +359,7 @@ model Company {
   regulatorySources         RegulatorySource[]
   // App Rationalization
   rationalizationWorkspaces RationalizationWorkspace[]
+  anatomyCategories         AnatomyCategory[]
   // Scenario / telemetry / analysis
   scenarios                 Scenario[]
   telemetrySignals          TelemetrySignal[]
@@ -560,6 +561,7 @@ model ProcessNode {
   scenarios                 Scenario[]
   rationalizationWorkspaces RationalizationWorkspace[]
   userValueStreams          UserValueStream[]
+  screenAssets              ScreenAsset[]
 
   @@index([companyId, processLevelTypeId])
   @@index([parentId])
@@ -737,6 +739,7 @@ model Application {
   regulationTemplateAnswers RegulationTemplateAnswer[]
   nodeStandardEvidences     NodeStandardEvidence[]
   nodeRegulationEvidences   NodeRegulationEvidence[]
+  rationalizationWorkspaces RationalizationWorkspace[]
 
   @@index([companyId])
   @@index([orgUnitId])
@@ -1758,7 +1761,12 @@ model RationalizationWorkspace {
   companyId         String
   company           Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   name              String
-  application       String?
+  application       String? // display label; canonical link is applicationId (WR-01)
+  // Estate-application link as a real FK (WR-01 — the free-text `application`
+  // string always violated the no-free-text-references rule; kept as fallback
+  // label for boards whose name matches no Application row).
+  applicationId     String?
+  applicationRef    Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
   stageOrder        Int          @default(0)
   businessProcess   String?
   description       String?
@@ -1777,10 +1785,12 @@ model RationalizationWorkspace {
   components    RationalizationComponent[]
   microservices RationalizationMicroservice[]
   planSteps     RationalizationPlanStep[]
+  screens       ScreenAsset[]
 
   @@unique([tenantId, companyId, name])
   @@index([companyId])
   @@index([valueStreamNodeId])
+  @@index([applicationId])
 }
 
 model RationalizationApp {
@@ -1791,6 +1801,7 @@ model RationalizationApp {
   workspace    RationalizationWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   name         String
   description  String?
+  kind         String                   @default("LEGACY") // LEGACY | SHARED_SERVICE — shared services (MDM/RDM, auth, docs) render in their own lane (WR-15)
   disposition  String                   @default("Refactor") // Retain | Refactor | Replace | Retire
   techStack    String?
   vendor       String?
@@ -1804,6 +1815,9 @@ model RationalizationApp {
   updatedAt    DateTime                 @updatedAt
 
   capabilities RationalizationCapability[]
+  screens      ScreenAsset[]
+  // Relocate findings whose destination is this shared service (WR-15).
+  relocatedFindings RationalizationCapability[] @relation("CapabilitySharedService")
 
   @@index([companyId])
   @@index([workspaceId])
@@ -1835,6 +1849,49 @@ model RationalizationComponent {
   @@index([microserviceId])
 }
 
+// Reference catalog for the anatomy taxonomy (WR-06): per layer × view, the
+// element/behavior categories that BELONG there, plus the MISPLACED view —
+// categories that must NOT be in the layer, each with the layer they belong
+// in. Seeded from the dispositioned renovation taxonomy; admin-editable later.
+model AnatomyCategory {
+  id               String  @id @default(cuid())
+  tenantId         String
+  companyId        String
+  company          Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  layer            String // UI | Integration | Business Service | Data | Infrastructure
+  view             String // COMPONENT | BEHAVIOR | MISPLACED
+  name             String
+  description      String // plain-language, non-technical
+  recommendedLayer String? // MISPLACED rows: the layer this concern belongs in
+  sortOrder        Int     @default(0)
+
+  @@unique([companyId, layer, view, name])
+  @@index([companyId, layer])
+}
+
+// A concrete screen or modal of a legacy application, linkable from UI-layer
+// findings (WR-06: "clickable link to see the actual UI screen(s) that align
+// to an L4 process"). Optional FK to the L4 ProcessNode it serves.
+model ScreenAsset {
+  id            String                   @id @default(cuid())
+  tenantId      String
+  companyId     String
+  workspaceId   String
+  workspace     RationalizationWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  appId         String?
+  app           RationalizationApp?      @relation(fields: [appId], references: [id], onDelete: Cascade)
+  name          String
+  kind          String                   @default("SCREEN") // SCREEN | MODAL
+  url           String? // deep link to the live screen (or image/asset)
+  processNodeId String?
+  processNode   ProcessNode?             @relation(fields: [processNodeId], references: [id], onDelete: SetNull)
+
+  @@unique([workspaceId, name])
+  @@index([companyId])
+  @@index([appId])
+  @@index([processNodeId])
+}
+
 model RationalizationCapability {
   id                String                    @id @default(cuid())
   tenantId          String
@@ -1846,8 +1903,16 @@ model RationalizationCapability {
   layer             String
   name              String
   category          String?
+  view              String                    @default("COMPONENT") // COMPONENT | BEHAVIOR — anatomy lens (WR-06)
+  screenRef         String? // UI findings: screen or modal it lives on (e.g. "User Admin › Users")
+  plainSummary      String? // one-sentence non-technical explanation (WR-10)
+  recommendedLayer  String? // rule/AI-suggested correct layer for misplaced items (targetLayer = the human decision)
   capdan            String                    @default("Common") // Common | Different | Relocate | Eliminate
   targetLayer       String?
+  // Relocate findings can land in a SHARED_SERVICE app instead of a layer —
+  // e.g. a hard-coded state list replaced by an MDM/RDM call (WR-15).
+  sharedServiceId   String?
+  sharedService     RationalizationApp?       @relation("CapabilitySharedService", fields: [sharedServiceId], references: [id], onDelete: SetNull)
   treatment         String                    @default("Retain") // Retain | Eliminate
   migrationStatus   String                    @default("Identified")
   componentId       String?
@@ -1867,6 +1932,7 @@ model RationalizationCapability {
   @@index([workspaceId])
   @@index([appId])
   @@index([componentId])
+  @@index([sharedServiceId])
 }
 
 model RationalizationMicroservice {
