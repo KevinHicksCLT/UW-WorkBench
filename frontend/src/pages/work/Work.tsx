@@ -365,7 +365,9 @@ function DetailBody({ detail }: { detail: Detail }) {
                             {r.defined ? (
                               <span>
                                 <span className="text-[#8a94a0]">{r.key}: </span>
-                                <span className="text-[#171717]">{r.value}</span>
+                                <span className="text-[#171717] whitespace-pre-line">
+                                  {r.value}
+                                </span>
                               </span>
                             ) : (
                               <span className="text-[#6b7785]">{r.key}</span>

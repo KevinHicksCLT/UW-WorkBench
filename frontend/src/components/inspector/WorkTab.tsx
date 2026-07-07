@@ -129,7 +129,8 @@ const ChainPlanLine = ({ r }: { r: PlanRow }) => (
       {r.defined ? (
         <>
           <span className="text-[#8a94a0]">{r.key}: </span>
-          <span className="text-[#171717]">{r.value}</span>
+          {/* pre-line: multi-line procedure values render one sub-step per line */}
+          <span className="text-[#171717] whitespace-pre-line">{r.value}</span>
         </>
       ) : (
         <span className="text-[#6b7785]">{r.key}</span>
