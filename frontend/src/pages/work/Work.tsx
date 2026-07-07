@@ -70,7 +70,7 @@ type WorkData = {
 
 // ── Drill-down shapes (mirror /work/deliverable/:id and /work/task/:id) ────────
 type RoleRef = { id: string; name: string };
-type PlanRow = { key: string; value: string | null; defined: boolean };
+type PlanRow = { key: string; value: string | null; defined: boolean; generic: boolean };
 type RoleSet = { roles: RoleRef[]; unresolved: string[] };
 type DeliverableDetail = {
   kind: 'deliverable';
@@ -340,29 +340,41 @@ function DetailBody({ detail }: { detail: Detail }) {
             {(['Checklist', 'Testing'] as const).map((label) => {
               const rows = label === 'Checklist' ? detail.plan!.checklist : detail.plan!.testing;
               if (!rows.length) return null;
+              // Generic pattern keys vs task-specific steps as two labeled groups.
+              const groups = [
+                { name: 'Generic steps · pattern', rows: rows.filter((r) => r.generic) },
+                { name: 'Specific steps · this task', rows: rows.filter((r) => !r.generic) },
+              ].filter((g) => g.rows.length > 0);
               return (
                 <Field key={label} label={label}>
-                  <ul className="space-y-1">
-                    {rows.map((r, i) => (
-                      <li key={i} className="text-sm flex gap-1.5 items-start">
-                        <span
-                          className={
-                            (r.defined ? 'text-[#1e9e6a]' : 'text-[#dc2626]') + ' flex-shrink-0'
-                          }
-                        >
-                          {r.defined ? '✓' : '✗'}
-                        </span>
-                        {r.defined ? (
-                          <span>
-                            <span className="text-[#8a94a0]">{r.key}: </span>
-                            <span className="text-[#171717]">{r.value}</span>
-                          </span>
-                        ) : (
-                          <span className="text-[#6b7785]">{r.key}</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
+                  {groups.map((g) => (
+                    <div key={g.name} className="mt-1 first:mt-0">
+                      <div className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#8a94a0] mb-0.5">
+                        {g.name}
+                      </div>
+                      <ul className="space-y-1">
+                        {g.rows.map((r, i) => (
+                          <li key={i} className="text-sm flex gap-1.5 items-start">
+                            <span
+                              className={
+                                (r.defined ? 'text-[#1e9e6a]' : 'text-[#dc2626]') + ' flex-shrink-0'
+                              }
+                            >
+                              {r.defined ? '✓' : '✗'}
+                            </span>
+                            {r.defined ? (
+                              <span>
+                                <span className="text-[#8a94a0]">{r.key}: </span>
+                                <span className="text-[#171717]">{r.value}</span>
+                              </span>
+                            ) : (
+                              <span className="text-[#6b7785]">{r.key}</span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
                 </Field>
               );
             })}

@@ -229,8 +229,8 @@ function MiniHead({ children }: { children: React.ReactNode }) {
 }
 
 // Checklist / Testing rendered as distinct sub-cards so the two blocks read
-// separately. Profile facts (generic template keys) sit above a divider;
-// numbered atomic steps ("1. …") below it.
+// separately. Generic pattern keys sit in a labeled group above the divider;
+// item-specific steps in their own labeled group below it.
 function PlanBlock({
   label,
   accent,
@@ -244,9 +244,17 @@ function PlanBlock({
   border: string;
   rows: PlanRow[];
 }) {
-  const facts = rows.filter((r) => !/^\d+\./.test(r.key));
-  const steps = rows.filter((r) => /^\d+\./.test(r.key));
+  const generic = rows.filter((r) => r.generic);
+  const specific = rows.filter((r) => !r.generic);
   const defined = rows.filter((r) => r.defined).length;
+  const groupLabel = (text: string) => (
+    <div
+      className="text-[8px] font-bold uppercase tracking-[0.08em]"
+      style={{ color: accent, opacity: 0.75 }}
+    >
+      {text}
+    </div>
+  );
   return (
     <div
       className="rounded-md mt-1.5"
@@ -264,13 +272,15 @@ function PlanBlock({
         </span>
       </div>
       <div className="px-2 pb-2 pt-1 flex flex-col gap-1">
-        {facts.map((r, i) => (
-          <ChainPlanLine key={`f${i}`} r={r} />
+        {generic.length > 0 && groupLabel('Generic steps · pattern')}
+        {generic.map((r, i) => (
+          <ChainPlanLine key={`g${i}`} r={r} />
         ))}
-        {facts.length > 0 && steps.length > 0 && (
+        {generic.length > 0 && specific.length > 0 && (
           <div className="my-0.5" style={{ borderTop: `1px dashed ${border}` }} />
         )}
-        {steps.map((r, i) => (
+        {specific.length > 0 && groupLabel('Specific steps · this task')}
+        {specific.map((r, i) => (
           <ChainPlanLine key={`s${i}`} r={r} />
         ))}
       </div>

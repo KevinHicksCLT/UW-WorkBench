@@ -8,8 +8,18 @@ import { prisma } from '../db/prisma.js';
 // Tied standards/regulations are the task's OWN NodeStandard/NodeRegulation
 // rows (tasks = single source of truth; higher levels roll up via govRollup).
 
-export type PlanRow = { key: string; value: string | null; defined: boolean };
-export type TiedPlanItem = { id: string; name: string; source: string | null; direct: boolean; checklist: PlanRow[]; testing: PlanRow[] };
+// generic — true = the row is a generic template key (pattern-owned text shared
+// by every plan using it); false = an item-specific step (custom answer or
+// standard/regulation evidence row). Surfaces label the two groups distinctly.
+export type PlanRow = { key: string; value: string | null; defined: boolean; generic: boolean };
+export type TiedPlanItem = {
+  id: string;
+  name: string;
+  source: string | null;
+  direct: boolean;
+  checklist: PlanRow[];
+  testing: PlanRow[];
+};
 export type TaskPlan = {
   checklist: PlanRow[];
   testing: PlanRow[];
@@ -25,12 +35,17 @@ const valueInclude = {
   deliverable: { select: { title: true } },
 } as const;
 
-function resolvedValue(a: {
-  value: string | null;
-  application: { name: string } | null;
-  role: { displayValue: string } | null;
-  deliverable: { title: string } | null;
-} | null | undefined): string | null {
+function resolvedValue(
+  a:
+    | {
+        value: string | null;
+        application: { name: string } | null;
+        role: { displayValue: string } | null;
+        deliverable: { title: string } | null;
+      }
+    | null
+    | undefined,
+): string | null {
   if (!a) return null;
   return a.application?.name ?? a.role?.displayValue ?? a.deliverable?.title ?? a.value ?? null;
 }
@@ -111,7 +126,7 @@ export async function subtreePlanRollup(rootId: string): Promise<SubtreePlanRoll
 
 export async function taskPlans(
   nodeIds: string[],
-  opts: { includeTied?: boolean } = {}
+  opts: { includeTied?: boolean } = {},
 ): Promise<Map<string, TaskPlan>> {
   const plans = new Map<string, TaskPlan>();
   if (!nodeIds.length) return plans;
@@ -122,7 +137,12 @@ export async function taskPlans(
       select: {
         processNodeId: true,
         template: {
-          select: { id: true, kind: true, sortOrder: true, keys: { orderBy: { sortOrder: 'asc' }, select: { id: true, key: true } } },
+          select: {
+            id: true,
+            kind: true,
+            sortOrder: true,
+            keys: { orderBy: { sortOrder: 'asc' }, select: { id: true, key: true } },
+          },
         },
       },
     }),
@@ -135,11 +155,16 @@ export async function taskPlans(
 
   const linksByNode = new Map<string, typeof links>();
   for (const l of links) {
-    (linksByNode.get(l.processNodeId) ?? linksByNode.set(l.processNodeId, []).get(l.processNodeId)!).push(l);
+    (
+      linksByNode.get(l.processNodeId) ?? linksByNode.set(l.processNodeId, []).get(l.processNodeId)!
+    ).push(l);
   }
   const answersByNode = new Map<string, typeof answers>();
   for (const a of answers) {
-    (answersByNode.get(a.processNodeId) ?? answersByNode.set(a.processNodeId, []).get(a.processNodeId)!).push(a);
+    (
+      answersByNode.get(a.processNodeId) ??
+      answersByNode.set(a.processNodeId, []).get(a.processNodeId)!
+    ).push(a);
   }
 
   // Tied standards/regs (derived from closure ancestors) + their evidence steps.
@@ -152,18 +177,32 @@ export async function taskPlans(
     const [nodeStandards, nodeRegs, stdEvidence, regEvidence] = await Promise.all([
       prisma.nodeStandard.findMany({
         where: { processNodeId: { in: nodeIds }, excluded: false },
-        select: { processNodeId: true, standard: { select: { id: true, name: true, department: true } } },
+        select: {
+          processNodeId: true,
+          standard: { select: { id: true, name: true, department: true } },
+        },
       }),
       prisma.nodeRegulation.findMany({
         where: { processNodeId: { in: nodeIds }, excluded: false },
-        select: { processNodeId: true, regulation: { select: { id: true, title: true, regime: true } } },
+        select: {
+          processNodeId: true,
+          regulation: { select: { id: true, title: true, regime: true } },
+        },
       }),
-      prisma.nodeStandardEvidence.findMany({ where: { processNodeId: { in: nodeIds } }, orderBy: { sortOrder: 'asc' }, include: valueInclude }),
-      prisma.nodeRegulationEvidence.findMany({ where: { processNodeId: { in: nodeIds } }, orderBy: { sortOrder: 'asc' }, include: valueInclude }),
+      prisma.nodeStandardEvidence.findMany({
+        where: { processNodeId: { in: nodeIds } },
+        orderBy: { sortOrder: 'asc' },
+        include: valueInclude,
+      }),
+      prisma.nodeRegulationEvidence.findMany({
+        where: { processNodeId: { in: nodeIds } },
+        orderBy: { sortOrder: 'asc' },
+        include: valueInclude,
+      }),
     ]);
     const evRow = (e: (typeof stdEvidence)[number] | (typeof regEvidence)[number]): PlanRow => {
       const value = resolvedValue(e);
-      return { key: e.step, value, defined: !!value };
+      return { key: e.step, value, defined: !!value, generic: false };
     };
     stdByNode = new Map(nodeIds.map((id) => [id, []]));
     for (const l of nodeStandards) {
@@ -173,8 +212,20 @@ export async function taskPlans(
         name: s.name,
         source: s.department,
         direct: true,
-        checklist: stdEvidence.filter((e) => e.processNodeId === l.processNodeId && e.standardId === s.id && e.kind === 'CHECKLIST').map(evRow),
-        testing: stdEvidence.filter((e) => e.processNodeId === l.processNodeId && e.standardId === s.id && e.kind === 'TEST').map(evRow),
+        checklist: stdEvidence
+          .filter(
+            (e) =>
+              e.processNodeId === l.processNodeId &&
+              e.standardId === s.id &&
+              e.kind === 'CHECKLIST',
+          )
+          .map(evRow),
+        testing: stdEvidence
+          .filter(
+            (e) =>
+              e.processNodeId === l.processNodeId && e.standardId === s.id && e.kind === 'TEST',
+          )
+          .map(evRow),
       });
     }
     regByNode = new Map(nodeIds.map((id) => [id, []]));
@@ -185,8 +236,17 @@ export async function taskPlans(
         name: r.title,
         source: r.regime,
         direct: true,
-        checklist: regEvidence.filter((e) => e.processNodeId === l.processNodeId && e.regId === r.id && e.kind === 'CHECKLIST').map(evRow),
-        testing: regEvidence.filter((e) => e.processNodeId === l.processNodeId && e.regId === r.id && e.kind === 'TEST').map(evRow),
+        checklist: regEvidence
+          .filter(
+            (e) =>
+              e.processNodeId === l.processNodeId && e.regId === r.id && e.kind === 'CHECKLIST',
+          )
+          .map(evRow),
+        testing: regEvidence
+          .filter(
+            (e) => e.processNodeId === l.processNodeId && e.regId === r.id && e.kind === 'TEST',
+          )
+          .map(evRow),
       });
     }
     for (const list of stdByNode.values()) list.sort((a, b) => a.name.localeCompare(b.name));
@@ -194,9 +254,13 @@ export async function taskPlans(
   }
 
   for (const nodeId of nodeIds) {
-    const nodeLinks = (linksByNode.get(nodeId) ?? []).sort((a, b) => a.template.sortOrder - b.template.sortOrder);
+    const nodeLinks = (linksByNode.get(nodeId) ?? []).sort(
+      (a, b) => a.template.sortOrder - b.template.sortOrder,
+    );
     const nodeAnswers = answersByNode.get(nodeId) ?? [];
-    const byKeyId = new Map(nodeAnswers.filter((a) => a.templateKeyId).map((a) => [a.templateKeyId as string, a]));
+    const byKeyId = new Map(
+      nodeAnswers.filter((a) => a.templateKeyId).map((a) => [a.templateKeyId as string, a]),
+    );
 
     const rowsFor = (kind: 'CHECKLIST' | 'TEST'): PlanRow[] => {
       const rows: PlanRow[] = [];
@@ -206,7 +270,7 @@ export async function taskPlans(
           const answer = byKeyId.get(k.id);
           if (answer?.suppressed) continue;
           const value = resolvedValue(answer);
-          rows.push({ key: k.key, value, defined: !!value });
+          rows.push({ key: k.key, value, defined: !!value, generic: true });
         }
       }
       for (const a of nodeAnswers) {
@@ -214,7 +278,7 @@ export async function taskPlans(
         const isTest = a.kind === 'TEST';
         if ((kind === 'TEST') !== isTest) continue;
         const value = resolvedValue(a);
-        rows.push({ key: a.customKey, value, defined: !!value });
+        rows.push({ key: a.customKey, value, defined: !!value, generic: false });
       }
       return rows;
     };
