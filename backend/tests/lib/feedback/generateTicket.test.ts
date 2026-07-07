@@ -58,11 +58,24 @@ describe('buildTicketPrompt', () => {
   it('labels a missing name as anonymous', () => {
     expect(buildTicketPrompt({ ...input, name: null })).toContain('anonymous');
   });
+
+  it('lists the epic catalog when epics are configured, omits it when not', () => {
+    const epics = [{ key: 'TB-100', name: 'Platform UX', hint: 'cross-cutting UI/UX' }];
+    const prompt = buildTicketPrompt(input, epics);
+    expect(prompt).toContain('TB-100');
+    expect(prompt).toContain('cross-cutting UI/UX');
+    expect(buildTicketPrompt(input)).not.toContain('epicKey');
+  });
 });
 
 describe('parseTicketContent', () => {
   it('accepts a complete ticket', () => {
     expect(parseTicketContent(ticket)).toEqual(ticket);
+  });
+
+  it('accepts a ticket with an epicKey and one without (legacy checkpoint rows)', () => {
+    expect(parseTicketContent({ ...ticket, epicKey: 'TB-100' }).epicKey).toBe('TB-100');
+    expect(parseTicketContent(ticket).epicKey).toBeUndefined();
   });
 
   it('rejects empty acceptance criteria', () => {
@@ -83,6 +96,39 @@ describe('generateTicket', () => {
     const req = createMock.mock.calls[0][0];
     expect(req.tool_choice).toEqual({ type: 'tool', name: 'file_ticket' });
     expect(req.messages[0].content).toContain(input.text);
+  });
+
+  it('adds a required epicKey enum to the tool when epics are configured', async () => {
+    const epics = [
+      { key: 'TB-100', name: 'Platform UX', hint: 'cross-cutting UI/UX' },
+      { key: 'TB-200', name: 'Regulations', hint: 'compliance and requirements' },
+    ];
+    createMock.mockResolvedValue({
+      content: [
+        {
+          type: 'tool_use',
+          name: 'file_ticket',
+          id: 't1',
+          input: { ...ticket, epicKey: 'TB-100' },
+        },
+      ],
+    });
+    await expect(generateTicket(input, epics)).resolves.toMatchObject({ epicKey: 'TB-100' });
+    const req = createMock.mock.calls[0][0];
+    const schema = req.tools[0].input_schema;
+    expect(schema.properties.epicKey.enum).toEqual(['TB-100', 'TB-200']);
+    expect(schema.required).toContain('epicKey');
+    expect(req.messages[0].content).toContain('TB-200');
+  });
+
+  it('omits epicKey from the tool schema when no epics are configured', async () => {
+    createMock.mockResolvedValue({
+      content: [{ type: 'tool_use', name: 'file_ticket', id: 't1', input: ticket }],
+    });
+    await generateTicket(input);
+    const schema = createMock.mock.calls[0][0].tools[0].input_schema;
+    expect(schema.properties.epicKey).toBeUndefined();
+    expect(schema.required).not.toContain('epicKey');
   });
 
   it('throws when the response has no tool_use block', async () => {

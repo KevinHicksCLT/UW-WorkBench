@@ -95,6 +95,12 @@ export async function createJiraIssue(
   feedback: FeedbackContext,
   ticket: TicketContent,
 ): Promise<string> {
+  // Parent only when the model-picked epic is (still) in the configured
+  // catalog — a stale key would fail the whole issue create.
+  const epicKey =
+    ticket.epicKey && settings.epics.some((e) => e.key === ticket.epicKey)
+      ? ticket.epicKey
+      : undefined;
   const res = await fetch(`${settings.baseUrl}/rest/api/3/issue`, {
     method: 'POST',
     headers: {
@@ -109,6 +115,7 @@ export async function createJiraIssue(
         labels: settings.labels,
         summary: ticket.title,
         description: buildDescriptionAdf(feedback, ticket),
+        ...(epicKey ? { parent: { key: epicKey } } : {}),
       },
     }),
   });

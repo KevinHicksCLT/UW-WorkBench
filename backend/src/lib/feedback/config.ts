@@ -23,6 +23,22 @@ const feedbackConfigSchema = z.object({
     projectKey: z.string().min(1),
     issueType: z.string().min(1).default('Task'),
     labels: z.array(z.string()).default(['feedback']),
+    /**
+     * Epic catalog for auto-assignment: the ticket-generation model picks the
+     * best-fitting epic key and the issue is created with it as parent. Empty
+     * list = no assignment (issues stay parentless).
+     */
+    epics: z
+      .array(
+        z.object({
+          /** Jira issue key of the epic, e.g. SCRUM-39. */
+          key: z.string().min(1),
+          name: z.string().min(1),
+          /** One-line scope hint the model uses to route feedback. */
+          hint: z.string().min(1),
+        }),
+      )
+      .default([]),
   }),
   notifications: z.object({
     /** When false (or emails empty) the pipeline finishes at TICKETED. */

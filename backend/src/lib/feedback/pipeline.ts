@@ -63,14 +63,17 @@ export async function runFeedbackPipeline(feedbackId: string): Promise<void> {
       log.info('step 1 skipped — ticket already generated (checkpoint)');
     } else {
       log.info('step 1: generating ticket content (Anthropic)');
-      ticket = await generateTicket({
-        text: feedback.text,
-        category: feedback.category,
-        name: feedback.name,
-        route: feedback.route,
-        commitSha: feedback.commitSha,
-        userAgent: feedback.userAgent,
-      });
+      ticket = await generateTicket(
+        {
+          text: feedback.text,
+          category: feedback.category,
+          name: feedback.name,
+          route: feedback.route,
+          commitSha: feedback.commitSha,
+          userAgent: feedback.userAgent,
+        },
+        config.jira.epics,
+      );
       await prisma.feedback.update({
         where: { id: feedbackId },
         data: { ticket, status: 'GENERATED', error: null },
