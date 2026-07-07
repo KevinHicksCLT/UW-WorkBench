@@ -6,8 +6,8 @@ import { z } from 'zod';
 import { permissionGrantSchema, isUserType, USER_TYPES } from '@cascade/shared';
 import { prisma } from '../../db/prisma.js';
 import { requireRole } from '../../middleware/auth.js';
-import { invalidateTenantPermissions } from '../../services/permissionService.js';
-import { logAudit } from '../../services/audit.js';
+import { maybeHold } from '../../lib/approvals/engine.js';
+import { replacePermissionSetGrants } from '../../services/permissionSetWrites.js';
 
 const putBodySchema = z.object({ grants: z.array(permissionGrantSchema) });
 
@@ -46,42 +46,27 @@ export function registerPermissionSetRoutes(router: Router): void {
         if (!isUserType(userType)) return res.status(404).json({ error: 'Unknown user type' });
         const { grants } = putBodySchema.parse(req.body);
 
-        const set = await prisma.permissionSet.upsert({
-          where: { tenantId_userType: { tenantId: req.tenantId, userType } },
-          update: {},
-          create: { tenantId: req.tenantId, userType },
-        });
+        // DA-01 four-eyes: replacing a user type's entitlements is held for a
+        // second SITE_ADMIN when the policy is enabled.
+        const held = await maybeHold(
+          { tenantId: req.tenantId, userId: req.user.id, email: req.user.email },
+          {
+            decisionKey: 'user-admin.permission-sets.replace',
+            entityType: 'PermissionSet',
+            entityId: userType, // stable per tenant; the set row is upserted at apply time
+            action: 'REPLACE_GRANTS',
+            summary: `Replace the "${userType}" permission set (${grants.length} grant${grants.length === 1 ? '' : 's'})`,
+            payload: { userType, grants },
+          },
+        );
+        if (held) return res.status(202).json(held);
 
-        await prisma.$transaction(async (tx) => {
-          await tx.permissionGrant.deleteMany({ where: { permissionSetId: set.id } });
-          if (grants.length > 0) {
-            await tx.permissionGrant.createMany({
-              data: grants.map((g) => ({
-                permissionSetId: set.id,
-                menuKey: g.menuKey,
-                canCreate: g.canCreate,
-                canRead: g.canRead,
-                canUpdate: g.canUpdate,
-                canDelete: g.canDelete,
-              })),
-            });
-          }
-        });
-        invalidateTenantPermissions(req.tenantId);
-
-        await logAudit({
-          tenantId: req.tenantId,
-          actorEmail: req.user.email,
-          entityType: 'PermissionSet',
-          entityId: set.id,
-          action: 'UPDATE',
-          diff: { userType, menuKeys: grants.map((g) => g.menuKey) },
-        });
-
-        const fresh = await prisma.permissionSet.findUnique({
-          where: { id: set.id },
-          include: { grants: true },
-        });
+        const fresh = await replacePermissionSetGrants(
+          req.tenantId,
+          userType,
+          grants,
+          req.user.email,
+        );
         res.json(fresh);
       } catch (e) {
         next(e);

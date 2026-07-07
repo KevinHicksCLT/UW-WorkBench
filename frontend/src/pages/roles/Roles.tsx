@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import RolesListSheet from '../../components/RolesListSheet';
 import RolesOrgChart from '../../components/RolesOrgChart';
@@ -69,7 +70,12 @@ function RolesToc({
 }
 
 export default function Roles() {
-  const [view, setView] = useState<View>('toc');
+  // Deep-linkable view (`/roles?view=list`) — same pattern as Organization.
+  const [searchParams] = useSearchParams();
+  const paramView = searchParams.get('view');
+  const [view, setView] = useState<View>(
+    paramView === 'list' || paramView === 'map' ? paramView : 'toc',
+  );
   // Division picked on the TOC — the List opens pre-filtered to it.
   const [preFilter, setPreFilter] = useState<string | null>(null);
 

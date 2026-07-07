@@ -1,0 +1,1469 @@
+{
+  "batch": 3,
+  "tasks": [
+    {
+      "taskId": "7df829aa-3bfc-480d-9ffa-507d50a1b751",
+      "taskName": "Obtain architecture sign-off before deployment",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the release-candidate change set is in scope",
+          "sop": "The Software Engineer lists every story and change in the release candidate in Jira; Jira Align / Rally; Azure DevOps and confirms all quality gates on the RC build are green. Done when the scope list matches the RC build contents and no gate is red.",
+          "verify": "Open the release view in Jira; Jira Align / Rally; Azure DevOps; pass if the RC scope list exists, every listed item belongs to the release candidate, and the RC build shows all quality gates passing."
+        },
+        {
+          "n": 2,
+          "title": "Create the architecture sign-off package in Confluence",
+          "sop": "The Software Engineer creates the sign-off page in Confluence containing all five required sections: architecture review record, ADRs for deviations, NFR test results, security scan status, and rollback plan. Done when all five sections are present and complete.",
+          "verify": "Open the sign-off page in Confluence; pass if all five sections (review record, ADRs, NFR results, security scan status, rollback plan) exist and none is empty."
+        },
+        {
+          "n": 3,
+          "title": "Link evidence to every architecture review checklist item",
+          "sop": "The Software Engineer attaches a linked evidence artifact to each architecture review checklist item on the Confluence package so package section count reconciles to the ARB checklist. Done when 0 checklist items are unaddressed.",
+          "verify": "Open the checklist on the Confluence package; pass if every checklist item has a working evidence link and the count of package sections equals the count of ARB checklist items."
+        },
+        {
+          "n": 4,
+          "title": "Record an ADR for any drift from target-state patterns",
+          "sop": "The Solutions Architect compares the proposed architecture on the Confluence package to the approved target-state patterns; any drift gets an accepted ADR added to the package before sign-off. Done when every drift item has an accepted ADR.",
+          "verify": "Open the package's pattern-comparison section in Confluence; pass if each documented deviation references an ADR whose status is Accepted."
+        },
+        {
+          "n": 5,
+          "title": "Log open architecture concerns with a disposition",
+          "sop": "The Software Engineer logs each open architecture concern as an issue in Jira; Jira Align / Rally; Azure DevOps with a disposition of resolved or conditionally-approved-with-follow-up-ADR. Done when every blocking concern is closed.",
+          "verify": "Run the concern query in Jira; Jira Align / Rally; Azure DevOps; pass if every concern carries a disposition and no blocking concern remains open."
+        },
+        {
+          "n": 6,
+          "title": "Link the sign-off to the deployment change ticket",
+          "sop": "The DevOps Engineer links the Confluence sign-off page to the deployment change ticket in Jira; Jira Align / Rally; Azure DevOps. Done when the change ticket carries the sign-off link; the ticket must not move to Implement without recorded approval.",
+          "verify": "Open the deployment change ticket in Jira; Jira Align / Rally; Azure DevOps; pass if it links to the sign-off page and its workflow shows it did not enter Implement before the approval was recorded."
+        },
+        {
+          "n": 7,
+          "title": "Record the architecture approval decision on the sign-off page",
+          "sop": "The Solutions Architect records the decision (approved / approved-with-conditions / rejected) on the Confluence sign-off page with approver identity, rationale, any conditions for production, and UTC timestamp. Done when the decision record is complete and all blocking items are closed with the rollback plan attached.",
+          "verify": "Open the sign-off page in Confluence; pass if it shows the Solutions Architect's decision, rationale, conditions, and UTC timestamp, with all blocking items closed and the rollback plan attached."
+        },
+        {
+          "n": 8,
+          "title": "Notify the sign-off recipients on the change ticket",
+          "sop": "The Software Engineer sends the sign-off notification to the release stakeholders including the DevOps Engineer and records the recipient list on the deployment change ticket in Jira; Jira Align / Rally; Azure DevOps. Done when recipients are documented on the ticket.",
+          "verify": "Open the change ticket in Jira; Jira Align / Rally; Azure DevOps; pass if the notification recipient list is recorded on the ticket and includes the DevOps Engineer."
+        }
+      ]
+    },
+    {
+      "taskId": "fc26926b-92b5-49e0-82fc-f55380abd317",
+      "taskName": "Obtain product owner acceptance sign-off",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Compile the release-candidate scope list",
+          "sop": "The Software Engineer builds the list of all stories in the release candidate that meet the Definition of Done in ITSM platform (ServiceNow/Jira). Done when the scope list is saved on the release record for the current release window.",
+          "verify": "Open the release record in ITSM platform (ServiceNow/Jira); pass if a scope list exists and every listed story is marked as meeting the Definition of Done."
+        },
+        {
+          "n": 2,
+          "title": "Verify acceptance evidence on every in-scope story",
+          "sop": "The Backend Developer and UI Developer confirm each in-scope story in ITSM platform (ServiceNow/Jira) shows acceptance criteria met with UAT or demo evidence linked. Done when 100% of in-scope stories carry linked evidence.",
+          "verify": "Sample every story in the scope list in ITSM platform (ServiceNow/Jira); pass if each shows acceptance criteria met and an attached or linked UAT/demo evidence artifact."
+        },
+        {
+          "n": 3,
+          "title": "Confirm no open blocker defects on the release scope",
+          "sop": "The Software Engineer runs the blocker-defect query for the release in ITSM platform (ServiceNow/Jira). Done when the query returns 0 open blocker defects against in-scope stories.",
+          "verify": "Re-run the blocker-defect query in ITSM platform (ServiceNow/Jira); pass if it returns zero open blockers linked to in-scope stories at the time of sign-off."
+        },
+        {
+          "n": 4,
+          "title": "Reconcile accepted stories to the release scope",
+          "sop": "The Software Engineer reconciles the count of stories in 'Accepted' status to the release scope list in ITSM platform (ServiceNow/Jira). Done when accepted count equals scope count with 0 unaccepted in-scope items.",
+          "verify": "Compare the 'Accepted' story query result to the scope list in ITSM platform (ServiceNow/Jira); pass if the two counts match exactly and no in-scope story is unaccepted."
+        },
+        {
+          "n": 5,
+          "title": "Log limitations as SDLC-Exception records",
+          "sop": "The Product Owner logs any story accepted with a known limitation as a Jira 'SDLC-Exception' in ITSM platform (ServiceNow/Jira) with a disposition and a follow-up ticket. Done when every limitation has an exception record owned by the Product Owner.",
+          "verify": "Search 'SDLC-Exception' records for the release in ITSM platform (ServiceNow/Jira); pass if each accepted-with-limitation story links to an exception carrying a disposition, an owner, and a follow-up ticket."
+        },
+        {
+          "n": 6,
+          "title": "Record the Product Owner acceptance sign-off",
+          "sop": "The Product Owner records acceptance in ITSM platform (ServiceNow/Jira) as the sign-off transition on the release record, naming the approver, date, and RC version, before the release branch/tag is cut. If sign-off is missing, the RC cut is blocked and an 'SDLC-Exception' is raised to the Product Owner with a same-day remediation SLA. Done when the sign-off record is complete.",
+          "verify": "Open the release record in ITSM platform (ServiceNow/Jira); pass if the acceptance transition was performed by the Product Owner with approver name, date, and RC version recorded, timestamped before the RC tag was cut."
+        },
+        {
+          "n": 7,
+          "title": "Document the sign-off notification recipients",
+          "sop": "The Software Engineer records the notification recipients (Release Manager, Tech Lead, QA Lead) on the release issue in ITSM platform (ServiceNow/Jira) via its watcher list. Done when all three recipients are recorded on the release issue.",
+          "verify": "Open the release issue in ITSM platform (ServiceNow/Jira); pass if the watcher/recipient list documents the Release Manager, Tech Lead, and QA Lead as notified of the sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "a5cf98b5-c1ab-4de7-94a2-5d9ed378b73f",
+      "taskName": "Obtain product owner sign-off on backlog",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Validate readiness fields on every candidate story",
+          "sop": "The Software Engineer checks every story ranked above the sprint capacity line in Jira; Jira Align / Rally; Azure DevOps for a priority rank, estimate, acceptance criteria, and 'Ready' status. Done when no candidate story is missing any of the four fields.",
+          "verify": "Run the candidate query in Jira; Jira Align / Rally; Azure DevOps; pass if every item above the capacity line has rank, estimate, acceptance criteria, and 'Ready' status populated."
+        },
+        {
+          "n": 2,
+          "title": "Check the commitment against velocity",
+          "sop": "The Scrum Master sums committed story points in Jira; Jira Align / Rally; Azure DevOps and compares them to the team's rolling 3-sprint average velocity; any over-commit is flagged in the planning notes with Product Owner rationale. Done when points are within velocity or the rationale is recorded.",
+          "verify": "Open the sprint plan in Jira; Jira Align / Rally; Azure DevOps; pass if committed points are less than or equal to the 3-sprint average velocity, or an over-commit note with Product Owner rationale exists."
+        },
+        {
+          "n": 3,
+          "title": "Log descoped or contested items with a disposition",
+          "sop": "The Business Analyst logs each item descoped or contested during planning as a comment on the story in Jira; Jira Align / Rally; Azure DevOps stating the disposition (deferred / split / dropped) and the decision owner. Done when every such item carries a disposition comment.",
+          "verify": "Review the planning-session items in Jira; Jira Align / Rally; Azure DevOps; pass if every descoped or contested story has a comment stating deferred, split, or dropped plus the decision owner."
+        },
+        {
+          "n": 4,
+          "title": "Record the Product Owner sprint approval",
+          "sop": "The Product Owner records sign-off in Jira; Jira Align / Rally; Azure DevOps as a sprint approval comment (or Jira Align commitment) with name, date/time, and the committed scope list, captured at sprint planning before the sprint start date. Done when the approval record exists.",
+          "verify": "Open the sprint record in Jira; Jira Align / Rally; Azure DevOps; pass if a Product Owner approval comment or commitment exists with name, date/time, and scope list, timestamped before sprint start."
+        },
+        {
+          "n": 5,
+          "title": "Confirm committed transitions before sprint start",
+          "sop": "The Scrum Master verifies in Jira; Jira Align / Rally; Azure DevOps that every committed item shows a transition to 'Committed'/sprint-assigned with a timestamp before the sprint start date. Done when all committed items have a compliant transition.",
+          "verify": "Trace the status history of each committed item in Jira; Jira Align / Rally; Azure DevOps; pass if every item transitioned to 'Committed'/sprint-assigned before sprint start with a recorded PO approval."
+        },
+        {
+          "n": 6,
+          "title": "Export the sprint commitment snapshot",
+          "sop": "The Software Engineer exports the sprint commitment snapshot from Jira; Jira Align / Rally; Azure DevOps with the sprint ID and timestamp and attaches it to the sprint planning record; the snapshot is retained for the release. Done when the timestamped snapshot is attached.",
+          "verify": "Open the sprint planning record; pass if a commitment snapshot exported from Jira; Jira Align / Rally; Azure DevOps is attached bearing the sprint ID and an export timestamp."
+        },
+        {
+          "n": 7,
+          "title": "Raise AGILE-Exception tickets for unapproved sprint items",
+          "sop": "The Scrum Master flags any item assigned to the sprint without Product Owner approval as a Jira 'AGILE-Exception' ticket in Jira; Jira Align / Rally; Azure DevOps, removing or resolving it within 1 business day. Done when no unapproved item remains without an exception ticket.",
+          "verify": "Search 'AGILE-Exception' tickets for the sprint in Jira; Jira Align / Rally; Azure DevOps; pass if every unapproved sprint assignment has a ticket owned by the Scrum Master and each was resolved within 1 business day."
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl8z61rx0kfgz85nf9gcw",
+      "taskName": "Obtain sign-off on elaborated scope",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Complete required fields on every baseline requirement",
+          "sop": "The Business Analyst confirms in the requirements repository that every requirement in the sign-off baseline has an id, acceptance criteria, priority, and traceability to a business objective; requirements missing acceptance criteria are not eligible for sign-off. Done when all in-scope requirements are complete.",
+          "verify": "Open the baseline in the requirements repository; pass if 100% of in-scope requirements show id, acceptance criteria, priority, and a traceability link, with none missing acceptance criteria."
+        },
+        {
+          "n": 2,
+          "title": "Reconcile the package to the requirements register",
+          "sop": "The Business Analyst reconciles the requirement count in the sign-off package to the requirements register in the requirements repository, confirming each requirement has exactly one approval status. Done when the counts match and the unapproved-but-in-scope count is 0 at the gate.",
+          "verify": "Compare package count to register count in the requirements repository; pass if the counts are equal, every requirement has exactly one approval status, and zero in-scope requirements are unapproved."
+        },
+        {
+          "n": 3,
+          "title": "Flag high-sensitivity requirements for senior approval",
+          "sop": "The Business Analyst marks any requirement in the requirements repository whose change would alter cost/schedule by more than 10% or touch a regulated data flow as high-sensitivity, routing it for senior stakeholder approval. Done when all qualifying requirements carry the high-sensitivity flag.",
+          "verify": "Filter high-sensitivity requirements in the requirements repository; pass if every requirement meeting the >10% cost/schedule or regulated-data-flow criterion is flagged and routed for senior stakeholder approval."
+        },
+        {
+          "n": 4,
+          "title": "Apply the materiality routing to approval assignments",
+          "sop": "The Product Owner applies the materiality rule in the requirements repository: scope items below 2 story points with no regulatory/data impact may be approved by the Product Owner alone; items above that threshold are routed to the full sign-off panel. Done when every item has the correct approval route assigned.",
+          "verify": "Review approval routing in the requirements repository; pass if all items at or above 2 story points or with regulatory/data impact are assigned to the full panel and only sub-threshold items are routed to the Product Owner alone."
+        },
+        {
+          "n": 5,
+          "title": "Park unapproved requirements with rationale",
+          "sop": "The Business Analyst parks each requirement not approved at the gate in the requirements repository with a written rationale; disagreements escalate per the RACI to the Product Owner with a 10-business-day resolution SLA. Done when no unapproved requirement lacks a parked status and rationale.",
+          "verify": "List parked requirements in the requirements repository; pass if each carries a rationale and any escalation shows a Product Owner owner and a resolution date within 10 business days."
+        },
+        {
+          "n": 6,
+          "title": "Record the methodology version on the baseline cover page",
+          "sop": "The Business Analyst records the approved BABOK-aligned elaboration template version on the baseline cover page in Confluence, citing the requirements register and estimation records as parameter sources. Done when the cover page shows the template version and source references.",
+          "verify": "Open the baseline cover page in Confluence; pass if it states the BABOK-aligned template version and references the requirements register and estimation records."
+        },
+        {
+          "n": 7,
+          "title": "Record the sign-off decision in Confluence",
+          "sop": "The Product Owner records the go/hold decision on the Confluence sign-off record with approver names, date, any conditions, and an e-signature/approval record versioned against this baseline; superseded versions are retained for audit. Done when the versioned, signed record exists.",
+          "verify": "Open the sign-off record in Confluence; pass if it shows the go/hold decision, approver names, date, conditions, an approval record, and the baseline version, with prior versions retained in page history."
+        },
+        {
+          "n": 8,
+          "title": "Distribute the sign-off to the named recipients",
+          "sop": "The Business Analyst distributes the signed-off baseline to the Product Owner, Tech Lead, QA Lead, delivery team, and named business sponsor via the Confluence page watchers, retaining the notification email. Done when the distribution is logged; any later requirement change invalidates the sign-off for affected items and requires re-approval through change control.",
+          "verify": "Open the Confluence sign-off page; pass if the watcher list covers all five named recipient groups and the retained notification is linked or attached to the page."
+        }
+      ]
+    },
+    {
+      "taskId": "caf1e1dd-687a-4d03-ba57-c3b9797a3d63",
+      "taskName": "Onboard new team members using system knowledge",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Open the onboarding case in the ITSM platform",
+          "sop": "The Tech Lead opens an onboarding case in ITSM platform (ServiceNow/Jira) for the hire carrying hire name, start date, assigned Tech Lead/buddy, team, and the linked Confluence runbook version. Done when all five fields are populated on the case.",
+          "verify": "Open the case in ITSM platform (ServiceNow/Jira); pass if hire name, start date, Tech Lead/buddy, team, and runbook version link are all present and valid."
+        },
+        {
+          "n": 2,
+          "title": "Close all provisioning tasks on the case",
+          "sop": "The Software Engineer drives the provisioning tasks (repo access, CI/CD, IAM group) in ITSM platform (ServiceNow/Jira) to state Closed-Complete; every access grant must link to the onboarding case number (INC/RITM format) — no manual grant without a linked ticket. Done when all provisioning tasks are Closed-Complete.",
+          "verify": "Open the case's task list in ITSM platform (ServiceNow/Jira); pass if every provisioning task is Closed-Complete and each access grant references the case number."
+        },
+        {
+          "n": 3,
+          "title": "Work through the onboarding runbook in Confluence",
+          "sop": "The Backend Developer and UI Developer buddy the hire through the current onboarding runbook version in Confluence, marking each checklist item complete. Done when 0 runbook items remain open, no later than day 30 from the start date.",
+          "verify": "Open the runbook checklist in Confluence; pass if the count of items marked Complete equals the total items in the runbook version, with the final completion dated within 30 days of the start date."
+        },
+        {
+          "n": 4,
+          "title": "Track the milestone gates on the onboarding case",
+          "sop": "The Tech Lead records the day-1, day-7, and day-30 milestone gates on the hire's onboarding case in ITSM platform (ServiceNow/Jira) as each gate is reached. Done when all three milestone gates are recorded.",
+          "verify": "Open the case in ITSM platform (ServiceNow/Jira); pass if day-1, day-7, and day-30 gate entries exist with dates consistent with the hire's start date."
+        },
+        {
+          "n": 5,
+          "title": "Reconcile granted access to the role baseline",
+          "sop": "The Tech Lead compares the hire's granted access set against the role-based access baseline for their job title (sourced from the IAM access template repository) and records the comparison on the case in ITSM platform (ServiceNow/Jira). Done when the comparison shows 0 excess grants and 0 missing required grants; grants beyond the standard developer role require the documented elevated approval before grant.",
+          "verify": "Open the access reconciliation record on the case in ITSM platform (ServiceNow/Jira); pass if it shows a 1:1 match to the role baseline with zero excess and zero missing grants, and any elevated grant has a recorded prior approval."
+        },
+        {
+          "n": 6,
+          "title": "Log day-30 exceptions with remediation dates",
+          "sop": "The Tech Lead logs any checklist item still incomplete at day 30 as an exception on the case in ITSM platform (ServiceNow/Jira) with owner and a remediation due date, escalating to the Engineering Manager if open beyond 10 business days. Done when every open item has an exception entry.",
+          "verify": "Review the case exceptions in ITSM platform (ServiceNow/Jira); pass if each incomplete item has an exception with owner and due date, and items older than 10 business days show an escalation entry."
+        },
+        {
+          "n": 7,
+          "title": "Attach the completed checklist to the case",
+          "sop": "The Software Engineer attaches the completed onboarding checklist as a PDF/record to the case in ITSM platform (ServiceNow/Jira) with the close timestamp and the runbook version tag; retention is 3 years per HR/audit policy. Done when the tagged attachment is on the case.",
+          "verify": "Open the case attachments in ITSM platform (ServiceNow/Jira); pass if a completed-checklist record exists bearing the runbook version tag and a close timestamp."
+        },
+        {
+          "n": 8,
+          "title": "Record the Tech Lead completion decision",
+          "sop": "The Tech Lead records the onboarding completion decision in the case activity log in ITSM platform (ServiceNow/Jira), stating the checklist is complete and access is verified against baseline, then closes the case notifying the hiring Engineering Manager, HR business partner, and team distribution list via the case watch-list. Done when the case is closed with the decision recorded.",
+          "verify": "Open the closed case in ITSM platform (ServiceNow/Jira); pass if the activity log contains the Tech Lead's completion decision referencing checklist completeness and access verification, and the watch-list documents the three notification recipients."
+        }
+      ]
+    },
+    {
+      "taskId": "ec1feb1f-13f1-4639-b66a-79f7cce9a2fc",
+      "taskName": "Operate API gateway and middleware",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Validate auth policies on all gateway routes via the IAM platform",
+          "sop": "The Integration Engineer reviews every production gateway route's policy set against Okta / IAM Platform, confirming each route enforces an auth policy and a rate limit. Done when 0 routes lack an auth policy; any route missing one is flagged non-compliant.",
+          "verify": "Cross-check the route inventory against Okta / IAM Platform policy assignments; pass if every route in the estate maps to an active auth policy and non-compliant routes carry a flag."
+        },
+        {
+          "n": 2,
+          "title": "Confirm health probes report in Grafana",
+          "sop": "The DevOps Engineer checks the gateway dashboards in Grafana confirming every route has a health-probe definition emitting data within the rolling 30-day monitoring period. Done when all routes show live probe data.",
+          "verify": "Open the gateway health dashboard in Grafana; pass if every route displays health-probe results with recent data points and no route is missing a probe series."
+        },
+        {
+          "n": 3,
+          "title": "Reconcile deployed routes to the source-controlled config",
+          "sop": "The DevOps Engineer reconciles the deployed gateway route count and policy hash in production against the source-controlled API config (IaC). Done when count and hash match the repo exactly; any drift (delta > 0) raises a config-drift alert.",
+          "verify": "Compare the production route/policy export to the source-controlled config; pass if route count and policy hash match 1:1, or a config-drift alert was raised for any delta."
+        },
+        {
+          "n": 4,
+          "title": "Open incidents for health or SLA breaches in the ITSM platform",
+          "sop": "The Integration Engineer ensures every health-check failure or SLA breach opens a ServiceNow incident in ITSM platform (ServiceNow/Jira) and pages on-call. Done when each detected breach in the period has a corresponding incident.",
+          "verify": "Query incidents for the monitoring period in ITSM platform (ServiceNow/Jira); pass if every recorded health-check failure or SLA breach maps to an incident with an on-call page logged."
+        },
+        {
+          "n": 5,
+          "title": "Convert recurring issues into problem records",
+          "sop": "The Integration Engineer raises a problem record in ITSM platform (ServiceNow/Jira) for any recurring gateway issue; unresolved policy drift is logged as an 'SDLC-Exception' with an owner and a 10-business-day SLA. Done when recurring issues and open drift each have a tracked record.",
+          "verify": "Search problem records and 'SDLC-Exception' tickets in ITSM platform (ServiceNow/Jira); pass if recurring incidents link to a problem record and any unresolved drift has an exception with owner and due date inside the 10-business-day SLA."
+        },
+        {
+          "n": 6,
+          "title": "Archive the monthly SLA report from Grafana",
+          "sop": "The DevOps Engineer exports the monthly SLA report and dashboard snapshot from Grafana at month close, archived with a timestamp per the operations evidence policy. Done when the timestamped archive exists for the month.",
+          "verify": "Open the archived SLA report for the month; pass if it is a Grafana export bearing the month period and an archive timestamp."
+        },
+        {
+          "n": 7,
+          "title": "Record the monthly operational review sign-off",
+          "sop": "The Integration Engineer records the monthly incident/SLA review sign-off in ITSM platform (ServiceNow/Jira), confirming routes compliant, drift resolved or excepted, and SLA report archived. Done when the review record is signed for the month.",
+          "verify": "Open the monthly review record in ITSM platform (ServiceNow/Jira); pass if it carries the Integration Engineer's sign-off with the month covered and references to the reconciliation and SLA report."
+        }
+      ]
+    },
+    {
+      "taskId": "880bfee1-8071-4f34-bf1e-750970ab32bb",
+      "taskName": "Prepare solution design package for review",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Create the design package page with C4 diagrams",
+          "sop": "The Software Engineer creates the solution design package page in Confluence and adds the C4 context and container diagrams for the initiative. Done when both diagram levels render on the page.",
+          "verify": "Open the package page in Confluence; pass if C4 context and container diagrams are present and readable."
+        },
+        {
+          "n": 2,
+          "title": "Document the interface/API contracts",
+          "sop": "The Integration Architect documents the interface/API contracts and the integration approach on the package page in Confluence. Done when every external and internal interface in scope has a contract entry.",
+          "verify": "Open the contracts section in Confluence; pass if API contracts and the integration approach are documented for all in-scope interfaces."
+        },
+        {
+          "n": 3,
+          "title": "Document the data model",
+          "sop": "The Senior Developer adds the solution data model to the package page in Confluence. Done when the data model section covers the entities and relationships affected by the initiative.",
+          "verify": "Open the data-model section in Confluence; pass if the model is present and covers the initiative's affected entities."
+        },
+        {
+          "n": 4,
+          "title": "Document the NFRs on the package",
+          "sop": "The Tech Lead documents the non-functional requirements (performance, security, availability) with target values on the package page in Confluence. Done when all three NFR categories carry explicit targets.",
+          "verify": "Open the NFR section in Confluence; pass if performance, security, and availability requirements are stated with measurable targets."
+        },
+        {
+          "n": 5,
+          "title": "Record an ADR for each significant decision",
+          "sop": "The Software Engineer records at least 1 ADR per significant decision on the package page in Confluence, flagging any deviation from approved patterns for explicit ARB decision. Done when every significant decision has an ADR.",
+          "verify": "Open the ADR section in Confluence; pass if each significant decision listed in the package links to an ADR and pattern deviations are flagged for ARB."
+        },
+        {
+          "n": 6,
+          "title": "Complete the ARB submission checklist",
+          "sop": "The Software Engineer ticks the ARB submission checklist on the Confluence package, reconciling the count of provided sections to the count of required sections; missing artifacts are logged as an exception with an owner and a resubmission date. Done when the checklist shows 0 missing sections or every gap has an exception entry.",
+          "verify": "Open the ARB checklist in Confluence; pass if provided-section count equals required-section count, or each missing artifact has an exception with owner and resubmission date."
+        },
+        {
+          "n": 7,
+          "title": "Submit the versioned package before the pre-read deadline",
+          "sop": "The Tech Lead reviews the package for completeness, then the Software Engineer versions the Confluence page with a revision tag and submission timestamp and submits it no later than 5 business days before the scheduled ARB session. Done when the versioned package is submitted inside the deadline.",
+          "verify": "Open the package page history in Confluence; pass if the submitted revision carries a version tag and a submission timestamp at least 5 business days before the ARB session date."
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fhhks010skfgzvi15pyyr",
+      "taskName": "Prepare test data sets",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Map scenario fields to cataloged source columns",
+          "sop": "The Systems Analyst maps every field required by the sprint's test scenarios (policy, claims, billing) to a cataloged source column with type and constraints in the data catalog/quality tool, using the Guidewire policy/claims/billing data dictionary. Done when each generated field has a catalog mapping.",
+          "verify": "Open the mapping in the data catalog/quality tool; pass if every scenario field resolves to a cataloged source column with its type and constraints recorded."
+        },
+        {
+          "n": 2,
+          "title": "Generate the synthetic data sets",
+          "sop": "The Software Engineer generates synthetic test data covering every in-scope QA suite — policy, claims, and billing scenarios plus edge/boundary and negative-path records — with all direct identifiers masked or synthesized; no production PII is copied into non-prod. Any need to use production-derived data requires an 'SDLC-Exception' ticket with DPO sign-off. Done when all scenario sets are generated.",
+          "verify": "Inspect the generated sets against the scenario matrix; pass if every planned scenario (including edge and negative-path) has records, all direct identifiers are synthetic/masked, and no production PII is present."
+        },
+        {
+          "n": 3,
+          "title": "Load the data sets into the warehouse",
+          "sop": "The Backend Developer loads the generated sets into the Enterprise data warehouse/lakehouse test environment, validating records against the source schema definitions before load; failing records are quarantined and logged. Done when the load completes with all surviving records schema-valid.",
+          "verify": "Open the load log for the Enterprise data warehouse/lakehouse; pass if the load completed, schema validation ran before load, and quarantined records are listed with a reason."
+        },
+        {
+          "n": 4,
+          "title": "Run the referential-integrity check",
+          "sop": "The Backend Developer runs the referential-integrity check in the Enterprise data warehouse/lakehouse across the policy → claim → billing foreign keys. Done when the check returns 0 orphaned records.",
+          "verify": "Re-run the integrity query in the Enterprise data warehouse/lakehouse; pass if zero orphaned records are returned across all FK chains."
+        },
+        {
+          "n": 5,
+          "title": "Reconcile loaded totals to the scenario matrix",
+          "sop": "The Software Engineer compares row counts per entity and sums of key numeric fields in the Enterprise data warehouse/lakehouse against the control totals captured from the scenario matrix. Done when expected vs loaded variance is 0 for every entity.",
+          "verify": "Compare the loaded control totals in the Enterprise data warehouse/lakehouse to the scenario-matrix totals; pass if record counts and key numeric sums match with zero variance."
+        },
+        {
+          "n": 6,
+          "title": "Run the PII scan on the loaded data",
+          "sop": "The Systems Analyst runs the PII scanner via the data catalog/quality tool over the loaded test data. Done when 0 unmasked direct identifiers are detected; any hit blocks the dataset from promotion and forces regeneration, with a partial-data exception requiring an 'SDLC-Exception' ticket and a 5-business-day remediation SLA.",
+          "verify": "Open the PII scan report in the data catalog/quality tool; pass if it shows zero unmasked direct identifiers, or a blocking record plus 'SDLC-Exception' exists for any hit."
+        },
+        {
+          "n": 7,
+          "title": "Inspect a 5% sample for realism",
+          "sop": "The QA Analyst manually inspects a 5% sample of the generated set in the Enterprise data warehouse/lakehouse for realism and masking effectiveness. Done when the sample review is recorded with no realism or masking failures.",
+          "verify": "Open the sample-review record; pass if at least 5% of records were inspected and the reviewer recorded no unmasked identifiers and acceptable realism."
+        },
+        {
+          "n": 8,
+          "title": "Register the dataset manifest in the catalog",
+          "sop": "The Software Engineer records the test-data manifest (dataset version, seed, row counts, masking rules) against the dataset entry in the data catalog/quality tool, with the generation script committed and tagged and the load log retained 90 days. Done when the manifest is registered and versioned.",
+          "verify": "Open the dataset entry in the data catalog/quality tool; pass if the manifest lists version, seed, row counts, and masking rules, and references the tagged generation script and retained load log."
+        }
+      ]
+    },
+    {
+      "taskId": "e835280d-f914-422e-bd6b-2c622782d76c",
+      "taskName": "Prioritize developer experience backlog",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Assemble the DEVEX candidate list for the PI",
+          "sop": "The Software Engineer collects all epics and stories flagged for the upcoming PI/quarter in the Jira 'DEVEX' project within Jira; Jira Align / Rally; Azure DevOps, covering build-time, CI/CD, local-dev, tooling, and onboarding pain items. Done when the candidate list is filtered and saved.",
+          "verify": "Run the DEVEX PI filter in Jira; Jira Align / Rally; Azure DevOps; pass if the saved list exists and contains the flagged items across the five DevEx categories."
+        },
+        {
+          "n": 2,
+          "title": "Populate the scoring inputs on each item",
+          "sop": "The Backend Developer and UI Developer populate every candidate item in Jira; Jira Align / Rally; Azure DevOps with a problem statement, measurable impact (e.g. minutes saved per build or DORA metric affected), and an effort estimate in story points. Done when all three fields are populated on every candidate.",
+          "verify": "Audit the candidate items in Jira; Jira Align / Rally; Azure DevOps; pass if no item lacks a problem statement, a quantified impact, or a story-point estimate."
+        },
+        {
+          "n": 3,
+          "title": "Score every candidate with WSJF",
+          "sop": "The Software Engineer applies a WSJF/impact-vs-effort score to every candidate in Jira; Jira Align / Rally; Azure DevOps. Done when 0 items are left unscored.",
+          "verify": "Filter unscored items in Jira; Jira Align / Rally; Azure DevOps; pass if the query returns zero candidates without a WSJF/impact-vs-effort score."
+        },
+        {
+          "n": 4,
+          "title": "Park under-specified items with a needs-refinement flag",
+          "sop": "The Software Engineer flags items lacking impact data or estimates as 'needs-refinement' in Jira; Jira Align / Rally; Azure DevOps with an owner assigned for grooming within a 1-sprint SLA; contested priorities are escalated to the Platform Engineering Lead. Done when every under-specified item is parked with an owner.",
+          "verify": "Filter 'needs-refinement' items in Jira; Jira Align / Rally; Azure DevOps; pass if each has an assigned owner and a grooming target within one sprint."
+        },
+        {
+          "n": 5,
+          "title": "Rank the backlog against PI capacity",
+          "sop": "The Platform Engineering Lead ranks the scored items in Jira; Jira Align / Rally; Azure DevOps so the top-ranked slice fits within team capacity for the PI. Done when prioritized + parked = total backlog count with 0 unclassified items and the top slice fits capacity.",
+          "verify": "Open the ranked DEVEX board in Jira; Jira Align / Rally; Azure DevOps; pass if prioritized plus parked equals the total item count and the summed effort of the top slice is at or under PI capacity."
+        },
+        {
+          "n": 6,
+          "title": "Export the timestamped ranking for PI planning",
+          "sop": "The Software Engineer exports the prioritized ranking from Jira; Jira Align / Rally; Azure DevOps, dated, and attaches it to the PI planning record; the rank order remains timestamped in the board history. Done when the dated export is attached.",
+          "verify": "Open the PI planning record; pass if the attached ranking export carries a date and matches the board's rank order history in Jira; Jira Align / Rally; Azure DevOps."
+        },
+        {
+          "n": 7,
+          "title": "Record the Tech Lead approval of the ranked backlog",
+          "sop": "The Tech Lead records approval of the ranked, capacity-checked DevEx backlog in Jira; Jira Align / Rally; Azure DevOps as part of PI planning, with the top items committed to sprints. Done when the approval note is recorded.",
+          "verify": "Open the PI planning approval in Jira; Jira Align / Rally; Azure DevOps; pass if a Tech Lead approval note exists and the top-ranked items show sprint commitments."
+        }
+      ]
+    },
+    {
+      "taskId": "0f0b2dc6-30e7-4871-959e-f59f4c4bb1ca",
+      "taskName": "Produce architecture decision records",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Maintain the decision log for the initiative",
+          "sop": "The Tech Lead maintains the decision log in Confluence, entering every decision meeting the ADR trigger criteria: cross-team impact, new technology, data-model change, or security-relevant choice. Done when all significant decisions of the current PI window are logged.",
+          "verify": "Open the decision log in Confluence; pass if every decision meeting a trigger criterion during the phase appears as a log entry."
+        },
+        {
+          "n": 2,
+          "title": "Draft each ADR in the repository using the Nygard template",
+          "sop": "The Software Engineer drafts each ADR as versioned Markdown in the /docs/adr folder of the source code/CI-CD repository, using the Michael Nygard template per engineering handbook v3.0, with sequential ids (ADR-0001…) and all five sections (Context, Decision, Status, Consequences, Alternatives) non-empty. Done when every logged decision has a drafted ADR.",
+          "verify": "Open /docs/adr in the source code/CI-CD repository; pass if each ADR has a sequential id and all five template sections populated, with commit history providing timestamp and author."
+        },
+        {
+          "n": 3,
+          "title": "Cross-check ADRs against the current C4 diagram",
+          "sop": "The Solutions Architect cross-checks each ADR against the current system C4 diagram in Confluence to confirm the described components exist, and confirms any referenced data entities or interfaces cite the spec of record named in the ADR. Done when every ADR passes the component check.",
+          "verify": "Compare each ADR's referenced components to the C4 diagram in Confluence; pass if all described components exist on the diagram and entity/interface references cite their spec of record."
+        },
+        {
+          "n": 4,
+          "title": "Pass the docs-lint gate on the ADR pull request",
+          "sop": "The Software Engineer raises the ADR pull request in the source code/CI-CD repository; the CI docs-lint check fails the PR if any required section is blank. Done when the docs-lint check is green on the PR.",
+          "verify": "Open the PR checks in the source code/CI-CD repository; pass if the docs-lint job succeeded and no ADR in the PR has a blank required section."
+        },
+        {
+          "n": 5,
+          "title": "Route material decisions for ARB review",
+          "sop": "The Tech Lead routes ADRs with cross-domain or security impact — or affecting more than one bounded context/team, or introducing a new vendor/technology — for Architecture Review Board review; such ADRs cannot move to Status='Accepted' without ARB sign-off. Done when every material ADR has an ARB review outcome.",
+          "verify": "Review material ADRs in the source code/CI-CD repository; pass if each carries an ARB review reference before its status became 'Accepted' and unresolved items are escalated."
+        },
+        {
+          "n": 6,
+          "title": "Reconcile the decision log to the ADR folder",
+          "sop": "The Tech Lead reconciles the Confluence decision log against /docs/adr in the source code/CI-CD repository, marking replaced decisions Status='Superseded by ADR-NNNN' rather than deleting them and tracking open questions as 'Proposed' ADRs with an owner. Done when 0 significant decisions lack an ADR.",
+          "verify": "Compare log entries to ADR files; pass if every significant decision maps to an ADR, superseded ADRs carry the 'Superseded by' status, and 'Proposed' ADRs have owners."
+        },
+        {
+          "n": 7,
+          "title": "Record the Solutions Architect approval on the ADRs",
+          "sop": "The Solutions Architect approves the ADR pull request in the source code/CI-CD repository, setting each reviewed ADR's status to 'Accepted' via the merge. Done when 100% of significant decisions have an accepted ADR before build.",
+          "verify": "Open the merged PR in the source code/CI-CD repository; pass if the Solutions Architect's approval is on the PR and every significant decision's ADR shows Status='Accepted'."
+        }
+      ]
+    },
+    {
+      "taskId": "9c2c685b-4d2c-41a1-bf3f-cb21f2649f50",
+      "taskName": "Produce requirements traceability matrix",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Create the RTM from the approved template",
+          "sop": "The Business Analyst creates the RTM in the requirements repository using the bidirectional traceability template v2.1 approved by the BA Chapter, recording the template version in the RTM header. Done when the matrix skeleton exists with the version noted.",
+          "verify": "Open the RTM in the requirements repository; pass if it uses template v2.1 with the version recorded in the header."
+        },
+        {
+          "n": 2,
+          "title": "Map business needs through to story keys",
+          "sop": "The Business Analyst populates each RTM row in the requirements repository linking Business Need ID → Requirement/Feature → User Story key, covering 100% of in-scope features for the release and their child stories. Done when the first three columns are non-null on every row.",
+          "verify": "Audit the RTM rows in the requirements repository; pass if every row carries a Business Need ID, a Requirement/Feature, and a Jira story key with no null cells in those columns."
+        },
+        {
+          "n": 3,
+          "title": "Link each story to its test cases",
+          "sop": "The QA Analyst adds the Test Case key for every story row in ITSM platform (ServiceNow/Jira), confirming acceptance criteria are present on every story. Done when each requirement traces to at least 1 story and at least 1 test case.",
+          "verify": "Cross-check story rows against ITSM platform (ServiceNow/Jira); pass if every story has at least one linked test case key and its acceptance criteria field is populated."
+        },
+        {
+          "n": 4,
+          "title": "Reconcile the RTM to the release control totals",
+          "sop": "The Business Analyst reconciles the RTM in the requirements repository against the release: feature count in the RTM equals the release feature count, and every release story appears exactly once. Done when the bidirectional trace delta is 0 — no orphan stories and no unmapped needs.",
+          "verify": "Compare RTM row counts to the release feature and story counts for the fix-version; pass if counts match, every story appears exactly once, and the bidirectional delta is zero."
+        },
+        {
+          "n": 5,
+          "title": "Log RTM gaps for disposition",
+          "sop": "The Business Analyst logs each requirement with no downstream story, or story with no upstream need, as an RTM gap ticket in ITSM platform (ServiceNow/Jira) and dispositions it (add story / descope / waiver) within one sprint. Done when every gap has a dispositioned ticket.",
+          "verify": "Search RTM gap tickets in ITSM platform (ServiceNow/Jira); pass if every orphaned row has a ticket with a disposition recorded within one sprint of being logged."
+        },
+        {
+          "n": 6,
+          "title": "Check completeness against the materiality thresholds",
+          "sop": "The Business Analyst computes RTM completeness (mapped rows / total rows) in the requirements repository. Done when completeness is >=98%; more than 3 unmapped rows blocks release-readiness sign-off, and below 95% is a release blocker. Unresolved gaps at the release gate raise a Jira 'SDLC-Exception' with a 10-business-day SLA and an explicit descope/waiver decision.",
+          "verify": "Recalculate completeness from the RTM; pass if the ratio is at least 98% with 3 or fewer unmapped rows, or a blocking record and 'SDLC-Exception' exists for the shortfall."
+        },
+        {
+          "n": 7,
+          "title": "Re-perform the trace independently",
+          "sop": "The QA Analyst independently re-performs the trace on the completed RTM in the requirements repository, checking need↔story↔test in both directions. Done when the independent check confirms the >=98% coverage result.",
+          "verify": "Open the independent-check record on the RTM; pass if a second reviewer's re-performance is recorded and its coverage result matches the reported figure."
+        },
+        {
+          "n": 8,
+          "title": "Publish the versioned RTM with review sign-off",
+          "sop": "The Business Analyst exports the RTM from the requirements repository as a versioned artifact tagged with the release version and generation timestamp, records the review sign-off, and re-verifies the baseline at code-complete. Done when the versioned, signed RTM is published and linked from the release readiness record.",
+          "verify": "Open the published RTM artifact; pass if it carries the release version tag, generation timestamp, and the reviewer sign-off, and is linked from the release readiness record."
+        }
+      ]
+    },
+    {
+      "taskId": "e0be521d-1f49-4e3c-85cf-8cbf402cc5f9",
+      "taskName": "Produce test summary report",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract the execution results for the release fix-version",
+          "sop": "The QA Analyst pulls all test execution results — unit, integration, system, regression, and UAT — for the release fix-version from Jira; Jira Align / Rally; Azure DevOps, capturing Tests Planned, Executed, Passed, Failed, and Blocked with each metric sourced from a named query. Done when all counts are extracted for 100% of executed suites.",
+          "verify": "Re-run the named queries in Jira; Jira Align / Rally; Azure DevOps; pass if the extracted Planned/Executed/Passed/Failed/Blocked counts match the query results for the fix-version."
+        },
+        {
+          "n": 2,
+          "title": "Reconcile the execution arithmetic",
+          "sop": "The QA Analyst verifies in Jira; Jira Align / Rally; Azure DevOps that Executed = Passed + Failed + Blocked and that the coverage % matches the CI/SonarQube report. Done when both reconciliations show delta 0.",
+          "verify": "Recompute Passed + Failed + Blocked against Executed and compare coverage to the CI report; pass if both deltas are zero."
+        },
+        {
+          "n": 3,
+          "title": "Reconcile defect counts by severity",
+          "sop": "The QA Analyst reconciles reported open-defect counts by severity (S1-S4) to the defect JQL for the fix-version in Jira; Jira Align / Rally; Azure DevOps. Done when reported counts match the query with delta 0.",
+          "verify": "Run the defect JQL for the fix-version in Jira; Jira Align / Rally; Azure DevOps; pass if the per-severity counts equal the report's figures exactly."
+        },
+        {
+          "n": 4,
+          "title": "Disposition every open S1/S2 defect",
+          "sop": "The Test Lead records a disposition for every S1/S2 defect open at report time in Jira; Jira Align / Rally; Azure DevOps — fix-before-release, deferred-with-waiver, or accepted-risk — with an approver named; deferrals require a Jira 'SDLC-Exception' with justification. Done when no open S1/S2 lacks a disposition.",
+          "verify": "Filter open S1/S2 defects in Jira; Jira Align / Rally; Azure DevOps; pass if each carries a disposition and approver, and every deferral links to an 'SDLC-Exception' with justification."
+        },
+        {
+          "n": 5,
+          "title": "Assess the release exit criteria",
+          "sop": "The Test Lead evaluates the exit criteria: pass rate >=95% on planned tests, 0 open S1, 0 open S2 (or waived), regression suite 100% executed, and coverage >=80% on changed lines. If any criterion is unmet, the report carries a no-go recommendation and each unmet criterion gets a remediation owner and a Jira 'SDLC-Exception' with a 10-business-day SLA before any conditional go. Done when the go/no-go assessment is recorded.",
+          "verify": "Check the recorded assessment against the source metrics; pass if every criterion is evaluated, and any unmet criterion shows a no-go recommendation with owner and 'SDLC-Exception'."
+        },
+        {
+          "n": 6,
+          "title": "Compose the test summary report in Confluence",
+          "sop": "The Test Lead composes the report in Confluence with Tests Planned/Executed/Passed/Failed/Blocked, Pass Rate, Coverage %, Open Defects by severity (S1-S4), and Outstanding Risk items with owners. Done when every field is non-null and every risk item has an owner.",
+          "verify": "Open the report page in Confluence; pass if all listed metrics are populated, each sourced from a named query, and every outstanding risk item names an owner."
+        },
+        {
+          "n": 7,
+          "title": "Archive the signed report with its evidence",
+          "sop": "The Test Lead signs the report and stores it in Confluence with the release version, generation timestamp, and CI build number, retaining the underlying test-management export alongside. Done when the signed, versioned report and export are archived.",
+          "verify": "Open the archived report in Confluence; pass if it carries the Test Lead's sign-off, release version, timestamp, and CI build number, with the source export attached."
+        }
+      ]
+    },
+    {
+      "taskId": "13bc600c-6af9-45da-a670-9918bfcc8f9b",
+      "taskName": "Promote build artifact to test/staging",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Verify CI is green on the release-candidate artifact",
+          "sop": "The DevOps Engineer confirms in the source code/CI-CD repository that the release-candidate pipeline run is green and the artifact is stored immutably, tagged by commit SHA. Done when the pipeline shows passing and the tagged artifact exists.",
+          "verify": "Open the pipeline run in the source code/CI-CD repository; pass if the run succeeded and an immutable artifact tagged with the commit SHA is present in the artifact store."
+        },
+        {
+          "n": 2,
+          "title": "Confirm the approved change ticket for the promotion",
+          "sop": "The Release Engineer confirms a standard/normal change ticket exists and is approved in ITSM platform (ServiceNow/Jira), referencing the release; no promotion to staging is permitted without a linked, approved change record. Done when the approved ticket is linked.",
+          "verify": "Open the change ticket in ITSM platform (ServiceNow/Jira); pass if it references the release, holds an approval, and is linked to the promotion task."
+        },
+        {
+          "n": 3,
+          "title": "Record the promotion details on the change ticket",
+          "sop": "The DevOps Engineer records on the change ticket in ITSM platform (ServiceNow/Jira): artifact name plus immutable version/commit SHA, source pipeline run ID, and target environment, before the deploy runs. Done when all fields are captured pre-deploy.",
+          "verify": "Open the change ticket in ITSM platform (ServiceNow/Jira); pass if artifact name, version/SHA, pipeline run ID, and target environment were recorded with timestamps preceding the deployment."
+        },
+        {
+          "n": 4,
+          "title": "Execute the promotion pipeline to staging",
+          "sop": "The DevOps Engineer runs the promotion pipeline in the source code/CI-CD repository, deploying the artifact from the artifact repository to the test/staging environment per the approved release/promotion runbook version, with the IaC-defined environment config version pinned. Done when the deploy job completes.",
+          "verify": "Open the deploy job log in the source code/CI-CD repository; pass if the run completed successfully, references the runbook version, and used the pinned IaC config for staging."
+        },
+        {
+          "n": 5,
+          "title": "Verify the deployed version matches the promoted artifact",
+          "sop": "The Software Engineer verifies the deployed artifact checksum/version in staging matches the artifact promoted from the source code/CI-CD repository 1:1 and that the version banner reflects the new build. Done when checksum and banner both match.",
+          "verify": "Compare the staging checksum/version to the artifact record in the source code/CI-CD repository; pass if they match exactly and the environment's version banner shows the new build."
+        },
+        {
+          "n": 6,
+          "title": "Run the post-deploy smoke tests",
+          "sop": "The DevOps Engineer runs the automated smoke-test suite and environment health checks from the source code/CI-CD repository against staging. Done when 100% of critical health checks pass; any failure triggers automatic rollback to the prior staging version, notifies QA that UAT is blocked, and requires a fix-forward or retry decision on the change ticket within 1 business day, with repeated failures escalated.",
+          "verify": "Open the smoke-test results in the source code/CI-CD repository; pass if all critical checks are green, or a rollback record plus a dispositioned failure entry exists on the change ticket."
+        },
+        {
+          "n": 7,
+          "title": "Attach the deploy evidence with UAT-ready sign-off",
+          "sop": "The Release Engineer attaches the pipeline deploy log, artifact version, and smoke-test results to the change ticket in ITSM platform (ServiceNow/Jira) with timestamp, and records the UAT-ready sign-off. Done when evidence and sign-off are on the ticket.",
+          "verify": "Open the change ticket in ITSM platform (ServiceNow/Jira); pass if deploy log, artifact version, and smoke results are attached with timestamps and the Release Engineer's UAT-ready sign-off is recorded."
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl8qv1rrukfgzn28pl3h6",
+      "taskName": "Propose delivery approach for prioritization discussion",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the prioritization candidates for the PI",
+          "sop": "The Software Engineer pulls all backlog items labeled 'prioritization-candidate' for the upcoming PI/quarter from Jira; Jira Align / Rally; Azure DevOps. Done when the candidate list (typically 5-12 epics) is captured for the planning horizon.",
+          "verify": "Run the 'prioritization-candidate' label filter in Jira; Jira Align / Rally; Azure DevOps; pass if the captured list matches the filter results for the planning horizon."
+        },
+        {
+          "n": 2,
+          "title": "Draft a recommendation for each candidate",
+          "sop": "The Software Engineer drafts a delivery-approach recommendation per candidate stating: recommended approach (build/buy/phased/MVP), rough effort, key dependencies, risks, and sequencing rationale, with all template fields populated. Done when every candidate has a complete recommendation.",
+          "verify": "Open the proposal document; pass if each candidate section contains approach, effort, dependencies, risks, and sequencing rationale with no template field blank."
+        },
+        {
+          "n": 3,
+          "title": "Flag under-scoped candidates for discovery",
+          "sop": "The Tech Lead flags candidates lacking enough information as 'Needs Discovery' in Jira; Jira Align / Rally; Azure DevOps, creating a spike ticket with an owner and a 5-business-day SLA to scope; if a decision is needed without data, escalate to the Product Owner for a provisional recommendation. Done when every information gap has a spike ticket.",
+          "verify": "Search 'Needs Discovery' items in Jira; Jira Align / Rally; Azure DevOps; pass if each has a linked spike ticket with owner and a due date within 5 business days."
+        },
+        {
+          "n": 4,
+          "title": "Reconcile recommendations to the candidate count",
+          "sop": "The Software Engineer reconciles the proposal against the candidate list in Jira; Jira Align / Rally; Azure DevOps: count of recommendations equals count of candidates. Done when 0 candidates are unaddressed.",
+          "verify": "Compare the number of recommendation sections to the candidate filter count in Jira; Jira Align / Rally; Azure DevOps; pass if the counts are equal with zero unaddressed candidates."
+        },
+        {
+          "n": 5,
+          "title": "Attach the versioned proposal to the PI-planning epic",
+          "sop": "The Software Engineer saves the proposal as '<PI>-delivery-approach-vN' with version and timestamp and attaches it to the PI-planning epic in Jira; Jira Align / Rally; Azure DevOps. Done when the versioned proposal is linked on the epic.",
+          "verify": "Open the PI-planning epic in Jira; Jira Align / Rally; Azure DevOps; pass if the attached proposal follows the '<PI>-delivery-approach-vN' naming with version and timestamp."
+        },
+        {
+          "n": 6,
+          "title": "Record the Tech Lead review before the discussion",
+          "sop": "The Tech Lead reviews the full proposal and records approval on the PI-planning epic in Jira; Jira Align / Rally; Azure DevOps before the prioritization meeting. Done when the review sign-off is recorded and the proposal is ready to present.",
+          "verify": "Open the epic in Jira; Jira Align / Rally; Azure DevOps; pass if a Tech Lead review/approval entry exists dated before the prioritization discussion."
+        }
+      ]
+    },
+    {
+      "taskId": "55c864fc-52d4-4f88-bada-01268c2acd5e",
+      "taskName": "Provision self-service developer environment templates",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Author the template modules in Terraform Cloud",
+          "sop": "The Software Engineer authors or updates each golden-path environment template as a versioned IaC module in Terraform Cloud, including a README and required parameters with validation, for the standard app stack. Done when every template in the sprint's scope has module, README, and validated parameters.",
+          "verify": "Open each module in Terraform Cloud; pass if it is versioned and contains a README plus parameter definitions with validation rules."
+        },
+        {
+          "n": 2,
+          "title": "Run the secret scan on each template",
+          "sop": "The DevOps Engineer runs the secret scan over each template module in Terraform Cloud. Done when the scan reports 0 hardcoded secrets; any template failing the scan is blocked from publish.",
+          "verify": "Open the secret-scan results for each module; pass if zero hardcoded secrets are reported, or failing templates show a publish block."
+        },
+        {
+          "n": 3,
+          "title": "Smoke-provision each template via the test pipeline",
+          "sop": "The DevOps Engineer runs the template-test pipeline in Terraform Cloud for each template. Done when 100% of templates targeted for publish provision cleanly in the smoke test; failures are blocked from publish.",
+          "verify": "Open the template-test pipeline runs in Terraform Cloud; pass if every published template's latest run provisioned successfully with the results retained as CI artifacts (SHA-keyed, 400-day retention)."
+        },
+        {
+          "n": 4,
+          "title": "Tag the module releases with semver",
+          "sop": "The Software Engineer tags each passing template module with a semantic version in Terraform Cloud. Done when every publishable module has a new semver tag.",
+          "verify": "List the module tags in Terraform Cloud; pass if each publishable module carries a semver tag corresponding to the tested revision."
+        },
+        {
+          "n": 5,
+          "title": "Publish the catalog entries in Backstage",
+          "sop": "The Software Engineer publishes or updates each template's catalog entry in Backstage, stamped with version and owner and linked to the valid module tag. Done when every published template is discoverable in the catalog.",
+          "verify": "Open the template entries in Backstage; pass if each is stamped with version and owner and its link resolves to the tagged module."
+        },
+        {
+          "n": 6,
+          "title": "Reconcile the catalog to the module inventory",
+          "sop": "The DevOps Engineer reconciles the count of templates in the Backstage catalog to the count of IaC modules in the platform repo. Done when the reconciliation is 1:1 with each catalog entry linking a valid module tag; the quarterly drift and dependency-currency review is scheduled.",
+          "verify": "Compare the Backstage catalog count to the module count; pass if the counts match 1:1 and no catalog entry points at a missing or stale tag."
+        },
+        {
+          "n": 7,
+          "title": "Record the Platform Engineering Lead sign-off",
+          "sop": "The Platform Engineering Lead records sign-off on the published template set in Backstage; teams needing a non-standard template file a Jira 'SDLC-Exception' owned by the Platform Engineering Lead with a review date. Done when the sign-off is recorded for the release.",
+          "verify": "Open the template set record in Backstage; pass if the Platform Engineering Lead's sign-off is present and any non-standard request links to an 'SDLC-Exception' with owner and review date."
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fiil10htekfgzbqscr5u4",
+      "taskName": "Publish contracts to schema registry",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Commit the schema sources to the repository",
+          "sop": "The Data Engineer commits the .avsc/.proto schema sources for every topic in the approved streaming topology to the source code/CI-CD repository, tagged to the Jira story, with the commit SHA recorded. Done when all in-scope schema sources are committed.",
+          "verify": "Open the source code/CI-CD repository; pass if every topology topic has a committed schema file with SHA and story tag in the commit history."
+        },
+        {
+          "n": 2,
+          "title": "Configure the registration settings for each subject",
+          "sop": "The Backend Developer sets each schema's subject name per the naming convention and a compatibility mode of BACKWARD or better in the registration config within the source code/CI-CD repository. Done when 0 subjects lack a set compatibility policy.",
+          "verify": "Review the registration config in the source code/CI-CD repository; pass if every subject follows the naming convention and declares BACKWARD-or-better compatibility."
+        },
+        {
+          "n": 3,
+          "title": "Register the schemas via the CI pipeline",
+          "sop": "The Data Engineer runs the CI registration pipeline from the source code/CI-CD repository to publish the contracts to Pact Broker; registration must execute via the pipeline, not the manual UI, before any producer is promoted to a shared (staging/prod) cluster. Done when the pipeline registers all subjects.",
+          "verify": "Open the CI run in the source code/CI-CD repository; pass if the registration step executed through the pipeline and each subject shows as registered in Pact Broker."
+        },
+        {
+          "n": 4,
+          "title": "Capture the registry confirmations in the build log",
+          "sop": "The Data Engineer confirms the registry API confirmation (subject, version, id) for each registration is captured in the CI build log in the source code/CI-CD repository; artifacts are retained 12 months tagged to the Jira story. Done when every registered subject has a logged confirmation.",
+          "verify": "Open the CI build log in the source code/CI-CD repository; pass if it lists subject, version, and id for every registered schema and the retention tag references the story."
+        },
+        {
+          "n": 5,
+          "title": "Reconcile registered subjects to the topology",
+          "sop": "The Data Engineer reconciles the count of registered subjects in Pact Broker to the count of topics in the approved streaming topology, publishing the reconciliation in the release notes. Done when 0 topology topics are missing a registered schema.",
+          "verify": "Compare the subject list in Pact Broker to the approved topology topic list; pass if every topic has a registered subject and the reconciliation appears in the release notes."
+        },
+        {
+          "n": 6,
+          "title": "Trace sample schemas to their design definitions",
+          "sop": "The Software Engineer traces 3 registered schemas in Pact Broker back to their design-doc definitions and to a producing service commit, confirming the published schema matches the approved contract and field definitions align to the enterprise data-dictionary terms referenced in the topology design. Done when all 3 traces match.",
+          "verify": "For 3 sampled subjects in Pact Broker, compare the registered schema to the design doc and producer commit; pass if all three match the approved contract with aligned field definitions."
+        },
+        {
+          "n": 7,
+          "title": "Disposition any compatibility failures",
+          "sop": "The Data Engineer handles compatibility-check failures: the pipeline blocks promotion, a Jira defect is logged, and any exception goes through an 'SDLC-Exception' ticket with a 10-business-day SLA. Done when every failure has a defect and disposition.",
+          "verify": "Review failed registration runs; pass if each blocked run has a logged defect and any override carries an approved 'SDLC-Exception' within the SLA."
+        },
+        {
+          "n": 8,
+          "title": "Record the lifecycle sign-off on the registered contracts",
+          "sop": "The Data Engineer records sign-off that subject naming and lifecycle align to the schema-governance workflow in Pact Broker: registration timestamps and versions recorded, effective-from dates coordinated with the consumer migration window, and deprecated subjects flagged — not deleted — while consumers migrate. Done when the sign-off is recorded.",
+          "verify": "Open the governance record for the release in Pact Broker; pass if the Data Engineer's sign-off is present, versions and timestamps are recorded, and deprecated subjects show flags rather than deletions."
+        }
+      ]
+    },
+    {
+      "taskId": "ad023ddd-cd25-49a5-a025-3f99fc63e1de",
+      "taskName": "Publish developer experience metrics dashboard",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Record the approved metric definitions in Backstage",
+          "sop": "The Platform Engineering Lead approves and the Software Engineer records the metric definitions — DORA (deployment frequency, lead time, change-fail rate, MTTR) plus DevEx signals (build time, PR cycle time, flaky-test rate) — in the metrics catalog in Backstage, each with definition, source system, calculation, and refresh cadence, versioned. Done when every dashboard metric references an approved definition version.",
+          "verify": "Open the metrics catalog in Backstage; pass if each metric has definition, source, calculation, and cadence recorded at an approved version referenced by the dashboard."
+        },
+        {
+          "n": 2,
+          "title": "Build the dashboard panels in Grafana",
+          "sop": "The Software Engineer builds the dashboard in Grafana showing, for every metric, the current value, trend, and target across all delivery squads; no metric may render without a defined source query, and metrics are reported at team/aggregate level only — no individual-developer ranking. Done when all panels render from defined queries.",
+          "verify": "Open the dashboard in Grafana; pass if every panel shows value, trend, and target from a defined source query and no panel exposes individual-developer rankings."
+        },
+        {
+          "n": 3,
+          "title": "Configure the 90-day rolling refresh window",
+          "sop": "The DevOps Engineer configures the dashboard in Grafana for a rolling trailing 90-day window with weekly refresh. Done when the window and refresh settings are active.",
+          "verify": "Inspect the dashboard settings in Grafana; pass if the time window is trailing 90 days and the refresh schedule is weekly."
+        },
+        {
+          "n": 4,
+          "title": "Reconcile dashboard values to source systems",
+          "sop": "The Software Engineer reconciles each metric value in Grafana to its underlying source (CI/CD logs, Jira) within +/- 1%, including confirming the deployment count equals the pipeline audit log count for the period. Done when all metrics reconcile within tolerance.",
+          "verify": "Compare each Grafana metric to its source extract; pass if every variance is within +/- 1% and the deployment counts match the pipeline audit log."
+        },
+        {
+          "n": 5,
+          "title": "Re-perform the reconciliation independently",
+          "sop": "The DevOps Engineer independently re-performs the source reconciliation on the Grafana dashboard as the reasonableness check. Done when the independent result confirms all variances within +/- 1%.",
+          "verify": "Open the independent-check record; pass if a second engineer's reconciliation is documented and agrees with the primary result within tolerance."
+        },
+        {
+          "n": 6,
+          "title": "Verify dashboard performance for stakeholders",
+          "sop": "The Tech Lead verifies the Grafana dashboard loads in under 5 seconds and is accessible to all engineering squads, Tech Leads, and Engineering Management. Done when load time and access are confirmed.",
+          "verify": "Load the dashboard in Grafana as a stakeholder user; pass if it renders in under 5 seconds and the intended audience groups all have access."
+        },
+        {
+          "n": 7,
+          "title": "Flag data gaps with a quality banner",
+          "sop": "The Platform Engineering Lead ensures any metric data gap or source outage is flagged on the Grafana dashboard with a data-quality banner and logged as a data-quality ticket resolved within 3 business days; a reconciliation variance over 1% keeps the metric non-authoritative until fixed. Done when every known gap is bannered and ticketed.",
+          "verify": "Review the dashboard and open data-quality tickets; pass if each known gap shows a banner and a ticket with owner and a resolution date within 3 business days."
+        },
+        {
+          "n": 8,
+          "title": "Approve the dashboard charter for publication",
+          "sop": "The Platform Engineering Lead documents the decision to publish and the target thresholds for each metric in the dashboard charter and approves it; parameters (targets, windows) are sourced from the charter, not hard-coded in queries, and publishing rights stay limited to the platform enablement team. Done when the approved charter is recorded and the dashboard link is distributed to all engineering stakeholders.",
+          "verify": "Open the dashboard charter; pass if it lists targets per metric, carries the Platform Engineering Lead's approval, and the distribution of the live dashboard link to the engineering audience is recorded."
+        }
+      ]
+    },
+    {
+      "taskId": "fb69a235-8de9-4b27-9f14-968e58ad124b",
+      "taskName": "Publish documentation to developer portal",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Update the docs source files for the release",
+          "sop": "The Software Engineer updates all net-new and materially changed developer-facing docs — README, API reference (OpenAPI), architecture (C4/ADRs), runbooks, onboarding guide — in the source code/CI-CD repository for repos merged to main this sprint, excluding third-party vendor docs and archived service pages. Done when all release doc changes are merged.",
+          "verify": "Review the release-tag diff in the source code/CI-CD repository; pass if every net-new or materially changed doc for the release is present under docs/ on the tag."
+        },
+        {
+          "n": 2,
+          "title": "Populate frontmatter on every doc page",
+          "sop": "The Backend Developer populates each page's frontmatter in the source code/CI-CD repository per docs/_meta/schema.yml: title (string), owner (team slug), source (repo#path), lastReviewed (ISO date), version (semver). Done when frontmatter validates in CI for all pages.",
+          "verify": "Run the frontmatter validation in CI; pass if every page carries all five fields conforming to docs/_meta/schema.yml with zero validation errors."
+        },
+        {
+          "n": 3,
+          "title": "Pass the link check in CI",
+          "sop": "The UI Developer runs the broken-link check in the source code/CI-CD repository CI. Done when the check reports 0 dead internal links and all code samples reference a resolvable module/endpoint.",
+          "verify": "Open the link-check job output in the source code/CI-CD repository; pass if it reports zero dead internal links and no unresolvable code-sample references."
+        },
+        {
+          "n": 4,
+          "title": "Run the portal publish job within the deadline",
+          "sop": "The Software Engineer runs the portal publish CI job in the source code/CI-CD repository within 2 business days of the release tag being cut; the docs build manifest must show total source files (docs/**/*.md) equal to total rendered pages (0 delta) for the publish step to succeed. Done when the job succeeds inside the window.",
+          "verify": "Open the publish job in the source code/CI-CD repository; pass if it ran within 2 business days of the tag, succeeded, and the manifest shows source-file count equal to rendered-page count."
+        },
+        {
+          "n": 5,
+          "title": "Verify the published pages resolve in Backstage",
+          "sop": "The Software Engineer verifies every intended page renders on the developer portal in Backstage. Done when 100% of intended docs resolve at their portal URL with HTTP 200.",
+          "verify": "Request each published page URL in Backstage; pass if all intended pages return HTTP 200 and none of the release's docs is missing."
+        },
+        {
+          "n": 6,
+          "title": "Log publish failures as DOC-DEFECT tickets",
+          "sop": "The Software Engineer logs any page failing link-check, missing frontmatter, or returning 404 as a 'DOC-DEFECT' ticket linked to the release, with disposition fixed-and-republished or waived-with-owner-sign-off before release close; a failed publish reverts the portal to the prior release snapshot with a 2-business-day republish SLA. Done when every failure is ticketed and dispositioned.",
+          "verify": "Search 'DOC-DEFECT' tickets for the release; pass if each publish failure has a ticket with a recorded disposition and any revert shows a republish within 2 business days."
+        },
+        {
+          "n": 7,
+          "title": "Attach the publish evidence with Tech Lead sign-off",
+          "sop": "The Tech Lead records sign-off on the release documentation page in Confluence, attaching the portal URL, CI publish run URL, and rendered artifact hash stored against the release SHA (retained 12 months). Done when evidence and sign-off are on the release record.",
+          "verify": "Open the release page in Confluence; pass if it links the portal URL, publish run, and artifact hash for the release SHA and carries the Tech Lead's sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "2754f3cb-e60c-4d32-9c74-6e4aca95dea3",
+      "taskName": "Publish sprint plan to stakeholders",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Assemble the sprint plan view with complete story fields",
+          "sop": "The Scrum Master assembles the sprint plan in Jira; Jira Align / Rally; Azure DevOps showing, for every committed story: title, estimate, assignee, status, and linkage to its epic/PI objective. Done when no committed story is missing any of the five fields.",
+          "verify": "Open the plan view in Jira; Jira Align / Rally; Azure DevOps; pass if every committed story displays title, estimate, assignee, status, and an epic/PI objective link."
+        },
+        {
+          "n": 2,
+          "title": "State the sprint goal with capacity figures",
+          "sop": "The Product Owner states the sprint goal and the total committed vs capacity points on the plan in Jira; Jira Align / Rally; Azure DevOps. Done when both the goal and the committed/capacity figures appear on the published view.",
+          "verify": "Open the plan in Jira; Jira Align / Rally; Azure DevOps; pass if the sprint goal is stated and committed points and capacity points are both shown."
+        },
+        {
+          "n": 3,
+          "title": "Reconcile the published plan to the board",
+          "sop": "The Scrum Master reconciles the published plan against the team board in Jira; Jira Align / Rally; Azure DevOps: sum of committed story points equals the sprint's committed points (delta = 0) and the story count matches the board. Done when both reconcile exactly; any discrepancy is re-synced and republished within the same business day, with recurring drift logged as a process defect.",
+          "verify": "Compare the published plan to the board in Jira; Jira Align / Rally; Azure DevOps; pass if points delta is zero and story counts match, or a same-day re-sync record exists."
+        },
+        {
+          "n": 4,
+          "title": "Publish the plan to the named stakeholders",
+          "sop": "The Scrum Master publishes the plan to all named stakeholders (Product Owner, Tech Lead, dependent squads) via Jira; Jira Align / Rally; Azure DevOps within 1 business day of sprint planning, refreshing status at each daily standup. Done when publication is confirmed inside the window with stakeholder access verified.",
+          "verify": "Check the publication record in Jira; Jira Align / Rally; Azure DevOps; pass if the plan was shared within 1 business day of planning and every named stakeholder can open it."
+        },
+        {
+          "n": 5,
+          "title": "Save the versioned plan snapshot",
+          "sop": "The Business Analyst saves a snapshot of the published plan (dashboard link or export) with sprint ID and UTC timestamp; each republish is versioned. Done when the timestamped snapshot for the sprint exists.",
+          "verify": "Open the sprint's snapshot record; pass if it carries the sprint ID and UTC timestamp and republish versions are retained in order."
+        },
+        {
+          "n": 6,
+          "title": "Record the Product Owner sign-off on the published plan",
+          "sop": "The Product Owner records sign-off on the published plan in Jira; Jira Align / Rally; Azure DevOps; any scope change after publish is tracked as a scope-change entry with rationale and Product Owner approval, flagged at the next standup and republished. Done when the sign-off is recorded.",
+          "verify": "Open the plan record in Jira; Jira Align / Rally; Azure DevOps; pass if the Product Owner's sign-off is present and each post-publish scope change carries rationale, PO approval, and a republish."
+        }
+      ]
+    },
+    {
+      "taskId": "bdc5c4e6-5405-4048-8e25-ab74269149ca",
+      "taskName": "Rank backlog items",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Filter the rankable backlog population",
+          "sop": "The Software Engineer filters the team's product backlog in Jira; Jira Align / Rally; Azure DevOps to all 'Ready' and 'Refined' items (epics/stories/spikes) eligible for the next 2-3 sprints. Done when the population filter is saved for the refinement session.",
+          "verify": "Run the Ready/Refined filter in Jira; Jira Align / Rally; Azure DevOps; pass if the session population matches the filter output with no in-sprint items included."
+        },
+        {
+          "n": 2,
+          "title": "Populate scoring fields on every eligible item",
+          "sop": "The Business Analyst populates each eligible item in Jira; Jira Align / Rally; Azure DevOps with its value/priority score (WSJF components), risk rating, estimate, and dependency links; unestimated items are excluded from the ranked zone. Done when every ranked-zone item carries all four fields.",
+          "verify": "Audit ranked-zone items in Jira; Jira Align / Rally; Azure DevOps; pass if each shows WSJF score, risk rating, estimate, and dependency links, and no unestimated item sits in the ranked zone."
+        },
+        {
+          "n": 3,
+          "title": "Rank the items into a strict order",
+          "sop": "The Product Owner ranks the items in Jira; Jira Align / Rally; Azure DevOps by value, risk, and dependency order at backlog refinement and again immediately before sprint planning (2-week cadence). Done when the rank is a strict total order over the top slice with no ties in the top 20.",
+          "verify": "Inspect the rank order in Jira; Jira Align / Rally; Azure DevOps; pass if the top 20 items have unique ranks and the overall top slice forms a strict total order."
+        },
+        {
+          "n": 4,
+          "title": "Move unrankable items to Needs Refinement",
+          "sop": "The Tech Lead moves any item that cannot be ranked (missing estimate, unclear value, blocked by dependency) to 'Needs Refinement' status in Jira; Jira Align / Rally; Azure DevOps with owner and reason logged, escalating items blocking for more than 1 sprint. Done when no unrankable item remains in the ranked zone.",
+          "verify": "Filter 'Needs Refinement' in Jira; Jira Align / Rally; Azure DevOps; pass if each moved item logs owner and reason and long-blocked items show an escalation."
+        },
+        {
+          "n": 5,
+          "title": "Reconcile the ranked view to the eligible population",
+          "sop": "The Software Engineer reconciles the count of items in the prioritized backlog view against the count of 'Ready/Refined' items in Jira; Jira Align / Rally; Azure DevOps. Done when the counts match with no dropped or duplicated stories.",
+          "verify": "Compare the prioritized-view count to the Ready/Refined filter count in Jira; Jira Align / Rally; Azure DevOps; pass if the counts are equal with zero missing or duplicate items."
+        },
+        {
+          "n": 6,
+          "title": "Export the ranked snapshot after refinement",
+          "sop": "The Business Analyst exports the ranked backlog snapshot from Jira; Jira Align / Rally; Azure DevOps after each refinement, dated and versioned, retaining the WSJF scoring sheet alongside. Done when the dated snapshot and scoring sheet are attached to the sprint record.",
+          "verify": "Open the sprint record; pass if a dated, versioned ranked snapshot exported from Jira; Jira Align / Rally; Azure DevOps is attached together with the WSJF scoring sheet."
+        },
+        {
+          "n": 7,
+          "title": "Record the Product Owner sign-off on the ranking",
+          "sop": "The Product Owner records sign-off on the ranked backlog in Jira; Jira Align / Rally; Azure DevOps. Done when the sign-off is captured for the refinement cycle.",
+          "verify": "Open the backlog record in Jira; Jira Align / Rally; Azure DevOps; pass if the Product Owner's sign-off entry exists for the current refinement cycle."
+        }
+      ]
+    },
+    {
+      "taskId": "66e91d0f-6ac8-4a9a-9914-8512f4721524",
+      "taskName": "Re-prioritize backlog at defined cadence",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Capture the before snapshot at the cadence boundary",
+          "sop": "The Software Engineer pulls all eligible items in states 'New', 'Refined', and 'Ready' — excluding items in an active sprint — in Jira; Jira Align / Rally; Azure DevOps at the cadence boundary (start of each 2-week sprint; PI-level reranking each quarterly PI planning) and captures the 'before' board snapshot. Done when the snapshot is saved.",
+          "verify": "Open the saved 'before' snapshot; pass if it covers the New/Refined/Ready population at the cadence date and excludes active-sprint items."
+        },
+        {
+          "n": 2,
+          "title": "Score every item with the approved WSJF model",
+          "sop": "The Product Owner scores each eligible item in Jira; Jira Align / Rally; Azure DevOps using WSJF model v1.2 from the Agile playbook — business value, time criticality, risk reduction, and job size sourced from the item fields and the rubric, not ad-hoc reordering; the board blocks 'Ready' without a score. Done when all eligible items carry a WSJF score.",
+          "verify": "Filter eligible items in Jira; Jira Align / Rally; Azure DevOps; pass if every item has all four WSJF components populated and no 'Ready' item lacks a score."
+        },
+        {
+          "n": 3,
+          "title": "Re-rank the backlog into a monotonic order",
+          "sop": "The Product Owner re-ranks the backlog in Jira; Jira Align / Rally; Azure DevOps per the WSJF scores, marking the cut-line at team capacity: only items at or above the cut-line are pulled into the sprint; below-cut items remain ranked but uncommitted. Done when the rank order is strictly monotonic with 0 duplicate rank values.",
+          "verify": "Inspect the rank order in Jira; Jira Align / Rally; Azure DevOps; pass if ranks are strictly monotonic with no duplicates and the cut-line at capacity is identified."
+        },
+        {
+          "n": 4,
+          "title": "Notify stakeholders of large rank movements",
+          "sop": "The Business Analyst triggers stakeholder notification for any committed item whose rank changed by 10 or more positions, before the sprint commits, recording the notification in Jira; Jira Align / Rally; Azure DevOps. Done when every qualifying movement has a notification record.",
+          "verify": "List items with rank change >= 10 positions in Jira; Jira Align / Rally; Azure DevOps; pass if each shows a stakeholder notification recorded before sprint commitment."
+        },
+        {
+          "n": 5,
+          "title": "Move unscoreable items to Needs Refinement",
+          "sop": "The Business Analyst moves items that cannot be scored (missing acceptance criteria) to 'Needs Refinement' in Jira; Jira Align / Rally; Azure DevOps with a note; items unresolved after 2 cadences are escalated to the Product Owner. Done when no unscoreable item remains in the ranked order.",
+          "verify": "Filter 'Needs Refinement' items in Jira; Jira Align / Rally; Azure DevOps; pass if each carries an explanatory note and any item older than 2 cadences shows a Product Owner escalation."
+        },
+        {
+          "n": 6,
+          "title": "Reconcile pre/post session item counts",
+          "sop": "The Software Engineer reconciles the backlog item count before and after the reprioritization session in Jira; Jira Align / Rally; Azure DevOps. Done when the counts reconcile with no items lost.",
+          "verify": "Compare before and after counts in Jira; Jira Align / Rally; Azure DevOps; pass if the reconciliation shows zero lost items across the session."
+        },
+        {
+          "n": 7,
+          "title": "Archive the snapshots with the decision record",
+          "sop": "The Product Owner exports the before/after board snapshots and the reprioritization decision notes, tagged with the sprint/PI id and UTC timestamp, retained 12 months, and confirms the rerank; ranking disputes are resolved by the Product Owner as decision authority, with unresolvable strategic conflicts escalated to the portfolio Monthly Review. Done when the tagged evidence is archived with the confirmation.",
+          "verify": "Open the archived cadence record; pass if before/after snapshots and decision notes exist with sprint/PI tag and timestamp, and the Product Owner's confirmation is recorded."
+        }
+      ]
+    },
+    {
+      "taskId": "76da14a3-57b9-46b8-ac0d-3a0bb059b67d",
+      "taskName": "Re-test fixed defects",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Compile the full re-test queue",
+          "sop": "The QA Analyst compiles the queue of all defects in status 'Ready for Re-test' for the current release train in ITSM platform (ServiceNow/Jira) — 100% of fixed defects are re-tested, never sampled. Done when the queue covers every defect moved to 'Fixed' since the last re-test cycle.",
+          "verify": "Run the 'Ready for Re-test' query in ITSM platform (ServiceNow/Jira); pass if the queue contains every returned defect for the release train with none omitted."
+        },
+        {
+          "n": 2,
+          "title": "Verify the fix commit is in the re-test build",
+          "sop": "The QA Analyst verifies for each defect in ITSM platform (ServiceNow/Jira) that the fix commit SHA in the re-tested build (release candidate tag rc-x.y.z) matches the merged PR linked on the defect. Done when every queued defect's fix is confirmed present in the build.",
+          "verify": "For each defect in ITSM platform (ServiceNow/Jira), compare the linked PR's commit SHA to the rc build contents; pass if every fix commit is present in the build under test."
+        },
+        {
+          "n": 3,
+          "title": "Execute the re-test for each defect",
+          "sop": "The QA Analyst executes one re-test per defect against the rc build, confirming the failing pre-fix behavior no longer reproduces and the documented expected result is observed. Done when every queued defect has an executed re-test with a verdict.",
+          "verify": "Review the executions linked in ITSM platform (ServiceNow/Jira); pass if each defect has exactly one re-test execution recording that the original failure no longer reproduces."
+        },
+        {
+          "n": 4,
+          "title": "Re-run the affected module regression suite",
+          "sop": "The Backend Developer and UI Developer re-run the regression suite for each affected module on the fixed build. Done when the regression runs complete with 0 new failures.",
+          "verify": "Open the regression results for the affected modules; pass if every run against the rc build completed with zero new failures."
+        },
+        {
+          "n": 5,
+          "title": "Record the re-test evidence on each defect",
+          "sop": "The QA Analyst records on each defect in ITSM platform (ServiceNow/Jira): defect key, build/tag re-tested against, test case ID, actual result, pass/fail verdict, tester, and timestamp, attaching execution log, screenshots, and console/API output stamped with the build tag; evidence is retained 12 months per release. Done when no record is saved without a linked test-case execution.",
+          "verify": "Open each re-tested defect in ITSM platform (ServiceNow/Jira); pass if all seven fields are populated and the attached evidence carries the build tag and UTC timestamp."
+        },
+        {
+          "n": 6,
+          "title": "Reconcile executions to the fixed-defect count",
+          "sop": "The QA Analyst reconciles the count of defects marked 'Fixed' at cycle start to the count of re-test executions recorded in ITSM platform (ServiceNow/Jira). Done when the delta is 0; any un-re-tested 'Fixed' defect blocks the release gate.",
+          "verify": "Compare the cycle-start 'Fixed' count to the execution count in ITSM platform (ServiceNow/Jira); pass if the delta is zero or the gate shows a block for any gap."
+        },
+        {
+          "n": 7,
+          "title": "Disposition non-passing re-test outcomes",
+          "sop": "The QA Analyst re-opens each failed defect in ITSM platform (ServiceNow/Jira), assigning it back to the fixing developer with the 'reopened' label and logging it in the release exception register; blocked/untestable items get a 'test-blocked' ticket with owner and target date resolved within 2 business days or escalated to the Release Manager. Done when every non-pass outcome is dispositioned.",
+          "verify": "Search 'reopened' and 'test-blocked' items in ITSM platform (ServiceNow/Jira); pass if every failed re-test is reopened to a developer and every blocked item has an owned ticket within the 2-business-day SLA."
+        },
+        {
+          "n": 8,
+          "title": "Close the re-test cycle for the build",
+          "sop": "The QA Analyst records cycle completion in ITSM platform (ServiceNow/Jira), confirming 100% of re-tested defects PASS or are explicitly deferred with sign-off; results are valid only for the exact build tag re-tested — a new build supersedes the evidence and requires re-execution before release. Done when the cycle-close record is saved.",
+          "verify": "Open the cycle-close record in ITSM platform (ServiceNow/Jira); pass if it shows all defects passed or deferred with sign-off and names the exact build tag the results apply to."
+        }
+      ]
+    },
+    {
+      "taskId": "92d416ba-85e6-4f78-8cc4-093d1b74036f",
+      "taskName": "Refine backlog items to definition of ready",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Select the refinement candidates for the session",
+          "sop": "The Product Owner selects all stories/enablers slated for the next 2 sprints that are not yet marked 'Ready' on the team board in Jira; Jira Align / Rally; Azure DevOps for the weekly refinement session. Done when the session list is set.",
+          "verify": "Run the not-Ready filter for the next 2 sprints in Jira; Jira Align / Rally; Azure DevOps; pass if the session list matches the filter output."
+        },
+        {
+          "n": 2,
+          "title": "Record the story statement with acceptance criteria",
+          "sop": "The Business Analyst records a user-story statement and testable acceptance criteria on each candidate in Jira; Jira Align / Rally; Azure DevOps. Done when every candidate carries both.",
+          "verify": "Audit the session candidates in Jira; Jira Align / Rally; Azure DevOps; pass if each has a user-story statement and acceptance criteria that are testable."
+        },
+        {
+          "n": 3,
+          "title": "Estimate each story in the session",
+          "sop": "The Backend Developer and UI Developer estimate each story during refinement and record the estimate on the ticket in Jira; Jira Align / Rally; Azure DevOps, confirming shared team understanding. Done when every candidate has an estimate.",
+          "verify": "Check the candidates in Jira; Jira Align / Rally; Azure DevOps; pass if every story carries a recorded estimate entered during the session."
+        },
+        {
+          "n": 4,
+          "title": "Clear dependencies on each story",
+          "sop": "The Business Analyst identifies dependencies on each story in Jira; Jira Align / Rally; Azure DevOps, links them on the ticket, and drives open blocking questions to resolution or a scheduled follow-up. Done when each story shows dependencies identified and 0 open blocking questions or a documented blocker with follow-up owner.",
+          "verify": "Open each story in Jira; Jira Align / Rally; Azure DevOps; pass if dependency links are recorded and no unresolved blocking question exists without a documented blocker and owner."
+        },
+        {
+          "n": 5,
+          "title": "Gate the Ready transition on the DoR checklist",
+          "sop": "The Product Owner completes the board's DoR checklist on each story in Jira; Jira Align / Rally; Azure DevOps and transitions qualifying stories to 'Ready'; the checklist gates the transition so no story is 'Ready' with an unmet DoR field. Done when the count of 'Ready' items reconciles with items passing all DoR fields.",
+          "verify": "Compare 'Ready' items to their DoR checklists in Jira; Jira Align / Rally; Azure DevOps; pass if every 'Ready' story has statement, acceptance criteria, estimate, dependencies handled, and zero open blocking questions."
+        },
+        {
+          "n": 6,
+          "title": "Archive the refinement outcomes",
+          "sop": "The Business Analyst confirms refinement outcomes (estimates, split decisions) are recorded with timestamps on each story in Jira; Jira Align / Rally; Azure DevOps and archives the session notes; items that cannot reach DoR stay in 'Refinement' with the documented blocker. Done when outcomes and notes are archived.",
+          "verify": "Review the session stories in Jira; Jira Align / Rally; Azure DevOps; pass if each shows timestamped refinement outcomes and the session notes archive exists."
+        },
+        {
+          "n": 7,
+          "title": "Confirm the refined set for the sprint",
+          "sop": "The Product Owner confirms the refined set for the sprint in Jira; Jira Align / Rally; Azure DevOps; any story pulled into a sprint without meeting DoR is returned to the backlog and logged as a Jira 'AGILE-Exception' resolved within 1 business day. Done when the confirmation is recorded and no non-Ready story sits in the sprint.",
+          "verify": "Open the sprint scope in Jira; Jira Align / Rally; Azure DevOps; pass if the Product Owner's confirmation exists and any DoR violation shows an 'AGILE-Exception' resolved within 1 business day."
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fkwyi1m3dkfgzhu57mwhz",
+      "taskName": "Report coverage gaps to engineering leadership",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Score every service from the automated scans",
+          "sop": "The Software Engineer compiles the quarterly coverage data from the automated repo/docs scans, scoring each production service on: has-README (Y/N), has-runbook (Y/N), ADR count, doc last-updated date, and knowledge-owner count, flagging every critical component with bus-factor = 1. Done when every row is fully populated with no blanks.",
+          "verify": "Review the scored dataset; pass if every service row carries all five scores from the automated scans, no cell is blank, and single-owner components are flagged."
+        },
+        {
+          "n": 2,
+          "title": "Reconcile the service list to the service catalog",
+          "sop": "The Software Engineer reconciles the report's service count against the count of active services in the CMDB/service catalog. Done when variance is 0, or each missing service is listed as a data-quality note in the report.",
+          "verify": "Compare the report row count to the active-service catalog count; pass if the counts match or every discrepancy appears as a data-quality note."
+        },
+        {
+          "n": 3,
+          "title": "Mark data-pending services with a KM-Exception",
+          "sop": "The Software Engineer marks services whose data source was unavailable at report time as 'data-pending' and logs a 'KM-Exception' follow-up ticket owned by the Software Engineer, closed within 5 business days. Done when every unavailable-data service is marked and ticketed.",
+          "verify": "Search 'KM-Exception' tickets for the quarter; pass if each 'data-pending' service has a ticket with the Software Engineer as owner and a close date within 5 business days."
+        },
+        {
+          "n": 4,
+          "title": "Ticket every identified gap with an owner",
+          "sop": "The Tech Lead creates a 'DOC-Gap' backlog item for each identified gap with the owning team and a target quarter; gaps accepted as low-risk carry a documented rationale on the ticket. Done when every gap in the report has a ticket.",
+          "verify": "Cross-check report gaps to 'DOC-Gap' items; pass if each gap has a ticket naming the owning team and target quarter, and accepted gaps carry a rationale."
+        },
+        {
+          "n": 5,
+          "title": "Publish the quarterly report to Confluence",
+          "sop": "The Software Engineer publishes the coverage report to Confluence with the quarter label and generation timestamp before the quarter-close date, retained for 4 quarters for trend comparison. Done when the labeled report page is live inside the deadline.",
+          "verify": "Open the report page in Confluence; pass if it carries the quarter label and generation timestamp dated before quarter-close, with the prior quarters' reports retained."
+        },
+        {
+          "n": 6,
+          "title": "Obtain leadership acknowledgment on the report",
+          "sop": "The Tech Lead, as engineering leadership recipient (or the delegate named in the team charter if unavailable), acknowledges receipt via a comment on the Confluence report page. Done when the acknowledgment is recorded and each gap has an owner and target quarter.",
+          "verify": "Open the report page in Confluence; pass if a Tech Lead (or named delegate) acknowledgment comment exists and the gap list shows owners and target quarters throughout."
+        }
+      ]
+    },
+    {
+      "taskId": "4c036000-752a-42b4-8046-2bb7a329baba",
+      "taskName": "Report demand intake metrics",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Export the closed month intake records",
+          "sop": "The Business Analyst closes the reporting month on the 1st business day and exports all demand-intake requests (new features, changes, defects) for the prior calendar month from ITSM platform (ServiceNow/Jira), excluding spam/duplicate tickets already merged. Done when the dated export is captured.",
+          "verify": "Open the export from ITSM platform (ServiceNow/Jira); pass if it covers the full prior month, was cut on or after the 1st business day, and excludes merged duplicates."
+        },
+        {
+          "n": 2,
+          "title": "Validate required fields on the intake records",
+          "sop": "The Business Analyst validates in ITSM platform (ServiceNow/Jira) that every intake record has: submitted date, request type, priority, requesting business unit, assigned team, and current status. Done when records missing type or priority are under 1% of the month's volume.",
+          "verify": "Profile the export fields; pass if all six fields are populated across the set and the missing type/priority rate is below 1%."
+        },
+        {
+          "n": 3,
+          "title": "Raise DATA-DEFECT tickets for data issues",
+          "sop": "The Business Analyst logs any reconciliation variance or null-key record as a Jira 'DATA-DEFECT' in ITSM platform (ServiceNow/Jira) with disposition corrected-at-source or excluded-with-note before the report is issued; if figures do not reconcile the report is held and re-run within 1 business day of correction. Done when every data issue has a dispositioned ticket.",
+          "verify": "Search 'DATA-DEFECT' tickets for the month in ITSM platform (ServiceNow/Jira); pass if each variance or null-key issue has a ticket with a disposition recorded before report issuance."
+        },
+        {
+          "n": 4,
+          "title": "Build the monthly dashboard in the BI platform",
+          "sop": "The Demand Manager builds the monthly report in BI/reporting platform showing intake volume, backlog aging buckets (0-30 / 31-60 / 61-90 / 90+ days), and the month-over-month trend. Done when all three views render from the warehouse data.",
+          "verify": "Open the dashboard in BI/reporting platform; pass if intake volume, the four aging buckets, and the MoM trend are all present for the reporting month."
+        },
+        {
+          "n": 5,
+          "title": "Reconcile the report totals to the ITSM source",
+          "sop": "The Business Analyst reconciles the BI/reporting platform totals to source: total intake count equals the ITSM export row count with 0 variance, backlog closing balance = opening balance + intake - closed, and aging buckets sum to the total backlog with no negative bucket. Done when all three checks pass.",
+          "verify": "Re-run the reconciliation against the ITSM export; pass if the intake count variance is zero, the balance equation holds, and the aging buckets sum correctly with none negative."
+        },
+        {
+          "n": 6,
+          "title": "Archive the versioned report snapshot",
+          "sop": "The Business Analyst saves the report PDF/dashboard snapshot from BI/reporting platform to the reporting repository with the month tag and UTC generation timestamp, with the underlying warehouse query and dataset version pinned; retained 24 months. Done when the tagged snapshot and query hash are stored.",
+          "verify": "Open the reporting repository entry for the month; pass if the snapshot carries month tag and timestamp and the pinned query/dataset version (hash) is stored alongside."
+        },
+        {
+          "n": 7,
+          "title": "Deliver the approved report to leadership",
+          "sop": "The Demand Manager approves the report and delivers the BI/reporting platform dashboard link and email to delivery leadership by the 3rd business day of the following month. Done when delivery is confirmed inside the deadline.",
+          "verify": "Check the delivery record; pass if the approved report reached delivery leadership on or before the 3rd business day with the dashboard URL included."
+        }
+      ]
+    },
+    {
+      "taskId": "a2ca742f-af4c-4ae2-b429-d0e186cf5c0a",
+      "taskName": "Report developer experience metrics to leadership",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Assemble the quarterly metrics in the BI platform",
+          "sop": "The Software Engineer assembles the quarter's developer-experience metrics in BI/reporting platform — DORA four keys (deployment frequency, lead time, change failure rate, MTTR) computed per the standard definitions, plus PR cycle time, build success rate, and developer-survey scores — across all squads, computed over the exact quarter start/end dates stated in the report header. Done when all metric rows are loaded with no nulls.",
+          "verify": "Open the report dataset in BI/reporting platform; pass if all listed metrics are present for every squad over the stated quarter window with zero null reporting rows."
+        },
+        {
+          "n": 2,
+          "title": "Verify the metadata on every metric",
+          "sop": "The Software Engineer verifies each metric in BI/reporting platform carries a definition, source system, calculation window, unit, and target/benchmark. Done when no metric lacks any of the five metadata fields.",
+          "verify": "Audit the metric metadata in BI/reporting platform; pass if every metric row shows definition, source, window, unit, and target."
+        },
+        {
+          "n": 3,
+          "title": "Reconcile the report to the source extracts",
+          "sop": "The Software Engineer reconciles metric row counts and totals in BI/reporting platform to the source-system extracts (pipeline, Jira, survey tool), footing totals against the warehouse fact tables. Done when variance is at or under 1% on every metric.",
+          "verify": "Compare the report figures to the source extracts; pass if every metric reconciles within 1% and totals foot to the warehouse fact tables."
+        },
+        {
+          "n": 4,
+          "title": "Footnote gaps with SDLC-Exception tickets",
+          "sop": "The Software Engineer footnotes any metric with a data-quality gap or missing source in BI/reporting platform and logs a Jira 'SDLC-Exception' with a 10-business-day remediation SLA; a reconciliation break carries a 5-business-day SLA and must be resolved before the report is released. Done when every gap is footnoted and ticketed.",
+          "verify": "Review the report footnotes and open 'SDLC-Exception' tickets; pass if each gap has both a footnote and a ticket with owner and an SLA-compliant due date."
+        },
+        {
+          "n": 5,
+          "title": "Version the report snapshot for retention",
+          "sop": "The Software Engineer versions the report snapshot (BI export plus query definitions) from BI/reporting platform with the quarter tag, retained 24 months in the reporting repository with data lineage captured. Done when the tagged snapshot is archived.",
+          "verify": "Open the reporting repository; pass if the quarter-tagged snapshot exists with query definitions attached and lineage recorded."
+        },
+        {
+          "n": 6,
+          "title": "Deliver the approved quarterly report",
+          "sop": "The Platform Engineering Lead approves the report in BI/reporting platform and it is delivered to engineering leadership within 10 business days of quarter close. Done when the approval and delivery are both recorded inside the deadline.",
+          "verify": "Check the approval and delivery records; pass if the Platform Engineering Lead's approval is logged and leadership received the report within 10 business days of quarter close."
+        }
+      ]
+    },
+    {
+      "taskId": "710ce8bd-b5ae-4ab2-bfe0-7d94e06e78c9",
+      "taskName": "Report governance outcomes to leadership",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Extract the quarter's governance gate records",
+          "sop": "The Software Engineer extracts all implementation-governance decisions and design-assurance gate outcomes for changes deployed in the reporting quarter, confirming each record carries: change ticket id, gate name, outcome (pass/conditional/fail), reviewer, date, and remediation status. Done when every record is complete.",
+          "verify": "Review the extracted records; pass if every gate record for the quarter contains all six required fields with no blanks."
+        },
+        {
+          "n": 2,
+          "title": "Reconcile records to deployed changes",
+          "sop": "The Software Engineer reconciles the number of governance records to the number of deployed changes requiring a gate in the period, verifying every record links to its change ticket id; unlinked records are a reconciliation defect and must be resolved before the report is finalized. Done when the variance is 0.",
+          "verify": "Compare the governance record count to the gated-change count; pass if the counts match with zero variance and every record carries a change ticket link."
+        },
+        {
+          "n": 3,
+          "title": "Disposition every gate failure or finding",
+          "sop": "The Software Engineer confirms each gate failure or unremediated finding carries a disposition (accepted / remediating / waived) with an owner and due date; waivers require ARB approval. Done when no finding lacks a disposition.",
+          "verify": "Review the findings list; pass if every failure shows a disposition, owner, and due date, and each waiver references an ARB approval."
+        },
+        {
+          "n": 4,
+          "title": "Compare current metrics to the prior quarter",
+          "sop": "The Software Engineer compares prior-quarter governance metrics against the current quarter — gate pass rate and mean remediation days — and explains variance and trend in the report narrative. Done when the comparison and explanation are drafted.",
+          "verify": "Read the comparison section; pass if both metrics are shown for both quarters and the narrative explains the variance and trend."
+        },
+        {
+          "n": 5,
+          "title": "Compose the versioned report in Confluence",
+          "sop": "The Software Engineer composes the governance outcomes report in Confluence versioned with the quarter tag (e.g. 'GovReport-2026Q2-v1'), attaching the underlying data export; report plus export are retained 7 years in the compliance evidence store. Done when the versioned page with attachment is complete.",
+          "verify": "Open the report page in Confluence; pass if it follows the 'GovReport-<quarter>-vN' versioning, includes the data export attachment, and states the 7-year retention."
+        },
+        {
+          "n": 6,
+          "title": "Resolve reporting discrepancies before sign-off",
+          "sop": "The Software Engineer resolves any discrepancy between the report and the underlying governance records within a 5-business-day remediation SLA before sign-off, logging the issue and fix on the report page in Confluence. Done when no unresolved discrepancy remains.",
+          "verify": "Check the report page issue log in Confluence; pass if every raised discrepancy shows a resolution dated within 5 business days and none is open at sign-off."
+        },
+        {
+          "n": 7,
+          "title": "Deliver the report with Tech Lead sign-off",
+          "sop": "The Tech Lead signs off the report on the Confluence page and it is delivered to technology leadership within 10 business days of quarter close. Done when sign-off and delivery are both recorded inside the deadline.",
+          "verify": "Open the report page in Confluence; pass if the Tech Lead's sign-off is recorded and the delivery to leadership is documented within 10 business days of quarter close."
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fiwyk0oo8kfgzjzspegh8",
+      "taskName": "Resolve blocking dependencies before sprint commitment",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Run the blocker-link report for sprint candidates",
+          "sop": "The Scrum Master runs the blocker-link report in Jira; Jira Align / Rally; Azure DevOps listing every sprint-candidate story carrying one or more 'is blocked by' links during the refinement-to-planning window. Done when the report is saved as the filter 'Sprint Candidates - Open Blockers'.",
+          "verify": "Open the 'Sprint Candidates - Open Blockers' filter in Jira; Jira Align / Rally; Azure DevOps; pass if it exists and returns every candidate story with an 'is blocked by' link."
+        },
+        {
+          "n": 2,
+          "title": "Complete the tracking fields on every blocker",
+          "sop": "The Scrum Master ensures each blocker in Jira; Jira Align / Rally; Azure DevOps has: a linked blocking issue, an owner, a target resolution date, and a status. Done when no blocker lacks any of the four fields.",
+          "verify": "Audit the blockers in Jira; Jira Align / Rally; Azure DevOps; pass if every blocking link shows linked issue, owner, target date, and status populated."
+        },
+        {
+          "n": 3,
+          "title": "Resolve or waive each blocking link",
+          "sop": "The Backend Developer and UI Developer work each blocking issue in Jira; Jira Align / Rally; Azure DevOps to resolution before planning; a story is 'Ready' only when all its blocking links are resolved or explicitly waived with justification. Done when every candidate's links are resolved or waived.",
+          "verify": "Trace the blocker links on candidate stories in Jira; Jira Align / Rally; Azure DevOps; pass if each link is resolved or carries an explicit waiver with justification, and only compliant stories show 'Ready'."
+        },
+        {
+          "n": 4,
+          "title": "Verify zero open blockers at commitment",
+          "sop": "The Scrum Master reconciles the blocker-link report to the candidate story list in Jira; Jira Align / Rally; Azure DevOps at sprint commitment. Done when the count of open blockers on committed stories is 0 or every remaining one has a documented waiver.",
+          "verify": "Re-run the blocker report at commitment in Jira; Jira Align / Rally; Azure DevOps; pass if zero unresolved blocking links exist on committed stories, or each shows a documented waiver."
+        },
+        {
+          "n": 5,
+          "title": "Descope or escalate unresolved blockers",
+          "sop": "The Scrum Master descopes any story whose blocker cannot be cleared before planning, or escalates the blocker as a Jira 'SDLC-Exception' in Jira; Jira Align / Rally; Azure DevOps owned by the Scrum Master with a same-sprint remediation SLA. Done when every unresolved blocker is either descoped or escalated.",
+          "verify": "Search 'SDLC-Exception' tickets in Jira; Jira Align / Rally; Azure DevOps; pass if each uncleared blocker maps to a descoped story or an exception owned by the Scrum Master with a same-sprint SLA."
+        },
+        {
+          "n": 6,
+          "title": "Save the dependency snapshot with confirmation",
+          "sop": "The Scrum Master saves a versioned, timestamped dependency-status snapshot to the sprint planning record and confirms the commitment is clean; blocker resolution history remains in Jira; Jira Align / Rally; Azure DevOps issue links and comments. Done when the snapshot and confirmation are recorded.",
+          "verify": "Open the sprint planning record; pass if the dependency snapshot exists with version and timestamp and the Scrum Master's confirmation of zero open blockers is recorded."
+        }
+      ]
+    },
+    {
+      "taskId": "2df0af84-30e2-4a89-ae3b-3e567f53a330",
+      "taskName": "Resolve integration test defects",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Triage the integration defect population by severity",
+          "sop": "The Integration Engineer triages all open defects with type 'Defect' and phase label 'Integration Test' for the release fix version in ITSM platform (ServiceNow/Jira), applying the materiality rule: Critical/High are release-blocking (fix or formally waive), Medium fix-or-defer with sign-off, Low to backlog. Done when every defect has a severity-based routing.",
+          "verify": "Run the Integration Test defect query for the fix version in ITSM platform (ServiceNow/Jira); pass if every defect is classified and routed per the Critical/High/Medium/Low materiality rule."
+        },
+        {
+          "n": 2,
+          "title": "Populate the diagnostic fields on each defect",
+          "sop": "The Integration Engineer populates each defect in ITSM platform (ServiceNow/Jira) with reproduction steps, environment, and a root-cause note per defect-management SOP v1.3. Done when no worked defect lacks these fields.",
+          "verify": "Audit the in-cycle defects in ITSM platform (ServiceNow/Jira); pass if each carries reproduction steps, environment, and a root-cause note."
+        },
+        {
+          "n": 3,
+          "title": "Raise the fix pull request for each defect",
+          "sop": "The Backend Developer or UI Developer implements the fix and raises a PR in the source code/CI-CD repository referencing the defect key; expected behavior is judged against the integration contract/API spec (OpenAPI) version pinned for the release and the linked acceptance criteria. Done when every in-cycle defect has a linked PR.",
+          "verify": "Open each defect's linked PR in the source code/CI-CD repository; pass if the PR exists, references the defect key, and targets the release branch."
+        },
+        {
+          "n": 4,
+          "title": "Run the integration test suites in CI",
+          "sop": "The Integration Engineer runs targeted plus regression integration tests and contract tests in the source code/CI-CD repository CI for each fix; any fix touching more than 200 changed lines or a shared integration contract triggers the full integration regression run, not just the targeted test. Done when all runs are green.",
+          "verify": "Open the CI runs in the source code/CI-CD repository; pass if targeted, regression, and contract tests are green, and oversized or contract-touching fixes show a full regression run."
+        },
+        {
+          "n": 5,
+          "title": "Complete the closure fields with evidence attached",
+          "sop": "The Software Engineer populates the 'Root Cause' and 'Fix Commit' fields on each defect in ITSM platform (ServiceNow/Jira) — the workflow blocks 'Closed' until both are populated — and attaches the fix PR, CI run id, and re-test result; pipeline logs are retained with timestamp and commit SHA. Done when every closing defect has fields and evidence complete.",
+          "verify": "Open each closed defect in ITSM platform (ServiceNow/Jira); pass if 'Root Cause' and 'Fix Commit' are populated and the PR, CI run id, and re-test result are attached."
+        },
+        {
+          "n": 6,
+          "title": "Reconcile fixed defects to verification runs",
+          "sop": "The Integration Engineer reconciles in ITSM platform (ServiceNow/Jira): the count of defects marked 'Fixed' equals the count with a linked merged PR and a passing re-test result. Done when 0 defects are closed without a linked verification run; a failed re-test reopens the defect and blocks the release build.",
+          "verify": "Compare the 'Fixed' count to the verified count in ITSM platform (ServiceNow/Jira); pass if the counts match and no closed defect lacks a linked passing verification."
+        },
+        {
+          "n": 7,
+          "title": "Disposition deferred defects with approvals",
+          "sop": "The Integration Engineer dispositions defects that cannot be fixed in-cycle as 'Deferred' in ITSM platform (ServiceNow/Jira) with a risk note and Release Manager approval, records each as a known-issue in the release notes, and files the 'SDLC-Exception' Jira ticket approved by the Engineering Manager; unresolved Critical/High escalate to the Release Manager. Done when every deferral is fully dispositioned.",
+          "verify": "Review 'Deferred' defects in ITSM platform (ServiceNow/Jira); pass if each has a risk note, recorded approval, a release-notes known-issue entry, and an approved 'SDLC-Exception'."
+        },
+        {
+          "n": 8,
+          "title": "Confirm the exit criteria at the release gate",
+          "sop": "The Integration Engineer confirms the exit criteria in ITSM platform (ServiceNow/Jira): 0 open Critical/High defects at the release gate (fixed or formally waived), and records the cycle sign-off. Done when the gate confirmation is recorded.",
+          "verify": "Run the open Critical/High query for the fix version in ITSM platform (ServiceNow/Jira); pass if it returns zero unwaived defects and the Integration Engineer's gate sign-off is recorded."
+        }
+      ]
+    },
+    {
+      "taskId": "2d205e78-2388-4c3e-85f4-51623e64fdfc",
+      "taskName": "Retire and archive superseded documentation",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Identify the superseded documents in Confluence",
+          "sop": "The Software Engineer reviews the initiative/system documentation set in Confluence at the release close-out cycle and lists every page or artifact that is superseded or obsolete and has a newer replacement. Done when the superseded list is complete for the review cycle.",
+          "verify": "Open the superseded list against the Confluence spaces; pass if every listed doc has an identified newer replacement and no known-obsolete page is missing from the list."
+        },
+        {
+          "n": 2,
+          "title": "Redirect inbound links before archiving",
+          "sop": "The Software Engineer redirects links from active content to the replacement doc in Confluence before archiving each page; unresolved references are logged as Jira 'Doc-Cleanup' items with an owner and a 10-business-day SLA, and docs with unresolved inbound links are held (not archived). Done when every to-be-archived page has zero unredirected inbound links or a hold with a cleanup item.",
+          "verify": "Check the inbound-link report for each page in Confluence; pass if links from active content are redirected, and every held page has a 'Doc-Cleanup' item with owner and SLA date."
+        },
+        {
+          "n": 3,
+          "title": "Tag each page with the archive metadata",
+          "sop": "The Software Engineer tags each superseded page in Confluence as 'Archived' with a replacement reference (link to the current doc) and a sunset date set to the release close date plus the standard 12-month archive retention; the page-property report enforces these three fields. Done when all three fields are set on every archived page.",
+          "verify": "Run the page-property report in Confluence; pass if every archived page shows the 'Archived' tag, a working replacement link, and a sunset date equal to release close plus 12 months."
+        },
+        {
+          "n": 4,
+          "title": "Move the archived pages to the Archive space",
+          "sop": "The Software Engineer moves each tagged page to the Confluence 'Archive' space, with the page history preserving archiver, date, page version, and replacement link. Done when no superseded page remains in an active space.",
+          "verify": "Browse the Confluence 'Archive' space; pass if every archived page resides there and its history records the archive action with version, actor, and date."
+        },
+        {
+          "n": 5,
+          "title": "Archive the superseded repo docs via commit",
+          "sop": "The Software Engineer moves superseded files under /docs in the source code/CI-CD repository to the archive location via a commit, providing the timestamped trail; where archived docs describe data entities or interfaces, the replacement reference points to the current source of truth (data catalog / OpenAPI spec). Done when the commit lands with all repo-side supersessions moved.",
+          "verify": "Open the archive commit in the source code/CI-CD repository; pass if all superseded /docs files were moved in it and replacement references point at the current spec of record."
+        },
+        {
+          "n": 6,
+          "title": "Reconcile the archive set to the identified list",
+          "sop": "The Software Engineer reconciles the count of docs identified as superseded to the count archived with replacement reference and sunset date, and verifies the link graph shows 0 inbound links to each archived doc at close. Done when the counts match and no archived doc has an unredirected inbound link.",
+          "verify": "Compare the identified list to the archived set and re-run the inbound-link check; pass if the counts are equal, 0 superseded docs remain in active spaces without a redirect, and each archived doc has zero inbound links."
+        },
+        {
+          "n": 7,
+          "title": "Record completion with escalation of stragglers",
+          "sop": "The Software Engineer records the review-cycle completion on the close-out page in Confluence, targeting 100% of superseded docs correctly archived; any doc whose links remain broken for more than 10 business days is escalated per the 'Doc-Cleanup' path. Done when the completion record is saved.",
+          "verify": "Open the close-out record in Confluence; pass if it states the archived total matching the identified total and any open 'Doc-Cleanup' item older than 10 business days shows an escalation."
+        }
+      ]
+    }
+  ]
+}

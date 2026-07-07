@@ -1,0 +1,2189 @@
+{
+  "batch": 4,
+  "tasks": [
+    {
+      "taskId": "cmr2fk9vp1av3kfgzajupq89l",
+      "taskName": "Retire stale knowledge articles",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Compile the retirement candidate list from the accuracy review in Confluence",
+          "sop": "The Software Engineer lists every article ID flagged stale this cycle, done when the list matches the review flags.",
+          "verify": "Reviewer opens the cycle candidate list in Confluence and confirms every flagged-stale article ID appears on it."
+        },
+        {
+          "n": 2,
+          "title": "Record the retirement reason on each candidate article in Confluence",
+          "sop": "The Software Engineer enters a retirement reason on each candidate, done when no candidate lacks a reason.",
+          "verify": "Reviewer samples candidate articles in Confluence and confirms each shows a populated retirement reason."
+        },
+        {
+          "n": 3,
+          "title": "Link superseding content on each retired article in Confluence",
+          "sop": "The Backend Developer adds the superseding link where a replacement exists, done when every superseded article points to it.",
+          "verify": "Reviewer opens retired articles in Confluence and confirms superseded ones carry a working superseding link."
+        },
+        {
+          "n": 4,
+          "title": "Raise a needs-rewrite ticket for candidates still cited by active runbooks in Jira",
+          "sop": "The UI Developer raises a needs-rewrite ticket per runbook-referenced candidate, done when those articles are retained not deleted.",
+          "verify": "Reviewer searches Jira and confirms one needs-rewrite ticket exists for each runbook-referenced candidate."
+        },
+        {
+          "n": 5,
+          "title": "Archive each approved candidate article in Confluence",
+          "sop": "The Software Engineer archives every candidate with reason plus approver set, done when zero flagged articles remain active at cycle close.",
+          "verify": "Reviewer runs the flagged-stale query in Confluence and confirms it returns zero articles still in active state."
+        },
+        {
+          "n": 6,
+          "title": "Repair broken inbound links found after archival in Confluence",
+          "sop": "The Backend Developer redirects or updates each dangling reference within the sprint, done when no active runbook links to an archived page.",
+          "verify": "Reviewer runs the link check on the KM space in Confluence and confirms zero broken inbound links to archived articles."
+        },
+        {
+          "n": 7,
+          "title": "Log an SDLC-Exception for any blocked link fix in Jira",
+          "sop": "The Software Engineer logs an SDLC-Exception naming the Engineering Manager as owner, done when the 10-business-day SLA is on the ticket.",
+          "verify": "Reviewer opens the SDLC-Exception ticket in Jira and confirms the owner plus the 10-business-day SLA are recorded."
+        },
+        {
+          "n": 8,
+          "title": "Tag the archival log with the review-cycle id in Confluence",
+          "sop": "The Software Engineer tags each archival log entry with the cycle id, done when every entry shows actor plus UTC timestamp.",
+          "verify": "Reviewer opens the archival log in Confluence and confirms cycle-id tags with actor plus timestamp on each entry."
+        },
+        {
+          "n": 9,
+          "title": "Set the 24-month retention on the retirement evidence in Confluence",
+          "sop": "The Software Engineer applies the 24-month retention label to the archival log plus tracker export, done when both carry it.",
+          "verify": "Reviewer checks the archival log page in Confluence and confirms the 24-month retention label is present."
+        },
+        {
+          "n": 10,
+          "title": "Reconcile flagged count to archived plus retained counts in Confluence",
+          "sop": "The Software Engineer reconciles the totals, done when flagged equals archived plus retained-with-justification.",
+          "verify": "Reviewer compares the tracker totals in Confluence and confirms zero unaccounted articles."
+        },
+        {
+          "n": 11,
+          "title": "Record the Tech Lead sign-off on the retirement tracker in Confluence",
+          "sop": "The Software Engineer obtains the Tech Lead approval, done when the sign-off appears on the tracker page.",
+          "verify": "Reviewer opens the tracker page in Confluence and confirms a dated Tech Lead sign-off is recorded."
+        }
+      ]
+    },
+    {
+      "taskId": "c05f33f3-7ec1-45b4-a319-52c64ec1d788",
+      "taskName": "Review and approve technical documentation",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Assemble the release documentation set on the review page in Confluence",
+          "sop": "The Software Engineer lists every doc requiring sign-off, done when the set covers architecture docs through operations runbooks.",
+          "verify": "Reviewer opens the review page in Confluence and confirms every release doc requiring sign-off is listed."
+        },
+        {
+          "n": 2,
+          "title": "Check each document against the DOC-STD-3 standard in Confluence",
+          "sop": "The Solutions Architect reviews each doc against DOC-STD-3 inside the 3-day hardening window, done when conformance is noted per doc.",
+          "verify": "Reviewer opens each doc page in Confluence and confirms a DOC-STD-3 conformance note is recorded."
+        },
+        {
+          "n": 3,
+          "title": "Record review comments on each document page in Confluence",
+          "sop": "The Backend Developer records architecture plus operations review comments per doc, done when each doc shows its comment thread.",
+          "verify": "Reviewer opens the doc pages in Confluence and confirms a review comment thread exists on each."
+        },
+        {
+          "n": 4,
+          "title": "Disposition every review comment on each document in Confluence",
+          "sop": "The Software Engineer marks each comment resolved or accepted-as-followup, done when no comment is left undispositioned.",
+          "verify": "Reviewer scans comment threads in Confluence and confirms every comment carries a disposition."
+        },
+        {
+          "n": 5,
+          "title": "Raise a DOC-REVIEW ticket for each unresolved blocking comment in Jira",
+          "sop": "The Software Engineer raises a DOC-REVIEW ticket per blocking comment, done when each blocker must close before sign-off.",
+          "verify": "Reviewer searches Jira for DOC-REVIEW tickets and confirms one exists per open blocking comment."
+        },
+        {
+          "n": 6,
+          "title": "Draft an ADR for each architecture deviation found in review in Confluence",
+          "sop": "The Solutions Architect drafts an ADR per deviation from approved patterns, done when no deviation lacks an ADR before sign-off.",
+          "verify": "Reviewer opens the ADR index in Confluence and confirms an ADR exists for each flagged deviation."
+        },
+        {
+          "n": 7,
+          "title": "Reconcile the docs-requiring-sign-off count to the approvals count in Confluence",
+          "sop": "The Software Engineer reconciles the two counts, done when zero unsigned docs remain at release cut.",
+          "verify": "Reviewer compares the review page tally in Confluence and confirms approvals equal docs requiring sign-off."
+        },
+        {
+          "n": 8,
+          "title": "Record the sign-off decision with rationale on each document page in Confluence",
+          "sop": "The Software Engineer records the Enterprise Architect decision with rationale, done when each doc shows approved or rejected status.",
+          "verify": "Reviewer opens each doc page in Confluence and confirms a decision with rationale plus reviewer identity."
+        },
+        {
+          "n": 9,
+          "title": "Link each approval record to the release ticket in Jira",
+          "sop": "The Software Engineer links every sign-off URL to the release ticket, done when each approval is reachable from it.",
+          "verify": "Reviewer opens the release ticket in Jira and confirms links to every doc approval record."
+        },
+        {
+          "n": 10,
+          "title": "Notify the release watchers of the approval on the release ticket in Jira",
+          "sop": "The Software Engineer posts the approval notification, done when the release ticket watchers are notified.",
+          "verify": "Reviewer checks the release ticket in Jira and confirms the approval notification comment was posted."
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fk9n51aq8kfgzl1o5ndlq",
+      "taskName": "Review documentation accuracy",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Build the review inventory of docs for owned services in Confluence",
+          "sop": "The Software Engineer lists READMEs through OpenAPI specs for owned services, done when the quarterly inventory is complete.",
+          "verify": "Reviewer opens the inventory page in Confluence and confirms every owned-service doc is listed for the cycle."
+        },
+        {
+          "n": 2,
+          "title": "Record a dated reviewer verdict on each inventory doc in Confluence",
+          "sop": "The Backend Developer records pass or needs-update per doc with reviewer plus date, done when no doc lacks a verdict.",
+          "verify": "Reviewer scans the tracker in Confluence and confirms each doc shows a dated verdict with a named reviewer."
+        },
+        {
+          "n": 3,
+          "title": "Raise a docs-update ticket for each inaccurate doc in Jira",
+          "sop": "The UI Developer raises a docs-update ticket with owner plus due date per inaccurate doc, done when none lacks a ticket.",
+          "verify": "Reviewer searches Jira and confirms a docs-update ticket exists for every needs-update verdict."
+        },
+        {
+          "n": 4,
+          "title": "Fix inaccurate critical runbooks within the sprint in Confluence",
+          "sop": "The Software Engineer corrects each inaccurate incident or DR runbook, done when the fix lands inside the sprint.",
+          "verify": "Reviewer opens the runbook history in Confluence and confirms the correction version is dated within the sprint."
+        },
+        {
+          "n": 5,
+          "title": "Log an SDLC-Exception for any blocked runbook fix in Jira",
+          "sop": "The Software Engineer logs an SDLC-Exception naming the Engineering Manager as owner, done when the 10-business-day SLA is set.",
+          "verify": "Reviewer opens the SDLC-Exception in Jira and confirms owner plus 10-business-day SLA fields are populated."
+        },
+        {
+          "n": 6,
+          "title": "Escalate docs-update tickets open past two cycles in Jira",
+          "sop": "The Software Engineer escalates aged tickets to the Tech Lead, done when no ticket sits unresolved beyond two cycles.",
+          "verify": "Reviewer filters docs-update tickets in Jira and confirms none older than two cycles lacks an escalation note."
+        },
+        {
+          "n": 7,
+          "title": "Reconcile the inventory count to the reviewed count in Confluence",
+          "sop": "The Software Engineer reconciles totals at cycle close, done when zero in-scope docs remain unreviewed.",
+          "verify": "Reviewer compares tracker totals in Confluence and confirms reviewed equals inventory count."
+        },
+        {
+          "n": 8,
+          "title": "Compute the accuracy rate on the review tracker in Confluence",
+          "sop": "The Software Engineer computes the rate, done when at least 95 percent of docs are accurate or hold a remediation ticket.",
+          "verify": "Reviewer recomputes the rate from the tracker in Confluence and confirms it meets the 95 percent threshold."
+        },
+        {
+          "n": 9,
+          "title": "Tag the review-tracker export with the cycle id in Confluence",
+          "sop": "The Software Engineer saves the export tagged with the cycle id, done when the 24-month retention label is applied.",
+          "verify": "Reviewer opens the export in Confluence and confirms the cycle-id tag plus 24-month retention label."
+        },
+        {
+          "n": 10,
+          "title": "Record the Tech Lead sign-off on the review tracker in Confluence",
+          "sop": "The Software Engineer obtains the Tech Lead approval, done when the sign-off appears on the tracker.",
+          "verify": "Reviewer opens the tracker in Confluence and confirms a dated Tech Lead sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fi8ud0d72kfgzqrx2zeeg",
+      "taskName": "Review elaborated requirements",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the Ready-for-Refinement queue for the sprint in Jira",
+          "sop": "The Product Owner pulls the queue 1-2 business days before sprint planning, done when every candidate story is in view.",
+          "verify": "Reviewer runs the queue filter in Jira and confirms the story set matches the sprint candidates."
+        },
+        {
+          "n": 2,
+          "title": "Check the description on each story in Jira",
+          "sop": "The Business Analyst confirms each story description is populated, done when no story has an empty description.",
+          "verify": "Reviewer samples queue stories in Jira and confirms each description field is populated."
+        },
+        {
+          "n": 3,
+          "title": "Check the Given/When/Then acceptance criteria on each story in Jira",
+          "sop": "The Business Analyst confirms testable Given/When/Then criteria per story, done when none lacks them.",
+          "verify": "Reviewer opens each story in Jira and confirms acceptance criteria in Given/When/Then form."
+        },
+        {
+          "n": 4,
+          "title": "Check the estimate on each story in Jira",
+          "sop": "The Backend Developer confirms an estimate is set per story, done when no story is unestimated.",
+          "verify": "Reviewer scans the queue in Jira and confirms every story carries an estimate."
+        },
+        {
+          "n": 5,
+          "title": "Check dependencies are resolved on each story in Jira",
+          "sop": "The UI Developer confirms no unresolved dependency remains per story, done when dependency links show resolved.",
+          "verify": "Reviewer inspects dependency links in Jira and confirms none is open on a Ready candidate."
+        },
+        {
+          "n": 6,
+          "title": "Check the parent epic link on each story in Jira",
+          "sop": "The Business Analyst confirms the parent link is set per story, done when no story is orphaned.",
+          "verify": "Reviewer checks each story in Jira and confirms a populated parent epic link."
+        },
+        {
+          "n": 7,
+          "title": "Return stories above the 8-point ceiling for splitting in Jira",
+          "sop": "The Product Owner marks stories over 8 points Not-Ready for splitting, done when none above the ceiling stays in the queue.",
+          "verify": "Reviewer filters the queue in Jira and confirms no Ready story exceeds 8 points."
+        },
+        {
+          "n": 8,
+          "title": "Record a gap comment on each Not-Ready story in Jira",
+          "sop": "The Business Analyst lists the gaps per Not-Ready story with a 3-business-day fix SLA, done when each carries the comment.",
+          "verify": "Reviewer opens Not-Ready stories in Jira and confirms each has a gap comment with the fix SLA."
+        },
+        {
+          "n": 9,
+          "title": "Mark each passing story Ready in Jira",
+          "sop": "The Product Owner transitions each story that passes every DoR item, done when only DoR-clean stories show Ready.",
+          "verify": "Reviewer checks Ready stories in Jira and confirms each passed every Definition of Ready item."
+        },
+        {
+          "n": 10,
+          "title": "Reconcile the Ready count to the DoR-pass count in Jira",
+          "sop": "The Product Owner reconciles the counts, done when zero stories advanced with open DoR items.",
+          "verify": "Reviewer compares the Ready filter count in Jira to the DoR checklist results and confirms they match."
+        },
+        {
+          "n": 11,
+          "title": "Record the Product Owner sign-off on the refinement outcome in Jira",
+          "sop": "The Product Owner signs off the refinement result, done when the sign-off comment sits on the refinement board.",
+          "verify": "Reviewer opens the refinement board in Jira and confirms a dated Product Owner sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "c2c84724-a405-4e4d-8531-9f1f30310482",
+      "taskName": "Review non-functional requirement compliance",
+      "steps": [
+        {
+          "n": 1,
+          "title": "List every NFR defined for the release in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Solutions Architect enters every release NFR as an assessment row, done when the count equals the NFRs defined for the release.",
+          "verify": "Reviewer opens the assessment in GRC platform (Archer/ServiceNow GRC) and confirms 100 percent of release NFRs are listed."
+        },
+        {
+          "n": 2,
+          "title": "Set the numeric target with unit on each NFR row in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Solutions Architect sets a target per row, done when each shows a number with unit such as p95 latency at or under 300ms.",
+          "verify": "Reviewer scans rows in GRC platform (Archer/ServiceNow GRC) and confirms no target field is null or unitless."
+        },
+        {
+          "n": 3,
+          "title": "Run the release-candidate load test at 1.5x peak in Apache JMeter / k6 Performance Testing",
+          "sop": "The Backend Developer runs the sustained 1.5x peak load test, done when the dated report is produced for the release candidate.",
+          "verify": "Reviewer opens the run in Apache JMeter / k6 Performance Testing and confirms a completed 1.5x peak result for the RC build."
+        },
+        {
+          "n": 4,
+          "title": "Record the measured value on each NFR row in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Software Engineer records the measured value per row, done when no row has a null measurement.",
+          "verify": "Reviewer scans the assessment in GRC platform (Archer/ServiceNow GRC) and confirms every row carries a measured value."
+        },
+        {
+          "n": 5,
+          "title": "Link the source-of-measurement report to each NFR row in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Software Engineer links the dated test or scan report per row, done when each measured value traces to its evidence.",
+          "verify": "Reviewer clicks row links in GRC platform (Archer/ServiceNow GRC) and confirms each opens a dated evidence artifact."
+        },
+        {
+          "n": 6,
+          "title": "Set the Met or Not Met status on each NFR row in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Application Security Lead sets the status per row against its target, done when no row is left unassessed.",
+          "verify": "Reviewer filters the assessment in GRC platform (Archer/ServiceNow GRC) and confirms zero rows without a status."
+        },
+        {
+          "n": 7,
+          "title": "Record the baseline regression comparison on the assessment in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Software Engineer compares RC values to the production baseline, done when no metric regresses beyond baseline plus 10 percent.",
+          "verify": "Reviewer opens the comparison in GRC platform (Archer/ServiceNow GRC) and confirms every delta sits inside tolerance."
+        },
+        {
+          "n": 8,
+          "title": "Raise a finding for each Not Met NFR in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Application Security Lead raises a finding with severity, remediation owner, and target date per Not Met row.",
+          "verify": "Reviewer lists findings in GRC platform (Archer/ServiceNow GRC) and confirms one exists per Not Met NFR."
+        },
+        {
+          "n": 9,
+          "title": "Attach a signed waiver for each risk-accepted NFR in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Application Security Lead attaches the accountable-exec waiver per accepted gap, done when no unmet NFR lacks one.",
+          "verify": "Reviewer opens waiver attachments in GRC platform (Archer/ServiceNow GRC) and confirms a signature on each."
+        },
+        {
+          "n": 10,
+          "title": "Set the 5-year retention on the assessment records in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Software Engineer applies the 5-year retention flag, done when the assessment plus reports carry it.",
+          "verify": "Reviewer checks the record properties in GRC platform (Archer/ServiceNow GRC) and confirms the 5-year retention flag."
+        },
+        {
+          "n": 11,
+          "title": "Attach the NFR gate approval to the release change record in ServiceNow ITSM",
+          "sop": "The Software Engineer attaches the sign-off as a gate approval, done when the change record shows it before the gate date.",
+          "verify": "Reviewer opens the change record in ServiceNow ITSM and confirms the NFR gate approval attachment."
+        },
+        {
+          "n": 12,
+          "title": "Record the Application Security Lead sign-off in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Application Security Lead signs the assessment before the go/no-go gate, done when the dated sign-off is recorded.",
+          "verify": "Reviewer opens the assessment in GRC platform (Archer/ServiceNow GRC) and confirms the sign-off predates the gate."
+        }
+      ]
+    },
+    {
+      "taskId": "5b5aacfa-058d-46c5-bbc8-e278b65a18bb",
+      "taskName": "Route triaged demand to intake or backlog",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the triaged items awaiting routing from the intake queue in Jira",
+          "sop": "The Demand Manager pulls every item that completed triage this window, done when the routing worklist is complete.",
+          "verify": "Reviewer runs the triaged-awaiting-routing filter in Jira and confirms the worklist matches it."
+        },
+        {
+          "n": 2,
+          "title": "Check the requester field on each triaged item in Jira",
+          "sop": "The Business Analyst confirms the requester is populated per item, done when none is blank.",
+          "verify": "Reviewer samples items in Jira and confirms every requester field is populated."
+        },
+        {
+          "n": 3,
+          "title": "Check the business sponsor field on each triaged item in Jira",
+          "sop": "The Business Analyst confirms a named sponsor per item, done when none lacks one.",
+          "verify": "Reviewer samples items in Jira and confirms every sponsor field is populated."
+        },
+        {
+          "n": 4,
+          "title": "Check the value-stream field on each triaged item in Jira",
+          "sop": "The Business Analyst confirms the value-stream is set per item, done when none is blank.",
+          "verify": "Reviewer samples items in Jira and confirms every value-stream field is set."
+        },
+        {
+          "n": 5,
+          "title": "Check the T-shirt sizing field on each triaged item in Jira",
+          "sop": "The Business Analyst confirms a T-shirt size per item, done when none is unsized.",
+          "verify": "Reviewer samples items in Jira and confirms every sizing field holds a T-shirt value."
+        },
+        {
+          "n": 6,
+          "title": "Check the triage decision code on each triaged item in Jira",
+          "sop": "The Demand Manager confirms the decision code per item, done when the workflow validator would pass each transition.",
+          "verify": "Reviewer samples items in Jira and confirms every triage decision code is populated."
+        },
+        {
+          "n": 7,
+          "title": "Move items missing sponsor or scope to Needs Info in Jira",
+          "sop": "The Demand Manager moves unroutable items with a disposition comment, done when escalation to the Product Owner is set after 5 business days.",
+          "verify": "Reviewer opens Needs Info items in Jira and confirms each carries a disposition comment."
+        },
+        {
+          "n": 8,
+          "title": "Route each complete item to the intake committee or a team backlog in Jira",
+          "sop": "The Demand Manager transitions every complete item to its destination, done when no item stays in Triaged with no destination.",
+          "verify": "Reviewer filters the Triaged state in Jira at window close and confirms it is empty."
+        },
+        {
+          "n": 9,
+          "title": "Flag items unrouted past 10 business days as aging in Jira",
+          "sop": "The Demand Manager applies the aging flag, done when every over-age item is flagged.",
+          "verify": "Reviewer runs the aging filter in Jira and confirms all items over 10 business days carry the flag."
+        },
+        {
+          "n": 10,
+          "title": "Reconcile entered count to routed plus held plus rejected counts in Jira",
+          "sop": "The Demand Manager reconciles window totals, done when entering items equal routed plus held plus rejected.",
+          "verify": "Reviewer recomputes the window totals in Jira and confirms the reconciliation balances."
+        },
+        {
+          "n": 11,
+          "title": "Export the intake decision log to the intake space in Confluence",
+          "sop": "The Demand Manager exports the log tagged with the window id, done when the 12-month retention applies.",
+          "verify": "Reviewer opens the intake space in Confluence and confirms the tagged decision log export exists."
+        },
+        {
+          "n": 12,
+          "title": "Record the Product Owner sign-off on the routing outcome in Jira",
+          "sop": "The Demand Manager obtains the Product Owner approval, done when the sign-off sits on the intake board.",
+          "verify": "Reviewer opens the intake board in Jira and confirms a dated Product Owner sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjyr2163qkfgzn7cbmuie",
+      "taskName": "Run CI build on the branch",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Update the branch from the base branch in GitHub Enterprise",
+          "sop": "The Software Engineer rebases or merges the base branch, done when the branch is up to date with it.",
+          "verify": "Reviewer checks the branch status in GitHub Enterprise and confirms zero commits behind base."
+        },
+        {
+          "n": 2,
+          "title": "Trigger the CI pipeline on the branch head commit in GitHub Actions",
+          "sop": "The Software Engineer pushes to trigger the run, done when the pipeline starts for the head SHA.",
+          "verify": "Reviewer opens the run in GitHub Actions and confirms it targets the branch head commit SHA."
+        },
+        {
+          "n": 3,
+          "title": "Confirm no pipeline stage was skipped in GitHub Actions",
+          "sop": "The DevOps Engineer confirms build through dependency-scan stages all executed, done when no stage shows skipped.",
+          "verify": "Reviewer inspects the run stages in GitHub Actions and confirms every required stage executed."
+        },
+        {
+          "n": 4,
+          "title": "Confirm the run completed inside 15 minutes in GitHub Actions",
+          "sop": "The DevOps Engineer checks the run duration, done when the build finished in under 15 minutes.",
+          "verify": "Reviewer reads the run duration in GitHub Actions and confirms it is below the 15-minute limit."
+        },
+        {
+          "n": 5,
+          "title": "Reconcile the executed test count to the discovered test count in GitHub Actions",
+          "sop": "The Backend Developer compares the counts, done when they match with no silent skips.",
+          "verify": "Reviewer opens the test stage log in GitHub Actions and confirms executed equals discovered."
+        },
+        {
+          "n": 6,
+          "title": "Check changed-line coverage meets the 80 percent threshold in SonarQube",
+          "sop": "The Software Engineer checks the coverage on changed lines, done when it is at or above 80 percent.",
+          "verify": "Reviewer opens the branch analysis in SonarQube and confirms changed-line coverage at or above 80 percent."
+        },
+        {
+          "n": 7,
+          "title": "Check the quality gate is green in SonarQube",
+          "sop": "The Software Engineer checks the gate result, done when the project quality gate shows passed.",
+          "verify": "Reviewer opens the project dashboard in SonarQube and confirms a green quality gate for the branch."
+        },
+        {
+          "n": 8,
+          "title": "Check the scan reports zero critical or high findings in SonarQube",
+          "sop": "The Software Engineer reviews SAST plus dependency findings, done when zero critical or high remain.",
+          "verify": "Reviewer filters findings in SonarQube and confirms no open critical or high issue on the branch."
+        },
+        {
+          "n": 9,
+          "title": "Raise a flaky-test ticket for any flaky failure in Jira",
+          "sop": "The Software Engineer raises a flaky-test ticket with an owner per quarantined test, done when none is untracked.",
+          "verify": "Reviewer searches Jira and confirms a flaky-test ticket exists for each quarantined test."
+        },
+        {
+          "n": 10,
+          "title": "Confirm the build artifact is published with the run in GitHub Actions",
+          "sop": "The DevOps Engineer confirms the artifact plus coverage report published, done when both are attached to the run.",
+          "verify": "Reviewer opens the run artifacts in GitHub Actions and confirms the build artifact plus coverage report exist."
+        },
+        {
+          "n": 11,
+          "title": "Record the green run link on the pull request in GitHub Enterprise",
+          "sop": "The Software Engineer confirms the PR check passes, done when the merge check is satisfied by the green run.",
+          "verify": "Reviewer opens the pull request in GitHub Enterprise and confirms the CI check shows green for the head SHA."
+        }
+      ]
+    },
+    {
+      "taskId": "df51430a-9641-4ed0-b996-932662e53a72",
+      "taskName": "Run inner-source program",
+      "steps": [
+        {
+          "n": 1,
+          "title": "List every repo tagged inner-source in GitHub Enterprise",
+          "sop": "The Platform Engineering Lead pulls the inner-source org repo list, done when the population for the quarter is fixed.",
+          "verify": "Reviewer queries the inner-source tag in GitHub Enterprise and confirms the list matches the program population."
+        },
+        {
+          "n": 2,
+          "title": "Check the README covers setup through deploy in each repo in GitHub Enterprise",
+          "sop": "The Backend Developer checks each README covers setup/run/test/deploy, done when none is missing a section.",
+          "verify": "Reviewer samples repos in GitHub Enterprise and confirms READMEs cover setup through deploy."
+        },
+        {
+          "n": 3,
+          "title": "Check the CONTRIBUTING.md exists in each repo in GitHub Enterprise",
+          "sop": "The Backend Developer checks for CONTRIBUTING.md per repo, done when none lacks it.",
+          "verify": "Reviewer lists repo roots in GitHub Enterprise and confirms CONTRIBUTING.md is present in each."
+        },
+        {
+          "n": 4,
+          "title": "Check the CODEOWNERS file exists in each repo in GitHub Enterprise",
+          "sop": "The UI Developer checks for CODEOWNERS per repo, done when none lacks it.",
+          "verify": "Reviewer lists repo roots in GitHub Enterprise and confirms CODEOWNERS is present in each."
+        },
+        {
+          "n": 5,
+          "title": "Check a named maintainer contact is recorded in each repo in GitHub Enterprise",
+          "sop": "The Platform Engineering Lead checks the maintainer contact per repo, done when every repo names one.",
+          "verify": "Reviewer opens repo metadata in GitHub Enterprise and confirms a named maintainer contact per repo."
+        },
+        {
+          "n": 6,
+          "title": "Run the repo-scorecard check on each inner-source repo in GitHub Actions",
+          "sop": "The Software Engineer runs the scorecard CI check, done when it passes at 100 percent of required files per repo.",
+          "verify": "Reviewer opens the scorecard runs in GitHub Actions and confirms a pass at 100 percent for each repo."
+        },
+        {
+          "n": 7,
+          "title": "Raise a remediation task for each repo missing governance files in Jira",
+          "sop": "The Software Engineer raises a task against the owning team with a 30-day fix window, done when each gap is tracked.",
+          "verify": "Reviewer searches Jira and confirms a remediation task with a 30-day window per non-compliant repo."
+        },
+        {
+          "n": 8,
+          "title": "Log an SDLC-Exception for maintainers silent past 10 business days in Jira",
+          "sop": "The Platform Engineering Lead logs the reassignment exception naming the Engineering Manager as owner, done when each is tracked.",
+          "verify": "Reviewer opens the SDLC-Exception tickets in Jira and confirms one per unresponsive-maintainer repo."
+        },
+        {
+          "n": 9,
+          "title": "Reconcile the reuse count to the dependency graph within 2 percent in GitHub Enterprise",
+          "sop": "The Platform Engineering Lead compares reported reuse to downstream dependency declarations, done when the delta is within 2 percent.",
+          "verify": "Reviewer queries the dependency graph in GitHub Enterprise and confirms the reuse figure matches within 2 percent."
+        },
+        {
+          "n": 10,
+          "title": "Publish the quarterly program report in Confluence",
+          "sop": "The Platform Engineering Lead publishes contributions plus reuse plus response-time results, done when the dated report page is live.",
+          "verify": "Reviewer opens the program space in Confluence and confirms the dated quarterly report version."
+        },
+        {
+          "n": 11,
+          "title": "Record the Platform Engineering Lead sign-off on the report page in Confluence",
+          "sop": "The Platform Engineering Lead signs the quarterly report, done when the sign-off appears on the page.",
+          "verify": "Reviewer opens the report page in Confluence and confirms a dated Platform Engineering Lead sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "62462e44-ab2a-4c76-937c-66be3213f058",
+      "taskName": "Run knowledge-sharing session",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Schedule the session on the standing Thursday slot in Microsoft 365 / SharePoint",
+          "sop": "The Software Engineer books the weekly slot with the guild invite, done when the invite is sent for this sprint.",
+          "verify": "Reviewer opens the calendar invite in Microsoft 365 / SharePoint and confirms the Thursday slot with the guild list."
+        },
+        {
+          "n": 2,
+          "title": "Record the session agenda on the KM index page in Confluence",
+          "sop": "The Software Engineer records title plus presenter plus agenda, done when the entry appears on the ENG-KM index.",
+          "verify": "Reviewer opens the ENG-KM index in Confluence and confirms the session entry with presenter plus agenda."
+        },
+        {
+          "n": 3,
+          "title": "Deliver the knowledge-sharing session to the engineering guild",
+          "sop": "The Software Engineer presents the new tool or practice to the guild, done when the session runs on the scheduled date.",
+          "verify": "Reviewer checks the session entry in Confluence and confirms the delivered date matches the scheduled slot."
+        },
+        {
+          "n": 4,
+          "title": "Record the attendee list on the session page in Confluence",
+          "sop": "The Backend Developer records attendees including walk-ins, done when the list is on the session page.",
+          "verify": "Reviewer opens the session page in Confluence and confirms a populated attendee list."
+        },
+        {
+          "n": 5,
+          "title": "Check attendance met the 60 percent guild floor in Confluence",
+          "sop": "The Software Engineer computes attendance against the guild roster, done when the rate is at or above 60 percent or escalation is noted.",
+          "verify": "Reviewer recomputes the rate from the attendee list in Confluence and confirms the 60 percent check result."
+        },
+        {
+          "n": 6,
+          "title": "Upload the slides within 2 business days in Confluence",
+          "sop": "The Software Engineer uploads the slides to ENG-KM, done when they are live within 2 business days of the session.",
+          "verify": "Reviewer checks the page history in Confluence and confirms the slides upload date is within 2 business days."
+        },
+        {
+          "n": 7,
+          "title": "Upload the session recording within 2 business days in Microsoft 365 / SharePoint",
+          "sop": "The UI Developer uploads the recording, done when it is available within 2 business days of the session.",
+          "verify": "Reviewer opens the recording location in Microsoft 365 / SharePoint and confirms the upload date is in window."
+        },
+        {
+          "n": 8,
+          "title": "Issue the feedback survey to attendees in Microsoft 365 / SharePoint",
+          "sop": "The Software Engineer sends the survey to the attendee list, done when every attendee receives it.",
+          "verify": "Reviewer opens the survey in Microsoft 365 / SharePoint and confirms distribution to the attendee list."
+        },
+        {
+          "n": 9,
+          "title": "Record the Tech Lead sign-off on the session entry in Confluence",
+          "sop": "The Software Engineer obtains the Tech Lead approval, done when the sign-off appears on the KM index entry.",
+          "verify": "Reviewer opens the KM index entry in Confluence and confirms a dated Tech Lead sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjyzh166okfgz6dbapiag",
+      "taskName": "Run static security scan on the branch",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Trigger the static scan on the pull request branch in GitHub Actions",
+          "sop": "The Software Engineer opens or updates the PR to trigger the blocking scan, done when the scan job starts for the head SHA.",
+          "verify": "Reviewer opens the workflow run in GitHub Actions and confirms the scan job ran against the PR head commit."
+        },
+        {
+          "n": 2,
+          "title": "Confirm the SARIF report is attached to the run in GitHub Actions",
+          "sop": "The DevOps Engineer confirms the SARIF artifact published with scanner version recorded, done when it is attached to the run.",
+          "verify": "Reviewer opens the run artifacts in GitHub Actions and confirms the SARIF file with scanner version."
+        },
+        {
+          "n": 3,
+          "title": "Reconcile analyzed changed files to the PR diff in SonarQube",
+          "sop": "The Software Engineer compares analyzed files to the diff, done when 100 percent of changed files show analyzed with zero skipped.",
+          "verify": "Reviewer opens the analysis summary in SonarQube and confirms every changed file was analyzed."
+        },
+        {
+          "n": 4,
+          "title": "Check zero critical or high findings on the branch analysis in SonarQube",
+          "sop": "The Application Security Lead reviews the findings, done when zero critical plus zero high remain since these cannot be waived.",
+          "verify": "Reviewer filters the branch findings in SonarQube and confirms no open critical or high issue."
+        },
+        {
+          "n": 5,
+          "title": "Check medium findings stay at or under the cap of 5 in SonarQube",
+          "sop": "The Application Security Lead counts open mediums, done when at most 5 remain and each has a logged waiver.",
+          "verify": "Reviewer counts medium findings in SonarQube and confirms the total is at or under 5 with waivers noted."
+        },
+        {
+          "n": 6,
+          "title": "Log an SDLC-Exception for each accepted medium or low finding in Jira",
+          "sop": "The Software Engineer logs the exception naming the Engineering Manager as owner with risk rationale, done when the 10-business-day SLA is set.",
+          "verify": "Reviewer opens the SDLC-Exception tickets in Jira and confirms owner plus rationale plus SLA per accepted finding."
+        },
+        {
+          "n": 7,
+          "title": "Set the 400-day retention on the scan artifacts in GitHub Actions",
+          "sop": "The DevOps Engineer keys the artifacts to commit SHA plus PR number, done when the 400-day retention applies.",
+          "verify": "Reviewer checks the artifact settings in GitHub Actions and confirms the 400-day retention with SHA keying."
+        },
+        {
+          "n": 8,
+          "title": "Confirm the nightly full-repo scan ran at 02:00 ET in GitHub Actions",
+          "sop": "The DevOps Engineer checks the scheduled workflow, done when the latest nightly full scan completed successfully.",
+          "verify": "Reviewer opens the scheduled workflow history in GitHub Actions and confirms the overnight full-repo run succeeded."
+        },
+        {
+          "n": 9,
+          "title": "Record the Application Security Lead sign-off on the pull request in GitHub Enterprise",
+          "sop": "The Application Security Lead approves the scan gate on the PR, done when the approval is recorded.",
+          "verify": "Reviewer opens the pull request in GitHub Enterprise and confirms the Application Security Lead approval."
+        }
+      ]
+    },
+    {
+      "taskId": "44f86649-a00d-4e2f-b897-5b24a0a7498f",
+      "taskName": "Scope design assurance review",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Create the design-assurance scope record for the release in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Software Engineer creates the scope record before design sign-off, done when it is baselined for the review cycle.",
+          "verify": "Reviewer opens the release scope record in GRC platform (Archer/ServiceNow GRC) and confirms it exists with a baseline."
+        },
+        {
+          "n": 2,
+          "title": "List the in-scope components on the scope record in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Solutions Architect lists every in-scope component, done when the In-Scope section is non-null.",
+          "verify": "Reviewer opens the record in GRC platform (Archer/ServiceNow GRC) and confirms a populated in-scope component list."
+        },
+        {
+          "n": 3,
+          "title": "List the out-of-scope items on the scope record in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Solutions Architect lists each exclusion, done when the Out-of-Scope section is non-null.",
+          "verify": "Reviewer opens the record in GRC platform (Archer/ServiceNow GRC) and confirms a populated out-of-scope list."
+        },
+        {
+          "n": 4,
+          "title": "Reference the review criteria checklist on the scope record in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Software Engineer links the criteria checklist reference, done when the Review Criteria field is populated.",
+          "verify": "Reviewer checks the record in GRC platform (Archer/ServiceNow GRC) and confirms the criteria reference resolves."
+        },
+        {
+          "n": 5,
+          "title": "Name an independent reviewer on the scope record in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Software Engineer names participants including an independent reviewer, done when the reviewer differs from the authors.",
+          "verify": "Reviewer reads the participants in GRC platform (Archer/ServiceNow GRC) and confirms an independent reviewer is named."
+        },
+        {
+          "n": 6,
+          "title": "Set the review timeline on the scope record in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Software Engineer sets the timeline with a risk-based depth rationale, done when the Timeline field is populated.",
+          "verify": "Reviewer opens the record in GRC platform (Archer/ServiceNow GRC) and confirms the timeline plus depth rationale."
+        },
+        {
+          "n": 7,
+          "title": "Set the gate date on the scope record in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Software Engineer sets the gate date, done when it matches the release plan gate.",
+          "verify": "Reviewer compares the gate date in GRC platform (Archer/ServiceNow GRC) to the release plan and confirms they match."
+        },
+        {
+          "n": 8,
+          "title": "Reconcile the in-scope list to the release configuration items in CMDB",
+          "sop": "The Backend Developer reconciles components to the release CIs, done when the delta is zero or each exclusion has a reason.",
+          "verify": "Reviewer queries the release CIs in CMDB and confirms no component is silently excluded from the scope list."
+        },
+        {
+          "n": 9,
+          "title": "Record an approved risk rationale for each exclusion in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Solutions Architect documents each exclusion rationale for Enterprise Architect approval, done when none is unjustified.",
+          "verify": "Reviewer opens exclusions in GRC platform (Archer/ServiceNow GRC) and confirms an approved rationale on each."
+        },
+        {
+          "n": 10,
+          "title": "Compare the scope to the prior release assurance scope in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Software Engineer diffs against the prior similar release, done when no control area regressed out of coverage unjustified.",
+          "verify": "Reviewer opens the comparison in GRC platform (Archer/ServiceNow GRC) and confirms deltas carry justifications."
+        },
+        {
+          "n": 11,
+          "title": "Link the scope record to the release change ticket in ServiceNow ITSM",
+          "sop": "The Software Engineer attaches the scope as the review plan on the change, done when the link is live.",
+          "verify": "Reviewer opens the change ticket in ServiceNow ITSM and confirms the design-assurance scope attachment."
+        },
+        {
+          "n": 12,
+          "title": "Record the Enterprise Architect approval on the scope record in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Software Engineer obtains the Enterprise Architect approval, done when the dated sign-off is on the record.",
+          "verify": "Reviewer opens the record in GRC platform (Archer/ServiceNow GRC) and confirms a dated Enterprise Architect approval."
+        }
+      ]
+    },
+    {
+      "taskId": "ffc9ecdd-f01d-4963-a3c8-0d7543f9922b",
+      "taskName": "Score demand for size and value",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the Triage-status items from the DEMAND project in Jira",
+          "sop": "The Demand Manager pulls every DEMAND item at status Triage for the PI window, done when the scoring worklist is complete.",
+          "verify": "Reviewer runs the Triage filter on DEMAND in Jira and confirms the worklist matches it."
+        },
+        {
+          "n": 2,
+          "title": "Enter the business value input on each item in Jira",
+          "sop": "The Business Analyst populates the business value WSJF input per item, done when none is null.",
+          "verify": "Reviewer samples items in Jira and confirms the business value field is populated on each."
+        },
+        {
+          "n": 3,
+          "title": "Enter the time criticality input on each item in Jira",
+          "sop": "The Business Analyst populates the time criticality input per item, done when none is null.",
+          "verify": "Reviewer samples items in Jira and confirms the time criticality field is populated on each."
+        },
+        {
+          "n": 4,
+          "title": "Enter the risk reduction input on each item in Jira",
+          "sop": "The Business Analyst populates the risk reduction input per item, done when none is null.",
+          "verify": "Reviewer samples items in Jira and confirms the risk reduction field is populated on each."
+        },
+        {
+          "n": 5,
+          "title": "Enter the job size input on each item in Jira",
+          "sop": "The Software Engineer populates the job size input per item, done when none is null.",
+          "verify": "Reviewer samples items in Jira and confirms the job size field is populated on each."
+        },
+        {
+          "n": 6,
+          "title": "Set the T-shirt size on each item in Jira",
+          "sop": "The Software Engineer sets a size from the XS-XL enum per item, done when no item is unsized.",
+          "verify": "Reviewer filters items in Jira and confirms every size field holds an XS-XL value."
+        },
+        {
+          "n": 7,
+          "title": "Set the 1-5 value score on each item in Jira",
+          "sop": "The Demand Manager sets the value score per item, done when every item holds a 1-5 score.",
+          "verify": "Reviewer filters items in Jira and confirms every value score sits in the 1-5 range."
+        },
+        {
+          "n": 8,
+          "title": "Record a one-line scoring rationale on each item in Jira",
+          "sop": "The Demand Manager records the rationale with the scorer identity, done when no scored item lacks one.",
+          "verify": "Reviewer samples scored items in Jira and confirms a one-line rationale with scorer on each."
+        },
+        {
+          "n": 9,
+          "title": "Label unsizeable items needs-refinement in Jira",
+          "sop": "The Business Analyst labels items missing requirements for a refinement session, done when each is resolved within one sprint.",
+          "verify": "Reviewer opens needs-refinement items in Jira and confirms each is routed to a refinement session."
+        },
+        {
+          "n": 10,
+          "title": "Run the demand-scored-completeness filter to confirm zero unscored items in Jira",
+          "sop": "The Demand Manager runs the saved JQL filter, done when it returns zero Triage items without both scores.",
+          "verify": "Reviewer re-runs the demand-scored-completeness filter in Jira and confirms an empty result."
+        },
+        {
+          "n": 11,
+          "title": "Archive the scoring session notes in Confluence",
+          "sop": "The Demand Manager saves the session notes with version plus date, done when the page is linked from the board.",
+          "verify": "Reviewer opens the notes page in Confluence and confirms the dated versioned scoring notes."
+        },
+        {
+          "n": 12,
+          "title": "Record the Demand Manager sign-off on the scoring outcome in Jira",
+          "sop": "The Demand Manager signs off the PI scoring pass, done when the sign-off comment sits on the board.",
+          "verify": "Reviewer opens the scoring board in Jira and confirms a dated Demand Manager sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "5059fc6f-7f73-4b38-af93-fcaf01270817",
+      "taskName": "Survey engineering toolchain friction points",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Add the team field to the survey form in Microsoft 365 / SharePoint",
+          "sop": "The Software Engineer adds the required team field, done when a response cannot submit without it.",
+          "verify": "Reviewer opens the form in Microsoft 365 / SharePoint and confirms the team field is marked required."
+        },
+        {
+          "n": 2,
+          "title": "Add the role field to the survey form in Microsoft 365 / SharePoint",
+          "sop": "The Software Engineer adds the required role field, done when a response cannot submit without it.",
+          "verify": "Reviewer opens the form in Microsoft 365 / SharePoint and confirms the role field is marked required."
+        },
+        {
+          "n": 3,
+          "title": "Add the friction-area field to the survey form in Microsoft 365 / SharePoint",
+          "sop": "The Software Engineer adds the friction-area choices covering local dev through release, done when the field is required.",
+          "verify": "Reviewer opens the form in Microsoft 365 / SharePoint and confirms the friction-area choices span the toolchain areas."
+        },
+        {
+          "n": 4,
+          "title": "Add the 1-5 severity field to the survey form in Microsoft 365 / SharePoint",
+          "sop": "The Software Engineer adds the required 1-5 severity scale, done when responses must pick a value.",
+          "verify": "Reviewer opens the form in Microsoft 365 / SharePoint and confirms the severity scale runs 1 to 5."
+        },
+        {
+          "n": 5,
+          "title": "Add the free-text example field to the survey form in Microsoft 365 / SharePoint",
+          "sop": "The Software Engineer adds the example field, done when respondents can attach a concrete friction example.",
+          "verify": "Reviewer opens the form in Microsoft 365 / SharePoint and confirms the free-text example field exists."
+        },
+        {
+          "n": 6,
+          "title": "Publish the survey to every active developer in Microsoft 365 / SharePoint",
+          "sop": "The Platform Engineering Lead sends the survey to every developer with a sprint of tenure, done when the 2-week window opens.",
+          "verify": "Reviewer checks the distribution list in Microsoft 365 / SharePoint and confirms it covers all active developers."
+        },
+        {
+          "n": 7,
+          "title": "Check the response rate against the 60 percent floor in Microsoft 365 / SharePoint",
+          "sop": "The Platform Engineering Lead computes respondents over invited, done when the rate is known against the 60 percent floor.",
+          "verify": "Reviewer recomputes the rate in Microsoft 365 / SharePoint and confirms the recorded figure."
+        },
+        {
+          "n": 8,
+          "title": "Send a reminder with an extension if the rate is short in Microsoft 365 / SharePoint",
+          "sop": "The Platform Engineering Lead triggers the reminder plus extension when under 60 percent, done when the window is extended.",
+          "verify": "Reviewer checks the survey timeline in Microsoft 365 / SharePoint and confirms the reminder went out on a short rate."
+        },
+        {
+          "n": 9,
+          "title": "Exclude incomplete responses from the quantitative rollup in BI/reporting platform",
+          "sop": "The Software Engineer filters out unscored or incomplete responses, done when only valid responses feed the rollup.",
+          "verify": "Reviewer inspects the rollup dataset in BI/reporting platform and confirms no incomplete response rows remain."
+        },
+        {
+          "n": 10,
+          "title": "Reconcile per-team response counts to the total in BI/reporting platform",
+          "sop": "The Software Engineer sums per-team counts, done when they equal the total response count.",
+          "verify": "Reviewer recomputes the team sums in BI/reporting platform and confirms they match the total."
+        },
+        {
+          "n": 11,
+          "title": "Publish the ranked friction list with severity in BI/reporting platform",
+          "sop": "The Platform Engineering Lead publishes the ranked list with severity plus affected teams, done when the dashboard is dated.",
+          "verify": "Reviewer opens the dashboard in BI/reporting platform and confirms the dated ranked friction list."
+        },
+        {
+          "n": 12,
+          "title": "Raise a DevEx backlog item for each top-5 friction point in Jira",
+          "sop": "The Platform Engineering Lead raises one item per top-5 finding with owner plus target quarter, done when all are tracked.",
+          "verify": "Reviewer searches Jira and confirms a DevEx backlog item with owner per top-5 friction point."
+        },
+        {
+          "n": 13,
+          "title": "Record the Platform Engineering Lead sign-off on the findings page in Confluence",
+          "sop": "The Platform Engineering Lead signs the quarterly findings, done when the sign-off is on the DevEx page.",
+          "verify": "Reviewer opens the DevEx page in Confluence and confirms a dated Platform Engineering Lead sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2f861501r3bn7iuzz1u2yc",
+      "taskName": "Tag build",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the release candidate build is green in GitHub Actions",
+          "sop": "The DevOps Engineer confirms the RC pipeline passed at release cut, done when the run for the mainline commit is green.",
+          "verify": "Reviewer opens the RC run in GitHub Actions and confirms a green result for the merged mainline commit."
+        },
+        {
+          "n": 2,
+          "title": "Create the annotated SemVer tag on the release commit in GitHub Enterprise",
+          "sop": "The Release Engineer creates the vMAJOR.MINOR.PATCH annotated tag with author plus date, done when it points at the release SHA.",
+          "verify": "Reviewer inspects the tag in GitHub Enterprise and confirms SemVer format plus annotation on the release commit."
+        },
+        {
+          "n": 3,
+          "title": "Write the release notes into the tag annotation in GitHub Enterprise",
+          "sop": "The Release Engineer includes the release notes in the annotation, done when the tag message carries them.",
+          "verify": "Reviewer reads the tag annotation in GitHub Enterprise and confirms the release notes are present."
+        },
+        {
+          "n": 4,
+          "title": "Reconcile the tag SHA to the CI build commit SHA in GitHub Actions",
+          "sop": "The DevOps Engineer compares the tag target to the CI run commit, done when the SHAs match exactly.",
+          "verify": "Reviewer compares the run commit in GitHub Actions to the tag SHA and confirms no mismatch."
+        },
+        {
+          "n": 5,
+          "title": "Reconcile the tag version to the artifact metadata version in GitHub Enterprise",
+          "sop": "The Release Engineer compares tag to artifact version, done when they match before the tag is pushed.",
+          "verify": "Reviewer checks the release assets in GitHub Enterprise and confirms the artifact version equals the tag."
+        },
+        {
+          "n": 6,
+          "title": "Reconcile the tag version to the container image tag in GitHub Enterprise",
+          "sop": "The DevOps Engineer compares the image tag to the git tag, done when the four-way reconcile shows no mismatch.",
+          "verify": "Reviewer checks the package registry in GitHub Enterprise and confirms the image tag equals the release tag."
+        },
+        {
+          "n": 7,
+          "title": "Push the immutable tag to the repository in GitHub Enterprise",
+          "sop": "The Release Engineer pushes the tag once reconciles pass, done when the tag is public with no re-tag allowed.",
+          "verify": "Reviewer lists tags in GitHub Enterprise and confirms the pushed tag exists exactly once."
+        },
+        {
+          "n": 8,
+          "title": "Record the changelog with the CI build number in Confluence",
+          "sop": "The Release Engineer records tag plus commit SHA plus build number with a UTC timestamp, done when the release page is updated.",
+          "verify": "Reviewer opens the release page in Confluence and confirms the changelog entry with build number plus SHA."
+        },
+        {
+          "n": 9,
+          "title": "Log an SDLC-Exception for any superseded tag in Jira",
+          "sop": "The Release Engineer issues a new patch version instead of delete-and-retag, done when the exception documents the superseded tag.",
+          "verify": "Reviewer opens the SDLC-Exception in Jira and confirms the superseded tag plus replacement version are documented."
+        },
+        {
+          "n": 10,
+          "title": "Record the Tech Lead sign-off on the release page in Confluence",
+          "sop": "The Release Engineer obtains the Tech Lead approval, done when the sign-off is on the release page.",
+          "verify": "Reviewer opens the release page in Confluence and confirms a dated Tech Lead sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "92468e20-bd57-461a-a167-bd752201e111",
+      "taskName": "Tag knowledge articles",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Run the quarterly untagged-articles audit query in Confluence",
+          "sop": "The Software Engineer runs the space audit query for the quarter, done when the in-scope article list is produced.",
+          "verify": "Reviewer re-runs the audit query in Confluence and confirms the list matches the tagging worklist."
+        },
+        {
+          "n": 2,
+          "title": "Apply the domain tag from the controlled taxonomy to each article in Confluence",
+          "sop": "The Software Engineer applies the domain or value-stream label per article, done when none carries a free-text label.",
+          "verify": "Reviewer samples articles in Confluence and confirms domain tags come from the controlled taxonomy."
+        },
+        {
+          "n": 3,
+          "title": "Apply the component tag to each article in Confluence",
+          "sop": "The Backend Developer applies the component label drawn from the CMDB list per article, done when none lacks it.",
+          "verify": "Reviewer samples articles in Confluence and confirms each carries a component tag from the approved list."
+        },
+        {
+          "n": 4,
+          "title": "Apply the lifecycle status tag to each article in Confluence",
+          "sop": "The UI Developer applies the lifecycle status label per article, done when none lacks it.",
+          "verify": "Reviewer samples articles in Confluence and confirms a lifecycle status tag on each."
+        },
+        {
+          "n": 5,
+          "title": "Apply the owner tag to each article in Confluence",
+          "sop": "The Software Engineer applies the owner label per article, done when every in-scope article has at least 3 required tags.",
+          "verify": "Reviewer samples articles in Confluence and confirms an owner tag plus the 3-tag minimum."
+        },
+        {
+          "n": 6,
+          "title": "Remove any off-taxonomy label found during the pass in Confluence",
+          "sop": "The Software Engineer strips free-text labels, done when the taxonomy report shows no orphan labels.",
+          "verify": "Reviewer runs the label taxonomy report in Confluence and confirms zero orphan labels."
+        },
+        {
+          "n": 7,
+          "title": "Raise a KM-hygiene ticket for each untaggable article in Jira",
+          "sop": "The Software Engineer raises the ticket with disposition archive or rewrite or keep, done when the 10-business-day SLA is set.",
+          "verify": "Reviewer opens the KM-hygiene tickets in Jira and confirms one per untaggable article with a disposition."
+        },
+        {
+          "n": 8,
+          "title": "Re-run the audit query to confirm zero untagged articles in Confluence",
+          "sop": "The Software Engineer re-runs the query at pass end, done when tagged plus archived equals the in-scope total.",
+          "verify": "Reviewer re-runs the audit query in Confluence and confirms it returns zero untagged in-scope articles."
+        },
+        {
+          "n": 9,
+          "title": "Save the audit query export with the run date in Confluence",
+          "sop": "The Software Engineer saves the export to the space with the quarter tag, done when the dated export is stored.",
+          "verify": "Reviewer opens the Engineering space in Confluence and confirms the dated audit export for the quarter."
+        },
+        {
+          "n": 10,
+          "title": "Record the Tech Lead sign-off on the tagging report in Confluence",
+          "sop": "The Software Engineer obtains the Tech Lead approval, done when the sign-off is on the report page.",
+          "verify": "Reviewer opens the tagging report in Confluence and confirms a dated Tech Lead sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "2a6ae081-cb20-4bd8-95ed-9c5d183009f6",
+      "taskName": "Test and certify integration",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Load the in-scope integration test cases into the release test cycle in Jira",
+          "sop": "The QA Analyst loads every case covering the interface contract plus error paths, done when the planned set is in the cycle.",
+          "verify": "Reviewer opens the release test cycle in Jira and confirms the planned case set is loaded."
+        },
+        {
+          "n": 2,
+          "title": "Record the staging build version on the test cycle in Jira",
+          "sop": "The Integration Engineer records the promoted staging build version, done when every execution ties to that build.",
+          "verify": "Reviewer checks the test cycle in Jira and confirms the environment build version is recorded."
+        },
+        {
+          "n": 3,
+          "title": "Verify the consumer-provider pact for the interface in Pact Broker",
+          "sop": "The Integration Engineer runs the pact verification for the release candidate pair, done when the pair shows verified.",
+          "verify": "Reviewer opens the pair in Pact Broker and confirms a verified result for the RC versions."
+        },
+        {
+          "n": 4,
+          "title": "Record the pass or fail result on each executed case in Jira",
+          "sop": "The QA Analyst records the result per case with its test case ID, done when no executed case lacks a result.",
+          "verify": "Reviewer scans the cycle in Jira and confirms every executed case shows pass or fail."
+        },
+        {
+          "n": 5,
+          "title": "Link a defect to each failed test case in Jira",
+          "sop": "The QA Analyst links a defect with severity per failure, done when no failed case lacks a defect link.",
+          "verify": "Reviewer opens failed cases in Jira and confirms each links to a severity-rated defect."
+        },
+        {
+          "n": 6,
+          "title": "Record a fix or waiver disposition on each linked defect in Jira",
+          "sop": "The Integration Engineer records the disposition per defect, done when waivers carry sign-off on the release ticket.",
+          "verify": "Reviewer opens the defects in Jira and confirms each carries a fix or waiver disposition."
+        },
+        {
+          "n": 7,
+          "title": "Reconcile the executed count to the planned count in Jira",
+          "sop": "The QA Analyst reconciles the counts, done when zero cases remain not-run.",
+          "verify": "Reviewer compares planned versus executed in Jira and confirms zero not-run cases."
+        },
+        {
+          "n": 8,
+          "title": "Confirm the critical case pass rate reached 100 percent in Jira",
+          "sop": "The QA Analyst checks critical plus high cases, done when 100 percent pass before certification.",
+          "verify": "Reviewer filters critical cases in Jira and confirms every one shows pass."
+        },
+        {
+          "n": 9,
+          "title": "Attach the execution report with the build SHA to the release cycle in Jira",
+          "sop": "The Integration Engineer attaches the timestamped report plus contract results, done when both sit on the cycle.",
+          "verify": "Reviewer opens the cycle attachments in Jira and confirms the report carries timestamp plus build SHA."
+        },
+        {
+          "n": 10,
+          "title": "Record the certification sign-off on the release ticket in Jira",
+          "sop": "The Integration Engineer obtains the Tech Lead certification, done when the sign-off is stored with the release artifact link.",
+          "verify": "Reviewer opens the release ticket in Jira and confirms a dated certification sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "9111d53f-af0b-44e3-a0c1-f819012c8790",
+      "taskName": "Test end-to-end flows in dev environment",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Map each acceptance criterion to an E2E spec on the story in Jira",
+          "sop": "The QA Analyst maps every criterion to at least one spec ID per Ready for QA story, done when no criterion is unmapped.",
+          "verify": "Reviewer opens the stories in Jira and confirms each criterion references an E2E spec ID."
+        },
+        {
+          "n": 2,
+          "title": "Add two negative-path specs per story to the suite in GitHub Enterprise",
+          "sop": "The Software Engineer commits happy-path plus two negative paths per story, done when the specs reference the story key.",
+          "verify": "Reviewer searches the suite in GitHub Enterprise and confirms two negative-path specs tagged per story key."
+        },
+        {
+          "n": 3,
+          "title": "Run the E2E suite against the dev environment in GitHub Actions",
+          "sop": "The Software Engineer triggers the run on the merge to develop, done when the suite executes against the dev build.",
+          "verify": "Reviewer opens the run in GitHub Actions and confirms it executed against the dev environment version."
+        },
+        {
+          "n": 4,
+          "title": "Confirm the run completed inside 15 minutes in GitHub Actions",
+          "sop": "The Software Engineer checks the duration, done when the suite finished under 15 minutes on the CI runner.",
+          "verify": "Reviewer reads the run duration in GitHub Actions and confirms it is under 15 minutes."
+        },
+        {
+          "n": 5,
+          "title": "Check every critical-path assertion is green in GitHub Actions",
+          "sop": "The QA Analyst reviews the critical-path flows, done when 100 percent show green.",
+          "verify": "Reviewer filters critical-path results in GitHub Actions and confirms zero red assertions."
+        },
+        {
+          "n": 6,
+          "title": "Check the full-suite green rate meets the 98 percent floor in GitHub Actions",
+          "sop": "The QA Analyst computes the suite green rate, done when it is at or above 98 percent.",
+          "verify": "Reviewer recomputes the rate from the run summary in GitHub Actions and confirms at least 98 percent green."
+        },
+        {
+          "n": 7,
+          "title": "Confirm quarantined flaky specs stay at or under 2 percent in GitHub Actions",
+          "sop": "The Software Engineer checks the quarantine list with its 5-day fix SLA, done when it holds at most 2 percent of specs.",
+          "verify": "Reviewer counts quarantined specs in GitHub Actions and confirms the share is at or under 2 percent."
+        },
+        {
+          "n": 8,
+          "title": "Raise a defect for each failing flow on the story in Jira",
+          "sop": "The QA Analyst raises a Defect with severity assigned to the owning developer, done when no failing flow is untracked.",
+          "verify": "Reviewer opens the failing flows in Jira and confirms each links to an assigned Defect."
+        },
+        {
+          "n": 9,
+          "title": "Waive a red promotion gate only via an SDLC-Exception ticket in Jira",
+          "sop": "The Software Engineer logs the waiver naming the Engineering Manager as owner, done when the 10-business-day SLA is set.",
+          "verify": "Reviewer opens the SDLC-Exception in Jira and confirms owner plus SLA before any waived promotion."
+        },
+        {
+          "n": 10,
+          "title": "Confirm the run artifacts carry the 90-day retention in GitHub Actions",
+          "sop": "The Software Engineer checks the JUnit plus trace artifacts tagged with commit SHA, done when 90-day retention applies.",
+          "verify": "Reviewer opens the artifact settings in GitHub Actions and confirms 90-day retention with SHA tagging."
+        },
+        {
+          "n": 11,
+          "title": "Record the Test Lead sign-off on the test cycle in Jira",
+          "sop": "The QA Analyst obtains the Test Lead approval, done when the sign-off is on the cycle before staging promotion.",
+          "verify": "Reviewer opens the test cycle in Jira and confirms a dated Test Lead sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "01ff00f1-ff34-4a61-9daa-d42d18cea389",
+      "taskName": "Test integration points in staging",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Execute the contract test for each critical interface in Pact Broker",
+          "sop": "The Integration Engineer verifies each interface contract for the RC, done when every critical interface shows verified.",
+          "verify": "Reviewer lists the release pairs in Pact Broker and confirms a verified contract per critical interface."
+        },
+        {
+          "n": 2,
+          "title": "Run the end-to-end data-flow test for each interface against staging in GitHub Actions",
+          "sop": "The Integration Engineer runs the e2e flow tests on the staging deploy, done when every critical flow executes.",
+          "verify": "Reviewer opens the staging run in GitHub Actions and confirms an executed e2e test per critical interface."
+        },
+        {
+          "n": 3,
+          "title": "Validate payload field mappings against the interface spec in GitHub Actions",
+          "sop": "The Backend Developer checks schema validation results, done when request plus response payloads match the spec.",
+          "verify": "Reviewer reads the schema-validation stage in GitHub Actions and confirms zero mapping failures."
+        },
+        {
+          "n": 4,
+          "title": "Reconcile source record counts to landed rows in Enterprise data warehouse/lakehouse",
+          "sop": "The Integration Engineer reconciles sent versus landed per critical flow, done when the variance is exactly zero.",
+          "verify": "Reviewer re-runs the reconciliation query in Enterprise data warehouse/lakehouse and confirms zero variance on critical flows."
+        },
+        {
+          "n": 5,
+          "title": "Check non-critical flow variance stays at or under 0.1 percent in Enterprise data warehouse/lakehouse",
+          "sop": "The Backend Developer checks reporting flows, done when any variance at or under 0.1 percent carries a logged note.",
+          "verify": "Reviewer reads the variance report in Enterprise data warehouse/lakehouse and confirms tolerance plus notes."
+        },
+        {
+          "n": 6,
+          "title": "Check p99 response time against the interface threshold in Grafana",
+          "sop": "The Integration Engineer checks p99 plus sustained TPS per interface, done when no threshold is breached.",
+          "verify": "Reviewer opens the interface dashboard in Grafana and confirms p99 plus TPS inside documented thresholds."
+        },
+        {
+          "n": 7,
+          "title": "Raise a defect for each failed interface in Jira",
+          "sop": "The QA Analyst raises a promotion-blocking defect per failure, done when persistent failures escalate on a 3-business-day SLA.",
+          "verify": "Reviewer searches Jira and confirms a blocking defect per failed interface."
+        },
+        {
+          "n": 8,
+          "title": "Record the QA Analyst independent re-performance on the test plan in Jira",
+          "sop": "The QA Analyst independently re-runs a sample of interface tests, done when the re-performance note is on the plan.",
+          "verify": "Reviewer opens the staging test plan in Jira and confirms the QA Analyst re-performance record."
+        },
+        {
+          "n": 9,
+          "title": "Link the authorizing CHG ticket to the test report in ServiceNow ITSM",
+          "sop": "The Integration Engineer links the CHG number authorizing the staging deploy, done when evidence attaches to the change.",
+          "verify": "Reviewer opens the change record in ServiceNow ITSM and confirms the attached staging test evidence."
+        },
+        {
+          "n": 10,
+          "title": "Copy the audit evidence to the release record in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Software Engineer copies reports plus reconciliation output with 12-month retention, done when the release record holds them.",
+          "verify": "Reviewer opens the release record in GRC platform (Archer/ServiceNow GRC) and confirms the copied evidence set."
+        },
+        {
+          "n": 11,
+          "title": "Record the Tech Lead sign-off on the staging test plan in Jira",
+          "sop": "The Integration Engineer obtains the Tech Lead approval, done when the sign-off is on the plan before promotion.",
+          "verify": "Reviewer opens the staging test plan in Jira and confirms a dated Tech Lead sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "acde3032-f1d0-431f-8d4c-c99d6d84cb64",
+      "taskName": "Test orchestration flow end-to-end in staging",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pin the e2e harness version in the test manifest in GitHub Enterprise",
+          "sop": "The Software Engineer pins the Test Lead approved harness version, done when the manifest references it.",
+          "verify": "Reviewer opens the manifest in GitHub Enterprise and confirms the pinned harness version."
+        },
+        {
+          "n": 2,
+          "title": "Record the seeded staging dataset version in the test manifest in GitHub Enterprise",
+          "sop": "The Data Engineer records the seed dataset version plus expected retry counts, done when required parameters are present.",
+          "verify": "Reviewer reads the manifest in GitHub Enterprise and confirms the dataset version plus retry parameters."
+        },
+        {
+          "n": 3,
+          "title": "Run the happy-path DAG end-to-end in staging in Data pipeline orchestrator (Airflow/Dagster/Prefect)",
+          "sop": "The Software Engineer runs the full DAG on the RC build with prod-only endpoints mocked, done when the run completes.",
+          "verify": "Reviewer opens the DAG run in Data pipeline orchestrator (Airflow/Dagster/Prefect) and confirms a completed happy-path run."
+        },
+        {
+          "n": 4,
+          "title": "Inject the task-kill failure scenario in Data pipeline orchestrator (Airflow/Dagster/Prefect)",
+          "sop": "The Data Engineer kills a task mid-run, done when the scenario executes at the configured injection point.",
+          "verify": "Reviewer opens the scenario run in Data pipeline orchestrator (Airflow/Dagster/Prefect) and confirms the task-kill event."
+        },
+        {
+          "n": 5,
+          "title": "Inject the timeout failure scenario in Data pipeline orchestrator (Airflow/Dagster/Prefect)",
+          "sop": "The Data Engineer forces a task timeout, done when the scenario executes at the configured injection point.",
+          "verify": "Reviewer opens the scenario run in Data pipeline orchestrator (Airflow/Dagster/Prefect) and confirms the timeout event."
+        },
+        {
+          "n": 6,
+          "title": "Inject the bad-data failure scenario in Data pipeline orchestrator (Airflow/Dagster/Prefect)",
+          "sop": "The Data Engineer feeds the bad-data case, done when the scenario executes at the configured injection point.",
+          "verify": "Reviewer opens the scenario run in Data pipeline orchestrator (Airflow/Dagster/Prefect) and confirms the bad-data event."
+        },
+        {
+          "n": 7,
+          "title": "Confirm each scenario recovers within three retries in Data pipeline orchestrator (Airflow/Dagster/Prefect)",
+          "sop": "The Software Engineer checks retry behavior against config, done when every scenario self-recovers within max_retries of 3.",
+          "verify": "Reviewer reads the retry logs in Data pipeline orchestrator (Airflow/Dagster/Prefect) and confirms recovery within 3 retries."
+        },
+        {
+          "n": 8,
+          "title": "Confirm the failure alerts fired for each injected scenario in Grafana",
+          "sop": "The Data Engineer checks alerting, done when every injected failure produced its expected alert.",
+          "verify": "Reviewer opens the alert history in Grafana and confirms one fired alert per injected scenario."
+        },
+        {
+          "n": 9,
+          "title": "Reconcile output control totals to the seeded expectations in Enterprise data warehouse/lakehouse",
+          "sop": "The Data Engineer reconciles rows after the run plus after retry recovery, done when variance is zero for tier-1 output.",
+          "verify": "Reviewer re-runs the control-total query in Enterprise data warehouse/lakehouse and confirms zero variance."
+        },
+        {
+          "n": 10,
+          "title": "Raise a PIPE-DEFECT for each failed scenario in Jira",
+          "sop": "The Software Engineer raises the promotion-blocking ticket per failure, done when each carries a fixed or waived disposition.",
+          "verify": "Reviewer searches Jira and confirms a dispositioned PIPE-DEFECT per failed scenario."
+        },
+        {
+          "n": 11,
+          "title": "Archive the run logs with the build SHA in GitHub Actions",
+          "sop": "The Software Engineer stores logs plus DAG run IDs plus the report keyed to the build SHA, done when artifacts are retained.",
+          "verify": "Reviewer opens the artifacts in GitHub Actions and confirms logs plus run IDs keyed to the release SHA."
+        },
+        {
+          "n": 12,
+          "title": "Record the Test Lead sign-off on the release test plan in Jira",
+          "sop": "The Software Engineer obtains the Test Lead approval, done when the sign-off is on the plan before production promotion.",
+          "verify": "Reviewer opens the release test plan in Jira and confirms a dated Test Lead sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjmed10skkfgzdwtftvea",
+      "taskName": "Track remediation items to closure",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull all remediation-labelled items under the release epic in Jira",
+          "sop": "The Software Engineer pulls the full census of remediation items, done when every open plus recently-closed item is listed.",
+          "verify": "Reviewer runs the remediation label filter in Jira and confirms the census matches the board."
+        },
+        {
+          "n": 2,
+          "title": "Set the severity on each remediation item in Jira",
+          "sop": "The Software Engineer sets severity per item, done when none lacks it.",
+          "verify": "Reviewer scans the board in Jira and confirms a severity on every item."
+        },
+        {
+          "n": 3,
+          "title": "Assign an owner on each remediation item in Jira",
+          "sop": "The Software Engineer assigns an owner per item, done when items missing owners return to triage.",
+          "verify": "Reviewer filters unassigned items in Jira and confirms zero remain."
+        },
+        {
+          "n": 4,
+          "title": "Record the root cause on each remediation item in Jira",
+          "sop": "The Backend Developer records the root cause per item, done when none lacks it.",
+          "verify": "Reviewer samples items in Jira and confirms a root cause field on each."
+        },
+        {
+          "n": 5,
+          "title": "Link the originating finding on each remediation item in Jira",
+          "sop": "The Software Engineer links each item to its source finding, done when none is unlinked.",
+          "verify": "Reviewer opens items in Jira and confirms each links to its originating finding."
+        },
+        {
+          "n": 6,
+          "title": "Set the target closure date on each remediation item in Jira",
+          "sop": "The Software Engineer sets the target date inside the release window, done when items missing dates return to triage.",
+          "verify": "Reviewer filters items in Jira and confirms every one carries a target closure date."
+        },
+        {
+          "n": 7,
+          "title": "Attach closure evidence to each item before closing in Jira",
+          "sop": "The UI Developer attaches the retest result or merged fix PR per closure, done when zero items close without evidence.",
+          "verify": "Reviewer opens closed items in Jira and confirms a verification artifact on each."
+        },
+        {
+          "n": 8,
+          "title": "Reconcile the open-item count to the finding register in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Software Engineer reconciles the board to the register, done when the delta is zero at cycle close.",
+          "verify": "Reviewer compares counts in GRC platform (Archer/ServiceNow GRC) and confirms zero delta to the Jira board."
+        },
+        {
+          "n": 9,
+          "title": "Log an SDLC-Exception for each item past its SLA in Jira",
+          "sop": "The Software Engineer logs the exception with disposition risk-accept or extend or waive, done when the Engineering Manager owns it.",
+          "verify": "Reviewer opens the SDLC-Exception tickets in Jira and confirms a disposition plus owner per overdue item."
+        },
+        {
+          "n": 10,
+          "title": "Export the closure evidence to the evidence repository in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Software Engineer exports evidence with timestamp plus version, done when the 3-year retention applies.",
+          "verify": "Reviewer opens the repository in GRC platform (Archer/ServiceNow GRC) and confirms the versioned evidence export."
+        },
+        {
+          "n": 11,
+          "title": "Confirm zero critical or high items remain open past SLA in Jira",
+          "sop": "The Software Engineer checks the closure gate, done when at most 5 mediums stay open and only with approved waivers.",
+          "verify": "Reviewer filters critical plus high items in Jira and confirms none is open past its SLA."
+        },
+        {
+          "n": 12,
+          "title": "Record the Tech Lead sign-off on the remediation board in Jira",
+          "sop": "The Software Engineer obtains the Tech Lead approval, done when the sign-off is on the board at cycle close.",
+          "verify": "Reviewer opens the board in Jira and confirms a dated Tech Lead sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "6851dcd6-f213-470e-a5d0-fd258c86f455",
+      "taskName": "Translate requirements into user stories",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Create a story for each approved requirement under the epic in Jira",
+          "sop": "The Business Analyst creates one story per in-scope requirement, done when no requirement lacks a story.",
+          "verify": "Reviewer lists epic stories in Jira and confirms one exists per approved requirement."
+        },
+        {
+          "n": 2,
+          "title": "Write the title in user-story form on each story in Jira",
+          "sop": "The Business Analyst writes each title in user-story form, done when none uses a non-story title.",
+          "verify": "Reviewer samples stories in Jira and confirms titles follow the user-story form."
+        },
+        {
+          "n": 3,
+          "title": "Enter the user-story description on each story in Jira",
+          "sop": "The Business Analyst enters the description per story, done when none leaves Draft with an empty description.",
+          "verify": "Reviewer samples stories in Jira and confirms a populated description on each."
+        },
+        {
+          "n": 4,
+          "title": "Record Given/When/Then acceptance criteria on each story in Jira",
+          "sop": "The Business Analyst records testable Given/When/Then criteria per story, done when none lacks them.",
+          "verify": "Reviewer opens each story in Jira and confirms acceptance criteria in Given/When/Then form."
+        },
+        {
+          "n": 5,
+          "title": "Link the parent requirement on each story in Jira",
+          "sop": "The Business Analyst links the parent requirement or epic per story, done when none is unlinked.",
+          "verify": "Reviewer checks stories in Jira and confirms a parent link on each."
+        },
+        {
+          "n": 6,
+          "title": "Set the value-stream component label on each story in Jira",
+          "sop": "The Business Analyst sets the component label per story, done when none leaves Draft without it.",
+          "verify": "Reviewer filters stories in Jira and confirms the component label is set on each."
+        },
+        {
+          "n": 7,
+          "title": "Split any story over the 8-point ceiling in Jira",
+          "sop": "The Software Engineer splits stories exceeding 8 points per the working agreement, done when none stays above the ceiling.",
+          "verify": "Reviewer filters the epic in Jira and confirms no drafted story exceeds 8 points."
+        },
+        {
+          "n": 8,
+          "title": "Log an exception for each requirement that cannot be storified in Jira",
+          "sop": "The Business Analyst logs the blocked requirement with a clarification due date, done when escalation follows after 5 business days.",
+          "verify": "Reviewer opens the epic exceptions in Jira and confirms owner plus due date per blocked requirement."
+        },
+        {
+          "n": 9,
+          "title": "Attach the requirement-to-story traceability matrix to the epic page in Confluence",
+          "sop": "The Business Analyst publishes the matrix, done when 100 percent of requirements map to a story with zero orphans.",
+          "verify": "Reviewer opens the matrix in Confluence and confirms every requirement row maps to at least one story."
+        },
+        {
+          "n": 10,
+          "title": "Record the Product Owner acceptance of the story set in Jira",
+          "sop": "The Product Owner accepts the drafted set into the Ready backlog, done when the acceptance is on the epic.",
+          "verify": "Reviewer opens the epic in Jira and confirms a dated Product Owner acceptance."
+        }
+      ]
+    },
+    {
+      "taskId": "1f249bd1-d30f-482d-a81e-e5a6d84b01a6",
+      "taskName": "Triage and escalate critical pipeline failures",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Create one incident for each triggered critical alert in ServiceNow ITSM",
+          "sop": "The Software Engineer creates exactly one incident per critical alert, done when no orphan alert or duplicate incident exists.",
+          "verify": "Reviewer reconciles alerts to incidents in ServiceNow ITSM and confirms a 1-to-1 mapping for the window."
+        },
+        {
+          "n": 2,
+          "title": "Set the severity per the incident-severity matrix v2 in ServiceNow ITSM",
+          "sop": "The Software Engineer sets Sev1 for a blocked business-critical feed or Sev2 for degraded with workaround, done when severity is set.",
+          "verify": "Reviewer opens the incident in ServiceNow ITSM and confirms the severity matches the matrix definition."
+        },
+        {
+          "n": 3,
+          "title": "Record the affected DAG on the incident in ServiceNow ITSM",
+          "sop": "The Data Engineer records the failing DAG plus business process, done when the field is populated.",
+          "verify": "Reviewer opens the incident in ServiceNow ITSM and confirms the affected DAG is recorded."
+        },
+        {
+          "n": 4,
+          "title": "Record the detection time on the incident in ServiceNow ITSM",
+          "sop": "The Software Engineer records the UTC detection timestamp, done when the timeline starts at detection.",
+          "verify": "Reviewer opens the incident timeline in ServiceNow ITSM and confirms the detection timestamp."
+        },
+        {
+          "n": 5,
+          "title": "Assign the on-call owner on the incident in ServiceNow ITSM",
+          "sop": "The Software Engineer assigns the on-call engineer, done when the workflow can move to In Progress.",
+          "verify": "Reviewer opens the incident in ServiceNow ITSM and confirms a named on-call owner."
+        },
+        {
+          "n": 6,
+          "title": "Acknowledge a Sev1 incident within 15 minutes in ServiceNow ITSM",
+          "sop": "The Software Engineer acknowledges Sev1 within 15 minutes or Sev2 within 30, done when the ack timestamp lands inside the SLA.",
+          "verify": "Reviewer reads the ack timestamp in ServiceNow ITSM and confirms it sits inside the severity SLA."
+        },
+        {
+          "n": 7,
+          "title": "Escalate an unacknowledged Sev1 to the secondary on-call in ServiceNow ITSM",
+          "sop": "The Site Reliability Engineer escalates past-SLA Sev1 to secondary then Engineering Manager, done when the escalation is logged.",
+          "verify": "Reviewer opens the incident in ServiceNow ITSM and confirms the escalation entries follow the matrix."
+        },
+        {
+          "n": 8,
+          "title": "Link the failing DAG run dashboard on the incident in ServiceNow ITSM",
+          "sop": "The Data Engineer cross-links the observability dashboard URL, done when the incident references the failing run.",
+          "verify": "Reviewer opens the incident in ServiceNow ITSM and confirms the DAG run link resolves."
+        },
+        {
+          "n": 9,
+          "title": "Close false-positive alerts with a false-positive disposition in ServiceNow ITSM",
+          "sop": "The Software Engineer closes false positives with the disposition feeding alert tuning, done when none closes undispositioned.",
+          "verify": "Reviewer filters closed incidents in ServiceNow ITSM and confirms the false-positive disposition on each."
+        },
+        {
+          "n": 10,
+          "title": "Log an SDLC-Exception for any missing runbook in Jira",
+          "sop": "The Site Reliability Engineer logs the exception with the 10-business-day SLA, done when the gap is tracked to an owner.",
+          "verify": "Reviewer opens the SDLC-Exception in Jira and confirms owner plus SLA for the missing runbook."
+        },
+        {
+          "n": 11,
+          "title": "Record the Site Reliability Engineer sign-off on the incident timeline in ServiceNow ITSM",
+          "sop": "The Site Reliability Engineer signs the triage record with 24-month retention, done when the sign-off is on the timeline.",
+          "verify": "Reviewer opens the incident in ServiceNow ITSM and confirms a dated Site Reliability Engineer sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "5cf3840e-0d91-435c-a2b4-5666a197e24e",
+      "taskName": "Triage demand to validate business need",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the new demand items for the weekly intake cycle in Jira",
+          "sop": "The Demand Manager pulls every submitted item for the window, done when the triage worklist is complete.",
+          "verify": "Reviewer runs the intake filter in Jira and confirms the worklist matches submissions."
+        },
+        {
+          "n": 2,
+          "title": "Check the requester on each demand item in Jira",
+          "sop": "The Business Analyst confirms the requester per item, done when none is blank.",
+          "verify": "Reviewer samples items in Jira and confirms every requester field is populated."
+        },
+        {
+          "n": 3,
+          "title": "Check the business sponsor on each demand item in Jira",
+          "sop": "The Business Analyst confirms a named sponsor per item, done when none lacks one.",
+          "verify": "Reviewer samples items in Jira and confirms every sponsor field is populated."
+        },
+        {
+          "n": 4,
+          "title": "Check the problem statement on each demand item in Jira",
+          "sop": "The Business Analyst confirms the problem statement per item, done when none is empty.",
+          "verify": "Reviewer samples items in Jira and confirms a problem statement on each."
+        },
+        {
+          "n": 5,
+          "title": "Check the expected value note on each demand item in Jira",
+          "sop": "The Business Analyst confirms the value or ROI note per item, done when unvalidated assumptions flag need-info.",
+          "verify": "Reviewer samples items in Jira and confirms a value note on each."
+        },
+        {
+          "n": 6,
+          "title": "Link the strategic objective on each demand item in Jira",
+          "sop": "The Demand Manager links the strategic-objective per item, done when none lacks the alignment link.",
+          "verify": "Reviewer samples items in Jira and confirms a strategic-objective link on each."
+        },
+        {
+          "n": 7,
+          "title": "Score each item with the approved intake scoring model in Jira",
+          "sop": "The Demand Manager applies the weighted value plus alignment plus effort model, done when each item carries its score.",
+          "verify": "Reviewer opens scored items in Jira and confirms the model score is recorded on each."
+        },
+        {
+          "n": 8,
+          "title": "Flag items over the 40-point effort threshold for a business case in Jira",
+          "sop": "The Demand Manager flags large or cross-team items for PMO review before acceptance, done when each carries the flag.",
+          "verify": "Reviewer filters large items in Jira and confirms the business-case flag on each over-threshold item."
+        },
+        {
+          "n": 9,
+          "title": "Record the triage decision with rationale on each item in Jira",
+          "sop": "The Demand Manager records accept or reject or park or need-info with rationale, done when the decision lands within 5 business days.",
+          "verify": "Reviewer opens items in Jira and confirms a decision plus rationale plus triager timestamp."
+        },
+        {
+          "n": 10,
+          "title": "Reconcile the intake board to zero undispositioned items in Jira",
+          "sop": "The Demand Manager reconciles entries to decisions at cycle end, done when zero items lack a disposition at cutoff.",
+          "verify": "Reviewer filters undispositioned items in Jira and confirms an empty result at cutoff."
+        },
+        {
+          "n": 11,
+          "title": "Record the PMO Manager sign-off on the intake board in Jira",
+          "sop": "The Demand Manager obtains the PMO Manager approval with the board snapshot retained 12 months, done when the sign-off is posted.",
+          "verify": "Reviewer opens the intake board in Jira and confirms a dated PMO Manager sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "3d1fae80-24fb-49e5-89b0-dba353d4a3d4",
+      "taskName": "Tune scheduling windows quarterly",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the quarterly contention analysis for tier-1 plus tier-2 pipelines in Grafana",
+          "sop": "The Data Engineer pulls runtimes plus overlaps for pipelines sharing capacity, done when the quarter analysis is complete.",
+          "verify": "Reviewer opens the contention dashboard in Grafana and confirms coverage of tier-1 plus tier-2 pipelines."
+        },
+        {
+          "n": 2,
+          "title": "Record the prior schedule for each tuned window in Data pipeline orchestrator (Airflow/Dagster/Prefect)",
+          "sop": "The Data Engineer captures the current schedule per pipeline before changes, done when each tuned window has its baseline.",
+          "verify": "Reviewer reads the schedule export in Data pipeline orchestrator (Airflow/Dagster/Prefect) and confirms prior values captured."
+        },
+        {
+          "n": 3,
+          "title": "Record the rationale for each schedule change on the change ticket in ServiceNow ITSM",
+          "sop": "The Software Engineer records the contention or throughput rationale per change, done when none lacks it.",
+          "verify": "Reviewer opens the change ticket in ServiceNow ITSM and confirms a rationale per schedule change."
+        },
+        {
+          "n": 4,
+          "title": "Record the rollback schedule for each change on the change ticket in ServiceNow ITSM",
+          "sop": "The Software Engineer captures the rollback schedule per change, done when every change can revert.",
+          "verify": "Reviewer opens the change ticket in ServiceNow ITSM and confirms a rollback schedule per change."
+        },
+        {
+          "n": 5,
+          "title": "Confirm each change projects at least a 5 percent P95 runtime gain in Grafana",
+          "sop": "The Data Engineer applies the SCHED-OPT-1 sensitivity rule, done when each change improves P95 or overlap without an SLA breach.",
+          "verify": "Reviewer reads the projection in Grafana and confirms the 5 percent gain or overlap drop per change."
+        },
+        {
+          "n": 6,
+          "title": "Obtain sign-off before changing any tier-1 pipeline window in ServiceNow ITSM",
+          "sop": "The Software Engineer obtains approval for regulatory or financial-feed pipelines, done when the change gains sign-off pre-apply.",
+          "verify": "Reviewer opens the change ticket in ServiceNow ITSM and confirms tier-1 approval precedes the apply date."
+        },
+        {
+          "n": 7,
+          "title": "Apply the new schedules in the change window in Data pipeline orchestrator (Airflow/Dagster/Prefect)",
+          "sop": "The Data Engineer applies changes within 10 business days of the review, done when the new windows are live.",
+          "verify": "Reviewer reads the live schedules in Data pipeline orchestrator (Airflow/Dagster/Prefect) and confirms they match the plan."
+        },
+        {
+          "n": 8,
+          "title": "Watch SLA-hit rates through the 2-week observation window in Grafana",
+          "sop": "The Data Engineer monitors post-change runs, done when SLA breaches after tuning do not exceed the pre-tuning count.",
+          "verify": "Reviewer opens the SLA dashboard in Grafana and confirms zero new breaches across the observation window."
+        },
+        {
+          "n": 9,
+          "title": "Raise a SCHED-REGRESSION ticket for any regressing window in Jira",
+          "sop": "The Software Engineer raises the ticket with a re-tuned or rolled-back disposition, done when the 5-business-day SLA is set.",
+          "verify": "Reviewer opens SCHED-REGRESSION tickets in Jira and confirms disposition plus SLA per regression."
+        },
+        {
+          "n": 10,
+          "title": "Roll back a regressing schedule in Data pipeline orchestrator (Airflow/Dagster/Prefect)",
+          "sop": "The Data Engineer reverts to the prior schedule on regression, done when the rollback lands in the same change window.",
+          "verify": "Reviewer reads the schedule history in Data pipeline orchestrator (Airflow/Dagster/Prefect) and confirms the revert."
+        },
+        {
+          "n": 11,
+          "title": "Store the before-after tuning report with the quarter tag in Confluence",
+          "sop": "The Software Engineer stores the schedule diff plus metrics with 24-month retention, done when the tagged report is saved.",
+          "verify": "Reviewer opens the report in Confluence and confirms the quarter tag plus before-after metrics."
+        },
+        {
+          "n": 12,
+          "title": "Record the Platform Engineering Lead sign-off on the tuning report in Confluence",
+          "sop": "The Software Engineer obtains the Platform Engineering Lead approval, done when the sign-off is on the report.",
+          "verify": "Reviewer opens the tuning report in Confluence and confirms a dated Platform Engineering Lead sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "7c9444b5-923a-4b10-8fcf-bcf2d94f1df5",
+      "taskName": "Tune streaming performance settings",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the 30-day consumer lag telemetry for breaching topics in Grafana",
+          "sop": "The Data Engineer pulls per-topic lag for topics that breached SLA in the last 30 days, done when the series is non-null.",
+          "verify": "Reviewer opens the lag panel in Grafana and confirms 30-day data for every breaching topic."
+        },
+        {
+          "n": 2,
+          "title": "Pull the 30-day throughput telemetry for breaching topics in Grafana",
+          "sop": "The Data Engineer pulls records-per-second throughput per topic, done when the series is non-null.",
+          "verify": "Reviewer opens the throughput panel in Grafana and confirms 30-day data for every breaching topic."
+        },
+        {
+          "n": 3,
+          "title": "Pull the 30-day p99 latency telemetry for breaching topics in Grafana",
+          "sop": "The Data Engineer pulls end-to-end p99 latency per topic, done when the series is non-null.",
+          "verify": "Reviewer opens the latency panel in Grafana and confirms 30-day data for every breaching topic."
+        },
+        {
+          "n": 4,
+          "title": "Pull the 30-day error-rate telemetry for breaching topics in Grafana",
+          "sop": "The Data Engineer pulls the error rate per topic, done when the series is non-null.",
+          "verify": "Reviewer opens the error panel in Grafana and confirms 30-day data for every breaching topic."
+        },
+        {
+          "n": 5,
+          "title": "Adjust the partition counts for the breaching topics in Event streaming platform (Kafka/Confluent)",
+          "sop": "The Software Engineer adjusts partitions per the telemetry findings, done when the new counts are applied.",
+          "verify": "Reviewer reads the topic config in Event streaming platform (Kafka/Confluent) and confirms the new partition counts."
+        },
+        {
+          "n": 6,
+          "title": "Adjust the consumer parallelism settings in Event streaming platform (Kafka/Confluent)",
+          "sop": "The Software Engineer tunes consumer parallelism per topic, done when the settings are applied.",
+          "verify": "Reviewer reads the consumer group config in Event streaming platform (Kafka/Confluent) and confirms the new parallelism."
+        },
+        {
+          "n": 7,
+          "title": "Adjust the back-pressure rate limits in Event streaming platform (Kafka/Confluent)",
+          "sop": "The Software Engineer tunes back-pressure limits without causing producer errors, done when the settings are applied.",
+          "verify": "Reviewer reads the rate-limit config in Event streaming platform (Kafka/Confluent) and confirms the applied values."
+        },
+        {
+          "n": 8,
+          "title": "Replay representative peak load against the tuned topics in k6 / Gatling Streaming Load Testing",
+          "sop": "The Data Engineer replays peak load with idempotent replay verified, done when zero records drop or duplicate.",
+          "verify": "Reviewer opens the load run in k6 / Gatling Streaming Load Testing and confirms zero dropped or duplicated records."
+        },
+        {
+          "n": 9,
+          "title": "Confirm p99 lag stays inside the 5-second SLA at peak in Grafana",
+          "sop": "The Data Engineer checks post-tune lag under peak, done when p99 lag holds under 5 seconds or 10k messages.",
+          "verify": "Reviewer reads the peak-load panel in Grafana and confirms p99 lag inside the SLA."
+        },
+        {
+          "n": 10,
+          "title": "Confirm partition utilization stays under 70 percent at peak in Grafana",
+          "sop": "The Data Engineer checks utilization headroom, done when peak utilization holds under 70 percent with 30 percent headroom.",
+          "verify": "Reviewer reads the utilization panel in Grafana and confirms sub-70-percent peak utilization."
+        },
+        {
+          "n": 11,
+          "title": "Attach the config diff with before-after snapshots to the change ticket in ServiceNow ITSM",
+          "sop": "The Software Engineer attaches the diff plus dashboard snapshots plus config commit SHA, done when the change holds all three.",
+          "verify": "Reviewer opens the change ticket in ServiceNow ITSM and confirms the diff plus snapshots plus SHA."
+        },
+        {
+          "n": 12,
+          "title": "Watch the 7-day observation window for SLA-breach alerts in Grafana",
+          "sop": "The Data Engineer monitors the post-change week, done when zero SLA-breach alerts fire before closing the change.",
+          "verify": "Reviewer opens the alert history in Grafana and confirms zero breach alerts across the 7 days."
+        },
+        {
+          "n": 13,
+          "title": "Revert to the prior config version on failure in GitHub Enterprise",
+          "sop": "The Software Engineer rolls back to the stored config version on a failed window, done when the revert commit lands.",
+          "verify": "Reviewer reads the config history in GitHub Enterprise and confirms the rollback commit restores the prior version."
+        },
+        {
+          "n": 14,
+          "title": "Record the Tech Lead sign-off on the change ticket in ServiceNow ITSM",
+          "sop": "The Software Engineer obtains the Tech Lead approval, done when the sign-off closes the change.",
+          "verify": "Reviewer opens the change ticket in ServiceNow ITSM and confirms a dated Tech Lead sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fjmog10xbkfgzg8fawzd3",
+      "taskName": "Update governance evidence pack",
+      "steps": [
+        {
+          "n": 1,
+          "title": "List the findings closed since the last pack update in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Governance Analyst lists newly closed findings within 5 business days of closure, done when the update set is fixed.",
+          "verify": "Reviewer queries closed findings in GRC platform (Archer/ServiceNow GRC) and confirms the update set matches."
+        },
+        {
+          "n": 2,
+          "title": "Add the finding ID for each closed item to the pack in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Governance Analyst adds each finding ID, done when no closed finding is missing from the pack.",
+          "verify": "Reviewer scans the pack in GRC platform (Archer/ServiceNow GRC) and confirms an entry per closed finding."
+        },
+        {
+          "n": 3,
+          "title": "Record the remediation description on each pack entry in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Governance Analyst records the remediation summary per entry, done when none is blank.",
+          "verify": "Reviewer samples pack entries in GRC platform (Archer/ServiceNow GRC) and confirms a remediation description on each."
+        },
+        {
+          "n": 4,
+          "title": "Link the closure evidence on each pack entry in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Software Engineer links the evidence artifact per entry, done when zero entries are closed-without-evidence.",
+          "verify": "Reviewer clicks evidence links in GRC platform (Archer/ServiceNow GRC) and confirms each resolves to an artifact."
+        },
+        {
+          "n": 5,
+          "title": "Record the closure date on each pack entry in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Governance Analyst records the GRC closure date per entry, done when dates match the register.",
+          "verify": "Reviewer compares entry dates in GRC platform (Archer/ServiceNow GRC) to the register and confirms they match."
+        },
+        {
+          "n": 6,
+          "title": "Record the approver on each pack entry in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Governance Analyst records the closure approver per entry, done when none lacks one.",
+          "verify": "Reviewer samples entries in GRC platform (Archer/ServiceNow GRC) and confirms an approver on each."
+        },
+        {
+          "n": 7,
+          "title": "Link the delivering change ticket on each remediation entry in ServiceNow ITSM",
+          "sop": "The Software Engineer links the CHG record plus implementing PR where code changed, done when each entry traces to its change.",
+          "verify": "Reviewer opens the change records in ServiceNow ITSM and confirms each pack entry links to one."
+        },
+        {
+          "n": 8,
+          "title": "Reconcile the pack closed count to the finding register in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Governance Analyst reconciles the counts, done when variance is zero and open plus closed equals the period total.",
+          "verify": "Reviewer recomputes the counts in GRC platform (Archer/ServiceNow GRC) and confirms zero variance."
+        },
+        {
+          "n": 9,
+          "title": "Raise an EVIDENCE-GAP issue for closures lacking evidence in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Governance Analyst raises the issue with an attach-or-reopen disposition, done when the 10-business-day SLA is set.",
+          "verify": "Reviewer opens EVIDENCE-GAP issues in GRC platform (Archer/ServiceNow GRC) and confirms disposition plus SLA on each."
+        },
+        {
+          "n": 10,
+          "title": "Version the updated pack with its SHA-256 hash in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Software Engineer saves the new version with hash plus editor plus UTC timestamp, done when prior versions are retained.",
+          "verify": "Reviewer opens the version history in GRC platform (Archer/ServiceNow GRC) and confirms the hashed new version."
+        },
+        {
+          "n": 11,
+          "title": "Record the Enterprise Architect sign-off on the pack version in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Governance Analyst obtains the Enterprise Architect approval, done when the sign-off is on the new version.",
+          "verify": "Reviewer opens the pack version in GRC platform (Archer/ServiceNow GRC) and confirms a dated sign-off."
+        }
+      ]
+    },
+    {
+      "taskId": "e485e011-d9a0-4051-bc50-06256e6f2d4c",
+      "taskName": "Validate implementation against architecture standards",
+      "steps": [
+        {
+          "n": 1,
+          "title": "List every merged PR in the release Fix Version in Jira",
+          "sop": "The Software Engineer pulls the full census of merged PRs since the last review, done when the component list is fixed.",
+          "verify": "Reviewer runs the Fix Version query in Jira and confirms the census matches the review scope."
+        },
+        {
+          "n": 2,
+          "title": "Map each changed component to an approved ADR in Confluence",
+          "sop": "The Tech Lead maps every changed component to its ADR plus the reference architecture, done when none is unmapped.",
+          "verify": "Reviewer opens the ADR log in Confluence and confirms an approved ADR per changed component."
+        },
+        {
+          "n": 3,
+          "title": "Run the architecture fitness-function suite on the release branch in GitHub Actions",
+          "sop": "The Software Engineer runs the compliance suite over every changed component, done when the run covers the full census.",
+          "verify": "Reviewer opens the suite run in GitHub Actions and confirms the component count matches the design package."
+        },
+        {
+          "n": 4,
+          "title": "Compare suite violations to the main-branch baseline in GitHub Actions",
+          "sop": "The Tech Lead compares release-branch violations to baseline, done when the count is the same or fewer.",
+          "verify": "Reviewer compares the two runs in GitHub Actions and confirms no violation growth over baseline."
+        },
+        {
+          "n": 5,
+          "title": "Check no new blocker or critical dependency issues in SonarQube",
+          "sop": "The Software Engineer checks architecture plus dependency rules, done when the change set introduces zero blocker or critical issues.",
+          "verify": "Reviewer filters new issues in SonarQube and confirms zero blocker or critical among them."
+        },
+        {
+          "n": 6,
+          "title": "Check the layering rule against direct UI-to-DB calls in SonarQube",
+          "sop": "The Tech Lead checks the layering rule per changed service, done when zero direct UI-to-DB calls appear in the change set.",
+          "verify": "Reviewer runs the layering rule report in SonarQube and confirms zero UI-to-DB violations in the release scope."
+        },
+        {
+          "n": 7,
+          "title": "Raise an ARCH-EXCEPTION for each deviation in Jira",
+          "sop": "The Tech Lead raises the exception with disposition waiver or remediate or reject, done when the 10-business-day SLA is set.",
+          "verify": "Reviewer opens ARCH-EXCEPTION issues in Jira and confirms disposition plus owner per deviation."
+        },
+        {
+          "n": 8,
+          "title": "Export the conformance report under the archconformance naming pattern in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Software Engineer exports the PDF with commit SHA plus ADR IDs plus signatures, done when the 7-year retention applies.",
+          "verify": "Reviewer opens the repository in GRC platform (Archer/ServiceNow GRC) and confirms the named PDF with retention."
+        },
+        {
+          "n": 9,
+          "title": "Record the conformance decision in the ARB minutes in Confluence",
+          "sop": "The Tech Lead records conformant or conditional or non-conformant with rationale plus condition due dates, done when minutes publish.",
+          "verify": "Reviewer opens the ARB minutes in Confluence and confirms the decision with rationale plus dates."
+        },
+        {
+          "n": 10,
+          "title": "Link the conformance report ID to the change record in ServiceNow ITSM",
+          "sop": "The Software Engineer links the report ID plus ARB decision to the change, done when the change references both.",
+          "verify": "Reviewer opens the change record in ServiceNow ITSM and confirms the report plus decision references."
+        },
+        {
+          "n": 11,
+          "title": "Record the Enterprise Architect sign-off on the conformance report in GRC platform (Archer/ServiceNow GRC)",
+          "sop": "The Enterprise Architect signs the report as an approver distinct from the change author, done when the sign-off is recorded.",
+          "verify": "Reviewer opens the report in GRC platform (Archer/ServiceNow GRC) and confirms the Enterprise Architect signature."
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fiakg0e18kfgzy9ew5k69",
+      "taskName": "Validate interface contracts",
+      "steps": [
+        {
+          "n": 1,
+          "title": "List every provider-consumer pair from the dependency map in Pact Broker",
+          "sop": "The Integration Engineer lists each declared integration pair for the release, done when zero dependencies lack a contract.",
+          "verify": "Reviewer compares the pair list in Pact Broker to the dependency map and confirms full coverage."
+        },
+        {
+          "n": 2,
+          "title": "Validate each published contract against its schema in GitHub Actions",
+          "sop": "The Backend Developer runs schema validation on every OpenAPI or AsyncAPI contract, done when each validates clean.",
+          "verify": "Reviewer opens the validation stage in GitHub Actions and confirms every contract passed schema checks."
+        },
+        {
+          "n": 3,
+          "title": "Verify each consumer pact against the provider in Pact Broker",
+          "sop": "The Integration Engineer runs provider verification for every pact, done when 100 percent of pairs verify green.",
+          "verify": "Reviewer opens the verification matrix in Pact Broker and confirms green results on every pair."
+        },
+        {
+          "n": 4,
+          "title": "Re-run stale verifications older than the release candidate in Pact Broker",
+          "sop": "The Integration Engineer re-runs verifications timestamped before the RC, done when none predates the build window.",
+          "verify": "Reviewer reads verification timestamps in Pact Broker and confirms all fall inside the current build window."
+        },
+        {
+          "n": 5,
+          "title": "Bump the contract version for any change to required fields or types in GitHub Enterprise",
+          "sop": "The Backend Developer version-bumps breaking changes per the sensitivity rule, done when no breaking change ships unversioned.",
+          "verify": "Reviewer reads the contract diff in GitHub Enterprise and confirms a version bump on every breaking change."
+        },
+        {
+          "n": 6,
+          "title": "Obtain consumer sign-off for each breaking change in Jira",
+          "sop": "The Integration Engineer collects sign-off from each live consumer, done when no material change lacks consumer agreement.",
+          "verify": "Reviewer opens the breaking-change tickets in Jira and confirms consumer sign-off on each."
+        },
+        {
+          "n": 7,
+          "title": "Log an SDLC-Exception with a migration window for each breaking change in Jira",
+          "sop": "The Integration Engineer logs the exception naming the Integration Architect as owner, done when the migration window is set.",
+          "verify": "Reviewer opens the SDLC-Exception in Jira and confirms owner plus migration window per breaking change."
+        },
+        {
+          "n": 8,
+          "title": "Reconcile the required-field count from provider schema to consumer pact in Pact Broker",
+          "sop": "The Backend Developer reconciles required fields per operation against the provider schema, done when counts match.",
+          "verify": "Reviewer compares the control totals in Pact Broker and confirms required-field counts match per operation."
+        },
+        {
+          "n": 9,
+          "title": "Confirm every pair shows verified for the RC version pair in Pact Broker",
+          "sop": "The Integration Engineer checks the release gate, done when every provider-consumer version pair is verified before deploy.",
+          "verify": "Reviewer opens the RC matrix in Pact Broker and confirms zero red or unverified pairs at the gate."
+        },
+        {
+          "n": 10,
+          "title": "Archive the SHA-keyed verification logs for 400 days in GitHub Actions",
+          "sop": "The Integration Engineer archives CI logs keyed to commit SHA plus contract version, done when 400-day retention applies.",
+          "verify": "Reviewer opens the artifact settings in GitHub Actions and confirms SHA-keyed logs with 400-day retention."
+        },
+        {
+          "n": 11,
+          "title": "Record the Integration Architect approval on the release verification in Pact Broker",
+          "sop": "The Integration Engineer obtains the Integration Architect approval, done when the sign-off is recorded for the release.",
+          "verify": "Reviewer opens the release verification in Pact Broker and confirms the recorded approval."
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl8po1rrckfgz6kznx564",
+      "taskName": "Validate requirements with business stakeholders",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the Ready for Review stories for the epic in Jira",
+          "sop": "The Business Analyst pulls every story at Ready for Review linked to the epic, done when Draft plus Backlog items are excluded.",
+          "verify": "Reviewer runs the status filter in Jira and confirms the review set holds only Ready for Review stories."
+        },
+        {
+          "n": 2,
+          "title": "Check the Given/When/Then acceptance criteria on each story in Jira",
+          "sop": "The Business Analyst confirms non-empty Gherkin criteria per story, done when the automation would pass each transition.",
+          "verify": "Reviewer opens each story in Jira and confirms populated Given/When/Then criteria."
+        },
+        {
+          "n": 3,
+          "title": "Check the testable definition of done on each story in Jira",
+          "sop": "The Business Analyst confirms a testable DoD per story, done when none is missing it.",
+          "verify": "Reviewer samples stories in Jira and confirms a testable definition of done on each."
+        },
+        {
+          "n": 4,
+          "title": "Check the linked business owner on each story in Jira",
+          "sop": "The Business Analyst confirms a linked business owner per story, done when none lacks one.",
+          "verify": "Reviewer samples stories in Jira and confirms a business owner link on each."
+        },
+        {
+          "n": 5,
+          "title": "Flag stories touching regulated flows as material in Jira",
+          "sop": "The Business Analyst flags rating plus claims-payout plus PII stories, done when each requires compliance sign-off before build.",
+          "verify": "Reviewer filters flagged stories in Jira and confirms the material flag on every regulated-flow story."
+        },
+        {
+          "n": 6,
+          "title": "Walk the stakeholders through each story in the validation session",
+          "sop": "The Business Analyst reviews every story with the business stakeholders, done when each story is discussed in session.",
+          "verify": "Reviewer reads the session minutes in Confluence and confirms every review-set story was covered."
+        },
+        {
+          "n": 7,
+          "title": "Record a disposition on each reviewed story in Jira",
+          "sop": "The Product Owner records Accepted or Changed or Rejected per story, done when zero stories leave the session undispositioned.",
+          "verify": "Reviewer opens the review log in Jira and confirms a disposition on every reviewed story."
+        },
+        {
+          "n": 8,
+          "title": "Raise a Requirement-Clarification sub-task for each disputed story in Jira",
+          "sop": "The Business Analyst raises the sub-task with assignee plus due date, done when the 5-business-day SLA is set.",
+          "verify": "Reviewer opens the sub-tasks in Jira and confirms assignee plus due date per disputed story."
+        },
+        {
+          "n": 9,
+          "title": "Re-validate any story whose criteria changed over 20 percent in Jira",
+          "sop": "The Business Analyst re-runs validation with the business owner on large scope changes, done when the re-validation is logged.",
+          "verify": "Reviewer opens changed stories in Jira and confirms a re-validation record where scope moved over 20 percent."
+        },
+        {
+          "n": 10,
+          "title": "Publish the validation minutes under the epic space in Confluence",
+          "sop": "The Business Analyst publishes the minutes under the epic naming pattern with 3-year retention, done when the page is versioned.",
+          "verify": "Reviewer opens the epic space in Confluence and confirms the versioned validation minutes page."
+        },
+        {
+          "n": 11,
+          "title": "Reconcile the reviewed count to the dispositioned count in Jira",
+          "sop": "The Business Analyst reconciles session counts, done when reviewed equals dispositioned at session close.",
+          "verify": "Reviewer compares the review log totals in Jira and confirms zero un-dispositioned stories."
+        },
+        {
+          "n": 12,
+          "title": "Record the Product Owner sign-off on the epic Validation field in Jira",
+          "sop": "The Product Owner records approved or rework with the minutes link, done when the Validation field is set with date.",
+          "verify": "Reviewer opens the epic in Jira and confirms the Validation field holds a dated Product Owner decision."
+        }
+      ]
+    },
+    {
+      "taskId": "6a221296-95dd-4b9f-aeba-013afde2ade6",
+      "taskName": "Write and execute unit tests",
+      "steps": [
+        {
+          "n": 1,
+          "title": "List the changed public methods in the PR diff in GitHub Enterprise",
+          "sop": "The Software Engineer lists every changed public method plus branch in the diff, done when the test population is fixed.",
+          "verify": "Reviewer reads the PR diff in GitHub Enterprise and confirms the list covers every changed public method."
+        },
+        {
+          "n": 2,
+          "title": "Write an arrange-act-assert unit test for each changed method in GitHub Enterprise",
+          "sop": "The Backend Developer writes a behavior-asserting test per changed method, done when none is left untested.",
+          "verify": "Reviewer maps tests to methods in GitHub Enterprise and confirms coverage of every changed public method."
+        },
+        {
+          "n": 3,
+          "title": "Remove wall-clock or network dependence from each new test in GitHub Enterprise",
+          "sop": "The UI Developer makes each test deterministic, done when no test relies on wall-clock or network.",
+          "verify": "Reviewer inspects the new tests in GitHub Enterprise and confirms no timing or network dependence."
+        },
+        {
+          "n": 4,
+          "title": "Run the unit test suite on the pull request in GitHub Actions",
+          "sop": "The Software Engineer runs the suite on the PR, done when every test is green.",
+          "verify": "Reviewer opens the run in GitHub Actions and confirms zero red tests for the head commit."
+        },
+        {
+          "n": 5,
+          "title": "Check overall line coverage meets the 80 percent floor in SonarQube",
+          "sop": "The Software Engineer checks total line coverage, done when it is at or above 80 percent.",
+          "verify": "Reviewer opens the project measures in SonarQube and confirms line coverage at or above 80 percent."
+        },
+        {
+          "n": 6,
+          "title": "Check critical-path coverage meets the 90 percent floor in SonarQube",
+          "sop": "The Backend Developer checks critical-path modules, done when their coverage is at or above 90 percent.",
+          "verify": "Reviewer opens the module measures in SonarQube and confirms critical-path coverage at or above 90 percent."
+        },
+        {
+          "n": 7,
+          "title": "Check changed-line coverage meets the 80 percent floor in SonarQube",
+          "sop": "The Software Engineer checks the PR coverage diff, done when changed-line coverage is at or above 80 percent.",
+          "verify": "Reviewer opens the PR analysis in SonarQube and confirms changed-line coverage at or above 80 percent."
+        },
+        {
+          "n": 8,
+          "title": "Run the mutation-testing sample on critical modules in GitHub Actions",
+          "sop": "The Backend Developer runs the mutation sample to confirm assertion strength, done when the sample run completes.",
+          "verify": "Reviewer opens the mutation run in GitHub Actions and confirms results for the critical-module sample."
+        },
+        {
+          "n": 9,
+          "title": "Quarantine any flaky test with a tracking label in Jira",
+          "sop": "The Software Engineer labels each flaky spec with a 5-business-day fix SLA, done when none is untracked.",
+          "verify": "Reviewer searches the flaky label in Jira and confirms a tracked ticket per quarantined test."
+        },
+        {
+          "n": 10,
+          "title": "Log an SDLC-Exception for any coverage shortfall waiver in Jira",
+          "sop": "The Software Engineer logs the waiver naming the Engineering Manager as owner, done when the 10-business-day plan is attached.",
+          "verify": "Reviewer opens the SDLC-Exception in Jira and confirms owner plus remediation plan for the shortfall."
+        },
+        {
+          "n": 11,
+          "title": "Confirm the coverage artifacts carry the 90-day retention in GitHub Actions",
+          "sop": "The Software Engineer checks the JUnit plus coverage artifacts tagged with commit SHA, done when 90-day retention applies.",
+          "verify": "Reviewer opens the artifact settings in GitHub Actions and confirms SHA tagging with 90-day retention."
+        },
+        {
+          "n": 12,
+          "title": "Record the Tech Lead review approval on the pull request in GitHub Enterprise",
+          "sop": "The Software Engineer obtains the Tech Lead review, done when the approval is recorded on the PR.",
+          "verify": "Reviewer opens the pull request in GitHub Enterprise and confirms the Tech Lead approval."
+        }
+      ]
+    }
+  ]
+}

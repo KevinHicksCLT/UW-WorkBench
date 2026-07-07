@@ -699,16 +699,18 @@ erDiagram
     string id PK
     string companyId FK
     string name
+    string applicationId FK "-> Application (nullable, WR-01; free-text label kept as fallback)"
     string valueStreamNodeId FK "-> ProcessNode (nullable; was valueStreamId)"
     string status_
     bool illustrative
   }
   RationalizationApp {
-    string status "brown-field legacy app (grid column)"
+    string status "brown-field legacy app (grid column) or shared service (own lane, WR-15)"
     string id PK
     string companyId FK
     string workspaceId FK
     string name
+    string kind "LEGACY|SHARED_SERVICE (WR-15)"
     string disposition
     string techStack
   }
@@ -729,9 +731,35 @@ erDiagram
     string workspaceId FK
     string appId FK
     string componentId FK "nullable"
+    string sharedServiceId FK "-> RationalizationApp SHARED_SERVICE relocate target (nullable, WR-15)"
     string layer
+    string view "COMPONENT|BEHAVIOR (anatomy lens, WR-06)"
+    string screenRef "screen/modal tag (UI findings, nullable)"
+    string plainSummary "non-technical one-liner (nullable)"
+    string recommendedLayer "suggested correct layer for misplaced items (nullable)"
     string capdan "Common|Different|Relocate|Eliminate"
     string treatment
+  }
+  AnatomyCategory {
+    string status "reference catalog: what belongs/must-not-be in each layer (WR-06)"
+    string id PK
+    string companyId FK
+    string layer "UI|Integration|Business Service|Data|Infrastructure"
+    string view "COMPONENT|BEHAVIOR|MISPLACED"
+    string name
+    string description "plain-language"
+    string recommendedLayer "MISPLACED rows: where it belongs (nullable)"
+  }
+  ScreenAsset {
+    string status "screen/modal of a legacy app, linkable from UI findings"
+    string id PK
+    string companyId FK
+    string workspaceId FK
+    string appId FK "nullable"
+    string name
+    string kind "SCREEN|MODAL"
+    string url "deep link (nullable)"
+    string processNodeId FK "-> ProcessNode L4 (nullable)"
   }
   RationalizationMicroservice {
     string status "green-field target microservice/app"
@@ -768,7 +796,7 @@ erDiagram
     string status_ "ACTIVE|DEACTIVATED"
     string externalId "IAM subject id (nullable)"
     string orgUnitId FK "-> OrgUnit (nullable)"
-    string geography "NORTH_AMERICA|UK_EUROPE|APAC|LATAM"
+    string geography "GLOBAL|NORTH_AMERICA|UK_EUROPE|APAC|LATAM"
     string operatingRoleId FK "-> Role (nullable)"
     bool isManager
     string reportsToId FK "self -> User (nullable)"
@@ -830,10 +858,57 @@ erDiagram
     string tenantId FK
     string userId FK
     string text
+    string category "FUNCTIONAL_DEFECT|FUNCTIONAL_ENHANCEMENT|DATA_ISSUE (nullable)"
     string route
     string jiraKey
   }
+  ApprovalPolicy {
+    string note "creator->approver framework: which decision needs approval + definition of done"
+    string id PK
+    string tenantId FK
+    string decisionKey "unique per tenant, e.g. portfolio.initiative.stage-gate"
+    bool enabled
+    int slaHours
+  }
+  ApprovalPolicyStage {
+    string id PK
+    string policyId FK
+    int order_ "1-based; stage N+1 dispatches after N completes"
+    string quorum "MANAGER|ANY_OF|ALL_OF|N_OF_M"
+    json seats "seat rules: MANAGER|ROLES|USERS|ENTITY_ROLE|SITE_ADMINS"
+  }
+  ApprovalRequest {
+    string note "held mutation: payload replayed on final approval"
+    string id PK
+    string tenantId FK
+    string policyId FK
+    string entityType
+    string entityId "nullable"
+    json payload "validated body"
+    json subjectAttrs "ABAC subject (orgUnit, geography, valueStream...)"
+    string requestedById FK "-> User"
+    int currentStage
+    string status_ "PENDING|APPROVED|REJECTED|CANCELLED|EXPIRED"
+    datetime dueAt
+  }
+  ApprovalAssignment {
+    string note "one approver-candidate per seat; first decision fills the seat"
+    string id PK
+    string requestId FK
+    int stageOrder
+    string seatKey
+    string assigneeId FK "-> User"
+    string status_ "PENDING|APPROVED|REJECTED|SUPERSEDED|CANCELLED"
+    datetime assignedAt "wait-time clock start"
+    datetime decidedAt
+    string method "IN_APP|ADAPTIVE_CARD_TEAMS|ADAPTIVE_CARD_EMAIL|SERVICENOW|API"
+    string externalRef "e.g. ServiceNow ticket #"
+  }
   %% ================= RELATIONSHIPS =================
+  %% approvals
+  ApprovalPolicy ||--o{ ApprovalPolicyStage : "defines stages"
+  ApprovalPolicy ||--o{ ApprovalRequest : "governs"
+  ApprovalRequest ||--o{ ApprovalAssignment : "seats"
   %% org spine
   Company ||--o{ OrgLevelType : "defines"
   Company ||--o{ OrgUnit : "has"
@@ -983,7 +1058,13 @@ erDiagram
   RationalizationWorkspace ||--o{ RationalizationCapability : "finds"
   RationalizationWorkspace ||--o{ RationalizationMicroservice : "targets"
   RationalizationWorkspace ||--o{ RationalizationPlanStep : "plans"
+  Application |o--o{ RationalizationWorkspace : "rationalized by"
+  RationalizationWorkspace ||--o{ ScreenAsset : "catalogs screens"
+  RationalizationApp |o--o{ ScreenAsset : "renders"
+  ProcessNode |o--o{ ScreenAsset : "serves L4"
+  Company ||--o{ AnatomyCategory : "defines taxonomy"
   RationalizationApp ||--o{ RationalizationCapability : "exposes"
+  RationalizationApp |o--o{ RationalizationCapability : "relocate-target (shared service)"
   RationalizationComponent ||--o{ RationalizationCapability : "folds-in"
   RationalizationMicroservice ||--o{ RationalizationComponent : "lands"
   Role |o--o{ RationalizationMicroservice : "owns"
@@ -1072,6 +1153,8 @@ erDiagram
   style RationalizationApp fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
   style RationalizationComponent fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
   style RationalizationCapability fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style AnatomyCategory fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style ScreenAsset fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
   style RationalizationMicroservice fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
   style RationalizationPlanStep fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
   style WorkTemplate fill:#E9F7EF,stroke:#27AE60,stroke-width:2px,color:#196F3D
@@ -1094,3 +1177,7 @@ erDiagram
   style ApiKey fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
   style WebhookEvent fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
   style Feedback fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
+  style ApprovalPolicy fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
+  style ApprovalPolicyStage fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
+  style ApprovalRequest fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A
+  style ApprovalAssignment fill:#EBDEF0,stroke:#8E44AD,stroke-width:2px,color:#4A235A

@@ -32,6 +32,8 @@ model Tenant {
   auditEntries   AuditEntry[]
   permissionSets PermissionSet[]
   apiKeys        ApiKey[]
+  approvalPolicies ApprovalPolicy[]
+  approvalRequests ApprovalRequest[]
 }
 
 model User {
@@ -49,7 +51,7 @@ model User {
   // verify ref.company.tenantId === user.tenantId — see services/userProvisioning)
   orgUnitId       String?
   orgUnit         OrgUnit? @relation("UserOrgUnit", fields: [orgUnitId], references: [id], onDelete: SetNull)
-  geography       String? // NORTH_AMERICA | UK_EUROPE | APAC | LATAM
+  geography       String? // GLOBAL | NORTH_AMERICA | UK_EUROPE | APAC | LATAM
   operatingRoleId String? // link to the operating-model Role (job role), not User.role
   operatingRole   Role?    @relation("UserOperatingRole", fields: [operatingRoleId], references: [id], onDelete: SetNull)
   isManager       Boolean  @default(false)
@@ -64,6 +66,9 @@ model User {
   valueStreams UserValueStream[]
   overrides    UserPermissionOverride[]
   preferences  UserPreference[]
+
+  approvalRequests    ApprovalRequest[]    @relation("ApprovalRequestedBy")
+  approvalAssignments ApprovalAssignment[] @relation("ApprovalAssignee")
 
   @@unique([tenantId, externalId])
   @@index([tenantId])
@@ -182,6 +187,98 @@ model WebhookEvent {
 // pipeline (LLM ticket generation → Jira issue → notification email).
 // Deliberately relationless like WebhookEvent: rows are an ops/audit log,
 // not part of the operating-model domain graph.
+// ─── Approvals (creator → approver framework, Phase 1) ─────────────────
+// A policy declares which decision requires approval and what "approved"
+// means (ordered stages, each with a quorum). Governed mutations are HELD:
+// the validated body is stored as ApprovalRequest.payload and replayed
+// through the same code path on final approval (lib/approvals/).
+
+model ApprovalPolicy {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  decisionKey String // shared/src/approvals.ts DECISION_KEYS, e.g. "portfolio.initiative.stage-gate"
+  name        String
+  description String?
+  enabled     Boolean  @default(false)
+  slaHours    Int      @default(72) // response SLA (~3 working days; escalation lands in Phase 4)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  stages   ApprovalPolicyStage[]
+  requests ApprovalRequest[]
+
+  @@unique([tenantId, decisionKey])
+}
+
+// One ordered stage of a policy's definition of done. Stage N+1's assignments
+// are created only when stage N completes; a rejection anywhere terminates.
+model ApprovalPolicyStage {
+  id       String         @id @default(cuid())
+  policyId String
+  policy   ApprovalPolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  order    Int // 1-based
+  quorum   String // MANAGER | ANY_OF | ALL_OF | N_OF_M
+  n        Int? // for N_OF_M
+  seats    Json // ApprovalSeatRule[]: {kind:"MANAGER"} | {kind:"ROLES",roleIds} | {kind:"USERS",userIds} | {kind:"ENTITY_ROLE",attr} | {kind:"SITE_ADMINS"}
+
+  @@unique([policyId, order])
+}
+
+model ApprovalRequest {
+  id            String         @id @default(cuid())
+  tenantId      String
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  policyId      String
+  policy        ApprovalPolicy @relation(fields: [policyId], references: [id], onDelete: Restrict) // history outlives config edits
+  entityType    String
+  entityId      String?
+  action        String // e.g. STAGE_ADVANCE | REPLACE_GRANTS | MINT_ADMIN | POLICY_CHANGE | CR_APPROVE
+  summary       String // one-liner shown in inboxes/cards
+  payload       Json // the zod-validated body, replayed on final approval
+  subjectAttrs  Json? // ABAC subject: { orgUnitId?, geography?, valueStreamNodeId?, sponsorRoleId? … }
+  requestedById String
+  requestedBy   User           @relation("ApprovalRequestedBy", fields: [requestedById], references: [id])
+  currentStage  Int            @default(1)
+  status        String         @default("PENDING") // PENDING | APPROVED | REJECTED | CANCELLED | EXPIRED
+  dueAt         DateTime?
+  decidedAt     DateTime?
+  applyError    String? // replay failure — request stays APPROVED, retryable by an admin
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now()) @updatedAt
+
+  assignments ApprovalAssignment[]
+
+  @@index([tenantId, status, createdAt])
+  @@index([tenantId, entityType, entityId])
+  @@index([requestedById])
+  @@index([policyId])
+}
+
+// One approver-candidate on one seat of one stage. Several rows may share a
+// seat (any eligible role-holder); the first decision fills the seat and
+// SUPERSEDEs its siblings. assignedAt→decidedAt is the wait-time measurement.
+model ApprovalAssignment {
+  id          String          @id @default(cuid())
+  requestId   String
+  request     ApprovalRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  stageOrder  Int
+  seatKey     String // "manager" | "site-admins" | role/user id — stable within the stage
+  assigneeId  String
+  assignee    User            @relation("ApprovalAssignee", fields: [assigneeId], references: [id])
+  escalated   Boolean         @default(false) // seat filled via fallback chain, not the primary rule
+  status      String          @default("PENDING") // PENDING | APPROVED | REJECTED | SUPERSEDED | CANCELLED
+  assignedAt  DateTime        @default(now())
+  decidedAt   DateTime?
+  method      String? // IN_APP | ADAPTIVE_CARD_TEAMS | ADAPTIVE_CARD_EMAIL | SERVICENOW | API
+  externalRef String? // e.g. ServiceNow ticket #
+  comment     String?
+
+  @@unique([requestId, stageOrder, seatKey, assigneeId])
+  @@index([assigneeId, status])
+  @@index([requestId])
+}
+
 model Feedback {
   id                   String    @id @default(cuid())
   tenantId             String
@@ -191,6 +288,7 @@ model Feedback {
   route                String // client route the feedback was submitted from
   commitSha            String
   userAgent            String
+  category             String? // FUNCTIONAL_DEFECT | FUNCTIONAL_ENHANCEMENT | DATA_ISSUE — null on rows predating the field
   screenshot           Bytes? // captured client-side; served at /feedback/:id/screenshot
   screenshotMime       String?
   status               String    @default("PENDING") // PENDING | GENERATED | TICKETED | NOTIFIED | FAILED
@@ -261,6 +359,7 @@ model Company {
   regulatorySources         RegulatorySource[]
   // App Rationalization
   rationalizationWorkspaces RationalizationWorkspace[]
+  anatomyCategories         AnatomyCategory[]
   // Scenario / telemetry / analysis
   scenarios                 Scenario[]
   telemetrySignals          TelemetrySignal[]
@@ -462,6 +561,7 @@ model ProcessNode {
   scenarios                 Scenario[]
   rationalizationWorkspaces RationalizationWorkspace[]
   userValueStreams          UserValueStream[]
+  screenAssets              ScreenAsset[]
 
   @@index([companyId, processLevelTypeId])
   @@index([parentId])
@@ -639,6 +739,7 @@ model Application {
   regulationTemplateAnswers RegulationTemplateAnswer[]
   nodeStandardEvidences     NodeStandardEvidence[]
   nodeRegulationEvidences   NodeRegulationEvidence[]
+  rationalizationWorkspaces RationalizationWorkspace[]
 
   @@index([companyId])
   @@index([orgUnitId])
@@ -1660,7 +1761,12 @@ model RationalizationWorkspace {
   companyId         String
   company           Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
   name              String
-  application       String?
+  application       String? // display label; canonical link is applicationId (WR-01)
+  // Estate-application link as a real FK (WR-01 — the free-text `application`
+  // string always violated the no-free-text-references rule; kept as fallback
+  // label for boards whose name matches no Application row).
+  applicationId     String?
+  applicationRef    Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
   stageOrder        Int          @default(0)
   businessProcess   String?
   description       String?
@@ -1679,10 +1785,12 @@ model RationalizationWorkspace {
   components    RationalizationComponent[]
   microservices RationalizationMicroservice[]
   planSteps     RationalizationPlanStep[]
+  screens       ScreenAsset[]
 
   @@unique([tenantId, companyId, name])
   @@index([companyId])
   @@index([valueStreamNodeId])
+  @@index([applicationId])
 }
 
 model RationalizationApp {
@@ -1693,6 +1801,7 @@ model RationalizationApp {
   workspace    RationalizationWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   name         String
   description  String?
+  kind         String                   @default("LEGACY") // LEGACY | SHARED_SERVICE — shared services (MDM/RDM, auth, docs) render in their own lane (WR-15)
   disposition  String                   @default("Refactor") // Retain | Refactor | Replace | Retire
   techStack    String?
   vendor       String?
@@ -1706,6 +1815,9 @@ model RationalizationApp {
   updatedAt    DateTime                 @updatedAt
 
   capabilities RationalizationCapability[]
+  screens      ScreenAsset[]
+  // Relocate findings whose destination is this shared service (WR-15).
+  relocatedFindings RationalizationCapability[] @relation("CapabilitySharedService")
 
   @@index([companyId])
   @@index([workspaceId])
@@ -1737,6 +1849,49 @@ model RationalizationComponent {
   @@index([microserviceId])
 }
 
+// Reference catalog for the anatomy taxonomy (WR-06): per layer × view, the
+// element/behavior categories that BELONG there, plus the MISPLACED view —
+// categories that must NOT be in the layer, each with the layer they belong
+// in. Seeded from the dispositioned renovation taxonomy; admin-editable later.
+model AnatomyCategory {
+  id               String  @id @default(cuid())
+  tenantId         String
+  companyId        String
+  company          Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  layer            String // UI | Integration | Business Service | Data | Infrastructure
+  view             String // COMPONENT | BEHAVIOR | MISPLACED
+  name             String
+  description      String // plain-language, non-technical
+  recommendedLayer String? // MISPLACED rows: the layer this concern belongs in
+  sortOrder        Int     @default(0)
+
+  @@unique([companyId, layer, view, name])
+  @@index([companyId, layer])
+}
+
+// A concrete screen or modal of a legacy application, linkable from UI-layer
+// findings (WR-06: "clickable link to see the actual UI screen(s) that align
+// to an L4 process"). Optional FK to the L4 ProcessNode it serves.
+model ScreenAsset {
+  id            String                   @id @default(cuid())
+  tenantId      String
+  companyId     String
+  workspaceId   String
+  workspace     RationalizationWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  appId         String?
+  app           RationalizationApp?      @relation(fields: [appId], references: [id], onDelete: Cascade)
+  name          String
+  kind          String                   @default("SCREEN") // SCREEN | MODAL
+  url           String? // deep link to the live screen (or image/asset)
+  processNodeId String?
+  processNode   ProcessNode?             @relation(fields: [processNodeId], references: [id], onDelete: SetNull)
+
+  @@unique([workspaceId, name])
+  @@index([companyId])
+  @@index([appId])
+  @@index([processNodeId])
+}
+
 model RationalizationCapability {
   id                String                    @id @default(cuid())
   tenantId          String
@@ -1748,8 +1903,16 @@ model RationalizationCapability {
   layer             String
   name              String
   category          String?
+  view              String                    @default("COMPONENT") // COMPONENT | BEHAVIOR — anatomy lens (WR-06)
+  screenRef         String? // UI findings: screen or modal it lives on (e.g. "User Admin › Users")
+  plainSummary      String? // one-sentence non-technical explanation (WR-10)
+  recommendedLayer  String? // rule/AI-suggested correct layer for misplaced items (targetLayer = the human decision)
   capdan            String                    @default("Common") // Common | Different | Relocate | Eliminate
   targetLayer       String?
+  // Relocate findings can land in a SHARED_SERVICE app instead of a layer —
+  // e.g. a hard-coded state list replaced by an MDM/RDM call (WR-15).
+  sharedServiceId   String?
+  sharedService     RationalizationApp?       @relation("CapabilitySharedService", fields: [sharedServiceId], references: [id], onDelete: SetNull)
   treatment         String                    @default("Retain") // Retain | Eliminate
   migrationStatus   String                    @default("Identified")
   componentId       String?
@@ -1769,6 +1932,7 @@ model RationalizationCapability {
   @@index([workspaceId])
   @@index([appId])
   @@index([componentId])
+  @@index([sharedServiceId])
 }
 
 model RationalizationMicroservice {

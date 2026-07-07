@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { USER_TYPES, USER_TYPE_LABELS, type UserType } from '@cascade/shared';
 import { api } from '../../lib/api';
+import { isHeldResponse, notifyHeld } from '../../lib/approvals';
 import { useAuth } from '../../lib/auth';
+import { useDialogs } from '../../lib/dialogs';
 import { Button, Card, ErrorMessage, LoadingState } from '../ui';
 import { GrantTree } from './PermissionTree';
 import { grantRowsFromState, grantStateFromRows, type GrantState } from './permissionTreeModel';
@@ -22,6 +24,7 @@ type PermissionSet = { id: string; userType: UserType; grants: GrantRow[] };
 
 export default function PermissionSetsAdmin() {
   const { refreshMe } = useAuth();
+  const dialogs = useDialogs();
   const [sets, setSets] = useState<PermissionSet[] | null>(null);
   const [selected, setSelected] = useState<UserType>(USER_TYPES[0]);
   const [state, setState] = useState<GrantState | null>(null);
@@ -51,9 +54,16 @@ export default function PermissionSetsAdmin() {
     setSaving(true);
     setError('');
     try {
-      const updated = (await api.put(`/users/permission-sets/${selected}`, {
+      const res = await api.put(`/users/permission-sets/${selected}`, {
         grants: grantRowsFromState(state),
-      })) as PermissionSet;
+      });
+      // Permission-set replacement is governed — a 202-held response means the
+      // grants did NOT change; keep the editor dirty so the edit isn't lost.
+      if (isHeldResponse(res)) {
+        await notifyHeld(dialogs, res);
+        return;
+      }
+      const updated = res as PermissionSet;
       setSets((prev) => prev?.map((s) => (s.userType === selected ? updated : s)) ?? null);
       setDirty(false);
       setSaved(true);
