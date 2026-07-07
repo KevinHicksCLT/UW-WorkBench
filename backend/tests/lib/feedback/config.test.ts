@@ -14,7 +14,20 @@ describe('parseFeedbackConfig', () => {
     const cfg = parseFeedbackConfig(valid);
     expect(cfg.jira.issueType).toBe('Task');
     expect(cfg.jira.labels).toEqual(['feedback']);
+    expect(cfg.jira.epics).toEqual([]);
     expect(cfg.feedbackButtonEnabled).toBe(true);
+  });
+
+  it('accepts an epic catalog and rejects an epic missing its hint', () => {
+    const epic = { key: 'TB-100', name: 'Platform UX', hint: 'cross-cutting UI/UX' };
+    const cfg = parseFeedbackConfig({ ...valid, jira: { ...valid.jira, epics: [epic] } });
+    expect(cfg.jira.epics).toEqual([epic]);
+    expect(() =>
+      parseFeedbackConfig({
+        ...valid,
+        jira: { ...valid.jira, epics: [{ key: 'TB-100', name: 'Platform UX' }] },
+      }),
+    ).toThrow();
   });
 
   it('rejects a non-email notification recipient', () => {
