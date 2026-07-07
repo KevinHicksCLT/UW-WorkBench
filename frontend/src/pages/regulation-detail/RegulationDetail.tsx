@@ -13,7 +13,7 @@ import {
   type VsLink,
   type VsOption,
 } from '../../components/RequirementLinks';
-import { FlagPill, catLabel, CONFIDENCE_HELP, OBLIGATION_HELP } from '../regulations/Regulations';
+import { catLabel, CONFIDENCE_HELP, OBLIGATION_HELP } from '../regulations/Regulations';
 import { BackButton, ErrorMessage, LoadingState, StatusPill } from '../../components/ui';
 
 // State detail — /regulations/:code. Regulator identity + taxonomy flags in the
@@ -118,6 +118,58 @@ const USAGE_PILL: Record<string, string> = {
   TRANSITIONING: 'pill-amber',
   NOT_USED: 'pill-slate',
 };
+
+// Spelled-out filing facts — plain-English values for the state taxonomy
+// codes, limited to what matters when applying a requirement here.
+const FILING_PORTAL_TEXT: Record<string, string> = {
+  SERFF: 'File electronically through SERFF (the NAIC filing system)',
+  PROPRIETARY: "File through the state's own portal — SERFF not accepted",
+  MIXED: "SERFF for most filings, plus the state's own portal for some",
+};
+const COMPACT_TEXT: Record<string, string> = {
+  MEMBER: 'Member — one IIPRC filing covers life/annuity products here and in other member states',
+  NON_MEMBER: 'Not a member — life/annuity products must be filed with this state separately',
+};
+const WC_TEXT: Record<string, string> = {
+  EDI: 'Report claims electronically (IAIABC EDI — FROI/SROI)',
+  NON_EDI: 'Report claims manually or via the state portal — no EDI mandate',
+  MIXED: 'EDI for some reports, manual/portal for others',
+  MONOPOLISTIC_FUND: "Coverage only through the state's monopolistic fund — no private market",
+  STATE_SPECIFIC: 'State-specific reporting arrangement — check the requirements below',
+};
+const AUTO_TEXT: Record<string, string> = {
+  YES: 'Insured vehicles must be reported to the state verification system',
+  NO: 'No continuous verification reporting required',
+  PARTIAL: 'Verification reporting required in limited cases',
+  EMERGING: 'Verification program being introduced — watch for reporting duties',
+  TRANSITIONING: 'Verification program changing — reporting duties in flux',
+};
+const APCD_TEXT: Record<string, string> = {
+  YES: 'Health claims must be submitted to the state all-payer claims database',
+  NO: 'No all-payer claims database mandate',
+  PARTIAL: 'Limited all-payer claims database reporting',
+  EMERGING: 'All-payer claims database being introduced',
+};
+
+/** One filing fact — label + plain-English value (+ optional state detail). */
+function FilingFact({
+  name,
+  value,
+  detail,
+}: {
+  name: string;
+  value: string;
+  detail?: string | null;
+}) {
+  return (
+    <div className="flex items-baseline gap-3 text-sm">
+      <span className="w-40 flex-shrink-0 text-xs text-[#a3a3a3]">{name}</span>
+      <span className="text-[#262626]" title={detail ?? undefined}>
+        {value}
+      </span>
+    </div>
+  );
+}
 const label = (v: string) =>
   v
     .replace(/_/g, ' ')
@@ -210,7 +262,9 @@ export default function RegulationDetail() {
         }
       />
 
-      {/* Flag strip — state taxonomy flags (states only). */}
+      {/* Filing facts — what you need to know to comply in this state, spelled
+          out (research-metadata flags like SBS/priority/profile depth are
+          intentionally not shown). */}
       {isFederal ? (
         detail.summaryRegulator && (
           <div className="mb-6 text-sm text-[#525252] leading-relaxed">
@@ -218,46 +272,35 @@ export default function RegulationDetail() {
           </div>
         )
       ) : (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-6 text-xs text-[#666666]">
-          {detail.priorityTier === 'PRIORITY' && (
-            <StatusPill tone="amber">Priority state</StatusPill>
-          )}
-          {detail.profileDepth === 'FULL_PROFILE' && (
-            <StatusPill tone="blue">Full compliance profile</StatusPill>
-          )}
-          <span className="flex items-center gap-1.5">
-            Filing portal{' '}
-            <FlagPill value={detail.filingPortal} detail={detail.filingPortalDetail} />
-          </span>
-          <span className="flex items-center gap-1.5">
-            Compact <FlagPill value={detail.compactStatus} />
-          </span>
-          <span className="flex items-center gap-1.5">
-            Auto verify{' '}
-            <FlagPill value={detail.autoVerification} detail={detail.autoVerificationDetail} />
-          </span>
-          <span className="flex items-center gap-1.5">
-            Workers' comp{' '}
-            <FlagPill value={detail.workersCompModel} detail={detail.workersCompDetail} />
-          </span>
-          <span className="flex items-center gap-1.5">
-            APCD <FlagPill value={detail.apcd} />
-          </span>
-          <span className="flex items-center gap-1.5">
-            SBS <FlagPill value={detail.sbs} />
-          </span>
-          {/* Verification metadata lives here on the state view (SCRUM-76) —
-              the aggregate table stays free of per-row dates and numbers. */}
-          <span
-            className="text-[#a3a3a3]"
-            title="Verified = profile confirmed against the regulator's official sources; Reviewed = last analyst pass; Updated = last data change"
-          >
+        <div className="mb-6 space-y-1.5">
+          <FilingFact
+            name="Product filing"
+            value={FILING_PORTAL_TEXT[detail.filingPortal] ?? label(detail.filingPortal)}
+            detail={detail.filingPortalDetail}
+          />
+          <FilingFact
+            name="Insurance Compact"
+            value={COMPACT_TEXT[detail.compactStatus] ?? label(detail.compactStatus)}
+          />
+          <FilingFact
+            name="Workers' comp claims"
+            value={WC_TEXT[detail.workersCompModel] ?? label(detail.workersCompModel)}
+            detail={detail.workersCompDetail}
+          />
+          <FilingFact
+            name="Auto verification"
+            value={AUTO_TEXT[detail.autoVerification] ?? label(detail.autoVerification)}
+            detail={detail.autoVerificationDetail}
+          />
+          <FilingFact
+            name="Health claims (APCD)"
+            value={APCD_TEXT[detail.apcd] ?? label(detail.apcd)}
+          />
+          <div className="text-xs text-[#a3a3a3]">
             {detail.lastVerifiedAt &&
               `Verified ${new Date(detail.lastVerifiedAt).toLocaleDateString()} · `}
-            {detail.lastReviewedAt &&
-              `Reviewed ${new Date(detail.lastReviewedAt).toLocaleDateString()} · `}
             Updated {new Date(detail.updatedAt).toLocaleDateString()}
-          </span>
+          </div>
         </div>
       )}
 
@@ -435,82 +478,14 @@ export default function RegulationDetail() {
           </SectionCard>
         )}
 
-        {/* Baseline-document narratives — research context, not structured data
-            (the requirements above are the extracted, structured form). Kept
-            collapsed so the page stays organized around the requirements. */}
-        {detail.summaryIntegration && (
-          <details className="rounded-xl border border-[#eaeaea] bg-white px-5 py-4">
-            <summary className="text-sm font-semibold text-[#171717] cursor-pointer">
-              Integration narrative{' '}
-              <span className="font-normal text-xs text-[#a3a3a3]">
-                research context from the baseline document
-              </span>
-            </summary>
-            <div className="mt-3">
-              <AssistantMarkdown content={detail.summaryIntegration} />
-            </div>
-          </details>
-        )}
-        {detail.summaryStatutes && (
-          <details className="rounded-xl border border-[#eaeaea] bg-white px-5 py-4">
-            <summary className="text-sm font-semibold text-[#171717] cursor-pointer">
-              Statutes &amp; regulations{' '}
-              <span className="font-normal text-xs text-[#a3a3a3]">
-                research context from the baseline document
-              </span>
-            </summary>
-            <div className="mt-3">
-              <AssistantMarkdown content={detail.summaryStatutes} />
-            </div>
-          </details>
-        )}
-
         {!isFederal && (
           <>
-            {detail.bulletins.length > 0 && (
-              <SectionCard title={`Bulletins (${detail.bulletins.length})`}>
-                <p className="text-xs text-[#a3a3a3] mb-2">
-                  Official notices this regulator has published — interpreting legislation,
-                  announcing rate-filing expectations, or setting fees. Captured during the baseline
-                  research.
-                </p>
-                <div className="divide-y divide-[#f5f5f5]">
-                  {detail.bulletins.map((b) => (
-                    <div key={b.id} className="py-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-[#171717]">
-                          {b.url ? (
-                            <a
-                              className="hover:underline"
-                              href={b.url}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              {b.reference} ↗
-                            </a>
-                          ) : (
-                            b.reference
-                          )}
-                        </span>
-                        {b.issuedDate && (
-                          <span className="text-xs text-[#a3a3a3] tnum">
-                            {new Date(b.issuedDate).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
-                      {b.summary && <p className="text-xs text-[#525252] mt-0.5">{b.summary}</p>}
-                    </div>
-                  ))}
-                </div>
-              </SectionCard>
-            )}
-
-            <SectionCard title={`Compliance rules (${detail.rules.length})`}>
+            <SectionCard title={`Agent rules (${detail.rules.length})`}>
               <p className="text-xs text-[#a3a3a3] mb-3">
-                Machine-readable controls from the per-state rules artifact — distinct from the
-                requirements above: a requirement states the legal obligation, a rule encodes a
-                checkable control for it. Stored and displayed in Phase 1 — execution against
-                operational signals is a future phase.
+                Machine-readable rules derived from this state&apos;s requirements — encoded so
+                agents can run compliance checks against them. A requirement states the legal
+                obligation; an agent rule is the checkable control for it. Automated execution is a
+                future phase.
               </p>
               <div className="divide-y divide-[#f5f5f5]">
                 {detail.rules.map((r) => (
@@ -544,8 +519,9 @@ export default function RegulationDetail() {
 
             <SectionCard title={`Regulatory sources (${detail.sources.length})`}>
               <p className="text-xs text-[#a3a3a3] mb-2">
-                The official sites and feeds this state&apos;s requirements and bulletins come from.
-                Automated monitoring is a future phase — nothing is polled today.
+                The official sites and feeds this state&apos;s requirements come from — including
+                the pages where the regulator posts bulletins and notices. Automated monitoring is a
+                future phase — nothing is polled today.
               </p>
               <div className="divide-y divide-[#f5f5f5]">
                 {detail.sources.map((s) => (

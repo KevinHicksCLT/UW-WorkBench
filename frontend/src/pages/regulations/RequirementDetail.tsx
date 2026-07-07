@@ -6,21 +6,9 @@ import { useCompany } from '../../lib/company';
 import { useApi } from '../../lib/useApi';
 import { withCompany, SectionCard } from '../../lib/portfolio';
 import PageHeader from '../../components/PageHeader';
-import {
-  LinkChips,
-  LinksEditor,
-  type VsLink,
-  type VsOption,
-} from '../../components/RequirementLinks';
+import { LinkChips, LinksEditor, type VsLink } from '../../components/RequirementLinks';
 import { BackButton, ErrorMessage, LoadingState } from '../../components/ui';
-import {
-  catLabel,
-  CATEGORY_HELP,
-  CONFIDENCE_HELP,
-  LOB_HELP,
-  OBLIGATION_HELP,
-  type Overview,
-} from './Regulations';
+import { catLabel, CATEGORY_HELP, CONFIDENCE_HELP, LOB_HELP, OBLIGATION_HELP } from './Regulations';
 
 // Requirement page — /regulations/requirement/:id. The full record behind one
 // table row: requirement text, classification (each facet with its
@@ -113,9 +101,6 @@ export default function RequirementDetail() {
 
   const req = useApi<Requirement>(
     companyId && id ? withCompany(`/regulations/requirements/${id}`, companyId) : null,
-  );
-  const overview = useApi<Overview & { valueStreams?: VsOption[] }>(
-    companyId ? withCompany('/regulations/overview', companyId) : null,
   );
   const plan = useApi<Plan>(id ? `/work-library/plan/regulation/${id}` : null);
   const [links, setLinks] = useState<VsLink[] | null>(null);
@@ -241,16 +226,13 @@ export default function RequirementDetail() {
         </SectionCard>
 
         <SectionCard title="Accountability">
-          <div className="text-sm">
+          <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
             <div>
-              <div className="text-xs text-[#a3a3a3]">Owner</div>
+              <div className="text-xs text-[#a3a3a3] mb-1">Owner</div>
               {r.owner ? (
-                <ul className="list-disc pl-5 mt-1">
+                <ul className="list-disc pl-5 space-y-0.5">
                   <li>
-                    <Link
-                      to={`/roles/${r.owner.id}`}
-                      className="text-[#171717] font-medium hover:underline"
-                    >
+                    <Link to={`/roles/${r.owner.id}`} className="text-[#262626] hover:underline">
                       {r.owner.name}
                     </Link>
                   </li>
@@ -259,13 +241,13 @@ export default function RequirementDetail() {
                 <span className="text-[#525252]">—</span>
               )}
             </div>
-            <div className="mt-2">
-              <div className="text-xs text-[#a3a3a3]">Contributors</div>
+            <div>
+              <div className="text-xs text-[#a3a3a3] mb-1">Contributors</div>
               {r.contributors.length ? (
-                <ul className="list-disc pl-5 mt-1 space-y-0.5">
+                <ul className="list-disc pl-5 space-y-0.5">
                   {r.contributors.map((c) => (
                     <li key={c.id}>
-                      <Link to={`/roles/${c.id}`} className="text-[#525252] hover:underline">
+                      <Link to={`/roles/${c.id}`} className="text-[#262626] hover:underline">
                         {c.name}
                       </Link>
                     </li>
@@ -298,7 +280,6 @@ export default function RequirementDetail() {
             <LinksEditor
               requirementId={r.id}
               links={vsLinks}
-              valueStreams={overview.data?.valueStreams ?? []}
               onSaved={(saved) => {
                 setLinks(saved);
                 setEditing(false);
@@ -325,41 +306,6 @@ export default function RequirementDetail() {
           {plan.loading && <LoadingState />}
           {!plan.loading && <PlanSections plan={plan.data} />}
         </SectionCard>
-
-        {r.bulletins.length > 0 && (
-          <SectionCard title={`Related bulletins (${r.bulletins.length})`}>
-            <p className="text-xs text-[#a3a3a3] mb-2">
-              Bulletins are official notices the regulator publishes to interpret or announce
-              requirements — these reference this one.
-            </p>
-            <div className="divide-y divide-[#f5f5f5]">
-              {r.bulletins.map((b) => (
-                <div key={b.id} className="py-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-[#171717]">
-                      {b.url ? (
-                        <a
-                          className="hover:underline"
-                          href={b.url}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {b.reference} ↗
-                        </a>
-                      ) : (
-                        b.reference
-                      )}
-                    </span>
-                    {b.issuedDate && (
-                      <span className="text-xs text-[#a3a3a3] tnum">{fmtDate(b.issuedDate)}</span>
-                    )}
-                  </div>
-                  {b.summary && <p className="text-xs text-[#525252] mt-0.5">{b.summary}</p>}
-                </div>
-              ))}
-            </div>
-          </SectionCard>
-        )}
       </div>
     </div>
   );

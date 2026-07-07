@@ -216,10 +216,22 @@ export const LOB_HELP: Record<string, string> = {
 
 const dash = <span className="text-[#d4d4d4]">—</span>;
 
+// The active lens survives drill-down navigation (sessionStorage) so history
+// back lands the user on the lens they left, not the default.
+const TAB_KEY = 'regulations.lens';
+const initialTab = (): Tab => {
+  const saved = sessionStorage.getItem(TAB_KEY);
+  return TABS.includes(saved as Tab) ? (saved as Tab) : 'International';
+};
+
 export default function Regulations() {
   const navigate = useNavigate();
   const { companyId } = useCompany();
-  const [tab, setTab] = useState<Tab>('State');
+  const [tab, setTabState] = useState<Tab>(initialTab);
+  const setTab = (t: Tab) => {
+    sessionStorage.setItem(TAB_KEY, t);
+    setTabState(t);
+  };
   useRegisterCrumb('Regulations');
 
   const { data: overview } = useApi<Overview>(
@@ -285,16 +297,16 @@ export default function Regulations() {
           />
           <Tile
             compact
-            label="Compliance rules"
+            label="Agent rules"
             value={overview.ruleCount}
-            hint="machine-readable"
+            hint="machine-readable checks"
             onClick={() => navigate('/regulations/rules')}
           />
           <Tile
             compact
             label="Regulatory sources"
             value={overview.sourceCount}
-            hint={`${overview.bulletinCount} bulletins on file`}
+            hint="official regulator sites & feeds"
             onClick={() => navigate('/regulations/sources')}
           />
         </div>

@@ -57,22 +57,11 @@ type SourceRow = {
   healthStatus: string;
   jurisdiction: { code: string; name: string } | null;
 };
-type BulletinRow = {
-  id: string;
-  reference: string;
-  title: string;
-  summary: string | null;
-  url: string | null;
-  issuedDate: string | null;
-  jurisdiction: { code: string; name: string };
-};
-
 const label = (v: string) =>
   v
     .replace(/_/g, ' ')
     .toLowerCase()
     .replace(/^\w/, (c) => c.toUpperCase());
-const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString() : null);
 
 // ── Tiny chart primitives (page-local) ───────────────────────────────────────
 /** Horizontal bar list — label, count, proportional bar. */
@@ -163,14 +152,14 @@ const META: Record<InsightKind, { title: string; blurb: string }> = {
       'Every requirement is one atomic legal obligation imposed by a regulation. Each should be mapped to the value stream(s) it governs — open a requirement and use edit links; linking applies it to every task under the stream.',
   },
   rules: {
-    title: 'Compliance rules',
+    title: 'Agent rules',
     blurb:
-      'Machine-readable controls distilled from each state’s regulatory artifacts — distinct from requirements: a requirement states the legal obligation, a rule encodes a checkable control for it. Phase 1 stores and displays them; automated execution is a future phase.',
+      'Machine-readable rules derived from the requirements — encoded so agents can run compliance checks against them. A requirement states the legal obligation; an agent rule is the checkable control for it. Automated execution is a future phase.',
   },
   sources: {
     title: 'Regulatory sources',
     blurb:
-      'The catalog of official regulator websites and feeds identified during the baseline research — the places requirements and bulletins come from. Sources and bulletins are separate things: a source is a website we track, a bulletin is an official notice a regulator published (interpreting rules, announcing changes). Automated monitoring of these sources is a future phase — nothing is being polled today.',
+      'The catalog of official regulator websites and feeds the requirements come from — statute pages, filing portals, and the pages where each regulator posts its bulletins and notices. Automated monitoring of these sources is a future phase — nothing is being polled today.',
   },
 };
 
@@ -179,12 +168,11 @@ export default function RegulationsInsight({ kind }: { kind: InsightKind }) {
   useRegisterCrumb(META[kind].title);
   const p = (path: string) => (companyId ? withCompany(path, companyId) : null);
 
-  const overview = useApi<Overview>(p('/regulations/overview'));
+  const overview = useApi<Overview>(kind === 'catalog' ? p('/regulations/overview') : null);
   const jur = useApi<JurRow[]>(kind === 'jurisdictions' ? p('/regulations/jurisdictions') : null);
   const reqs = useApi<ReqRow[]>(kind === 'catalog' ? p('/regulations/requirements') : null);
   const rules = useApi<RuleRow[]>(kind === 'rules' ? p('/regulations/rules') : null);
   const sources = useApi<SourceRow[]>(kind === 'sources' ? p('/regulations/sources') : null);
-  const bulletins = useApi<BulletinRow[]>(kind === 'sources' ? p('/regulations/bulletins') : null);
 
   return (
     <div>
@@ -205,60 +193,29 @@ export default function RegulationsInsight({ kind }: { kind: InsightKind }) {
       />
       <p className="text-sm text-[#525252] leading-relaxed mb-5 max-w-3xl">{META[kind].blurb}</p>
 
-      {kind === 'jurisdictions' && (
-        <JurisdictionsBody rows={jur.data} loading={jur.loading} overview={overview.data} />
-      )}
+      {kind === 'jurisdictions' && <JurisdictionsBody rows={jur.data} loading={jur.loading} />}
       {kind === 'catalog' && (
         <CatalogBody rows={reqs.data} loading={reqs.loading} overview={overview.data} />
       )}
       {kind === 'rules' && <RulesBody rows={rules.data} loading={rules.loading} />}
-      {kind === 'sources' && (
-        <SourcesBody
-          rows={sources.data}
-          bulletins={bulletins.data}
-          loading={sources.loading || bulletins.loading}
-        />
-      )}
+      {kind === 'sources' && <SourcesBody rows={sources.data} loading={sources.loading} />}
     </div>
   );
 }
 
 // ── Jurisdictions ────────────────────────────────────────────────────────────
-function JurisdictionsBody({
-  rows,
-  loading,
-  overview,
-}: {
-  rows: JurRow[] | null;
-  loading: boolean;
-  overview: Overview | null;
-}) {
+function JurisdictionsBody({ rows, loading }: { rows: JurRow[] | null; loading: boolean }) {
   const navigate = useNavigate();
-  const [tileFilter, setTileFilter] = useState<'all' | 'priority' | 'verified' | 'full'>('all');
+  const [tileFilter, setTileFilter] = useState<'all' | 'priority'>('all');
   if (loading || !rows) return <LoadingState />;
   const priority = rows.filter((j) => j.priorityTier === 'PRIORITY').length;
-  const verified = rows.filter((j) => j.lastVerifiedAt).length;
-  const full = rows.filter((j) => j.profileDepth === 'FULL_PROFILE').length;
   const shown = rows.filter((j) =>
-    tileFilter === 'priority'
-      ? j.priorityTier === 'PRIORITY'
-      : tileFilter === 'verified'
-        ? !!j.lastVerifiedAt
-        : tileFilter === 'full'
-          ? j.profileDepth === 'FULL_PROFILE'
-          : true,
+    tileFilter === 'priority' ? j.priorityTier === 'PRIORITY' : true,
   );
-  const listTitle =
-    tileFilter === 'all'
-      ? 'All jurisdictions'
-      : tileFilter === 'priority'
-        ? 'Priority states'
-        : tileFilter === 'verified'
-          ? 'Verified jurisdictions'
-          : 'Full profiles';
+  const listTitle = tileFilter === 'all' ? 'All jurisdictions' : 'Priority states';
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <Tile
           compact
           label="Jurisdictions"
@@ -272,36 +229,6 @@ function JurisdictionsBody({
           hint="deep compliance profiles"
           onClick={() => setTileFilter('priority')}
         />
-        <Tile
-          compact
-          label="Verified"
-          value={verified}
-          hint="confirmed against the regulator"
-          onClick={() => setTileFilter('verified')}
-        />
-        <Tile
-          compact
-          label="Full profiles"
-          value={full}
-          hint="complete operating detail"
-          onClick={() => setTileFilter('full')}
-        />
-      </div>
-      <div className="grid md:grid-cols-2 gap-5">
-        <SectionCard title="Filing portal landscape">
-          <BarList
-            data={Object.entries(overview?.flags.filingPortal ?? {})
-              .map(([k, n]) => [label(k), n] as [string, number])
-              .sort((a, b) => b[1] - a[1])}
-          />
-        </SectionCard>
-        <SectionCard title="Workers' comp model">
-          <BarList
-            data={Object.entries(overview?.flags.workersCompModel ?? {})
-              .map(([k, n]) => [label(k), n] as [string, number])
-              .sort((a, b) => b[1] - a[1])}
-          />
-        </SectionCard>
       </div>
       <SectionCard title={`${listTitle} (${shown.length})`}>
         <div className="divide-y divide-[#f5f5f5]">
@@ -320,13 +247,6 @@ function JurisdictionsBody({
                 {j._count.requirements} requirements · {j._count.rules} rules · {j._count.sources}{' '}
                 sources
               </span>
-              {j.lastVerifiedAt ? (
-                <StatusPill tone="green" title={`Profile verified ${fmtDate(j.lastVerifiedAt)}`}>
-                  Verified
-                </StatusPill>
-              ) : (
-                <StatusPill tone="slate">Baseline</StatusPill>
-              )}
             </button>
           ))}
         </div>
@@ -554,81 +474,20 @@ function RulesBody({ rows, loading }: { rows: RuleRow[] | null; loading: boolean
   );
 }
 
-// ── Regulatory sources + bulletins ───────────────────────────────────────────
-function SourcesBody({
-  rows,
-  bulletins,
-  loading,
-}: {
-  rows: SourceRow[] | null;
-  bulletins: BulletinRow[] | null;
-  loading: boolean;
-}) {
-  const navigate = useNavigate();
+// ── Regulatory sources ───────────────────────────────────────────────────────
+function SourcesBody({ rows, loading }: { rows: SourceRow[] | null; loading: boolean }) {
   const byType = useMemo(() => tally(rows ?? [], (r) => label(r.sourceType)), [rows]);
   if (loading || !rows) return <LoadingState />;
   const states = new Set(rows.map((s) => s.jurisdiction?.code).filter(Boolean)).size;
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <Tile compact label="Sources" value={rows.length} hint="official regulator sites & feeds" />
         <Tile compact label="States covered" value={states} />
-        <Tile
-          compact
-          label="Bulletins on file"
-          value={bulletins?.length ?? 0}
-          hint="notices published by regulators"
-        />
       </div>
-      <div className="grid md:grid-cols-2 gap-5">
-        <SectionCard title="Sources by type">
-          <BarList data={byType} />
-        </SectionCard>
-        <SectionCard title={`Bulletins (${bulletins?.length ?? 0})`}>
-          <p className="text-xs text-[#a3a3a3] mb-2">
-            A bulletin is an official notice a regulator publishes — interpreting legislation,
-            announcing rate-filing expectations, or setting fees. These came from the baseline
-            research; they are separate from the sources list on the left.
-          </p>
-          {!bulletins?.length ? (
-            <EmptyState message="No bulletins on file yet." />
-          ) : (
-            <div className="divide-y divide-[#f5f5f5]">
-              {bulletins.map((b) => (
-                <div key={b.id} className="py-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-[#171717]">
-                      {b.url ? (
-                        <a
-                          className="hover:underline"
-                          href={b.url}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {b.reference} ↗
-                        </a>
-                      ) : (
-                        b.reference
-                      )}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/regulations/${b.jurisdiction.code}`)}
-                      className="text-[11px] text-[#525252] hover:text-[#171717] hover:underline"
-                    >
-                      {b.jurisdiction.name}
-                    </button>
-                    {b.issuedDate && (
-                      <span className="text-xs text-[#a3a3a3] tnum">{fmtDate(b.issuedDate)}</span>
-                    )}
-                  </div>
-                  {b.summary && <p className="text-xs text-[#525252] mt-0.5">{b.summary}</p>}
-                </div>
-              ))}
-            </div>
-          )}
-        </SectionCard>
-      </div>
+      <SectionCard title="Sources by type">
+        <BarList data={byType} />
+      </SectionCard>
       <SectionCard title="All sources">
         <div className="divide-y divide-[#f5f5f5]">
           {rows.map((s) => (

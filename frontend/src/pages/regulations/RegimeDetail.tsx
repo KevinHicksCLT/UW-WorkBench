@@ -96,7 +96,12 @@ export default function RegimeDetail() {
           value={rows.length}
           onClick={() => setMappedOnly(false)}
         />
-        <Tile compact label="Jurisdictions" value={jurisdictions.size} />
+        <Tile
+          compact
+          label="Jurisdictions"
+          value={jurisdictions.size}
+          onClick={() => navigate('/regulations/jurisdictions')}
+        />
         <Tile
           compact
           label="Mapped"
@@ -136,7 +141,14 @@ export default function RegimeDetail() {
                 <span className="text-sm font-medium text-[#171717] group-hover:underline truncate">
                   {r.title}
                 </span>
-                <span className="text-[11px] text-[#a3a3a3] flex-shrink-0">
+                <span
+                  className="text-[11px] text-[#a3a3a3] flex-shrink-0 hover:underline hover:text-[#525252]"
+                  title={`Open the ${r.jurisdiction.name} regulator page`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/regulations/${r.jurisdiction.code}`);
+                  }}
+                >
                   {r.jurisdiction.name}
                 </span>
               </div>

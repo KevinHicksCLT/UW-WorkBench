@@ -118,4 +118,38 @@ export function registerFeedRoutes(router: Router): void {
       next(e);
     }
   });
+
+  // ── Process options tree ──────────────────────────────────────────────────────
+  // L2 value streams with their L3 areas and L4 sub-processes — the option tree
+  // behind the requirement link editor, which can attach a requirement at any of
+  // those grains (the write materializes to the tasks under the chosen node).
+  router.get('/process-options', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const companyId = await activeCompanyId(req, res);
+      if (!companyId) return;
+      const nodes = await prisma.processNode.findMany({
+        where: { companyId, processLevelType: { levelNumber: { in: [2, 3, 4] } } },
+        select: {
+          id: true,
+          displayValue: true,
+          parentId: true,
+          processLevelType: { select: { levelNumber: true } },
+        },
+        orderBy: { displayValue: 'asc' },
+      });
+      type Opt = { id: string; name: string; children: Opt[] };
+      const byId = new Map<string, Opt>(
+        nodes.map((n) => [n.id, { id: n.id, name: n.displayValue, children: [] }]),
+      );
+      const roots: Opt[] = [];
+      for (const n of nodes) {
+        const opt = byId.get(n.id)!;
+        if (n.processLevelType.levelNumber === 2) roots.push(opt);
+        else if (n.parentId && byId.has(n.parentId)) byId.get(n.parentId)!.children.push(opt);
+      }
+      res.json(roots);
+    } catch (e) {
+      next(e);
+    }
+  });
 }
