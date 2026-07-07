@@ -17,6 +17,7 @@ import {
 
 const input = {
   text: 'The Tasks tab truncates long role names',
+  category: 'FUNCTIONAL_DEFECT',
   name: 'Kevin',
   route: '/tasks?area=claims',
   commitSha: 'abc1234',
@@ -43,6 +44,15 @@ describe('buildTicketPrompt', () => {
     expect(prompt).toContain('abc1234');
     expect(prompt).toContain('Kevin');
     expect(prompt).toContain('Mozilla/5.0');
+  });
+
+  it('humanizes the submitter-chosen category', () => {
+    expect(buildTicketPrompt(input)).toContain('Functional Defect');
+    expect(buildTicketPrompt({ ...input, category: 'DATA_ISSUE' })).toContain('Data Issue');
+  });
+
+  it('labels a null category (legacy rows) as Unclassified', () => {
+    expect(buildTicketPrompt({ ...input, category: null })).toContain('Unclassified');
   });
 
   it('labels a missing name as anonymous', () => {

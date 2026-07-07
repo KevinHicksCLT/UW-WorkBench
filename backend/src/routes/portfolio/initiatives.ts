@@ -7,6 +7,7 @@ import { prisma } from '../../db/prisma.js';
 import { logAudit, computeDiff } from '../../services/audit.js';
 import { recomputeInitiative } from '../../services/portfolioRollup.js';
 import { applyWorkflowAction } from '../../services/portfolioWorkflow.js';
+import { maybeHold } from '../../lib/approvals/engine.js';
 import { activeCompanyId, ownInitiative, resolveLinks, withLinkNames } from './helpers.js';
 
 /** Registers this feature's routes on the shared /portfolio router (order preserved). */
@@ -199,6 +200,27 @@ export function registerInitiativeRoutes(router: Router): void {
         const { action } = z
           .object({ action: z.enum(['SUBMIT', 'APPROVE', 'MOVE_BACK']) })
           .parse(req.body);
+        // DA-11: advancing a stage gate is a governed decision — held for the
+        // sponsor-role seat (fallback: manager) when the policy is enabled.
+        if (action === 'APPROVE') {
+          const held = await maybeHold(
+            { tenantId: req.tenantId, userId: req.user.id, email: req.user.email },
+            {
+              decisionKey: 'portfolio.initiative.stage-gate',
+              entityType: 'PortfolioInitiative',
+              entityId: existing.id,
+              action: 'STAGE_ADVANCE',
+              summary: `Advance initiative "${existing.name}" past the ${existing.stage} gate`,
+              payload: { initiativeId: existing.id },
+              subjectAttrs: {
+                orgUnitId: existing.orgUnitId,
+                valueStreamNodeId: existing.valueStreamNodeId,
+                sponsorRoleId: existing.sponsorRoleId,
+              },
+            },
+          );
+          if (held) return res.status(202).json(held);
+        }
         const updated = await applyWorkflowAction({
           initiativeId: req.params.id,
           action,

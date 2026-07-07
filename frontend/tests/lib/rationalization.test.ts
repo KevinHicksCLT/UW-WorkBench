@@ -39,8 +39,13 @@ describe('categoryTags', () => {
     appId: 'app1',
     layer: 'Data',
     category: 'Persistence',
+    view: 'COMPONENT',
+    screenRef: null,
+    plainSummary: null,
+    recommendedLayer: null,
     capdan: 'Common',
     targetLayer: null,
+    sharedServiceId: null,
     name: 'f',
     codeRef: null,
     migrationApproach: null,
@@ -89,5 +94,20 @@ describe('categoryTags', () => {
     const findings = [finding({ id: 'x' }), finding({ id: 'y', appId: 'app2' })];
     expect(categoryTags(findings, 'Data')).toHaveLength(1);
     expect(categoryTags(findings, 'Data')[0].count).toBe(2);
+  });
+
+  it('filters by anatomy view when given, defaulting a missing view to COMPONENT', () => {
+    const findings = [
+      finding({ id: 'c1' }), // COMPONENT
+      finding({ id: 'c2', view: null }), // missing → COMPONENT
+      finding({ id: 'b1', view: 'BEHAVIOR', category: 'Validation rules' }),
+    ];
+    const comp = categoryTags(findings, 'Data', 'app1', 'COMPONENT');
+    expect(comp).toHaveLength(1);
+    expect(comp[0].findings.map((f) => f.id)).toEqual(['c1', 'c2']);
+    const beh = categoryTags(findings, 'Data', 'app1', 'BEHAVIOR');
+    expect(beh.map((t) => t.category)).toEqual(['Validation rules']);
+    // no view → all findings, unchanged behavior
+    expect(categoryTags(findings, 'Data', 'app1')).toHaveLength(2);
   });
 });

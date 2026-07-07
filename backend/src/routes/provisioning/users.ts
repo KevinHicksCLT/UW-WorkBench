@@ -12,7 +12,7 @@
  *             CORPORATE_FUNCTIONS_ADMIN|SUPER_USER|MEMBER,
  *     status?: ACTIVE|DEACTIVATED,
  *     externalId?: string (POST only; PUT takes it from the path),
- *     orgUnitId?: string|null, geography?: NORTH_AMERICA|UK_EUROPE|APAC|LATAM|null,
+ *     orgUnitId?: string|null, geography?: GLOBAL|NORTH_AMERICA|UK_EUROPE|APAC|LATAM|null,
  *     operatingRoleId?: string|null, isManager?: boolean,
  *     reportsToId?: string|null, isApprover?: boolean,
  *     valueStreamIds?: string[] (L2 ProcessNode ids — replaces links)

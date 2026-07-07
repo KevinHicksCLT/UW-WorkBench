@@ -36,6 +36,7 @@ const PortfolioRaid = lazy(() => import('./pages/portfolio-raid/PortfolioRaid'))
 const Work = lazy(() => import('./pages/work/Work'));
 const Automatable = lazy(() => import('./pages/automatable/Automatable'));
 const WorkLibrary = lazy(() => import('./pages/work-library/WorkLibrary'));
+const Approvals = lazy(() => import('./pages/approvals/Approvals'));
 const Applications = lazy(() => import('./pages/applications/Applications'));
 const External = lazy(() => import('./pages/external/External'));
 const Regulations = lazy(() => import('./pages/regulations/Regulations'));
@@ -302,6 +303,15 @@ export default function App() {
                     }
                   />
                   <Route path="/work" element={<Navigate to="/deliverables" replace />} />
+                  {/* Approvals — the creator → approver work queue (held mutations). */}
+                  <Route
+                    path="/approvals"
+                    element={
+                      <G k="approvals">
+                        <Approvals />
+                      </G>
+                    }
+                  />
                   {/* Regulations — 50-state insurance regulatory baseline (states /
             requirements / coverage lenses) + per-state detail by USPS code. */}
                   <Route

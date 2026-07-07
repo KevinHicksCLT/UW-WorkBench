@@ -33,7 +33,7 @@ test.describe('role profile', () => {
       await expect(page.getByRole('heading', { name: roleName })).toBeVisible();
     }
     await expect(page.getByText('Job description')).toBeVisible();
-    await expect(page.getByText('Value Streams')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Value Streams' })).toBeVisible();
     await expect(page.getByText('Deliverables').first()).toBeVisible();
     await expect(page.getByText('Task Summary')).toBeVisible();
   });
