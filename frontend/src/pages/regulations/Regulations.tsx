@@ -7,14 +7,13 @@ import { withCompany, Tile } from '../../lib/portfolio';
 import { useRegisterCrumb } from '../../lib/breadcrumbs';
 import { Sheet, type SheetCol } from '../../components/Sheet';
 import { type VsLink } from '../../components/RequirementLinks';
-import { RegOverviewDrawer, type DrillKind } from './OverviewDrawers';
 
 type RoleRef = { id: string; name: string };
 
 // Regulations — three lenses, each a FLAT table where every row is ONE atomic
-// regulation (no drill-down): the named regulation/regime, the single obligation
-// it produces, its accountable owner, contributors, and the value-stream
-// processes it governs.
+// regulation. Rows open the regulation's own page (/regulations/requirement/:id);
+// the jurisdiction cell links to the regulator page (/regulations/:code); the
+// four headline cards open their insight pages (RegulationsInsight.tsx).
 //   International: non-US / supranational regulators (EU/GDPR today).
 //   Federal: the federal / national securities regime (FINRA/SEC/MSRB).
 //   State (default): the 50-state (+DC) insurance regulatory baseline.
@@ -154,7 +153,6 @@ export default function Regulations() {
   const navigate = useNavigate();
   const { companyId } = useCompany();
   const [tab, setTab] = useState<Tab>('State');
-  const [drill, setDrill] = useState<DrillKind | null>(null);
   useRegisterCrumb('Regulations');
 
   const { data: overview } = useApi<Overview>(
@@ -201,7 +199,7 @@ export default function Regulations() {
 
   return (
     <div>
-      {/* Headline tiles — compact strip; each card drills into a detail drawer (SCRUM-45). */}
+      {/* Headline tiles — compact strip; each card opens its own insight page (SCRUM-45). */}
       {overview && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
           <Tile
@@ -209,33 +207,30 @@ export default function Regulations() {
             label="Jurisdictions"
             value={overview.jurisdictionCount}
             hint={`${overview.flags.priorityTier?.PRIORITY ?? 0} priority states`}
-            onClick={() => setDrill('jurisdictions')}
+            onClick={() => navigate('/regulations/jurisdictions')}
           />
           <Tile
             compact
             label="Active regulations"
             value={overview.requirements.total}
             hint={`${overview.requirements.mapped} mapped to value streams`}
-            onClick={() => setDrill('regulations')}
+            onClick={() => navigate('/regulations/catalog')}
           />
           <Tile
             compact
             label="Compliance rules"
             value={overview.ruleCount}
             hint="machine-readable"
-            onClick={() => setDrill('rules')}
+            onClick={() => navigate('/regulations/rules')}
           />
           <Tile
             compact
             label="Monitored sources"
             value={overview.sourceCount}
             hint={`${overview.bulletinCount} bulletins`}
-            onClick={() => setDrill('sources')}
+            onClick={() => navigate('/regulations/sources')}
           />
         </div>
-      )}
-      {drill && overview && (
-        <RegOverviewDrawer kind={drill} overview={overview} onClose={() => setDrill(null)} />
       )}
 
       <RegulationTable
@@ -243,7 +238,7 @@ export default function Regulations() {
         loading={requirements === null}
         firstLabel={tab === 'State' ? 'State' : 'Regulator'}
         emptyText={`No ${tab === 'State' ? 'state' : tab.toLowerCase()} regulations on file.`}
-        onOpen={(code) => navigate(`/regulations/${code}`)}
+        onOpen={(id) => navigate(`/regulations/requirement/${id}`)}
         leading={tabs}
       />
     </div>
@@ -263,7 +258,7 @@ function RegulationTable({
   loading: boolean;
   firstLabel: string;
   emptyText: string;
-  onOpen: (code: string) => void;
+  onOpen: (id: string) => void;
   leading?: React.ReactNode;
 }) {
   const cols: SheetCol<RequirementRow>[] = [
@@ -272,15 +267,17 @@ function RegulationTable({
       label: firstLabel,
       width: '140px',
       value: (r) => r.jurisdiction.name,
-      hint: 'Issuing jurisdiction — the state, federal, or international regulator behind the obligation',
+      hint: 'Issuing jurisdiction — click the name for the regulator page; click anywhere else on the row for the regulation itself',
       render: (r) => (
         <span className="inline-flex items-center gap-1.5 min-w-0">
-          <span
-            className="truncate text-[12px] font-medium text-[#171717]"
-            title={r.jurisdiction.name}
+          <Link
+            to={`/regulations/${r.jurisdiction.code}`}
+            onClick={(e) => e.stopPropagation()}
+            className="truncate text-[12px] font-medium text-[#171717] hover:underline"
+            title={`${r.jurisdiction.name} — open regulator page`}
           >
             {r.jurisdiction.name}
-          </span>
+          </Link>
           <span className="text-[11px] text-[#a3a3a3] tnum flex-shrink-0">
             {r.jurisdiction.code}
           </span>
@@ -393,7 +390,7 @@ function RegulationTable({
       summarize={(v) =>
         `${new Set(v.map((r) => r.jurisdiction.code)).size} jurisdictions · ${v.filter((r) => r.valueStreamLinks.length).length} mapped`
       }
-      onRowClick={(r) => onOpen(r.jurisdiction.code)}
+      onRowClick={(r) => onOpen(r.id)}
       leading={leading}
     />
   );

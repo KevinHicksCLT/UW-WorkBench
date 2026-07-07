@@ -461,4 +461,48 @@ export function registerLensRoutes(router: Router): void {
       next(e);
     }
   });
+
+  // ── Single regulation detail ──────────────────────────────────────────────────
+  // Full record behind /regulations/requirement/:id — every scalar, the issuing
+  // jurisdiction, owner/contributor roles, value-stream rollup, and any
+  // bulletins that reference the requirement.
+  router.get('/requirements/:id', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const companyId = await activeCompanyId(req, res);
+      if (!companyId) return;
+      const row = await prisma.regulatoryRequirement.findFirst({
+        where: { id: req.params.id, companyId },
+        include: {
+          jurisdiction: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              regulatorName: true,
+              regulatorWebsite: true,
+              priorityTier: true,
+              regulatorType: true,
+            },
+          },
+          bulletins: {
+            orderBy: [{ issuedDate: 'desc' }],
+            select: {
+              id: true,
+              reference: true,
+              title: true,
+              summary: true,
+              url: true,
+              issuedDate: true,
+            },
+          },
+          ...NODE_REG_INCLUDE,
+        },
+      });
+      if (!row) return res.status(404).json({ error: 'Not found' });
+      const vsMap = await vsForRegulations([row.id]);
+      res.json(withValueStreamLinks(row, vsMap));
+    } catch (e) {
+      next(e);
+    }
+  });
 }

@@ -41,6 +41,8 @@ const Applications = lazy(() => import('./pages/applications/Applications'));
 const External = lazy(() => import('./pages/external/External'));
 const Regulations = lazy(() => import('./pages/regulations/Regulations'));
 const RegulationDetail = lazy(() => import('./pages/regulation-detail/RegulationDetail'));
+const RequirementDetail = lazy(() => import('./pages/regulations/RequirementDetail'));
+const RegulationsInsight = lazy(() => import('./pages/regulations/RegulationsInsight'));
 const Settings = lazy(() => import('./pages/settings/Settings'));
 // The role profile page — revived /roles/:id (description, org, value streams,
 // deliverable drill-downs, task summary). Cross-app role links land here.
@@ -322,6 +324,27 @@ export default function App() {
                       </G>
                     }
                   />
+                  {/* Single-regulation page + the four overview-card insight pages.
+                      Static segments outrank the :code param route in v6 matching. */}
+                  <Route
+                    path="/regulations/requirement/:id"
+                    element={
+                      <G k="regulations">
+                        <RequirementDetail />
+                      </G>
+                    }
+                  />
+                  {(['jurisdictions', 'catalog', 'rules', 'sources'] as const).map((kind) => (
+                    <Route
+                      key={kind}
+                      path={`/regulations/${kind}`}
+                      element={
+                        <G k="regulations">
+                          <RegulationsInsight kind={kind} />
+                        </G>
+                      }
+                    />
+                  ))}
                   <Route
                     path="/regulations/:code"
                     element={
