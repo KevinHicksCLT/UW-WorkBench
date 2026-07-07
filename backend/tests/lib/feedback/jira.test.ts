@@ -14,6 +14,7 @@ const settings = {
   projectKey: 'TB',
   issueType: 'Task',
   labels: ['feedback'],
+  epics: [{ key: 'TB-100', name: 'Platform UX', hint: 'cross-cutting UI/UX' }],
 };
 
 const feedback = {
@@ -86,6 +87,21 @@ describe('createJiraIssue', () => {
     expect(body.fields.labels).toEqual(['feedback']);
     expect(body.fields.summary).toBe(ticket.title);
     expect(body.fields.description.type).toBe('doc');
+    expect(body.fields.parent).toBeUndefined(); // no epicKey on the ticket
+  });
+
+  it('parents the issue to the epic the model picked', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ key: 'TB-43' }) });
+    await createJiraIssue(settings, feedback, { ...ticket, epicKey: 'TB-100' });
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.fields.parent).toEqual({ key: 'TB-100' });
+  });
+
+  it('drops an epicKey that is not in the configured catalog', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ key: 'TB-44' }) });
+    await createJiraIssue(settings, feedback, { ...ticket, epicKey: 'TB-999' });
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.fields.parent).toBeUndefined();
   });
 
   it('throws with status + body on a Jira error response', async () => {
