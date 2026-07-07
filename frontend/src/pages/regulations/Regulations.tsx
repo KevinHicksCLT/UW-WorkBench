@@ -278,7 +278,6 @@ function RegulationTable({
       key: 'juris',
       label: firstLabel,
       width: '140px',
-      align: 'center',
       value: (r) => r.jurisdiction.name,
       hint: 'Issuing jurisdiction — the state, federal, or international regulator behind the obligation',
       render: (r) => (
@@ -299,7 +298,6 @@ function RegulationTable({
       key: 'lob',
       label: 'Line of business',
       width: '110px',
-      align: 'center',
       value: (r) => flagLabel(r.lineOfBusiness),
       hint: 'Which insurance line the obligation applies to — All means every line the company writes; filter here to cut cross-line noise',
       render: (r) =>
@@ -313,7 +311,6 @@ function RegulationTable({
       key: 'regime',
       label: 'Regulation',
       width: '120px',
-      align: 'center',
       value: (r) => r.regime ?? '',
       hint: 'Named regulation / regime (e.g. GDPR, CCPA-CPRA, NYDFS-500) — where one applies',
       render: (r) =>
@@ -323,7 +320,6 @@ function RegulationTable({
       key: 'obligation',
       label: 'Obligation',
       width: 'minmax(0,2fr)',
-      align: 'center',
       value: (r) => r.title,
       hint: 'The single atomic obligation this regulation produces — the tag shows how it binds (Filing gate: blocks a transaction until approved · Ongoing: always in force · Event-driven: fires on a trigger · Informational: monitoring-only); hover a row for the full requirement text',
       render: (r) => (
@@ -348,7 +344,6 @@ function RegulationTable({
       key: 'category',
       label: 'Category',
       width: '130px',
-      align: 'center',
       value: (r) => catLabel(r.category),
       hint: 'Compliance domain — used for grouping and filtering',
       render: (r) => (
@@ -359,7 +354,6 @@ function RegulationTable({
       key: 'owner',
       label: 'Owner',
       width: 'minmax(0,1fr)',
-      align: 'center',
       value: (r) => r.owner?.name ?? '',
       hint: 'The role accountable for meeting this obligation',
       render: (r) => (
@@ -372,7 +366,6 @@ function RegulationTable({
       key: 'contributors',
       label: 'Contributors',
       width: 'minmax(0,1.3fr)',
-      align: 'center',
       values: (r) => r.contributors.map((c) => c.name),
       hint: 'Roles that participate in fulfilling the obligation alongside the owner',
       render: (r) => (
@@ -388,7 +381,6 @@ function RegulationTable({
       key: 'plan',
       label: 'Plan',
       width: '64px',
-      align: 'center',
       value: () => '',
       hint: 'Checklist & testing plan for this regulation in the Work Library',
       render: (r) => (
