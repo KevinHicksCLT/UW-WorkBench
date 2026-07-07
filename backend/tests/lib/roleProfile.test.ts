@@ -21,6 +21,35 @@ const role = {
 
 const node = (id: string, name: string, sortOrder = 1) => ({ id, displayValue: name, sortOrder });
 
+// NodeRole row with unreviewed validation defaults (overridable per test).
+let seq = 0;
+const link = (
+  role_: string,
+  processNode: ReturnType<typeof node>,
+  validation: Partial<{
+    id: string;
+    validationStatus: string;
+    validationNote: string | null;
+    validatedByEmail: string | null;
+    validatedAt: Date | null;
+    reassignedToRole: { id: string; displayValue: string } | null;
+    reassignedToApplication: { id: string; name: string } | null;
+    reassignedToExternalParty: { id: string; name: string } | null;
+  }> = {},
+) => ({
+  id: validation.id ?? `nr${++seq}`,
+  role_,
+  processNode,
+  validationStatus: 'UNREVIEWED',
+  validationNote: null,
+  validatedByEmail: null,
+  validatedAt: null,
+  reassignedToRole: null,
+  reassignedToApplication: null,
+  reassignedToExternalParty: null,
+  ...validation,
+});
+
 const loc = new Map([
   [
     't1',
@@ -47,9 +76,9 @@ function assemble(overrides: Partial<Parameters<typeof assembleRoleProfile>[0]> 
   return assembleRoleProfile({
     role,
     nodeRoles: [
-      { role_: 'Owner', processNode: node('t1', 'Extract in-force data', 1) },
-      { role_: 'Participant', processNode: node('t2', 'Review lapse assumptions', 2) },
-      { role_: 'Owner', processNode: node('t3', 'Book quarterly reserves', 3) },
+      link('Owner', node('t1', 'Extract in-force data', 1)),
+      link('Participant', node('t2', 'Review lapse assumptions', 2)),
+      link('Owner', node('t3', 'Book quarterly reserves', 3)),
     ],
     roleDelivs: [{ role_: 'Owner', deliverable: { id: 'd1', title: 'Mortality Study' } }],
     nodeDelivs: [
@@ -116,13 +145,44 @@ describe('assembleRoleProfile', () => {
   it('collapses duplicate Owner+Participant rows on one node to Lead', () => {
     const p = assemble({
       nodeRoles: [
-        { role_: 'Participant', processNode: node('t1', 'Extract in-force data') },
-        { role_: 'Owner', processNode: node('t1', 'Extract in-force data') },
+        link('Participant', node('t1', 'Extract in-force data'), { id: 'nr-part' }),
+        link('Owner', node('t1', 'Extract in-force data'), {
+          id: 'nr-own',
+          validationStatus: 'CONFIRMED',
+          validatedByEmail: 'kelly@abc.example',
+          validatedAt: new Date('2026-07-07T00:00:00Z'),
+        }),
       ],
       nodeDelivs: [],
     });
     expect(p.taskSummary).toHaveLength(1);
     expect(p.taskSummary[0].relation).toBe('Lead');
+    // The Owner link's id + validation win so attestations land on it.
+    expect(p.taskSummary[0].nodeRoleId).toBe('nr-own');
+    expect(p.taskSummary[0].validation.status).toBe('CONFIRMED');
+  });
+
+  it('carries each link validation state onto tasks and deliverable groupings', () => {
+    const p = assemble({
+      nodeRoles: [
+        link('Owner', node('t1', 'Extract in-force data', 1), {
+          id: 'nr1',
+          validationStatus: 'REASSIGNED',
+          validatedByEmail: 'kelly@abc.example',
+          validatedAt: new Date('2026-07-07T00:00:00Z'),
+          reassignedToApplication: { id: 'app1', name: 'Policy Admin System' },
+        }),
+      ],
+    });
+    const t = p.taskSummary.find((x) => x.nodeId === 't1')!;
+    expect(t.validation).toMatchObject({
+      status: 'REASSIGNED',
+      reassignedTo: { kind: 'application', id: 'app1', name: 'Policy Admin System' },
+    });
+    // The deliverable-grouped view derives from the SAME link state.
+    const study = p.deliverables.find((d) => d.id === 'd1')!;
+    expect(study.tasks[0].validation.status).toBe('REASSIGNED');
+    expect(study.tasks[0].nodeRoleId).toBe('nr1');
   });
 
   it('participation reports the strongest relation per value stream, Leads first', () => {
@@ -132,7 +192,7 @@ describe('assembleRoleProfile', () => {
       { valueStreamId: 'vs2', valueStreamName: 'Finance', participationType: 'Lead' },
     ]);
     const supportOnly = assemble({
-      nodeRoles: [{ role_: 'Participant', processNode: node('t2', 'Review lapse assumptions') }],
+      nodeRoles: [link('Participant', node('t2', 'Review lapse assumptions'))],
       nodeDelivs: [],
     });
     expect(supportOnly.participation).toEqual([

@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../../lib/api';
+import RoleEditorDrawer from '../../components/RoleEditorDrawer';
 import RolesListSheet from '../../components/RolesListSheet';
 import RolesOrgChart from '../../components/RolesOrgChart';
 import { TocView, ViewPills, type TocRow } from '../../components/TocView';
-import { ErrorMessage, LoadingState } from '../../components/ui';
+import { Button, ErrorMessage, LoadingState } from '../../components/ui';
+import { useAuth } from '../../lib/auth';
+import { can } from '../../lib/permissions';
 
 // Roles tab — mirrors the Value Streams / Organization tabs, roles are the
 // centerpiece:
@@ -70,14 +73,29 @@ function RolesToc({
 }
 
 export default function Roles() {
-  // Deep-linkable view (`/roles?view=list`) — same pattern as Organization.
-  const [searchParams] = useSearchParams();
+  // Deep-linkable view (`/roles?view=list`) — same pattern as Organization:
+  // the view lives in the URL so breadcrumbs/back/reload restore it.
+  const [searchParams, setSearchParams] = useSearchParams();
   const paramView = searchParams.get('view');
-  const [view, setView] = useState<View>(
-    paramView === 'list' || paramView === 'map' ? paramView : 'toc',
-  );
+  const view: View = paramView === 'list' || paramView === 'map' ? paramView : 'toc';
+  const setView = (v: View) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (v === 'toc') next.delete('view');
+        else next.set('view', v);
+        return next;
+      },
+      { replace: true },
+    );
+  };
   // Division picked on the TOC — the List opens pre-filtered to it.
   const [preFilter, setPreFilter] = useState<string | null>(null);
+
+  // SCRUM-34 — the add-role flow lives on the tab itself, not in Data Admin.
+  const { permissions } = useAuth();
+  const [adding, setAdding] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const pillOptions = [
     { key: 'toc' as const, label: 'TOC' },
@@ -85,16 +103,27 @@ export default function Roles() {
     { key: 'map' as const, label: 'Map' },
   ];
   const pills = (
-    <ViewPills
-      options={pillOptions}
-      view={view}
-      onChange={(v) => {
-        if (v === 'toc') {
-          setPreFilter(null);
-        }
-        setView(v);
-      }}
-    />
+    <div className="flex items-center gap-2">
+      <ViewPills
+        options={pillOptions}
+        view={view}
+        onChange={(v) => {
+          if (v === 'toc') {
+            setPreFilter(null);
+          }
+          setView(v);
+        }}
+      />
+      {can(permissions, 'roles', 'create') && (
+        <Button
+          variant="secondary"
+          className="!py-1 !px-2.5 text-xs"
+          onClick={() => setAdding(true)}
+        >
+          + New role
+        </Button>
+      )}
+    </div>
   );
 
   return (
@@ -114,7 +143,7 @@ export default function Roles() {
           </div>
         ) : view === 'list' ? (
           <RolesListSheet
-            key={`roles-${preFilter ?? ''}`}
+            key={`roles-${preFilter ?? ''}-${refreshKey}`}
             leading={pills}
             defaultFilters={preFilter ? { division: preFilter } : undefined}
           />
@@ -123,6 +152,16 @@ export default function Roles() {
             <div className="absolute top-3 left-4 z-20">{pills}</div>
             <RolesOrgChart />
           </>
+        )}
+        {adding && (
+          <RoleEditorDrawer
+            role={null}
+            onClose={() => setAdding(false)}
+            onSaved={() => {
+              setRefreshKey((k) => k + 1);
+              setView('list');
+            }}
+          />
         )}
       </div>
     </div>

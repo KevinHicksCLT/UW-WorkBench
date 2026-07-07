@@ -5,6 +5,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import RoleProfile from '../../../src/pages/role-profile/RoleProfile';
 import type { RoleProfilePayload } from '../../../src/pages/role-profile/types';
+import { UNREVIEWED } from '../../../src/components/TaskValidationControl';
 
 const payload: RoleProfilePayload = {
   id: 'r1',
@@ -28,9 +29,11 @@ const payload: RoleProfilePayload = {
       tasks: [
         {
           name: 'Extract in-force data',
+          nodeRoleId: 'nr1',
           relation: 'Lead',
           l3: 'Experience Studies',
           l4: 'Mortality Study',
+          validation: UNREVIEWED,
         },
       ],
     },
@@ -38,6 +41,7 @@ const payload: RoleProfilePayload = {
   taskSummary: [
     {
       nodeId: 't1',
+      nodeRoleId: 'nr1',
       name: 'Extract in-force data',
       relation: 'Lead',
       valueStreamId: 'vs1',
@@ -46,6 +50,7 @@ const payload: RoleProfilePayload = {
       l4: 'Mortality Study',
       stepNumber: 1,
       deliverables: [{ id: 'd1', title: 'Mortality Study' }],
+      validation: UNREVIEWED,
     },
   ],
   responsibilities: [{ category: 'Quarterly Close', items: ['Review reserves'] }],
@@ -73,8 +78,10 @@ describe('RoleProfile', () => {
     // 'Actuarial' appears as the family chip, VS link, and division link.
     expect(screen.getAllByText('Actuarial').length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText('Individual Contributor')).toBeTruthy();
-    expect(screen.getByText('Lead / Owner')).toBeTruthy();
-    expect(screen.getByText('Supporting')).toBeTruthy();
+    // The retired Lead/Support participation tags must NOT render.
+    expect(screen.queryByText('Lead / Owner')).toBeNull();
+    expect(screen.queryByText('Supporting')).toBeNull();
+    expect(screen.getByText('Finance')).toBeTruthy();
   });
 
   it("expands a deliverable row to reveal the role's tasks under it", () => {

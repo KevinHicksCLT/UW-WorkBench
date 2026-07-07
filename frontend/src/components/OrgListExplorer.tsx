@@ -70,6 +70,9 @@ type FlatRow = {
   deptName: string;
   roleId: string | null;
   roleName: string;
+  /** Derived from NodeRole: true when the role holds no value-stream tasks
+      (e.g. Executive Office) — org structure only, absent from Value Streams. */
+  orgOnly: boolean;
 };
 
 // ── Spreadsheet column headers: each header cell carries a searchable
@@ -105,11 +108,14 @@ function Cell({
   accent,
   onClick,
   dim,
+  badge,
 }: {
   text: string;
   accent?: string;
   onClick?: () => void;
   dim?: boolean;
+  /** Small explanatory tag after the text (e.g. "Org-only"). */
+  badge?: { label: string; title: string };
 }) {
   return (
     <div
@@ -138,6 +144,14 @@ function Cell({
       >
         {text}
       </span>
+      {badge && (
+        <span
+          title={badge.title}
+          className="flex-shrink-0 text-[9px] font-semibold uppercase tracking-[0.06em] text-[#737373] bg-[#f5f5f5] border border-[#eaeaea] rounded px-1 py-px"
+        >
+          {badge.label}
+        </span>
+      )}
     </div>
   );
 }
@@ -248,11 +262,25 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
         const head = { domain: s.name, divId: d.id, divName: d.name };
         for (const t of d.departments) {
           if (t.roles.length === 0) {
-            rows.push({ ...head, deptId: t.id, deptName: t.name, roleId: null, roleName: '' });
+            rows.push({
+              ...head,
+              deptId: t.id,
+              deptName: t.name,
+              roleId: null,
+              roleName: '',
+              orgOnly: false,
+            });
             continue;
           }
           for (const r of t.roles)
-            rows.push({ ...head, deptId: t.id, deptName: t.name, roleId: r.id, roleName: r.name });
+            rows.push({
+              ...head,
+              deptId: t.id,
+              deptName: t.name,
+              roleId: r.id,
+              roleName: r.name,
+              orgOnly: r.valueStreamCount === 0,
+            });
         }
         for (const r of d.looseRoles)
           rows.push({
@@ -261,9 +289,17 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
             deptName: LOOSE_DEPT,
             roleId: r.id,
             roleName: r.name,
+            orgOnly: r.valueStreamCount === 0,
           });
         if (d.departments.length === 0 && d.looseRoles.length === 0) {
-          rows.push({ ...head, deptId: null, deptName: '', roleId: null, roleName: '' });
+          rows.push({
+            ...head,
+            deptId: null,
+            deptName: '',
+            roleId: null,
+            roleName: '',
+            orgOnly: false,
+          });
         }
       }
     }
@@ -585,6 +621,15 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
                             <Cell
                               text={r.roleName}
                               onClick={r.roleId ? () => setRoleDetailId(r.roleId!) : undefined}
+                              badge={
+                                r.roleId && r.orgOnly
+                                  ? {
+                                      label: 'Org-only',
+                                      title:
+                                        'Organizational role with no value-stream tasks — it appears here but not on the Value Streams map (e.g. Executive Office leadership).',
+                                    }
+                                  : undefined
+                              }
                             />
                           </div>
                         );

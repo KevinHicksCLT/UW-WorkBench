@@ -1,14 +1,18 @@
 import { useState } from 'react';
+import TaskValidationControl, { type TaskValidation } from '../../components/TaskValidationControl';
 import { Card, EmptyState, StatusPill } from '../../components/ui';
 import type { ProfileDeliverable } from './types';
 
 // Deliverables the role is responsible for — Owner/Contributor pill + value
 // stream on the collapsed row; expanding reveals the ROLE'S tasks under that
-// deliverable (the "drill down on a deliverable to see the tasks" view).
+// deliverable (the "drill down on a deliverable to see the tasks" view), each
+// with the same validation control as the task summary (one link, one truth).
 export default function DeliverablesSection({
   deliverables,
+  onValidation,
 }: {
   deliverables: ProfileDeliverable[];
+  onValidation: (nodeRoleId: string, v: TaskValidation) => void;
 }) {
   const [open, setOpen] = useState<Set<string>>(new Set());
   const toggle = (id: string) =>
@@ -77,23 +81,22 @@ export default function DeliverablesSection({
                   {d.tasks.length === 0 ? (
                     <EmptyState message="Directly linked — none of this role's tasks sit under it." />
                   ) : (
-                    <ul className="space-y-1.5">
-                      {d.tasks.map((t, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm">
-                          <StatusPill
-                            tone={t.relation === 'Lead' ? 'blue' : 'slate'}
-                            className="mt-0.5 flex-shrink-0"
-                          >
-                            {t.relation}
-                          </StatusPill>
-                          <span className="min-w-0">
-                            <span className="text-[#171717]">{t.name}</span>
-                            {(t.l3 || t.l4) && (
-                              <span className="block text-[11px] text-[#a3a3a3] truncate">
-                                {[t.l3, t.l4].filter(Boolean).join(' → ')}
-                              </span>
-                            )}
-                          </span>
+                    <ul className="space-y-2">
+                      {d.tasks.map((t) => (
+                        <li key={t.nodeRoleId} className="text-sm">
+                          <span className="text-[#171717]">{t.name}</span>
+                          {(t.l3 || t.l4) && (
+                            <span className="block text-[11px] text-[#a3a3a3] truncate">
+                              {[t.l3, t.l4].filter(Boolean).join(' → ')}
+                            </span>
+                          )}
+                          <div className="mt-1">
+                            <TaskValidationControl
+                              nodeRoleId={t.nodeRoleId}
+                              validation={t.validation}
+                              onChange={(v) => onValidation(t.nodeRoleId, v)}
+                            />
+                          </div>
                         </li>
                       ))}
                     </ul>

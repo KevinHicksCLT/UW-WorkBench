@@ -1,4 +1,6 @@
 // Client types for GET /roles/:id/profile (backend/src/lib/roleProfile.ts).
+import type { TaskValidation } from '../../components/TaskValidationControl';
+
 export type ProfileParticipation = {
   valueStreamId: string;
   valueStreamName: string;
@@ -6,9 +8,11 @@ export type ProfileParticipation = {
 };
 export type ProfileDeliverableTask = {
   name: string;
+  nodeRoleId: string;
   relation: 'Lead' | 'Support';
   l3: string | null;
   l4: string | null;
+  validation: TaskValidation;
 };
 export type ProfileDeliverable = {
   id: string;
@@ -19,6 +23,7 @@ export type ProfileDeliverable = {
 };
 export type ProfileTask = {
   nodeId: string;
+  nodeRoleId: string;
   name: string;
   relation: 'Lead' | 'Support';
   valueStreamId: string | null;
@@ -27,6 +32,7 @@ export type ProfileTask = {
   l4: string | null;
   stepNumber: number;
   deliverables: { id: string; title: string }[];
+  validation: TaskValidation;
 };
 export type RoleProfilePayload = {
   id: string;

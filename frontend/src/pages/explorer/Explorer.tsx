@@ -75,39 +75,46 @@ export default function Explorer() {
   const [streams, setStreams] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<View>('toc');
-  // Deep-link arrives when the user clicks through from elsewhere in the app:
+  // View state lives in the URL — the single record of "where I was":
   //   `?focus=<valueStreamId>` → LIST view focused on that value stream (its
   //                              detail opens in the right sidebar); add
   //                              `view=map` to focus the map instead.
-  //   `?view=list|map`         → force that view (list is fully exploded to the
-  //                              process-step level, e.g. the home "Process steps" tile).
-  // Lift it into state and clear the param so it doesn't linger or re-fire.
+  //   `?vs=<name>`             → LIST focused by value-stream NAME (callers
+  //                              that only know the name, e.g. Third-Parties).
+  //   `?view=list|map`         → force that view.
+  // The params are KEPT (not stripped) so the breadcrumb trail, browser
+  // back/forward, and a reload all land the user back on the same spot.
   const [searchParams, setSearchParams] = useSearchParams();
-  const [focusVsId, setFocusVsId] = useState<string | null>(null);
-  // `?vs=<name>` focuses the LIST by value-stream NAME (used where the caller
-  // only knows the name, e.g. the Third-Parties drawer) — pre-applies the Value
-  // stream filter without needing the stream's id.
-  const [focusVsName, setFocusVsName] = useState<string | null>(null);
+  const viewParam = searchParams.get('view');
+  const focusVsId = searchParams.get('focus');
+  const focusVsName = searchParams.get('vs');
+  const view: View =
+    viewParam === 'map' || viewParam === 'list'
+      ? viewParam
+      : focusVsId || focusVsName
+        ? 'list'
+        : 'toc';
 
-  useEffect(() => {
-    const f = searchParams.get('focus');
-    const vsName = searchParams.get('vs');
-    const v = searchParams.get('view');
-    if (!f && !vsName && v !== 'list' && v !== 'map') return;
-    if (f) {
-      setFocusVsId(f);
-      setView(v === 'map' ? 'map' : 'list');
-    } else if (vsName) {
-      setFocusVsName(vsName);
-      setView('list');
-    } else if (v === 'list' || v === 'map') setView(v);
-    const next = new URLSearchParams(searchParams);
-    next.delete('focus');
-    next.delete('vs');
-    next.delete('view');
-    setSearchParams(next, { replace: true });
-  }, [searchParams, setSearchParams]);
+  const setView = useCallback(
+    (v: View) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (v === 'toc') {
+            next.delete('view');
+            next.delete('focus');
+            next.delete('vs');
+            next.delete('node');
+          } else {
+            next.set('view', v);
+          }
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
 
   // Load the map bootstrap (domains + L2 divisions). Exposed as a callback so the
   // map can re-run it after an edit-mode move (an L2 row could have changed).
@@ -158,11 +165,21 @@ export default function Explorer() {
   }, [loadOverview]);
 
   // TOC row click → the LIST view focused on that stream (same deep-link path
-  // the rest of the app uses).
-  const pickFromToc = useCallback((vsId: string) => {
-    setFocusVsId(vsId);
-    setView('list');
-  }, []);
+  // the rest of the app uses; the URL carries it so "back" restores the spot).
+  const pickFromToc = useCallback(
+    (vsId: string) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set('focus', vsId);
+          next.set('view', 'list');
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
 
   // In map view the drill breadcrumb claims the GLOBAL header bar (Layout's
   // BreadcrumbBar) and MapCanvas portals into it — no in-page header strip.

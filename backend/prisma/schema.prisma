@@ -454,6 +454,7 @@ model Role {
   checklistItems                ChecklistItem[]
   roleDeliverables              RoleDeliverable[]
   nodeRoles                     NodeRole[]
+  reassignedNodeRoles           NodeRole[]                   @relation("NodeRoleReassignedTo")
   roleStandards                 RoleStandard[]
   roleRegulations               RoleRegulation[]
   ownedStandards                Standard[]                   @relation("StandardOwnerRole")
@@ -732,6 +733,7 @@ model Application {
   updatedAt          DateTime           @updatedAt
 
   nodeAppUsages             NodeAppUsage[]
+  reassignedNodeRoles       NodeRole[]
   regulationApplications    RegulationApplication[]
   metrics                   Metric[]
   nodeTemplateAnswers       NodeTemplateAnswer[]
@@ -796,6 +798,11 @@ model RoleDeliverable {
 }
 
 // NEW v4 — CRITICAL: task owner/participant (role ↔ ProcessNode).
+// Validation (SCRUM-86): the role-holder's attestation of this link — does this
+// role actually perform this task? Lives ONLY here (single source of truth);
+// every surface (role profile/drawer, Inspector, Tasks) derives from these
+// columns. REASSIGNED carries exactly one sparse target FK (role | application
+// | external party) — the "who does it instead" answer.
 model NodeRole {
   id            String      @id @default(cuid())
   companyId     String
@@ -806,10 +813,25 @@ model NodeRole {
   role_         String // "Owner|Participant" (named `role_` — `role` is the relation)
   ownerLevel    String?
 
+  validationStatus            String         @default("UNREVIEWED") // UNREVIEWED | CONFIRMED | REASSIGNED | NOT_PERFORMED
+  validationNote              String?
+  validatedByEmail            String?
+  validatedAt                 DateTime?
+  reassignedToRoleId          String?
+  reassignedToRole            Role?          @relation("NodeRoleReassignedTo", fields: [reassignedToRoleId], references: [id], onDelete: SetNull)
+  reassignedToApplicationId   String?
+  reassignedToApplication     Application?   @relation(fields: [reassignedToApplicationId], references: [id], onDelete: SetNull)
+  reassignedToExternalPartyId String?
+  reassignedToExternalParty   ExternalParty? @relation(fields: [reassignedToExternalPartyId], references: [id], onDelete: SetNull)
+
   @@unique([processNodeId, roleId, role_])
   @@index([processNodeId])
   @@index([roleId])
   @@index([companyId, processNodeId])
+  @@index([companyId, validationStatus])
+  @@index([reassignedToRoleId])
+  @@index([reassignedToApplicationId])
+  @@index([reassignedToExternalPartyId])
 }
 
 model NodeAppUsage {
@@ -1250,7 +1272,8 @@ model ExternalParty {
   partyType String // Agent | Broker | Regulator | MGA | Insured | Vendor | SaaS | SystemIntegrator
   createdAt DateTime @default(now())
 
-  interactions ExternalInteraction[]
+  interactions        ExternalInteraction[]
+  reassignedNodeRoles NodeRole[]
 
   @@index([companyId])
 }

@@ -4,14 +4,6 @@ import { useApi } from '../../lib/useApi';
 import PageHeader from '../../components/PageHeader';
 import { Card, EmptyState, ErrorMessage, LoadingState } from '../../components/ui';
 
-const PART_CLASS: Record<string, string> = {
-  Lead: 'part-lead',
-  Core: 'part-core',
-  Control: 'part-control',
-  Oversight: 'part-oversight',
-  Support: 'part-support',
-};
-
 type Participation = {
   valueStreamId: string;
   valueStreamName: string;
@@ -151,11 +143,7 @@ function RoleRows({
           ) : (
             <div className="flex flex-wrap gap-1">
               {streams.slice(0, 4).map((p) => (
-                <span
-                  key={p.valueStreamId}
-                  className={PART_CLASS[p.participationType] ?? 'chip-soft'}
-                  title={`${p.participationType} · ${p.domain ?? ''}`}
-                >
+                <span key={p.valueStreamId} className="chip-soft" title={p.domain ?? undefined}>
                   {p.valueStreamName}
                 </span>
               ))}
@@ -187,13 +175,9 @@ function RoleRows({
               />
             ) : (
               <div className="space-y-1.5 max-w-3xl">
+                {/* Plain rows — the retired Lead/Core/Support tag is gone. */}
                 {r.participations.map((p, i) => (
                   <div key={i} className="flex items-start gap-2 text-sm">
-                    <span
-                      className={`${PART_CLASS[p.participationType] ?? 'chip-soft'} flex-shrink-0 mt-0.5`}
-                    >
-                      {p.participationType}
-                    </span>
                     <div className="min-w-0">
                       <Link
                         to={`/overview?focus=${p.valueStreamId}`}

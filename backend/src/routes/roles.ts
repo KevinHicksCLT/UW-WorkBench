@@ -7,6 +7,7 @@ import { requirePermission } from '../middleware/permissions.js';
 import { logger } from '../lib/logger.js';
 import { ancestorNames } from '../lib/resolvers/index.js';
 import { assembleRoleProfile, groupByChecklist } from '../lib/roleProfile.js';
+import { VALIDATION_SELECT, validationView } from '../lib/roleTaskValidation.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -274,8 +275,10 @@ router.get('/:id/profile', async (req: Request, res: Response, next: NextFunctio
       prisma.nodeRole.findMany({
         where: { roleId: role.id },
         select: {
+          id: true,
           role_: true,
           processNode: { select: { id: true, displayValue: true, sortOrder: true } },
+          ...VALIDATION_SELECT,
         },
       }),
       prisma.roleDeliverable.findMany({
@@ -350,12 +353,15 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     if (!role) return res.status(404).json({ error: 'Not found' });
 
     const [nodeRoles, roleDelivs, checkItems] = await Promise.all([
-      // The role's task links (Owner = Lead, Participant = Support).
+      // The role's task links (Owner = Lead, Participant = Support), with the
+      // link's validation state (single source of truth on NodeRole).
       prisma.nodeRole.findMany({
         where: { roleId: role.id },
         select: {
+          id: true,
           role_: true,
           processNode: { select: { id: true, displayValue: true, sortOrder: true } },
+          ...VALIDATION_SELECT,
         },
       }),
       // The deliverables the role owns/contributes.
@@ -375,8 +381,10 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     const nodeIds = nodeRoles.map((n) => n.processNode.id);
     const loc = await ancestorNames(nodeIds);
 
-    // processTasks — one per task node the role leads/supports.
+    // processTasks — one per task node the role leads/supports, each carrying
+    // its NodeRole link id + validation state so the drawer can attest inline.
     type ProcTask = {
+      nodeRoleId: string;
       valueStreamId: string;
       valueStreamName: string;
       l3: string | null;
@@ -385,11 +393,13 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       name: string;
       relation: 'Lead' | 'Support';
       outputs: string | null;
+      validation: ReturnType<typeof validationView>;
     };
     const processTasks: ProcTask[] = nodeRoles
       .map((nr) => {
         const a = loc.get(nr.processNode.id);
         return {
+          nodeRoleId: nr.id,
           valueStreamId: a?.valueStreamId ?? '',
           valueStreamName: a?.valueStreamName ?? '—',
           l3: a?.l3 ?? null,
@@ -398,6 +408,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
           name: nr.processNode.displayValue,
           relation: (nr.role_ === 'Owner' ? 'Lead' : 'Support') as 'Lead' | 'Support',
           outputs: null,
+          validation: validationView(nr),
         };
       })
       .sort(

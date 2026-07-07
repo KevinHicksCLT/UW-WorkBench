@@ -1,21 +1,16 @@
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
 import PageHeader from '../../components/PageHeader';
 import DeliverablesSection from './DeliverablesSection';
 import TaskSummarySection from './TaskSummarySection';
-import {
-  Card,
-  Chip,
-  EmptyState,
-  ErrorMessage,
-  LoadingState,
-  StatusPill,
-} from '../../components/ui';
+import type { TaskValidation } from '../../components/TaskValidationControl';
+import { Card, Chip, EmptyState, ErrorMessage, LoadingState } from '../../components/ui';
 import type { RoleProfilePayload } from './types';
 
 // Role profile — /roles/:id. The full drill-down page for one operating-model
 // role: research-sourced job description + family/level, org alignment, the
-// value streams it leads/supports, its deliverables (expandable to the role's
+// value streams it participates in, its deliverables (expandable to the role's
 // tasks under each), the expandable task summary, and responsibilities.
 // Data: GET /roles/:id/profile (lib/roleProfile assembly). The RoleDrawer
 // remains the quick peek; this page is where every /roles/:id link lands.
@@ -24,6 +19,14 @@ export default function RoleProfile() {
   const { data, error, loading } = useApi<RoleProfilePayload>(
     id ? `/roles/${encodeURIComponent(id)}/profile` : null,
   );
+
+  // Validation decisions land on the NodeRole link server-side; fold the PATCH
+  // responses over the loaded payload so both task views stay in sync without
+  // a full-page refetch. One link id = one state, wherever it renders.
+  const [overrides, setOverrides] = useState<Record<string, TaskValidation>>({});
+  useEffect(() => setOverrides({}), [id]);
+  const onValidation = (nodeRoleId: string, v: TaskValidation) =>
+    setOverrides((o) => ({ ...o, [nodeRoleId]: v }));
 
   if (loading) return <LoadingState message="Loading role profile…" />;
   if (error) {
@@ -40,6 +43,15 @@ export default function RoleProfile() {
   if (!data) return null;
 
   const orgPath = [data.division?.name, data.department?.name].filter(Boolean).join(' · ');
+  const taskSummary = data.taskSummary.map((t) =>
+    overrides[t.nodeRoleId] ? { ...t, validation: overrides[t.nodeRoleId] } : t,
+  );
+  const deliverables = data.deliverables.map((d) => ({
+    ...d,
+    tasks: d.tasks.map((t) =>
+      overrides[t.nodeRoleId] ? { ...t, validation: overrides[t.nodeRoleId] } : t,
+    ),
+  }));
 
   return (
     <div className="max-w-5xl">
@@ -91,7 +103,7 @@ export default function RoleProfile() {
         )}
       </Card>
 
-      {/* Value streams — Lead/Owner vs Support */}
+      {/* Value streams the role participates in */}
       <Card variant="elevated" className="overflow-hidden mb-3">
         <div className="px-4 py-2.5 border-b border-[#eaeaea] flex items-baseline gap-2">
           <h2 className="text-base font-semibold text-[#171717]">Value Streams</h2>
@@ -103,6 +115,8 @@ export default function RoleProfile() {
             message="This role isn't wired to any value streams yet."
           />
         ) : (
+          // Plain list — the retired Lead/Support participation tag is
+          // intentionally absent (the value is the stream membership itself).
           data.participation.map((p) => (
             <div
               key={p.valueStreamId}
@@ -114,23 +128,17 @@ export default function RoleProfile() {
               >
                 {p.valueStreamName}
               </Link>
-              <StatusPill
-                tone={p.participationType === 'Lead' ? 'blue' : 'slate'}
-                className="flex-shrink-0"
-              >
-                {p.participationType === 'Lead' ? 'Lead / Owner' : 'Supporting'}
-              </StatusPill>
             </div>
           ))
         )}
       </Card>
 
       <div className="mb-3">
-        <DeliverablesSection deliverables={data.deliverables} />
+        <DeliverablesSection deliverables={deliverables} onValidation={onValidation} />
       </div>
 
       <div className="mb-3">
-        <TaskSummarySection tasks={data.taskSummary} />
+        <TaskSummarySection tasks={taskSummary} onValidation={onValidation} />
       </div>
 
       {/* Responsibilities */}

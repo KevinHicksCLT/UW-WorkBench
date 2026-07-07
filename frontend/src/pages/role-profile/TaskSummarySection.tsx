@@ -1,11 +1,22 @@
 import { useMemo, useState } from 'react';
-import { Card, Chip, EmptyState, Select, StatusPill } from '../../components/ui';
+import TaskValidationControl, {
+  ValidationPill,
+  type TaskValidation,
+} from '../../components/TaskValidationControl';
+import { Card, Chip, EmptyState, Select } from '../../components/ui';
 import type { ProfileTask } from './types';
 
-// Task list summary — collapsed rows show task · value stream · Lead/Support;
-// expanding a row reveals the L3 → L4 process path and the deliverables the
-// task is tied to. A value-stream filter keeps big roles scannable.
-export default function TaskSummarySection({ tasks }: { tasks: ProfileTask[] }) {
+// Task list summary — collapsed rows show task · value stream · validation
+// state; expanding a row reveals the L3 → L4 process path, the deliverables
+// the task is tied to, and the validation control ("do I actually do this?").
+// A value-stream filter keeps big roles scannable.
+export default function TaskSummarySection({
+  tasks,
+  onValidation,
+}: {
+  tasks: ProfileTask[];
+  onValidation: (nodeRoleId: string, v: TaskValidation) => void;
+}) {
   const [open, setOpen] = useState<Set<string>>(new Set());
   const [vsFilter, setVsFilter] = useState('');
 
@@ -80,15 +91,15 @@ export default function TaskSummarySection({ tasks }: { tasks: ProfileTask[] }) 
                 <span className="hidden sm:inline text-[11px] text-[#a3a3a3] truncate max-w-[180px]">
                   {t.valueStreamName}
                 </span>
-                <StatusPill
-                  tone={t.relation === 'Lead' ? 'blue' : 'slate'}
-                  className="flex-shrink-0"
-                >
-                  {t.relation}
-                </StatusPill>
+                <ValidationPill validation={t.validation} />
               </button>
               {expanded && (
                 <div className="px-4 pb-3 pl-11 space-y-1.5 text-sm">
+                  <TaskValidationControl
+                    nodeRoleId={t.nodeRoleId}
+                    validation={t.validation}
+                    onChange={(v) => onValidation(t.nodeRoleId, v)}
+                  />
                   <div className="text-[11px] text-[#666666]">
                     <span className="font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mr-1.5">
                       Where

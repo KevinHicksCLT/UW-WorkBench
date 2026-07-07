@@ -73,33 +73,51 @@ function OrgToc({ leading }: { leading?: React.ReactNode }) {
 }
 
 export default function Organization() {
-  // Deep links: `?view=departments` (home "Departments" tile) opens the OrgTable
-  // drill-down — the 'detail' surface (OrgTable consumes and clears the param,
-  // so this only latches the surface on). `?role=<id>` (links from Work /
-  // External / Standards / the org map's role leaves / old /roles/:id URLs)
-  // opens that role's detail drawer OVER whatever view is active — the user
-  // stays exactly where they drilled to, in map or list. The param is consumed
-  // and cleared here so re-clicking the same link re-opens the drawer.
+  // View state lives in the URL — the single record of "where I was":
+  // `?view=departments` (home "Departments" tile) opens the OrgTable drill-down
+  // ('detail' surface); `?view=map|list` forces that view; `?role=<id>` (links
+  // from Work / External / Standards / the org map's role leaves / old
+  // /roles/:id URLs) opens that role's detail drawer OVER whatever view is
+  // active. The params are KEPT (not stripped) so the breadcrumb trail, browser
+  // back/forward, and a reload all land the user back on the same spot.
   const [searchParams, setSearchParams] = useSearchParams();
-  const [view, setView] = useState<View>(() =>
-    searchParams.get('view') === 'departments'
+  const viewParam = searchParams.get('view');
+  const roleDrawerId = searchParams.get('role');
+  const view: View =
+    viewParam === 'departments'
       ? 'detail'
-      : searchParams.get('role')
-        ? 'list'
-        : 'toc',
-  );
-  const [roleDrawerId, setRoleDrawerId] = useState<string | null>(searchParams.get('role'));
-  useEffect(() => {
-    if (searchParams.get('view') === 'departments') setView('detail');
-    const role = searchParams.get('role');
-    if (role) {
-      setRoleDrawerId(role);
-      setView('list');
-      const next = new URLSearchParams(searchParams);
-      next.delete('role');
-      setSearchParams(next, { replace: true });
-    }
-  }, [searchParams, setSearchParams]);
+      : viewParam === 'map' || viewParam === 'list'
+        ? viewParam
+        : roleDrawerId
+          ? 'list'
+          : 'toc';
+
+  const setView = (v: View) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (v === 'toc') {
+          next.delete('view');
+          next.delete('role');
+        } else if (v !== 'detail') {
+          next.set('view', v);
+        }
+        return next;
+      },
+      { replace: true },
+    );
+  };
+
+  const closeRoleDrawer = () => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('role');
+        return next;
+      },
+      { replace: true },
+    );
+  };
 
   // In map view the drill breadcrumb claims the GLOBAL header bar (Layout's
   // BreadcrumbBar) and OrgMapCanvas portals into it — no in-page header strip.
@@ -144,7 +162,7 @@ export default function Organization() {
         )}
 
         {/* Deep-linked role detail — slides over the active view in place. */}
-        {roleDrawerId && <RoleDrawer roleId={roleDrawerId} onClose={() => setRoleDrawerId(null)} />}
+        {roleDrawerId && <RoleDrawer roleId={roleDrawerId} onClose={closeRoleDrawer} />}
       </div>
     </div>
   );

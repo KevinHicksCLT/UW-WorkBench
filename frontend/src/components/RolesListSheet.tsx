@@ -111,7 +111,7 @@ export default function RolesListSheet({
   leading?: ReactNode;
   defaultFilters?: Record<string, string>;
 }) {
-  const { data, error, loading } = useApi<{ rows: RoleRow[] }>('/roles');
+  const { data, error, loading, refetch } = useApi<{ rows: RoleRow[] }>('/roles');
   const rows = data?.rows ?? [];
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
 
@@ -144,7 +144,11 @@ export default function RolesListSheet({
       {/* Sibling of the scroller (not nested inside it) so the drawer isn't
           clipped by the sheet's own overflow-y-auto. */}
       {selectedRoleId && (
-        <RoleDrawer roleId={selectedRoleId} onClose={() => setSelectedRoleId(null)} />
+        <RoleDrawer
+          roleId={selectedRoleId}
+          onClose={() => setSelectedRoleId(null)}
+          onMutated={refetch}
+        />
       )}
     </>
   );

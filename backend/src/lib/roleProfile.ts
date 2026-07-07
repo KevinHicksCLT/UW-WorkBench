@@ -3,6 +3,7 @@
 // `assembleRoleProfile` takes plain rows (no Prisma), the route does one
 // batched Promise.all round and hands them over. No per-row query fan-out.
 import type { AncestorNames } from './resolvers/ancestorNames.js';
+import { validationView, type ValidationView } from './roleTaskValidation.js';
 
 export type ProfileRoleRow = {
   id: string;
@@ -23,8 +24,16 @@ export type ProfileRoleRow = {
   } | null;
 };
 export type ProfileNodeRoleRow = {
+  id: string;
   role_: string;
   processNode: { id: string; displayValue: string; sortOrder: number };
+  validationStatus: string;
+  validationNote: string | null;
+  validatedByEmail: string | null;
+  validatedAt: Date | null;
+  reassignedToRole: { id: string; displayValue: string } | null;
+  reassignedToApplication: { id: string; name: string } | null;
+  reassignedToExternalParty: { id: string; name: string } | null;
 };
 export type ProfileRoleDeliverableRow = {
   role_: string;
@@ -38,6 +47,8 @@ export type ProfileChecklistRow = { text: string; checklist: string | null };
 
 export type ProfileTask = {
   nodeId: string;
+  /** NodeRole link id — the PATCH target for validation decisions. */
+  nodeRoleId: string;
   name: string;
   relation: 'Lead' | 'Support';
   valueStreamId: string | null;
@@ -46,6 +57,7 @@ export type ProfileTask = {
   l4: string | null;
   stepNumber: number;
   deliverables: { id: string; title: string }[];
+  validation: ValidationView;
 };
 export type ProfileDeliverable = {
   id: string;
@@ -53,7 +65,14 @@ export type ProfileDeliverable = {
   /** Owner | Contributor from RoleDeliverable; null when only reachable via tasks. */
   role_: 'Owner' | 'Contributor' | null;
   valueStreamName: string | null;
-  tasks: { name: string; relation: 'Lead' | 'Support'; l3: string | null; l4: string | null }[];
+  tasks: {
+    name: string;
+    nodeRoleId: string;
+    relation: 'Lead' | 'Support';
+    l3: string | null;
+    l4: string | null;
+    validation: ValidationView;
+  }[];
 };
 
 // Group responsibilities by their checklist name, de-duplicating by normalized
@@ -96,19 +115,25 @@ export function assembleRoleProfile(input: {
   }
 
   // taskSummary — one row per task node; a role that is both Owner and
-  // Participant on the same node collapses to its strongest relation (Lead).
+  // Participant on the same node collapses to its strongest relation (Lead),
+  // and the Owner link's id/validation wins so attestations land on it.
   const taskByNode = new Map<string, ProfileTask>();
   for (const nr of nodeRoles) {
     const node = nr.processNode;
     const rel: 'Lead' | 'Support' = nr.role_ === 'Owner' ? 'Lead' : 'Support';
     const existing = taskByNode.get(node.id);
     if (existing) {
-      if (rel === 'Lead') existing.relation = 'Lead';
+      if (rel === 'Lead') {
+        existing.relation = 'Lead';
+        existing.nodeRoleId = nr.id;
+        existing.validation = validationView(nr);
+      }
       continue;
     }
     const a = loc.get(node.id);
     taskByNode.set(node.id, {
       nodeId: node.id,
+      nodeRoleId: nr.id,
       name: node.displayValue,
       relation: rel,
       valueStreamId: a?.valueStreamId ?? null,
@@ -117,6 +142,7 @@ export function assembleRoleProfile(input: {
       l4: a?.l4 ?? null,
       stepNumber: node.sortOrder,
       deliverables: delivsByNode.get(node.id) ?? [],
+      validation: validationView(nr),
     });
   }
   const taskSummary = [...taskByNode.values()].sort(
@@ -164,7 +190,14 @@ export function assembleRoleProfile(input: {
         entry = { id: d.id, title: d.title, role_: null, valueStreamName: null, tasks: [] };
         deliverableMap.set(d.id, entry);
       }
-      entry.tasks.push({ name: t.name, relation: t.relation, l3: t.l3, l4: t.l4 });
+      entry.tasks.push({
+        name: t.name,
+        nodeRoleId: t.nodeRoleId,
+        relation: t.relation,
+        l3: t.l3,
+        l4: t.l4,
+        validation: t.validation,
+      });
       if (t.valueStreamName !== '—') {
         const counts = vsCountByDeliverable.get(d.id) ?? new Map<string, number>();
         counts.set(t.valueStreamName, (counts.get(t.valueStreamName) ?? 0) + 1);

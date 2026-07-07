@@ -157,7 +157,7 @@ export default function RoleStudio({
               {bySlug.get('roleValueStream') && (
                 <Section
                   title="Value-stream participation"
-                  hint="Which value streams the role works in, and how (Lead / Core / Support …)."
+                  hint="Which value streams the role works in."
                 >
                   <EntityList
                     entity={bySlug.get('roleValueStream')!}
