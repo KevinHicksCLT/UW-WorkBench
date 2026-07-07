@@ -89,6 +89,27 @@ const OBLIGATION_TONE: Record<string, 'amber' | 'blue' | 'green' | 'slate'> = {
   EVENT_DRIVEN: 'green',
   INFORMATIONAL: 'slate',
 };
+
+// Compliance tier (SCRUM-77) — collapses the obligation type into the
+// critical-compliance vs general-monitoring distinction so users can filter
+// to what legally binds them. Machine-readable ComplianceRule rows are a
+// separate artifact (state pages + the Compliance rules card).
+export const complianceTier = (obligationType: string): 'Critical' | 'Compliance' | 'Monitoring' =>
+  obligationType === 'FILING_GATE'
+    ? 'Critical'
+    : obligationType === 'INFORMATIONAL'
+      ? 'Monitoring'
+      : 'Compliance';
+const TIER_TONE: Record<string, 'red' | 'blue' | 'slate'> = {
+  Critical: 'red',
+  Compliance: 'blue',
+  Monitoring: 'slate',
+};
+const TIER_HELP: Record<string, string> = {
+  Critical: 'Blocking compliance obligation — business cannot proceed until the filing is approved',
+  Compliance: 'Legally binding obligation (ongoing or event-driven)',
+  Monitoring: 'Informational — watch, no direct action required',
+};
 const TABS = ['International', 'Federal', 'State'] as const;
 type Tab = (typeof TABS)[number];
 
@@ -298,8 +319,10 @@ function RegulationTable({
       key: 'lob',
       label: 'Line of business',
       width: '110px',
-      value: (r) => flagLabel(r.lineOfBusiness),
-      hint: 'Which insurance line the obligation applies to — All means every line the company writes; filter here to cut cross-line noise',
+      // 'All lines' (not 'All') so the filter dropdown's no-filter "All" option
+      // stays distinct from the every-line value.
+      value: (r) => (r.lineOfBusiness === 'ALL' ? 'All lines' : flagLabel(r.lineOfBusiness)),
+      hint: 'Which insurance line the obligation applies to — All lines means every line the company writes; filter here to cut cross-line noise',
       render: (r) =>
         r.lineOfBusiness === 'ALL' ? (
           <span className="text-[12px] text-[#a3a3a3]">All lines</span>
@@ -339,6 +362,21 @@ function RegulationTable({
           </StatusPill>
         </span>
       ),
+    },
+    {
+      key: 'compliance',
+      label: 'Compliance',
+      width: '104px',
+      value: (r) => complianceTier(r.obligationType),
+      hint: 'Whether the row legally binds the business — Critical: filing gate, blocks business until approved · Compliance: binding ongoing/event-driven obligation · Monitoring: informational only. Machine-readable compliance rules are a separate artifact (see the Compliance rules card and each state page).',
+      render: (r) => {
+        const tier = complianceTier(r.obligationType);
+        return (
+          <StatusPill tone={TIER_TONE[tier]} title={TIER_HELP[tier]}>
+            {tier}
+          </StatusPill>
+        );
+      },
     },
     {
       key: 'category',
