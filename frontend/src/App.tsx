@@ -42,6 +42,7 @@ const External = lazy(() => import('./pages/external/External'));
 const Regulations = lazy(() => import('./pages/regulations/Regulations'));
 const RegulationDetail = lazy(() => import('./pages/regulation-detail/RegulationDetail'));
 const RequirementDetail = lazy(() => import('./pages/regulations/RequirementDetail'));
+const RegimeDetail = lazy(() => import('./pages/regulations/RegimeDetail'));
 const RegulationsInsight = lazy(() => import('./pages/regulations/RegulationsInsight'));
 const Settings = lazy(() => import('./pages/settings/Settings'));
 // The role profile page — revived /roles/:id (description, org, value streams,
@@ -331,6 +332,14 @@ export default function App() {
                     element={
                       <G k="regulations">
                         <RequirementDetail />
+                      </G>
+                    }
+                  />
+                  <Route
+                    path="/regulations/regulation/:regime"
+                    element={
+                      <G k="regulations">
+                        <RegimeDetail />
                       </G>
                     }
                   />

@@ -413,6 +413,7 @@ export function registerLensRoutes(router: Router): void {
         'obligationType',
         'status',
         'confidence',
+        'regime',
       ] as const) {
         const vals = list(q[f]);
         if (vals) where[f] = vals.length === 1 ? vals[0] : { in: vals };

@@ -281,9 +281,24 @@ export default function RegulationDetail() {
           <div className="divide-y divide-[#f5f5f5]">
             {detail.requirements.map((r) => (
               <div key={r.id} className="py-2.5">
-                <div className="text-sm font-medium text-[#171717]">{r.title}</div>
+                <Link
+                  to={`/regulations/requirement/${r.id}`}
+                  className="text-sm font-medium text-[#171717] hover:underline"
+                >
+                  {r.title}
+                </Link>
                 <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                  {r.regime && <StatusPill tone="blue">{r.regime}</StatusPill>}
+                  {r.regime && (
+                    <Link to={`/regulations/regulation/${encodeURIComponent(r.regime)}`}>
+                      <StatusPill
+                        tone="blue"
+                        className="hover:underline"
+                        title="Open regulation page"
+                      >
+                        {r.regime}
+                      </StatusPill>
+                    </Link>
+                  )}
                   <StatusPill tone="slate">{catLabel(r.category)}</StatusPill>
                   {r.lineOfBusiness !== 'ALL' && (
                     <StatusPill tone="slate">{label(r.lineOfBusiness)}</StatusPill>
@@ -425,10 +440,14 @@ export default function RegulationDetail() {
         {!isFederal && (
           <>
             <SectionCard title={`Bulletins (${detail.bulletins.length})`}>
+              <p className="text-xs text-[#a3a3a3] mb-2">
+                Official notices this regulator has published — interpreting legislation, announcing
+                rate-filing expectations, or setting fees. Captured during the baseline research.
+              </p>
               {detail.bulletins.length === 0 && (
                 <EmptyState
                   baseClassName="text-sm text-[#a3a3a3]"
-                  message="No bulletins on file for this state yet — the baseline document named only a handful; the Phase 2 pipeline appends here continuously."
+                  message="No bulletins on file for this state yet."
                 />
               )}
               <div className="divide-y divide-[#f5f5f5]">
@@ -495,7 +514,11 @@ export default function RegulationDetail() {
               </div>
             </SectionCard>
 
-            <SectionCard title={`Monitored sources (${detail.sources.length})`}>
+            <SectionCard title={`Regulatory sources (${detail.sources.length})`}>
+              <p className="text-xs text-[#a3a3a3] mb-2">
+                The official sites and feeds this state&apos;s requirements and bulletins come from.
+                Automated monitoring is a future phase — nothing is polled today.
+              </p>
               <div className="divide-y divide-[#f5f5f5]">
                 {detail.sources.map((s) => (
                   <div key={s.id} className="flex items-center gap-2 py-2 text-sm">
@@ -511,14 +534,6 @@ export default function RegulationDetail() {
                     <StatusPill tone={s.authority === 'OFFICIAL_REGULATOR' ? 'green' : 'blue'}>
                       {label(s.authority)}
                     </StatusPill>
-                    {s.monitor && (
-                      <StatusPill
-                        tone="amber"
-                        title={`Phase 2 pipeline tier: ${label(s.checkTier)}`}
-                      >
-                        Monitored · {s.checkTier === 'PRIORITY_DAILY' ? 'daily' : 'weekly'}
-                      </StatusPill>
-                    )}
                   </div>
                 ))}
               </div>

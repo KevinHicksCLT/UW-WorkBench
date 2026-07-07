@@ -80,6 +80,7 @@ export function registerFeedRoutes(router: Router): void {
           category: true,
           description: true,
           origin: true,
+          ruleJson: true,
           jurisdiction: { select: { code: true, name: true } },
         },
       });

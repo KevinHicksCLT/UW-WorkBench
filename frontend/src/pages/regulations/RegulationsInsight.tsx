@@ -1,11 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCompany } from '../../lib/company';
 import { useApi } from '../../lib/useApi';
 import { withCompany, Tile, SectionCard } from '../../lib/portfolio';
 import PageHeader from '../../components/PageHeader';
 import { useRegisterCrumb } from '../../lib/breadcrumbs';
-import { EmptyState, LoadingState, StatusPill } from '../../components/ui';
+import { EmptyState, Input, LoadingState, StatusPill } from '../../components/ui';
 import { catLabel, CONFIDENCE_HELP, type Overview } from './Regulations';
 
 // Overview-card insight pages — /regulations/{jurisdictions,catalog,rules,sources}.
@@ -30,16 +30,20 @@ type JurRow = {
 };
 type ReqRow = {
   id: string;
+  title: string;
+  requirement: string;
   category: string;
   lineOfBusiness: string;
   confidence: string;
-  jurisdiction: { code: string; regulatorType: string };
+  regime: string | null;
+  jurisdiction: { code: string; name: string; regulatorType: string };
 };
 type RuleRow = {
   id: string;
   ruleCode: string;
   category: string;
   description: string | null;
+  ruleJson: unknown;
   jurisdiction: { code: string; name: string };
 };
 type SourceRow = {
@@ -153,19 +157,19 @@ const META: Record<InsightKind, { title: string; blurb: string }> = {
       'Every state insurance regulator tracked in the baseline — federal and international regulators surface in their own lenses on the Regulations tab. Verified means the profile was confirmed against the regulator’s official sources.',
   },
   catalog: {
-    title: 'Active regulations',
+    title: 'Requirements',
     blurb:
-      'Every active regulation is one atomic obligation. Each should be mapped to the value stream(s) it governs — open a regulation and use edit links; linking materializes the obligation onto every task under the stream.',
+      'Every requirement is one atomic legal obligation imposed by a regulation. Each should be mapped to the value stream(s) it governs — open a requirement and use edit links; linking applies it to every task under the stream.',
   },
   rules: {
     title: 'Compliance rules',
     blurb:
-      'Machine-readable controls distilled from each state’s regulatory artifacts — distinct from active regulations: a regulation states the legal obligation, a rule encodes a checkable control for it. Phase 1 stores and displays them; automated execution is a future phase.',
+      'Machine-readable controls distilled from each state’s regulatory artifacts — distinct from requirements: a requirement states the legal obligation, a rule encodes a checkable control for it. Phase 1 stores and displays them; automated execution is a future phase.',
   },
   sources: {
-    title: 'Monitored sources',
+    title: 'Regulatory sources',
     blurb:
-      'Official regulator websites and feeds the Phase-2 monitoring pipeline polls — priority states daily, the rest weekly — for new bulletins, rule changes and guidance. Discoveries land in the bulletins feed and on the issuing state’s page.',
+      'The catalog of official regulator websites and feeds identified during the baseline research — the places requirements and bulletins come from. Sources and bulletins are separate things: a source is a website we track, a bulletin is an official notice a regulator published (interpreting rules, announcing changes). Automated monitoring of these sources is a future phase — nothing is being polled today.',
   },
 };
 
@@ -268,7 +272,7 @@ function JurisdictionsBody({
               {j.priorityTier === 'PRIORITY' && <StatusPill tone="amber">Priority</StatusPill>}
               <span className="flex-1" />
               <span className="text-xs text-[#525252] tnum">
-                {j._count.requirements} regulations · {j._count.rules} rules · {j._count.sources}{' '}
+                {j._count.requirements} requirements · {j._count.rules} rules · {j._count.sources}{' '}
                 sources
               </span>
               {j.lastVerifiedAt ? (
@@ -286,7 +290,7 @@ function JurisdictionsBody({
   );
 }
 
-// ── Active regulations catalog ───────────────────────────────────────────────
+// ── Requirements catalog ─────────────────────────────────────────────────────
 function CatalogBody({
   rows,
   loading,
@@ -296,6 +300,8 @@ function CatalogBody({
   loading: boolean;
   overview: Overview | null;
 }) {
+  const navigate = useNavigate();
+  const [query, setQuery] = useState('');
   const byCategory = useMemo(() => tally(rows ?? [], (r) => catLabel(r.category)), [rows]);
   const byLob = useMemo(
     () =>
@@ -304,13 +310,25 @@ function CatalogBody({
       ),
     [rows],
   );
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return rows ?? [];
+    return (rows ?? []).filter(
+      (row) =>
+        row.title.toLowerCase().includes(q) ||
+        row.requirement.toLowerCase().includes(q) ||
+        row.jurisdiction.name.toLowerCase().includes(q) ||
+        (row.regime ?? '').toLowerCase().includes(q) ||
+        catLabel(row.category).toLowerCase().includes(q),
+    );
+  }, [rows, query]);
   if (loading || !rows || !overview) return <LoadingState />;
   const r = overview.requirements;
   const coverage = overview.coverageByValueStream ?? [];
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <Tile compact label="Active regulations" value={r.total} />
+        <Tile compact label="Requirements" value={r.total} />
         <Tile
           compact
           label="Mapped"
@@ -343,7 +361,7 @@ function CatalogBody({
         </SectionCard>
         <SectionCard title="Coverage by value stream">
           {coverage.length === 0 ? (
-            <EmptyState message="No regulations are mapped to value streams yet." />
+            <EmptyState message="No requirements are mapped to value streams yet." />
           ) : (
             <BarList data={coverage.map((c) => [c.valueStream ?? '—', c.requirementCount])} />
           )}
@@ -355,20 +373,64 @@ function CatalogBody({
           <BarList data={byLob} />
         </SectionCard>
       </div>
+      <SectionCard title={`All requirements (${filtered.length})`}>
+        <div className="mb-3 max-w-xs">
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search requirements…"
+            aria-label="Search requirements"
+          />
+        </div>
+        {filtered.length === 0 ? (
+          <EmptyState message="No requirements match the search." />
+        ) : (
+          <div className="divide-y divide-[#f5f5f5]">
+            {filtered.map((row) => (
+              <button
+                key={row.id}
+                type="button"
+                onClick={() => navigate(`/regulations/requirement/${row.id}`)}
+                className="w-full text-left py-2 flex items-center gap-2 hover:bg-[#fafafa] -mx-2 px-2 rounded-md transition-colors duration-100 group"
+              >
+                <span className="text-sm text-[#171717] group-hover:underline truncate">
+                  {row.title}
+                </span>
+                <span className="flex-1" />
+                <span className="text-[11px] text-[#a3a3a3] flex-shrink-0">
+                  {row.jurisdiction.name}
+                </span>
+                <StatusPill tone="slate">{catLabel(row.category)}</StatusPill>
+              </button>
+            ))}
+          </div>
+        )}
+      </SectionCard>
     </div>
   );
 }
 
 // ── Compliance rules ─────────────────────────────────────────────────────────
 function RulesBody({ rows, loading }: { rows: RuleRow[] | null; loading: boolean }) {
-  const navigate = useNavigate();
+  const [query, setQuery] = useState('');
+  const [openRule, setOpenRule] = useState<string | null>(null);
   const byCategory = useMemo(() => tally(rows ?? [], (r) => label(r.category)), [rows]);
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return rows ?? [];
+    return (rows ?? []).filter(
+      (r) =>
+        r.ruleCode.toLowerCase().includes(q) ||
+        (r.description ?? '').toLowerCase().includes(q) ||
+        r.jurisdiction.name.toLowerCase().includes(q) ||
+        label(r.category).toLowerCase().includes(q),
+    );
+  }, [rows, query]);
   const grouped = useMemo(() => {
     const m = new Map<string, RuleRow[]>();
-    for (const r of rows ?? [])
-      (m.get(r.category) ?? m.set(r.category, []).get(r.category)!).push(r);
+    for (const r of filtered) (m.get(r.category) ?? m.set(r.category, []).get(r.category)!).push(r);
     return [...m.entries()].sort((a, b) => b[1].length - a[1].length);
-  }, [rows]);
+  }, [filtered]);
   if (loading || !rows) return <LoadingState />;
   const states = new Set(rows.map((r) => r.jurisdiction.code)).size;
   return (
@@ -381,7 +443,16 @@ function RulesBody({ rows, loading }: { rows: RuleRow[] | null; loading: boolean
       <SectionCard title="Rules by category">
         <BarList data={byCategory.slice(0, 15)} />
       </SectionCard>
-      <SectionCard title="All rules">
+      <SectionCard title={`All rules (${filtered.length})`}>
+        <div className="mb-3 max-w-xs">
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search rules…"
+            aria-label="Search rules"
+          />
+        </div>
+        {filtered.length === 0 && <EmptyState message="No rules match the search." />}
         {grouped.map(([cat, list]) => (
           <div key={cat} className="mb-4 last:mb-0">
             <div className="text-[11px] font-semibold uppercase tracking-[0.04em] text-[#525252] mb-1.5">
@@ -389,20 +460,31 @@ function RulesBody({ rows, loading }: { rows: RuleRow[] | null; loading: boolean
             </div>
             <div className="divide-y divide-[#f5f5f5]">
               {list.map((r) => (
-                <button
-                  key={r.id}
-                  type="button"
-                  onClick={() => navigate(`/regulations/${r.jurisdiction.code}`)}
-                  className="w-full text-left py-1.5 flex items-baseline gap-2 hover:bg-[#fafafa] -mx-2 px-2 rounded-md transition-colors duration-100"
-                >
-                  <span className="text-xs font-medium tnum text-[#171717] flex-shrink-0">
-                    {r.ruleCode}
-                  </span>
-                  <span className="text-[11px] text-[#a3a3a3] flex-shrink-0">
-                    {r.jurisdiction.code}
-                  </span>
-                  <span className="text-xs text-[#525252] truncate">{r.description}</span>
-                </button>
+                <div key={r.id} className="py-1.5">
+                  {/* Expand to the machine-readable rule body, same as the state page. */}
+                  <button
+                    type="button"
+                    onClick={() => setOpenRule(openRule === r.id ? null : r.id)}
+                    aria-expanded={openRule === r.id}
+                    className="w-full text-left flex items-baseline gap-2 hover:bg-[#fafafa] -mx-2 px-2 rounded-md transition-colors duration-100 group"
+                  >
+                    <span className="text-xs font-medium tnum text-[#171717] flex-shrink-0 group-hover:underline">
+                      {r.ruleCode}
+                    </span>
+                    <span className="text-[11px] text-[#a3a3a3] flex-shrink-0">
+                      {r.jurisdiction.code}
+                    </span>
+                    <span className="text-xs text-[#525252] truncate flex-1">{r.description}</span>
+                    <span className="text-[#a3a3a3] text-xs flex-shrink-0">
+                      {openRule === r.id ? '▾' : '▸'}
+                    </span>
+                  </button>
+                  {openRule === r.id && (
+                    <pre className="mt-2 rounded-lg bg-[#fafafa] border border-[#eaeaea] p-3 text-[11px] text-[#262626] overflow-x-auto">
+                      {JSON.stringify(r.ruleJson, null, 2)}
+                    </pre>
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -412,7 +494,7 @@ function RulesBody({ rows, loading }: { rows: RuleRow[] | null; loading: boolean
   );
 }
 
-// ── Monitored sources + bulletins ────────────────────────────────────────────
+// ── Regulatory sources + bulletins ───────────────────────────────────────────
 function SourcesBody({
   rows,
   bulletins,
@@ -425,24 +507,31 @@ function SourcesBody({
   const navigate = useNavigate();
   const byType = useMemo(() => tally(rows ?? [], (r) => label(r.sourceType)), [rows]);
   if (loading || !rows) return <LoadingState />;
-  const daily = rows.filter((s) => s.monitor && s.checkTier === 'PRIORITY_DAILY').length;
-  const weekly = rows.filter((s) => s.monitor && s.checkTier !== 'PRIORITY_DAILY').length;
-  const healthy = rows.filter((s) => s.healthStatus === 'OK').length;
+  const states = new Set(rows.map((s) => s.jurisdiction?.code).filter(Boolean)).size;
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <Tile compact label="Sources" value={rows.length} hint={`${healthy} healthy`} />
-        <Tile compact label="Checked daily" value={daily} hint="priority states" />
-        <Tile compact label="Checked weekly" value={weekly} />
-        <Tile compact label="Bulletins on file" value={bulletins?.length ?? 0} />
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <Tile compact label="Sources" value={rows.length} hint="official regulator sites & feeds" />
+        <Tile compact label="States covered" value={states} />
+        <Tile
+          compact
+          label="Bulletins on file"
+          value={bulletins?.length ?? 0}
+          hint="notices published by regulators"
+        />
       </div>
       <div className="grid md:grid-cols-2 gap-5">
         <SectionCard title="Sources by type">
           <BarList data={byType} />
         </SectionCard>
         <SectionCard title={`Bulletins (${bulletins?.length ?? 0})`}>
+          <p className="text-xs text-[#a3a3a3] mb-2">
+            A bulletin is an official notice a regulator publishes — interpreting legislation,
+            announcing rate-filing expectations, or setting fees. These came from the baseline
+            research; they are separate from the sources list on the left.
+          </p>
           {!bulletins?.length ? (
-            <EmptyState message="No bulletins on file yet — the pipeline appends here continuously." />
+            <EmptyState message="No bulletins on file yet." />
           ) : (
             <div className="divide-y divide-[#f5f5f5]">
               {bulletins.map((b) => (
@@ -499,14 +588,6 @@ function SourcesBody({
               )}
               <span className="flex-1" />
               <StatusPill tone="slate">{label(s.sourceType)}</StatusPill>
-              {s.monitor && (
-                <StatusPill tone="amber">
-                  {s.checkTier === 'PRIORITY_DAILY' ? 'Daily' : 'Weekly'}
-                </StatusPill>
-              )}
-              <StatusPill tone={s.healthStatus === 'OK' ? 'green' : 'red'}>
-                {label(s.healthStatus)}
-              </StatusPill>
             </div>
           ))}
         </div>

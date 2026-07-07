@@ -147,6 +147,33 @@ const CATEGORY_LABEL: Record<string, string> = {
 };
 export const catLabel = (c: string) => CATEGORY_LABEL[c] ?? flagLabel(c);
 
+// One-line definitions for the classification facets (surfaced on the
+// requirement page and as tooltips) — keep these as the single copy source.
+export const CATEGORY_HELP: Record<string, string> = {
+  PRODUCT_FILING:
+    'Submitting policy forms, rates, and rules to the regulator for approval before sale',
+  LICENSING: 'Company and producer licenses, appointments, and renewals required to do business',
+  PREMIUM_TAX: 'Taxes and assessments owed on written premium',
+  SURPLUS_LINES: 'Obligations on non-admitted / surplus-lines placements',
+  WORKERS_COMP_REPORTING: "Claims and policy reporting to workers' compensation bureaus and funds",
+  AUTO_VERIFICATION: 'Reporting insured vehicles to state insurance-verification systems',
+  APCD_REPORTING: 'Submitting claims data to all-payer claims databases',
+  FINANCIAL_REPORTING: 'Statutory financial statements and solvency filings',
+  MARKET_CONDUCT: 'Sales, claims, and consumer-treatment conduct standards and exams',
+  DATA_CALL: 'Ad-hoc or recurring data requests issued by the regulator',
+  CYBERSECURITY: 'Information-security program, incident-notification, and certification duties',
+  DATA_PRIVACY: 'Collection, use, and protection of personal data',
+  OTHER: 'Obligations outside the named compliance domains',
+};
+export const LOB_HELP: Record<string, string> = {
+  ALL: 'Applies to every line of business the company writes',
+  LIFE_ANNUITY: 'Life insurance and annuity products',
+  WORKERS_COMP: "Workers' compensation",
+  AUTO: 'Personal and commercial auto',
+  HEALTH: 'Health insurance',
+  SURPLUS_LINES: 'Surplus-lines / non-admitted business',
+};
+
 const dash = <span className="text-[#d4d4d4]">—</span>;
 
 export default function Regulations() {
@@ -211,7 +238,7 @@ export default function Regulations() {
           />
           <Tile
             compact
-            label="Active regulations"
+            label="Requirements"
             value={overview.requirements.total}
             hint={`${overview.requirements.mapped} mapped to value streams`}
             onClick={() => navigate('/regulations/catalog')}
@@ -225,9 +252,9 @@ export default function Regulations() {
           />
           <Tile
             compact
-            label="Monitored sources"
+            label="Regulatory sources"
             value={overview.sourceCount}
-            hint={`${overview.bulletinCount} bulletins`}
+            hint={`${overview.bulletinCount} bulletins on file`}
             onClick={() => navigate('/regulations/sources')}
           />
         </div>
@@ -237,7 +264,7 @@ export default function Regulations() {
         rows={rows}
         loading={requirements === null}
         firstLabel={tab === 'State' ? 'State' : 'Regulator'}
-        emptyText={`No ${tab === 'State' ? 'state' : tab.toLowerCase()} regulations on file.`}
+        emptyText={`No ${tab === 'State' ? 'state' : tab.toLowerCase()} requirements on file.`}
         onOpen={(id) => navigate(`/regulations/requirement/${id}`)}
         leading={tabs}
       />
@@ -304,19 +331,30 @@ function RegulationTable({
       label: 'Regulation',
       width: '120px',
       value: (r) => r.regime ?? '',
-      hint: 'Named regulation / regime (e.g. GDPR, CCPA-CPRA, NYDFS-500) — where one applies',
+      hint: 'Named regulation / regime (e.g. GDPR, CCPA-CPRA, NYDFS-500) — click to open the regulation and see every requirement in it',
       render: (r) =>
-        r.regime ? <span className="truncate text-[12px] text-[#171717]">{r.regime}</span> : dash,
+        r.regime ? (
+          <Link
+            to={`/regulations/regulation/${encodeURIComponent(r.regime)}`}
+            onClick={(e) => e.stopPropagation()}
+            className="truncate text-[12px] text-[#171717] hover:underline"
+            title={`${r.regime} — open regulation page`}
+          >
+            {r.regime}
+          </Link>
+        ) : (
+          dash
+        ),
     },
     {
-      key: 'obligation',
-      label: 'Obligation',
+      key: 'requirement',
+      label: 'Requirement',
       width: 'minmax(0,2fr)',
       value: (r) => r.title,
-      hint: 'The single atomic obligation this regulation produces — hover a row for the full requirement text',
+      hint: 'The single atomic requirement — click the row to open its page; hover for the full text',
       render: (r) => (
         <span
-          className="truncate text-[12px] text-[#262626]"
+          className="truncate text-[12px] text-[#262626] hover:underline"
           title={`${r.title}\n\n${r.requirement}`}
         >
           {r.title}
@@ -384,7 +422,7 @@ function RegulationTable({
       cols={cols}
       rowKey={(r) => r.id}
       loading={loading}
-      unit="regulations"
+      unit="requirements"
       emptyText={emptyText}
       defaultSort={{ col: 'juris', dir: 1 }}
       summarize={(v) =>
