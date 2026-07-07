@@ -6,7 +6,9 @@ import { useApi } from '../../lib/useApi';
 import { withCompany, Tile } from '../../lib/portfolio';
 import { useRegisterCrumb } from '../../lib/breadcrumbs';
 import { Sheet, type SheetCol } from '../../components/Sheet';
+import { StatusPill } from '../../components/ui';
 import { type VsLink } from '../../components/RequirementLinks';
+import { RegOverviewDrawer, type DrillKind } from './OverviewDrawers';
 
 type RoleRef = { id: string; name: string };
 
@@ -43,7 +45,7 @@ type RequirementRow = {
   contributors: RoleRef[];
 };
 
-type Overview = {
+export type Overview = {
   jurisdictionCount: number;
   flags: Record<string, Record<string, number>>;
   requirements: {
@@ -53,10 +55,45 @@ type Overview = {
     byCategory: Record<string, number>;
     byConfidence: Record<string, number>;
   };
+  coverageByValueStream: {
+    valueStreamId: string;
+    valueStream: string | null;
+    requirementCount: number;
+  }[];
   bulletinCount: number;
   ruleCount: number;
   sourceCount: number;
   verifiedJurisdictions: number;
+};
+
+// Provenance legend for the Confidence pill/column (SCRUM-40/42) — shared by
+// the overview drawer, the table hint, and the state-detail pills.
+export const CONFIDENCE_HELP: Record<string, string> = {
+  BASELINE: 'sourced from the 50-state baseline research document, not yet independently verified',
+  DERIVED: 'decomposed or inferred from a broader regime or grouped requirement',
+  VERIFIED: 'confirmed against the official regulator source',
+  STALE: 'the source has changed since last verification — needs re-review',
+};
+
+// What each obligation type means (SCRUM-42/77) — filing gates are the
+// critical blockers; informational rows are monitoring-only.
+export const OBLIGATION_HELP: Record<string, string> = {
+  FILING_GATE: 'Blocks a transaction until the regulator approves the filing',
+  ONGOING: 'Continuous obligation — always in force',
+  EVENT_DRIVEN: 'Fires when a triggering event occurs',
+  INFORMATIONAL: 'Monitoring-only — no direct action required',
+};
+const OBLIGATION_TONE: Record<string, 'amber' | 'blue' | 'green' | 'slate'> = {
+  FILING_GATE: 'amber',
+  ONGOING: 'blue',
+  EVENT_DRIVEN: 'green',
+  INFORMATIONAL: 'slate',
+};
+const CONFIDENCE_TONE: Record<string, 'green' | 'amber' | 'red' | 'slate'> = {
+  VERIFIED: 'green',
+  DERIVED: 'amber',
+  STALE: 'red',
+  BASELINE: 'slate',
 };
 
 const TABS = ['International', 'Federal', 'State'] as const;
@@ -131,6 +168,7 @@ export default function Regulations() {
   const navigate = useNavigate();
   const { companyId } = useCompany();
   const [tab, setTab] = useState<Tab>('State');
+  const [drill, setDrill] = useState<DrillKind | null>(null);
   useRegisterCrumb('Regulations');
 
   const { data: overview } = useApi<Overview>(
@@ -177,7 +215,7 @@ export default function Regulations() {
 
   return (
     <div>
-      {/* Headline tiles — compact strip */}
+      {/* Headline tiles — compact strip; each card drills into a detail drawer (SCRUM-45). */}
       {overview && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
           <Tile
@@ -185,26 +223,33 @@ export default function Regulations() {
             label="Jurisdictions"
             value={overview.jurisdictionCount}
             hint={`${overview.flags.priorityTier?.PRIORITY ?? 0} priority states`}
+            onClick={() => setDrill('jurisdictions')}
           />
           <Tile
             compact
             label="Active regulations"
             value={overview.requirements.total}
             hint={`${overview.requirements.mapped} mapped to value streams`}
+            onClick={() => setDrill('regulations')}
           />
           <Tile
             compact
             label="Compliance rules"
             value={overview.ruleCount}
             hint="machine-readable"
+            onClick={() => setDrill('rules')}
           />
           <Tile
             compact
             label="Monitored sources"
             value={overview.sourceCount}
             hint={`${overview.bulletinCount} bulletins`}
+            onClick={() => setDrill('sources')}
           />
         </div>
+      )}
+      {drill && overview && (
+        <RegOverviewDrawer kind={drill} overview={overview} onClose={() => setDrill(null)} />
       )}
 
       <RegulationTable
@@ -242,6 +287,7 @@ function RegulationTable({
       width: '140px',
       align: 'center',
       value: (r) => r.jurisdiction.name,
+      hint: 'Issuing jurisdiction — the state, federal, or international regulator behind the obligation',
       render: (r) => (
         <span className="inline-flex items-center gap-1.5 min-w-0">
           <span
@@ -272,6 +318,7 @@ function RegulationTable({
       width: 'minmax(0,2fr)',
       align: 'center',
       value: (r) => r.title,
+      hint: 'The single atomic obligation this regulation produces — hover a row for the full requirement text',
       render: (r) => (
         <span
           className="truncate text-[12px] text-[#262626]"
@@ -282,14 +329,74 @@ function RegulationTable({
       ),
     },
     {
+      key: 'type',
+      label: 'Type',
+      width: '100px',
+      align: 'center',
+      value: (r) => flagLabel(r.obligationType),
+      hint: 'How the obligation binds — Filing gate: blocks a transaction until approved · Ongoing: always in force · Event-driven: fires on a trigger · Informational: monitoring-only',
+      render: (r) => (
+        <StatusPill
+          tone={OBLIGATION_TONE[r.obligationType] ?? 'slate'}
+          title={OBLIGATION_HELP[r.obligationType]}
+        >
+          {flagLabel(r.obligationType)}
+        </StatusPill>
+      ),
+    },
+    {
+      key: 'confidence',
+      label: 'Confidence',
+      width: '96px',
+      align: 'center',
+      value: (r) => flagLabel(r.confidence),
+      hint: 'Provenance of the entry — Baseline: from the 50-state baseline research · Derived: decomposed from a broader regime · Verified: confirmed against the official source · Stale: needs re-verification',
+      render: (r) => (
+        <StatusPill
+          tone={CONFIDENCE_TONE[r.confidence] ?? 'slate'}
+          title={CONFIDENCE_HELP[r.confidence]}
+        >
+          {flagLabel(r.confidence)}
+        </StatusPill>
+      ),
+    },
+    {
       key: 'category',
       label: 'Category',
       width: '130px',
       align: 'center',
       value: (r) => catLabel(r.category),
+      hint: 'Compliance domain — used for grouping and filtering',
       render: (r) => (
         <span className="truncate text-[12px] text-[#525252]">{catLabel(r.category)}</span>
       ),
+    },
+    {
+      key: 'vstreams',
+      label: 'Value streams',
+      width: 'minmax(0,1fr)',
+      align: 'center',
+      values: (r) =>
+        r.valueStreamLinks.length
+          ? r.valueStreamLinks.map((l) => l.valueStream.name)
+          : ['Unmapped'],
+      hint: 'Value streams whose tasks this regulation governs — every active regulation should be mapped to the streams it applies to (edit links on the jurisdiction page)',
+      render: (r) =>
+        r.valueStreamLinks.length ? (
+          <span
+            className="truncate text-[12px] text-[#525252]"
+            title={r.valueStreamLinks.map((l) => l.valueStream.name).join(', ')}
+          >
+            {r.valueStreamLinks.map((l) => l.valueStream.name).join(', ')}
+          </span>
+        ) : (
+          <StatusPill
+            tone="amber"
+            title="Not yet mapped to any value stream — open the jurisdiction page and use edit links"
+          >
+            Unmapped
+          </StatusPill>
+        ),
     },
     {
       key: 'owner',
@@ -297,6 +404,7 @@ function RegulationTable({
       width: 'minmax(0,1fr)',
       align: 'center',
       value: (r) => r.owner?.name ?? '',
+      hint: 'The role accountable for meeting this obligation',
       render: (r) => (
         <span className="truncate text-[12px] text-[#525252]" title={r.owner?.name}>
           {r.owner ? r.owner.name : dash}
@@ -309,6 +417,7 @@ function RegulationTable({
       width: 'minmax(0,1.3fr)',
       align: 'center',
       values: (r) => r.contributors.map((c) => c.name),
+      hint: 'Roles that participate in fulfilling the obligation alongside the owner',
       render: (r) => (
         <span
           className="truncate text-[12px] text-[#525252]"

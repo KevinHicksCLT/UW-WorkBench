@@ -13,7 +13,7 @@ import {
   type VsLink,
   type VsOption,
 } from '../../components/RequirementLinks';
-import { FlagPill, catLabel } from '../regulations/Regulations';
+import { FlagPill, catLabel, CONFIDENCE_HELP, OBLIGATION_HELP } from '../regulations/Regulations';
 import { EmptyState, ErrorMessage, LoadingState, StatusPill } from '../../components/ui';
 
 // State detail — /regulations/:code. Regulator identity + taxonomy flags in the
@@ -66,6 +66,7 @@ type Detail = {
   profileDepth: string;
   lastReviewedAt: string | null;
   lastVerifiedAt: string | null;
+  updatedAt: string;
   requirements: Requirement[];
   integrations: {
     id: string;
@@ -244,6 +245,18 @@ export default function RegulationDetail() {
           <span className="flex items-center gap-1.5">
             SBS <FlagPill value={detail.sbs} />
           </span>
+          {/* Verification metadata lives here on the state view (SCRUM-76) —
+              the aggregate table stays free of per-row dates and numbers. */}
+          <span
+            className="text-[#a3a3a3]"
+            title="Verified = profile confirmed against the regulator's official sources; Reviewed = last analyst pass; Updated = last data change"
+          >
+            {detail.lastVerifiedAt &&
+              `Verified ${new Date(detail.lastVerifiedAt).toLocaleDateString()} · `}
+            {detail.lastReviewedAt &&
+              `Reviewed ${new Date(detail.lastReviewedAt).toLocaleDateString()} · `}
+            Updated {new Date(detail.updatedAt).toLocaleDateString()}
+          </span>
         </div>
       )}
 
@@ -276,7 +289,9 @@ export default function RegulationDetail() {
                     <StatusPill tone="slate">{label(r.lineOfBusiness)}</StatusPill>
                   )}
                   {r.obligationType === 'FILING_GATE' && (
-                    <StatusPill tone="amber">Filing gate</StatusPill>
+                    <StatusPill tone="amber" title={OBLIGATION_HELP.FILING_GATE}>
+                      Filing gate
+                    </StatusPill>
                   )}
                   {r.confidence !== 'BASELINE' && (
                     <StatusPill
@@ -287,6 +302,7 @@ export default function RegulationDetail() {
                             ? 'red'
                             : 'amber'
                       }
+                      title={CONFIDENCE_HELP[r.confidence]}
                     >
                       {label(r.confidence)}
                     </StatusPill>
@@ -320,16 +336,24 @@ export default function RegulationDetail() {
                   {r.frequency && <span>Frequency: {r.frequency}</span>}
                 </div>
                 {editing === r.id && (
-                  <LinksEditor
-                    requirementId={r.id}
-                    links={r.valueStreamLinks}
-                    valueStreams={valueStreams}
-                    onSaved={(links) => {
-                      patchLinks(r.id, links);
-                      setEditing(null);
-                    }}
-                    onCancel={() => setEditing(null)}
-                  />
+                  <>
+                    {/* What editing applicability actually does (SCRUM-40). */}
+                    <p className="text-[11px] text-[#a3a3a3] mt-2 leading-relaxed">
+                      Linking a value stream applies this regulation to every task under it;
+                      removing a link withdraws it. Task lists, the Inspector&apos;s Governance tab,
+                      and the coverage rollups all update from those task links.
+                    </p>
+                    <LinksEditor
+                      requirementId={r.id}
+                      links={r.valueStreamLinks}
+                      valueStreams={valueStreams}
+                      onSaved={(links) => {
+                        patchLinks(r.id, links);
+                        setEditing(null);
+                      }}
+                      onCancel={() => setEditing(null)}
+                    />
+                  </>
                 )}
               </div>
             ))}
@@ -439,8 +463,10 @@ export default function RegulationDetail() {
 
             <SectionCard title={`Compliance rules (${detail.rules.length})`}>
               <p className="text-xs text-[#a3a3a3] mb-3">
-                Machine-readable controls from the per-state rules artifact. Stored and displayed in
-                Phase 1 — execution against operational signals is a future phase.
+                Machine-readable controls from the per-state rules artifact — distinct from the
+                requirements above: a requirement states the legal obligation, a rule encodes a
+                checkable control for it. Stored and displayed in Phase 1 — execution against
+                operational signals is a future phase.
               </p>
               <div className="divide-y divide-[#f5f5f5]">
                 {detail.rules.map((r) => (
