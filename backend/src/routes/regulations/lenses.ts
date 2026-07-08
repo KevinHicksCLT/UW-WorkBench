@@ -421,6 +421,10 @@ export function registerLensRoutes(router: Router): void {
       if (!where.status) where.status = 'ACTIVE';
       const states = list(q.state);
       if (states) where.jurisdiction = { code: { in: states.map((s) => s.toUpperCase()) } };
+      // Market segment filter (PERSONAL | COMMERCIAL) — array-contains.
+      const markets = list(q.market);
+      if (markets)
+        where.markets = markets.length === 1 ? { has: markets[0] } : { hasSome: markets };
       // Rows live on tasks; "in this value stream" = any linked task under the VS.
       if (str(q.valueStreamId))
         where.nodeRegulations = {
@@ -436,12 +440,27 @@ export function registerLensRoutes(router: Router): void {
           { citation: { contains: String(q.search), mode: 'insensitive' } },
         ];
       }
+      // Lean list projection — the flat table + regime/catalog lists need these
+      // fields only. The full `requirement` text (largest per-row string) is
+      // fetched lazily on the single-requirement endpoint, keeping the ~1.3k-row
+      // catalog payload small and fast.
       const rows = await prisma.regulatoryRequirement.findMany({
         where,
         orderBy: [{ jurisdiction: { name: 'asc' } }, { category: 'asc' }, { title: 'asc' }],
-        include: {
-          // Combined-columns merge (FB-61): the requirement row also surfaces its
-          // jurisdiction's key state flags, so include them here.
+        select: {
+          id: true,
+          category: true,
+          title: true,
+          lineOfBusiness: true,
+          markets: true,
+          obligationType: true,
+          frequency: true,
+          status: true,
+          confidence: true,
+          agentSkill: true,
+          regime: true,
+          // Combined-columns merge (FB-61): the row surfaces its jurisdiction's
+          // key state flags.
           jurisdiction: {
             select: {
               id: true,
@@ -453,6 +472,7 @@ export function registerLensRoutes(router: Router): void {
               compactStatus: true,
             },
           },
+          lineOfBusinessLinks: { select: { lob: { select: { code: true, label: true } } } },
           ...NODE_REG_INCLUDE,
         },
       });
@@ -495,6 +515,9 @@ export function registerLensRoutes(router: Router): void {
               url: true,
               issuedDate: true,
             },
+          },
+          lineOfBusinessLinks: {
+            select: { lob: { select: { code: true, label: true, segments: true } } },
           },
           ...NODE_REG_INCLUDE,
         },

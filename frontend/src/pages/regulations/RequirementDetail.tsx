@@ -8,7 +8,15 @@ import { withCompany, SectionCard } from '../../lib/portfolio';
 import PageHeader from '../../components/PageHeader';
 import { LinkChips, LinksEditor, type VsLink } from '../../components/RequirementLinks';
 import { BackButton, ErrorMessage, LoadingState } from '../../components/ui';
-import { catLabel, CATEGORY_HELP, CONFIDENCE_HELP, LOB_HELP, OBLIGATION_HELP } from './Regulations';
+import {
+  catLabel,
+  CATEGORY_HELP,
+  CONFIDENCE_HELP,
+  LOB_HELP,
+  lobLabels,
+  marketDisplay,
+  OBLIGATION_HELP,
+} from './Regulations';
 
 // Requirement page — /regulations/requirement/:id. The full record behind one
 // table row: requirement text, classification (each facet with its
@@ -22,6 +30,8 @@ type Requirement = {
   title: string;
   requirement: string;
   lineOfBusiness: string;
+  markets: string[];
+  lineOfBusinessLinks: { lob: { code: string; label: string } }[];
   citation: string | null;
   citationUrl: string | null;
   obligationType: string;
@@ -193,9 +203,14 @@ export default function RequirementDetail() {
               }
             />
             <ClassRow
+              name="Market"
+              value={marketDisplay(r.markets)}
+              help="Which market the obligation applies to — Personal, Commercial, or Both (enterprise/corporate obligations apply to both)"
+            />
+            <ClassRow
               name="Line of business"
-              value={r.lineOfBusiness === 'ALL' ? 'All lines' : label(r.lineOfBusiness)}
-              help={LOB_HELP[r.lineOfBusiness] ?? 'The insurance line this requirement applies to'}
+              value={lobLabels(r).join(', ')}
+              help={LOB_HELP[r.lineOfBusiness] ?? 'The insurance line(s) this requirement governs'}
             />
             <ClassRow
               name="Type"

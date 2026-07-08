@@ -18,7 +18,6 @@ import { catLabel, regimeHelp } from './Regulations';
 type ReqRow = {
   id: string;
   title: string;
-  requirement: string;
   category: string;
   lineOfBusiness: string;
   obligationType: string;
@@ -55,7 +54,6 @@ export default function RegimeDetail() {
       if (!q) return true;
       return (
         r.title.toLowerCase().includes(q) ||
-        r.requirement.toLowerCase().includes(q) ||
         r.jurisdiction.name.toLowerCase().includes(q) ||
         catLabel(r.category).toLowerCase().includes(q)
       );

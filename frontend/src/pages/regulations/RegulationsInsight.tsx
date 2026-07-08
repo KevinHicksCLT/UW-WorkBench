@@ -31,7 +31,6 @@ type JurRow = {
 type ReqRow = {
   id: string;
   title: string;
-  requirement: string;
   category: string;
   lineOfBusiness: string;
   confidence: string;
@@ -286,7 +285,6 @@ function CatalogBody({
       if (!q) return true;
       return (
         row.title.toLowerCase().includes(q) ||
-        row.requirement.toLowerCase().includes(q) ||
         row.jurisdiction.name.toLowerCase().includes(q) ||
         (row.regime ?? '').toLowerCase().includes(q) ||
         catLabel(row.category).toLowerCase().includes(q)

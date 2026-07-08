@@ -18,12 +18,14 @@ type RoleRef = { id: string; name: string };
 //   Federal: the federal / national securities regime (FINRA/SEC/MSRB).
 //   State (default): the 50-state (+DC) insurance regulatory baseline.
 
+type LobLink = { lob: { code: string; label: string } };
 type RequirementRow = {
   id: string;
   category: string;
   title: string;
-  requirement: string;
   lineOfBusiness: string;
+  markets: string[];
+  lineOfBusinessLinks: LobLink[];
   citation: string | null;
   obligationType: string;
   frequency: string | null;
@@ -41,6 +43,27 @@ type RequirementRow = {
   valueStreamLinks: VsLink[];
   owner: RoleRef | null;
   contributors: RoleRef[];
+};
+
+// Market-segment display helpers (shared with the detail page).
+export const MARKET_LABEL: Record<string, string> = {
+  PERSONAL: 'Personal',
+  COMMERCIAL: 'Commercial',
+};
+export const marketValues = (m: string[]): string[] => (m ?? []).map((x) => MARKET_LABEL[x] ?? x);
+export const marketDisplay = (m: string[]): string => {
+  const v = marketValues(m);
+  if (v.length >= 2) return 'Both';
+  return v[0] ?? '—';
+};
+// Granular lines from the junction; fall back to the coarse scalar label.
+export const lobLabels = (r: {
+  lineOfBusinessLinks?: LobLink[];
+  lineOfBusiness: string;
+}): string[] => {
+  const links = (r.lineOfBusinessLinks ?? []).map((l) => l.lob.label);
+  if (links.length) return links;
+  return [r.lineOfBusiness === 'ALL' ? 'All lines' : flagLabel(r.lineOfBusiness)];
 };
 
 export type Overview = {
@@ -153,6 +176,16 @@ const CATEGORY_LABEL: Record<string, string> = {
   CATASTROPHE_REPORTING: 'Catastrophe reporting',
   UNCLAIMED_PROPERTY: 'Unclaimed property',
   CONSUMER_PROTECTION: 'Consumer protection',
+  CORPORATE_GOVERNANCE: 'Corporate governance',
+  SOLVENCY_CAPITAL: 'Solvency & capital',
+  ACTUARIAL_VALUATION: 'Actuarial & valuation',
+  ACCOUNTING_AUDIT: 'Accounting & audit',
+  TAX_REPORTING: 'Tax reporting',
+  EMPLOYMENT_BENEFITS: 'Employment & benefits',
+  ANTITRUST_CONDUCT: 'Antitrust & conduct',
+  ESG_SUSTAINABILITY: 'ESG & sustainability',
+  SECURITIES_DISTRIBUTION: 'Securities distribution',
+  RESIDUAL_MARKET: 'Residual market',
   OTHER: 'Other',
 };
 export const catLabel = (c: string) => CATEGORY_LABEL[c] ?? flagLabel(c);
@@ -181,6 +214,16 @@ export const CATEGORY_HELP: Record<string, string> = {
   CATASTROPHE_REPORTING: 'Event-driven catastrophe and residual-market reporting',
   UNCLAIMED_PROPERTY: 'Death-benefit matching and unclaimed-property escheat duties',
   CONSUMER_PROTECTION: 'Consumer disclosures, marketing conduct, and fair-treatment duties',
+  CORPORATE_GOVERNANCE: 'Board governance, holding-company, and enterprise-risk disclosure duties',
+  SOLVENCY_CAPITAL: 'Capital adequacy, RBC/SCR, and own-risk & solvency assessment',
+  ACTUARIAL_VALUATION: 'Reserving, principle-based valuation, and actuarial opinions',
+  ACCOUNTING_AUDIT: 'Statutory accounting, financial statements, and external audit',
+  TAX_REPORTING: 'Insurance-tax return, information reporting, and withholding duties',
+  EMPLOYMENT_BENEFITS: 'Employer, benefits (ERISA), and workplace-law obligations',
+  ANTITRUST_CONDUCT: 'Antitrust, anti-bribery, and corporate-conduct duties',
+  ESG_SUSTAINABILITY: 'Sustainability, climate, and ESG disclosure regimes',
+  SECURITIES_DISTRIBUTION: 'Securities registration and distribution-conduct duties',
+  RESIDUAL_MARKET: 'Residual-market and guaranty-association participation duties',
   OTHER: 'Obligations outside the named compliance domains',
 };
 // What each named regulation / regime IS — shown on the regime page header.
@@ -385,19 +428,37 @@ function RegulationTable({
       ),
     },
     {
+      key: 'market',
+      label: 'Market',
+      width: '92px',
+      // A both-market row carries both filter values so filtering Personal or
+      // Commercial still surfaces it; the cell displays the collapsed label.
+      values: (r) => (r.markets?.length ? marketValues(r.markets) : ['—']),
+      hint: 'Which market the obligation applies to — Personal, Commercial, or Both. Enterprise/corporate obligations apply to both.',
+      render: (r) => (
+        <span className="truncate text-[12px] text-[#525252]">{marketDisplay(r.markets)}</span>
+      ),
+    },
+    {
       key: 'lob',
       label: 'Line of business',
-      width: '110px',
-      // 'All lines' (not 'All') so the filter dropdown's no-filter "All" option
-      // stays distinct from the every-line value.
-      value: (r) => (r.lineOfBusiness === 'ALL' ? 'All lines' : flagLabel(r.lineOfBusiness)),
-      hint: 'Which insurance line the obligation applies to — All lines means every line the company writes; filter here to cut cross-line noise',
-      render: (r) =>
-        r.lineOfBusiness === 'ALL' ? (
-          <span className="text-[12px] text-[#a3a3a3]">All lines</span>
-        ) : (
-          <span className="truncate text-[12px] text-[#525252]">{flagLabel(r.lineOfBusiness)}</span>
-        ),
+      width: '130px',
+      // Granular lines from the taxonomy junction; falls back to the coarse
+      // scalar. 'All lines' stays distinct from the filter's no-filter "All".
+      values: (r) => lobLabels(r),
+      hint: 'The insurance line(s) the obligation governs — filter here to cut cross-line noise',
+      render: (r) => {
+        const labels = lobLabels(r);
+        const isAll = labels.length === 1 && labels[0] === 'All lines';
+        return (
+          <span
+            className={'truncate text-[12px] ' + (isAll ? 'text-[#a3a3a3]' : 'text-[#525252]')}
+            title={labels.join(', ')}
+          >
+            {labels.length > 2 ? `${labels.length} lines` : labels.join(', ')}
+          </span>
+        );
+      },
     },
     {
       key: 'regime',
@@ -424,12 +485,9 @@ function RegulationTable({
       label: 'Requirement',
       width: 'minmax(0,2fr)',
       value: (r) => r.title,
-      hint: 'The single atomic requirement — click the row to open its page; hover for the full text',
+      hint: 'The single atomic requirement — click the row to open its page for the full text',
       render: (r) => (
-        <span
-          className="truncate text-[12px] text-[#262626] hover:underline"
-          title={`${r.title}\n\n${r.requirement}`}
-        >
+        <span className="truncate text-[12px] text-[#262626] hover:underline" title={r.title}>
           {r.title}
         </span>
       ),
