@@ -1,5 +1,6 @@
-// RoleProfile page — header/description render, deliverable rows expand to the
-// role's tasks, task rows expand to the process path + deliverable chips.
+// RoleProfile page — description callout, review stats + filter, application
+// roll-up chips, value-stream-grouped deliverable cards with numbered tasks,
+// and the per-task checklist drill-down. All content is a task-level roll-up.
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -19,6 +20,10 @@ const payload: RoleProfilePayload = {
   participation: [
     { valueStreamId: 'vs1', valueStreamName: 'Actuarial', participationType: 'Lead' },
     { valueStreamId: 'vs2', valueStreamName: 'Finance', participationType: 'Support' },
+  ],
+  applications: [
+    { id: 'app1', name: 'Prophet', taskCount: 2 },
+    { id: 'app2', name: 'SAP', taskCount: 1 },
   ],
   deliverables: [
     {
@@ -50,10 +55,35 @@ const payload: RoleProfilePayload = {
       l4: 'Mortality Study',
       stepNumber: 1,
       deliverables: [{ id: 'd1', title: 'Mortality Study' }],
+      apps: [{ id: 'app1', name: 'Prophet' }],
+      checklist: [
+        { id: 'ci1', text: 'Pull in-force extract' },
+        { id: 'ci2', text: 'Validate record counts' },
+      ],
       validation: UNREVIEWED,
     },
+    {
+      nodeId: 't2',
+      nodeRoleId: 'nr2',
+      name: 'Book quarterly reserves',
+      relation: 'Support',
+      valueStreamId: 'vs2',
+      valueStreamName: 'Finance',
+      l3: 'Close',
+      l4: 'Reserve Close',
+      stepNumber: 2,
+      deliverables: [],
+      apps: [],
+      checklist: [],
+      validation: {
+        ...UNREVIEWED,
+        status: 'CONFIRMED',
+        validatedBy: 'kelly@abc.example',
+        validatedAt: '2026-07-07T00:00:00Z',
+      },
+    },
   ],
-  responsibilities: [{ category: 'Quarterly Close', items: ['Review reserves'] }],
+  responsibilities: [],
 };
 
 vi.mock('../../../src/lib/useApi', () => ({
@@ -71,40 +101,51 @@ function renderPage() {
 }
 
 describe('RoleProfile', () => {
-  it('renders the header, description, family/level chips, and value streams', () => {
+  it('renders header, description callout, and review stats', () => {
     renderPage();
     expect(screen.getByRole('heading', { name: 'Reserving Actuary' })).toBeTruthy();
+    expect(screen.getByText('Role description')).toBeTruthy();
     expect(screen.getByText(/Owns the experience-study pipeline/)).toBeTruthy();
-    // 'Actuarial' appears as the family chip, VS link, and division link.
-    expect(screen.getAllByText('Actuarial').length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText('Individual Contributor')).toBeTruthy();
-    // The retired Lead/Support participation tags must NOT render.
-    expect(screen.queryByText('Lead / Owner')).toBeNull();
-    expect(screen.queryByText('Supporting')).toBeNull();
-    expect(screen.getByText('Finance')).toBeTruthy();
+    // 1 of 2 tasks reviewed → 50%.
+    expect(screen.getByText('50%')).toBeTruthy();
+    expect(screen.getByText('tasks assigned')).toBeTruthy();
   });
 
-  it("expands a deliverable row to reveal the role's tasks under it", () => {
+  it('rolls applications up with per-app task counts', () => {
     renderPage();
-    expect(screen.queryAllByText('Extract in-force data')).toHaveLength(1); // task summary row only
-    fireEvent.click(screen.getByRole('button', { name: /Mortality Study/ }));
-    expect(screen.queryAllByText('Extract in-force data')).toHaveLength(2); // + expanded deliverable
+    // Prophet appears in the roll-up callout and again as a task-row chip.
+    expect(screen.getAllByText('Prophet').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('2 tasks')).toBeTruthy();
+    expect(screen.getByText('SAP')).toBeTruthy();
   });
 
-  it('expands a task row to reveal the process path and deliverable chips', () => {
+  it('groups deliverables under stream · L3 · L4 path headers, first card open', () => {
     renderPage();
-    expect(screen.queryByText(/Experience Studies → Mortality Study/)).toBeNull();
-    // 'Mortality Study' initially appears once (the deliverable row title).
-    expect(screen.getAllByText(/Mortality Study/)).toHaveLength(1);
+    expect(screen.getByText('Actuarial · Experience Studies · Mortality Study')).toBeTruthy();
+    expect(screen.getByText('Finance · Close · Reserve Close')).toBeTruthy();
+    // First deliverable card is expanded by default → its task shows.
+    expect(screen.getByText('Extract in-force data')).toBeTruthy();
+    // Deliverable-less task sits in the fallback card under its stream.
+    expect(screen.getByText('Tasks without a deliverable')).toBeTruthy();
+  });
+
+  it('expands a task to reveal its ordered checklist steps', () => {
+    renderPage();
+    expect(screen.queryByText('Pull in-force extract')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: /Extract in-force data/ }));
-    expect(screen.getByText(/Actuarial → Experience Studies → Mortality Study/)).toBeTruthy();
-    // + the location path + the deliverable chip in the expanded panel.
-    expect(screen.getAllByText(/Mortality Study/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText(/Checklist · in order/i)).toBeTruthy();
+    expect(screen.getByText('Pull in-force extract')).toBeTruthy();
+    expect(screen.getByText('Validate record counts')).toBeTruthy();
   });
 
-  it('renders responsibilities groups', () => {
+  it('filters tasks to needs-review and back to all', () => {
     renderPage();
-    expect(screen.getByText('Quarterly Close')).toBeTruthy();
-    expect(screen.getByText('Review reserves')).toBeTruthy();
+    // Needs-review filter drops the confirmed Finance task's card.
+    fireEvent.click(screen.getByRole('button', { name: /Needs review \(1\)/ }));
+    expect(screen.queryByText('Tasks without a deliverable')).toBeNull();
+    expect(screen.getByText('Extract in-force data')).toBeTruthy();
+    // Back to all.
+    fireEvent.click(screen.getByRole('button', { name: 'All' }));
+    expect(screen.getByText('Tasks without a deliverable')).toBeTruthy();
   });
 });

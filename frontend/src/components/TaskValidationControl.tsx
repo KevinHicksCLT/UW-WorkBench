@@ -35,10 +35,10 @@ const KIND_LABEL: Record<ReassignKind, string> = {
 };
 
 const STATUS_META: Record<TaskValidation['status'], { label: string; tone: PillTone }> = {
-  UNREVIEWED: { label: 'Unreviewed', tone: 'slate' },
-  CONFIRMED: { label: 'I do this', tone: 'green' },
+  UNREVIEWED: { label: 'Needs review', tone: 'red' },
+  CONFIRMED: { label: 'Confirmed', tone: 'green' },
   REASSIGNED: { label: 'Reassigned', tone: 'amber' },
-  NOT_PERFORMED: { label: 'Not done here', tone: 'red' },
+  NOT_PERFORMED: { label: 'Not performed', tone: 'red' },
 };
 
 /** Read-only pill for surfaces that show but don't edit validation state. */
@@ -175,8 +175,8 @@ export default function TaskValidationControl({
       onClick={onClick}
       disabled={busy}
       title={title}
-      className={`px-1.5 py-0.5 text-[11px] rounded transition-colors duration-150 disabled:opacity-50 ${
-        active ? activeClass : 'text-[#737373] hover:bg-[#f5f5f5]'
+      className={`px-2.5 py-1 text-[12px] rounded transition-colors duration-150 disabled:opacity-50 ${
+        active ? activeClass : 'text-[#404040] font-medium hover:bg-[#f5f5f5]'
       }`}
     >
       {label}
@@ -187,30 +187,30 @@ export default function TaskValidationControl({
     <div className="min-w-0">
       <div className="flex items-center gap-1.5 flex-wrap">
         <ValidationPill validation={validation} />
-        <div className="flex items-center rounded-md border border-[#eaeaea] bg-white">
+        <div className="flex items-center rounded-md border border-[#d4d4d4] bg-white shadow-sm">
           {seg(
-            '✓ I do this',
+            '✓ I perform this',
             validation.status === 'CONFIRMED',
             () => patch({ status: validation.status === 'CONFIRMED' ? 'UNREVIEWED' : 'CONFIRMED' }),
             'Confirm this role performs the task',
-            'bg-emerald-50 text-emerald-700 font-medium',
+            'bg-emerald-50 text-emerald-700 font-semibold',
           )}
           {seg(
-            '↷ Someone else',
+            '↷ Reassign',
             validation.status === 'REASSIGNED',
             () => setPicking((v) => !v),
             'Reassign to another role, an application, or a third party',
-            'bg-amber-50 text-amber-700 font-medium',
+            'bg-amber-50 text-amber-700 font-semibold',
           )}
           {seg(
-            '✕ Not done',
+            '✕ Not performed',
             validation.status === 'NOT_PERFORMED',
             () =>
               patch({
                 status: validation.status === 'NOT_PERFORMED' ? 'UNREVIEWED' : 'NOT_PERFORMED',
               }),
             'This task is not performed at all',
-            'bg-red-50 text-red-700 font-medium',
+            'bg-red-50 text-red-700 font-semibold',
           )}
         </div>
       </div>

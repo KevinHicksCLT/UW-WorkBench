@@ -43,6 +43,14 @@ export type ProfileNodeDeliverableRow = {
   processNodeId: string;
   deliverable: { id: string; title: string };
 };
+export type ProfileNodeAppRow = {
+  processNodeId: string;
+  application: { id: string; name: string };
+};
+export type ProfileNodeChecklistRow = {
+  processNodeId: string;
+  checklistItem: { id: string; text: string };
+};
 export type ProfileChecklistRow = { text: string; checklist: string | null };
 
 export type ProfileTask = {
@@ -57,6 +65,10 @@ export type ProfileTask = {
   l4: string | null;
   stepNumber: number;
   deliverables: { id: string; title: string }[];
+  /** Applications the task is performed in (NodeAppUsage, usage 'performed'). */
+  apps: { id: string; name: string }[];
+  /** Ordered checklist steps wired to the task node (NodeChecklist). */
+  checklist: { id: string; text: string }[];
   validation: ValidationView;
 };
 export type ProfileDeliverable = {
@@ -101,10 +113,13 @@ export function assembleRoleProfile(input: {
   nodeRoles: ProfileNodeRoleRow[];
   roleDelivs: ProfileRoleDeliverableRow[];
   nodeDelivs: ProfileNodeDeliverableRow[];
+  nodeApps: ProfileNodeAppRow[];
+  nodeChecklists: ProfileNodeChecklistRow[];
   checkItems: ProfileChecklistRow[];
   loc: Map<string, Pick<AncestorNames, 'valueStreamId' | 'valueStreamName' | 'l3' | 'l4'>>;
 }) {
-  const { role, nodeRoles, roleDelivs, nodeDelivs, checkItems, loc } = input;
+  const { role, nodeRoles, roleDelivs, nodeDelivs, nodeApps, nodeChecklists, checkItems, loc } =
+    input;
 
   // Task↔deliverable index (a task node can feed several deliverables).
   const delivsByNode = new Map<string, { id: string; title: string }[]>();
@@ -112,6 +127,20 @@ export function assembleRoleProfile(input: {
     const list = delivsByNode.get(nd.processNodeId) ?? [];
     if (!list.some((d) => d.id === nd.deliverable.id)) list.push(nd.deliverable);
     delivsByNode.set(nd.processNodeId, list);
+  }
+
+  // Task↔application and task↔checklist-step indexes (both L5-level links).
+  const appsByNode = new Map<string, { id: string; name: string }[]>();
+  for (const na of nodeApps) {
+    const list = appsByNode.get(na.processNodeId) ?? [];
+    if (!list.some((a) => a.id === na.application.id)) list.push(na.application);
+    appsByNode.set(na.processNodeId, list);
+  }
+  const stepsByNode = new Map<string, { id: string; text: string }[]>();
+  for (const nc of nodeChecklists) {
+    const list = stepsByNode.get(nc.processNodeId) ?? [];
+    if (!list.some((s) => s.id === nc.checklistItem.id)) list.push(nc.checklistItem);
+    stepsByNode.set(nc.processNodeId, list);
   }
 
   // taskSummary — one row per task node; a role that is both Owner and
@@ -142,6 +171,8 @@ export function assembleRoleProfile(input: {
       l4: a?.l4 ?? null,
       stepNumber: node.sortOrder,
       deliverables: delivsByNode.get(node.id) ?? [],
+      apps: appsByNode.get(node.id) ?? [],
+      checklist: stepsByNode.get(node.id) ?? [],
       validation: validationView(nr),
     });
   }
@@ -244,6 +275,20 @@ export function assembleRoleProfile(input: {
         : 1,
   );
 
+  // applications — roll-up of the task-level app links: how many of the
+  // role's tasks are performed in each application, busiest first.
+  const appAgg = new Map<string, { id: string; name: string; taskCount: number }>();
+  for (const t of taskSummary) {
+    for (const a of t.apps) {
+      const e = appAgg.get(a.id) ?? { id: a.id, name: a.name, taskCount: 0 };
+      e.taskCount++;
+      appAgg.set(a.id, e);
+    }
+  }
+  const applications = [...appAgg.values()].sort(
+    (a, b) => b.taskCount - a.taskCount || a.name.localeCompare(b.name),
+  );
+
   // Org context (same L2/L3 unpacking as the drawer endpoint).
   let division: { id: string; name: string } | null = null;
   let department: { id: string; name: string } | null = null;
@@ -269,6 +314,7 @@ export function assembleRoleProfile(input: {
     division,
     department,
     participation,
+    applications,
     deliverables,
     taskSummary,
     responsibilities: groupByChecklist(checkItems),

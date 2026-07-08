@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { DOMAIN_HEX } from '../viz/model';
 import { api } from '../lib/api';
-import { useOpenRole, useRoleMutated } from '../lib/roleDrawer';
+import { useOpenRoleDrawer, useRoleMutated } from '../lib/roleDrawer';
 import MetricsSidebar, {
   MetricsDrawer,
   type Dashboard,
@@ -164,7 +164,8 @@ const EmptyRow = ({ text }: { text: string }) => (
 const LOOSE_DEPT = 'Direct to division';
 
 export default function OrgListExplorer() {
-  const openRole = useOpenRole();
+  // Sidebar keeps the quick-peek drawer (it links on to the full profile).
+  const openRole = useOpenRoleDrawer();
   // Deep-linked role (the global drawer's `?role=` also pre-filters the sheet
   // to just that role's row, same as before — one URL param, two effects).
   const [searchParams] = useSearchParams();

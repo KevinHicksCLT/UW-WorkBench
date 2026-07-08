@@ -86,6 +86,15 @@ function assemble(overrides: Partial<Parameters<typeof assembleRoleProfile>[0]> 
       { processNodeId: 't2', deliverable: { id: 'd1', title: 'Mortality Study' } },
       { processNodeId: 't3', deliverable: { id: 'd2', title: 'Reserve Package' } },
     ],
+    nodeApps: [
+      { processNodeId: 't1', application: { id: 'app1', name: 'Prophet' } },
+      { processNodeId: 't3', application: { id: 'app1', name: 'Prophet' } },
+      { processNodeId: 't3', application: { id: 'app2', name: 'SAP' } },
+    ],
+    nodeChecklists: [
+      { processNodeId: 't1', checklistItem: { id: 'ci1', text: 'Pull in-force extract' } },
+      { processNodeId: 't1', checklistItem: { id: 'ci2', text: 'Validate record counts' } },
+    ],
     checkItems: [],
     loc,
     ...overrides,
@@ -219,11 +228,40 @@ describe('assembleRoleProfile', () => {
     expect(l2.department).toBeNull();
   });
 
+  it('carries task-level app links and checklist steps onto each task', () => {
+    const p = assemble();
+    const t1 = p.taskSummary.find((t) => t.nodeId === 't1')!;
+    expect(t1.apps).toEqual([{ id: 'app1', name: 'Prophet' }]);
+    expect(t1.checklist).toEqual([
+      { id: 'ci1', text: 'Pull in-force extract' },
+      { id: 'ci2', text: 'Validate record counts' },
+    ]);
+    const t2 = p.taskSummary.find((t) => t.nodeId === 't2')!;
+    expect(t2.apps).toEqual([]);
+    expect(t2.checklist).toEqual([]);
+  });
+
+  it('rolls applications up across tasks, busiest first', () => {
+    const p = assemble();
+    expect(p.applications).toEqual([
+      { id: 'app1', name: 'Prophet', taskCount: 2 },
+      { id: 'app2', name: 'SAP', taskCount: 1 },
+    ]);
+  });
+
   it('an empty role (the imported-42 case) yields empty sections, not errors', () => {
-    const p = assemble({ nodeRoles: [], roleDelivs: [], nodeDelivs: [], loc: new Map() });
+    const p = assemble({
+      nodeRoles: [],
+      roleDelivs: [],
+      nodeDelivs: [],
+      nodeApps: [],
+      nodeChecklists: [],
+      loc: new Map(),
+    });
     expect(p.taskSummary).toEqual([]);
     expect(p.deliverables).toEqual([]);
     expect(p.participation).toEqual([]);
+    expect(p.applications).toEqual([]);
     expect(p.description).toBe('Sets reserves.');
   });
 });

@@ -292,12 +292,25 @@ router.get('/:id/profile', async (req: Request, res: Response, next: NextFunctio
       }),
     ]);
     const nodeIds = nodeRoles.map((n) => n.processNode.id);
-    const [loc, nodeDelivs] = await Promise.all([
+    const [loc, nodeDelivs, nodeApps, nodeChecklists] = await Promise.all([
       ancestorNames(nodeIds),
       nodeIds.length
         ? prisma.nodeDeliverable.findMany({
             where: { processNodeId: { in: nodeIds } },
             select: { processNodeId: true, deliverable: { select: { id: true, title: true } } },
+          })
+        : Promise.resolve([]),
+      nodeIds.length
+        ? prisma.nodeAppUsage.findMany({
+            where: { processNodeId: { in: nodeIds }, usageType: 'performed' },
+            select: { processNodeId: true, application: { select: { id: true, name: true } } },
+          })
+        : Promise.resolve([]),
+      nodeIds.length
+        ? prisma.nodeChecklist.findMany({
+            where: { processNodeId: { in: nodeIds } },
+            orderBy: { checklistItemId: 'asc' },
+            select: { processNodeId: true, checklistItem: { select: { id: true, text: true } } },
           })
         : Promise.resolve([]),
     ]);
@@ -308,6 +321,8 @@ router.get('/:id/profile', async (req: Request, res: Response, next: NextFunctio
         nodeRoles,
         roleDelivs,
         nodeDelivs,
+        nodeApps,
+        nodeChecklists,
         checkItems: checkItems.map((c) => ({ text: c.text, checklist: c.checklist?.name ?? null })),
         loc,
       }),
@@ -451,7 +466,19 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
             },
           ]
         : [];
-    const deliverableCount = ioRows.reduce((n, r) => n + r.deliverables.length, 0);
+    // Deliverable count = union of direct RoleDeliverable links and the
+    // deliverables reachable through the role's task nodes (same derivation
+    // as the profile page, so the drawer's headline matches it).
+    const nodeDelivs = nodeIds.length
+      ? await prisma.nodeDeliverable.findMany({
+          where: { processNodeId: { in: nodeIds } },
+          select: { deliverableId: true },
+        })
+      : [];
+    const deliverableCount = new Set([
+      ...roleDelivs.map((d) => d.deliverable.id),
+      ...nodeDelivs.map((d) => d.deliverableId),
+    ]).size;
     const inputCount = 0;
 
     // participation — the distinct value streams the role's task nodes roll up
