@@ -438,18 +438,23 @@ export function registerLensRoutes(router: Router): void {
         };
       else if (lens === 'international')
         where.jurisdiction = { ...(where.jurisdiction as object), regulatorType: 'INTERNATIONAL' };
-      // Market segment filter — PERSONAL | COMMERCIAL | BOTH (BOTH = tagged with
-      // both segments, i.e. the cross-market obligations).
-      const markets = list(q.market);
-      if (markets) {
-        if (markets.includes('BOTH')) where.markets = { hasEvery: ['PERSONAL', 'COMMERCIAL'] };
-        else where.markets = markets.length === 1 ? { has: markets[0] } : { hasSome: markets };
-      }
+      // Market segment filter — exact bucket matching the displayed value:
+      // Personal = personal-only, Commercial = commercial-only, Both = tagged
+      // with both segments (the cross-market obligations).
+      const market = str(q.market);
+      if (market === 'BOTH') where.markets = { hasEvery: ['PERSONAL', 'COMMERCIAL'] };
+      else if (market === 'PERSONAL') where.markets = { equals: ['PERSONAL'] };
+      else if (market === 'COMMERCIAL') where.markets = { equals: ['COMMERCIAL'] };
       // Line-of-business family group filter (via the junction).
       const groups = list(q.group);
       if (groups) where.lineOfBusinessLinks = { some: { lob: { group: { in: groups } } } };
       const lobCodes = list(q.lob);
       if (lobCodes) where.lineOfBusinessLinks = { some: { lob: { code: { in: lobCodes } } } };
+      // Accountable-owner filter (role name).
+      if (str(q.owner))
+        where.roleRegulations = {
+          some: { role_: 'Owner', role: { displayValue: String(q.owner) } },
+        };
       // Rows live on tasks; "in this value stream" = any linked task under the VS.
       if (str(q.valueStreamId))
         where.nodeRegulations = {
@@ -515,6 +520,45 @@ export function registerLensRoutes(router: Router): void {
     }
   });
 
+  // ── Per-lens headline stats ────────────────────────────────────────────────────
+  // The Regulations cards reflect the active lens (International / Federal /
+  // State) rather than the global totals.
+  router.get('/lens-stats', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const companyId = await activeCompanyId(req, res);
+      if (!companyId) return;
+      const lens = str(req.query.lens);
+      const types =
+        lens === 'federal'
+          ? ['FEDERAL', 'FEDERAL_SECURITIES']
+          : lens === 'international'
+            ? ['INTERNATIONAL']
+            : ['STATE_INSURANCE_REGULATOR'];
+      // State lens excludes the synthetic multistate NAIC container from the
+      // jurisdiction count (it is not a single regulator/state).
+      const jurWhere: Record<string, unknown> = { companyId, regulatorType: { in: types } };
+      if (lens !== 'federal' && lens !== 'international') jurWhere.code = { not: 'NAIC' };
+      const regWhere = {
+        companyId,
+        status: 'ACTIVE',
+        jurisdiction: { regulatorType: { in: types } },
+      };
+      const [requirements, jurisdictions, rules, sources] = await Promise.all([
+        prisma.regulatoryRequirement.count({ where: regWhere }),
+        prisma.jurisdiction.count({ where: jurWhere }),
+        prisma.complianceRule.count({
+          where: { companyId, active: true, jurisdiction: { regulatorType: { in: types } } },
+        }),
+        prisma.regulatorySource.count({
+          where: { companyId, jurisdiction: { regulatorType: { in: types } } },
+        }),
+      ]);
+      res.json({ requirements, jurisdictions, rules, sources });
+    } catch (e) {
+      next(e);
+    }
+  });
+
   // ── Requirement filter options ────────────────────────────────────────────────
   // Distinct values for the table's per-column combobox filters, scoped to the
   // current lens (or a fixed regime). Cheap groupBy/distinct queries so the
@@ -530,7 +574,7 @@ export function registerLensRoutes(router: Router): void {
         where.jurisdiction = { regulatorType: { in: ['FEDERAL', 'FEDERAL_SECURITIES'] } };
       else if (lens === 'international') where.jurisdiction = { regulatorType: 'INTERNATIONAL' };
       if (str(req.query.regime)) where.regime = String(req.query.regime);
-      const [cats, regimes, jurRows] = await Promise.all([
+      const [cats, regimes, jurRows, owners] = await Promise.all([
         prisma.regulatoryRequirement.groupBy({
           by: ['category'],
           where,
@@ -543,11 +587,18 @@ export function registerLensRoutes(router: Router): void {
           distinct: ['jurisdictionId'],
           orderBy: { jurisdiction: { name: 'asc' } },
         }),
+        prisma.roleRegulation.findMany({
+          where: { role_: 'Owner', regulation: where },
+          select: { role: { select: { displayValue: true } } },
+          distinct: ['roleId'],
+          orderBy: { role: { displayValue: 'asc' } },
+        }),
       ]);
       res.json({
         categories: cats.map((c) => c.category),
         regimes: regimes.map((r) => r.regime).filter(Boolean),
         jurisdictions: jurRows.map((j) => j.jurisdiction),
+        owners: [...new Set(owners.map((o) => o.role.displayValue))],
       });
     } catch (e) {
       next(e);

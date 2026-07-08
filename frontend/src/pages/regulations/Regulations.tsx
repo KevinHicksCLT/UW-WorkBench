@@ -269,40 +269,46 @@ export default function Regulations() {
   };
   useRegisterCrumb('Regulations');
 
-  const { data: overview } = useApi<Overview>(
-    companyId ? withCompany('/regulations/overview', companyId) : null,
-  );
+  // Per-lens headline stats — the cards reflect the active tab.
+  const { data: stats } = useApi<{
+    requirements: number;
+    jurisdictions: number;
+    rules: number;
+    sources: number;
+  }>(companyId ? withCompany(`/regulations/lens-stats?lens=${LENS_PARAM[tab]}`, companyId) : null);
+  const jurLabel =
+    tab === 'State' ? 'Jurisdictions' : tab === 'Federal' ? 'Agencies' : 'Regulators';
 
   return (
     <div>
-      {/* Headline tiles — compact strip; each card opens its own insight page (SCRUM-45). */}
-      {overview && (
+      {/* Headline tiles — scoped to the active lens; each opens its insight page. */}
+      {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
           <Tile
             compact
-            label="Jurisdictions"
-            value={overview.jurisdictionCount}
-            hint={`${overview.flags.priorityTier?.PRIORITY ?? 0} priority states`}
+            label={jurLabel}
+            value={stats.jurisdictions.toLocaleString()}
+            hint={`${tab.toLowerCase()} regulators`}
             onClick={() => navigate('/regulations/jurisdictions')}
           />
           <Tile
             compact
             label="Requirements"
-            value={overview.requirements.total.toLocaleString()}
-            hint={`${overview.requirements.mapped} mapped to value streams`}
+            value={stats.requirements.toLocaleString()}
+            hint={`in the ${tab} lens`}
             onClick={() => navigate('/regulations/catalog')}
           />
           <Tile
             compact
             label="Agent rules"
-            value={overview.ruleCount.toLocaleString()}
+            value={stats.rules.toLocaleString()}
             hint="machine-readable checks"
             onClick={() => navigate('/regulations/rules')}
           />
           <Tile
             compact
             label="Regulatory sources"
-            value={overview.sourceCount.toLocaleString()}
+            value={stats.sources.toLocaleString()}
             hint="official regulator sites & feeds"
             onClick={() => navigate('/regulations/sources')}
           />
