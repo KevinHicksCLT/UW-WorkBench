@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useCompany } from '../../lib/company';
 import { useApi } from '../../lib/useApi';
 import { withCompany, Tile, SectionCard } from '../../lib/portfolio';
@@ -153,10 +153,22 @@ const META: Record<InsightKind, { title: string; blurb: string }> = {
   },
 };
 
+const LENS_TITLE: Record<string, string> = {
+  state: 'State',
+  federal: 'Federal',
+  international: 'International',
+};
+
 export default function RegulationsInsight({ kind }: { kind: InsightKind }) {
   const { companyId } = useCompany();
-  useRegisterCrumb(META[kind].title);
-  const p = (path: string) => (companyId ? withCompany(path, companyId) : null);
+  const [sp] = useSearchParams();
+  // The active lens (from the card drill-down) scopes every query to that tab's
+  // regulators in the DB — nothing is shown that doesn't belong to the tab.
+  const lens = sp.get('lens') ?? undefined;
+  const lensLabel = lens ? LENS_TITLE[lens] : undefined;
+  useRegisterCrumb(lensLabel ? `${META[kind].title} · ${lensLabel}` : META[kind].title);
+  const q = lens ? `?lens=${encodeURIComponent(lens)}` : '';
+  const p = (path: string) => (companyId ? withCompany(`${path}${q}`, companyId) : null);
 
   const overview = useApi<Overview>(kind === 'catalog' ? p('/regulations/overview') : null);
   const jur = useApi<JurRow[]>(kind === 'jurisdictions' ? p('/regulations/jurisdictions') : null);
@@ -166,7 +178,7 @@ export default function RegulationsInsight({ kind }: { kind: InsightKind }) {
   return (
     <div>
       <PageHeader
-        eyebrow="Regulations"
+        eyebrow={lensLabel ? `Regulations · ${lensLabel}` : 'Regulations'}
         title={META[kind].title}
         actions={
           <div className="flex items-center gap-2">
@@ -183,7 +195,7 @@ export default function RegulationsInsight({ kind }: { kind: InsightKind }) {
       <p className="text-sm text-[#525252] leading-relaxed mb-5 max-w-3xl">{META[kind].blurb}</p>
 
       {kind === 'jurisdictions' && <JurisdictionsBody rows={jur.data} loading={jur.loading} />}
-      {kind === 'catalog' && <CatalogBody overview={overview.data} />}
+      {kind === 'catalog' && <CatalogBody overview={overview.data} lens={lens} />}
       {kind === 'rules' && <RulesBody rows={rules.data} loading={rules.loading} />}
       {kind === 'sources' && <SourcesBody rows={sources.data} loading={sources.loading} />}
     </div>
@@ -245,7 +257,7 @@ function JurisdictionsBody({ rows, loading }: { rows: JurRow[] | null; loading: 
 // ── Requirements catalog ─────────────────────────────────────────────────────
 // Charts come from the server-side aggregates in /overview (no all-rows load);
 // the list is the shared server-driven paginated table.
-function CatalogBody({ overview }: { overview: Overview | null }) {
+function CatalogBody({ overview, lens }: { overview: Overview | null; lens?: string }) {
   if (!overview) return <LoadingState />;
   const r = overview.requirements;
   const byCategory = Object.entries(r.byCategory)
@@ -296,7 +308,7 @@ function CatalogBody({ overview }: { overview: Overview | null }) {
         )}
       </div>
       <SectionCard title="All requirements">
-        <RequirementsTable baseParams={{}} />
+        <RequirementsTable baseParams={lens ? { lens } : {}} />
       </SectionCard>
     </div>
   );

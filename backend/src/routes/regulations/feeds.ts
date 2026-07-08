@@ -5,7 +5,7 @@
  */
 import type { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../../db/prisma.js';
-import { activeCompanyId, str, list } from './helpers.js';
+import { activeCompanyId, str, list, lensRegulatorTypes } from './helpers.js';
 
 /** Registers the integrations + bulletins GET routes on the shared regulations router. */
 export function registerFeedRoutes(router: Router): void {
@@ -71,8 +71,13 @@ export function registerFeedRoutes(router: Router): void {
     try {
       const companyId = await activeCompanyId(req, res);
       if (!companyId) return;
+      const ruleTypes = lensRegulatorTypes(req.query.lens);
       const rows = await prisma.complianceRule.findMany({
-        where: { companyId, active: true },
+        where: {
+          companyId,
+          active: true,
+          ...(ruleTypes ? { jurisdiction: { regulatorType: { in: ruleTypes } } } : {}),
+        },
         orderBy: [{ ruleCode: 'asc' }],
         select: {
           id: true,
@@ -97,8 +102,12 @@ export function registerFeedRoutes(router: Router): void {
     try {
       const companyId = await activeCompanyId(req, res);
       if (!companyId) return;
+      const srcTypes = lensRegulatorTypes(req.query.lens);
       const rows = await prisma.regulatorySource.findMany({
-        where: { companyId },
+        where: {
+          companyId,
+          ...(srcTypes ? { jurisdiction: { regulatorType: { in: srcTypes } } } : {}),
+        },
         orderBy: [{ name: 'asc' }],
         select: {
           id: true,

@@ -22,7 +22,24 @@ export async function activeCompanyId(req: Request, res: Response): Promise<stri
 
 export const str = (v: unknown) => (typeof v === 'string' && v ? v : undefined);
 // Multi-select filters arrive as comma-separated values.
-export const list = (v: unknown) => (typeof v === 'string' && v ? v.split(',').map((s) => s.trim()).filter(Boolean) : undefined);
+export const list = (v: unknown) =>
+  typeof v === 'string' && v
+    ? v
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : undefined;
+
+// Lens → the set of regulator types it covers, so every drill-down (sources,
+// rules, jurisdictions, catalog) scopes to the active tab in the DB rather than
+// showing the global set. Returns null for an absent/unknown lens (no filter).
+export function lensRegulatorTypes(lens: unknown): string[] | null {
+  const v = str(lens);
+  if (v === 'federal') return ['FEDERAL', 'FEDERAL_SECURITIES'];
+  if (v === 'international') return ['INTERNATIONAL'];
+  if (v === 'state') return ['STATE_INSURANCE_REGULATOR'];
+  return null;
+}
 // erd_v5: requirement ↔ value-stream is NodeRegulation — and those rows now
 // attach to TASK nodes only (single source of truth at the atomic grain). The
 // `valueStreamLinks[]` the frontend consumes are a ROLLUP of the linked tasks'
@@ -33,9 +50,17 @@ export const NODE_REG_INCLUDE = {
   roleRegulations: { include: { role: { select: { id: true, displayValue: true } } } },
 } as const;
 
-export type RoleRegRow = { id: string; roleId: string; role_: string; role: { id: string; displayValue: string } };
+export type RoleRegRow = {
+  id: string;
+  roleId: string;
+  role_: string;
+  role: { id: string; displayValue: string };
+};
 export type VsRollup = Map<string, { id: string; name: string; domain: string | null }[]>;
-export function withValueStreamLinks<T extends { id: string; roleRegulations: RoleRegRow[] }>(r: T, vsMap: VsRollup) {
+export function withValueStreamLinks<T extends { id: string; roleRegulations: RoleRegRow[] }>(
+  r: T,
+  vsMap: VsRollup,
+) {
   const { roleRegulations, ...rest } = r;
   const owner = roleRegulations.find((x) => x.role_ === 'Owner');
   const contributors = roleRegulations.filter((x) => x.role_ === 'Contributor');

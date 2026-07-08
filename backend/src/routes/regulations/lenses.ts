@@ -8,7 +8,14 @@ import type { Router, Request, Response, NextFunction } from 'express';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../db/prisma.js';
 import { vsForRegulations } from '../../lib/govRollup.js';
-import { activeCompanyId, str, list, NODE_REG_INCLUDE, withValueStreamLinks } from './helpers.js';
+import {
+  activeCompanyId,
+  str,
+  list,
+  lensRegulatorTypes,
+  NODE_REG_INCLUDE,
+  withValueStreamLinks,
+} from './helpers.js';
 
 /** Registers the five read-lens GET routes on the shared regulations router. */
 export function registerLensRoutes(router: Router): void {
@@ -17,6 +24,15 @@ export function registerLensRoutes(router: Router): void {
     try {
       const companyId = await activeCompanyId(req, res);
       if (!companyId) return;
+      // Optional lens scope — the catalog drill-down (/regulations/catalog?lens=)
+      // filters the requirement aggregates to the active tab's regulator types.
+      // The main Regulations page calls /overview without a lens (global totals).
+      const ovTypes = lensRegulatorTypes(req.query.lens);
+      const reqWhere: Record<string, unknown> = {
+        companyId,
+        status: 'ACTIVE',
+        ...(ovTypes ? { jurisdiction: { regulatorType: { in: ovTypes } } } : {}),
+      };
       const [
         jurisdictions,
         reqByCategory,
@@ -47,17 +63,17 @@ export function registerLensRoutes(router: Router): void {
         }),
         prisma.regulatoryRequirement.groupBy({
           by: ['category'],
-          where: { companyId, status: 'ACTIVE' },
+          where: reqWhere,
           _count: true,
         }),
         prisma.regulatoryRequirement.groupBy({
           by: ['confidence'],
-          where: { companyId, status: 'ACTIVE' },
+          where: reqWhere,
           _count: true,
         }),
-        prisma.regulatoryRequirement.count({ where: { companyId, status: 'ACTIVE' } }),
+        prisma.regulatoryRequirement.count({ where: reqWhere }),
         prisma.regulatoryRequirement.count({
-          where: { companyId, status: 'ACTIVE', nodeRegulations: { some: {} } },
+          where: { ...reqWhere, nodeRegulations: { some: {} } },
         }),
         prisma.regulatoryBulletin.count({ where: { companyId } }),
         prisma.complianceRule.count({ where: { companyId, active: true } }),
@@ -136,12 +152,16 @@ export function registerLensRoutes(router: Router): void {
       const companyId = await activeCompanyId(req, res);
       if (!companyId) return;
       const q = req.query;
-      // States lens covers state insurance regulators only — federal securities
-      // (FINRA/SEC/MSRB) and international (EU/GDPR) regulators carry no state flags
-      // and surface in the Federal / International lenses instead.
+      // When a lens is supplied (drill-down from a specific tab), scope to that
+      // tab's regulator types in the DB. Absent a lens, default to state-facing
+      // regulators — federal securities (FINRA/SEC/MSRB) and international
+      // (EU/GDPR) surface in the Federal / International lenses instead.
+      const lensTypes = lensRegulatorTypes(q.lens);
       const where: Record<string, unknown> = {
         companyId,
-        regulatorType: { notIn: ['FEDERAL_SECURITIES', 'INTERNATIONAL'] },
+        regulatorType: lensTypes
+          ? { in: lensTypes }
+          : { notIn: ['FEDERAL_SECURITIES', 'INTERNATIONAL'] },
       };
       for (const f of [
         'filingPortal',
