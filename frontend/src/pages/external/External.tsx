@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
+import { useOpenRole } from '../../lib/roleDrawer';
 import PageHeader from '../../components/PageHeader';
 import { Sheet, SheetCell, type SheetCol } from '../../components/Sheet';
 import { Chip, ErrorMessage } from '../../components/ui';
@@ -32,6 +33,7 @@ const DASH = '—';
 export default function External() {
   const { data, error, loading } = useApi<Interaction[]>('/external-interactions');
   const navigate = useNavigate();
+  const openRole = useOpenRole();
   const items = data ?? [];
   const [selected, setSelected] = useState<Interaction | null>(null);
 
@@ -60,7 +62,7 @@ export default function External() {
         <SheetCell
           text={i.internalRoleName ?? DASH}
           dim={!i.internalRoleId}
-          onClick={i.internalRoleId ? () => navigate(`/roles/${i.internalRoleId}`) : undefined}
+          onClick={i.internalRoleId ? () => openRole(i.internalRoleId!) : undefined}
         />
       ),
     },
@@ -106,10 +108,7 @@ export default function External() {
         <InteractionDrawer
           item={selected}
           onClose={() => setSelected(null)}
-          onRole={(id) => {
-            setSelected(null);
-            navigate(`/roles/${id}`);
-          }}
+          onRole={(id) => openRole(id)}
           onValueStream={(name) => {
             setSelected(null);
             navigate(`/overview?vs=${encodeURIComponent(name)}`);

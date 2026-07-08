@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useApi } from '../../lib/useApi';
+import { useOpenRole } from '../../lib/roleDrawer';
 import { Sheet, SheetCell, ListSearch, type SheetCol } from '../../components/Sheet';
 import StandardDrawer from '../../components/StandardDrawer';
 import { ViewPills } from '../../components/TocView';
@@ -46,6 +47,7 @@ const DASH = '—';
 export default function Standards() {
   const { data, error, loading } = useApi<Data>('/explorer/standards');
   const navigate = useNavigate();
+  const openRole = useOpenRole();
   const [view, setView] = useState<'toc' | 'list'>('toc');
   const [items, setItems] = useState<FlatItem[] | null>(null);
   const [q, setQ] = useState('');
@@ -98,12 +100,12 @@ export default function Standards() {
           <SheetCell
             text={r.roleName ?? DASH}
             dim
-            onClick={r.roleId ? () => navigate(`/roles/${r.roleId}`) : undefined}
+            onClick={r.roleId ? () => openRole(r.roleId!) : undefined}
           />
         ),
       },
     ],
-    [navigate],
+    [navigate, openRole],
   );
 
   const dRows = useMemo(() => {

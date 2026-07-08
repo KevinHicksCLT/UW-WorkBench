@@ -1,14 +1,18 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
-import { PARTICIPATION_CLASS } from '../lib/format';
-import { DrawerShell, EmptyState, ErrorMessage, SkeletonLoader, StatusPill } from './ui';
+import { useAuth } from '../lib/auth';
+import { useDialogs } from '../lib/dialogs';
+import { can } from '../lib/permissions';
+import RoleEditorDrawer from './RoleEditorDrawer';
+import { type TaskValidation } from './TaskValidationControl';
+import { DrawerShell, EmptyState, ErrorMessage, SkeletonLoader } from './ui';
 
-// RoleDrawer — the role's full detail (inputs & deliverables, process tasks,
-// responsibilities and value-stream participation), rendered as a wide
-// slide-over wherever the user already is. Replaces the retired role page
-// (OrgTable's RoleDetailView): role links across the app and the sidebar's
-// "View full details" button open this instead of navigating.
+// RoleDrawer — the QUICK PEEK at a role, opened from sidebar surfaces (e.g.
+// the Organization explorer) as a slide-over so the user keeps their spot.
+// Mirrors the role profile page at a glance — description, review progress,
+// headline counts, value streams — and hands off to /roles/:id ("Open full
+// profile") for the full deliverable/task/checklist drill-down.
 
 // ── Shapes (from GET /roles/:id — same payload the old page consumed) ─────────
 type RoleParticipation = {
@@ -30,18 +34,20 @@ type ServerIoRow = {
   deliverables: string[];
 };
 type ProcTask = {
+  nodeRoleId: string;
   valueStreamId: string;
   valueStreamName: string;
   l3: string | null;
   l4: string | null;
   stepNumber: number;
   name: string;
-  relation: 'Lead' | 'Support';
   outputs: string | null;
+  validation: TaskValidation;
 };
 type RoleDetailData = {
   id: string;
   name: string;
+  description: string | null;
   roleFamily: string | null;
   roleLevel: string | null;
   division?: { id: string; name: string };
@@ -64,12 +70,23 @@ const Empty = ({ text }: { text: string }) => (
   <EmptyState baseClassName="text-sm text-[#a3a3a3] italic" message={text} />
 );
 
-export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClose: () => void }) {
+export default function RoleDrawer({
+  roleId,
+  onClose,
+  onMutated,
+}: {
+  roleId: string;
+  onClose: () => void;
+  /** Notified after this role is amended or removed, so hosts can refresh. */
+  onMutated?: () => void;
+}) {
   const [r, setR] = useState<RoleDetailData | null>(null);
   const [error, setError] = useState('');
+  const [editing, setEditing] = useState(false);
+  const { permissions } = useAuth();
+  const dialogs = useDialogs();
 
-  useEffect(() => {
-    setR(null);
+  const load = useCallback(() => {
     setError('');
     api
       .get<RoleDetailData>(`/roles/${roleId}`)
@@ -77,21 +94,55 @@ export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClos
       .catch((e: Error) => setError(e.message));
   }, [roleId]);
 
-  // Process tasks — the L5 steps the role leads/supports — grouped by value stream.
-  const taskGroups = useMemo(() => {
-    const groups = new Map<string, { vsId: string; vsName: string; tasks: ProcTask[] }>();
-    for (const t of r?.processTasks ?? []) {
-      const g = groups.get(t.valueStreamId) ?? {
-        vsId: t.valueStreamId,
-        vsName: t.valueStreamName,
-        tasks: [],
-      };
-      g.tasks.push(t);
-      groups.set(t.valueStreamId, g);
+  useEffect(() => {
+    setR(null);
+    load();
+  }, [load]);
+
+  // SCRUM-34 — amend/remove the role right where the user is looking at it.
+  const canUpdate = can(permissions, 'roles', 'update');
+  const canDelete = can(permissions, 'roles', 'delete');
+
+  const removeRole = async () => {
+    try {
+      const impact = await api.get<{
+        removedLinks: { tasks: number; deliverables: number };
+        unassigned: { checklistItems: number; ownedStandards: number; reports: number };
+      }>(`/roles/${encodeURIComponent(roleId)}/impact`);
+      const bits = [
+        impact.removedLinks.tasks && `${impact.removedLinks.tasks} task link(s)`,
+        impact.removedLinks.deliverables &&
+          `${impact.removedLinks.deliverables} deliverable link(s)`,
+        impact.unassigned.checklistItems &&
+          `${impact.unassigned.checklistItems} responsibility item(s) left unassigned`,
+        impact.unassigned.ownedStandards &&
+          `${impact.unassigned.ownedStandards} owned standard(s) left unowned`,
+        impact.unassigned.reports &&
+          `${impact.unassigned.reports} report(s) left without a manager`,
+      ].filter(Boolean);
+      const ok = await dialogs.confirm({
+        title: `Remove ${r?.name ?? 'this role'}?`,
+        message: bits.length
+          ? `This removes the role and ${bits.join(', ')}.`
+          : 'This role has no links — it will be removed cleanly.',
+        confirmLabel: 'Remove role',
+        danger: true,
+      });
+      if (!ok) return;
+      await api.delete(`/roles/${encodeURIComponent(roleId)}`);
+      onMutated?.();
+      onClose();
+    } catch (e) {
+      setError((e as Error).message);
     }
-    return [...groups.values()].sort((a, b) => a.vsName.localeCompare(b.vsName));
-  }, [r]);
+  };
+
+  // Headline numbers, mirroring the profile page's stats strip.
   const processTaskCount = r?.processTasks?.length ?? 0;
+  const reviewed = (r?.processTasks ?? []).filter(
+    (t: ProcTask) => t.validation.status !== 'UNREVIEWED',
+  ).length;
+  const pct = processTaskCount === 0 ? 0 : Math.round((reviewed / processTaskCount) * 100);
 
   return (
     <DrawerShell
@@ -111,15 +162,51 @@ export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClos
               {[r?.roleFamily, r?.department?.name, r?.division?.name].filter(Boolean).join(' · ')}
             </div>
           </div>
-          {/* The drawer is the quick peek; the profile page is the full drill-down. */}
-          <Link
-            to={`/roles/${encodeURIComponent(roleId)}`}
-            onClick={onClose}
-            className="flex-shrink-0 mt-0.5 rounded-md border border-[#eaeaea] bg-white px-2.5 py-1 text-[11px] font-medium text-[#171717] hover:border-[#d4d4d4] transition-colors duration-150"
-          >
-            Open full profile →
-          </Link>
+          <div className="flex-shrink-0 mt-0.5 flex items-center gap-1.5">
+            {canUpdate && (
+              <button
+                onClick={() => setEditing(true)}
+                className="rounded-md border border-[#eaeaea] bg-white px-2.5 py-1 text-[11px] font-medium text-[#171717] hover:border-[#d4d4d4] transition-colors duration-150"
+              >
+                ✎ Amend
+              </button>
+            )}
+            {canDelete && (
+              <button
+                onClick={removeRole}
+                className="rounded-md border border-[#f3d1d1] bg-white px-2.5 py-1 text-[11px] font-medium text-[#b91c1c] hover:border-[#e5a3a3] transition-colors duration-150"
+              >
+                Remove
+              </button>
+            )}
+            {/* The drawer is the quick peek; the profile page is the full drill-down. */}
+            <Link
+              to={`/roles/${encodeURIComponent(roleId)}`}
+              onClick={onClose}
+              className="rounded-md border border-[#eaeaea] bg-white px-2.5 py-1 text-[11px] font-medium text-[#171717] hover:border-[#d4d4d4] transition-colors duration-150"
+            >
+              Open full profile →
+            </Link>
+          </div>
         </div>
+      }
+      after={
+        editing && r ? (
+          <RoleEditorDrawer
+            role={{
+              id: r.id,
+              name: r.name,
+              description: r.description,
+              roleFamily: r.roleFamily,
+              roleLevel: r.roleLevel,
+            }}
+            onClose={() => setEditing(false)}
+            onSaved={() => {
+              load();
+              onMutated?.();
+            }}
+          />
+        ) : null
       }
     >
       {error ? (
@@ -128,10 +215,51 @@ export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClos
         <SkeletonLoader count={5} height={48} className="space-y-2" />
       ) : (
         <>
-          {/* Value-stream participation — compact chips up top so the long
-                  sections below don't bury where the role plays. */}
-          <div className="mb-6">
-            <SectionLabel>Value-Stream Participation ({r.participation.length})</SectionLabel>
+          {/* Role description — same callout as the profile page. */}
+          <div className="rounded-lg border border-[#e0e7ff] border-l-4 border-l-[#6366f1] bg-[#eef2ff] px-3.5 py-2.5 mb-4">
+            <div className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#4338ca] mb-1">
+              Role description
+            </div>
+            {r.description ? (
+              <p className="text-[12px] text-[#3730a3] leading-relaxed">{r.description}</p>
+            ) : (
+              <p className="text-[12px] text-[#818cf8]">No description yet.</p>
+            )}
+          </div>
+
+          {/* Headline stats — the profile page's strip, at a glance. */}
+          <div className="flex items-center gap-5 flex-wrap rounded-lg border border-[#eaeaea] bg-white px-3.5 py-2.5 mb-4">
+            <div>
+              <div className="text-xl font-bold text-[#065f46] tnum leading-tight">{pct}%</div>
+              <div className="text-[9px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3]">
+                Reviewed · {reviewed}/{processTaskCount}
+              </div>
+            </div>
+            <div>
+              <div className="text-base font-semibold text-[#171717] tnum leading-tight">
+                {processTaskCount}
+              </div>
+              <div className="text-[11px] text-[#737373]">tasks assigned</div>
+            </div>
+            {typeof r.deliverableCount === 'number' && (
+              <div>
+                <div className="text-base font-semibold text-[#171717] tnum leading-tight">
+                  {r.deliverableCount}
+                </div>
+                <div className="text-[11px] text-[#737373]">deliverables</div>
+              </div>
+            )}
+            <div>
+              <div className="text-base font-semibold text-[#171717] tnum leading-tight">
+                {r.participation.length}
+              </div>
+              <div className="text-[11px] text-[#737373]">value streams</div>
+            </div>
+          </div>
+
+          {/* Value-stream participation — compact list. */}
+          <div className="mb-5">
+            <SectionLabel>Value Streams ({r.participation.length})</SectionLabel>
             {r.participation.length === 0 ? (
               <Empty text="Not mapped to any value stream." />
             ) : (
@@ -152,63 +280,21 @@ export default function RoleDrawer({ roleId, onClose }: { roleId: string; onClos
                         <div className="text-xs text-slate-400 truncate">{p.subStream}</div>
                       )}
                     </div>
-                    <span
-                      className={`${PARTICIPATION_CLASS[p.participationType] || 'pill-slate'} flex-shrink-0`}
-                    >
-                      {p.participationType}
-                    </span>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Process Tasks — the L5 process steps this role leads or supports,
-                  tied back to the role. These are its lowest-level activities; each
-                  yields the output shown. */}
-          <div className="mb-6">
-            <SectionLabel>Process Tasks ({processTaskCount})</SectionLabel>
-            <p className="text-xs text-slate-400 -mt-1 mb-3">
-              The process steps this role leads or supports — its lowest-level activities, by value
-              stream.
-            </p>
-            {processTaskCount === 0 ? (
-              <Empty text="No process steps tie to this role." />
-            ) : (
-              <div className="space-y-4">
-                {taskGroups.map((g) => (
-                  <div key={g.vsId}>
-                    <Link
-                      to={`/overview?focus=${g.vsId}`}
-                      className="text-xs font-semibold uppercase tracking-wide text-slate-500 hover:underline"
-                    >
-                      {g.vsName} ({g.tasks.length})
-                    </Link>
-                    <ul className="mt-1.5 divide-y divide-slate-100">
-                      {g.tasks.map((t, i) => (
-                        <li key={i} className="flex items-start gap-2.5 py-2 first:pt-0">
-                          <StatusPill
-                            tone={t.relation === 'Lead' ? 'blue' : 'slate'}
-                            className="mt-0.5 flex-shrink-0"
-                          >
-                            {t.relation}
-                          </StatusPill>
-                          <div className="min-w-0 flex-1">
-                            <div className="text-[13px] text-slate-700 break-words">{t.name}</div>
-                            {t.outputs && (
-                              <div className="text-[11px] text-[#a3a3a3] mt-0.5 break-words">
-                                → {t.outputs}
-                              </div>
-                            )}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Full drill-down (deliverables, numbered tasks, checklists,
+              validation) lives on the profile page. */}
+          <Link
+            to={`/roles/${encodeURIComponent(roleId)}`}
+            onClick={onClose}
+            className="block w-full rounded-md bg-[#065f46] px-4 py-2.5 text-center text-[13px] font-semibold text-white hover:bg-[#047857] transition-colors duration-150"
+          >
+            Open full profile — deliverables, tasks &amp; review →
+          </Link>
         </>
       )}
     </DrawerShell>

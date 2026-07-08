@@ -9,6 +9,7 @@ import SearchBox from './SearchBox';
 import AssistantWidget from './AssistantWidget';
 import FeedbackWidget from './FeedbackWidget';
 import BreadcrumbBar from './BreadcrumbBar';
+import RoleDrawerHost from './RoleDrawerHost';
 
 type IndexItem = { id: string; name: string; valueStreams?: number; roles?: number };
 
@@ -481,6 +482,9 @@ export default function Layout({ children }: { children: ReactNode }) {
 
       {/* Floating AI assistant — available on every authenticated page. */}
       <AssistantWidget />
+
+      {/* Global role drawer — any surface opens a role in place via ?role=. */}
+      <RoleDrawerHost />
     </div>
   );
 }

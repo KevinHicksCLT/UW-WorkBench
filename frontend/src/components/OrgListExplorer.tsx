@@ -1,12 +1,13 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { DOMAIN_HEX } from '../viz/model';
 import { api } from '../lib/api';
+import { useOpenRoleDrawer, useRoleMutated } from '../lib/roleDrawer';
 import MetricsSidebar, {
   MetricsDrawer,
   type Dashboard,
   type MetricSection,
 } from './MetricsSidebar';
-import RoleDrawer from './RoleDrawer';
 import { HeaderComboFilter, ListSearch } from './Sheet';
 import { Card, EmptyState, ErrorMessage, LinkButton, LoadingState } from './ui';
 
@@ -70,6 +71,9 @@ type FlatRow = {
   deptName: string;
   roleId: string | null;
   roleName: string;
+  /** Derived from NodeRole: true when the role holds no value-stream tasks
+      (e.g. Executive Office) — org structure only, absent from Value Streams. */
+  orgOnly: boolean;
 };
 
 // ── Spreadsheet column headers: each header cell carries a searchable
@@ -105,11 +109,14 @@ function Cell({
   accent,
   onClick,
   dim,
+  badge,
 }: {
   text: string;
   accent?: string;
   onClick?: () => void;
   dim?: boolean;
+  /** Small explanatory tag after the text (e.g. "Org-only"). */
+  badge?: { label: string; title: string };
 }) {
   return (
     <div
@@ -138,6 +145,14 @@ function Cell({
       >
         {text}
       </span>
+      {badge && (
+        <span
+          title={badge.title}
+          className="flex-shrink-0 text-[9px] font-semibold uppercase tracking-[0.06em] text-[#737373] bg-[#f5f5f5] border border-[#eaeaea] rounded px-1 py-px"
+        >
+          {badge.label}
+        </span>
+      )}
     </div>
   );
 }
@@ -148,9 +163,18 @@ const EmptyRow = ({ text }: { text: string }) => (
 
 const LOOSE_DEPT = 'Direct to division';
 
-export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: string | null }) {
+export default function OrgListExplorer() {
+  // Sidebar keeps the quick-peek drawer (it links on to the full profile).
+  const openRole = useOpenRoleDrawer();
+  // Deep-linked role (the global drawer's `?role=` also pre-filters the sheet
+  // to just that role's row, same as before — one URL param, two effects).
+  const [searchParams] = useSearchParams();
+  const focusRoleId = searchParams.get('role');
   const [data, setData] = useState<OrgData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
+  // Refresh the org table after a role is amended/removed from the drawer.
+  useRoleMutated(() => setReloadKey((k) => k + 1));
   const [error, setError] = useState<string | null>(null);
 
   // Header filters — a multi-selection per column; [] = no constraint (All).
@@ -167,8 +191,6 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
   const [dash, setDash] = useState<Dashboard | null>(null);
   const [dashLoading, setDashLoading] = useState(false);
   const [drawerSection, setDrawerSection] = useState<MetricSection | null>(null);
-  // Role full-detail drawer (the standalone role page was retired).
-  const [roleDetailId, setRoleDetailId] = useState<string | null>(null);
   const target = ovStack.length ? ovStack[ovStack.length - 1] : base;
 
   // Domain color of the current selection — tints the sidebar (rail + header).
@@ -188,6 +210,7 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    api.invalidate('/explorer/org-table');
     api
       .get<OrgData>('/explorer/org-table')
       .then((d) => {
@@ -205,7 +228,7 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
 
   useEffect(() => {
     if (!target) {
@@ -248,11 +271,25 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
         const head = { domain: s.name, divId: d.id, divName: d.name };
         for (const t of d.departments) {
           if (t.roles.length === 0) {
-            rows.push({ ...head, deptId: t.id, deptName: t.name, roleId: null, roleName: '' });
+            rows.push({
+              ...head,
+              deptId: t.id,
+              deptName: t.name,
+              roleId: null,
+              roleName: '',
+              orgOnly: false,
+            });
             continue;
           }
           for (const r of t.roles)
-            rows.push({ ...head, deptId: t.id, deptName: t.name, roleId: r.id, roleName: r.name });
+            rows.push({
+              ...head,
+              deptId: t.id,
+              deptName: t.name,
+              roleId: r.id,
+              roleName: r.name,
+              orgOnly: r.valueStreamCount === 0,
+            });
         }
         for (const r of d.looseRoles)
           rows.push({
@@ -261,9 +298,17 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
             deptName: LOOSE_DEPT,
             roleId: r.id,
             roleName: r.name,
+            orgOnly: r.valueStreamCount === 0,
           });
         if (d.departments.length === 0 && d.looseRoles.length === 0) {
-          rows.push({ ...head, deptId: null, deptName: '', roleId: null, roleName: '' });
+          rows.push({
+            ...head,
+            deptId: null,
+            deptName: '',
+            roleId: null,
+            roleName: '',
+            orgOnly: false,
+          });
         }
       }
     }
@@ -551,7 +596,7 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
                             // higher levels open the metrics sidebar (same as the map).
                             onClick={() =>
                               r.roleId
-                                ? setRoleDetailId(r.roleId)
+                                ? openRole(r.roleId)
                                 : r.deptId
                                   ? openMetrics('department', r.deptId, hex)
                                   : openMetrics('division', r.divId, hex)
@@ -584,7 +629,16 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
                             />
                             <Cell
                               text={r.roleName}
-                              onClick={r.roleId ? () => setRoleDetailId(r.roleId!) : undefined}
+                              onClick={r.roleId ? () => openRole(r.roleId!) : undefined}
+                              badge={
+                                r.roleId && r.orgOnly
+                                  ? {
+                                      label: 'Org-only',
+                                      title:
+                                        'Organizational role with no value-stream tasks — it appears here but not on the Value Streams map (e.g. Executive Office leadership).',
+                                    }
+                                  : undefined
+                              }
                             />
                           </div>
                         );
@@ -610,7 +664,7 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
             onClose={closeMetrics}
             onViewAll={setDrawerSection}
             onViewDetail={
-              target?.level === 'role' && target.id ? () => setRoleDetailId(target.id) : undefined
+              target?.level === 'role' && target.id ? () => openRole(target.id) : undefined
             }
           />
         )}
@@ -624,9 +678,6 @@ export default function OrgListExplorer({ focusRoleId = null }: { focusRoleId?: 
             onDrill={onDrill}
           />
         )}
-
-        {/* Role full detail — slides over the sheet in place. */}
-        {roleDetailId && <RoleDrawer roleId={roleDetailId} onClose={() => setRoleDetailId(null)} />}
       </div>
     </>
   );
