@@ -32,9 +32,11 @@ test.describe('role profile', () => {
     if (roleName) {
       await expect(page.getByRole('heading', { name: roleName })).toBeVisible();
     }
-    await expect(page.getByText('Job description')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Value Streams' })).toBeVisible();
-    await expect(page.getByText('Deliverables').first()).toBeVisible();
-    await expect(page.getByText('Task Summary')).toBeVisible();
+    // Review-first profile sections: description callout, stats strip, and the
+    // review filter buttons.
+    await expect(page.getByText('Role description')).toBeVisible();
+    await expect(page.getByText('tasks assigned')).toBeVisible();
+    await expect(page.getByRole('button', { name: /Needs review/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'All', exact: true })).toBeVisible();
   });
 });

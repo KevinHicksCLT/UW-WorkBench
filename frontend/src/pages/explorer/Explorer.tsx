@@ -1,19 +1,26 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useHeaderBreadcrumbSlot } from '../../lib/breadcrumbs';
 import MapCanvas from '../../viz/map/MapCanvas';
 import ListExplorer from '../../components/ListExplorer';
-import { TocView, ViewPills, type TocRow } from '../../components/TocView';
+import { TocBack, TocView, ViewPills, type TocRow } from '../../components/TocView';
 import type { DivisionSummary } from '../../viz/model';
 import { ErrorMessage, LoadingState } from '../../components/ui';
 
 type View = 'toc' | 'map' | 'list';
 
-// ── TOC (default view): one row per value stream — process count + divisions.
-// Clicking a stream jumps to the LIST view focused on it (detail sidebar opens).
-type TreeVS = { id: string; name: string; areas: { id: string; subProcesses: unknown[] }[] };
-type TreeDiv = { name: string; valueStreams: TreeVS[] };
+// ── TOC (default view) — the process spine descended one level at a time,
+// gold-standard style: domains (process L1) first, a domain's value streams
+// (L2 — the tree's "divisions") next, then the stream drill page. The tree's
+// nested "valueStreams" are its L3 process areas; they only feed the counts.
+type TreeArea = { id: string; name: string; areas: { id: string; subProcesses: unknown[] }[] };
+type TreeStream = {
+  id: string;
+  name: string;
+  higherCategory: string | null;
+  valueStreams: TreeArea[];
+};
 
 function ValueStreamToc({
   onPick,
@@ -22,49 +29,88 @@ function ValueStreamToc({
   onPick: (vsId: string) => void;
   leading?: React.ReactNode;
 }) {
-  const [rows, setRows] = useState<TocRow[] | null>(null);
+  const [streams, setStreams] = useState<TreeStream[] | null>(null);
   const [error, setError] = useState('');
+  const [domain, setDomain] = useState<string | null>(null);
   useEffect(() => {
     api
-      .get<{ divisions: TreeDiv[] }>('/explorer/tree')
-      .then((t) => {
-        // A stream can hang under several divisions — dedupe and carry them all.
-        const byId = new Map<string, { vs: TreeVS; divisions: Set<string> }>();
-        for (const d of t.divisions ?? []) {
-          for (const vs of d.valueStreams) {
-            const e = byId.get(vs.id) ?? { vs, divisions: new Set<string>() };
-            e.divisions.add(d.name);
-            byId.set(vs.id, e);
-          }
-        }
-        setRows(
-          [...byId.values()]
-            .sort((a, b) => a.vs.name.localeCompare(b.vs.name))
-            .map(({ vs, divisions }) => ({
-              id: vs.id,
-              name: vs.name,
-              count:
-                vs.areas.length + vs.areas.reduce((a, ar) => a + (ar.subProcesses?.length ?? 0), 0),
-              extra: [...divisions].sort().join(', '),
-              onClick: () => onPick(vs.id),
-            })),
-        );
-      })
+      .get<{ divisions: TreeStream[] }>('/explorer/tree')
+      .then((t) => setStreams(t.divisions ?? []))
       .catch((e) => setError(e.message ?? 'Failed to load'));
-  }, [onPick]);
+  }, []);
 
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
-  if (!rows) return <LoadingState message="Loading value streams…" className="animate-pulse" />;
+  if (!streams) return <LoadingState message="Loading value streams…" className="animate-pulse" />;
+
+  // Total processes below a stream (its L3 areas + their L4 sub-processes).
+  const processCount = (s: TreeStream) =>
+    s.valueStreams.length +
+    s.valueStreams.reduce(
+      (a, l3) =>
+        a + l3.areas.length + l3.areas.reduce((x, l4) => x + (l4.subProcesses?.length ?? 0), 0),
+      0,
+    );
+  const domainOf = (s: TreeStream) => s.higherCategory ?? 'Core Business';
+
+  // Level 2 — one domain's value streams; click through to the stream page.
+  if (domain) {
+    const rows: TocRow[] = streams
+      .filter((s) => domainOf(s) === domain)
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((s) => ({
+        id: s.id,
+        name: s.name,
+        count: processCount(s),
+        extra: `${s.valueStreams.length} process area${s.valueStreams.length === 1 ? '' : 's'}`,
+        onClick: () => onPick(s.id),
+      }));
+    return (
+      <TocView
+        rows={rows}
+        nameLabel="Value stream"
+        countLabel="Processes"
+        extraLabel="Process areas"
+        unit="value streams"
+        searchPlaceholder="Search value stream…"
+        leading={
+          <>
+            {leading}
+            <TocBack label="All domains" onClick={() => setDomain(null)} />
+          </>
+        }
+        totals={`${domain} · ${rows.length} value streams · ${rows.reduce((a, r) => a + r.count, 0)} processes`}
+      />
+    );
+  }
+
+  // Level 1 — domains (process L1).
+  const byDomain = new Map<string, { streams: number; processes: number }>();
+  for (const s of streams) {
+    const key = domainOf(s);
+    const e = byDomain.get(key) ?? { streams: 0, processes: 0 };
+    e.streams++;
+    e.processes += processCount(s);
+    byDomain.set(key, e);
+  }
+  const rows: TocRow[] = [...byDomain.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([name, e]) => ({
+      id: name,
+      name,
+      count: e.processes,
+      extra: `${e.streams} value stream${e.streams === 1 ? '' : 's'}`,
+      onClick: () => setDomain(name),
+    }));
   return (
     <TocView
       rows={rows}
-      nameLabel="Value stream"
+      nameLabel="Domain"
       countLabel="Processes"
-      extraLabel="Division"
-      unit="value streams"
-      searchPlaceholder="Search value stream, division…"
+      extraLabel="Value streams"
+      unit="domains"
+      searchPlaceholder="Search domain…"
       leading={leading}
-      totals={`${rows.length} value streams · ${rows.reduce((a, r) => a + r.count, 0)} processes`}
+      totals={`${rows.length} domains · ${streams.length} value streams · ${rows.reduce((a, r) => a + r.count, 0)} processes`}
     />
   );
 }
@@ -75,39 +121,46 @@ export default function Explorer() {
   const [streams, setStreams] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<View>('toc');
-  // Deep-link arrives when the user clicks through from elsewhere in the app:
+  // View state lives in the URL — the single record of "where I was":
   //   `?focus=<valueStreamId>` → LIST view focused on that value stream (its
   //                              detail opens in the right sidebar); add
   //                              `view=map` to focus the map instead.
-  //   `?view=list|map`         → force that view (list is fully exploded to the
-  //                              process-step level, e.g. the home "Process steps" tile).
-  // Lift it into state and clear the param so it doesn't linger or re-fire.
+  //   `?vs=<name>`             → LIST focused by value-stream NAME (callers
+  //                              that only know the name, e.g. Third-Parties).
+  //   `?view=list|map`         → force that view.
+  // The params are KEPT (not stripped) so the breadcrumb trail, browser
+  // back/forward, and a reload all land the user back on the same spot.
   const [searchParams, setSearchParams] = useSearchParams();
-  const [focusVsId, setFocusVsId] = useState<string | null>(null);
-  // `?vs=<name>` focuses the LIST by value-stream NAME (used where the caller
-  // only knows the name, e.g. the Third-Parties drawer) — pre-applies the Value
-  // stream filter without needing the stream's id.
-  const [focusVsName, setFocusVsName] = useState<string | null>(null);
+  const viewParam = searchParams.get('view');
+  const focusVsId = searchParams.get('focus');
+  const focusVsName = searchParams.get('vs');
+  const view: View =
+    viewParam === 'map' || viewParam === 'list'
+      ? viewParam
+      : focusVsId || focusVsName
+        ? 'list'
+        : 'toc';
 
-  useEffect(() => {
-    const f = searchParams.get('focus');
-    const vsName = searchParams.get('vs');
-    const v = searchParams.get('view');
-    if (!f && !vsName && v !== 'list' && v !== 'map') return;
-    if (f) {
-      setFocusVsId(f);
-      setView(v === 'map' ? 'map' : 'list');
-    } else if (vsName) {
-      setFocusVsName(vsName);
-      setView('list');
-    } else if (v === 'list' || v === 'map') setView(v);
-    const next = new URLSearchParams(searchParams);
-    next.delete('focus');
-    next.delete('vs');
-    next.delete('view');
-    setSearchParams(next, { replace: true });
-  }, [searchParams, setSearchParams]);
+  const setView = useCallback(
+    (v: View) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (v === 'toc') {
+            next.delete('view');
+            next.delete('focus');
+            next.delete('vs');
+            next.delete('node');
+          } else {
+            next.set('view', v);
+          }
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
 
   // Load the map bootstrap (domains + L2 divisions). Exposed as a callback so the
   // map can re-run it after an edit-mode move (an L2 row could have changed).
@@ -157,12 +210,14 @@ export default function Explorer() {
     loadOverview();
   }, [loadOverview]);
 
-  // TOC row click → the LIST view focused on that stream (same deep-link path
-  // the rest of the app uses).
-  const pickFromToc = useCallback((vsId: string) => {
-    setFocusVsId(vsId);
-    setView('list');
-  }, []);
+  // TOC row click → the stream's drill page (L3 areas → L4 → tasks), the same
+  // gold-standard descent as the Standards TOC. Map/List stay one click away
+  // from the page's header actions.
+  const navigate = useNavigate();
+  const pickFromToc = useCallback(
+    (vsId: string) => navigate(`/streams/${encodeURIComponent(vsId)}`),
+    [navigate],
+  );
 
   // In map view the drill breadcrumb claims the GLOBAL header bar (Layout's
   // BreadcrumbBar) and MapCanvas portals into it — no in-page header strip.

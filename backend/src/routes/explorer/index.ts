@@ -22,6 +22,7 @@ import { registerTreeFlowRoutes } from './treeFlow.js';
 import { registerTestingTemplateRoutes } from './testingTemplates.js';
 import { registerDashboardRoutes } from './dashboards.js';
 import { registerOrgStandardsRoutes } from './standards.js';
+import { registerStreamRoutes } from './streams.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -36,5 +37,6 @@ registerTreeFlowRoutes(router);
 registerTestingTemplateRoutes(router);
 registerDashboardRoutes(router);
 registerOrgStandardsRoutes(router);
+registerStreamRoutes(router);
 
 export default router;

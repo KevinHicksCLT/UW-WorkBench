@@ -38,6 +38,7 @@ const Automatable = lazy(() => import('./pages/automatable/Automatable'));
 const WorkLibrary = lazy(() => import('./pages/work-library/WorkLibrary'));
 const Approvals = lazy(() => import('./pages/approvals/Approvals'));
 const Applications = lazy(() => import('./pages/applications/Applications'));
+const ApplicationKind = lazy(() => import('./pages/applications/ApplicationKind'));
 const External = lazy(() => import('./pages/external/External'));
 const Regulations = lazy(() => import('./pages/regulations/Regulations'));
 const RegulationDetail = lazy(() => import('./pages/regulation-detail/RegulationDetail'));
@@ -48,12 +49,13 @@ const Settings = lazy(() => import('./pages/settings/Settings'));
 // The role profile page — revived /roles/:id (description, org, value streams,
 // deliverable drill-downs, task summary). Cross-app role links land here.
 const RoleProfile = lazy(() => import('./pages/role-profile/RoleProfile'));
+// The value-stream drill page — TOC rows land here (L3 areas → L4 → tasks).
+const StreamDetail = lazy(() => import('./pages/stream-detail/StreamDetail'));
 
-// The standalone value-stream page was retired too — its detail renders as an
-// in-place drawer on the map/list view. Old links land on the focused map.
+// Old /value-streams/:id links follow the drill page.
 function ValueStreamRedirect() {
   const { id } = useParams();
-  return <Navigate to={`/overview?focus=${encodeURIComponent(id ?? '')}`} replace />;
+  return <Navigate to={`/streams/${encodeURIComponent(id ?? '')}`} replace />;
 }
 
 // Telemetry became Metrics (defect backlog 02, D6) — old drill-in links follow.
@@ -181,6 +183,14 @@ export default function App() {
                     }
                   />
                   <Route path="/value-streams/:id" element={<ValueStreamRedirect />} />
+                  <Route
+                    path="/streams/:id"
+                    element={
+                      <G k="value-streams">
+                        <StreamDetail />
+                      </G>
+                    }
+                  />
                   <Route path="/search" element={<SearchResults />} />
                   {/* Personal settings — auth-only, no menu-key guard (every user). */}
                   <Route path="/settings" element={<Settings />} />
@@ -368,6 +378,14 @@ export default function App() {
                     element={
                       <G k="applications">
                         <Applications />
+                      </G>
+                    }
+                  />
+                  <Route
+                    path="/applications/kinds/:kind"
+                    element={
+                      <G k="applications">
+                        <ApplicationKind />
                       </G>
                     }
                   />

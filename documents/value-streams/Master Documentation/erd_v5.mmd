@@ -197,6 +197,13 @@ erDiagram
     string roleId FK
     string role "Owner|Participant"
     string ownerLevel
+    string validationStatus "UNREVIEWED|CONFIRMED|REASSIGNED|NOT_PERFORMED"
+    string validationNote
+    string validatedByEmail
+    datetime validatedAt
+    string reassignedToRoleId FK
+    string reassignedToApplicationId FK
+    string reassignedToExternalPartyId FK
   }
   NodeRegulation {
     string status "was RequirementValueStream; -> RegulatoryRequirement"
@@ -962,6 +969,9 @@ erDiagram
   Deliverable ||--o{ RoleDeliverable : "has"
   ProcessNode ||--o{ NodeRole : "owner/participant"
   Role ||--o{ NodeRole : "assigned-to"
+  Role ||--o{ NodeRole : "reassigned-to"
+  Application ||--o{ NodeRole : "reassigned-to"
+  ExternalParty ||--o{ NodeRole : "reassigned-to"
   ProcessNode ||--o{ NodeRegulation : ""
   RegulatoryRequirement ||--o{ NodeRegulation : ""
   RegulatoryRequirement ||--o{ RegulationApplication : "governs"

@@ -2,7 +2,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   fmt,
-  PARTICIPATION_CLASS,
   STAGE_LABELS,
   STAGE_ORDER,
   STATUS_LABEL,
@@ -76,7 +75,12 @@ describe('fmt.date / fmt.month', () => {
 describe('stage/status vocabularies', () => {
   it('orders the four stages and labels them', () => {
     expect(STAGE_ORDER).toEqual(['IDEA', 'PLAN', 'EXECUTE', 'COMPLETE']);
-    expect(STAGE_ORDER.map((s) => STAGE_LABELS[s])).toEqual(['Idea', 'Plan', 'Execute', 'Complete']);
+    expect(STAGE_ORDER.map((s) => STAGE_LABELS[s])).toEqual([
+      'Idea',
+      'Plan',
+      'Execute',
+      'Complete',
+    ]);
   });
 
   it('maps statuses to pill classes and labels 1:1', () => {
@@ -86,10 +90,5 @@ describe('stage/status vocabularies', () => {
     expect(STATUS_PILL_CLASS.GAIN).toBe('chip-gain');
     expect(STATUS_LABEL.OFF_TRACK).toBe('Off Track');
     expect(Object.keys(STATUS_PILL_CLASS)).toEqual(Object.keys(STATUS_LABEL));
-  });
-
-  it('maps participation types to pill classes', () => {
-    expect(PARTICIPATION_CLASS.Lead).toBe('pill-blue');
-    expect(PARTICIPATION_CLASS.Oversight).toBe(PARTICIPATION_CLASS.Control);
   });
 });

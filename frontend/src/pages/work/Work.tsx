@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useCompany } from '../../lib/company';
+import { useOpenRole } from '../../lib/roleDrawer';
 import PageHeader from '../../components/PageHeader';
 import { withCompany } from '../../lib/portfolio';
 import { Sheet, SheetCell, type SheetCol } from '../../components/Sheet';
 import { TocView, ViewPills } from '../../components/TocView';
 import { useWorkToc, WorkGroupPicker } from './workToc';
+import WorkGroupDrill from './WorkGroupDrill';
 import { AutomatableMeter, SCORE_LABEL, SCORE_DESC, automatablePct } from '../../lib/automatable';
 import { EmptyState, StatusPill } from '../../components/ui';
 
@@ -149,8 +151,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-// Resolved roles render as blue pills that link to the role page; unmatched raw
-// references stay as plain slate pills.
+// Resolved roles render as blue pills that open the role drawer in place;
+// unmatched raw references stay as plain slate pills.
 function RoleChips({
   roles,
   extra,
@@ -160,18 +162,20 @@ function RoleChips({
   extra: string[];
   empty?: string;
 }) {
+  const openRole = useOpenRole();
   if (roles.length === 0 && extra.length === 0)
     return <span className="text-[#a3a3a3]">{empty}</span>;
   return (
     <div className="flex flex-wrap gap-1.5">
       {roles.map((r) => (
-        <Link
+        <button
           key={r.id}
-          to={`/roles/${r.id}`}
+          type="button"
+          onClick={() => openRole(r.id)}
           className="pill-blue text-xs hover:ring-1 hover:ring-[#171717] transition-shadow duration-150"
         >
           {r.name}
-        </Link>
+        </button>
       ))}
       {extra.map((e) => (
         <StatusPill key={e} tone="slate" className="text-xs">
@@ -535,12 +539,19 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
   const { deliverables, tasks } = data;
 
   // TOC (default view) — grouping state, rows and pickers live in workToc.tsx.
-  const { view, setView, preFilter, setPreFilter, group, groups, pickGroup, tocRows } = useWorkToc(
-    tab,
-    deliverables,
-    tasks,
-    DASH,
-  );
+  const {
+    view,
+    setView,
+    preFilter,
+    setPreFilter,
+    drillValue,
+    setDrillValue,
+    inDrill,
+    group,
+    groups,
+    pickGroup,
+    tocRows,
+  } = useWorkToc(tab, deliverables, tasks, DASH);
 
   const viewToggle = (
     <ViewPills
@@ -552,6 +563,7 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
       onChange={(v) => {
         if (v === 'toc') {
           setPreFilter(null);
+          setDrillValue(null);
         }
         setView(v);
       }}
@@ -729,6 +741,17 @@ export default function Work({ tab }: { tab: 'deliverables' | 'tasks' }) {
           leading={viewToggle}
           totals={`${tab === 'deliverables' ? `${deliverables.length} deliverables` : `${tasks.length} tasks`} across ${tocRows.length} ${group.unit}`}
           actions={<WorkGroupPicker groups={groups} activeKey={group.key} onPick={pickGroup} />}
+        />
+      ) : view === 'drill' && drillValue != null ? (
+        <WorkGroupDrill
+          tab={tab}
+          group={group}
+          value={drillValue}
+          deliverables={tab === 'deliverables' ? deliverables.filter((d) => inDrill(d)) : []}
+          tasks={tab === 'tasks' ? tasks.filter((t) => inDrill(t)) : []}
+          onOpenDeliverable={(id) => openDrill('deliverable', id)}
+          onOpenTask={(id) => openDrill('task', id)}
+          leading={viewToggle}
         />
       ) : tab === 'deliverables' ? (
         <Sheet

@@ -15,6 +15,8 @@ import companyRoutes from './routes/companies.js';
 import divisionRoutes from './routes/divisions.js';
 import departmentRoutes from './routes/departments.js';
 import roleRoutes from './routes/roles.js';
+import roleValidationRoutes from './routes/roleValidation.js';
+import roleManageRoutes from './routes/roleManage.js';
 import valueStreamRoutes from './routes/valueStreams.js';
 import externalInteractionRoutes from './routes/externalInteractions.js';
 import explorerRoutes from './routes/explorer/index.js';
@@ -93,6 +95,11 @@ app.use('/audit', auditRoutes);
 app.use('/companies', companyRoutes);
 app.use('/divisions', divisionRoutes);
 app.use('/departments', departmentRoutes);
+// Validation + management routes mount first so /validation-targets,
+// /task-links/… and /manage/… are never captured by the roles router's /:id
+// catch-all (mutations and specific reads resolve before the generic reads).
+app.use('/roles', roleValidationRoutes);
+app.use('/roles', roleManageRoutes);
 app.use('/roles', roleRoutes);
 app.use('/value-streams', valueStreamRoutes);
 app.use('/external-interactions', externalInteractionRoutes);
