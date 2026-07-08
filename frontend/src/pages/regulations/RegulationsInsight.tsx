@@ -5,7 +5,7 @@ import { useApi } from '../../lib/useApi';
 import { withCompany, Tile, SectionCard } from '../../lib/portfolio';
 import PageHeader from '../../components/PageHeader';
 import { useRegisterCrumb } from '../../lib/breadcrumbs';
-import { BackButton, EmptyState, Input, LoadingState, StatusPill } from '../../components/ui';
+import { BackButton, Card, EmptyState, Input, LoadingState, StatusPill } from '../../components/ui';
 import { catLabel, CONFIDENCE_HELP, type Overview } from './Regulations';
 import { RequirementsTable } from './RequirementsTable';
 
@@ -78,15 +78,18 @@ function BarList({ data, max: maxIn }: { data: [string, number][]; max?: number 
 }
 
 const DONUT_COLORS = ['#171717', '#2563eb', '#d97706', '#dc2626', '#059669', '#a3a3a3'];
-/** Conic-gradient donut with a legend. */
+/** Conic-gradient donut with a legend. `size` sets the ring diameter (px). */
 function Donut({
   data,
   legendHelp,
+  size = 112,
 }: {
   data: [string, number][];
   legendHelp?: Record<string, string>;
+  size?: number;
 }) {
   const total = data.reduce((s, [, n]) => s + n, 0) || 1;
+  const hole = Math.round(size * 0.58);
   let acc = 0;
   const stops = data.map(([, n], i) => {
     const from = (acc / total) * 360;
@@ -95,28 +98,31 @@ function Donut({
     return `${DONUT_COLORS[i % DONUT_COLORS.length]} ${from}deg ${to}deg`;
   });
   return (
-    <div className="flex items-center gap-5">
+    <div className="flex flex-wrap items-center justify-center gap-8">
       <div
-        className="w-28 h-28 rounded-full flex-shrink-0"
-        style={{ background: `conic-gradient(${stops.join(', ')})` }}
+        className="rounded-full flex-shrink-0 flex items-center justify-center"
+        style={{ width: size, height: size, background: `conic-gradient(${stops.join(', ')})` }}
       >
-        <div className="w-16 h-16 rounded-full bg-white relative top-6 left-6 flex items-center justify-center text-sm font-semibold tnum">
-          {total}
+        <div
+          className="rounded-full bg-white flex items-center justify-center font-semibold tnum"
+          style={{ width: hole, height: hole, fontSize: size > 140 ? 20 : 14 }}
+        >
+          {total.toLocaleString()}
         </div>
       </div>
-      <div className="space-y-1">
+      <div className="space-y-2">
         {data.map(([k, n], i) => (
           <div
             key={k}
-            className="flex items-center gap-2 text-xs"
+            className="flex items-center gap-2 text-sm"
             title={legendHelp?.[k.toUpperCase().replace(/ /g, '_')]}
           >
             <span
-              className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+              className="w-3 h-3 rounded-sm flex-shrink-0"
               style={{ background: DONUT_COLORS[i % DONUT_COLORS.length] }}
             />
             <span className="text-[#525252]">{k}</span>
-            <span className="tnum font-medium text-[#171717]">{n}</span>
+            <span className="tnum font-medium text-[#171717]">{n.toLocaleString()}</span>
           </div>
         ))}
       </div>
@@ -269,15 +275,19 @@ function CatalogBody({ overview, lens }: { overview: Overview | null; lens?: str
           hint="confirmed at the source"
         />
       </div>
-      <div className="grid md:grid-cols-2 gap-5">
-        <SectionCard title="Confidence mix">
-          <Donut
-            data={Object.entries(r.byConfidence)
-              .sort((a, b) => b[1] - a[1])
-              .map(([k, n]) => [label(k), n] as [string, number])}
-            legendHelp={CONFIDENCE_HELP}
-          />
-        </SectionCard>
+      <div className="grid md:grid-cols-2 gap-5 items-stretch">
+        <Card variant="elevated" className="p-5 flex flex-col">
+          <h2 className="text-sm font-semibold text-[#171717] mb-4">Confidence mix</h2>
+          <div className="flex-1 flex items-center justify-center">
+            <Donut
+              data={Object.entries(r.byConfidence)
+                .sort((a, b) => b[1] - a[1])
+                .map(([k, n]) => [label(k), n] as [string, number])}
+              legendHelp={CONFIDENCE_HELP}
+              size={180}
+            />
+          </div>
+        </Card>
         <SectionCard title="By category">
           <BarList data={byCategory} />
         </SectionCard>

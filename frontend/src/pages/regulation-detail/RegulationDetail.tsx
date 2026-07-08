@@ -13,7 +13,16 @@ import {
   type VsLink,
   type VsOption,
 } from '../../components/RequirementLinks';
-import { catLabel } from '../regulations/Regulations';
+import { catLabel, catTone } from '../regulations/Regulations';
+
+// Left-accent colour per category tone — a hint of colour to break up the list.
+const CAT_ACCENT: Record<string, string> = {
+  blue: 'border-l-[#2563eb]',
+  green: 'border-l-[#059669]',
+  amber: 'border-l-[#d97706]',
+  red: 'border-l-[#dc2626]',
+  slate: 'border-l-[#d4d4d4]',
+};
 import { BackButton, ErrorMessage, LoadingState, StatusPill } from '../../components/ui';
 
 // State detail — /regulations/:code. Regulator identity + taxonomy flags in the
@@ -324,13 +333,10 @@ export default function RegulationDetail() {
 
         <SectionCard title={`Requirements (${detail.requirements.length})`}>
           <div className="-mx-5 -mb-5 rounded-b-lg overflow-hidden">
-            {detail.requirements.map((r, i) => (
+            {detail.requirements.map((r) => (
               <div
                 key={r.id}
-                className={
-                  'px-5 py-2.5 border-b border-[#f0f0f0] last:border-0 ' +
-                  (i % 2 ? 'bg-[#f6f6f6]' : 'bg-white')
-                }
+                className={`px-5 py-2.5 border-b border-[#f0f0f0] last:border-0 border-l-2 ${CAT_ACCENT[catTone(r.category)]} bg-white hover:bg-[#fafafa] transition-colors duration-100`}
               >
                 <Link
                   to={`/regulations/requirement/${r.id}`}
@@ -350,7 +356,7 @@ export default function RegulationDetail() {
                       </StatusPill>
                     </Link>
                   )}
-                  <StatusPill tone="slate">{catLabel(r.category)}</StatusPill>
+                  <StatusPill tone={catTone(r.category)}>{catLabel(r.category)}</StatusPill>
                   {r.lineOfBusiness !== 'ALL' && (
                     <StatusPill tone="slate">{label(r.lineOfBusiness)}</StatusPill>
                   )}

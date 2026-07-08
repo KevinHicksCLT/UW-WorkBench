@@ -14,7 +14,17 @@ import {
   type VsLink,
   type VsOption,
 } from '../../components/RequirementLinks';
-import { catLabel, lobGroups, marketDisplay, BOTH_MARKETS_LABEL } from './Regulations';
+import { catLabel, catTone, lobGroups, marketDisplay, BOTH_MARKETS_LABEL } from './Regulations';
+
+// Left-accent border colour per category tone — a hint of colour that breaks up
+// the list without the zebra banding.
+const CAT_ACCENT: Record<string, string> = {
+  blue: 'border-l-[#2563eb]',
+  green: 'border-l-[#059669]',
+  amber: 'border-l-[#d97706]',
+  red: 'border-l-[#dc2626]',
+  slate: 'border-l-[#d4d4d4]',
+};
 
 // Server-driven requirements grid — the ONE table used for every regulations
 // list (Regulations lens, regime page, catalog). Matches the dense Sheet look
@@ -273,13 +283,10 @@ export function RequirementsTable({
             </div>
           ) : (
             <div>
-              {rows.map((r, i) => (
+              {rows.map((r) => (
                 <div
                   key={r.id}
-                  className={
-                    'px-4 py-3 border-b border-[#f0f0f0] last:border-0 ' +
-                    (i % 2 ? 'bg-[#f6f6f6]' : 'bg-white')
-                  }
+                  className={`px-4 py-3 border-b border-[#f0f0f0] last:border-0 border-l-2 ${CAT_ACCENT[catTone(r.category)]} bg-white hover:bg-[#fafafa] transition-colors duration-100`}
                 >
                   <Link
                     to={`/regulations/requirement/${r.id}`}
@@ -296,7 +303,7 @@ export function RequirementsTable({
                         {r.jurisdiction.name}
                       </StatusPill>
                     </Link>
-                    <StatusPill tone="slate">{catLabel(r.category)}</StatusPill>
+                    <StatusPill tone={catTone(r.category)}>{catLabel(r.category)}</StatusPill>
                     {lobGroups(r).map((g) => (
                       <StatusPill key={g} tone="slate">
                         {g}
@@ -420,16 +427,13 @@ export function RequirementsTable({
                 No requirements match the current filters.
               </div>
             ) : (
-              rows.map((r, i) => {
+              rows.map((r) => {
                 const groups = lobGroups(r);
                 return (
                   <div
                     key={r.id}
                     onClick={() => navigate(`/regulations/requirement/${r.id}`)}
-                    className={
-                      'grid items-stretch divide-x divide-[#f0f0f0] border-b border-[#f0f0f0] last:border-0 cursor-pointer hover:bg-[#eef0f2] transition-colors duration-100 ' +
-                      (i % 2 ? 'bg-[#f6f6f6]' : 'bg-white')
-                    }
+                    className={`grid items-stretch divide-x divide-[#f0f0f0] border-b border-[#f0f0f0] last:border-0 border-l-2 ${CAT_ACCENT[catTone(r.category)]} bg-white cursor-pointer hover:bg-[#fafafa] transition-colors duration-100`}
                     style={{ gridTemplateColumns: GRID }}
                   >
                     <div className="px-2 py-1.5 min-w-0 text-[12px] truncate">
