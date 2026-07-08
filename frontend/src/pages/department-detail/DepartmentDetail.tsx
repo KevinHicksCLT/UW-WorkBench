@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
+import { useOpenRole } from '../../lib/roleDrawer';
 import PageHeader from '../../components/PageHeader';
 import { Card, EmptyState, ErrorMessage, LoadingState } from '../../components/ui';
 
@@ -97,6 +98,7 @@ function RoleRows({
   isOpen: boolean;
   onToggle: () => void;
 }) {
+  const openRole = useOpenRole();
   // distinct value streams for the inline cell
   const streams = Array.from(new Map(r.participations.map((p) => [p.valueStreamId, p])).values());
   return (
@@ -125,13 +127,16 @@ function RoleRows({
           </svg>
         </td>
         <td className="px-2 py-2.5">
-          <Link
-            to={`/roles/${r.id}`}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              openRole(r.id);
+            }}
             className="text-[#171717] font-medium hover:underline"
-            onClick={(e) => e.stopPropagation()}
           >
             {r.name}
-          </Link>
+          </button>
         </td>
         <td className="px-2 py-2.5 text-[#525252]">
           {r.roleLevel && r.roleLevel !== 'Individual Contributor' ? r.roleLevel : '—'}

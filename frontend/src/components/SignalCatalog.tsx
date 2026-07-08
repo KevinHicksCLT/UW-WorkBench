@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
+import { useOpenRole } from '../lib/roleDrawer';
 import { withCompany } from '../lib/portfolio';
 import { Sheet, SheetCell, type SheetCol } from './Sheet';
 import { EmptyState, ErrorMessage } from './ui';
@@ -69,6 +69,7 @@ function LevelChips({ levels }: { levels: string[] }) {
 }
 
 export default function SignalCatalog({ companyId }: { companyId: string | null }) {
+  const openRole = useOpenRole();
   const [data, setData] = useState<Catalog | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -144,14 +145,17 @@ export default function SignalCatalog({ companyId }: { companyId: string | null 
             {s.valueStreamName ?? '—'}
             {s.ownerRole &&
               (s.ownerRoleId ? (
-                <Link
-                  to={`/roles/${s.ownerRoleId}`}
-                  onClick={(e) => e.stopPropagation()}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openRole(s.ownerRoleId!);
+                  }}
                   className="text-[#4338ca] hover:underline"
                 >
                   {' '}
                   · {s.ownerRole}
-                </Link>
+                </button>
               ) : (
                 <span className="text-[#a3a3a3]"> · {s.ownerRole}</span>
               ))}

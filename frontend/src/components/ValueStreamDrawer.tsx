@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
+import { useOpenRole } from '../lib/roleDrawer';
 import { DrawerShell, EmptyState, ErrorMessage, SkeletonLoader } from './ui';
 
 // ValueStreamDrawer — the value stream's full detail (Process L4 & L5 tree +
@@ -33,6 +33,7 @@ export default function ValueStreamDrawer({
   valueStreamId: string;
   onClose: () => void;
 }) {
+  const openRole = useOpenRole();
   const [vs, setVs] = useState<Detail | null>(null);
   const [error, setError] = useState('');
 
@@ -81,15 +82,16 @@ export default function ValueStreamDrawer({
               <EmptyState baseClassName="text-sm text-[#a3a3a3] italic" message="None." />
             ) : (
               <div className="flex flex-wrap gap-1.5">
-                {/* Plain role chips — the retired Lead/Core/Support tag is gone. */}
+                {/* Plain role chips — the retired Lead/Core/Support tag is gone.
+                    Clicking opens the role drawer in place over this drawer. */}
                 {roles.map((r, i) => (
-                  <Link
+                  <button
                     key={`${r.roleId}-${i}`}
-                    to={`/organization?role=${r.roleId}`}
+                    onClick={() => openRole(r.roleId)}
                     className="inline-flex items-center gap-1.5 rounded-md border border-[#eaeaea] bg-[#fafafa] px-2 py-1 hover:border-[#d4d4d4] transition-colors duration-150"
                   >
                     <span className="text-xs text-[#171717]">{r.roleName}</span>
-                  </Link>
+                  </button>
                 ))}
               </div>
             )}

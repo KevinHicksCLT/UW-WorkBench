@@ -5,11 +5,11 @@
 // touches (value streams → deliverables → tasks → standards → checklist),
 // resolved from each role's FK links (NodeRole / RoleDeliverable / RoleStandard
 // / NodeChecklist). Unbounded columns are capped in the API; the drawer shows all.
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useApi } from '../lib/useApi';
+import { useOpenRole, useRoleMutated } from '../lib/roleDrawer';
 import { Sheet, SheetCell, type SheetCol } from '../components/Sheet';
-import RoleDrawer from './RoleDrawer';
 import { ErrorMessage } from './ui';
 
 type RoleRow = {
@@ -113,43 +113,33 @@ export default function RolesListSheet({
 }) {
   const { data, error, loading, refetch } = useApi<{ rows: RoleRow[] }>('/roles');
   const rows = data?.rows ?? [];
-  const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
+  const openRole = useOpenRole();
+  // Refresh this list after the global drawer amends/removes a role.
+  useRoleMutated(refetch);
 
   return (
-    <>
-      <div className="h-full overflow-y-auto">
-        <div className="px-4 sm:px-6 pt-3 pb-6">
-          {error && (
-            <ErrorMessage baseClassName="text-sm text-red-600 mb-3">
-              Failed to load roles.
-            </ErrorMessage>
-          )}
-          <Sheet
-            sheetKey="roles"
-            rows={rows}
-            cols={cols}
-            rowKey={(r) => r.key}
-            loading={loading}
-            unit="rows"
-            leading={leading}
-            defaultFilters={defaultFilters}
-            onRowClick={(r) => setSelectedRoleId(r.roleId)}
-            summarize={(v) =>
-              `${new Set(v.map((r) => r.roleId)).size} roles · ${new Set(v.map((r) => r.department).filter(Boolean)).size} departments`
-            }
-          />
-        </div>
-      </div>
-
-      {/* Sibling of the scroller (not nested inside it) so the drawer isn't
-          clipped by the sheet's own overflow-y-auto. */}
-      {selectedRoleId && (
-        <RoleDrawer
-          roleId={selectedRoleId}
-          onClose={() => setSelectedRoleId(null)}
-          onMutated={refetch}
+    <div className="h-full overflow-y-auto">
+      <div className="px-4 sm:px-6 pt-3 pb-6">
+        {error && (
+          <ErrorMessage baseClassName="text-sm text-red-600 mb-3">
+            Failed to load roles.
+          </ErrorMessage>
+        )}
+        <Sheet
+          sheetKey="roles"
+          rows={rows}
+          cols={cols}
+          rowKey={(r) => r.key}
+          loading={loading}
+          unit="rows"
+          leading={leading}
+          defaultFilters={defaultFilters}
+          onRowClick={(r) => openRole(r.roleId)}
+          summarize={(v) =>
+            `${new Set(v.map((r) => r.roleId)).size} roles · ${new Set(v.map((r) => r.department).filter(Boolean)).size} departments`
+          }
         />
-      )}
-    </>
+      </div>
+    </div>
   );
 }

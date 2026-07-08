@@ -5,7 +5,6 @@ import { useHeaderBreadcrumbSlot } from '../../lib/breadcrumbs';
 import OrgListExplorer from '../../components/OrgListExplorer';
 import OrgMapCanvas from '../../viz/org-map/OrgMapCanvas';
 import OrgTable from '../org-table/OrgTable';
-import RoleDrawer from '../../components/RoleDrawer';
 import { TocView, ViewPills, type TocRow } from '../../components/TocView';
 import { ErrorMessage, LoadingState } from '../../components/ui';
 
@@ -19,8 +18,9 @@ import { ErrorMessage, LoadingState } from '../../components/ui';
 //          with the shared metrics sidebar.
 // A fourth, toggle-less surface — 'detail' — renders the old OrgTable drill-down
 // for the `?view=departments` deep link (the departments overview only exists
-// there). `?role=<id>` deep links land on the LIST view with the role's full
-// detail drawer open (the standalone role page was retired into RoleDrawer).
+// there). `?role=<id>` deep links land on the LIST view; the role's detail
+// drawer itself is the GLOBAL RoleDrawerHost (Layout) — this page only needs
+// the param to pick the view, never to mount/close the drawer.
 type View = 'toc' | 'list' | 'map' | 'detail';
 
 // TOC rows — one per ORG division (OrgUnit L2), from the org-table bootstrap:
@@ -77,18 +77,19 @@ export default function Organization() {
   // `?view=departments` (home "Departments" tile) opens the OrgTable drill-down
   // ('detail' surface); `?view=map|list` forces that view; `?role=<id>` (links
   // from Work / External / Standards / the org map's role leaves / old
-  // /roles/:id URLs) opens that role's detail drawer OVER whatever view is
-  // active. The params are KEPT (not stripped) so the breadcrumb trail, browser
-  // back/forward, and a reload all land the user back on the same spot.
+  // /roles/:id URLs) picks the LIST view so the role's row is visible under
+  // the global RoleDrawerHost. The params are KEPT (not stripped) so the
+  // breadcrumb trail, browser back/forward, and a reload all land the user
+  // back on the same spot.
   const [searchParams, setSearchParams] = useSearchParams();
   const viewParam = searchParams.get('view');
-  const roleDrawerId = searchParams.get('role');
+  const roleId = searchParams.get('role');
   const view: View =
     viewParam === 'departments'
       ? 'detail'
       : viewParam === 'map' || viewParam === 'list'
         ? viewParam
-        : roleDrawerId
+        : roleId
           ? 'list'
           : 'toc';
 
@@ -102,17 +103,6 @@ export default function Organization() {
         } else if (v !== 'detail') {
           next.set('view', v);
         }
-        return next;
-      },
-      { replace: true },
-    );
-  };
-
-  const closeRoleDrawer = () => {
-    setSearchParams(
-      (prev) => {
-        const next = new URLSearchParams(prev);
-        next.delete('role');
         return next;
       },
       { replace: true },
@@ -147,7 +137,7 @@ export default function Organization() {
             </div>
           </div>
         ) : view === 'list' ? (
-          <OrgListExplorer focusRoleId={roleDrawerId} />
+          <OrgListExplorer />
         ) : view === 'map' ? (
           // Map view: a literal drill-down map of the org spine, full-bleed.
           <OrgMapCanvas breadcrumbSlot={crumbSlot} />
@@ -160,9 +150,6 @@ export default function Organization() {
             </div>
           </div>
         )}
-
-        {/* Deep-linked role detail — slides over the active view in place. */}
-        {roleDrawerId && <RoleDrawer roleId={roleDrawerId} onClose={closeRoleDrawer} />}
       </div>
     </div>
   );

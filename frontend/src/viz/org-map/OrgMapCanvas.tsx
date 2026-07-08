@@ -17,7 +17,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
 import {
   ReactFlow,
   Background,
@@ -36,6 +35,7 @@ import { DOMAIN_HEX, type NodeFocusState } from '../model';
 import { useApi } from '../../lib/useApi';
 import { api } from '../../lib/api';
 import { useCompany } from '../../lib/company';
+import { useOpenRole } from '../../lib/roleDrawer';
 import MetricsSidebar, {
   MetricsDrawer,
   type Dashboard,
@@ -79,7 +79,7 @@ function OrgMapCanvasInner({
   const rf = useReactFlow();
   const paneW = useStore((s) => s.width);
   const paneH = useStore((s) => s.height);
-  const navigate = useNavigate();
+  const openRole = useOpenRole();
   const { companyId } = useCompany();
 
   // Drill state. The company starts open (segments visible), like the VS map.
@@ -658,8 +658,7 @@ function OrgMapCanvasInner({
     else if (node.type === 'orgSegment') onSegmentClick(node.id.replace(/^seg:/, ''));
     else if (node.type === 'orgDivision') onDivisionClick(node.id.replace(/^div:/, ''));
     else if (node.type === 'orgDept') onDeptClick(node.id.replace(/^dept:/, ''));
-    else if (node.type === 'orgRole')
-      navigate(`/organization?role=${encodeURIComponent(node.id.replace(/^role:/, ''))}`);
+    else if (node.type === 'orgRole') openRole(node.id.replace(/^role:/, ''));
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────

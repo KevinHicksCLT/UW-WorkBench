@@ -3,15 +3,15 @@ import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
 import { useHeaderBreadcrumbSlot } from '../../lib/breadcrumbs';
+import { useOpenRole } from '../../lib/roleDrawer';
 import PageHeader from '../../components/PageHeader';
-import RoleDrawer from '../../components/RoleDrawer';
 import { Card, Chip, ErrorMessage, LoadingState } from '../../components/ui';
 
 // ── Box drill-down: Divisions → Teams (departments) → Roles ─────────────────
 // The org spine is L2 Division → L3 Department → L4 Role. We start with every
 // division as a box (grouped by its CEO-facing segment), drill into a
-// division's teams, then a team's roles. Clicking a role opens the RoleDrawer
-// slide-over (the standalone role detail page was retired into it).
+// division's teams, then a team's roles. Clicking a role opens the global
+// role drawer (RoleDrawerHost, mounted once in Layout) in place.
 
 type RoleLite = {
   id: string;
@@ -39,10 +39,10 @@ type OrgData = {
 const LOOSE = '__loose'; // sentinel department id for roles reporting directly to a division
 
 export default function OrgTable() {
+  const openRole = useOpenRole();
   const { data, error, loading } = useApi<OrgData>('/explorer/org-table');
   const [divId, setDivId] = useState<string | null>(null);
   const [deptId, setDeptId] = useState<string | null>(null); // null = none selected; LOOSE = direct roles
-  const [roleId, setRoleId] = useState<string | null>(null); // open role drawer
   const [query, setQuery] = useState('');
 
   // Deep-link: `?view=departments` (from the home "Departments" footprint tile)
@@ -141,11 +141,9 @@ export default function OrgTable() {
   const goDivisions = () => {
     setDivId(null);
     setDeptId(null);
-    setRoleId(null);
   };
   const goTeams = () => {
     setDeptId(null);
-    setRoleId(null);
   };
   // Open a role found via search — jump into its team so the surrounding context
   // resolves normally behind the drawer.
@@ -156,7 +154,7 @@ export default function OrgTable() {
   }) => {
     setDivId(r.divisionId);
     setDeptId(r.departmentId ?? LOOSE);
-    setRoleId(r.id);
+    openRole(r.id);
   };
 
   if (loading) return <LoadingState baseClassName="text-slate-500" message="Loading roles…" />;
@@ -304,16 +302,13 @@ export default function OrgTable() {
                     ) : undefined
                   }
                   meta={`${r.valueStreamCount} value streams`}
-                  onClick={() => setRoleId(r.id)}
+                  onClick={() => openRole(r.id)}
                 />
               ))}
             </Grid>
           )}
         </>
       )}
-
-      {/* Role full detail — slides over the drill-down in place. */}
-      {roleId && <RoleDrawer roleId={roleId} onClose={() => setRoleId(null)} />}
     </div>
   );
 }

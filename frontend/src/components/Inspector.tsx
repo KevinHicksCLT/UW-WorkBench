@@ -323,13 +323,7 @@ export default function Inspector({
             {tab === 'Work' && <WorkTab data={data} edit={edit} onNav={navigate} after={after} />}
             {tab === 'Tasks' && <TasksTab data={data} onRetarget={onRetarget} />}
             {tab === 'Roles' && (
-              <RolesTab
-                data={data}
-                edit={edit}
-                onNav={navigate}
-                after={after}
-                propText={propText}
-              />
+              <RolesTab data={data} edit={edit} after={after} propText={propText} />
             )}
             {tab === 'Applications' && (
               <AppsTab data={data} edit={edit} onNav={navigate} after={after} propText={propText} />

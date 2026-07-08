@@ -4,6 +4,7 @@
  * Extracted verbatim from Inspector.tsx.
  */
 import { api } from '../../lib/api';
+import { useOpenRole } from '../../lib/roleDrawer';
 import { AddPicker, DetachBtn, Empty, LinkOut, Select } from './atoms';
 import {
   RACI,
@@ -52,16 +53,15 @@ export function TasksTab({
 export function RolesTab({
   data,
   edit,
-  onNav,
   after,
   propText,
 }: {
   data: Payload;
   edit: boolean;
-  onNav: (p: string) => void;
   after: AfterFn;
   propText: PropTextFn;
 }) {
+  const openRole = useOpenRole();
   const add = async (
     choice: { id?: string; newName?: string },
     relation: Relation = 'Participant',
@@ -177,9 +177,7 @@ export function RolesTab({
                   ✕
                 </span>
               )}
-              <LinkOut
-                onClick={() => onNav(`/organization?role=${encodeURIComponent(r.roleId)}`)}
-              />
+              <LinkOut onClick={() => openRole(r.roleId)} />
               {r.links.length > 0 && edit && (
                 <DetachBtn
                   onClick={async () => {
