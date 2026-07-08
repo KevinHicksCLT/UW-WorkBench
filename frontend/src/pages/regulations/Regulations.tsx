@@ -22,9 +22,11 @@ export const MARKET_LABEL: Record<string, string> = {
   COMMERCIAL: 'Commercial',
 };
 export const marketValues = (m: string[]): string[] => (m ?? []).map((x) => MARKET_LABEL[x] ?? x);
+// Both segments → "Commercial & Personal Lines" (never the bare "Both").
+export const BOTH_MARKETS_LABEL = 'Commercial & Personal Lines';
 export const marketDisplay = (m: string[]): string => {
   const v = marketValues(m);
-  if (v.length >= 2) return 'Both';
+  if (v.length >= 2) return BOTH_MARKETS_LABEL;
   return v[0] ?? '—';
 };
 // Granular lines from the junction; fall back to the coarse scalar label.

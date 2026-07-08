@@ -14,7 +14,7 @@ import {
   type VsLink,
   type VsOption,
 } from '../../components/RequirementLinks';
-import { catLabel, lobGroups, marketDisplay, OBLIGATION_HELP } from './Regulations';
+import { catLabel, lobGroups, marketDisplay, BOTH_MARKETS_LABEL } from './Regulations';
 
 // Server-driven requirements grid — the ONE table used for every regulations
 // list (Regulations lens, regime page, catalog). Matches the dense Sheet look
@@ -48,7 +48,6 @@ type Filters = {
   owners: string[];
 };
 
-const MARKET_OPTS = ['All', 'Personal', 'Commercial', 'Both'];
 const GROUP_OPTS = [
   'All',
   'Property',
@@ -83,6 +82,7 @@ export function RequirementsTable({
   const { companyId } = useCompany();
   const { permissions } = useAuth();
   const canEdit = can(permissions, 'regulations', 'update');
+  const MARKET_OPTS = ['All', 'Personal', 'Commercial', BOTH_MARKETS_LABEL];
   const [filters, setFilters] = useState<Filters>({
     categories: [],
     regimes: [],
@@ -151,7 +151,8 @@ export function RequirementsTable({
       });
       if (variant === 'list') p.set('detail', '1');
       if (regulator[0]) p.set('state', nameToCode.get(regulator[0]) ?? regulator[0]);
-      if (market[0]) p.set('market', market[0] === 'Both' ? 'BOTH' : market[0].toUpperCase());
+      if (market[0])
+        p.set('market', market[0] === BOTH_MARKETS_LABEL ? 'BOTH' : market[0].toUpperCase());
       if (group[0]) p.set('group', group[0]);
       if (regime[0]) p.set('regime', regime[0]);
       if (category[0]) p.set('category', category[0]);
@@ -263,17 +264,23 @@ export function RequirementsTable({
       </div>
 
       {variant === 'list' ? (
-        <Card className="px-4 py-1">
+        <Card className="p-0 overflow-hidden">
           {loading && !rows.length ? (
-            <div className="py-4 text-[13px] text-[#a3a3a3] italic">Loading…</div>
+            <div className="py-4 px-4 text-[13px] text-[#a3a3a3] italic">Loading…</div>
           ) : rows.length === 0 ? (
-            <div className="py-4 text-[13px] text-[#a3a3a3] italic">
+            <div className="py-4 px-4 text-[13px] text-[#a3a3a3] italic">
               No requirements match the current filters.
             </div>
           ) : (
-            <div className="divide-y divide-[#f5f5f5]">
-              {rows.map((r) => (
-                <div key={r.id} className="py-3">
+            <div>
+              {rows.map((r, i) => (
+                <div
+                  key={r.id}
+                  className={
+                    'px-4 py-3 border-b border-[#f0f0f0] last:border-0 ' +
+                    (i % 2 ? 'bg-[#f6f6f6]' : 'bg-white')
+                  }
+                >
                   <Link
                     to={`/regulations/requirement/${r.id}`}
                     className="text-sm font-medium text-[#171717] hover:underline"
@@ -296,11 +303,6 @@ export function RequirementsTable({
                       </StatusPill>
                     ))}
                     <StatusPill tone="slate">{marketDisplay(r.markets)}</StatusPill>
-                    {r.obligationType === 'FILING_GATE' && (
-                      <StatusPill tone="amber" title={OBLIGATION_HELP.FILING_GATE}>
-                        Filing gate
-                      </StatusPill>
-                    )}
                     <LinkChips links={r.valueStreamLinks} />
                     {canEdit && (
                       <button
@@ -418,13 +420,16 @@ export function RequirementsTable({
                 No requirements match the current filters.
               </div>
             ) : (
-              rows.map((r) => {
+              rows.map((r, i) => {
                 const groups = lobGroups(r);
                 return (
                   <div
                     key={r.id}
                     onClick={() => navigate(`/regulations/requirement/${r.id}`)}
-                    className="grid items-stretch divide-x divide-[#f0f0f0] border-b border-[#f5f5f5] last:border-0 cursor-pointer hover:bg-[#fafafa] transition-colors duration-100"
+                    className={
+                      'grid items-stretch divide-x divide-[#f0f0f0] border-b border-[#f0f0f0] last:border-0 cursor-pointer hover:bg-[#eef0f2] transition-colors duration-100 ' +
+                      (i % 2 ? 'bg-[#f6f6f6]' : 'bg-white')
+                    }
                     style={{ gridTemplateColumns: GRID }}
                   >
                     <div className="px-2 py-1.5 min-w-0 text-[12px] truncate">
@@ -437,7 +442,10 @@ export function RequirementsTable({
                         {r.jurisdiction.name}
                       </Link>
                     </div>
-                    <div className="px-2 py-1.5 text-[12px] text-[#525252]">
+                    <div
+                      className="px-2 py-1.5 text-[12px] text-[#525252] truncate"
+                      title={marketDisplay(r.markets)}
+                    >
                       {marketDisplay(r.markets)}
                     </div>
                     <div
