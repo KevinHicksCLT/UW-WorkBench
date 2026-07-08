@@ -29,7 +29,7 @@ export default function ProcedureValue({ value }: { value: string }) {
           );
         return (
           <span key={i} className="block pl-3">
-            <span className="text-[#8a94a0]">- </span>
+            <span className="text-[#8a94a0]">• </span>
             {ln.replace(/^\d+[.)]\s*/, '')}
           </span>
         );
