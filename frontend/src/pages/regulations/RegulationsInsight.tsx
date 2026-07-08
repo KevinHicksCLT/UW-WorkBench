@@ -205,33 +205,15 @@ export default function RegulationsInsight({ kind }: { kind: InsightKind }) {
 // ── Jurisdictions ────────────────────────────────────────────────────────────
 function JurisdictionsBody({ rows, loading }: { rows: JurRow[] | null; loading: boolean }) {
   const navigate = useNavigate();
-  const [tileFilter, setTileFilter] = useState<'all' | 'priority'>('all');
   if (loading || !rows) return <LoadingState />;
-  const priority = rows.filter((j) => j.priorityTier === 'PRIORITY').length;
-  const shown = rows.filter((j) =>
-    tileFilter === 'priority' ? j.priorityTier === 'PRIORITY' : true,
-  );
-  const listTitle = tileFilter === 'all' ? 'All jurisdictions' : 'Priority states';
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 gap-2">
-        <Tile
-          compact
-          label="Jurisdictions"
-          value={rows.length}
-          onClick={() => setTileFilter('all')}
-        />
-        <Tile
-          compact
-          label="Priority states"
-          value={priority}
-          hint="deep compliance profiles"
-          onClick={() => setTileFilter('priority')}
-        />
+        <Tile compact label="Jurisdictions" value={rows.length} />
       </div>
-      <SectionCard title={`${listTitle} (${shown.length})`}>
+      <SectionCard title={`All jurisdictions (${rows.length})`}>
         <div className="divide-y divide-[#f5f5f5]">
-          {shown.map((j) => (
+          {rows.map((j) => (
             <button
               key={j.id}
               type="button"
@@ -240,7 +222,6 @@ function JurisdictionsBody({ rows, loading }: { rows: JurRow[] | null; loading: 
             >
               <span className="text-sm font-medium text-[#171717]">{j.name}</span>
               <span className="text-[11px] text-[#a3a3a3] tnum">{j.code}</span>
-              {j.priorityTier === 'PRIORITY' && <StatusPill tone="amber">Priority</StatusPill>}
               <span className="flex-1" />
               <span className="text-xs text-[#525252] tnum">
                 {j._count.requirements} requirements · {j._count.rules} rules · {j._count.sources}{' '}
@@ -263,7 +244,6 @@ function CatalogBody({ overview, lens }: { overview: Overview | null; lens?: str
   const byCategory = Object.entries(r.byCategory)
     .map(([k, n]) => [catLabel(k), n] as [string, number])
     .sort((a, b) => b[1] - a[1]);
-  const coverage = overview.coverageByValueStream ?? [];
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -301,11 +281,6 @@ function CatalogBody({ overview, lens }: { overview: Overview | null; lens?: str
         <SectionCard title="By category">
           <BarList data={byCategory} />
         </SectionCard>
-        {coverage.length > 0 && (
-          <SectionCard title="Coverage by value stream">
-            <BarList data={coverage.map((c) => [c.valueStream ?? '—', c.requirementCount])} />
-          </SectionCard>
-        )}
       </div>
       <SectionCard title="All requirements">
         <RequirementsTable baseParams={lens ? { lens } : {}} />
