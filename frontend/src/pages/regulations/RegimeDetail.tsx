@@ -22,12 +22,17 @@ type Profile = {
   level: string;
 };
 
+// Reduce the personal / commercial / both counts to one non-contradictory
+// label. An obligation tagged "both" covers each market, so it counts toward
+// both sides — the summary reports which markets the regime touches overall,
+// never the nonsensical "both markets · commercial-only".
 const marketSummary = (m: Profile['markets']): string => {
-  const parts: string[] = [];
-  if (m.both) parts.push('both markets');
-  if (m.personal) parts.push('personal-only');
-  if (m.commercial) parts.push('commercial-only');
-  return parts.join(' · ') || '—';
+  const personal = m.personal + m.both;
+  const commercial = m.commercial + m.both;
+  if (personal && commercial) return 'Personal & commercial';
+  if (personal) return 'Personal only';
+  if (commercial) return 'Commercial only';
+  return '—';
 };
 
 export default function RegimeDetail() {
