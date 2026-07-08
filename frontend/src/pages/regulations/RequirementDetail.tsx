@@ -209,7 +209,17 @@ export default function RequirementDetail() {
             />
             <ClassRow
               name="Line of business"
-              value={lobLabels(r).join(', ')}
+              value={
+                lobLabels(r).length > 1 ? (
+                  <ul className="list-disc pl-4 space-y-0.5">
+                    {lobLabels(r).map((l) => (
+                      <li key={l}>{l}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  (lobLabels(r)[0] ?? 'All lines')
+                )
+              }
               help={LOB_HELP[r.lineOfBusiness] ?? 'The insurance line(s) this requirement governs'}
             />
             <ClassRow
