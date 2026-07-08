@@ -338,7 +338,8 @@ export default function Regulations() {
         ))}
       </div>
 
-      <RequirementsTable baseParams={{ lens: LENS_PARAM[tab] }} />
+      {/* key by lens so switching tabs remounts with cleared filters */}
+      <RequirementsTable key={LENS_PARAM[tab]} baseParams={{ lens: LENS_PARAM[tab] }} />
     </div>
   );
 }

@@ -559,6 +559,60 @@ export function registerLensRoutes(router: Router): void {
     }
   });
 
+  // ── Regime profile stats ────────────────────────────────────────────────────────
+  // Headline numbers for a single named regulation's profile page.
+  router.get('/regime-profile', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const companyId = await activeCompanyId(req, res);
+      if (!companyId) return;
+      const regime = str(req.query.regime);
+      if (!regime) return res.status(400).json({ error: 'regime required' });
+      const base = { companyId, status: 'ACTIVE', regime };
+      const [requirements, jurRows, cats, personal, commercial, both, jurTypes] = await Promise.all(
+        [
+          prisma.regulatoryRequirement.count({ where: base }),
+          prisma.regulatoryRequirement.findMany({
+            where: base,
+            select: { jurisdiction: { select: { code: true, name: true } } },
+            distinct: ['jurisdictionId'],
+            orderBy: { jurisdiction: { name: 'asc' } },
+          }),
+          prisma.regulatoryRequirement.groupBy({ by: ['category'], where: base }),
+          prisma.regulatoryRequirement.count({
+            where: { ...base, markets: { equals: ['PERSONAL'] } },
+          }),
+          prisma.regulatoryRequirement.count({
+            where: { ...base, markets: { equals: ['COMMERCIAL'] } },
+          }),
+          prisma.regulatoryRequirement.count({
+            where: { ...base, markets: { hasEvery: ['PERSONAL', 'COMMERCIAL'] } },
+          }),
+          prisma.regulatoryRequirement.findMany({
+            where: base,
+            select: { jurisdiction: { select: { regulatorType: true } } },
+            distinct: ['jurisdictionId'],
+          }),
+        ],
+      );
+      const level = jurTypes.every((j) => j.jurisdiction.regulatorType === 'INTERNATIONAL')
+        ? 'International'
+        : jurTypes.every((j) => j.jurisdiction.regulatorType === 'STATE_INSURANCE_REGULATOR')
+          ? 'State'
+          : jurTypes.some((j) => j.jurisdiction.regulatorType === 'INTERNATIONAL')
+            ? 'Multi-level'
+            : 'Federal / national';
+      res.json({
+        requirements,
+        jurisdictions: jurRows.map((j) => j.jurisdiction),
+        categories: cats.map((c) => c.category),
+        markets: { personal, commercial, both },
+        level,
+      });
+    } catch (e) {
+      next(e);
+    }
+  });
+
   // ── Requirement filter options ────────────────────────────────────────────────
   // Distinct values for the table's per-column combobox filters, scoped to the
   // current lens (or a fixed regime). Cheap groupBy/distinct queries so the
