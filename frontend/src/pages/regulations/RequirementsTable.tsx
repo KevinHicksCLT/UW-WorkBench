@@ -1,13 +1,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
+import { useAuth } from '../../lib/auth';
+import { can } from '../../lib/permissions';
 import { useCompany } from '../../lib/company';
 import { withCompany } from '../../lib/portfolio';
-import { Card } from '../../components/ui';
+import { Card, StatusPill } from '../../components/ui';
 import { HeaderComboFilter } from '../../components/Sheet';
 import { ListSearch } from '../../components/sheet/headerControls';
-import { type VsLink } from '../../components/RequirementLinks';
-import { catLabel, lobGroups, marketDisplay } from './Regulations';
+import {
+  LinkChips,
+  LinksEditor,
+  type VsLink,
+  type VsOption,
+} from '../../components/RequirementLinks';
+import {
+  catLabel,
+  lobGroups,
+  marketDisplay,
+  CONFIDENCE_HELP,
+  OBLIGATION_HELP,
+} from './Regulations';
 
 // Server-driven requirements grid — the ONE table used for every regulations
 // list (Regulations lens, regime page, catalog). Matches the dense Sheet look
@@ -20,11 +33,14 @@ export type ReqRow = {
   category: string;
   title: string;
   markets: string[];
+  lineOfBusiness?: string;
   lineOfBusinessLinks: { lob: { code: string; label: string; group: string } }[];
   obligationType: string;
   frequency: string | null;
   confidence: string;
   regime: string | null;
+  requirement?: string;
+  citation?: string | null;
   jurisdiction: { id: string; code: string; name: string; regulatorType: string };
   valueStreamLinks: VsLink[];
   owner: { id: string; name: string } | null;
@@ -61,9 +77,24 @@ const GROUP_OPTS = [
 const PAGE_SIZE = 100;
 const GRID = '150px 90px 150px 160px minmax(0,2fr) 140px minmax(0,1.2fr) 56px';
 
-export function RequirementsTable({ baseParams }: { baseParams: Record<string, string> }) {
+const lobLabel = (v: string) =>
+  v
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/^\w/, (c) => c.toUpperCase());
+
+export function RequirementsTable({
+  baseParams,
+  variant = 'grid',
+}: {
+  baseParams: Record<string, string>;
+  /** 'grid' = dense catalog table; 'list' = expanded cards (regime profile). */
+  variant?: 'grid' | 'list';
+}) {
   const navigate = useNavigate();
   const { companyId } = useCompany();
+  const { permissions } = useAuth();
+  const canEdit = can(permissions, 'regulations', 'update');
   const [filters, setFilters] = useState<Filters>({
     categories: [],
     regimes: [],
@@ -85,6 +116,20 @@ export function RequirementsTable({ baseParams }: { baseParams: Record<string, s
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const baseKey = JSON.stringify(baseParams);
+
+  // List variant only — inline value-stream link editing (parity with the
+  // regulator page). The value-stream option set is loaded once from /overview.
+  const [editing, setEditing] = useState<string | null>(null);
+  const [valueStreams, setValueStreams] = useState<VsOption[]>([]);
+  useEffect(() => {
+    if (variant !== 'list' || !companyId) return;
+    api
+      .get<{ valueStreams?: VsOption[] }>(withCompany('/regulations/overview', companyId))
+      .then((o) => setValueStreams(o.valueStreams ?? []))
+      .catch(() => {});
+  }, [variant, companyId]);
+  const patchLinks = (id: string, links: VsLink[]) =>
+    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, valueStreamLinks: links } : r)));
 
   useEffect(() => {
     if (!companyId) return;
@@ -116,6 +161,7 @@ export function RequirementsTable({ baseParams }: { baseParams: Record<string, s
         page: String(pageNum),
         pageSize: String(PAGE_SIZE),
       });
+      if (variant === 'list') p.set('detail', '1');
       if (regulator[0]) p.set('state', nameToCode.get(regulator[0]) ?? regulator[0]);
       if (market[0]) p.set('market', market[0] === 'Both' ? 'BOTH' : market[0].toUpperCase());
       if (group[0]) p.set('group', group[0]);
@@ -228,132 +274,250 @@ export function RequirementsTable({ baseParams }: { baseParams: Record<string, s
         />
       </div>
 
-      <Card className="p-0">
-        {/* Header — a combobox filter on every level */}
-        <div
-          className="grid items-stretch divide-x divide-[#eaeaea] border-b border-[#eaeaea] bg-[#fafafa] rounded-t-lg"
-          style={{ gridTemplateColumns: GRID }}
-        >
-          <HeaderComboFilter
-            label="Regulator"
-            value={regulator}
-            onChange={setRegulator}
-            options={jurOpts}
-          />
-          <HeaderComboFilter
-            label="Market"
-            value={market}
-            onChange={setMarket}
-            options={MARKET_OPTS}
-          />
-          <HeaderComboFilter
-            label="Line of business"
-            value={group}
-            onChange={setGroup}
-            options={GROUP_OPTS}
-          />
-          <HeaderComboFilter
-            label="Regulation"
-            value={regime}
-            onChange={setRegime}
-            options={regimeOpts}
-          />
-          <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373]">
-            Requirement
-          </div>
-          <HeaderComboFilter
-            label="Category"
-            value={category[0] ? [catLabel(category[0])] : []}
-            onChange={(v) => setCategory(v[0] ? [catLabelToToken.get(v[0]) ?? v[0]] : [])}
-            options={catDisplayOpts}
-          />
-          <HeaderComboFilter label="Owner" value={owner} onChange={setOwner} options={ownerOpts} />
-          <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373]">
-            Plan
-          </div>
-        </div>
-
-        <div className="rounded-b-lg overflow-hidden">
+      {variant === 'list' ? (
+        <Card className="px-4 py-1">
           {loading && !rows.length ? (
-            <div className="py-4 px-3 text-[11px] text-[#a3a3a3] italic">Loading…</div>
+            <div className="py-4 text-[13px] text-[#a3a3a3] italic">Loading…</div>
           ) : rows.length === 0 ? (
-            <div className="py-4 px-3 text-[11px] text-[#a3a3a3] italic">
+            <div className="py-4 text-[13px] text-[#a3a3a3] italic">
               No requirements match the current filters.
             </div>
           ) : (
-            rows.map((r) => {
-              const groups = lobGroups(r);
-              return (
-                <div
-                  key={r.id}
-                  onClick={() => navigate(`/regulations/requirement/${r.id}`)}
-                  className="grid items-stretch divide-x divide-[#f0f0f0] border-b border-[#f5f5f5] last:border-0 cursor-pointer hover:bg-[#fafafa] transition-colors duration-100"
-                  style={{ gridTemplateColumns: GRID }}
-                >
-                  <div className="px-2 py-1.5 min-w-0 text-[12px] truncate">
+            <div className="divide-y divide-[#f5f5f5]">
+              {rows.map((r) => (
+                <div key={r.id} className="py-3">
+                  <Link
+                    to={`/regulations/requirement/${r.id}`}
+                    className="text-sm font-medium text-[#171717] hover:underline"
+                  >
+                    {r.title}
+                  </Link>
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1">
                     <Link
                       to={`/regulations/${r.jurisdiction.code}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="font-medium text-[#171717] hover:underline"
                       title={`${r.jurisdiction.name} — open regulator page`}
                     >
-                      {r.jurisdiction.name}
+                      <StatusPill tone="slate" className="hover:underline">
+                        {r.jurisdiction.name}
+                      </StatusPill>
                     </Link>
-                  </div>
-                  <div className="px-2 py-1.5 text-[12px] text-[#525252]">
-                    {marketDisplay(r.markets)}
-                  </div>
-                  <div
-                    className="px-2 py-1.5 text-[12px] text-[#525252] truncate"
-                    title={groups.join(', ')}
-                  >
-                    {groups.length
-                      ? groups.length > 1
-                        ? `${groups.length} groups`
-                        : groups[0]
-                      : 'All lines'}
-                  </div>
-                  <div className="px-2 py-1.5 text-[12px] min-w-0 truncate">
-                    {r.regime ? (
-                      <Link
-                        to={`/regulations/regulation/${encodeURIComponent(r.regime)}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-[#171717] hover:underline"
-                        title={`${r.regime} — open the regulation`}
+                    <StatusPill tone="slate">{catLabel(r.category)}</StatusPill>
+                    {lobGroups(r).map((g) => (
+                      <StatusPill key={g} tone="slate">
+                        {g}
+                      </StatusPill>
+                    ))}
+                    <StatusPill tone="slate">{marketDisplay(r.markets)}</StatusPill>
+                    {r.obligationType === 'FILING_GATE' && (
+                      <StatusPill tone="amber" title={OBLIGATION_HELP.FILING_GATE}>
+                        Filing gate
+                      </StatusPill>
+                    )}
+                    {r.confidence !== 'BASELINE' && (
+                      <StatusPill
+                        tone={
+                          r.confidence === 'VERIFIED'
+                            ? 'green'
+                            : r.confidence === 'STALE'
+                              ? 'red'
+                              : 'amber'
+                        }
+                        title={CONFIDENCE_HELP[r.confidence]}
                       >
-                        {r.regime}
-                      </Link>
-                    ) : (
-                      <span className="text-[#d4d4d4]">—</span>
+                        {lobLabel(r.confidence)}
+                      </StatusPill>
+                    )}
+                    <LinkChips links={r.valueStreamLinks} />
+                    {canEdit && (
+                      <button
+                        onClick={() => setEditing(editing === r.id ? null : r.id)}
+                        className="text-[11px] text-[#666666] hover:text-[#171717] underline decoration-[#d4d4d4] transition-colors duration-100"
+                      >
+                        {editing === r.id ? 'close' : 'edit links'}
+                      </button>
                     )}
                   </div>
-                  <div className="px-2 py-1.5 text-[12px] text-[#262626] min-w-0">
-                    <span className="line-clamp-2 hover:underline">{r.title}</span>
+                  {r.requirement && (
+                    <p className="text-sm text-[#525252] leading-relaxed mt-1.5">{r.requirement}</p>
+                  )}
+                  <div className="flex flex-wrap gap-x-4 mt-1 text-xs text-[#a3a3a3]">
+                    {r.owner && (
+                      <span>
+                        Owner:{' '}
+                        <Link
+                          to={`/roles/${r.owner.id}`}
+                          className="text-[#525252] hover:underline"
+                        >
+                          {r.owner.name}
+                        </Link>
+                      </span>
+                    )}
+                    {r.contributors.length > 0 && (
+                      <span>
+                        Contributors:{' '}
+                        {r.contributors.map((c, i) => (
+                          <span key={c.id}>
+                            {i > 0 && ', '}
+                            <Link to={`/roles/${c.id}`} className="text-[#525252] hover:underline">
+                              {c.name}
+                            </Link>
+                          </span>
+                        ))}
+                      </span>
+                    )}
+                    {r.citation && <span>Citation: {r.citation}</span>}
+                    {r.frequency && <span>Frequency: {r.frequency}</span>}
                   </div>
-                  <div className="px-2 py-1.5 text-[12px] text-[#525252] truncate">
-                    {catLabel(r.category)}
-                  </div>
-                  <div
-                    className="px-2 py-1.5 text-[12px] text-[#525252] truncate"
-                    title={r.owner?.name}
-                  >
-                    {r.owner?.name ?? '—'}
-                  </div>
-                  <div className="px-2 py-1.5 text-[12px]">
-                    <Link
-                      to={`/work-library?type=regulation&id=${r.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-[11.5px] font-medium text-[#2563eb] hover:underline"
-                    >
-                      Plan ↗
-                    </Link>
-                  </div>
+                  {editing === r.id && (
+                    <LinksEditor
+                      requirementId={r.id}
+                      links={r.valueStreamLinks}
+                      valueStreams={valueStreams}
+                      onSaved={(links) => {
+                        patchLinks(r.id, links);
+                        setEditing(null);
+                      }}
+                      onCancel={() => setEditing(null)}
+                    />
+                  )}
                 </div>
-              );
-            })
+              ))}
+            </div>
           )}
-        </div>
-      </Card>
+        </Card>
+      ) : (
+        <Card className="p-0">
+          {/* Header — a combobox filter on every level */}
+          <div
+            className="grid items-stretch divide-x divide-[#eaeaea] border-b border-[#eaeaea] bg-[#fafafa] rounded-t-lg"
+            style={{ gridTemplateColumns: GRID }}
+          >
+            <HeaderComboFilter
+              label="Regulator"
+              value={regulator}
+              onChange={setRegulator}
+              options={jurOpts}
+            />
+            <HeaderComboFilter
+              label="Market"
+              value={market}
+              onChange={setMarket}
+              options={MARKET_OPTS}
+            />
+            <HeaderComboFilter
+              label="Line of business"
+              value={group}
+              onChange={setGroup}
+              options={GROUP_OPTS}
+            />
+            <HeaderComboFilter
+              label="Regulation"
+              value={regime}
+              onChange={setRegime}
+              options={regimeOpts}
+            />
+            <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373]">
+              Requirement
+            </div>
+            <HeaderComboFilter
+              label="Category"
+              value={category[0] ? [catLabel(category[0])] : []}
+              onChange={(v) => setCategory(v[0] ? [catLabelToToken.get(v[0]) ?? v[0]] : [])}
+              options={catDisplayOpts}
+            />
+            <HeaderComboFilter
+              label="Owner"
+              value={owner}
+              onChange={setOwner}
+              options={ownerOpts}
+            />
+            <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373]">
+              Plan
+            </div>
+          </div>
+
+          <div className="rounded-b-lg overflow-hidden">
+            {loading && !rows.length ? (
+              <div className="py-4 px-3 text-[11px] text-[#a3a3a3] italic">Loading…</div>
+            ) : rows.length === 0 ? (
+              <div className="py-4 px-3 text-[11px] text-[#a3a3a3] italic">
+                No requirements match the current filters.
+              </div>
+            ) : (
+              rows.map((r) => {
+                const groups = lobGroups(r);
+                return (
+                  <div
+                    key={r.id}
+                    onClick={() => navigate(`/regulations/requirement/${r.id}`)}
+                    className="grid items-stretch divide-x divide-[#f0f0f0] border-b border-[#f5f5f5] last:border-0 cursor-pointer hover:bg-[#fafafa] transition-colors duration-100"
+                    style={{ gridTemplateColumns: GRID }}
+                  >
+                    <div className="px-2 py-1.5 min-w-0 text-[12px] truncate">
+                      <Link
+                        to={`/regulations/${r.jurisdiction.code}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="font-medium text-[#171717] hover:underline"
+                        title={`${r.jurisdiction.name} — open regulator page`}
+                      >
+                        {r.jurisdiction.name}
+                      </Link>
+                    </div>
+                    <div className="px-2 py-1.5 text-[12px] text-[#525252]">
+                      {marketDisplay(r.markets)}
+                    </div>
+                    <div
+                      className="px-2 py-1.5 text-[12px] text-[#525252] truncate"
+                      title={groups.join(', ')}
+                    >
+                      {groups.length
+                        ? groups.length > 1
+                          ? `${groups.length} groups`
+                          : groups[0]
+                        : 'All lines'}
+                    </div>
+                    <div className="px-2 py-1.5 text-[12px] min-w-0 truncate">
+                      {r.regime ? (
+                        <Link
+                          to={`/regulations/regulation/${encodeURIComponent(r.regime)}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-[#171717] hover:underline"
+                          title={`${r.regime} — open the regulation`}
+                        >
+                          {r.regime}
+                        </Link>
+                      ) : (
+                        <span className="text-[#d4d4d4]">—</span>
+                      )}
+                    </div>
+                    <div className="px-2 py-1.5 text-[12px] text-[#262626] min-w-0">
+                      <span className="line-clamp-2 hover:underline">{r.title}</span>
+                    </div>
+                    <div className="px-2 py-1.5 text-[12px] text-[#525252] truncate">
+                      {catLabel(r.category)}
+                    </div>
+                    <div
+                      className="px-2 py-1.5 text-[12px] text-[#525252] truncate"
+                      title={r.owner?.name}
+                    >
+                      {r.owner?.name ?? '—'}
+                    </div>
+                    <div className="px-2 py-1.5 text-[12px]">
+                      <Link
+                        to={`/work-library?type=regulation&id=${r.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-[11.5px] font-medium text-[#2563eb] hover:underline"
+                      >
+                        Plan ↗
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </Card>
+      )}
 
       {rows.length < total && (
         <div ref={sentinel} className="py-3 text-center text-[11px] text-[#a3a3a3]">

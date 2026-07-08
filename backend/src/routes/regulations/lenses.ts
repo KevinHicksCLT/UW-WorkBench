@@ -475,6 +475,10 @@ export function registerLensRoutes(router: Router): void {
       // projection; the full `requirement` text loads lazily on the detail page.
       const pageSize = Math.min(Math.max(Number(q.pageSize) || 100, 1), 500);
       const page = Math.max(Number(q.page) || 1, 1);
+      // detail=1 adds the full obligation text + citation for the expanded-list
+      // render (regime profile page); the dense catalog grid omits them to stay
+      // lean across the tens-of-thousands-row catalog.
+      const detail = q.detail === '1';
       const select = {
         id: true,
         category: true,
@@ -487,6 +491,7 @@ export function registerLensRoutes(router: Router): void {
         confidence: true,
         agentSkill: true,
         regime: true,
+        ...(detail ? { requirement: true, citation: true, citationUrl: true } : {}),
         jurisdiction: {
           select: {
             id: true,

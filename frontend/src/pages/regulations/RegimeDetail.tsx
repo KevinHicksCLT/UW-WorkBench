@@ -91,7 +91,7 @@ export default function RegimeDetail() {
         </div>
       )}
 
-      <RequirementsTable baseParams={{ regime: name }} />
+      <RequirementsTable baseParams={{ regime: name }} variant="list" />
     </div>
   );
 }
