@@ -357,6 +357,8 @@ model Company {
   regulatoryBulletins       RegulatoryBulletin[]
   complianceRules           ComplianceRule[]
   regulatorySources         RegulatorySource[]
+  linesOfBusiness           LineOfBusiness[]
+  requirementLinesOfBusiness RequirementLineOfBusiness[]
   // App Rationalization
   rationalizationWorkspaces RationalizationWorkspace[]
   anatomyCategories         AnatomyCategory[]
@@ -2124,6 +2126,10 @@ model RegulatoryRequirement {
   // The named regulation / regime this obligation belongs to, surfaced as a
   // column so GDPR/CCPA/NYDFS/SERFF/IIPRC are visible without drilling in.
   regime         String? // GDPR | CCPA-CPRA | NYDFS-500 | SERFF | IIPRC | IAIABC-EDI | ...
+  // Market segment(s) the obligation applies to — PERSONAL, COMMERCIAL, or both
+  // (an empty/both set means it applies enterprise-wide across markets). Filter
+  // dimension distinct from lineOfBusiness (the granular product line).
+  markets        String[]     @default([]) // PERSONAL | COMMERCIAL
   // Accuracy metadata
   confidence     String       @default("BASELINE") // BASELINE | VERIFIED | DERIVED | STALE
   sourceNote     String?
@@ -2143,11 +2149,59 @@ model RegulatoryRequirement {
   regulationWorkTemplates   RegulationWorkTemplate[]
   regulationTemplateAnswers RegulationTemplateAnswer[]
   nodeRegulationEvidences   NodeRegulationEvidence[]
+  lineOfBusinessLinks       RequirementLineOfBusiness[]
 
   @@index([companyId])
   @@index([jurisdictionId])
   @@index([companyId, category])
   @@index([companyId, status])
+  // Common list query filters ACTIVE rows for a company then narrows by regime
+  // and lineOfBusiness — a covering-ish composite keeps the large catalog fast.
+  @@index([companyId, status, regime])
+  @@index([companyId, status, lineOfBusiness])
+}
+
+// Line-of-business taxonomy — the deduped NAIC annual-statement + Solvency II
+// line vocabulary. One row per distinct label; `segments` records which market
+// groupings (PERSONAL/COMMERCIAL/FEDERAL/INTERNATIONAL) the label belongs to.
+// Requirements attach to lines through RequirementLineOfBusiness (many-to-many).
+model LineOfBusiness {
+  id        String   @id @default(cuid())
+  tenantId  String
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  code      String // slug, unique per company
+  label     String
+  group     String   @default("Other") // family group (Individual Life, Medical & Health, Property, …) — the table/filter roll-up
+  segments  String[] @default([]) // PERSONAL | COMMERCIAL | FEDERAL | INTERNATIONAL
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  requirementLinks RequirementLineOfBusiness[]
+
+  @@unique([companyId, code])
+  @@index([companyId])
+}
+
+// Junction: which granular lines of business a requirement governs. A single
+// obligation commonly applies to several lines, so this is many-to-many rather
+// than the coarse RegulatoryRequirement.lineOfBusiness scalar (kept for the
+// simple filter + backward compatibility).
+model RequirementLineOfBusiness {
+  id        String                @id @default(cuid())
+  companyId String
+  company   Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  regId     String
+  regulation RegulatoryRequirement @relation(fields: [regId], references: [id], onDelete: Cascade)
+  lobId     String
+  lob       LineOfBusiness        @relation(fields: [lobId], references: [id], onDelete: Cascade)
+  createdAt DateTime              @default(now())
+
+  @@unique([regId, lobId])
+  @@index([companyId])
+  @@index([lobId])
+  @@index([regId])
 }
 
 model RegulatoryBulletin {

@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { api } from '../lib/api';
 import { useCompany } from '../lib/company';
+import { useApi } from '../lib/useApi';
 import { withCompany } from '../lib/portfolio';
-import { ErrorMessage } from './ui';
+import { ErrorMessage, LoadingState } from './ui';
 
 // Value-stream chips for a regulatory requirement + the inline editor that
 // replaces the full link set (PUT /regulations/requirements/:id/value-streams).
-// Used by the Requirements lens and the state detail page. Editing is offered
-// only when `canEdit` (ADMIN/MANAGER — the API enforces it regardless).
+// The editor offers the process tree at three grains — value stream (L2),
+// area (L3), and sub-process (L4) — because the write materializes the
+// requirement onto every task under whichever node is picked; chips always
+// display the L2 rollup. Editing is offered only when `canEdit` (the API
+// enforces it regardless).
 
 export type VsLink = {
   valueStreamId: string;
@@ -16,6 +20,7 @@ export type VsLink = {
   valueStream: { id: string; name: string };
 };
 export type VsOption = { id: string; name: string };
+type TreeOption = { id: string; name: string; children: TreeOption[] };
 
 const REL_LABEL: Record<string, string> = {
   GOVERNS: 'Governs',
@@ -33,7 +38,11 @@ export function LinkChips({ links }: { links: VsLink[] }) {
   return (
     <span className="inline-flex flex-wrap gap-1">
       {links.map((l) => (
-        <span key={l.valueStreamId} className={REL_PILL[l.relationship] ?? 'pill-slate'} title={`${REL_LABEL[l.relationship] ?? l.relationship}${l.notes ? ` — ${l.notes}` : ''}`}>
+        <span
+          key={l.valueStreamId}
+          className={REL_PILL[l.relationship] ?? 'pill-slate'}
+          title={`${REL_LABEL[l.relationship] ?? l.relationship}${l.notes ? ` — ${l.notes}` : ''}`}
+        >
           {l.valueStream.name}
         </span>
       ))}
@@ -42,68 +51,116 @@ export function LinkChips({ links }: { links: VsLink[] }) {
 }
 
 export function LinksEditor({
-  requirementId, links, valueStreams, onSaved, onCancel,
+  requirementId,
+  links,
+  onSaved,
+  onCancel,
 }: {
   requirementId: string;
   links: VsLink[];
-  valueStreams: VsOption[];
+  /** Kept for call-site compatibility; the editor loads the full tree itself. */
+  valueStreams?: VsOption[];
   onSaved: (links: VsLink[]) => void;
   onCancel: () => void;
 }) {
   const { companyId } = useCompany();
+  const tree = useApi<TreeOption[]>(
+    companyId ? withCompany('/regulations/process-options', companyId) : null,
+  );
   const [draft, setDraft] = useState<{ valueStreamId: string; relationship: string }[]>(
     links.map((l) => ({ valueStreamId: l.valueStreamId, relationship: l.relationship })),
   );
+  const [open, setOpen] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const toggled = (id: string) => draft.find((d) => d.valueStreamId === id);
   const toggle = (id: string) => {
-    setDraft((prev) => (prev.find((d) => d.valueStreamId === id)
-      ? prev.filter((d) => d.valueStreamId !== id)
-      : [...prev, { valueStreamId: id, relationship: 'GOVERNS' }]));
+    setDraft((prev) =>
+      prev.find((d) => d.valueStreamId === id)
+        ? prev.filter((d) => d.valueStreamId !== id)
+        : [...prev, { valueStreamId: id, relationship: 'GOVERNS' }],
+    );
   };
   const setRel = (id: string, relationship: string) =>
     setDraft((prev) => prev.map((d) => (d.valueStreamId === id ? { ...d, relationship } : d)));
+  const toggleOpen = (id: string) =>
+    setOpen((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   const save = () => {
     setSaving(true);
     setError('');
-    api.put(withCompany(`/regulations/requirements/${requirementId}/value-streams`, companyId), { links: draft })
+    api
+      .put(withCompany(`/regulations/requirements/${requirementId}/value-streams`, companyId), {
+        links: draft,
+      })
       .then((rows: VsLink[]) => onSaved(rows))
       .catch((e) => setError(e.message))
       .finally(() => setSaving(false));
   };
 
+  /** One row at any grain — checkbox, optional expander, relationship select. */
+  const row = (opt: TreeOption, depth: number) => {
+    const sel = toggled(opt.id);
+    const expandable = opt.children.length > 0;
+    const expanded = open.has(opt.id);
+    return (
+      <div key={opt.id}>
+        <div className="flex items-center gap-2 text-sm" style={{ paddingLeft: depth * 18 }}>
+          {expandable ? (
+            <button
+              type="button"
+              onClick={() => toggleOpen(opt.id)}
+              aria-expanded={expanded}
+              className="w-4 text-[#a3a3a3] hover:text-[#171717] flex-shrink-0"
+              title={expanded ? 'Collapse' : 'Refine to a lower level'}
+            >
+              {expanded ? '▾' : '▸'}
+            </button>
+          ) : (
+            <span className="w-4 flex-shrink-0" />
+          )}
+          <label className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer">
+            <input type="checkbox" checked={!!sel} onChange={() => toggle(opt.id)} />
+            <span className="truncate text-[#262626]">{opt.name}</span>
+          </label>
+          {sel && (
+            <select
+              className="text-[11px] rounded border border-[#eaeaea] bg-white px-1 py-0.5 text-[#525252]"
+              value={sel.relationship}
+              onChange={(e) => setRel(opt.id, e.target.value)}
+            >
+              <option value="GOVERNS">Governs</option>
+              <option value="REQUIRES_INTEGRATION">Requires integration</option>
+              <option value="INFORMS">Informs</option>
+            </select>
+          )}
+        </div>
+        {expanded && opt.children.map((c) => row(c, depth + 1))}
+      </div>
+    );
+  };
+
   return (
     <div className="rounded-lg border border-[#eaeaea] bg-[#fafafa] p-3 mt-2">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-2">
-        Where this applies — value streams
+      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3] mb-1">
+        Where this applies
       </div>
-      <div className="grid sm:grid-cols-2 gap-1 max-h-56 overflow-y-auto pr-1">
-        {valueStreams.map((vs) => {
-          const sel = toggled(vs.id);
-          return (
-            <div key={vs.id} className="flex items-center gap-2 text-sm">
-              <label className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer">
-                <input type="checkbox" checked={!!sel} onChange={() => toggle(vs.id)} />
-                <span className="truncate text-[#262626]">{vs.name}</span>
-              </label>
-              {sel && (
-                <select
-                  className="text-[11px] rounded border border-[#eaeaea] bg-white px-1 py-0.5 text-[#525252]"
-                  value={sel.relationship}
-                  onChange={(e) => setRel(vs.id, e.target.value)}
-                >
-                  <option value="GOVERNS">Governs</option>
-                  <option value="REQUIRES_INTEGRATION">Requires integration</option>
-                  <option value="INFORMS">Informs</option>
-                </select>
-              )}
-            </div>
-          );
-        })}
-      </div>
+      <p className="text-[11px] text-[#a3a3a3] mb-2">
+        Pick a value stream, or expand it (▸) to apply the requirement only to an area or
+        sub-process inside it — it lands on every task under whatever you pick.
+      </p>
+      {tree.loading && <LoadingState />}
+      {!tree.loading && (
+        <div className="max-h-64 overflow-y-auto pr-1 space-y-0.5">
+          {(tree.data ?? []).map((vs) => row(vs, 0))}
+        </div>
+      )}
       {error && <ErrorMessage baseClassName="text-xs text-[#be123c] mt-2">{error}</ErrorMessage>}
       <div className="flex items-center gap-2 mt-3">
         <button
@@ -113,7 +170,10 @@ export function LinksEditor({
         >
           {saving ? 'Saving…' : 'Save links'}
         </button>
-        <button onClick={onCancel} className="text-xs text-[#666666] hover:text-[#171717] transition-colors duration-150">
+        <button
+          onClick={onCancel}
+          className="text-xs text-[#666666] hover:text-[#171717] transition-colors duration-150"
+        >
           Cancel
         </button>
       </div>
