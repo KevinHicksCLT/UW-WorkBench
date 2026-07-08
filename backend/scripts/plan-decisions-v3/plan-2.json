@@ -12,34 +12,45 @@
           "title": "Link the work item on the pull request in GitHub Enterprise",
           "actor": "Software Engineer",
           "sop": [
-            "Open the PR in GitHub Enterprise",
-            "Add a reference to its work item in the PR description",
+            "Open the pull request's Conversation tab in GitHub Enterprise",
+            "Click Edit on the PR description",
+            "Paste the Jira work item key so the smart link resolves, then save the description",
             "Done when the PR references its work item"
           ],
-          "verify": ["Open the PR in GitHub Enterprise", "Pass when the work item link resolves"]
+          "verify": [
+            "Open the PR's Conversation tab in GitHub Enterprise and locate the work item key in the description",
+            "Click the reference and confirm it opens the matching issue in Jira",
+            "Pass when the work item link resolves"
+          ]
         },
         {
           "n": 2,
           "title": "Complete the description on the pull request in GitHub Enterprise",
           "actor": "Software Engineer",
           "sop": [
-            "Open the PR description editor in GitHub Enterprise",
-            "Write a description explaining the change",
+            "Open the pull request's Conversation tab in GitHub Enterprise and click Edit on the description",
+            "Write what changed, why, and how it was tested, following the PR template sections",
+            "Save the description",
             "Done when the PR description explains the change"
           ],
-          "verify": ["Open the PR in GitHub Enterprise", "Pass when the description is non-empty"]
+          "verify": [
+            "Open the PR in GitHub Enterprise and read the description",
+            "Check it states what changed and why, not just a restated title",
+            "Pass when the description is non-empty"
+          ]
         },
         {
           "n": 3,
           "title": "Complete the self-review checklist on the pull request in GitHub Enterprise",
           "actor": "Software Engineer",
           "sop": [
-            "Open the PR self-review checklist in GitHub Enterprise",
-            "Tick every checklist item before requesting review",
+            "Open the self-review checklist in the PR description in GitHub Enterprise",
+            "Re-read the diff on the Files changed tab against each checklist item",
+            "Tick every checklist item before clicking Request review",
             "Done when every checklist item is ticked before requesting review"
           ],
           "verify": [
-            "Read the PR checklist in GitHub Enterprise",
+            "Read the checklist in the PR description in GitHub Enterprise",
             "Pass when no item is left unticked"
           ]
         },
@@ -48,12 +59,13 @@
           "title": "Confirm the CI checks are green on the pull request in GitHub Actions",
           "actor": "Software Engineer",
           "sop": [
-            "Open the PR checks tab in GitHub Actions",
-            "Confirm every required CI check passes",
+            "Open the Checks tab on the PR in GitHub Enterprise",
+            "Expand each required GitHub Actions workflow and read its status",
+            "Re-run any failed job from the Re-run jobs menu and push fixes until every required check is green",
             "Done when all required CI checks pass"
           ],
           "verify": [
-            "Open the PR checks in GitHub Actions",
+            "Open the Checks tab on the PR in GitHub Enterprise",
             "Pass when every required check is green"
           ]
         },
@@ -62,12 +74,13 @@
           "title": "Confirm 0 new critical or high issues on the pull request in SonarQube",
           "actor": "Senior Developer",
           "sop": [
-            "Open the PR analysis in SonarQube",
-            "Review the findings for new critical or high issues",
+            "Open the PR analysis in SonarQube from the link on the PR's Checks tab",
+            "Open the New Code issues list and filter by severity critical and high",
+            "Review each finding and send any real new issue back to the author to fix",
             "Done when the analysis reports no new critical or high issue"
           ],
           "verify": [
-            "Open the PR analysis in SonarQube",
+            "Open the PR analysis in SonarQube and filter New Code issues by severity",
             "Pass when 0 new critical or high issues are found"
           ]
         },
@@ -76,12 +89,13 @@
           "title": "Confirm changed-line coverage of at least 80 percent in SonarQube",
           "actor": "Software Engineer",
           "sop": [
-            "Open the PR coverage metric in SonarQube",
-            "Confirm changed-line coverage meets the 80 percent gate",
+            "Open the PR analysis in SonarQube and select the Coverage on New Code measure",
+            "Read the coverage figure on changed lines",
+            "Add tests and push until the figure meets the 80 percent gate",
             "Done when coverage on changed lines meets the 80 percent gate"
           ],
           "verify": [
-            "Read the coverage metric in SonarQube",
+            "Open the Coverage on New Code measure for the PR in SonarQube",
             "Pass when changed-line coverage is at least 80 percent"
           ]
         },
@@ -90,12 +104,13 @@
           "title": "Obtain at least 2 approvals on the pull request in GitHub Enterprise",
           "actor": "Software Engineer",
           "sop": [
-            "Open the PR reviews panel in GitHub Enterprise",
-            "Request review from 2 reviewers per the review checklist",
+            "Open the Reviewers panel on the PR in GitHub Enterprise",
+            "Add 2 reviewers selected per the review checklist and send the review request",
+            "Answer review comments and push fixes until both reviewers submit an Approve review",
             "Done when 2 reviewers have approved per the review checklist"
           ],
           "verify": [
-            "Open the PR reviews in GitHub Enterprise",
+            "Open the Reviews section of the PR's Conversation tab in GitHub Enterprise",
             "Pass when at least 2 approvals are counted"
           ]
         },
@@ -104,19 +119,24 @@
           "title": "Resolve every review thread before merge in GitHub Enterprise",
           "actor": "Software Engineer",
           "sop": [
-            "Open the PR review threads in GitHub Enterprise",
-            "Resolve every open comment thread",
+            "Open the Files changed tab of the PR in GitHub Enterprise",
+            "Reply to or fix each open comment thread, then click Resolve conversation on it",
+            "Scan the Conversation tab for any thread still marked unresolved",
             "Done when 0 unresolved threads remain at merge"
           ],
-          "verify": ["Inspect the PR threads in GitHub Enterprise", "Pass when none are unresolved"]
+          "verify": [
+            "Open the PR's Conversation tab in GitHub Enterprise and scan for unresolved threads",
+            "Pass when none are unresolved"
+          ]
         },
         {
           "n": 9,
           "title": "Log each deferred finding as a tech-debt ticket in Jira",
           "actor": "Backend Developer",
           "sop": [
-            "Review deferred findings from the PR",
-            "Open a tech-debt ticket in Jira for each with the PR reference",
+            "Open the PR's review threads in GitHub Enterprise and list each finding deferred rather than fixed",
+            "Click Create in Jira and raise one tech-debt ticket per deferred finding",
+            "Paste the PR URL into each ticket and set an owner",
             "Done when every deferred finding has an owned backlog ticket"
           ],
           "verify": [
@@ -129,12 +149,14 @@
           "title": "Escalate PRs idle beyond 48 hours to the Tech Lead in GitHub Enterprise",
           "actor": "Software Engineer",
           "sop": [
-            "Identify PRs idle beyond 48 hours in GitHub Enterprise",
-            "Escalate to the Tech Lead and record the tiebreak decision in the PR thread",
+            "Open the Pull requests list in GitHub Enterprise and sort by least recently updated",
+            "Flag each PR with no review activity for over 48 hours",
+            "Escalate each to the Tech Lead and record the tiebreak decision as a comment in the PR thread",
             "Done when the Tech Lead tiebreak decision is recorded in the PR thread"
           ],
           "verify": [
-            "Review idle PRs in GitHub Enterprise",
+            "Open the Pull requests list in GitHub Enterprise and filter to PRs idle beyond 48 hours",
+            "Open each and read the escalation comment",
             "Pass when each escalation is noted in the thread"
           ]
         },
@@ -143,23 +165,30 @@
           "title": "Record a waiver for any unfixed security finding in Jira",
           "actor": "Senior Developer",
           "sop": [
-            "Identify any unfixed security finding on the PR",
-            "File an SDLC-Exception in Jira owned by the Engineering Manager with a 10-business-day SLA",
+            "Open the PR analysis in SonarQube and list any security finding left unfixed at merge",
+            "Click Create in Jira and file an SDLC-Exception for each unfixed finding",
+            "Set the Engineering Manager as owner and enter the 10-business-day SLA date",
+            "Link each exception back to the PR",
             "Done when the exception is filed with owner and the 10-day SLA"
           ],
-          "verify": ["Open each waiver in Jira", "Pass when owner plus the 10-day SLA are recorded"]
+          "verify": [
+            "Open each waiver in Jira and read the owner and due date fields",
+            "Pass when owner plus the 10-day SLA are recorded"
+          ]
         },
         {
           "n": 12,
           "title": "Merge the pull request after the Senior Developer approval in GitHub Enterprise",
           "actor": "Software Engineer",
           "sop": [
-            "Confirm the Senior Developer approval is recorded on the PR in GitHub Enterprise",
-            "Merge the pull request only after that approval",
+            "Open the Reviews section of the PR in GitHub Enterprise",
+            "Confirm the Senior Developer approval is recorded on the PR",
+            "Click Merge pull request and confirm the merge",
             "Done when the merge occurs only after the Senior Developer approval is recorded"
           ],
           "verify": [
-            "Inspect the merged PR in GitHub Enterprise",
+            "Open the merged PR's timeline in GitHub Enterprise",
+            "Compare the approval timestamp to the merge timestamp",
             "Pass when the Senior Developer approval precedes the merge"
           ]
         }
@@ -176,12 +205,14 @@
           "title": "Pin the build tag under test in the test plan in Apache JMeter / k6 Performance Testing",
           "actor": "QA Analyst",
           "sop": [
-            "Open the test plan in the performance tool",
-            "Name the exact service build tag under test",
+            "Open the performance test plan (.jmx) in Apache JMeter",
+            "Set the build-tag entry in User Defined Variables to the exact service build tag under test",
+            "Save the plan and commit it to the performance repo in GitHub Enterprise",
             "Done when the plan names the exact service build tag"
           ],
           "verify": [
-            "Open the test plan in the performance tool",
+            "Open the test plan in Apache JMeter and read the build-tag variable",
+            "Compare it to the release-candidate tag on the build in GitHub Actions",
             "Pass when the build tag matches the release candidate"
           ]
         },
@@ -190,12 +221,13 @@
           "title": "Execute the steady-state load scenario in Apache JMeter / k6 Performance Testing",
           "actor": "QA Analyst",
           "sop": [
-            "Open the steady-state scenario in the performance tool",
-            "Run it against the tagged build",
+            "Open the steady-state thread group in the test plan in Apache JMeter",
+            "Point the plan at the environment running the tagged build",
+            "Click Start and let the scenario run to completion",
             "Done when the steady-state run completes against the tagged build"
           ],
           "verify": [
-            "Open the run log in the performance tool",
+            "Open the run log in Apache JMeter",
             "Pass when the steady-state scenario completed"
           ]
         },
@@ -204,12 +236,13 @@
           "title": "Execute the peak scenario at 2x expected load in Apache JMeter / k6 Performance Testing",
           "actor": "QA Analyst",
           "sop": [
-            "Open the peak scenario in the performance tool",
-            "Run it at 2x expected load against the tagged build",
+            "Open the peak thread group in the test plan in Apache JMeter",
+            "Set the thread count and throughput controller to 2x expected load",
+            "Click Start and run the scenario against the tagged build",
             "Done when the 2x peak run completes against the tagged build"
           ],
           "verify": [
-            "Open the run log in the performance tool",
+            "Open the run log in Apache JMeter and read the applied load",
             "Pass when the peak scenario ran at 2x load"
           ]
         },
@@ -218,12 +251,13 @@
           "title": "Execute the 2-hour soak scenario in Apache JMeter / k6 Performance Testing",
           "actor": "Backend Developer",
           "sop": [
-            "Open the soak scenario in the performance tool",
-            "Run it for the full 2 hours against the tagged build",
+            "Open the soak thread group in the test plan in Apache JMeter",
+            "Set the scenario duration to 2 hours",
+            "Click Start and keep the run going for the full 2 hours against the tagged build",
             "Done when the soak run sustains load for the full 2 hours"
           ],
           "verify": [
-            "Read the run duration in the performance tool",
+            "Read the run duration in the Apache JMeter summary report",
             "Pass when 2 hours of sustained load is confirmed"
           ]
         },
@@ -232,26 +266,26 @@
           "title": "Execute the spike scenario in Apache JMeter / k6 Performance Testing",
           "actor": "QA Analyst",
           "sop": [
-            "Open the spike scenario in the performance tool",
-            "Run it against the tagged build",
+            "Open the spike thread group in the test plan in Apache JMeter",
+            "Click Start and run the scenario against the tagged build",
+            "Watch the results tree for aborted samples through the spike window",
             "Done when the spike run completes against the tagged build"
           ],
-          "verify": [
-            "Open the run log in the performance tool",
-            "Pass when the spike scenario completed"
-          ]
+          "verify": ["Open the run log in Apache JMeter", "Pass when the spike scenario completed"]
         },
         {
           "n": 6,
           "title": "Record the latency percentiles for every scenario in Apache JMeter / k6 Performance Testing",
           "actor": "QA Analyst",
           "sop": [
-            "Open the percentile report for each scenario in the performance tool",
+            "Open the Aggregate Report listener for each scenario in Apache JMeter",
+            "Read the p95 and p99 latency columns per scenario",
             "Confirm p95 is at most 500 ms and p99 at most 1 s",
+            "Record the figures on the performance report ticket in Jira",
             "Done when p95 is at most 500 ms and p99 at most 1 s per scenario"
           ],
           "verify": [
-            "Read the percentile report in the performance tool",
+            "Open the Aggregate Report for each scenario in Apache JMeter",
             "Pass when p95 and p99 meet targets"
           ]
         },
@@ -260,12 +294,14 @@
           "title": "Record the throughput with error rate per scenario in Apache JMeter / k6 Performance Testing",
           "actor": "QA Analyst",
           "sop": [
-            "Open the throughput and error-rate report per scenario in the performance tool",
+            "Open the Aggregate Report per scenario in Apache JMeter",
+            "Read the throughput and error-rate columns at target load",
             "Confirm the error rate stays under 0.1 percent at target throughput",
+            "Record both figures on the performance report ticket in Jira",
             "Done when error rate stays under 0.1 percent at target throughput"
           ],
           "verify": [
-            "Read the scenario report in the performance tool",
+            "Read the throughput and error columns in the Apache JMeter report",
             "Pass when the error rate is under 0.1 percent"
           ]
         },
@@ -274,12 +310,14 @@
           "title": "Record the resource utilisation per scenario in Grafana",
           "actor": "Backend Developer",
           "sop": [
-            "Open the run dashboards in Grafana",
-            "Capture utilisation for every scenario before acceptance",
+            "Open the service resource dashboard in Grafana",
+            "Set the time range to each scenario's run window",
+            "Capture the CPU, memory and connection panels per scenario as dashboard snapshots",
+            "Attach the snapshots to the performance report ticket in Jira before acceptance",
             "Done when utilisation is captured for every scenario before acceptance"
           ],
           "verify": [
-            "Open the run dashboards in Grafana",
+            "Open the run dashboards in Grafana for each scenario window",
             "Pass when utilisation panels are populated per scenario"
           ]
         },
@@ -288,12 +326,13 @@
           "title": "Reconcile requests issued to responses recorded in Apache JMeter / k6 Performance Testing",
           "actor": "QA Analyst",
           "sop": [
-            "Compare issued and recorded request counts in the performance tool",
+            "Open the summary report per scenario in Apache JMeter and read the issued request count",
+            "Compare it to the response count recorded in the results file",
             "Investigate any gap beyond 0.1 percent before the run is deemed valid",
             "Done when any gap beyond 0.1 percent is investigated before validation"
           ],
           "verify": [
-            "Compare issued and recorded counts in the performance tool",
+            "Compare issued and recorded counts in the Apache JMeter results",
             "Pass when they reconcile within 0.1 percent"
           ]
         },
@@ -302,12 +341,14 @@
           "title": "Compare p95 latency against the prior release baseline in Grafana",
           "actor": "QA Analyst",
           "sop": [
-            "Open the current and baseline p95 charts in Grafana",
-            "Compare regression against the prior release baseline",
+            "Open the p95 latency panel in Grafana for the current run window",
+            "Add the prior release baseline series to the same panel",
+            "Compute the regression percentage between the two runs",
+            "Request a Tech Lead waiver if the regression exceeds 5 percent",
             "Done when regression is at most 5 percent or a Tech Lead waiver exists"
           ],
           "verify": [
-            "Compare current and baseline p95 in Grafana",
+            "Compare current and baseline p95 panels in Grafana",
             "Pass when regression is within 5 percent"
           ]
         },
@@ -316,12 +357,13 @@
           "title": "Export the results keyed to the build SHA in GitHub Actions",
           "actor": "Software Engineer",
           "sop": [
-            "Open the build in GitHub Actions",
-            "Store the plan, raw results and dashboards as artifacts keyed to the build SHA for the audit window",
+            "Open the performance workflow run in GitHub Actions",
+            "Upload the test plan, raw results files and Grafana snapshots as run artifacts",
+            "Name each artifact with the build SHA and set retention to the audit window",
             "Done when plan, raw results and dashboards are stored as artifacts for the audit window"
           ],
           "verify": [
-            "Open the pipeline artifacts in GitHub Actions",
+            "Open the Artifacts section of the workflow run in GitHub Actions",
             "Pass when they are keyed to the build SHA"
           ]
         },
@@ -331,11 +373,12 @@
           "actor": "QA Analyst",
           "sop": [
             "Open the release change ticket in Jira",
-            "Reference the performance run and the producing pipeline",
+            "Add web links to the performance run and the producing GitHub Actions pipeline",
+            "Save the ticket",
             "Done when the release ticket references the run and the producing pipeline"
           ],
           "verify": [
-            "Open the release ticket in Jira",
+            "Open the release ticket in Jira and click both links",
             "Pass when the run link plus pipeline link resolve"
           ]
         },
@@ -344,8 +387,10 @@
           "title": "Log each target breach as a defect with disposition in Jira",
           "actor": "QA Analyst",
           "sop": [
-            "Identify each target breach from the run reports",
-            "Log a defect in Jira with severity, owner and disposition (fix, accept-with-waiver or block-release)",
+            "Read each scenario report in Apache JMeter and list every target breach",
+            "Click Create in Jira and log one defect per breach",
+            "Set severity, owner and disposition (fix, accept-with-waiver or block-release) on each defect",
+            "Link each defect to the release change ticket",
             "Done when every target breach has severity, owner and disposition recorded"
           ],
           "verify": [
@@ -358,13 +403,14 @@
           "title": "Record the Test Lead sign-off on the performance report in Jira",
           "actor": "QA Analyst",
           "sop": [
-            "Request Test Lead review of the performance report",
-            "Record the sign-off on the report in Jira",
+            "Open the performance report ticket in Jira",
+            "Request Test Lead review with an @mention comment",
+            "Capture the Test Lead sign-off as a dated approval comment on the ticket",
             "Done when the Test Lead sign-off is recorded on the report"
           ],
           "verify": [
-            "Confirm the Test Lead sign-off is present on the performance report ticket in Jira",
-            "Pass when present"
+            "Open the performance report ticket in Jira and read the approval comments",
+            "Pass when the dated Test Lead sign-off is present"
           ]
         }
       ]
@@ -380,12 +426,13 @@
           "title": "Run the SAST scan on every pull request in SonarQube",
           "actor": "Software Engineer",
           "sop": [
-            "Open the SonarQube pipeline stage",
-            "Run the SAST scan per PR and nightly across all release repos",
+            "Open the CI workflow in GitHub Actions and locate the SonarQube SAST stage",
+            "Confirm the stage triggers on every PR and on the nightly schedule across all release repos",
+            "Trigger a test run and confirm the results publish to the project in SonarQube",
             "Done when SAST runs per PR and nightly across all release repos"
           ],
           "verify": [
-            "Open recent PR analyses in SonarQube",
+            "Open recent PR analyses in the SonarQube project",
             "Pass when SAST results exist for each"
           ]
         },
@@ -394,12 +441,13 @@
           "title": "Run the SCA scan over all third-party dependencies in SonarQube",
           "actor": "Software Engineer",
           "sop": [
-            "Open the SCA scan stage in SonarQube",
-            "Run it over every release repo's third-party dependencies",
+            "Open the SCA scan configuration in SonarQube",
+            "Run the scan over every release repo's third-party dependency manifest",
+            "Check each repo shows a current dependency analysis date",
             "Done when every release repo has a current dependency scan"
           ],
           "verify": [
-            "Review the SCA results in SonarQube",
+            "Review the SCA results per project in SonarQube",
             "Pass when coverage spans all release repos"
           ]
         },
@@ -409,11 +457,12 @@
           "actor": "Application Security Lead",
           "sop": [
             "Open the DAST scan configuration in SonarQube",
-            "Run it per release candidate, with an authenticated scan monthly",
+            "Set the target scope to the staging endpoints",
+            "Run the scan for each release candidate and schedule the authenticated scan monthly",
             "Done when DAST runs per release candidate with the authenticated scan monthly"
           ],
           "verify": [
-            "Open the DAST results in SonarQube",
+            "Open the DAST results in SonarQube and read the scanned scope",
             "Pass when the staging endpoint scope was scanned"
           ]
         },
@@ -422,12 +471,13 @@
           "title": "Version-control the scan configurations in GitHub Enterprise",
           "actor": "Application Security Lead",
           "sop": [
-            "Open the config directory in GitHub Enterprise",
-            "Commit rulesets and DAST scope at current versions",
+            "Open the security-scan config directory in the repo in GitHub Enterprise",
+            "Commit the SAST rulesets and the DAST scope file at their current versions",
+            "Raise a PR and merge it so the configs are tracked on main",
             "Done when rulesets and DAST scope live in the repo at current versions"
           ],
           "verify": [
-            "Open the config directory in GitHub Enterprise",
+            "Open the config directory on main in GitHub Enterprise",
             "Pass when the scan configs are committed"
           ]
         },
@@ -436,12 +486,13 @@
           "title": "Record the CWE rule ID with severity on each finding in SonarQube",
           "actor": "Application Security Lead",
           "sop": [
-            "Open each finding in SonarQube",
-            "Record its rule ID, severity and location",
+            "Open the issues list for the project in SonarQube",
+            "Open each finding and check its rule ID, severity and file location are populated",
+            "Fill any missing severity or location on the finding",
             "Done when every finding carries rule ID, severity and location"
           ],
           "verify": [
-            "Sample findings in SonarQube",
+            "Sample findings in the SonarQube issues list",
             "Pass when rule ID, severity and location are populated"
           ]
         },
@@ -450,12 +501,12 @@
           "title": "Assign a remediation owner to each open finding in SonarQube",
           "actor": "Application Security Lead",
           "sop": [
-            "Open each open finding in SonarQube",
-            "Assign a remediation owner",
+            "Filter the issues list in SonarQube to status Open",
+            "Use the Assign action on each finding to set a remediation owner",
             "Done when no open finding lacks an owner"
           ],
           "verify": [
-            "Filter open findings in SonarQube",
+            "Filter open findings in SonarQube and read the assignee on each",
             "Pass when each has a named remediation owner"
           ]
         },
@@ -464,12 +515,13 @@
           "title": "Open a tracking ticket for every open critical or high finding in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "List every open critical or high finding in SonarQube",
-            "Open a matching tracking ticket in Jira for each",
+            "Filter the issues list in SonarQube to open findings of severity critical or high",
+            "Click Create in Jira and open one tracking ticket per finding with the SonarQube link",
+            "Compare the ticket count to the finding count",
             "Done when ticket counts match finding counts exactly"
           ],
           "verify": [
-            "Reconcile critical and high findings to tickets in Jira",
+            "Reconcile the SonarQube critical and high list to the tickets in Jira",
             "Pass when the count delta is 0"
           ]
         },
@@ -479,11 +531,12 @@
           "actor": "Application Security Lead",
           "sop": [
             "Open the security ticket board in Jira",
-            "Enforce 7 days critical, 30 days high and 90 days medium remediation SLAs",
+            "Set due dates of 7 days for critical, 30 days for high and 90 days for medium on each ticket",
+            "Review the board weekly and chase any ticket approaching its due date",
             "Done when remediation is tracked against the SLA by severity"
           ],
           "verify": [
-            "Review open security tickets in Jira",
+            "Review open security tickets in Jira against their severity due dates",
             "Pass when none has breached its severity SLA"
           ]
         },
@@ -492,12 +545,12 @@
           "title": "Suppress false positives with justification in SonarQube",
           "actor": "Application Security Lead",
           "sop": [
-            "Open each false-positive finding in SonarQube",
-            "Suppress it with a written justification",
+            "Open each false-positive finding in the issues list in SonarQube",
+            "Change its status to False Positive and type the justification into the comment box",
             "Done when every suppression carries a written justification"
           ],
           "verify": [
-            "List suppressed findings in SonarQube",
+            "Filter the issues list in SonarQube to status False Positive",
             "Pass when each has a justification note"
           ]
         },
@@ -506,12 +559,13 @@
           "title": "Confirm the known-vulnerable canary is detected in SonarQube",
           "actor": "Software Engineer",
           "sop": [
-            "Seed the known-vulnerable canary sample",
-            "Run the scan and check the findings in SonarQube",
+            "Commit the known-vulnerable canary sample to a test branch in GitHub Enterprise",
+            "Run the scan pipeline and open the resulting analysis in SonarQube",
+            "Search the findings for the canary's expected rule hit",
             "Done when the canary sample appears in the scan findings"
           ],
           "verify": [
-            "Search the findings in SonarQube",
+            "Search the findings in SonarQube for the canary rule",
             "Pass when the canary vulnerability was flagged"
           ]
         },
@@ -520,12 +574,14 @@
           "title": "Enforce the gate blocking un-waived critical or high findings in GitHub Actions",
           "actor": "Software Engineer",
           "sop": [
-            "Open the promotion gate config in GitHub Actions",
-            "Confirm it fails promotion on any un-waived critical or high finding",
+            "Open the promotion workflow file in GitHub Actions",
+            "Confirm the gate step fails the run on any un-waived critical or high finding",
+            "Trigger a run against a branch with a seeded finding to prove the gate blocks",
             "Done when promotion fails on any un-waived critical or high finding"
           ],
           "verify": [
             "Trigger a build with a seeded finding",
+            "Open the run in GitHub Actions and read the gate step result",
             "Pass when the GitHub Actions gate blocks promotion"
           ]
         },
@@ -534,12 +590,13 @@
           "title": "Record each risk acceptance as an SDLC-Exception in Jira",
           "actor": "Application Security Lead",
           "sop": [
-            "Open each risk acceptance in Jira",
-            "File the SDLC-Exception with CISO co-sign and a dated remediation plan",
+            "List each accepted-risk finding, then click Create in Jira and file the SDLC-Exception",
+            "Record the CISO co-sign and attach the dated remediation plan",
+            "Link each exception to the originating finding in SonarQube",
             "Done when every acceptance carries CISO co-sign and a dated remediation plan"
           ],
           "verify": [
-            "Open each exception in Jira",
+            "Open each SDLC-Exception in Jira",
             "Pass when the CISO co-sign plus remediation date are present"
           ]
         },
@@ -548,8 +605,9 @@
           "title": "Store the SARIF reports for 12 months in GRC platform (Archer/ServiceNow GRC)",
           "actor": "Software Engineer",
           "sop": [
-            "Export the SARIF report from the scan",
-            "Tag it with the commit SHA and scan config version and store it in the GRC platform for 12 months",
+            "Download the SARIF report from the scan run in GitHub Actions",
+            "Open the evidence library in GRC platform (Archer/ServiceNow GRC) and upload the report",
+            "Tag the entry with the commit SHA and scan config version and set 12-month retention",
             "Done when each report is tagged with the commit SHA and scan config version"
           ],
           "verify": [
@@ -562,13 +620,14 @@
           "title": "Record the security lead sign-off on the scan review in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Request Vulnerability Management Lead review of the scan review",
-            "Record the sign-off on the review ticket in Jira",
+            "Open the scan review ticket in Jira",
+            "Request Vulnerability Management Lead review with an @mention comment",
+            "Capture the sign-off as a dated approval comment on the ticket",
             "Done when the Vulnerability Management Lead sign-off is recorded"
           ],
           "verify": [
-            "Confirm the security lead sign-off is present on the scan review ticket in Jira",
-            "Pass when present"
+            "Open the scan review ticket in Jira and read the approval comments",
+            "Pass when the dated sign-off is present"
           ]
         }
       ]
@@ -584,12 +643,13 @@
           "title": "Pin the stream job version under test in k6 / Gatling Streaming Load Testing",
           "actor": "QA Analyst",
           "sop": [
-            "Open the load profile in the streaming load tool",
-            "Name the deployed stream job version under test",
+            "Open the streaming load profile script in k6",
+            "Set the job-version variable to the deployed stream job version under test",
+            "Commit the updated profile to the load-test repo in GitHub Enterprise",
             "Done when the load profile names the deployed stream job version"
           ],
           "verify": [
-            "Open the load profile in the streaming load tool",
+            "Open the load profile in k6 and read the job-version variable",
             "Pass when the job version matches the candidate"
           ]
         },
@@ -598,12 +658,13 @@
           "title": "Execute the sustained target-rate scenario in k6 / Gatling Streaming Load Testing",
           "actor": "QA Analyst",
           "sop": [
-            "Open the sustained target-rate scenario in the streaming load tool",
-            "Run it against the pinned job version",
+            "Open the sustained target-rate scenario in the k6 load profile",
+            "Run k6 against the pinned job version at the target events-per-second rate",
+            "Watch the live rate readout to confirm the target rate holds for the full run",
             "Done when the run sustains the target events-per-second rate"
           ],
           "verify": [
-            "Read the run report in the streaming load tool",
+            "Read the k6 run report for the sustained scenario",
             "Pass when the target rate was sustained"
           ]
         },
@@ -612,12 +673,12 @@
           "title": "Execute the 2x burst scenario in k6 / Gatling Streaming Load Testing",
           "actor": "QA Analyst",
           "sop": [
-            "Open the 2x burst scenario in the streaming load tool",
-            "Run it at twice the target rate",
+            "Open the 2x burst scenario in the k6 load profile",
+            "Run k6 at twice the target rate against the pinned job version",
             "Done when the burst run completes at twice the target rate"
           ],
           "verify": [
-            "Read the run report in the streaming load tool",
+            "Read the k6 run report for the burst scenario",
             "Pass when the 2x burst completed"
           ]
         },
@@ -626,12 +687,13 @@
           "title": "Execute a partition-rebalance during load in k6 / Gatling Streaming Load Testing",
           "actor": "Data Engineer",
           "sop": [
-            "Start a load run against the tagged job in the streaming load tool",
-            "Trigger a partition rebalance mid-run",
+            "Start the load run against the tagged job from the k6 profile",
+            "Open the consumer group in Confluent Control Center mid-run and trigger a partition rebalance",
+            "Keep the load running through the rebalance and save the run log",
             "Done when the rebalance occurs under load"
           ],
           "verify": [
-            "Read the run log in the streaming load tool",
+            "Read the k6 run log alongside the rebalance event in Confluent Control Center",
             "Pass when the rebalance occurred under load"
           ]
         },
@@ -640,12 +702,13 @@
           "title": "Record the p99 end-to-end latency per run in k6 / Gatling Streaming Load Testing",
           "actor": "QA Analyst",
           "sop": [
-            "Open the latency report per scenario in the streaming load tool",
+            "Open the end-to-end latency summary in the k6 run report for each scenario",
+            "Read the p99 value per scenario",
             "Confirm p99 is at most 2 seconds",
             "Done when p99 latency is at most 2 seconds in every scenario"
           ],
           "verify": [
-            "Read the latency report in the streaming load tool",
+            "Read the latency summary in each k6 run report",
             "Pass when p99 is at most 2 seconds"
           ]
         },
@@ -654,23 +717,28 @@
           "title": "Record the consumer lag drain time after the burst in Grafana",
           "actor": "Data Engineer",
           "sop": [
-            "Open the lag chart in Grafana after a burst scenario",
+            "Open the consumer-lag panel in Grafana and set the range to the burst window",
+            "Read the lag curve after the burst ends",
             "Confirm lag drains to 0 within 60 seconds of burst end",
             "Done when lag drains to 0 within 60 seconds of burst end"
           ],
-          "verify": ["Review the lag chart in Grafana", "Pass when lag reached 0 within 60 seconds"]
+          "verify": [
+            "Review the lag chart in Grafana over the burst window",
+            "Pass when lag reached 0 within 60 seconds"
+          ]
         },
         {
           "n": 7,
           "title": "Reconcile messages produced to messages consumed in Event streaming platform (Kafka/Confluent)",
           "actor": "Data Engineer",
           "sop": [
-            "Compare produced and consumed message counts on the streaming platform",
+            "Open the topic metrics in Confluent Control Center",
+            "Compare messages produced to messages consumed and the committed offsets per topic",
             "Investigate any produced-to-committed offset gap before pass",
             "Done when any offset gap is investigated before pass"
           ],
           "verify": [
-            "Compare produced and consumed counts on the streaming platform",
+            "Compare produced and consumed counts in Confluent Control Center",
             "Pass when 0 message loss is confirmed"
           ]
         },
@@ -679,8 +747,9 @@
           "title": "Compare throughput with p99 against the prior baseline in Grafana",
           "actor": "QA Analyst",
           "sop": [
-            "Open the current and baseline throughput and p99 charts in Grafana",
-            "Confirm regression is at most 5 percent without Tech Lead sign-off",
+            "Open the throughput and p99 panels in Grafana for the current run window",
+            "Add the prior baseline series to the same panels",
+            "Compute the regression and request Tech Lead sign-off if it exceeds 5 percent",
             "Done when regression is at most 5 percent or a Tech Lead sign-off exists"
           ],
           "verify": [
@@ -693,12 +762,13 @@
           "title": "Export the dashboards keyed to the build SHA in GitHub Actions",
           "actor": "Software Engineer",
           "sop": [
-            "Open the build in GitHub Actions",
-            "Store profile, throughput and lag charts as artifacts keyed to the build SHA",
+            "Open the load-test workflow run in GitHub Actions",
+            "Upload the load profile, throughput charts and lag charts as run artifacts",
+            "Name each artifact with the build SHA and set retention to the audit window",
             "Done when profile, throughput and lag charts are stored as artifacts for the audit window"
           ],
           "verify": [
-            "Open the pipeline artifacts in GitHub Actions",
+            "Open the Artifacts section of the workflow run in GitHub Actions",
             "Pass when they are keyed to the build SHA"
           ]
         },
@@ -708,11 +778,12 @@
           "actor": "QA Analyst",
           "sop": [
             "Open the deployment change ticket in ServiceNow ITSM",
-            "Reference the load run and the producing pipeline",
+            "Add related links to the k6 run report and the producing GitHub Actions pipeline",
+            "Save the ticket",
             "Done when the change ticket references the run and the producing pipeline"
           ],
           "verify": [
-            "Open the change ticket in ServiceNow ITSM",
+            "Open the change ticket in ServiceNow ITSM and click the related links",
             "Pass when the load-run link resolves"
           ]
         },
@@ -721,8 +792,9 @@
           "title": "Log each target breach as a defect with disposition in Jira",
           "actor": "QA Analyst",
           "sop": [
-            "Identify each target breach from the run reports",
-            "Log a defect in Jira with severity, owner and disposition (tune, scale or block-release)",
+            "Read each k6 scenario report and list every target breach",
+            "Click Create in Jira and log one defect per breach",
+            "Set severity, owner and disposition (tune, scale or block-release) on each defect",
             "Done when every target breach has severity, owner and disposition recorded"
           ],
           "verify": [
@@ -735,13 +807,14 @@
           "title": "Record the Test Lead sign-off on the load-test report in Jira",
           "actor": "QA Analyst",
           "sop": [
-            "Request Test Lead review of the load-test report",
-            "Record the sign-off on the report in Jira",
+            "Open the load-test report ticket in Jira",
+            "Request Test Lead review with an @mention comment",
+            "Capture the sign-off as a dated approval comment on the report",
             "Done when the Test Lead sign-off is recorded on the report"
           ],
           "verify": [
-            "Confirm the Test Lead sign-off is present on the load-test report in Jira",
-            "Pass when present"
+            "Open the load-test report in Jira and read the approval comments",
+            "Pass when the dated Test Lead sign-off is present"
           ]
         }
       ]
@@ -757,12 +830,13 @@
           "title": "Set the exactly-once processing guarantee in the job config in GitHub Enterprise",
           "actor": "Software Engineer",
           "sop": [
-            "Open the job config in GitHub Enterprise",
-            "Set processing.guarantee to exactly_once or Flink EXACTLY_ONCE checkpointing, and commit",
+            "Open the stream job's config file in the repo in GitHub Enterprise",
+            "Set processing.guarantee to exactly_once or enable Flink EXACTLY_ONCE checkpointing",
+            "Commit the change and raise a PR",
             "Done when the committed config sets the exactly-once guarantee"
           ],
           "verify": [
-            "Read the committed job config in GitHub Enterprise",
+            "Read the committed job config on the branch in GitHub Enterprise",
             "Pass when the exactly-once setting is present"
           ]
         },
@@ -771,12 +845,13 @@
           "title": "Configure the transactional sink in Event streaming platform (Kafka/Confluent)",
           "actor": "Backend Developer",
           "sop": [
-            "Open the sink config on the streaming platform",
-            "Configure it as transactional or idempotent",
+            "Open the sink connector config in Confluent Control Center",
+            "Enable transactional or idempotent writes on the sink",
+            "Save the config and restart the connector",
             "Done when the sink is transactional or idempotent"
           ],
           "verify": [
-            "Inspect the sink config on the streaming platform",
+            "Inspect the sink connector config in Confluent Control Center",
             "Pass when transactional writes are enabled"
           ]
         },
@@ -785,8 +860,9 @@
           "title": "Define the watermark strategy in the job config in GitHub Enterprise",
           "actor": "Data Engineer",
           "sop": [
-            "Open the job config in GitHub Enterprise",
-            "Define the watermark strategy and commit",
+            "Open the stream job's config file in the repo in GitHub Enterprise",
+            "Define the watermark strategy for event-time processing",
+            "Commit the change and raise a PR",
             "Done when the committed config defines the watermark strategy"
           ],
           "verify": [
@@ -799,12 +875,13 @@
           "title": "Set the allowed-lateness window on the windowing operators in GitHub Enterprise",
           "actor": "Data Engineer",
           "sop": [
-            "Open each windowing operator's config in GitHub Enterprise",
-            "Declare its allowed-lateness window",
+            "Open each windowing operator's config in the job repo in GitHub Enterprise",
+            "Declare the allowed-lateness window on each operator",
+            "Commit the change and raise a PR",
             "Done when every windowing operator declares its allowed lateness"
           ],
           "verify": [
-            "Read the operator config in GitHub Enterprise",
+            "Read each operator config in GitHub Enterprise",
             "Pass when the allowed-lateness window is set"
           ]
         },
@@ -813,12 +890,14 @@
           "title": "Add the CI check failing on missing semantics settings in GitHub Actions",
           "actor": "DevOps Engineer",
           "sop": [
-            "Open the CI pipeline config in GitHub Actions",
-            "Add a check that fails the build if any semantics setting is missing",
+            "Open the CI workflow file in GitHub Actions",
+            "Add a validation step that fails the build if any semantics setting is missing",
+            "Commit the workflow change and merge it",
             "Done when a config missing any semantics setting fails CI"
           ],
           "verify": [
-            "Push a config lacking the watermark setting",
+            "Push a config lacking the watermark setting to a test branch",
+            "Open the resulting run in GitHub Actions",
             "Pass when the GitHub Actions check fails"
           ]
         },
@@ -827,13 +906,15 @@
           "title": "Route events beyond allowed lateness to the side-output in Event streaming platform (Kafka/Confluent)",
           "actor": "Software Engineer",
           "sop": [
-            "Open the routing config on the streaming platform",
-            "Route too-late events to the side-output topic with a log entry",
+            "Open the job's routing config in the repo in GitHub Enterprise",
+            "Route events beyond allowed lateness to the side-output topic in Kafka and log each routing",
+            "Deploy the change and inject a too-late test event",
             "Done when too-late events land on the side-output topic with a log entry"
           ],
           "verify": [
-            "Inject a too-late event",
-            "Pass when it arrives on the side-output topic on the streaming platform"
+            "Inject a too-late event into the input topic",
+            "Open the side-output topic in Confluent Control Center",
+            "Pass when it arrives on the side-output topic"
           ]
         },
         {
@@ -841,13 +922,14 @@
           "title": "Run the duplicate-injection test in Event streaming platform (Kafka/Confluent)",
           "actor": "Data Engineer",
           "sop": [
-            "Inject duplicate events on the streaming platform",
-            "Compare output count to distinct input count",
+            "Produce a batch of duplicate test events to the input topic in Confluent Control Center",
+            "Read the output topic and count records against the distinct input count",
+            "Attach the comparison to the semantics test report on the PR",
             "Done when output count equals distinct input count with 0 duplicates"
           ],
           "verify": [
-            "Read the test report",
-            "Pass when output equals distinct input on the streaming platform"
+            "Open the semantics test report attached to the PR in GitHub Enterprise",
+            "Pass when output count equals the distinct input count"
           ]
         },
         {
@@ -855,12 +937,13 @@
           "title": "Run the delayed-event test in Event streaming platform (Kafka/Confluent)",
           "actor": "Data Engineer",
           "sop": [
-            "Inject in-window and out-of-window late events on the streaming platform",
-            "Confirm in-window events are counted and later ones reach the DLQ",
+            "Produce in-window and out-of-window late events to the input topic in Confluent Control Center",
+            "Read the windowed output and confirm in-window late events are counted",
+            "Open the DLQ topic and confirm the out-of-window events landed there",
             "Done when in-window late events are counted and later ones reach the DLQ"
           ],
           "verify": [
-            "Review the test output on the streaming platform",
+            "Review the windowed output and the DLQ topic in Confluent Control Center",
             "Pass when both late-event behaviors are confirmed"
           ]
         },
@@ -869,8 +952,9 @@
           "title": "Schedule the DLQ-volume reconciliation report in ServiceNow ITSM",
           "actor": "DevOps Engineer",
           "sop": [
-            "Open the reconciliation reporting config in ServiceNow ITSM",
-            "Schedule the DLQ-volume report with disposition tracked per item",
+            "Open the scheduled reports configuration in ServiceNow ITSM",
+            "Create the recurring DLQ-volume reconciliation report",
+            "Add a disposition field so each DLQ item is tracked to closure",
             "Done when DLQ volume is reported with disposition tracked per item"
           ],
           "verify": [
@@ -884,7 +968,8 @@
           "actor": "Software Engineer",
           "sop": [
             "Open the merged PR in GitHub Enterprise",
-            "Attach the semantics test report, retained for 12 months",
+            "Attach the semantics test report as a comment attachment on the PR",
+            "Note the 12-month retention on the attachment comment",
             "Done when the test report is retained for 12 months with the PR history"
           ],
           "verify": [
@@ -897,8 +982,9 @@
           "title": "Record the Tech Lead sign-off on the pull request in GitHub Enterprise",
           "actor": "Software Engineer",
           "sop": [
-            "Request Tech Lead review of the PR",
-            "Record the approval on the PR in GitHub Enterprise",
+            "Open the PR in GitHub Enterprise and add the Tech Lead as a reviewer",
+            "Request review with an @mention comment",
+            "Confirm the Tech Lead submits an Approve review",
             "Done when the Tech Lead approval is recorded on the PR"
           ],
           "verify": [
@@ -919,8 +1005,9 @@
           "title": "Define the schedule or trigger for each DAG as code in GitHub Enterprise",
           "actor": "Software Engineer",
           "sop": [
-            "Open each DAG definition file in GitHub Enterprise",
-            "Declare its cron schedule or event trigger and commit",
+            "Open each DAG definition file in the pipelines repo in GitHub Enterprise",
+            "Declare the cron schedule or event trigger in the DAG arguments",
+            "Commit the change and raise a PR",
             "Done when every DAG definition in the repo declares its schedule or trigger"
           ],
           "verify": [
@@ -933,45 +1020,58 @@
           "title": "Set the retry policy on each DAG in Data pipeline orchestrator (Airflow/Dagster/Prefect)",
           "actor": "Data Engineer",
           "sop": [
-            "Open each DAG in the orchestrator",
-            "Set its retry policy",
+            "Open the DAG list in the Airflow UI",
+            "Open each DAG's code view and set retries and retry_delay in its default args",
+            "Redeploy and confirm the values show on the DAG details page",
             "Done when no DAG lacks a retry policy"
           ],
-          "verify": ["Inspect each DAG in the orchestrator", "Pass when the retry policy is set"]
+          "verify": [
+            "Inspect each DAG's details page in the Airflow UI",
+            "Pass when the retry policy is set"
+          ]
         },
         {
           "n": 3,
           "title": "Set the timeout on each DAG in Data pipeline orchestrator (Airflow/Dagster/Prefect)",
           "actor": "Data Engineer",
           "sop": [
-            "Open each DAG in the orchestrator",
-            "Set its timeout",
+            "Open the DAG list in the Airflow UI",
+            "Open each DAG's code view and set execution_timeout or dagrun_timeout",
+            "Redeploy and confirm the value shows on the DAG details page",
             "Done when no DAG lacks a timeout"
           ],
-          "verify": ["Inspect each DAG in the orchestrator", "Pass when the timeout is set"]
+          "verify": [
+            "Inspect each DAG's details page in the Airflow UI",
+            "Pass when the timeout is set"
+          ]
         },
         {
           "n": 4,
           "title": "Set the SLA on each DAG in Data pipeline orchestrator (Airflow/Dagster/Prefect)",
           "actor": "Data Engineer",
           "sop": [
-            "Open each DAG in the orchestrator",
-            "Set its SLA",
+            "Open the DAG list in the Airflow UI",
+            "Open each DAG's code view and set the sla parameter on its tasks",
+            "Redeploy and confirm the SLA shows on the DAG details page",
             "Done when a DAG missing an SLA fails the config-lint gate"
           ],
-          "verify": ["Inspect each DAG in the orchestrator", "Pass when an SLA is defined"]
+          "verify": [
+            "Inspect each DAG's details page in the Airflow UI",
+            "Pass when an SLA is defined"
+          ]
         },
         {
           "n": 5,
           "title": "Declare the dependencies on each DAG in Data pipeline orchestrator (Airflow/Dagster/Prefect)",
           "actor": "Data Engineer",
           "sop": [
-            "Open each DAG in the orchestrator",
-            "Declare its upstream and downstream dependencies per the design",
+            "Open each DAG's Graph view in the Airflow UI",
+            "Declare the upstream and downstream dependencies per the design in the DAG code",
+            "Redeploy and compare the rendered graph to the design",
             "Done when dependencies are declared per DAG"
           ],
           "verify": [
-            "View the dependency graph in the orchestrator",
+            "View the dependency graph for each DAG in the Airflow UI",
             "Pass when declared edges match the design"
           ]
         },
@@ -980,19 +1080,24 @@
           "title": "Set the on-failure alert target on each DAG in Data pipeline orchestrator (Airflow/Dagster/Prefect)",
           "actor": "Data Engineer",
           "sop": [
-            "Open each DAG in the orchestrator",
-            "Set the on-failure alert target",
+            "Open the DAG list in the Airflow UI",
+            "Set the on-failure callback or alert target in each DAG's code and redeploy",
+            "Confirm the target shows on the DAG details page",
             "Done when a DAG missing an alert target fails the config-lint gate"
           ],
-          "verify": ["Inspect each DAG in the orchestrator", "Pass when the alert target is set"]
+          "verify": [
+            "Inspect each DAG's details page in the Airflow UI",
+            "Pass when the alert target is set"
+          ]
         },
         {
           "n": 7,
           "title": "Run the config-lint gate on the DAG definitions in GitHub Actions",
           "actor": "Software Engineer",
           "sop": [
-            "Open the config-lint stage in GitHub Actions",
-            "Run it over every changed DAG",
+            "Open the config-lint stage in the pipeline workflow in GitHub Actions",
+            "Run the stage over every changed DAG file",
+            "Fix any lint failure and re-run until green",
             "Done when the lint gate passes for all changed DAGs"
           ],
           "verify": [
@@ -1005,12 +1110,13 @@
           "title": "Validate each changed DAG fires in non-prod in Data pipeline orchestrator (Airflow/Dagster/Prefect)",
           "actor": "Data Engineer",
           "sop": [
-            "Trigger each changed DAG in non-prod in the orchestrator",
-            "Confirm it fires on its trigger with retry and timeout respected",
+            "Open the non-prod Airflow UI and locate each changed DAG",
+            "Trigger each DAG and watch the run in the Grid view",
+            "Confirm the run fires on its trigger with retry and timeout respected",
             "Done when every changed DAG fires on its trigger with retry and timeout respected"
           ],
           "verify": [
-            "Review the non-prod run logs in the orchestrator",
+            "Review the non-prod run logs in the Airflow UI",
             "Pass when each DAG fired on its trigger"
           ]
         },
@@ -1019,12 +1125,13 @@
           "title": "Inject a delay to confirm the SLA-breach alert in Data pipeline orchestrator (Airflow/Dagster/Prefect)",
           "actor": "Data Engineer",
           "sop": [
-            "Inject a delay into a non-prod DAG run in the orchestrator",
-            "Confirm the SLA-breach alert fires with no silent miss",
+            "Open a non-prod DAG in the Airflow UI",
+            "Inject a delay into one task so the run breaches its SLA",
+            "Watch the SLA misses page and the alert channel for the breach alert",
             "Done when the injected delay raises the SLA-breach alert with no silent miss"
           ],
           "verify": [
-            "Review the alert log in the orchestrator",
+            "Review the SLA misses log in the Airflow UI",
             "Pass when the SLA-breach alert fired on the delay"
           ]
         },
@@ -1033,13 +1140,14 @@
           "title": "Dry-run high-impact schedule changes in non-prod in Data pipeline orchestrator (Airflow/Dagster/Prefect)",
           "actor": "Data Engineer",
           "sop": [
-            "Identify any change affecting regulatory feeds or downstream SLAs",
-            "Dry-run it in non-prod before applying to production",
+            "List changes touching regulatory feeds or downstream SLAs from the PR diff in GitHub Enterprise",
+            "Apply each such change to the non-prod Airflow environment first",
+            "Record the dry-run outcome on the change's PR before applying to production",
             "Done when each high-impact change has a recorded non-prod dry-run"
           ],
           "verify": [
-            "Confirm in the orchestrator that each high-impact change has a recorded dry-run",
-            "Pass when confirmed"
+            "Check the non-prod run history in the Airflow UI for each high-impact change",
+            "Pass when a dry-run is recorded for each"
           ]
         },
         {
@@ -1047,12 +1155,13 @@
           "title": "Tag tier-1 DAGs with the 15-minute alert threshold in Data pipeline orchestrator (Airflow/Dagster/Prefect)",
           "actor": "Data Engineer",
           "sop": [
-            "Identify DAGs affecting over 1 downstream consumer or a financial close",
-            "Tag each as tier-1 with the 15-minute alert threshold",
+            "List DAGs feeding over 1 downstream consumer or a financial close from the graph in the Airflow UI",
+            "Add the tier-1 tag with the 15-minute alert threshold to each such DAG",
+            "Redeploy and confirm the tag shows in the DAG list",
             "Done when each tier-1 DAG carries the 15-minute threshold"
           ],
           "verify": [
-            "Filter tier-1 DAGs in the orchestrator",
+            "Filter the DAG list by the tier-1 tag in the Airflow UI",
             "Pass when each carries the 15-minute threshold"
           ]
         },
@@ -1061,8 +1170,9 @@
           "title": "Reconcile the active DAG count to the committed definitions in GitHub Actions",
           "actor": "Software Engineer",
           "sop": [
-            "Open the orchestration-sync check in GitHub Actions",
-            "Confirm the active DAG count matches the committed definitions",
+            "Open the orchestration-sync check run in GitHub Actions",
+            "Compare the active DAG count in Airflow to the committed definitions in the repo",
+            "Resolve any drift by redeploying or removing stale DAGs, then re-run the check",
             "Done when the orchestration-sync check reports 0 drift"
           ],
           "verify": [
@@ -1076,7 +1186,8 @@
           "actor": "Software Engineer",
           "sop": [
             "Open the change ticket in ServiceNow ITSM",
-            "Record the applied change with the git SHA for 3-year retention",
+            "Record the applied schedule change and paste the git SHA into the ticket",
+            "Set the record's retention to 3 years and save",
             "Done when the apply record cites the git SHA"
           ],
           "verify": [
@@ -1089,13 +1200,14 @@
           "title": "Record the Tech Lead sign-off on the change ticket in ServiceNow ITSM",
           "actor": "Software Engineer",
           "sop": [
-            "Request Tech Lead review of the change ticket",
-            "Record the sign-off on the ticket in ServiceNow ITSM",
+            "Open the change ticket in ServiceNow ITSM",
+            "Request Tech Lead review via the ticket's approval flow",
+            "Capture the sign-off as a dated approval on the ticket",
             "Done when the Tech Lead sign-off is recorded on the ticket"
           ],
           "verify": [
-            "Confirm the Tech Lead sign-off is present on the change ticket in ServiceNow ITSM",
-            "Pass when present"
+            "Open the change ticket approvals in ServiceNow ITSM",
+            "Pass when the dated Tech Lead sign-off is present"
           ]
         }
       ]
@@ -1112,11 +1224,12 @@
           "actor": "DevOps Engineer",
           "sop": [
             "Open the SIT workspace in Terraform Cloud",
-            "Apply the committed IaC to provision the SIT tier",
+            "Confirm the workspace tracks the IaC repo branch in GitHub Enterprise",
+            "Queue a plan, review it, then click Confirm and apply to provision the SIT tier",
             "Done when the SIT tier is provisioned from the committed IaC"
           ],
           "verify": [
-            "Open the workspace run in Terraform Cloud",
+            "Open the latest run in the SIT workspace in Terraform Cloud",
             "Pass when the SIT apply completed from the tracked repo"
           ]
         },
@@ -1126,11 +1239,12 @@
           "actor": "DevOps Engineer",
           "sop": [
             "Open the UAT workspace in Terraform Cloud",
-            "Apply the committed IaC to provision the UAT tier",
+            "Confirm the workspace tracks the IaC repo branch in GitHub Enterprise",
+            "Queue a plan, review it, then click Confirm and apply to provision the UAT tier",
             "Done when the UAT tier is provisioned from the committed IaC"
           ],
           "verify": [
-            "Open the workspace run in Terraform Cloud",
+            "Open the latest run in the UAT workspace in Terraform Cloud",
             "Pass when the UAT apply completed from the tracked repo"
           ]
         },
@@ -1139,12 +1253,13 @@
           "title": "Confirm the plan shows 0 drift versus the prod-parity baseline in Terraform Cloud",
           "actor": "DevOps Engineer",
           "sop": [
-            "Open the latest plan for both tiers in Terraform Cloud",
-            "Compare the plan output to the prod-parity baseline",
+            "Open the latest plan for the SIT and UAT workspaces in Terraform Cloud",
+            "Compare each plan output to the prod-parity baseline",
+            "Resolve any diff and re-plan until both tiers show no changes",
             "Done when the plan output reports 0 drift for both tiers"
           ],
           "verify": [
-            "Read the latest plan in Terraform Cloud",
+            "Read the latest plan in each workspace in Terraform Cloud",
             "Pass when it reports no drift against the baseline"
           ]
         },
@@ -1153,12 +1268,13 @@
           "title": "Load the masked test data per the dataset manifest in Enterprise data warehouse/lakehouse",
           "actor": "Software Engineer",
           "sop": [
-            "Open the dataset manifest",
-            "Load the masked test data into the warehouse per the manifest",
+            "Open the dataset manifest in the test-data repo in GitHub Enterprise",
+            "Run the load job to seed the masked test data into Snowflake per the manifest",
+            "Query row counts per seeded table and compare them to the manifest",
             "Done when seeded record counts match the manifest"
           ],
           "verify": [
-            "Query the seeded tables in the warehouse",
+            "Query the seeded tables in Snowflake",
             "Pass when counts match the dataset manifest"
           ]
         },
@@ -1167,12 +1283,13 @@
           "title": "Confirm no unmasked PII in the seeded data in data catalog/quality tool",
           "actor": "QA Analyst",
           "sop": [
-            "Run the PII scan on the seeded data in the data catalog/quality tool",
-            "Halt and purge the dataset on any detection with a 24-hour remediation SLA",
+            "Open the seeded dataset's scan job in Collibra",
+            "Run the PII scan over the seeded tables",
+            "On any detection, halt test use, purge the dataset and reload within the 24-hour remediation SLA",
             "Done when the dataset is halted and purged on any PII detection within 24 hours"
           ],
           "verify": [
-            "Run the PII scan in the data catalog/quality tool",
+            "Run the PII scan in Collibra over the seeded tables",
             "Pass when 0 unmasked findings are found"
           ]
         },
@@ -1181,22 +1298,21 @@
           "title": "Grant test-team access to each environment in Okta / IAM Platform",
           "actor": "DevOps Engineer",
           "sop": [
-            "Open the SIT and UAT access groups in Okta / IAM Platform",
-            "Grant every tester the required access",
+            "Open the SIT and UAT access groups in Okta",
+            "Add every tester on the roster to both groups",
+            "Ask one tester to confirm login to each environment",
             "Done when every tester holds the SIT and UAT access grants"
           ],
-          "verify": [
-            "Review the group memberships in Okta / IAM Platform",
-            "Pass when each tester is granted"
-          ]
+          "verify": ["Review the group memberships in Okta", "Pass when each tester is granted"]
         },
         {
           "n": 7,
           "title": "Run the post-provision smoke test on each environment in GitHub Actions",
           "actor": "QA Analyst",
           "sop": [
-            "Trigger the smoke-test workflow for SIT and UAT in GitHub Actions",
-            "Hold release to QA until both pass",
+            "Open the smoke-test workflow in GitHub Actions",
+            "Trigger the workflow against SIT and then against UAT",
+            "Hold release to QA until both runs finish green",
             "Done when no environment is released to QA until its smoke test passes"
           ],
           "verify": [
@@ -1209,8 +1325,9 @@
           "title": "Reconcile the provisioned resources to the IaC plan output in Terraform Cloud",
           "actor": "DevOps Engineer",
           "sop": [
-            "Open the state inventory in Terraform Cloud",
-            "Compare it to the plan output",
+            "Open the state inventory for each workspace in Terraform Cloud",
+            "Compare the resource list to the latest plan output",
+            "Resolve any unmatched resource and re-run the plan",
             "Done when the resource inventory matches the plan with 0 drift"
           ],
           "verify": [
@@ -1224,18 +1341,23 @@
           "actor": "Software Engineer",
           "sop": [
             "Open the change ticket in ServiceNow ITSM",
-            "Link the plan-and-apply logs, retained for 12 months",
+            "Add related links to the plan and apply logs in Terraform Cloud",
+            "Note the 12-month retention on the ticket and save",
             "Done when the linked logs are retained for 12 months on the ticket"
           ],
-          "verify": ["Open the change ticket in ServiceNow ITSM", "Pass when the log links resolve"]
+          "verify": [
+            "Open the change ticket in ServiceNow ITSM and click the log links",
+            "Pass when the log links resolve"
+          ]
         },
         {
           "n": 10,
           "title": "Log provisioning failures with disposition on the change ticket in ServiceNow ITSM",
           "actor": "Software Engineer",
           "sop": [
-            "Identify any provisioning failure",
-            "Log its disposition on the change ticket in ServiceNow ITSM, blocking QA use until drift is 0 within 3 business days",
+            "List any provisioning failure from the workspace runs in Terraform Cloud",
+            "Log each failure with its disposition on the change ticket in ServiceNow ITSM",
+            "Block QA use of the environment until drift is 0 within the 3-business-day SLA",
             "Done when QA use is blocked until drift is 0 within the 3-business-day SLA"
           ],
           "verify": [
@@ -1248,13 +1370,14 @@
           "title": "Record the QA Analyst sign-off on the environments in ServiceNow ITSM",
           "actor": "QA Analyst",
           "sop": [
-            "Confirm both environments are validated for the test window",
-            "Add the sign-off on the change ticket in ServiceNow ITSM",
+            "Confirm both environments passed their smoke tests and hold 0 drift for the test window",
+            "Open the change ticket in ServiceNow ITSM",
+            "Record the sign-off as a dated approval on the ticket",
             "Done when both environments are validated for the test window"
           ],
           "verify": [
-            "Confirm the QA Analyst sign-off is present on the change ticket in ServiceNow ITSM",
-            "Pass when present"
+            "Open the change ticket approvals in ServiceNow ITSM",
+            "Pass when the QA Analyst sign-off is present"
           ]
         }
       ]
@@ -1270,12 +1393,13 @@
           "title": "Pull the demand items labeled funding-check-pending in Jira",
           "actor": "Demand Manager",
           "sop": [
-            "Run the label filter in the DEMAND project in Jira",
-            "Compile every matching Triage item onto the check list",
+            "Open the DEMAND project in Jira and run the filter label = funding-check-pending",
+            "Add every matching Triage item to the funding check list on the review page in Confluence",
             "Done when every Triage item with the label appears on the check list"
           ],
           "verify": [
             "Run the label filter in the DEMAND project in Jira",
+            "Compare the results to the check list",
             "Pass when each result is on the list"
           ]
         },
@@ -1284,12 +1408,12 @@
           "title": "Confirm the funding source on each demand item in Jira",
           "actor": "Demand Manager",
           "sop": [
-            "Open each demand item in Jira",
-            "Confirm the Funding Source field is populated",
+            "Open each demand item from the check list in Jira",
+            "Read the Funding Source field and chase the requester for any blank value",
             "Done when no item has a null Funding Source"
           ],
           "verify": [
-            "Inspect each demand item in Jira",
+            "Inspect the Funding Source field on each demand item in Jira",
             "Pass when the Funding Source field is populated"
           ]
         },
@@ -1299,11 +1423,12 @@
           "actor": "Demand Manager",
           "sop": [
             "Open each demand item in Jira",
-            "Confirm the Approved Budget Amount is greater than 0",
+            "Read the Approved Budget Amount field and check it is greater than 0",
+            "Return any zero or blank item to the requester for correction",
             "Done when every item shows an Approved Budget Amount greater than 0"
           ],
           "verify": [
-            "Inspect each demand item in Jira",
+            "Inspect the Approved Budget Amount on each demand item in Jira",
             "Pass when the amount field is greater than 0"
           ]
         },
@@ -1313,11 +1438,11 @@
           "actor": "Demand Manager",
           "sop": [
             "Open each demand item in Jira",
-            "Confirm the Cost Center field is populated",
+            "Read the Cost Center field and chase the requester for any blank value",
             "Done when no item has a null Cost Center"
           ],
           "verify": [
-            "Inspect each demand item in Jira",
+            "Inspect the Cost Center field on each demand item in Jira",
             "Pass when the Cost Center field is populated"
           ]
         },
@@ -1327,18 +1452,23 @@
           "actor": "Demand Manager",
           "sop": [
             "Open each demand item in Jira",
-            "Confirm the Target PI and Assigned Squad fields are populated",
+            "Read the Target PI and Assigned Squad fields",
+            "Chase the requester to fill either field where blank",
             "Done when every item names its Target PI and Assigned Squad"
           ],
-          "verify": ["Inspect each demand item in Jira", "Pass when both fields are populated"]
+          "verify": [
+            "Inspect the Target PI and Assigned Squad fields on each item in Jira",
+            "Pass when both fields are populated"
+          ]
         },
         {
           "n": 6,
           "title": "Verify the plan line balance covers the amount in PPM tool (Clarity/Planview/Jira Align)",
           "actor": "Resource Manager",
           "sop": [
-            "Open the plan line in the PPM tool",
-            "Confirm the remaining balance covers the approved amount to the dollar",
+            "Open the funding plan line in PPM tool (Clarity/Planview/Jira Align)",
+            "Read the remaining balance on the line",
+            "Compare it to the item's approved amount to the dollar",
             "Done when the remaining balance covers the approved amount"
           ],
           "verify": [
@@ -1351,8 +1481,9 @@
           "title": "Verify the funding effective date falls in the FY window in PPM tool (Clarity/Planview/Jira Align)",
           "actor": "Resource Manager",
           "sop": [
-            "Open the plan line dates in the PPM tool",
-            "Confirm the effective date sits within the approved FY budget period",
+            "Open the plan line dates in PPM tool (Clarity/Planview/Jira Align)",
+            "Read the funding effective date",
+            "Compare it to the approved FY budget period start and end",
             "Done when the effective date sits within the approved FY budget period"
           ],
           "verify": [
@@ -1365,8 +1496,9 @@
           "title": "Verify the squad capacity points cover the estimate in PPM tool (Clarity/Planview/Jira Align)",
           "actor": "Resource Manager",
           "sop": [
-            "Open the squad capacity in the PPM tool",
-            "Confirm available points meet or exceed the item estimate",
+            "Open the squad capacity view in PPM tool (Clarity/Planview/Jira Align)",
+            "Read the available points for the target PI",
+            "Compare them to the item estimate",
             "Done when available points meet or exceed the item estimate"
           ],
           "verify": [
@@ -1379,8 +1511,9 @@
           "title": "Reconcile committed PI demand to squad capacity in PPM tool (Clarity/Planview/Jira Align)",
           "actor": "Resource Manager",
           "sop": [
-            "Compare committed demand to squad capacity in the PPM tool",
-            "Confirm the variance is within 5 percent",
+            "Open the PI demand-versus-capacity view in PPM tool (Clarity/Planview/Jira Align)",
+            "Sum committed demand and compare it to squad capacity",
+            "Rebalance items with the squads until the variance is within 5 percent",
             "Done when committed demand sits within 5 percent of available capacity"
           ],
           "verify": [
@@ -1394,11 +1527,12 @@
           "actor": "Demand Manager",
           "sop": [
             "Open the demand item in Jira",
-            "Post the funding and capacity confirmation with the Clarity plan line ID and an ISO-8601 timestamp",
+            "Add a comment confirming funding and capacity with the Clarity plan line ID",
+            "Include an ISO-8601 timestamp in the comment and save",
             "Done when the confirmation is posted with the plan line ID and timestamp"
           ],
           "verify": [
-            "Open the demand item in Jira",
+            "Open the demand item's comments in Jira",
             "Pass when the comment cites the Clarity plan line ID"
           ]
         },
@@ -1407,8 +1541,9 @@
           "title": "Move failing items to Blocked-Funding with the gap noted in Jira",
           "actor": "Demand Manager",
           "sop": [
-            "Identify each item failing the funding or capacity check",
-            "Move it to Blocked-Funding with the gap noted for closure within 5 business days",
+            "Identify each item failing the funding or capacity check on the list in Jira",
+            "Transition it to Blocked-Funding on the board",
+            "Comment the specific gap and the closure target within 5 business days",
             "Done when each failing item states its gap for closure within 5 business days"
           ],
           "verify": ["Filter Blocked-Funding items in Jira", "Pass when each carries a gap comment"]
@@ -1418,8 +1553,9 @@
           "title": "Raise an SDLC-Exception for items failing the re-check in Jira",
           "actor": "Demand Manager",
           "sop": [
-            "Identify items failing the re-check",
-            "Assign an SDLC-Exception to the Engineering Manager with a 10-business-day remediation SLA",
+            "Filter Blocked-Funding items that failed the re-check in Jira",
+            "Click Create and file an SDLC-Exception for each, assigned to the Engineering Manager",
+            "Set the 10-business-day remediation SLA on each exception",
             "Done when each has an exception with assignee and the 10-day SLA"
           ],
           "verify": [
@@ -1432,12 +1568,12 @@
           "title": "Record the Product Owner sign-off on the confirmations in Jira",
           "actor": "Demand Manager",
           "sop": [
-            "Request Product Owner confirmation of the funding and capacity check",
-            "Link the confirmation in the Evidence field in Jira",
+            "Send the completed funding and capacity check to the Product Owner for confirmation",
+            "Attach the Product Owner's confirmation link in the Evidence field in Jira",
             "Done when the Product Owner authored confirmation is linked in the Evidence field"
           ],
           "verify": [
-            "Open the Evidence field in Jira",
+            "Open the Evidence field on the demand item in Jira",
             "Pass when the Product Owner confirmation link resolves"
           ]
         }
@@ -1454,8 +1590,9 @@
           "title": "Create the capacity plan for the upcoming sprint in Jira",
           "actor": "Scrum Master",
           "sop": [
-            "Open the capacity view in Jira",
-            "Create the capacity plan covering the sprint's working days",
+            "Open the capacity view for the team's board in Jira",
+            "Click Create capacity plan for the upcoming sprint",
+            "Enter the sprint's working days and save",
             "Done when the plan exists for the sprint working days"
           ],
           "verify": ["Open the capacity view in Jira", "Pass when the plan covers the sprint dates"]
@@ -1465,8 +1602,9 @@
           "title": "Record the PTO days per member from the HR calendar snapshot in Jira",
           "actor": "Scrum Master",
           "sop": [
-            "Take a snapshot of the HR calendar on planning day",
-            "Enter each member's PTO days into the capacity plan in Jira",
+            "Open the HR calendar on planning day and export a dated snapshot",
+            "Open the capacity plan in Jira",
+            "Enter each member's PTO days from the snapshot into their capacity entry",
             "Done when PTO is pulled from the dated HR calendar snapshot"
           ],
           "verify": [
@@ -1479,8 +1617,9 @@
           "title": "Deduct the ceremony time per member in Jira",
           "actor": "Scrum Master",
           "sop": [
-            "Open each member's capacity entry in Jira",
-            "Deduct ceremony hours from each",
+            "Open each member's capacity entry in the plan in Jira",
+            "Subtract the sprint ceremony hours from each member's available hours",
+            "Save each updated entry",
             "Done when every member entry deducts ceremony hours"
           ],
           "verify": [
@@ -1493,12 +1632,13 @@
           "title": "Deduct the on-call allocations per member in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Identify each on-call or part-allocated member",
-            "Deduct the on-call allocation from their capacity entry in Jira",
+            "List each on-call or part-allocated member from the on-call schedule in PagerDuty",
+            "Open their capacity entries in Jira",
+            "Subtract the on-call allocation from each affected entry and save",
             "Done when every affected member entry reflects the deduction"
           ],
           "verify": [
-            "Inspect affected member entries in Jira",
+            "Inspect affected member entries in Jira against the PagerDuty schedule",
             "Pass when the on-call deduction is applied"
           ]
         },
@@ -1508,7 +1648,8 @@
           "actor": "Scrum Master",
           "sop": [
             "Open each member's capacity entry in Jira",
-            "Apply the documented focus factor of 0.7 to 0.8",
+            "Multiply the remaining hours by the documented focus factor of 0.7 to 0.8",
+            "Save the adjusted figure on each entry",
             "Done when every entry carries the documented focus factor"
           ],
           "verify": [
@@ -1521,12 +1662,13 @@
           "title": "Confirm every team member has a capacity entry in Jira",
           "actor": "Scrum Master",
           "sop": [
-            "Compare the team roster to the capacity entries in Jira",
+            "Open the team roster page in Confluence",
+            "Compare each roster name to the capacity entries in Jira",
             "Add an entry for any missing member",
             "Done when no roster member lacks an entry"
           ],
           "verify": [
-            "Compare the team roster to the capacity entries in Jira",
+            "Compare the roster in Confluence to the capacity entries in Jira",
             "Pass when no member is missing"
           ]
         },
@@ -1535,8 +1677,9 @@
           "title": "Reconcile the member capacity sum to the team total in Jira",
           "actor": "Scrum Master",
           "sop": [
-            "Sum the member entries in Jira",
-            "Compare the sum to the team capacity total",
+            "Open the capacity plan in Jira",
+            "Sum the member entries",
+            "Compare the sum to the team capacity total shown on the plan",
             "Done when the summed entries equal the team total"
           ],
           "verify": [
@@ -1549,8 +1692,9 @@
           "title": "Confirm committed points do not exceed the computed capacity in Jira",
           "actor": "Product Owner",
           "sop": [
-            "Open the sprint commitment in Jira",
-            "Compare committed points to the computed capacity",
+            "Open the sprint commitment on the Backlog view in Jira",
+            "Read the committed story points",
+            "Compare them to the computed capacity from the plan",
             "Done when the sprint commitment shows no over-commit"
           ],
           "verify": [
@@ -1564,11 +1708,12 @@
           "actor": "Scrum Master",
           "sop": [
             "Open the sprint-planning page in Confluence",
-            "Attach the finished capacity plan timestamped at planning time",
+            "Attach the finished capacity plan export",
+            "Stamp the attachment comment with the planning-day date and time",
             "Done when the plan is attached with a planning-time timestamp"
           ],
           "verify": [
-            "Open the planning page in Confluence",
+            "Open the planning page attachments in Confluence",
             "Pass when the plan is attached with a planning-day timestamp"
           ]
         },
@@ -1577,8 +1722,9 @@
           "title": "Flag capacity shortfalls in the planning notes in Jira",
           "actor": "Scrum Master",
           "sop": [
-            "Identify any over-commit or key-person absence",
-            "Record it in the planning notes in Jira for descope or escalation",
+            "Identify any over-commit or key-person absence from the capacity plan in Jira",
+            "Record each in the sprint planning notes with a descope or escalation action",
+            "Set an owner on each follow-up action",
             "Done when each shortfall carries a follow-up action"
           ],
           "verify": [
@@ -1591,13 +1737,13 @@
           "title": "Record the Scrum Master sign-off on the capacity plan in Jira",
           "actor": "Scrum Master",
           "sop": [
-            "Confirm the capacity plan is complete and reconciled",
-            "Add the sign-off on the capacity plan in Jira",
+            "Confirm the capacity plan is complete and reconciled in Jira",
+            "Add a dated sign-off comment on the capacity plan",
             "Done when the plan is complete and reconciled"
           ],
           "verify": [
-            "Confirm the Scrum Master sign-off is present on the capacity plan in Jira",
-            "Pass when present"
+            "Open the capacity plan comments in Jira",
+            "Pass when the dated Scrum Master sign-off is present"
           ]
         }
       ]
@@ -1613,12 +1759,13 @@
           "title": "Confirm story points are estimated on every candidate story in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Filter the candidate story set in Jira",
-            "Confirm every story carries a story-point estimate",
+            "Open the Backlog view in Jira and filter to the candidate story set",
+            "Read the story-point field on each story",
+            "Send any unestimated story back to the team for estimation",
             "Done when no candidate story lacks a story-point estimate"
           ],
           "verify": [
-            "Filter the candidate set in Jira",
+            "Filter the candidate set in Jira by empty estimate",
             "Pass when no story has an empty estimate field"
           ]
         },
@@ -1627,8 +1774,9 @@
           "title": "Confirm no unresolved blockers on the candidate stories in Jira",
           "actor": "Scrum Master",
           "sop": [
-            "Open each candidate story's blocker links in Jira",
-            "Confirm every story is blocker-free",
+            "Open each candidate story in Jira and expand its issue links",
+            "Check for unresolved is-blocked-by links",
+            "Chase owners to resolve or remove each blocker before planning",
             "Done when every candidate story is blocker-free"
           ],
           "verify": [
@@ -1642,7 +1790,8 @@
           "actor": "Product Owner",
           "sop": [
             "Open each candidate story in Jira",
-            "Confirm the acceptance criterion field is populated",
+            "Read the acceptance criterion field",
+            "Send any story with a blank field back for criteria before planning",
             "Done when every candidate story states its acceptance criterion"
           ],
           "verify": [
@@ -1655,7 +1804,8 @@
           "title": "Compute the capacity-adjusted velocity from the rolling 3-sprint average in Jira",
           "actor": "Scrum Master",
           "sop": [
-            "Open the sprint reports for the last 3 sprints in Jira",
+            "Open the Velocity report under the board's Reports tab in Jira",
+            "Average the completed points of the last 3 sprints",
             "Adjust the average for PTO, ceremonies and support load",
             "Done when the capacity-adjusted velocity is computed from the 3-sprint average"
           ],
@@ -1669,12 +1819,13 @@
           "title": "Compare the committed points to the velocity band in Jira",
           "actor": "Scrum Master",
           "sop": [
-            "Divide committed points by adjusted velocity in Jira",
-            "Confirm the ratio falls within 90 to 110 percent",
+            "Sum the committed points on the sprint's Backlog view in Jira",
+            "Divide committed points by the adjusted velocity",
+            "Check the ratio falls within 90 to 110 percent",
             "Done when committed points fall within 90 to 110 percent of adjusted velocity"
           ],
           "verify": [
-            "Divide committed points by adjusted velocity in Jira",
+            "Divide committed points by adjusted velocity from the Jira reports",
             "Pass when the ratio is inside the band"
           ]
         },
@@ -1683,8 +1834,9 @@
           "title": "Show the commitment delta in the sprint planning notes in Confluence",
           "actor": "Scrum Master",
           "sop": [
-            "Open the sprint planning notes in Confluence",
-            "State the delta between commitment and capacity",
+            "Open the sprint planning notes page in Confluence",
+            "State the delta between commitment and capacity with the figures used",
+            "Publish the page",
             "Done when the notes state the delta between commitment and capacity"
           ],
           "verify": ["Read the planning notes in Confluence", "Pass when the delta figure is shown"]
@@ -1694,8 +1846,9 @@
           "title": "Negotiate the descope for any infeasible commitment in Jira",
           "actor": "Product Owner",
           "sop": [
-            "Identify the infeasible commitment in Jira",
-            "Negotiate and apply the descoped story set to the sprint backlog",
+            "Open the sprint backlog in Jira and identify the infeasible commitment",
+            "Agree the descope story set with the team",
+            "Drag the descoped stories out of the sprint back to the product backlog",
             "Done when the descoped story set is reflected on the sprint backlog"
           ],
           "verify": [
@@ -1708,8 +1861,9 @@
           "title": "Log over-commitment beyond 110 percent as an SDLC-Exception in Jira",
           "actor": "Scrum Master",
           "sop": [
-            "Identify over-commitment beyond 110 percent",
-            "Open an SDLC-Exception in Jira with Product Owner acknowledgement and a same-sprint SLA",
+            "Identify over-commitment beyond 110 percent from the ratio check in Jira",
+            "Click Create and open an SDLC-Exception in Jira",
+            "Record the Product Owner acknowledgement and the same-sprint SLA on the exception",
             "Done when owner, acknowledgement and SLA are recorded"
           ],
           "verify": [
@@ -1723,11 +1877,13 @@
           "actor": "Scrum Master",
           "sop": [
             "Open the sprint planning note in Confluence",
-            "Publish capacity, velocity and commitment for 24-month retention",
+            "Enter the capacity, velocity and commitment figures",
+            "Publish the page and label it for 24-month retention",
+            "Add a link to the note from the sprint in Jira",
             "Done when the note is published and versioned"
           ],
           "verify": [
-            "Open the note in Confluence",
+            "Open the note in Confluence and check its version history",
             "Pass when it is versioned and linked from the sprint in Jira"
           ]
         },
@@ -1736,13 +1892,13 @@
           "title": "Record the Tech Lead sign-off on the commitment in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Request Tech Lead review of the sprint commitment",
-            "Record the sign-off before the commitment locks",
+            "Open the sprint commitment in Jira and request Tech Lead review with an @mention comment",
+            "Capture the Tech Lead's dated sign-off comment before the commitment locks",
             "Done when the Tech Lead sign-off is recorded before the commitment locks"
           ],
           "verify": [
-            "Confirm the Tech Lead sign-off is present on the sprint commitment in Jira",
-            "Pass when present"
+            "Open the sprint commitment comments in Jira",
+            "Pass when the dated Tech Lead sign-off is present"
           ]
         }
       ]
@@ -1758,8 +1914,9 @@
           "title": "Fill every required role with a named person on the roster in Confluence",
           "actor": "Software Engineer",
           "sop": [
-            "Compare the charter roles to the roster in Confluence",
-            "Fill any unfilled role with a named person",
+            "Open the team roster page in Confluence beside the charter's role list",
+            "Compare each charter role to the roster assignments",
+            "Enter a named person against any unfilled role and save the page",
             "Done when the roster shows a named person per charter role"
           ],
           "verify": [
@@ -1772,12 +1929,13 @@
           "title": "Grant access for each confirmed team member in Okta / IAM Platform",
           "actor": "DevOps Engineer",
           "sop": [
-            "Open the access groups in Okta / IAM Platform",
-            "Grant every roster member the required access",
+            "Open the team's access groups in Okta",
+            "Add each roster member to the groups their role requires",
+            "Ask each member to confirm they can sign in to the granted apps",
             "Done when every roster member holds the required access grants"
           ],
           "verify": [
-            "Review the access grants in Okta / IAM Platform",
+            "Review the group memberships in Okta",
             "Pass when each roster member is provisioned"
           ]
         },
@@ -1786,8 +1944,9 @@
           "title": "Verify the dev environment pipeline is green in GitHub Actions",
           "actor": "DevOps Engineer",
           "sop": [
-            "Open the dev pipeline in GitHub Actions",
-            "Confirm the environment is reachable with a passing run",
+            "Open the dev environment pipeline in GitHub Actions",
+            "Check the latest run finished green",
+            "Open the dev environment URL and confirm it responds",
             "Done when the dev environment is reachable with a passing pipeline"
           ],
           "verify": ["Open the dev pipeline in GitHub Actions", "Pass when the latest run is green"]
@@ -1797,8 +1956,9 @@
           "title": "Verify the test environment pipeline is green in GitHub Actions",
           "actor": "DevOps Engineer",
           "sop": [
-            "Open the test pipeline in GitHub Actions",
-            "Confirm the environment is reachable with a passing run",
+            "Open the test environment pipeline in GitHub Actions",
+            "Check the latest run finished green",
+            "Open the test environment URL and confirm it responds",
             "Done when the test environment is reachable with a passing pipeline"
           ],
           "verify": [
@@ -1811,8 +1971,9 @@
           "title": "Verify the staging environment pipeline is green in GitHub Actions",
           "actor": "DevOps Engineer",
           "sop": [
-            "Open the staging pipeline in GitHub Actions",
-            "Confirm the environment is reachable with a passing run",
+            "Open the staging environment pipeline in GitHub Actions",
+            "Check the latest run finished green",
+            "Open the staging environment URL and confirm it responds",
             "Done when the staging environment is reachable with a passing pipeline"
           ],
           "verify": [
@@ -1825,11 +1986,15 @@
           "title": "Register the environment configuration items in CMDB",
           "actor": "DevOps Engineer",
           "sop": [
-            "Open the CMDB",
-            "Register a CI record for dev, test and staging",
+            "Open the CMDB in ServiceNow ITSM",
+            "Create a configuration item record for each of dev, test and staging",
+            "Fill the owner, environment tier and linked service on each CI",
             "Done when dev, test and staging CIs exist in the CMDB"
           ],
-          "verify": ["Search the CMDB", "Pass when a CI record exists for each environment"]
+          "verify": [
+            "Search the CMDB in ServiceNow ITSM",
+            "Pass when a CI record exists for each environment"
+          ]
         },
         {
           "n": 7,
@@ -1837,7 +2002,8 @@
           "actor": "Software Engineer",
           "sop": [
             "Open the mobilization-readiness page in Confluence",
-            "Tick every checklist field",
+            "Work through each checklist field, confirming the evidence behind it",
+            "Tick every field",
             "Done when no checklist field on the mobilization page is unticked"
           ],
           "verify": [
@@ -1850,8 +2016,9 @@
           "title": "Reconcile the required roles to the confirmed assignments in Confluence",
           "actor": "Scrum Master",
           "sop": [
-            "Count the required roles and the confirmed assignments on the readiness page in Confluence",
-            "Compare the two counts",
+            "Open the readiness page in Confluence",
+            "Count the required roles and the confirmed assignments",
+            "Fill or escalate any gap before kickoff",
             "Done when required and confirmed counts match with 0 gaps at kickoff"
           ],
           "verify": [
@@ -1864,8 +2031,9 @@
           "title": "Log each gap as a Mobilization-Blocker item in Jira",
           "actor": "Scrum Master",
           "sop": [
-            "Identify each readiness gap",
-            "Open a Mobilization-Blocker item in Jira with an owner and target date",
+            "List each readiness gap from the page in Confluence",
+            "Click Create in Jira and open a Mobilization-Blocker item per gap",
+            "Set an owner and a target date on each item",
             "Done when every blocker carries an owner and a target date"
           ],
           "verify": [
@@ -1878,8 +2046,9 @@
           "title": "Escalate blockers older than 5 business days to the Resource Manager in Jira",
           "actor": "Scrum Master",
           "sop": [
-            "Filter blockers older than 5 business days in Jira",
-            "Escalate each to the Resource Manager or PMO",
+            "Filter Mobilization-Blocker items older than 5 business days in Jira",
+            "Escalate each to the Resource Manager or PMO with an @mention comment",
+            "Record the escalation date on the item",
             "Done when each aged blocker carries an escalation record"
           ],
           "verify": ["Filter aged blockers in Jira", "Pass when each carries an escalation record"]
@@ -1889,13 +2058,13 @@
           "title": "Record the Scrum Master sign-off on the readiness page in Confluence",
           "actor": "Software Engineer",
           "sop": [
-            "Request Scrum Master review of the readiness page",
-            "Record the sign-off before Sprint 1 in Confluence",
+            "Open the readiness page in Confluence and request Scrum Master review with an @mention",
+            "Capture the Scrum Master's dated sign-off on the page before Sprint 1",
             "Done when the Scrum Master sign-off is recorded before Sprint 1"
           ],
           "verify": [
-            "Confirm the Scrum Master sign-off is present on the readiness page in Confluence",
-            "Pass when present"
+            "Open the readiness page in Confluence",
+            "Pass when the Scrum Master sign-off is present"
           ]
         }
       ]
@@ -1911,8 +2080,9 @@
           "title": "List the quarterly knowledge gaps on the KM plan in Confluence",
           "actor": "Software Engineer",
           "sop": [
-            "Open the KM plan in Confluence",
-            "List every identified knowledge gap for the quarter",
+            "Open the KM plan page in Confluence",
+            "List every knowledge gap identified for the quarter in the plan table",
+            "Publish the updated page",
             "Done when every identified gap for the quarter appears on the plan"
           ],
           "verify": [
@@ -1925,8 +2095,8 @@
           "title": "Assign a named SME to each planned contribution in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Open each KM board card in Jira",
-            "Assign a named SME author",
+            "Open the KM board in Jira",
+            "Open each contribution card and set the named SME author in the assignee field",
             "Done when no KM board card lacks an SME author"
           ],
           "verify": ["Inspect each KM card in Jira", "Pass when the SME author field is populated"]
@@ -1937,7 +2107,7 @@
           "actor": "Software Engineer",
           "sop": [
             "Open each KM card in Jira",
-            "Name its reviewer",
+            "Enter the reviewer's name in the reviewer field and save",
             "Done when every card names its reviewer"
           ],
           "verify": ["Inspect each KM card in Jira", "Pass when the reviewer field is populated"]
@@ -1948,7 +2118,7 @@
           "actor": "Backend Developer",
           "sop": [
             "Open each KM card in Jira",
-            "Record its target Confluence page or space",
+            "Paste the link to the target page or space in Confluence into the card",
             "Done when every card names its target page"
           ],
           "verify": ["Inspect each KM card in Jira", "Pass when the target page field is populated"]
@@ -1959,7 +2129,7 @@
           "actor": "Software Engineer",
           "sop": [
             "Open each KM card in Jira",
-            "Set its due date",
+            "Set the due date agreed with the SME and save",
             "Done when no card lacks a due date"
           ],
           "verify": ["Inspect each KM card in Jira", "Pass when the due date is set"]
@@ -1969,8 +2139,9 @@
           "title": "Publish each contribution to its target space in Confluence",
           "actor": "UI Developer",
           "sop": [
-            "Open each completed contribution",
-            "Publish it live on its target page in Confluence",
+            "Open each completed contribution draft in Confluence",
+            "Move it to its target page or space",
+            "Click Publish so the content is live",
             "Done when every completed contribution is live on its target page"
           ],
           "verify": [
@@ -1983,12 +2154,13 @@
           "title": "Record the peer review on each published page in Confluence",
           "actor": "Software Engineer",
           "sop": [
-            "Open each published page's version history in Confluence",
-            "Record the named reviewer sign-off",
+            "Open each published page in Confluence",
+            "Ask the named reviewer to review and comment their sign-off on the page",
+            "Check the sign-off appears in the page comments or version history",
             "Done when no published page lacks a named reviewer sign-off"
           ],
           "verify": [
-            "Read the version history in Confluence",
+            "Read the version history and comments in Confluence",
             "Pass when each page shows a reviewer sign-off"
           ]
         },
@@ -1997,8 +2169,9 @@
           "title": "Block the Done status on cards missing the page link in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Open the board workflow rules in Jira",
-            "Configure the rule preventing Done without a page link and reviewer sign-off",
+            "Open the KM board's workflow settings in Jira",
+            "Add a validator on the Done transition requiring the page link and reviewer sign-off fields",
+            "Publish the workflow change",
             "Done when the board rule prevents Done without link and reviewer sign-off"
           ],
           "verify": [
@@ -2011,8 +2184,9 @@
           "title": "Link each published page from the KM index in Confluence",
           "actor": "Software Engineer",
           "sop": [
-            "Open the KM index in Confluence",
-            "Add a reference to every published contribution",
+            "Open the KM index page in Confluence",
+            "Add a link to every published contribution",
+            "Publish the updated index",
             "Done when the index references every published contribution"
           ],
           "verify": ["Open the KM index in Confluence", "Pass when each published page is linked"]
@@ -2022,8 +2196,9 @@
           "title": "Reconcile the planned count to the captured totals in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Sum the card states in Jira at quarter close",
-            "Confirm planned equals captured plus carried-over plus dropped",
+            "Open the KM board in Jira at quarter close",
+            "Sum the card states and confirm planned equals captured plus carried-over plus dropped",
+            "Chase any assigned past-due card to closure",
             "Done when 0 items sit assigned past due at quarter close"
           ],
           "verify": [
@@ -2036,8 +2211,9 @@
           "title": "Re-assign contributions an SME cannot complete in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Identify each contribution an SME cannot complete",
-            "Record a disposition note and reassign, escalating after 2 unresolved quarters",
+            "Identify each contribution card its SME cannot complete on the KM board in Jira",
+            "Comment a disposition note on the card and set the new assignee",
+            "Escalate any item still unresolved after 2 quarters",
             "Done when a disposition note and new assignee are recorded"
           ],
           "verify": [
@@ -2050,8 +2226,9 @@
           "title": "Raise an SDLC-Exception for business-critical gaps in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Identify each business-critical knowledge gap",
-            "File an SDLC-Exception in Jira with a 10-business-day remediation SLA",
+            "Identify each business-critical knowledge gap on the KM plan",
+            "Click Create in Jira and file an SDLC-Exception per gap",
+            "Set the 10-business-day remediation SLA on each",
             "Done when each exception carries the 10-day SLA"
           ],
           "verify": ["Open each exception in Jira", "Pass when the 10-day SLA is recorded"]
@@ -2061,13 +2238,14 @@
           "title": "Record the Tech Lead sign-off on the KM plan in Confluence",
           "actor": "Software Engineer",
           "sop": [
-            "Confirm at least 90 percent capture is met",
-            "Record the Tech Lead sign-off on the KM plan in Confluence",
+            "Open the KM plan in Confluence and confirm at least 90 percent capture is met",
+            "Request Tech Lead review with an @mention on the page",
+            "Capture the dated sign-off comment on the plan",
             "Done when at least 90 percent capture is met and the sign-off is recorded"
           ],
           "verify": [
-            "Confirm the Tech Lead sign-off is present on the KM plan in Confluence",
-            "Pass when present"
+            "Open the KM plan in Confluence",
+            "Pass when the Tech Lead sign-off is present"
           ]
         }
       ]
@@ -2084,11 +2262,12 @@
           "actor": "Data Engineer",
           "sop": [
             "Open the initiative epic in Jira",
-            "Create the story naming the subjects being evolved",
+            "Click Create and add the schema change story under the epic",
+            "Name each subject being evolved in the story summary and description",
             "Done when the story sits under the initiative epic"
           ],
           "verify": [
-            "Open the epic in Jira",
+            "Open the epic's child issues in Jira",
             "Pass when the schema change story lists the evolved subjects"
           ]
         },
@@ -2098,11 +2277,12 @@
           "actor": "Data Engineer",
           "sop": [
             "Open the schema change story in Jira",
-            "List each new optional field with its default",
+            "List each new field in the description with its type and default",
+            "Mark every new field optional so the change stays additive-only",
             "Done when the change reads additive-only"
           ],
           "verify": [
-            "Read the story in Jira",
+            "Read the story description in Jira",
             "Pass when every proposed field is optional with a default"
           ]
         },
@@ -2111,8 +2291,9 @@
           "title": "Run the backward-compatibility check against all prior versions in Pact Broker",
           "actor": "Data Engineer",
           "sop": [
-            "Open the schema in Pact Broker",
+            "Open the schema's subject in Pact Broker",
             "Run the backward-compatibility check against every retained prior version",
+            "Fix the schema and re-run on any red result",
             "Done when the result is green for every retained prior version"
           ],
           "verify": [
@@ -2126,11 +2307,12 @@
           "actor": "Data Engineer",
           "sop": [
             "Open the schema change story in Jira",
-            "Name each impacted consumer service and its owner",
+            "List each impacted consumer service in a table with its owning team",
+            "Fill the owner for every listed consumer",
             "Done when no consumer lacks an owner"
           ],
           "verify": [
-            "Review the consumer list in Jira",
+            "Review the consumer list on the story in Jira",
             "Pass when an owner is named for each consumer"
           ]
         },
@@ -2139,8 +2321,9 @@
           "title": "Capture each consumer's migration acknowledgement on the story in Jira",
           "actor": "Data Engineer",
           "sop": [
-            "Contact each consumer owner listed on the story",
-            "Record their acknowledged migration approach in Jira",
+            "Contact each consumer owner listed on the story in Jira",
+            "Record each owner's acknowledged migration approach as a comment on the story",
+            "Chase outstanding owners until all have responded",
             "Done when 0 consumers are unacknowledged"
           ],
           "verify": [
@@ -2153,12 +2336,13 @@
           "title": "Reconcile the consumer matrix against staging offsets in Event streaming platform (Kafka/Confluent)",
           "actor": "Software Engineer",
           "sop": [
-            "Open consumer groups on the streaming platform",
-            "Reconcile old-version consumers plus migration status to total known consumers",
+            "Open the consumer groups view in Confluent Control Center for staging",
+            "List consumers still on the old schema version with their migration status",
+            "Reconcile that list plus migrated consumers to the total known consumers in the matrix",
             "Done when the matrix reconciles to the streaming platform with zero variance"
           ],
           "verify": [
-            "Compare consumer groups on the streaming platform",
+            "Compare the consumer groups in Confluent Control Center to the matrix",
             "Pass when matrix totals match"
           ]
         },
@@ -2167,8 +2351,9 @@
           "title": "Raise the schema pull request in GitHub Enterprise",
           "actor": "Backend Developer",
           "sop": [
-            "Open a branch with the updated schema files",
-            "Raise the PR containing them in GitHub Enterprise",
+            "Create a branch in GitHub Enterprise and commit the updated schema files",
+            "Open a pull request from the branch",
+            "Link the schema change story in the PR description",
             "Done when the PR is open for review"
           ],
           "verify": [
@@ -2181,12 +2366,13 @@
           "title": "Attach the compatibility-check output to the schema PR in GitHub Enterprise",
           "actor": "Data Engineer",
           "sop": [
+            "Export the green compatibility-check output from Pact Broker",
             "Open the schema PR in GitHub Enterprise",
-            "Attach the green compatibility-check output from Pact Broker",
+            "Attach the output to the PR as a comment",
             "Done when the PR shows the green compatibility artifact"
           ],
           "verify": [
-            "View the PR in GitHub Enterprise",
+            "View the PR comments in GitHub Enterprise",
             "Pass when the attached green compatibility output is found"
           ]
         },
@@ -2195,8 +2381,9 @@
           "title": "Record the commit SHA on the story in Jira",
           "actor": "Data Engineer",
           "sop": [
-            "Open the merged schema commit in GitHub Enterprise",
-            "Record the commit SHA on the story in Jira for 12-month retention",
+            "Open the merged schema commit in GitHub Enterprise and copy its SHA",
+            "Paste the SHA into a comment on the story in Jira",
+            "Note the 12-month retention on the comment",
             "Done when the SHA appears on the story"
           ],
           "verify": ["Open the story in Jira", "Pass when the recorded commit SHA is seen"]
@@ -2206,8 +2393,9 @@
           "title": "Record the new schema version id on the story in Jira",
           "actor": "Data Engineer",
           "sop": [
-            "Open the registered schema version",
-            "Record the version id on the story in Jira for 12-month retention",
+            "Open the new schema version in the Confluent schema registry and copy its version id",
+            "Paste the version id into a comment on the story in Jira",
+            "Note the 12-month retention on the comment",
             "Done when the id appears on the story"
           ],
           "verify": ["Open the story in Jira", "Pass when the new schema version id is seen"]
@@ -2217,8 +2405,9 @@
           "title": "Log any required breaking change as an SDLC-Exception in Jira",
           "actor": "Data Engineer",
           "sop": [
-            "Identify any required breaking change",
-            "Log the exception in Jira with a dual-publish plan under a new major version within 10 business days",
+            "Identify any change that cannot be made additive from the compatibility results",
+            "Click Create in Jira and log the SDLC-Exception owned by the Data Architect",
+            "Attach the dual-publish plan under a new major version within 10 business days",
             "Done when the exception is logged within the 10-business-day SLA"
           ],
           "verify": [
@@ -2231,12 +2420,12 @@
           "title": "Record the Data Architect sign-off on the story in Jira",
           "actor": "Data Engineer",
           "sop": [
-            "Request Data Architect approval before the new version is promoted",
-            "Capture the dated sign-off comment on the story in Jira",
+            "Open the story in Jira and request Data Architect approval with an @mention",
+            "Capture the dated sign-off comment before the new version is promoted",
             "Done when the sign-off comment is dated"
           ],
           "verify": [
-            "Open the story in Jira",
+            "Open the story comments in Jira",
             "Pass when the dated Data Architect approval is seen prior to promotion"
           ]
         }
@@ -2253,12 +2442,13 @@
           "title": "Flag entries not touched in 12 months for review in Confluence",
           "actor": "Software Engineer",
           "sop": [
-            "Filter entries in Confluence older than 12 months",
-            "Mark each as review or archive at the PI boundary",
+            "Open the knowledge-base space in Confluence and sort pages by last modified",
+            "Filter to entries not touched in 12 months",
+            "Add a review or archive label to each at the PI boundary",
             "Done when each stale entry is marked review or archive"
           ],
           "verify": [
-            "Filter entries in Confluence",
+            "Filter entries in Confluence by last-modified date",
             "Pass when no unflagged entry is older than 12 months"
           ]
         },
@@ -2267,8 +2457,8 @@
           "title": "Set an owning team on every knowledge-base entry in Confluence",
           "actor": "Software Engineer",
           "sop": [
-            "Open the entry list in Confluence",
-            "Assign an owning team per entry",
+            "Open the knowledge-base entry list in Confluence",
+            "Set the owning-team label or field on each entry",
             "Done when 0 entries lack an owner"
           ],
           "verify": [
@@ -2282,7 +2472,8 @@
           "actor": "Backend Developer",
           "sop": [
             "Open each curated entry in Confluence",
-            "Stamp the review date",
+            "Update the last-reviewed date field to the review date",
+            "Publish the change",
             "Done when every curated entry shows a date within 12 months"
           ],
           "verify": [
@@ -2295,8 +2486,9 @@
           "title": "Test the code sample link on each curated entry in Confluence",
           "actor": "UI Developer",
           "sop": [
-            "Open each curated entry's sample or ADR link in Confluence",
-            "Exercise the link to confirm it resolves",
+            "Open each curated entry in Confluence",
+            "Click every code sample or ADR link on the entry",
+            "Fix or replace any link that fails to resolve",
             "Done when every link resolves to a working artifact"
           ],
           "verify": [
@@ -2310,7 +2502,8 @@
           "actor": "Software Engineer",
           "sop": [
             "Open the ADR folder on main in GitHub Enterprise",
-            "Reconcile wiki entries to ADRs",
+            "Compare each merged ADR to the index entries in Confluence",
+            "Add an index entry for any ADR without one",
             "Done when 0 merged ADRs lack an index entry"
           ],
           "verify": [
@@ -2323,8 +2516,9 @@
           "title": "Mark superseded entries deprecated with a replacement link in Confluence",
           "actor": "Software Engineer",
           "sop": [
-            "Identify each superseded entry in Confluence",
-            "Mark it deprecated with a link to its replacement",
+            "Identify each superseded entry in the entry list in Confluence",
+            "Add the deprecated label and a link to the replacement entry",
+            "Publish the change",
             "Done when every deprecated entry links its replacement"
           ],
           "verify": [
@@ -2337,8 +2531,9 @@
           "title": "Log unreviewed entries in the KB-review backlog in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Identify unreviewed entries in Confluence",
-            "Raise a KB-review item per entry in Jira with an assignee",
+            "List entries still unreviewed in Confluence",
+            "Click Create in Jira and raise a KB-review item per entry",
+            "Set an assignee on each item",
             "Done when each unreviewed entry has an assigned item"
           ],
           "verify": [
@@ -2351,8 +2546,9 @@
           "title": "Route security-pattern samples for Security Champion review in Confluence",
           "actor": "Software Engineer",
           "sop": [
-            "Identify security-tagged entries in Confluence",
-            "Hold them from publication until a Security Champion review is recorded",
+            "Filter security-tagged entries in Confluence",
+            "Mark each as held from publication pending review",
+            "Request a Security Champion review and record the review note on the entry",
             "Done when every security-tagged entry carries a recorded review"
           ],
           "verify": [
@@ -2366,7 +2562,8 @@
           "actor": "Software Engineer",
           "sop": [
             "Open the curation page in Confluence",
-            "Tag the pass with the PI number and author as the permanent institutional record",
+            "Add the PI number and the author name to the pass record",
+            "Publish the page as the permanent institutional record",
             "Done when the tag is saved"
           ],
           "verify": [
@@ -2379,8 +2576,8 @@
           "title": "Record the Tech Lead sign-off on the curation page in Confluence",
           "actor": "Software Engineer",
           "sop": [
-            "Request Tech Lead review of the curation pass",
-            "Capture the dated sign-off on the page in Confluence",
+            "Open the curation page in Confluence and request Tech Lead review with an @mention",
+            "Capture the dated sign-off comment on the page",
             "Done when the Tech Lead sign-off is dated on the page"
           ],
           "verify": [
@@ -2401,8 +2598,9 @@
           "title": "Create stories under each accepted epic in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Open each epic accepted for the PI in Jira",
-            "Create candidate stories under it",
+            "Open each epic accepted for the PI on the Backlog view in Jira",
+            "Click Create issue under the epic and add the candidate stories",
+            "Set each story's epic link as it is created",
             "Done when each epic has stories"
           ],
           "verify": ["Open each accepted epic in Jira", "Pass when child stories are seen created"]
@@ -2413,7 +2611,8 @@
           "actor": "Business Analyst",
           "sop": [
             "Open each candidate story in Jira",
-            "Write the story statement per the INVEST criteria",
+            "Write the statement in As-a / I-want / So-that form per the INVEST criteria",
+            "Delete any placeholder text and save",
             "Done when no story has placeholder text"
           ],
           "verify": ["Sample stories in Jira", "Pass when each statement meets INVEST wording"]
@@ -2424,7 +2623,8 @@
           "actor": "Business Analyst",
           "sop": [
             "Open each sprint-bound story in Jira",
-            "Add Given/When/Then acceptance criteria",
+            "Write Given/When/Then acceptance criteria in the criteria field",
+            "Save the story",
             "Done when every sprint-bound story carries criteria"
           ],
           "verify": [
@@ -2437,8 +2637,8 @@
           "title": "Set the parent epic link on each story in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Open each story in Jira",
-            "Link it to its parent epic",
+            "Run an orphan-story filter (empty epic link) in Jira",
+            "Open each result and set its parent epic link",
             "Done when no orphan story remains"
           ],
           "verify": ["Run an orphan-story filter in Jira", "Pass when it returns zero results"]
@@ -2448,19 +2648,24 @@
           "title": "Estimate each story at 8 points or less in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Open each story in Jira",
-            "Record the planning estimate",
+            "Open each story in Jira during the estimation session",
+            "Record the agreed planning estimate in the story-point field",
+            "Flag any story estimated above 8 points for splitting",
             "Done when every story shows an estimate of 8 or below"
           ],
-          "verify": ["Filter stories in Jira", "Pass when none is above 8 points entering a sprint"]
+          "verify": [
+            "Filter stories by estimate in Jira",
+            "Pass when none is above 8 points entering a sprint"
+          ]
         },
         {
           "n": 6,
           "title": "Split any story still above 8 points in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Identify oversized stories in Jira",
+            "Filter stories above 8 points in Jira",
             "Apply the team's story-splitting patterns to break each into smaller stories",
+            "Create the replacement stories under the same epic and close the oversized original",
             "Done when the oversized story becomes smaller stories"
           ],
           "verify": [
@@ -2473,8 +2678,9 @@
           "title": "Reconcile story coverage against each parent epic in Jira",
           "actor": "Product Owner",
           "sop": [
-            "Compare each epic's scope in Jira to its decomposed stories",
-            "Confirm decomposed stories cover the full epic scope",
+            "Open each epic in Jira beside its decomposed stories",
+            "Walk the epic scope statement and map each scope item to a story",
+            "Create a story for any uncovered scope item",
             "Done when no epic scope is left uncovered"
           ],
           "verify": [
@@ -2487,8 +2693,9 @@
           "title": "Move stories failing Definition-of-Ready to Needs Refinement in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Identify stories failing the Definition of Ready",
-            "Move each to Needs Refinement with the gap logged",
+            "Check each story against the Definition of Ready page in Confluence",
+            "Move each failing story to the Needs Refinement column in Jira",
+            "Comment the specific gap on each moved story",
             "Done when no failing story sits in the sprint"
           ],
           "verify": [
@@ -2501,8 +2708,9 @@
           "title": "Flag oversized or ambiguous stories for a spike in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Identify high-uncertainty stories in Jira",
-            "Raise a spike for each and link it",
+            "Identify high-uncertainty stories on the backlog in Jira",
+            "Click Create and raise a spike per story",
+            "Link each spike to its story",
             "Done when each flagged story links a spike"
           ],
           "verify": ["View flagged stories in Jira", "Pass when a linked spike is found on each"]
@@ -2512,8 +2720,8 @@
           "title": "Escalate stories unresolved after 2 refinements in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Identify stories unresolved after 2 refinement sessions",
-            "Escalate to the Product Owner with a named comment",
+            "Filter stories still unresolved after 2 refinement sessions in Jira",
+            "Comment an escalation naming the Product Owner on each",
             "Done when the escalation comment names the Product Owner"
           ],
           "verify": [
@@ -2527,11 +2735,12 @@
           "actor": "Business Analyst",
           "sop": [
             "Open the refinement page in Confluence",
-            "Save the session notes versioned by the session date",
+            "Enter the session notes and decisions",
+            "Publish the page so the version is stamped with the session date",
             "Done when the page is versioned with the session date"
           ],
           "verify": [
-            "Open the refinement page in Confluence",
+            "Open the refinement page history in Confluence",
             "Pass when the version is stamped with the session date"
           ]
         },
@@ -2540,8 +2749,8 @@
           "title": "Record the Scrum Master sign-off on the refinement outcome in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Request Scrum Master review of the refinement outcome",
-            "Capture the dated approval on the refinement record in Jira",
+            "Open the refinement record in Jira and request Scrum Master review with an @mention",
+            "Capture the dated approval comment on the record",
             "Done when a dated Scrum Master approval is on the refinement record"
           ],
           "verify": [
@@ -2563,11 +2772,12 @@
           "actor": "Software Engineer",
           "sop": [
             "Open the ENG-DOCS space in Confluence",
-            "Add one entry per new or changed component",
+            "Add one doc-requirement entry per new or changed component to the requirements page",
+            "Publish the page",
             "Done when every component has an entry"
           ],
           "verify": [
-            "Open the ENG-DOCS page in Confluence",
+            "Open the ENG-DOCS requirements page in Confluence",
             "Pass when one entry per changed component is counted"
           ]
         },
@@ -2576,8 +2786,8 @@
           "title": "Name the doc type on each entry in Confluence",
           "actor": "Software Engineer",
           "sop": [
-            "Open each entry in Confluence",
-            "Select a doc type such as README or runbook",
+            "Open each entry on the requirements page in Confluence",
+            "Select a doc type such as README or runbook in the type column",
             "Done when no entry lacks a type"
           ],
           "verify": [
@@ -2590,8 +2800,8 @@
           "title": "Assign a documentation owner on each entry in Confluence",
           "actor": "Software Engineer",
           "sop": [
-            "Open each entry in Confluence",
-            "Name the documentation owner",
+            "Open each entry on the requirements page in Confluence",
+            "Enter the documentation owner's name in the owner column",
             "Done when every entry shows an owner"
           ],
           "verify": ["Scan entries in Confluence", "Pass when an owner is found on each"]
@@ -2601,8 +2811,9 @@
           "title": "Write the acceptance criteria on each entry in Confluence",
           "actor": "Business Analyst",
           "sop": [
-            "Open each entry in Confluence",
-            "Write measurable done-criteria",
+            "Open each entry on the requirements page in Confluence",
+            "Write measurable done-criteria in the criteria column",
+            "Replace any placeholder wording before saving",
             "Done when no entry has placeholder criteria"
           ],
           "verify": [
@@ -2615,8 +2826,8 @@
           "title": "Set the target location on each entry in Confluence",
           "actor": "Software Engineer",
           "sop": [
-            "Open each entry in Confluence",
-            "Record where each doc will live",
+            "Open each entry on the requirements page in Confluence",
+            "Record where each doc will live, such as the repo README path or a Confluence space",
             "Done when every entry names its target location"
           ],
           "verify": ["Inspect entries in Confluence", "Pass when a target location is seen on each"]
@@ -2626,8 +2837,9 @@
           "title": "Clear every TBD placeholder before design-review exit in Confluence",
           "actor": "Software Engineer",
           "sop": [
-            "Search the page in Confluence for TBD placeholders",
-            "Resolve each before design-review exit",
+            "Search the requirements page in Confluence for the text TBD",
+            "Resolve each placeholder with the component owner",
+            "Repeat the search until it returns zero hits before design-review exit",
             "Done when 0 entries are marked TBD at design-review exit"
           ],
           "verify": [
@@ -2640,8 +2852,9 @@
           "title": "Reconcile entry count against the release manifest in Confluence",
           "actor": "Software Engineer",
           "sop": [
-            "Open the CI component inventory",
-            "Reconcile it 1 to 1 with the entries in Confluence",
+            "Open the component inventory from the release manifest in GitHub Actions",
+            "Compare each manifest component to the entries in Confluence 1 to 1",
+            "Add an entry for any unmatched component",
             "Done when 0 entries are unmatched"
           ],
           "verify": [
@@ -2654,8 +2867,9 @@
           "title": "Link each doc-requirement entry to its story in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Open each entry in Confluence",
-            "Link it to the matching story in Jira",
+            "Open each entry on the requirements page in Confluence",
+            "Paste the matching story key from Jira into the entry",
+            "Check the smart link resolves",
             "Done when each entry shows a Jira key"
           ],
           "verify": [
@@ -2668,8 +2882,9 @@
           "title": "Log any justified documentation exception as an SDLC-Exception in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Identify any justified documentation exception",
-            "Log it in Jira with rationale for the next architecture review, owned by the Tech Lead",
+            "Identify any justified documentation exception from the entries",
+            "Click Create in Jira and log the SDLC-Exception with the rationale",
+            "Set the Tech Lead as owner and flag it for the next architecture review",
             "Done when the exception is logged with rationale and the Tech Lead as owner"
           ],
           "verify": [
@@ -2683,7 +2898,8 @@
           "actor": "Software Engineer",
           "sop": [
             "Open the CHG record for the release in ServiceNow ITSM",
-            "Link it to the doc-requirements page in Confluence",
+            "Add a related link to the doc-requirements page in Confluence",
+            "Save the record",
             "Done when the change record links the page"
           ],
           "verify": [
@@ -2696,12 +2912,12 @@
           "title": "Record the Tech Lead sign-off on the requirements page in Confluence",
           "actor": "Software Engineer",
           "sop": [
-            "Request Tech Lead review of the requirements page",
-            "Capture the dated sign-off on the page in Confluence",
+            "Open the requirements page in Confluence and request Tech Lead review with an @mention",
+            "Capture the dated sign-off comment on the page",
             "Done when the dated Tech Lead sign-off appears on the page"
           ],
           "verify": [
-            "View the page in Confluence",
+            "View the requirements page in Confluence",
             "Pass when the dated Tech Lead sign-off is seen"
           ]
         }
@@ -2718,8 +2934,9 @@
           "title": "Draft the release test plan page in Confluence",
           "actor": "Test Lead",
           "sop": [
-            "Open Confluence and create the release test plan page",
-            "Draft the plan for the named release with the strategy version in the header",
+            "Open the QA space in Confluence and click Create to start the release test plan page",
+            "Draft the plan for the named release",
+            "Enter the test strategy version in the page header",
             "Done when the page exists with the strategy version in the header"
           ],
           "verify": [
@@ -2733,7 +2950,8 @@
           "actor": "Test Lead",
           "sop": [
             "Open the risk table in the test plan in Confluence",
-            "Map test types per the risk table, with High risk getting regression plus integration plus performance",
+            "Map test types to each risk area per the table",
+            "Give every High risk area regression plus integration plus performance coverage",
             "Done when test types are recorded for every risk area"
           ],
           "verify": [
@@ -2747,7 +2965,7 @@
           "actor": "QA Analyst",
           "sop": [
             "Open the test plan in Confluence",
-            "Record entry criteria per risk area",
+            "Write the entry criteria into each risk area's row",
             "Done when no area lacks entry criteria"
           ],
           "verify": [
@@ -2761,7 +2979,7 @@
           "actor": "QA Analyst",
           "sop": [
             "Open the test plan in Confluence",
-            "Record exit criteria per risk area",
+            "Write the exit criteria into each risk area's row",
             "Done when no area lacks exit criteria"
           ],
           "verify": [
@@ -2775,7 +2993,7 @@
           "actor": "Test Lead",
           "sop": [
             "Open the test plan in Confluence",
-            "Name each environment to be used per test type",
+            "Name the environment to be used against each planned test type",
             "Done when every planned test type has an environment"
           ],
           "verify": [
@@ -2789,7 +3007,7 @@
           "actor": "Test Lead",
           "sop": [
             "Open the test plan in Confluence",
-            "Record the data source per risk area",
+            "Record the test-data source against each risk area",
             "Done when no area lacks a test-data source"
           ],
           "verify": [
@@ -2802,8 +3020,9 @@
           "title": "Set the coverage targets in the plan in Confluence",
           "actor": "Test Lead",
           "sop": [
-            "Open the test plan in Confluence",
-            "Set the 80 percent line coverage target plus the 90 percent critical-path target",
+            "Open the coverage section of the test plan in Confluence",
+            "Enter the 80 percent line coverage target",
+            "Enter the 90 percent critical-path target beside it",
             "Done when both targets appear in the plan"
           ],
           "verify": [
@@ -2816,8 +3035,8 @@
           "title": "Set the defect-severity gate in the plan in Confluence",
           "actor": "Test Lead",
           "sop": [
-            "Open the test plan in Confluence",
-            "Set the gate of no open Critical or High defects at release",
+            "Open the gates section of the test plan in Confluence",
+            "State the gate of no open Critical or High defects at release",
             "Done when the gate is stated in the plan"
           ],
           "verify": [
@@ -2830,8 +3049,9 @@
           "title": "Document the Medium-defect allowance in the plan in Confluence",
           "actor": "Test Lead",
           "sop": [
-            "Open the test plan in Confluence",
-            "Document the allowance of up to 5 Medium defects with documented workarounds and Product Owner approval",
+            "Open the gates section of the test plan in Confluence",
+            "Document the allowance of up to 5 Medium defects with documented workarounds",
+            "Name the Product Owner as the allowance approver",
             "Done when the allowance names its approver"
           ],
           "verify": [
@@ -2845,11 +3065,12 @@
           "actor": "QA Analyst",
           "sop": [
             "Open the release version in Jira",
-            "Map every in-scope story or defect to at least one test case",
+            "Map every in-scope story or defect to at least one test case in the matrix",
+            "Add a case or requirement for any orphan in either direction",
             "Done when 0 orphans remain in either direction"
           ],
           "verify": [
-            "Open the matrix in Jira",
+            "Open the matrix on the release version in Jira",
             "Pass when 0 orphan requirements plus 0 orphan test cases are confirmed"
           ]
         },
@@ -2858,12 +3079,13 @@
           "title": "Log deferred scope items with a risk-acceptance note in Jira",
           "actor": "Test Lead",
           "sop": [
-            "Identify each deferred scope item",
-            "Log it in Jira with a risk note naming an approver on the release",
+            "List each deferred scope item from the plan review",
+            "Log each on the release in Jira with a risk-acceptance note",
+            "Name the approver in each note",
             "Done when no unresolved coverage gap remains"
           ],
           "verify": [
-            "Review deferrals in Jira",
+            "Review deferrals on the release in Jira",
             "Pass when a risk note with a named approver is seen on each"
           ]
         },
@@ -2872,8 +3094,8 @@
           "title": "Record the Test Lead approval on the plan page in Confluence",
           "actor": "Test Lead",
           "sop": [
-            "Review the completed plan",
-            "Approve the plan and capture the dated approval on the page in Confluence",
+            "Read the completed plan page in Confluence end to end",
+            "Add the dated approval comment on the page",
             "Done when the dated approval appears on the page"
           ],
           "verify": [
@@ -2886,8 +3108,8 @@
           "title": "Record the Tech Lead sign-off on the plan page in Confluence",
           "actor": "Test Lead",
           "sop": [
-            "Request Tech Lead review before execution begins",
-            "Capture the dated sign-off on the page in Confluence",
+            "Open the plan page in Confluence and request Tech Lead review with an @mention",
+            "Capture the dated sign-off comment before execution begins",
             "Done when the dated Tech Lead sign-off appears"
           ],
           "verify": [
@@ -2908,12 +3130,13 @@
           "title": "Write the sprint goal as a single outcome sentence in Jira",
           "actor": "Product Owner",
           "sop": [
-            "Open the sprint's goal field in Jira",
-            "Write one outcome-focused sentence",
+            "Open the Backlog view of the team's Scrum board in Jira",
+            "Open the sprint's actions menu and choose Edit sprint",
+            "Write one outcome-focused sentence in the Sprint goal field and save",
             "Done when the goal is saved on the sprint"
           ],
           "verify": [
-            "Open the sprint in Jira",
+            "Open the sprint header in Jira",
             "Pass when a single-sentence goal is seen in the sprint field"
           ]
         },
@@ -2923,7 +3146,8 @@
           "actor": "Product Owner",
           "sop": [
             "Open the sprint goal in Jira",
-            "Link it to at least one PI objective",
+            "Add a reference to at least one PI objective in the goal text or sprint links",
+            "Save the change",
             "Done when the mapping is recorded"
           ],
           "verify": [
@@ -2936,11 +3160,14 @@
           "title": "Select 3-8 supporting stories into the sprint backlog in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Open the product backlog in Jira",
-            "Pull 3 to 8 goal-supporting stories into the sprint backlog",
+            "Open the product backlog on the Backlog view in Jira",
+            "Drag 3 to 8 goal-supporting stories into the sprint backlog",
             "Done when the sprint holds between 3 and 8 goal-supporting stories"
           ],
-          "verify": ["Count goal-supporting stories in Jira", "Pass when between 3 and 8 are found"]
+          "verify": [
+            "Count goal-supporting stories in the sprint in Jira",
+            "Pass when between 3 and 8 are found"
+          ]
         },
         {
           "n": 4,
@@ -2948,7 +3175,8 @@
           "actor": "Software Engineer",
           "sop": [
             "Open each supporting story in Jira",
-            "Confirm acceptance criteria are present",
+            "Read the acceptance criteria field",
+            "Send any blank story back for criteria before commitment",
             "Done when none lacks acceptance criteria"
           ],
           "verify": [
@@ -2962,7 +3190,8 @@
           "actor": "Software Engineer",
           "sop": [
             "Open each supporting story in Jira",
-            "Confirm an estimate is present",
+            "Read the story-point estimate field",
+            "Estimate any blank story with the team before commitment",
             "Done when none lacks an estimate"
           ],
           "verify": ["Inspect each supporting story in Jira", "Pass when an estimate is present"]
@@ -2972,8 +3201,9 @@
           "title": "Check committed points against the rolling velocity in Jira",
           "actor": "Scrum Master",
           "sop": [
-            "Open the velocity report in Jira",
-            "Compare committed points to the 3-sprint average velocity",
+            "Open the Velocity report under the board's Reports tab in Jira",
+            "Read the 3-sprint average velocity",
+            "Compare the committed points to the average",
             "Done when commitment does not exceed it"
           ],
           "verify": [
@@ -2986,8 +3216,9 @@
           "title": "Move uncommittable stories back to the product backlog in Jira",
           "actor": "Software Engineer",
           "sop": [
-            "Identify over-capacity stories in Jira",
-            "Return each to the product backlog with a note",
+            "Identify over-capacity stories in the sprint in Jira",
+            "Drag each back to the product backlog",
+            "Comment the capacity reason on each moved story",
             "Done when each moved story carries the note"
           ],
           "verify": ["Open returned stories in Jira", "Pass when the capacity note is seen on each"]
@@ -2998,7 +3229,8 @@
           "actor": "Scrum Master",
           "sop": [
             "Open the team sprint page in Confluence",
-            "Copy the sprint goal from Jira onto the page",
+            "Copy the sprint goal text from the sprint header in Jira",
+            "Paste it onto the page and publish",
             "Done when the page shows the identical goal text"
           ],
           "verify": [
@@ -3011,8 +3243,8 @@
           "title": "Record the Scrum Master sign-off on the sprint in Jira",
           "actor": "Scrum Master",
           "sop": [
-            "Confirm the sprint goal and backlog are finalized at sprint start",
-            "Add the dated sign-off on the sprint record in Jira",
+            "Confirm the sprint goal and backlog are finalized at sprint start in Jira",
+            "Add the dated sign-off comment on the sprint record",
             "Done when the dated sign-off appears on the sprint record"
           ],
           "verify": [
@@ -3033,8 +3265,9 @@
           "title": "Record each topic name per the env-domain-event convention in Confluence",
           "actor": "Data Engineer",
           "sop": [
-            "Open the topic list in Confluence",
+            "Open the topic list page in Confluence",
             "Name every in-scope topic per the env-domain-event convention",
+            "Correct any deviating name in the list",
             "Done when no topic name deviates"
           ],
           "verify": [
@@ -3047,8 +3280,8 @@
           "title": "Set the partition count for each topic in Confluence",
           "actor": "Data Engineer",
           "sop": [
-            "Open the design doc in Confluence",
-            "Record partitions per topic based on expected peak volume",
+            "Open the topology design doc in Confluence",
+            "Record the partition count per topic based on expected peak volume",
             "Done when no topic lacks a count"
           ],
           "verify": [
@@ -3061,8 +3294,9 @@
           "title": "Set the key strategy for each topic in Confluence",
           "actor": "Data Engineer",
           "sop": [
-            "Open the design doc in Confluence",
-            "Document the partition key per topic to cover ordering needs",
+            "Open the topology design doc in Confluence",
+            "Document the partition key per topic",
+            "Check each key covers the topic's ordering needs",
             "Done when ordering needs are covered per key"
           ],
           "verify": [
@@ -3075,8 +3309,8 @@
           "title": "Set the retention policy for each topic in Confluence",
           "actor": "Data Engineer",
           "sop": [
-            "Open the topic table in Confluence",
-            "Record retention per topic",
+            "Open the topic table in the design doc in Confluence",
+            "Record the retention value per topic",
             "Done when no topic lacks a retention value"
           ],
           "verify": [
@@ -3089,8 +3323,8 @@
           "title": "Set the cleanup policy for each topic in Confluence",
           "actor": "Data Engineer",
           "sop": [
-            "Open the topic table in Confluence",
-            "Record the cleanup policy per topic",
+            "Open the topic table in the design doc in Confluence",
+            "Record the cleanup policy (delete or compact) per topic",
             "Done when no topic lacks one"
           ],
           "verify": [
@@ -3103,8 +3337,8 @@
           "title": "Assign an owner to every topic in Confluence",
           "actor": "Data Engineer",
           "sop": [
-            "Open the topic table in Confluence",
-            "Name an owner per topic with its schema reference",
+            "Open the topic table in the design doc in Confluence",
+            "Name an owner per topic and add its schema reference",
             "Done when 0 topics lack an owner or schema reference"
           ],
           "verify": [
@@ -3117,8 +3351,9 @@
           "title": "Commit each event schema with typed required fields in GitHub Enterprise",
           "actor": "Backend Developer",
           "sop": [
-            "Open the schema files in GitHub Enterprise",
-            "Commit the .avsc or .proto files with typed required fields",
+            "Open the schemas directory in the repo in GitHub Enterprise",
+            "Commit the .avsc or .proto files defining required fields with types",
+            "Raise a PR for the schema files",
             "Done when every schema defines required fields with types"
           ],
           "verify": [
@@ -3131,8 +3366,9 @@
           "title": "Add doc strings to every schema field in GitHub Enterprise",
           "actor": "Backend Developer",
           "sop": [
-            "Open the schema files in GitHub Enterprise",
-            "Document each field with a doc string",
+            "Open each schema file in GitHub Enterprise",
+            "Add a doc string to every field",
+            "Commit the change to the schema branch",
             "Done when no schema field lacks a doc string"
           ],
           "verify": [
@@ -3145,8 +3381,9 @@
           "title": "Add a UTC eventTime field to every event schema in GitHub Enterprise",
           "actor": "Data Engineer",
           "sop": [
-            "Open each schema in GitHub Enterprise",
-            "Add the UTC eventTime field",
+            "Open each schema file in GitHub Enterprise",
+            "Add the UTC eventTime field with a timestamp type",
+            "Commit the change to the schema branch",
             "Done when every schema carries the UTC eventTime field"
           ],
           "verify": [
@@ -3159,8 +3396,9 @@
           "title": "Add an ingestTime field to every event schema in GitHub Enterprise",
           "actor": "Data Engineer",
           "sop": [
-            "Open each schema in GitHub Enterprise",
-            "Add the ingestTime field",
+            "Open each schema file in GitHub Enterprise",
+            "Add the ingestTime field with a timestamp type",
+            "Commit the change to the schema branch",
             "Done when every schema carries the ingestTime field"
           ],
           "verify": [
@@ -3173,8 +3411,9 @@
           "title": "Reconcile the producer-consumer mapping matrix in Confluence",
           "actor": "Software Engineer",
           "sop": [
-            "Open the mapping matrix in Confluence",
+            "Open the producer-consumer mapping matrix in Confluence",
             "Map every produced event to a declared consumer",
+            "Remove or re-home any orphan topic or dangling subscription",
             "Done when 0 orphan topics or dangling subscriptions remain"
           ],
           "verify": [
@@ -3187,8 +3426,9 @@
           "title": "Trace 5 sample business events to schema fields in Confluence",
           "actor": "Data Engineer",
           "sop": [
-            "Select 5 sample business events",
-            "Trace each from source field to schema field in Confluence",
+            "Select 5 sample business events from the design doc in Confluence",
+            "Trace each from its source field to its schema field in the mapping table",
+            "Record the trace beside each event in the doc",
             "Done when every schema field shows a source"
           ],
           "verify": [
@@ -3202,7 +3442,8 @@
           "actor": "Software Engineer",
           "sop": [
             "Open the repo in GitHub Enterprise",
-            "Commit the diagrams-as-code with the schemas",
+            "Commit the topology diagram-as-code alongside the schema files",
+            "Record the commit SHA on the design doc in Confluence for 12-month retention",
             "Done when the commit SHA is recorded for 12 months"
           ],
           "verify": [
@@ -3215,8 +3456,9 @@
           "title": "Record the Data Architect sign-off on the design doc in Confluence",
           "actor": "Data Architect",
           "sop": [
-            "Review the completed design doc in Confluence before build starts",
-            "Record the dated sign-off on the doc",
+            "Open the completed design doc in Confluence before build starts",
+            "Review the topology, contracts and matrix end to end",
+            "Add the dated sign-off comment on the doc",
             "Done when the dated sign-off appears on the doc"
           ],
           "verify": [
