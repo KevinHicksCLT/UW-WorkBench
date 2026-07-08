@@ -653,7 +653,7 @@ export function registerLensRoutes(router: Router): void {
         where.jurisdiction = { regulatorType: { in: ['FEDERAL', 'FEDERAL_SECURITIES'] } };
       else if (lens === 'international') where.jurisdiction = { regulatorType: 'INTERNATIONAL' };
       if (str(req.query.regime)) where.regime = String(req.query.regime);
-      const [cats, regimes, jurRows, owners] = await Promise.all([
+      const [cats, regimes, jurRows, owners, lobLinks] = await Promise.all([
         prisma.regulatoryRequirement.groupBy({
           by: ['category'],
           where,
@@ -672,12 +672,20 @@ export function registerLensRoutes(router: Router): void {
           distinct: ['roleId'],
           orderBy: { role: { displayValue: 'asc' } },
         }),
+        // Line-of-business family groups actually present in the scoped set —
+        // empty when the rows carry no LOB (e.g. most federal/international
+        // regimes), so the table can hide the LOB filter/column entirely.
+        prisma.requirementLineOfBusiness.findMany({
+          where: { regulation: where },
+          select: { lob: { select: { group: true } } },
+        }),
       ]);
       res.json({
         categories: cats.map((c) => c.category),
         regimes: regimes.map((r) => r.regime).filter(Boolean),
         jurisdictions: jurRows.map((j) => j.jurisdiction),
         owners: [...new Set(owners.map((o) => o.role.displayValue))],
+        groups: [...new Set(lobLinks.map((l) => l.lob.group))].sort(),
       });
     } catch (e) {
       next(e);

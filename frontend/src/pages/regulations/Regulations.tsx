@@ -159,39 +159,28 @@ const CATEGORY_LABEL: Record<string, string> = {
 };
 export const catLabel = (c: string) => CATEGORY_LABEL[c] ?? flagLabel(c);
 
-// Category → pill tone. Groups the ~30 regulatory categories into five colour
-// families so the category chip carries a hint of meaning (and colour) instead
-// of a wall of grey: blue = financial, green = actuarial/benefits/ESG,
-// amber = conduct/consumer, red = security/privacy/financial-crime,
-// slate = governance/licensing/ops.
-const CATEGORY_TONE: Record<string, 'blue' | 'green' | 'amber' | 'red' | 'slate'> = {
-  FINANCIAL_REPORTING: 'blue',
-  SOLVENCY_CAPITAL: 'blue',
-  PREMIUM_TAX: 'blue',
-  TAX_REPORTING: 'blue',
-  ACCOUNTING_AUDIT: 'blue',
-  SECURITIES_DISTRIBUTION: 'blue',
-  PRODUCT_FILING: 'blue',
-  DATA_CALL: 'blue',
-  ACTUARIAL_VALUATION: 'green',
-  EMPLOYMENT_BENEFITS: 'green',
-  CLIMATE_RISK: 'green',
-  ESG_SUSTAINABILITY: 'green',
-  MARKET_CONDUCT: 'amber',
-  CONSUMER_PROTECTION: 'amber',
-  SUITABILITY: 'amber',
-  ANTITRUST_CONDUCT: 'amber',
-  RESIDUAL_MARKET: 'amber',
-  UNCLAIMED_PROPERTY: 'amber',
-  CATASTROPHE_REPORTING: 'amber',
-  CYBERSECURITY: 'red',
-  DATA_PRIVACY: 'red',
-  AI_GOVERNANCE: 'red',
-  SANCTIONS_AML: 'red',
-  OPERATIONAL_RESILIENCE: 'red',
+// Line-of-business family group → pill tone. Colours the LOB chip and the row
+// accent by which book of business the requirement applies to; rows with no LOB
+// fall back to slate.
+const LOB_GROUP_TONE: Record<string, 'blue' | 'green' | 'amber' | 'red' | 'slate'> = {
+  Property: 'blue',
+  Title: 'blue',
+  'Financial & Credit': 'blue',
+  'Personal Auto': 'amber',
+  'Commercial Auto': 'amber',
+  'Marine & Aviation': 'amber',
+  Liability: 'red',
+  "Workers' Compensation": 'red',
+  'Alternative Risk': 'red',
+  Reinsurance: 'red',
+  'Individual Life': 'green',
+  'Group Life': 'green',
+  'Individual Annuities': 'green',
+  'Group Annuities': 'green',
+  'Medical & Health': 'green',
 };
-export const catTone = (c: string): 'blue' | 'green' | 'amber' | 'red' | 'slate' =>
-  CATEGORY_TONE[c] ?? 'slate';
+export const lobGroupTone = (group?: string): 'blue' | 'green' | 'amber' | 'red' | 'slate' =>
+  group ? (LOB_GROUP_TONE[group] ?? 'slate') : 'slate';
 
 // One-line definitions for the classification facets (surfaced on the
 // requirement page and as tooltips) — keep these as the single copy source.

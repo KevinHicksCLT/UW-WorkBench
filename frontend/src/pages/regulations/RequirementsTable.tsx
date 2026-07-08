@@ -14,17 +14,27 @@ import {
   type VsLink,
   type VsOption,
 } from '../../components/RequirementLinks';
-import { catLabel, catTone, lobGroups, marketDisplay, BOTH_MARKETS_LABEL } from './Regulations';
+import {
+  catLabel,
+  lobGroups,
+  lobGroupTone,
+  marketDisplay,
+  BOTH_MARKETS_LABEL,
+} from './Regulations';
 
-// Left-accent border colour per category tone — a hint of colour that breaks up
-// the list without the zebra banding.
-const CAT_ACCENT: Record<string, string> = {
+// Left-accent border colour per line-of-business tone — a hint of colour that
+// breaks up the list without the zebra banding.
+const LOB_ACCENT: Record<string, string> = {
   blue: 'border-l-[#2563eb]',
   green: 'border-l-[#059669]',
   amber: 'border-l-[#d97706]',
   red: 'border-l-[#dc2626]',
-  slate: 'border-l-[#d4d4d4]',
+  slate: 'border-l-[#e5e5e5]',
 };
+// The requirement's primary LOB group (first of its family groups), or undefined.
+const primaryGroup = (r: {
+  lineOfBusinessLinks?: { lob: { group: string } }[];
+}): string | undefined => lobGroups(r)[0];
 
 // Server-driven requirements grid — the ONE table used for every regulations
 // list (Regulations lens, regime page, catalog). Matches the dense Sheet look
@@ -56,29 +66,21 @@ type Filters = {
   regimes: string[];
   jurisdictions: { code: string; name: string }[];
   owners: string[];
+  groups: string[];
+};
+const EMPTY_FILTERS: Filters = {
+  categories: [],
+  regimes: [],
+  jurisdictions: [],
+  owners: [],
+  groups: [],
 };
 
-const GROUP_OPTS = [
-  'All',
-  'Property',
-  'Personal Auto',
-  'Commercial Auto',
-  'Liability',
-  "Workers' Compensation",
-  'Marine & Aviation',
-  'Individual Life',
-  'Group Life',
-  'Individual Annuities',
-  'Group Annuities',
-  'Medical & Health',
-  'Financial & Credit',
-  'Title',
-  'Reinsurance',
-  'Alternative Risk',
-  'Specialty & Other',
-];
 const PAGE_SIZE = 100;
-const GRID = '150px 90px 150px 160px minmax(0,2fr) 140px minmax(0,1.2fr) 56px';
+// Column templates — the Line-of-business column is dropped entirely when the
+// scoped set has no LOB data (most federal / international regimes).
+const GRID_LOB = '150px 90px 150px 160px minmax(0,2fr) 140px minmax(0,1.2fr) 56px';
+const GRID_NO_LOB = '150px 90px 160px minmax(0,2fr) 140px minmax(0,1.2fr) 56px';
 
 export function RequirementsTable({
   baseParams,
@@ -93,12 +95,7 @@ export function RequirementsTable({
   const { permissions } = useAuth();
   const canEdit = can(permissions, 'regulations', 'update');
   const MARKET_OPTS = ['All', 'Personal', 'Commercial', BOTH_MARKETS_LABEL];
-  const [filters, setFilters] = useState<Filters>({
-    categories: [],
-    regimes: [],
-    jurisdictions: [],
-    owners: [],
-  });
+  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
 
   const [regulator, setRegulator] = useState<string[]>([]);
   const [market, setMarket] = useState<string[]>([]);
@@ -134,8 +131,8 @@ export function RequirementsTable({
     const params = new URLSearchParams(baseParams);
     api
       .get<Filters>(withCompany(`/regulations/requirement-filters?${params.toString()}`, companyId))
-      .then(setFilters)
-      .catch(() => setFilters({ categories: [], regimes: [], jurisdictions: [], owners: [] }));
+      .then((d) => setFilters({ ...EMPTY_FILTERS, ...d }))
+      .catch(() => setFilters(EMPTY_FILTERS));
   }, [companyId, baseKey]);
 
   useEffect(() => {
@@ -254,6 +251,14 @@ export function RequirementsTable({
     () => ['All', ...filters.categories.map(catLabel).sort()],
     [filters],
   );
+  const groupOpts = useMemo(() => ['All', ...filters.groups], [filters]);
+  // The scoped set carries LOB data — drives whether the LOB column/filter shows.
+  const hasLob = filters.groups.length > 0;
+  const gridCols = hasLob ? GRID_LOB : GRID_NO_LOB;
+  // Drop any active LOB filter when the current scope has no LOB.
+  useEffect(() => {
+    if (!hasLob && group[0]) setGroup([]);
+  }, [hasLob, group]);
 
   return (
     <div>
@@ -286,7 +291,7 @@ export function RequirementsTable({
               {rows.map((r) => (
                 <div
                   key={r.id}
-                  className={`px-4 py-3 border-b border-[#f0f0f0] last:border-0 border-l-2 ${CAT_ACCENT[catTone(r.category)]} bg-white hover:bg-[#fafafa] transition-colors duration-100`}
+                  className={`px-4 py-3 border-b border-[#f0f0f0] last:border-0 border-l-2 ${LOB_ACCENT[lobGroupTone(primaryGroup(r))]} bg-white hover:bg-[#fafafa] transition-colors duration-100`}
                 >
                   <Link
                     to={`/regulations/requirement/${r.id}`}
@@ -303,9 +308,9 @@ export function RequirementsTable({
                         {r.jurisdiction.name}
                       </StatusPill>
                     </Link>
-                    <StatusPill tone={catTone(r.category)}>{catLabel(r.category)}</StatusPill>
+                    <StatusPill tone="slate">{catLabel(r.category)}</StatusPill>
                     {lobGroups(r).map((g) => (
-                      <StatusPill key={g} tone="slate">
+                      <StatusPill key={g} tone={lobGroupTone(g)}>
                         {g}
                       </StatusPill>
                     ))}
@@ -373,7 +378,7 @@ export function RequirementsTable({
           {/* Header — a combobox filter on every level */}
           <div
             className="grid items-stretch divide-x divide-[#eaeaea] border-b border-[#eaeaea] bg-[#fafafa] rounded-t-lg"
-            style={{ gridTemplateColumns: GRID }}
+            style={{ gridTemplateColumns: gridCols }}
           >
             <HeaderComboFilter
               label="Regulator"
@@ -387,12 +392,14 @@ export function RequirementsTable({
               onChange={setMarket}
               options={MARKET_OPTS}
             />
-            <HeaderComboFilter
-              label="Line of business"
-              value={group}
-              onChange={setGroup}
-              options={GROUP_OPTS}
-            />
+            {hasLob && (
+              <HeaderComboFilter
+                label="Line of business"
+                value={group}
+                onChange={setGroup}
+                options={groupOpts}
+              />
+            )}
             <HeaderComboFilter
               label="Regulation"
               value={regime}
@@ -433,8 +440,8 @@ export function RequirementsTable({
                   <div
                     key={r.id}
                     onClick={() => navigate(`/regulations/requirement/${r.id}`)}
-                    className={`grid items-stretch divide-x divide-[#f0f0f0] border-b border-[#f0f0f0] last:border-0 border-l-2 ${CAT_ACCENT[catTone(r.category)]} bg-white cursor-pointer hover:bg-[#fafafa] transition-colors duration-100`}
-                    style={{ gridTemplateColumns: GRID }}
+                    className={`grid items-stretch divide-x divide-[#f0f0f0] border-b border-[#f0f0f0] last:border-0 border-l-2 ${LOB_ACCENT[lobGroupTone(groups[0])]} bg-white cursor-pointer hover:bg-[#fafafa] transition-colors duration-100`}
+                    style={{ gridTemplateColumns: gridCols }}
                   >
                     <div className="px-2 py-1.5 min-w-0 text-[12px] truncate">
                       <Link
@@ -452,16 +459,18 @@ export function RequirementsTable({
                     >
                       {marketDisplay(r.markets)}
                     </div>
-                    <div
-                      className="px-2 py-1.5 text-[12px] text-[#525252] truncate"
-                      title={groups.join(', ')}
-                    >
-                      {groups.length
-                        ? groups.length > 1
-                          ? `${groups.length} groups`
-                          : groups[0]
-                        : 'All lines'}
-                    </div>
+                    {hasLob && (
+                      <div
+                        className="px-2 py-1.5 text-[12px] text-[#525252] truncate"
+                        title={groups.join(', ')}
+                      >
+                        {groups.length
+                          ? groups.length > 1
+                            ? `${groups.length} groups`
+                            : groups[0]
+                          : 'All lines'}
+                      </div>
+                    )}
                     <div className="px-2 py-1.5 text-[12px] min-w-0 truncate">
                       {r.regime ? (
                         <Link
