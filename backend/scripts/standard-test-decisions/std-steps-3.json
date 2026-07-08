@@ -1,0 +1,216 @@
+{
+  "standards": [
+    {
+      "id": "cmqscpni01o5smbk8kggmutwh",
+      "name": "Decisions Needed",
+      "test": [
+        "Open the latest steering-committee status report in Confluence and locate the Decisions Needed section",
+        "Check each open decision in the Confluence report lists the options considered, a recommendation, and a decision-due date",
+        "Open the governance matrix in Confluence and check it defines the next escalation tier and timeframe for stale items",
+        "Flag any decision past its due date in the report and trace its escalation record in the PPM tool (Clarity)",
+        "Check closed decisions in the Confluence report record the chosen option, the deciding authority, and the date resolved",
+        "Pass when every open decision shows options, recommendation and due date and no overdue item lacks a decision or escalation"
+      ]
+    },
+    {
+      "id": "cmqscpmya1o4qmbk8znx07ctn",
+      "name": "Deliverable Acceptance",
+      "test": [
+        "Open the project closure package in the PPM tool (Clarity) and list every deliverable from the project charter",
+        "Match one signed Deliverable Acceptance Form in the PPM repository to each charter deliverable with no unsigned gaps",
+        "Open the open-item log in the PPM tool for any deliverable not fully accepted and check deficiency, owner, and due date",
+        "Compare each form's signatory in the PPM tool against the charter's authorization matrix",
+        "Pass when every deliverable has a signed form from the charter-designated approver or a documented exception with owner and date"
+      ]
+    },
+    {
+      "id": "cmqscpmgi1o3umbk8ch6qqdgl",
+      "name": "Dependencies Identified",
+      "test": [
+        "Open the last two sprints on the board in Jira and select five backlog items committed in those sprints",
+        "Check each item in Jira shows a populated Dependencies field or linked dependency ticket dated before sprint start",
+        "Check each dependency in Jira carries the dependent team's acknowledgment recorded before sprint commitment",
+        "Filter the backlog in Jira for items flagged dependency unacknowledged and confirm none sit in an active or completed sprint",
+        "Pass when all five sampled items show acknowledged pre-commitment dependencies and no unacknowledged item entered a sprint"
+      ]
+    },
+    {
+      "id": "cmqscpoiy1o7imbk8t0o3w91f",
+      "name": "Dependencies Identified",
+      "test": [
+        "Open the program board from the most recent PI Planning event in Jira Align",
+        "Check every dependency on the board in Jira Align names the owning team, the dependent team or external group, and a date",
+        "Open the plan-review session notes in Confluence and confirm dependencies were raised and boarded during the event, not after",
+        "Pass when the final committed board contains zero dependencies without an owner or a scheduled date"
+      ]
+    },
+    {
+      "id": "cmqscojy51m6ombk801mgkl6m",
+      "name": "Design for Failure",
+      "test": [
+        "Open the ADRs for the three highest-criticality services in Confluence and check retry, circuit-breaker, and fallback rules",
+        "Run the fault-injection job against non-production in the CI pipeline (GitHub Actions) simulating one dependency outage",
+        "Read the run output in GitHub Actions and confirm a degraded response within the timeout and a breaker trip at threshold",
+        "Open the alert rules in the monitoring platform (Grafana) and check breaker trips and retry exhaustion page the on-call team",
+        "Search alert history in Grafana for at least one detected and responded event in the past 90 days",
+        "Open the CI runs for two services in GitHub Actions and confirm dependency-failure negative-path tests exist and pass",
+        "Pass when all three services document the controls, the injected outage degrades gracefully, and negative-path tests pass"
+      ]
+    },
+    {
+      "id": "cmqscp7wc1ndembk8k8ochcqt",
+      "name": "Detailed Design Reviewed by Peers",
+      "test": [
+        "Select three detailed design pages delivered in the past quarter in Confluence",
+        "Open each design's peer-review record in Confluence and check a named reviewer from outside the authoring team with org unit",
+        "Open each finding register in Confluence and check every comment has an id, a disposition, an author response, and a close date",
+        "Open the linked build ticket in Jira and confirm the design-review-passed gate was set only after all findings were closed",
+        "Compare the gate timestamp in Jira against the earliest build commit on the repository in GitHub Enterprise",
+        "Pass when all three designs show external review, fully dispositioned findings, and gate approval before the first commit"
+      ]
+    },
+    {
+      "id": "cmqscp6301na4mbk8rvf3wosu",
+      "name": "Distributed Tracing Enabled",
+      "test": [
+        "Query the tracing platform (Jaeger) for every production service in the service inventory over the prior 7-day period",
+        "Confirm in Jaeger that no inventoried service shows zero spans for the period",
+        "Open one quote-to-issue trace in Jaeger and check context flows across HTTP calls, a queue handoff, and a scheduled job",
+        "Open the tracing config of three services (HTTP, messaging, batch) in GitHub Enterprise and check W3C or B3 header propagation",
+        "Run the latency-injection test on a staging service and locate the slow span and operation in the Jaeger UI",
+        "Pass when all inventoried services emit spans over 7 days and the sampled trace is unbroken with the slow span isolated"
+      ]
+    },
+    {
+      "id": "cmqscp4fb1n70mbk8lf9qj0kl",
+      "name": "Encryption and Masking Applied",
+      "test": [
+        "Run the encryption posture scan across all PII data stores in the cloud security posture tool (AWS Security Hub)",
+        "Review the scan results in AWS Security Hub for AES-256 at rest and TLS 1.2+ in transit with no deprecated ciphers",
+        "Run a profiling query in the non-production database for clear-text SSN, bank account, and date-of-birth values",
+        "Open the masking standards document in Confluence and check an approved technique per element with a current-cycle approval",
+        "Run a profiling report on one analytical dataset in the warehouse and confirm no raw SSN or bank detail columns remain",
+        "Pass when all PII stores scan compliant, non-production shows zero clear-text identifiers, and the standard is approved"
+      ]
+    },
+    {
+      "id": "cmqscp40w1n68mbk86db9qx14",
+      "name": "Escalation Path Defined",
+      "test": [
+        "Open the escalation procedure page in Confluence and check three tiers with a named response timeframe at each tier",
+        "Export the data dispute log for the trailing 6 months from the governance module in ServiceNow ITSM",
+        "Trace each dispute in ServiceNow ITSM through the tiers and check timeframes were met or a fast-track rationale is recorded",
+        "Check each fast-tracked issue in ServiceNow ITSM cites regulatory or financial-reporting exposure and a decision within SLA",
+        "Pass when the procedure defines all tiers with timeframes and every logged dispute met them or was fast-tracked with rationale"
+      ]
+    },
+    {
+      "id": "cmqscpn4e1o52mbk8fe1tdq2i",
+      "name": "Escalation Triggers",
+      "test": [
+        "Open the escalation-trigger ruleset in the PPM tool (Clarity) and check numeric thresholds for reds, variance, and milestones",
+        "Export the last three months of portfolio status reports from the PPM tool and flag initiatives that met a trigger",
+        "Open the board exception agenda in Confluence and match every flagged initiative to an agenda entry within the required cycle",
+        "Inspect the escalation workflow in the PPM tool and confirm a trigger breach auto-generates the escalation without manual steps",
+        "Open the last quarter's exception agenda minutes in Confluence and check each escalation cites the triggering rule by code",
+        "Pass when thresholds are numeric, every breach reached the exception agenda automatically, and minutes cite the rule by code"
+      ]
+    },
+    {
+      "id": "cmqscp41u1n6ambk8av928k36",
+      "name": "Every Dataset Has Assigned Owner and Steward",
+      "test": [
+        "Export all registered datasets with owner and steward fields from the enterprise data catalog (Collibra)",
+        "Compute the share of datasets with both fields populated in the export and compare to the 100% active-dataset target",
+        "Sample 10 datasets onboarded in the last 12 months in Collibra and check ownership was recorded by onboarding completion",
+        "Run the unowned-dataset report in Collibra and open each flagged dataset's remediation ticket in Jira",
+        "Check each ticket in Jira has an assignee and target resolution date or links a documented retirement decision",
+        "Pass when 100% of active datasets name both owner and steward and every unowned dataset has a remediation or retirement action"
+      ]
+    },
+    {
+      "id": "cmqscp5r61n9kmbk8xcnz45ig",
+      "name": "Examples Provided",
+      "test": [
+        "Select a random sample of 5 documented endpoints in the API developer portal (SwaggerHub)",
+        "Check each sampled endpoint in SwaggerHub shows a request example, a success response example, and at least one error example",
+        "Scan each example payload in SwaggerHub for real policy numbers, claim IDs, or names and confirm all values are synthetic",
+        "Run each success-path example against the non-production environment in Postman and compare the response to the documented one",
+        "Pass when all 5 endpoints show success and error examples, contain only synthetic data, and execute as documented"
+      ]
+    },
+    {
+      "id": "cmqscp52f1n86mbk8r0wpjzka",
+      "name": "Externalized Configuration",
+      "test": [
+        "Run the secrets scan (detect-secrets) against the promoted artifact in the CI pipeline (GitHub Actions)",
+        "Open the application's startup config in GitHub Enterprise and check values resolve at runtime from the secrets manager (Vault)",
+        "Review the runtime access logs in the secrets manager (Vault) for the application's configuration reads",
+        "Compare the artifact SHA-256 digest in the GitHub Actions registry against the production deployment manifest",
+        "Push a test build with a hard-coded credential and confirm the secrets-scan stage blocks promotion in GitHub Actions",
+        "Pass when the artifact has zero credential findings, digests match test to production, and the seeded credential is blocked"
+      ]
+    },
+    {
+      "id": "cmqscp7yf1ndimbk88bl6scpw",
+      "name": "Failures Block Deployment",
+      "test": [
+        "Open the pipeline config for a production insurance service in GitHub Enterprise and check fitness functions are required gates",
+        "Push a branch with a deliberate fitness-function violation and run the pipeline in GitHub Actions",
+        "Read the run log in GitHub Actions and confirm the build stops at the gate, names the violated rule, and skips promotion",
+        "Open the exception register in Confluence and check every bypass in the past 90 days has approval, justification, and expiry",
+        "Confirm in Confluence that no exception remains open past its expiry date",
+        "Pass when the gate blocks the seeded violation and all 90-day exceptions are approved, time-boxed, and not expired"
+      ]
+    },
+    {
+      "id": "cmqscp6s71nbambk8gf041kt6",
+      "name": "Feature Branches Under Three Days",
+      "test": [
+        "Open the branch list on the repository in GitHub Enterprise and export active feature branches with creation dates",
+        "Flag any open branch older than three working days in the GitHub Enterprise export",
+        "Open each flagged branch's story in Jira and check it is decomposed into mergeable sub-tasks",
+        "Search the flag management system (LaunchDarkly) for a flag entry keeping each flagged branch's unreleased work dark",
+        "Pull merge records for the past two sprints from GitHub Enterprise and compare manual conflict frequency against branch ages",
+        "Pass when no branch exceeds three working days without decomposition and a covering feature flag"
+      ]
+    },
+    {
+      "id": "cmqscp5iy1n94mbk8j5p53imq",
+      "name": "Functionality, Tests, Security, Performance, and Maintainability Checked",
+      "test": [
+        "Open the PR checklist template in GitHub Enterprise and check items for functionality, tests, security, performance, upkeep",
+        "Select 5 recently merged pull requests on the repository in GitHub Enterprise",
+        "Check each sampled PR in GitHub Enterprise shows the reviewer attested to all five checklist dimensions before approval",
+        "Check security comments on each sampled PR in GitHub Enterprise and confirm injection or exposure findings closed before merge",
+        "Open the CI checks on each PR in GitHub Actions and the scan results in SonarQube and check coverage and SAST passed or waived",
+        "Pass when the checklist covers all five dimensions and all 5 sampled PRs show full attestation with passing or waived gates"
+      ]
+    },
+    {
+      "id": "cmqscp90c1nfkmbk8ckoav1oj",
+      "name": "GitOps Workflow",
+      "test": [
+        "Open the IAM role assignments in the AWS console and confirm only the pipeline identity holds environment write access",
+        "Sample five infrastructure changes from the past 60 days on the repository in GitHub Enterprise",
+        "Check each sampled change in GitHub Enterprise merged via a pull request with at least one peer-review approval",
+        "Open the deployment runs in GitHub Actions and confirm each sampled change was applied by the pipeline, not manually",
+        "Run terraform apply from a workstation against a managed environment and find the access-denied entry in the AWS audit trail",
+        "Review the commit history in GitHub Enterprise for unbroken lineage with no orphaned or force-pushed commits",
+        "Pass when only the pipeline can write, all five changes were peer-reviewed and pipeline-deployed, and manual apply is denied"
+      ]
+    },
+    {
+      "id": "cmqscp34t1n4mmbk8go3b2xdt",
+      "name": "Governed Data Sources Only",
+      "test": [
+        "Export the full data source connection list from the admin portal in the BI platform (Power BI)",
+        "Match every connection in the export to the certified semantic layer or an approved warehouse schema and flag any other source",
+        "Attempt to publish a report from a prohibited source (operational system or personal spreadsheet) in Power BI",
+        "Confirm in Power BI that the governance control blocks or forces approval before the report can be saved or published",
+        "Open the approved source registry in Confluence and check it was reviewed within the past quarter and matches the platform",
+        "Pass when every active connection is approved, the prohibited source is blocked, and the registry matches the platform exactly"
+      ]
+    }
+  ]
+}

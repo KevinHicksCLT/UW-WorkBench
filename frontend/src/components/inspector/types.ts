@@ -37,7 +37,9 @@ export type TestingRollup = {
   expected: string | null;
 };
 // Work Library plan surfacing (defined value → green ✓, missing → red ✗).
-export type PlanRow = { key: string; value: string | null; defined: boolean };
+// generic — true = generic template key (from the assigned pattern), false =
+// item-specific step; the tabs label the two groups distinctly.
+export type PlanRow = { key: string; value: string | null; defined: boolean; generic: boolean };
 export type TiedPlan = {
   id: string;
   name: string;

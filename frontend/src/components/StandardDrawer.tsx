@@ -14,6 +14,8 @@ import { Chip, DrawerShell, EmptyState, ErrorMessage, SkeletonLoader } from './u
 
 type ValueStream = { id: string; name: string; domain: string | null };
 type Responsible = { roleId: string; roleName: string; roleLevel: string | null };
+// One work-plan key; generic = from the assigned pattern, else item-specific.
+type PlanKey = { key: string; generic: boolean };
 type Item = {
   id: string;
   category: string;
@@ -27,7 +29,7 @@ type Item = {
   regCitation: string | null;
   testProcedure: string | null;
   evidence: string | null;
-  plan: { checklist: string[]; testing: string[] } | null; // Work Library plan keys
+  plan: { checklist: PlanKey[]; testing: PlanKey[] } | null; // Work Library plan keys
   responsible: Responsible | null;
   appliers: { roleId: string; roleName: string }[];
   valueStreams: ValueStream[];
@@ -44,6 +46,35 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
     {children}
   </div>
 );
+
+// Ordered plan keys split into labeled generic (pattern) and specific (this
+// item) groups; numbering runs continuously across the two groups.
+const PlanKeyList = ({ keys, className }: { keys: PlanKey[]; className?: string }) => {
+  const generic = keys.filter((k) => k.generic);
+  const specific = keys.filter((k) => !k.generic);
+  const group = (label: string, rows: PlanKey[], start: number) =>
+    rows.length > 0 && (
+      <div>
+        <div className="text-[9px] font-semibold uppercase tracking-[0.08em] text-[#8a94a0] mb-0.5">
+          {label}
+        </div>
+        <ol
+          start={start}
+          className="text-sm text-[#171717] leading-relaxed list-decimal pl-5 space-y-1"
+        >
+          {rows.map((k, i) => (
+            <li key={i}>{k.key}</li>
+          ))}
+        </ol>
+      </div>
+    );
+  return (
+    <div className={'space-y-1.5' + (className ? ` ${className}` : '')}>
+      {group('Generic steps · pattern', generic, 1)}
+      {group('Specific steps · this item', specific, generic.length + 1)}
+    </div>
+  );
+};
 
 export default function StandardDrawer({
   areaId,
@@ -259,27 +290,20 @@ export default function StandardDrawer({
             </div>
           )}
 
-          {/* Work Library plan — checklist + testing keys (values filled there) */}
+          {/* Work Library plan — checklist + testing keys (values filled there),
+                  generic pattern keys and item-specific steps as labeled groups */}
           {item.plan?.checklist.length || item.plan?.testing.length ? (
             <div>
               {item.plan!.checklist.length > 0 && (
                 <>
                   <SectionLabel>Checklist</SectionLabel>
-                  <ol className="text-sm text-[#171717] leading-relaxed list-decimal pl-5 space-y-1 mb-2">
-                    {item.plan!.checklist.map((s, i) => (
-                      <li key={i}>{s}</li>
-                    ))}
-                  </ol>
+                  <PlanKeyList keys={item.plan!.checklist} className="mb-2" />
                 </>
               )}
               {item.plan!.testing.length > 0 && (
                 <>
                   <SectionLabel>Testing</SectionLabel>
-                  <ol className="text-sm text-[#171717] leading-relaxed list-decimal pl-5 space-y-1">
-                    {item.plan!.testing.map((s, i) => (
-                      <li key={i}>{s}</li>
-                    ))}
-                  </ol>
+                  <PlanKeyList keys={item.plan!.testing} />
                 </>
               )}
             </div>

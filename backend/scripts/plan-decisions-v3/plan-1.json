@@ -1,0 +1,3354 @@
+{
+  "batch": 1,
+  "tasks": [
+    {
+      "taskId": "0ac28711-d0c7-4dfc-8d22-a967a71b34d5",
+      "taskName": "Apply prioritization framework to rank items",
+      "verifier": "Product Owner",
+      "removeParticipants": ["Software Engineer"],
+      "steps": [
+        {
+          "n": 1,
+          "title": "Confirm the ranking scope covers all Ready items in Jira",
+          "actor": "Product Owner",
+          "sop": [
+            "Open the Backlog view of the team's Scrum board in Jira and filter the backlog by status Ready",
+            "Save the filtered result as the ranking list for the cycle",
+            "Compare the list against the candidate work slated for the next 2-3 sprints on the roadmap view",
+            "Add any missing candidate item to the ranking list",
+            "Done when every Ready item for the next 2-3 sprints appears on the ranking list"
+          ],
+          "verify": [
+            "Open the Jira backlog, apply the same status Ready filter and compare the results to the ranking list",
+            "Pass when every Ready item appears on the ranking list"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Enter the business value score on each Ready item in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open the saved ranking list filter in Jira and open the first Ready item",
+            "Enter the agreed relative score in the WSJF Business Value field and save",
+            "Repeat for every remaining item on the ranking list",
+            "Done when every Ready item has a business value score recorded"
+          ],
+          "verify": [
+            "Open the ranking list in Jira and add the WSJF Business Value column to the list view",
+            "Scan the column for blank cells",
+            "Pass when no Ready item is missing a business value score"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Enter the time criticality score on each Ready item in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open the saved ranking list filter in Jira and open the first Ready item",
+            "Enter the agreed relative score in the WSJF Time Criticality field and save",
+            "Repeat for every remaining item on the ranking list",
+            "Done when every Ready item has a time criticality score recorded"
+          ],
+          "verify": [
+            "Open the ranking list in Jira and add the WSJF Time Criticality column to the list view",
+            "Scan the column for blank cells",
+            "Pass when no Ready item is missing a time criticality score"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Enter the risk reduction score on each Ready item in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open the saved ranking list filter in Jira and open the first Ready item",
+            "Enter the agreed relative score in the WSJF Risk Reduction field and save",
+            "Repeat for every remaining item on the ranking list",
+            "Done when every Ready item has a risk reduction score recorded"
+          ],
+          "verify": [
+            "Open the ranking list in Jira and add the WSJF Risk Reduction column to the list view",
+            "Scan the column for blank cells",
+            "Pass when no Ready item is missing a risk reduction score"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Enter the job size estimate on each Ready item in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open the saved ranking list filter in Jira and open the first Ready item",
+            "Enter the agreed relative estimate in the WSJF Job Size field and save",
+            "Repeat for every remaining item on the ranking list",
+            "Done when 0 items remain without a job size estimate"
+          ],
+          "verify": [
+            "Run a JQL filter in Jira for status Ready items with an empty Job Size field",
+            "Pass when the filter returns 0 items"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Compute the WSJF score on each Ready item in Jira",
+          "actor": "Product Owner",
+          "sop": [
+            "Open the WSJF report view for the ranking cycle in Jira",
+            "Run the WSJF calculation so each item's score computes from its four component fields",
+            "Confirm the computed score stores on each item's WSJF field",
+            "Done when 100% of Ready items carry a stored WSJF score"
+          ],
+          "verify": [
+            "Open a sample of Ready items in Jira and recompute each WSJF score from the four component fields",
+            "Compare each recomputed score to the stored WSJF field value",
+            "Pass when 100% of sampled items match"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Resolve ranking ties among the top 10 items in Jira",
+          "actor": "Product Owner",
+          "sop": [
+            "Open the ranking list in Jira and sort it by the WSJF score column descending",
+            "Identify any tied scores within the top 10 positions",
+            "Reorder the tied items by dragging them into rank order using the agreed secondary criterion",
+            "Done when the top 10 ordering is a strict total order with no ties"
+          ],
+          "verify": [
+            "Sort the ranking list by WSJF score in Jira and read the top 10 positions",
+            "Pass when no two items share a rank"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Flag items lacking WSJF inputs as Needs Refinement in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Run a JQL filter in Jira for ranking-list items with any empty WSJF component field",
+            "Apply the Needs Refinement label to each result from the item's detail panel",
+            "Drag each labelled item out of the ranked order so it holds no rank",
+            "Done when every incomplete item is excluded from ranking until inputs are complete"
+          ],
+          "verify": [
+            "Run the same JQL filter in Jira for items missing a WSJF input",
+            "Pass when every result carries the Needs Refinement flag and no rank"
+          ]
+        },
+        {
+          "n": 9,
+          "title": "Record the rationale for any priority override in the item comments in Jira",
+          "actor": "Product Owner",
+          "sop": [
+            "Open the ranking list in Jira and compare each item's position to its WSJF score order",
+            "Open each item ranked out of its WSJF order",
+            "Add a comment on the item explaining the override rationale and save",
+            "Done when every overridden item carries a rationale comment"
+          ],
+          "verify": [
+            "Sort the ranking list by WSJF score in Jira and list items whose rank departs from score order",
+            "Open each and read its comments",
+            "Pass when each carries a Product Owner rationale comment"
+          ]
+        },
+        {
+          "n": 10,
+          "title": "Export the ranked order snapshot to the planning page in Confluence",
+          "actor": "Product Owner",
+          "sop": [
+            "Open the final ranked order view in Jira",
+            "Export the ranked list from the view's Export menu",
+            "Open the cycle's planning page in Confluence and paste the snapshot with a timestamp",
+            "Publish the page",
+            "Done when a timestamped snapshot of the prioritized order is published for the cycle"
+          ],
+          "verify": [
+            "Open the cycle's planning page in Confluence",
+            "Pass when a snapshot with a timestamp exists"
+          ]
+        },
+        {
+          "n": 11,
+          "title": "Reconcile the ranked item count to the Ready item count in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open the ranking list in Jira and read its item count from the view footer",
+            "Run a JQL filter for status Ready on the board and read that count",
+            "Compare the two counts and resolve any gap by adding or removing items",
+            "Done when the two counts match exactly"
+          ],
+          "verify": [
+            "Count the ranked list and the status Ready filter results separately in Jira",
+            "Pass when the delta is 0"
+          ]
+        },
+        {
+          "n": 12,
+          "title": "Record the Product Owner sign-off on the ranked backlog in Jira",
+          "actor": "Product Owner",
+          "sop": [
+            "Open the finished ranked backlog for the cycle in Jira",
+            "Review the order against the WSJF scores and the override comments",
+            "Add a sign-off comment on the ranking record naming the cycle",
+            "Done when the ranked backlog for the cycle is published with a sign-off comment"
+          ],
+          "verify": [
+            "Open the ranking record in Jira and read its comments",
+            "Pass when the Product Owner sign-off comment is present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "1538d00f-a70d-44d2-9154-aeef81df519c",
+      "taskName": "Apply version control to documentation set",
+      "verifier": "Software Engineer",
+      "removeParticipants": [],
+      "steps": [
+        {
+          "n": 1,
+          "title": "Open a pull request for the reviewed documentation set in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the docs repository in GitHub Enterprise and create a new branch for the reviewed set",
+            "Push the branch and open a pull request targeting main from the Pull requests tab",
+            "Confirm no reviewed doc change is committed directly to main",
+            "Done when no reviewed doc is committed directly to main"
+          ],
+          "verify": [
+            "Open the commit history on main for the docs repository in GitHub Enterprise",
+            "Pass when the docs changes exist on a PR branch rather than direct commits to main"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Commit each reviewed document to the docs repo in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the PR branch of the docs repository in GitHub Enterprise",
+            "Commit every document on the review list to the branch",
+            "Refresh the PR's Files changed tab and tick off each review-list document as it appears",
+            "Done when every reviewed document appears in the PR changeset"
+          ],
+          "verify": [
+            "Open the PR's Files changed tab in GitHub Enterprise and compare it to the review list",
+            "Pass when no reviewed doc is missing from the changeset"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Apply the release version tag to the docs commit in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the docs commit on the PR branch in GitHub Enterprise and copy its commit SHA",
+            "Open the Tags page on the repository and create the release version tag pointing at that SHA",
+            "Done when the docs commit carries the release tag"
+          ],
+          "verify": [
+            "Open the Tags page on the repository in GitHub Enterprise",
+            "Pass when the release tag points at the docs commit"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record the author on each committed document in GitHub Enterprise",
+          "actor": "Backend Developer",
+          "sop": [
+            "Open the Commits tab of the docs PR in GitHub Enterprise",
+            "Open each document's commit and read the author line in the commit header",
+            "Ask any author with missing or misattributed metadata to amend and re-push the commit",
+            "Done when each committed doc shows its author in the commit metadata"
+          ],
+          "verify": [
+            "Open the Commits tab of the docs PR in GitHub Enterprise",
+            "Pass when each doc commit names an author"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Link the release change ticket on the pull request in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the docs PR in GitHub Enterprise and click Edit on the description",
+            "Paste the release change ticket link into the description and save",
+            "Click the link to confirm it resolves",
+            "Done when the PR description references the release change ticket"
+          ],
+          "verify": [
+            "Open the PR description in GitHub Enterprise and click the change ticket link",
+            "Pass when the change ticket link resolves"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record excluded documents with reasons in the PR description in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the docs PR in GitHub Enterprise and click Edit on the description",
+            "Add an Exclusions section listing each intentionally excluded document",
+            "Record the reason next to each entry such as superseded and save",
+            "Done when every exclusion carries a reason"
+          ],
+          "verify": [
+            "Read the Exclusions section of the PR description in GitHub Enterprise",
+            "Pass when every exclusion carries a reason"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Reconcile the reviewed-doc list against the repo tree in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the review list on the docs review page in Confluence and count the documents",
+            "Open the PR's Files changed tab in GitHub Enterprise and count the committed documents",
+            "Compare the two counts and commit any missing document to the branch",
+            "Done when the reconciliation shows 0 gaps between reviewed docs and committed docs"
+          ],
+          "verify": [
+            "Compare the reviewed-doc list to the PR's Files changed tab in GitHub Enterprise",
+            "Pass when the counts are equal"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Confirm the docs build passes on the PR in GitHub Actions",
+          "actor": "UI Developer",
+          "sop": [
+            "Open the docs PR in GitHub Enterprise and select the Checks tab",
+            "Open the docs-build workflow run in GitHub Actions",
+            "Fix any reported errors and re-run the job until it passes",
+            "Done when the docs-build check on the PR is green"
+          ],
+          "verify": [
+            "Open the Checks tab on the PR and read the docs-build run status in GitHub Actions",
+            "Pass when the docs-build run finished green"
+          ]
+        },
+        {
+          "n": 9,
+          "title": "Confirm prior versions are retrievable from history in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open a sampled document in the docs repository in GitHub Enterprise and click History",
+            "Select an earlier commit and open that version of the document",
+            "Confirm the prior content renders",
+            "Done when a prior version of a sampled doc can be opened from git history"
+          ],
+          "verify": [
+            "Open the same sampled document's History in GitHub Enterprise and open an earlier version",
+            "Pass when an earlier version opens successfully"
+          ]
+        },
+        {
+          "n": 10,
+          "title": "Record the Tech Lead approval on the pull request in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the docs PR in GitHub Enterprise and click Reviewers in the right-hand panel",
+            "Request review from the Tech Lead",
+            "Hold the PR unmerged until the approval appears in the review panel",
+            "Done when the Tech Lead approval appears on the PR before merge"
+          ],
+          "verify": [
+            "Open the Reviews section of the PR in GitHub Enterprise",
+            "Pass when an approval by the Tech Lead is present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "410766f8-78ef-4a37-a2fd-8c47ce874ec0",
+      "taskName": "Archive completed and de-scoped backlog items",
+      "verifier": "Product Owner",
+      "removeParticipants": [],
+      "steps": [
+        {
+          "n": 1,
+          "title": "List all Done items eligible for archival at iteration close in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open the team's board in Jira and run a JQL filter for items in status Done at iteration close",
+            "Save the result set as the archival worklist filter",
+            "Done when every Done item at close appears on the archival worklist"
+          ],
+          "verify": [
+            "Run the status Done filter for the closed iteration in Jira and compare results to the worklist",
+            "Pass when each appears on the worklist"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "List all de-scoped items eligible for archival in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open the team's board in Jira and run a JQL filter for items de-scoped at iteration close",
+            "Add every matching item to the saved archival worklist filter",
+            "Done when every de-scoped item at close appears on the archival worklist"
+          ],
+          "verify": [
+            "Run the de-scoped filter in Jira and compare results to the archival worklist",
+            "Pass when each appears on the worklist"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record the closure rationale on each eligible item in Jira",
+          "actor": "Product Owner",
+          "sop": [
+            "Open the archival worklist filter in Jira and open the first item",
+            "Enter the closure rationale in the item's rationale field and save",
+            "Repeat for every remaining worklist item",
+            "Done when no eligible item lacks a closure rationale"
+          ],
+          "verify": [
+            "Open each worklist item in Jira and read the rationale field",
+            "Pass when the closure rationale field is populated"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record the resolver with the closure date on each item in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open the archival worklist filter in Jira and open each item",
+            "Set the resolver field to the person who closed the work",
+            "Set the closure date field and save",
+            "Done when each eligible item shows its resolver and closure date"
+          ],
+          "verify": [
+            "Open each worklist item in Jira and read the resolver and closure date fields",
+            "Pass when resolver plus closure date are set"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Link the delivering PR or release on each Done item in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open each Done item on the archival worklist in Jira",
+            "Open the item's Development panel and link the delivering PR from GitHub Enterprise",
+            "Attach the release link instead where no PR applies",
+            "Done when every Done item links its delivering PR or release"
+          ],
+          "verify": [
+            "Open each Done item in Jira and click its delivery link",
+            "Pass when the delivery link resolves"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Link the de-scope decision record on each de-scoped item in Jira",
+          "actor": "Product Owner",
+          "sop": [
+            "Open each de-scoped item on the archival worklist in Jira",
+            "Add a web link to its de-scope decision record page in Confluence",
+            "Done when every de-scoped item links its decision record"
+          ],
+          "verify": [
+            "Open each de-scoped item in Jira and click the decision record link",
+            "Pass when the decision record link resolves"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Open a closure-rationale-missing sub-task for each held-back item in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Run the archival worklist filter in Jira and add a column for the rationale field",
+            "Identify the items with a blank rationale",
+            "Create a sub-task on each, assign it to the item owner and set a 3-business-day due date",
+            "Done when every held-back item has an open sub-task assigned with a due date"
+          ],
+          "verify": [
+            "Open each held-back item in Jira and expand its sub-tasks",
+            "Pass when a sub-task exists with an assignee and a due date"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Move eligible items to the archived board within 2 business days in Jira",
+          "actor": "Product Owner",
+          "sop": [
+            "Open the completed archival worklist in Jira",
+            "Bulk-select the eligible items and move them to the archived board with the bulk change tool",
+            "Complete the move within 2 business days of iteration close",
+            "Done when no eligible item remains on the active backlog after the run"
+          ],
+          "verify": [
+            "Search the active backlog in Jira for Done or de-scoped items from the closed iteration",
+            "Pass when no Done or de-scoped item from the closed iteration remains"
+          ]
+        },
+        {
+          "n": 9,
+          "title": "Confirm archived items retain full history in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open a sampled archived item on the archived board in Jira",
+            "Open its History tab and review the transitions",
+            "Review the comments and linked items for completeness",
+            "Done when a sampled archived item shows its transitions, comments and links intact"
+          ],
+          "verify": [
+            "Open the same sampled archived item in Jira and read its History, comments and links",
+            "Pass when the full history is present"
+          ]
+        },
+        {
+          "n": 10,
+          "title": "Tag audit-relevant archived items for 7-year retention in Jira",
+          "actor": "Product Owner",
+          "sop": [
+            "Run a filter on the archived board in Jira for items linked to regulatory or audit deliverables",
+            "Open each result and apply the retention tag per the records-retention policy",
+            "Done when each audit-linked item carries the retention tag"
+          ],
+          "verify": [
+            "Run the audit-linked filter on the archived board in Jira",
+            "Pass when each audit-linked item carries the retention tag"
+          ]
+        },
+        {
+          "n": 11,
+          "title": "Reconcile the archived count to the eligible count in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Run the archival worklist filter in Jira and read its item count",
+            "Open the archived board and read its item count for the run",
+            "Compare the two counts and archive any missed item",
+            "Done when the delta between eligible and archived counts is 0"
+          ],
+          "verify": [
+            "Compare the worklist count to the archived board count in Jira",
+            "Pass when the delta is 0"
+          ]
+        },
+        {
+          "n": 12,
+          "title": "Record the Scrum Master sign-off on the archival run in Jira",
+          "actor": "Product Owner",
+          "sop": [
+            "Open the archival run ticket in Jira and assign it to the Scrum Master for review",
+            "Ask the Scrum Master to add a sign-off comment on the ticket",
+            "Done when the Scrum Master sign-off is recorded on the archival run"
+          ],
+          "verify": [
+            "Open the archival run ticket in Jira and read its comments",
+            "Pass when the Scrum Master sign-off is present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "1e8b513d-ba20-4771-b54b-c313d04914d3",
+      "taskName": "Archive governance artefacts for audit",
+      "verifier": "Software Engineer",
+      "removeParticipants": [],
+      "steps": [
+        {
+          "n": 1,
+          "title": "Upload the architecture review record for the release in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the release evidence folder in the GRC platform (Archer/ServiceNow GRC)",
+            "Click Upload and select the architecture review record file",
+            "Open the uploaded file from the folder listing to confirm it renders",
+            "Done when the architecture review record sits in the release evidence folder"
+          ],
+          "verify": [
+            "Open the release evidence folder in the GRC platform (Archer/ServiceNow GRC)",
+            "Open the architecture review record from the listing",
+            "Pass when the architecture review record is present"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Upload the ADRs for the release in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the release evidence folder in the GRC platform (Archer/ServiceNow GRC)",
+            "Click Upload and add every ADR tied to the release",
+            "Cross-check the uploaded list against the release ADR list in GitHub Enterprise",
+            "Done when every release ADR sits in the evidence folder"
+          ],
+          "verify": [
+            "Open the release evidence folder in the GRC platform (Archer/ServiceNow GRC)",
+            "Compare its ADR entries to the release ADR list",
+            "Pass when the ADRs are present"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Upload the security review sign-off in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the release evidence folder in the GRC platform (Archer/ServiceNow GRC)",
+            "Click Upload and select the security review sign-off document",
+            "Open the uploaded file from the folder listing to confirm it renders",
+            "Done when the security review sign-off sits in the evidence folder"
+          ],
+          "verify": [
+            "Open the release evidence folder in the GRC platform (Archer/ServiceNow GRC)",
+            "Pass when the security sign-off is present"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Upload the threat model in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the release evidence folder in the GRC platform (Archer/ServiceNow GRC)",
+            "Click Upload and select the threat model document",
+            "Open the uploaded file from the folder listing to confirm it renders",
+            "Done when the threat model sits in the evidence folder"
+          ],
+          "verify": [
+            "Open the release evidence folder in the GRC platform (Archer/ServiceNow GRC)",
+            "Pass when the threat model is present"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Upload the test evidence in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the release evidence folder in the GRC platform (Archer/ServiceNow GRC)",
+            "Click Upload and select the test evidence package",
+            "Open the uploaded file from the folder listing to confirm it renders",
+            "Done when the test evidence sits in the evidence folder"
+          ],
+          "verify": [
+            "Open the release evidence folder in the GRC platform (Archer/ServiceNow GRC)",
+            "Pass when the test evidence is present"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Upload the change approval record in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Software Engineer",
+          "sop": [
+            "Export the change approval record from the CHG ticket in ServiceNow ITSM",
+            "Open the release evidence folder in the GRC platform (Archer/ServiceNow GRC)",
+            "Click Upload and select the exported approval record",
+            "Done when the change approval record sits in the evidence folder"
+          ],
+          "verify": [
+            "Open the release evidence folder in the GRC platform (Archer/ServiceNow GRC)",
+            "Pass when the change approval record is present"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Tag each artefact with the release ID in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the artefact index for the release in the GRC platform (Archer/ServiceNow GRC)",
+            "Open each artefact's index entry and enter the release ID in the tag field",
+            "Save the entry and repeat for every artefact",
+            "Done when every archived artefact carries the release ID tag"
+          ],
+          "verify": [
+            "Open each index entry in the GRC platform (Archer/ServiceNow GRC)",
+            "Pass when the release ID is set"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Reference the CHG number on each artefact index entry in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Tech Lead",
+          "sop": [
+            "Open the CHG record in ServiceNow ITSM and copy the CHG number",
+            "Open each artefact index entry in the GRC platform (Archer/ServiceNow GRC)",
+            "Paste the CHG number into the entry's change reference field and save",
+            "Done when every index entry references the ServiceNow CHG number"
+          ],
+          "verify": [
+            "Open each index entry in the GRC platform (Archer/ServiceNow GRC)",
+            "Pass when the CHG reference is set"
+          ]
+        },
+        {
+          "n": 9,
+          "title": "Record the SHA-256 hash on each archived artefact in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Software Engineer",
+          "sop": [
+            "Download each archived artefact from the release folder in the GRC platform (Archer/ServiceNow GRC)",
+            "Compute its SHA-256 hash with a terminal hash utility such as sha256sum",
+            "Paste the hash into the artefact's index entry and save",
+            "Done when every artefact carries an immutable version with its hash"
+          ],
+          "verify": [
+            "Download a sampled artefact, recompute its SHA-256 hash and open its index entry in the GRC platform",
+            "Pass when the recomputed hash matches the stored hash"
+          ]
+        },
+        {
+          "n": 10,
+          "title": "Apply the SDLC-7Y retention policy to the release folder in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Tech Lead",
+          "sop": [
+            "Open the release folder settings in the GRC platform (Archer/ServiceNow GRC)",
+            "Select the SDLC-7Y retention policy from the retention dropdown",
+            "Untick the auto-purge option and save the settings",
+            "Done when 7-year retention is enforced with auto-purge disabled"
+          ],
+          "verify": [
+            "Open the release folder settings in the GRC platform (Archer/ServiceNow GRC)",
+            "Pass when the SDLC-7Y policy is applied with auto-purge disabled"
+          ]
+        },
+        {
+          "n": 11,
+          "title": "Cite NYDFS 500.06 on the archive index entry in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the archive index entry in the GRC platform (Archer/ServiceNow GRC)",
+            "Add the NYDFS 500.06 citation in the regulatory reference field",
+            "Add the SDLC-GOV-01 standard citation and save the entry",
+            "Done when the index entry cites NYDFS 500.06 plus the SDLC-GOV-01 standard"
+          ],
+          "verify": [
+            "Read the archive index entry in the GRC platform (Archer/ServiceNow GRC)",
+            "Pass when both citations are present"
+          ]
+        },
+        {
+          "n": 12,
+          "title": "Reconcile the artefact count to the governance checklist in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the artefact index for the release in the GRC platform (Archer/ServiceNow GRC) and count its entries",
+            "Open the governance checklist and count its items",
+            "Compare the two counts and upload any missing artefact",
+            "Complete the reconciliation within 5 business days of go-live",
+            "Done when the reconciliation is complete within 5 business days of go-live with 0 missing gates"
+          ],
+          "verify": [
+            "Compare the artefact index count to the governance checklist count in the GRC platform",
+            "Pass when the delta is 0"
+          ]
+        },
+        {
+          "n": 13,
+          "title": "Link the evidence folder URL from the CHG record in ServiceNow ITSM",
+          "actor": "Tech Lead",
+          "sop": [
+            "Copy the evidence folder URL from the release folder in the GRC platform",
+            "Open the CHG record in ServiceNow ITSM and paste the URL into its related links",
+            "Save the record and click the link to confirm it opens the folder",
+            "Done when the CHG record links back to the evidence folder"
+          ],
+          "verify": [
+            "Open the CHG record in ServiceNow ITSM and click the evidence folder link",
+            "Pass when the evidence folder URL resolves"
+          ]
+        },
+        {
+          "n": 14,
+          "title": "Record the Enterprise Architect sign-off on the archive index in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the archive index in the GRC platform (Archer/ServiceNow GRC)",
+            "Route the index to the Enterprise Architect for review via the approval workflow",
+            "Record the sign-off on the archive index once review completes",
+            "Done when the Enterprise Architect sign-off is recorded on the index"
+          ],
+          "verify": [
+            "Open the archive index in the GRC platform (Archer/ServiceNow GRC)",
+            "Pass when the Enterprise Architect sign-off is present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "3a9caa5d-fa8c-40f8-bc6b-29639ad36906",
+      "taskName": "Archive superseded documentation",
+      "verifier": "Software Engineer",
+      "removeParticipants": [],
+      "steps": [
+        {
+          "n": 1,
+          "title": "Build the archival worklist of pages last reviewed over 12 months ago in Confluence",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the site search in Confluence and run a CQL query for Last reviewed labels older than 12 months",
+            "Add every matching page to the archival worklist on the archival epic in Jira",
+            "Done when every page with a Last reviewed label older than 12 months is on the worklist"
+          ],
+          "verify": [
+            "Re-run the Last reviewed CQL query in Confluence and compare results to the worklist",
+            "Pass when each stale page appears on the worklist"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Add pages for decommissioned components using CI status in CMDB",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the CI list in the ServiceNow CMDB and filter components by status Retired",
+            "Look up the Confluence page for each retired component",
+            "Add each page to the archival worklist on the Jira epic",
+            "Done when every decommissioned component's page is on the worklist"
+          ],
+          "verify": [
+            "Filter Retired CIs in the ServiceNow CMDB and cross-reference their Confluence pages",
+            "Pass when their pages appear on the worklist"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Add the Status Archived banner to each worklist page in Confluence",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open each worklist page in Confluence and click Edit",
+            "Insert the Status Archived banner macro at the top of the page",
+            "Publish the page",
+            "Done when every archived page displays the banner"
+          ],
+          "verify": [
+            "Open each archived page in Confluence",
+            "Pass when the Status Archived banner renders"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record the sunset date on each archived page in Confluence",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open each archived page in Confluence and open its page properties",
+            "Set the Sunset property to the archival date and save",
+            "Done when every archived page carries its sunset date in the Sunset property"
+          ],
+          "verify": [
+            "Inspect the Sunset property on each archived page in Confluence",
+            "Pass when a date is set"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Link the replacement page on each archived page in Confluence",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open each archived page in Confluence and click Edit",
+            "Add a link to its replacement page, or a retired-capability note if there is none",
+            "Publish the page",
+            "Done when no page is archived without a replacement link or a retired-capability note"
+          ],
+          "verify": [
+            "Open each archived page in Confluence and click the replacement link",
+            "Pass when the replacement link resolves or the retired note is present"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Move each completed page to the Archive space in Confluence",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open each ready worklist page in Confluence",
+            "Choose Move from the page actions menu and select the Archive space as the destination",
+            "Confirm the move",
+            "Done when every ready worklist page sits in the Archive space"
+          ],
+          "verify": [
+            "Open the Archive space page tree in Confluence",
+            "Pass when each moved page is present"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Log each deferred page as a sub-task on the epic in Jira",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the archival epic in Jira",
+            "Create a sub-task for each deferred page with a Deferred disposition and the deferral reason",
+            "Set the assignee and a due date within the 10-business-day SLA on each sub-task",
+            "Done when every deferred page has a sub-task with reason and owner"
+          ],
+          "verify": [
+            "Open the archival epic in Jira and expand its sub-tasks",
+            "Pass when every deferred page has a sub-task with reason and owner"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Attach the archival worklist CSV to the story in Jira",
+          "actor": "Software Engineer",
+          "sop": [
+            "Export the worklist from the Jira epic with page IDs, sunset dates and replacement URLs to CSV",
+            "Open the archival story in Jira and attach the CSV",
+            "Note the 3-year retention requirement in the attachment comment",
+            "Done when the CSV attachment lists page ID, sunset date and replacement URL"
+          ],
+          "verify": [
+            "Open the archival story in Jira and open the CSV attachment",
+            "Pass when the CSV attachment lists page ID, sunset date and replacement URL"
+          ]
+        },
+        {
+          "n": 9,
+          "title": "Reconcile the moved-page count to the worklist count in Jira",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the archival epic in Jira and count the worklist pages",
+            "Open the Archive space in Confluence and count the pages moved in this run",
+            "Compare the two counts and move any missed page",
+            "Done when the delta between worklist and Archive space counts is 0"
+          ],
+          "verify": [
+            "Compare the worklist count on the Jira epic to the Archive space count in Confluence",
+            "Pass when the delta is 0"
+          ]
+        },
+        {
+          "n": 10,
+          "title": "Sweep for stale pages still tagged current in Confluence",
+          "actor": "Software Engineer",
+          "sop": [
+            "Run the stale-current CQL query in Confluence for current pages with a Last reviewed over 12 months",
+            "Archive or re-review any page the sweep returns",
+            "Re-run the query to confirm it returns nothing",
+            "Done when 0 pages tagged current have a Last reviewed older than 12 months"
+          ],
+          "verify": ["Run the stale-current query in Confluence", "Pass when it returns 0 pages"]
+        },
+        {
+          "n": 11,
+          "title": "Record the Tech Lead sign-off on the archival story in Jira",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the archival story in Jira and assign it to the Tech Lead for review",
+            "Ask the Tech Lead to add a sign-off comment on the story",
+            "Done when the Tech Lead sign-off is recorded on the story"
+          ],
+          "verify": [
+            "Open the archival story in Jira and read its comments",
+            "Pass when the Tech Lead sign-off is present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "c14f90c8-2f9b-4b58-803b-9ab5796bed3a",
+      "taskName": "Assess technical feasibility",
+      "verifier": "Software Engineer",
+      "removeParticipants": [],
+      "steps": [
+        {
+          "n": 1,
+          "title": "List the affected systems on the epic feasibility record in Jira",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the epic in Jira and read its architecture context section",
+            "Open the feasibility record on the epic and list every system the epic touches",
+            "Save the affected systems list on the record",
+            "Done when every system in the epic architecture context is named on the record"
+          ],
+          "verify": [
+            "Open the feasibility record on the epic in Jira",
+            "Pass when the affected systems list is populated"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Link each named system to its configuration item in CMDB",
+          "actor": "Backend Developer",
+          "sop": [
+            "Open the feasibility record on the epic in Jira and read the named systems",
+            "Look up each system's configuration item in the ServiceNow CMDB",
+            "Paste each CI link next to its system on the record and save",
+            "Done when the count of named systems equals the count of linked CIs"
+          ],
+          "verify": [
+            "Count named systems on the record against linked CIs in the ServiceNow CMDB",
+            "Pass when the counts are equal"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Document the integration points on the feasibility record in Jira",
+          "actor": "Backend Developer",
+          "sop": [
+            "Open the integration section of the feasibility record in Jira",
+            "Describe each integration point in full, replacing any TBD entry",
+            "Save the section with no TBD entries remaining",
+            "Done when every integration point is described with no TBD entries"
+          ],
+          "verify": [
+            "Read the integration section of the record in Jira",
+            "Pass when no field is left as TBD"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record the complexity estimate on the feasibility record in Jira",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the feasibility record on the epic in Jira",
+            "Enter a T-shirt or story-point range in the complexity field using the approved estimation method",
+            "Note the estimation method version next to the range and save",
+            "Done when a complexity range plus the method version are noted"
+          ],
+          "verify": [
+            "Open the feasibility record in Jira and read the complexity field",
+            "Pass when a complexity range plus the method version are noted"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Log each key technical risk as a risk item in Jira",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the epic's risk section in Jira",
+            "Create a risk item for each key technical risk",
+            "Set an owner and a mitigation on each risk item and save",
+            "Done when every risk has an owner and a mitigation recorded"
+          ],
+          "verify": [
+            "List the epic's risk items in Jira",
+            "Pass when each carries an owner and mitigation"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Document the non-functional constraints on the record in Jira",
+          "actor": "UI Developer",
+          "sop": [
+            "Open the constraints section of the feasibility record in Jira",
+            "Record every required non-functional constraint, replacing any TBD entry",
+            "Save the section before the ARB review date",
+            "Done when required non-functional constraints are recorded with no TBD before ARB review"
+          ],
+          "verify": [
+            "Read the constraints section of the record in Jira",
+            "Pass when it is complete with no TBD"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Record the feasibility verdict on the epic in Jira",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the epic in Jira",
+            "Set the feasibility verdict field to feasible, feasible-with-conditions or not-feasible",
+            "Save the epic",
+            "Done when exactly one verdict value is recorded"
+          ],
+          "verify": [
+            "Open the epic in Jira and read the verdict field",
+            "Pass when exactly one verdict value is recorded"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Route any not-feasible finding back to the Product Owner in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Run a JQL filter in Jira for epics with a not-feasible verdict",
+            "Review each with the Product Owner and agree the re-scoping decision",
+            "Record the decision in a comment on the epic",
+            "Done when each not-feasible epic carries a documented re-scoping decision"
+          ],
+          "verify": [
+            "Open each not-feasible epic in Jira and read its comments",
+            "Pass when a documented re-scoping decision is present"
+          ]
+        },
+        {
+          "n": 9,
+          "title": "Publish the ADR with the spike report on the epic page in Confluence",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the epic page in Confluence",
+            "Attach the versioned ADR and the spike report to the page",
+            "Record the author and date on each attachment entry",
+            "Done when the versioned ADR and spike report are attached with author and date"
+          ],
+          "verify": [
+            "Open the epic page in Confluence and open the attachments",
+            "Pass when the ADR plus spike report are attached and dated"
+          ]
+        },
+        {
+          "n": 10,
+          "title": "Flag epics whose estimate varies over 30 percent as high-uncertainty in Jira",
+          "actor": "Software Engineer",
+          "sop": [
+            "Run a JQL filter in Jira for epics whose estimate range varies over 30 percent",
+            "Add the high-uncertainty flag on each result",
+            "Create a de-risking spike issue and link it to each flagged epic",
+            "Done when each high-uncertainty epic requires a de-risking spike before commitment"
+          ],
+          "verify": [
+            "Run the high-uncertainty filter in Jira and open each epic's links",
+            "Pass when each has a linked de-risking spike"
+          ]
+        },
+        {
+          "n": 11,
+          "title": "Route epics above 20 story points to ARB review in Jira",
+          "actor": "Software Engineer",
+          "sop": [
+            "Run a JQL filter in Jira for epics over 20 story points or touching 2 or more core systems",
+            "Create an ARB review request for each result",
+            "Link the request on the epic",
+            "Done when every epic above the materiality threshold carries an ARB review link"
+          ],
+          "verify": [
+            "Run the materiality filter in Jira and open each epic's links",
+            "Pass when every epic over the threshold carries an ARB review link"
+          ]
+        },
+        {
+          "n": 12,
+          "title": "Record the Enterprise Architect sign-off on the feasibility record in Jira",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the feasibility record on the epic in Jira and assign it to the Enterprise Architect",
+            "Ask the Enterprise Architect to record the sign-off on the record",
+            "Done when the Enterprise Architect sign-off is recorded"
+          ],
+          "verify": [
+            "Open the feasibility record in Jira",
+            "Pass when the Enterprise Architect sign-off is present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "8be640c6-4ca9-4317-9418-7291327f45b2",
+      "taskName": "Assign demand for initial assessment",
+      "verifier": "Product Owner",
+      "removeParticipants": [],
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the queue of unassigned intake requests in Jira",
+          "actor": "Demand Manager",
+          "sop": [
+            "Run the unassigned-intake JQL filter in Jira for New or Triaged items lacking an owner",
+            "Save the result set as the triage list filter",
+            "Done when every New or Triaged item lacking an owner appears on the triage list"
+          ],
+          "verify": [
+            "Run the unassigned-intake filter in Jira and compare the results to the triage list",
+            "Pass when each result appears on the triage list"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Assign an accountable product owner on each demand item in Jira",
+          "actor": "Demand Manager",
+          "sop": [
+            "Open the triage list filter in Jira and open each item",
+            "Set the product owner field to the accountable owner and save",
+            "Done when no demand item on the list lacks a named product owner"
+          ],
+          "verify": [
+            "Open each demand item on the triage list in Jira",
+            "Pass when the product owner field is populated"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Assign an engineering team on each demand item in Jira",
+          "actor": "Demand Manager",
+          "sop": [
+            "Open the triage list filter in Jira and open each item",
+            "Set the team field to the assigned engineering team and save",
+            "Done when no demand item on the list lacks an engineering team"
+          ],
+          "verify": [
+            "Open each demand item on the triage list in Jira",
+            "Pass when the team field is populated"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Set the priority on each demand item in Jira",
+          "actor": "Product Owner",
+          "sop": [
+            "Open each assigned demand item in Jira",
+            "Set the priority field and save",
+            "Done when every assigned demand item carries a priority"
+          ],
+          "verify": [
+            "Open each demand item in Jira and read the priority field",
+            "Pass when the priority field is populated"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Set the assessment due date on each demand item in Jira",
+          "actor": "Product Owner",
+          "sop": [
+            "Open each assigned demand item in Jira",
+            "Agree the initial assessment slot with the assigned team",
+            "Set the assessment due date field and save",
+            "Done when every assigned demand item has a scheduled initial assessment date"
+          ],
+          "verify": [
+            "Open each demand item in Jira and read the assessment due date field",
+            "Pass when the assessment due date is set"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Escalate ambiguous-domain items to the PMO queue in Jira",
+          "actor": "Demand Manager",
+          "sop": [
+            "Review the triage list in Jira for items with no clear owning domain",
+            "Move each ambiguous item to the PMO queue using the Move action",
+            "Add a comment documenting the escalation reason",
+            "Done when every ambiguous-domain item is escalated with a documented reason"
+          ],
+          "verify": [
+            "Open the PMO queue in Jira and read each escalated item's comments",
+            "Pass when each escalated item carries a documented reason"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Reconcile the assigned count to the intake inflow in Jira",
+          "actor": "Demand Manager",
+          "sop": [
+            "Run a JQL count of intake items received in the period in Jira",
+            "Run a count of items assigned in the same period and compare the two",
+            "Chase any item still unassigned as its 2-business-day SLA approaches",
+            "Done when 0 items remain unassigned past the 2-business-day SLA"
+          ],
+          "verify": [
+            "Compare the inflow count to the assigned count in Jira",
+            "Pass when no item exceeds the assignment SLA unassigned"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Raise an INTAKE-Exception for items unassignable within SLA in Jira",
+          "actor": "Demand Manager",
+          "sop": [
+            "Run a JQL filter in Jira for items that missed the assignment SLA",
+            "Create an INTAKE-Exception issue for each, assigned to the PMO Manager",
+            "Record the reason and set resolution due within 3 business days",
+            "Done when each unassignable item has an INTAKE-Exception with an assignee and reason"
+          ],
+          "verify": [
+            "Open each INTAKE-Exception in Jira",
+            "Pass when an assignee plus a documented reason are present"
+          ]
+        },
+        {
+          "n": 9,
+          "title": "Record the Product Owner sign-off on the triage cycle in Jira",
+          "actor": "Demand Manager",
+          "sop": [
+            "Open the triage cycle record in Jira and assign it to the Product Owner per the intake RACI",
+            "Ask the Product Owner to add a sign-off comment on the record",
+            "Done when the Product Owner sign-off is recorded per the intake RACI"
+          ],
+          "verify": [
+            "Open the triage cycle record in Jira and read its comments",
+            "Pass when the Product Owner sign-off is present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "fa300f5b-58d4-4e6e-93ae-ba030b239be9",
+      "taskName": "Audit documentation completeness at release gate",
+      "verifier": "Software Engineer",
+      "removeParticipants": [],
+      "steps": [
+        {
+          "n": 1,
+          "title": "Open the release gate checklist from the template in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the release gate checklist template in the GRC platform (Archer/ServiceNow GRC)",
+            "Instantiate the checklist and select the release candidate version",
+            "Save the new checklist instance",
+            "Done when the checklist instance exists for the release candidate"
+          ],
+          "verify": [
+            "Search the GRC platform for the release version",
+            "Pass when the gate checklist for the release version is found"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Confirm the README is present for the release version in Confluence",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the release's documentation set in Confluence",
+            "Open the README page and confirm it is non-empty",
+            "Confirm the page is tagged to the release version",
+            "Done when the README is present and non-empty for the release"
+          ],
+          "verify": [
+            "Open the README in Confluence",
+            "Pass when it is non-empty and tagged to the release version"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm the runbook is present for the release version in Confluence",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the release's documentation set in Confluence",
+            "Open the runbook page and confirm it is non-empty",
+            "Confirm the page is tagged to the release version",
+            "Done when the runbook is present and non-empty for the release"
+          ],
+          "verify": [
+            "Open the runbook in Confluence",
+            "Pass when it is non-empty and tagged to the release version"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Confirm the ADRs are current for the release in Confluence",
+          "actor": "Release Coordinator",
+          "sop": [
+            "Open the ADR list for the release scope in Confluence",
+            "Open each ADR and check its content against the release scope",
+            "Flag any stale ADR to its author for update",
+            "Done when the ADRs reflect the release scope with no stale entries"
+          ],
+          "verify": [
+            "Review the ADR list in Confluence against the release scope",
+            "Pass when each is current for the release"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Confirm the changelog is present for the release in Confluence",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the release's documentation set in Confluence",
+            "Open the changelog page and confirm it is non-empty",
+            "Confirm its entries cover the release candidate",
+            "Done when the changelog is present and non-empty for the release"
+          ],
+          "verify": [
+            "Open the changelog in Confluence",
+            "Pass when it covers the release candidate"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Confirm the rollback plan is present for the release in Confluence",
+          "actor": "Release Coordinator",
+          "sop": [
+            "Open the release's documentation set in Confluence",
+            "Open the rollback plan page and confirm it is non-empty",
+            "Confirm the plan is complete for the release candidate",
+            "Done when the rollback plan is present and non-empty for the release"
+          ],
+          "verify": [
+            "Open the rollback plan in Confluence",
+            "Pass when it is complete for the release candidate"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Confirm the test evidence is attached to the gate record in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the gate record in the GRC platform (Archer/ServiceNow GRC)",
+            "Open the test evidence attachment from the record",
+            "Confirm the file opens and covers the release candidate",
+            "Done when the test evidence is attached to the gate record"
+          ],
+          "verify": [
+            "Open the gate record in the GRC platform and click the test evidence attachment",
+            "Pass when the test evidence attachment opens"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Mark each artifact complete or waived on the checklist in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the gate checklist in the GRC platform (Archer/ServiceNow GRC)",
+            "Mark each artifact row complete or waived",
+            "Save the checklist with no row left unmarked",
+            "Done when every checklist artifact carries a complete or waived mark"
+          ],
+          "verify": [
+            "Read the gate checklist in the GRC platform",
+            "Pass when no artifact is left unmarked"
+          ]
+        },
+        {
+          "n": 9,
+          "title": "Record the justification for each waived document in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Release Coordinator",
+          "sop": [
+            "Open each waived artifact row on the checklist in the GRC platform (Archer/ServiceNow GRC)",
+            "Record the waiver justification and the owning name",
+            "Set the remediation date and save",
+            "Done when every waiver carries justification, owner and remediation date"
+          ],
+          "verify": [
+            "Open each waiver on the checklist in the GRC platform",
+            "Pass when justification plus owner plus remediation date are present"
+          ]
+        },
+        {
+          "n": 10,
+          "title": "Record the completeness score on the gate record in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the gate checklist in the GRC platform (Archer/ServiceNow GRC)",
+            "Tally the completed items against the 100 percent mandatory-item target",
+            "Enter the completeness score on the gate record and save",
+            "Done when the score is recorded against the 100 percent mandatory-item target"
+          ],
+          "verify": [
+            "Read the gate record in the GRC platform",
+            "Pass when the completeness score is recorded"
+          ]
+        },
+        {
+          "n": 11,
+          "title": "Open an SDLC-Exception for any documentation gap in Jira",
+          "actor": "Release Coordinator",
+          "sop": [
+            "Review the completed checklist in the GRC platform for any documentation gap",
+            "Create an SDLC-Exception issue in Jira for each gap with an owner and a remediation SLA",
+            "Link the exception on the gate record and block the release until closure",
+            "Done when every gap has an SDLC-Exception with owner and remediation date"
+          ],
+          "verify": [
+            "Open each SDLC-Exception in Jira",
+            "Pass when each gap has an owner and remediation date recorded"
+          ]
+        },
+        {
+          "n": 12,
+          "title": "Record the gate outcome before the cutover date in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the gate record in the GRC platform (Archer/ServiceNow GRC) before the cutover date",
+            "Record the gate outcome with the release version",
+            "Record the approver name and save",
+            "Done when the outcome is recorded with release version and approver before cutover"
+          ],
+          "verify": [
+            "Compare the gate record timestamp to the cutover date in the GRC platform",
+            "Pass when the gate record predates cutover"
+          ]
+        },
+        {
+          "n": 13,
+          "title": "Record the release manager sign-off on the gate in GRC platform (Archer/ServiceNow GRC)",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the gate record in the GRC platform (Archer/ServiceNow GRC)",
+            "Route it to the Release / Environment Manager for review via the approval workflow",
+            "Record the sign-off on the gate once review completes",
+            "Done when the Release / Environment Manager sign-off is recorded on the gate"
+          ],
+          "verify": [
+            "Open the gate record in the GRC platform",
+            "Pass when the Release / Environment Manager sign-off is present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "8e45d6b6-752b-4dff-832d-4672e2febcca",
+      "taskName": "Author test cases from acceptance criteria",
+      "verifier": "QA Analyst",
+      "removeParticipants": ["Business Analyst"],
+      "steps": [
+        {
+          "n": 1,
+          "title": "List all accepted acceptance criteria for sprint stories in Jira",
+          "actor": "QA Analyst",
+          "sop": [
+            "Open the active sprint on the team's Scrum board in Jira",
+            "Open each sprint story and copy its accepted acceptance criteria",
+            "Paste each criterion onto the authoring list on the test cycle in Jira",
+            "Done when every accepted AC for the sprint appears on the authoring list"
+          ],
+          "verify": [
+            "Open each sprint story in Jira and compare its ACs to the authoring list",
+            "Pass when none is missing"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Create a linked test case for each acceptance criterion in Jira",
+          "actor": "QA Analyst",
+          "sop": [
+            "Open each AC on the authoring list in Jira",
+            "Create a test case issue covering the criterion",
+            "Link the test case to the AC's story with a tests link",
+            "Done when every AC maps to at least one test case"
+          ],
+          "verify": [
+            "Open each AC in Jira and expand its links",
+            "Pass when at least one linked test case exists"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Assign a unique ID to each test case in Jira",
+          "actor": "QA Analyst",
+          "sop": [
+            "Open each newly created test case in Jira",
+            "Enter the next unique case ID in the case ID field and save",
+            "Done when no two test cases share an ID"
+          ],
+          "verify": [
+            "Export the case ID column for the cycle's test cases in Jira",
+            "Pass when every ID is unique"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record the preconditions on each test case in Jira",
+          "actor": "QA Analyst",
+          "sop": [
+            "Open each test case in Jira",
+            "Enter the preconditions in the preconditions field",
+            "Save before submitting the case for review",
+            "Done when every case states its preconditions before review submission"
+          ],
+          "verify": [
+            "Open each test case in Jira and read the preconditions field",
+            "Pass when the preconditions field is populated"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the test steps on each test case in Jira",
+          "actor": "QA Analyst",
+          "sop": [
+            "Open each test case in Jira",
+            "Write the executable steps in the steps field, one action per step",
+            "Save the case",
+            "Done when every case lists executable steps"
+          ],
+          "verify": [
+            "Open each test case in Jira and read the steps field",
+            "Pass when the steps field is populated"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the expected result on each test case in Jira",
+          "actor": "QA Analyst",
+          "sop": [
+            "Open each test case in Jira",
+            "Enter the expected result in the expected result field and save",
+            "Done when every case states its expected result"
+          ],
+          "verify": [
+            "Open each test case in Jira and read the expected result field",
+            "Pass when the expected result field is populated"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Set the case type on each test case in Jira",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open each test case in Jira",
+            "Set the type field to positive, negative or boundary and save",
+            "Done when every case is typed as positive, negative or boundary"
+          ],
+          "verify": [
+            "Inspect each test case's type field in Jira",
+            "Pass when exactly one type value is set"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Build the AC-to-test traceability matrix in Jira",
+          "actor": "QA Analyst",
+          "sop": [
+            "Open the sprint's traceability matrix in Jira",
+            "Map every AC row to its linked test case",
+            "Fill any uncovered AC by authoring and linking a new case",
+            "Done when coverage is 100 percent with 0 uncovered ACs"
+          ],
+          "verify": [
+            "Reconcile the case count to the AC count in the Jira matrix",
+            "Pass when 0 ACs are uncovered"
+          ]
+        },
+        {
+          "n": 9,
+          "title": "Log each untestable acceptance criterion as an exception in Jira",
+          "actor": "QA Analyst",
+          "sop": [
+            "Review the authoring list in Jira for ambiguous or untestable ACs",
+            "Log an exception issue for each, assigned to the Business Analyst",
+            "Set the clarification due date within 2 business days",
+            "Done when every untestable AC has an assigned exception with a clarification due date"
+          ],
+          "verify": [
+            "Open each exception in Jira",
+            "Pass when it is assigned with a clarification due date"
+          ]
+        },
+        {
+          "n": 10,
+          "title": "Record the Test Lead review approval on the authored cases in Jira",
+          "actor": "QA Analyst",
+          "sop": [
+            "Open the test cycle in Jira and assign it to the Test Lead for review",
+            "Ask the Test Lead to record the approval on the test cycle",
+            "Done when the Test Lead approval is recorded on the test cycle"
+          ],
+          "verify": [
+            "Open the test cycle in Jira and read its approvals",
+            "Pass when the Test Lead approval is present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "1295509c-1827-4608-8eea-b31f01f6b17f",
+      "taskName": "Build automated regression suite",
+      "verifier": "Software Engineer",
+      "removeParticipants": [],
+      "steps": [
+        {
+          "n": 1,
+          "title": "Add regression cases for all critical user journeys in GitHub Enterprise",
+          "actor": "QA Automation Engineer",
+          "sop": [
+            "Open the critical user journeys list on the product page in Confluence",
+            "Write an automated regression case for each journey in VS Code",
+            "Commit each case to the regression suite repo in GitHub Enterprise",
+            "Done when every critical journey has an automated case committed"
+          ],
+          "verify": [
+            "Map the journeys list to the committed cases in the GitHub Enterprise repo",
+            "Pass when none is uncovered"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Add regression cases for prior defects in GitHub Enterprise",
+          "actor": "QA Automation Engineer",
+          "sop": [
+            "Open the defect log in Jira and list every prior-defect scenario",
+            "Write an automated regression case for each scenario in VS Code",
+            "Commit each case to the regression suite repo in GitHub Enterprise",
+            "Done when every prior-defect scenario has an automated case committed"
+          ],
+          "verify": [
+            "Map the defect log in Jira to the committed cases in GitHub Enterprise",
+            "Pass when none is uncovered"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Confirm every case contains an assertion with a stable selector in GitHub Enterprise",
+          "actor": "QA Analyst",
+          "sop": [
+            "Open the regression case code in the suite repo in GitHub Enterprise",
+            "Check each case for an assertion on the expected outcome",
+            "Check each selector or fixture the case relies on is stable",
+            "Return any failing case to its author for rework",
+            "Done when no case lacks an assertion or relies on an unstable fixture"
+          ],
+          "verify": [
+            "Review the case code in the GitHub Enterprise repo",
+            "Pass when each case asserts an outcome"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Register the suite as a required CI stage in GitHub Actions",
+          "actor": "DevOps Engineer",
+          "sop": [
+            "Open Settings > Branches on the repository in GitHub Enterprise",
+            "Edit the branch protection rule for the default branch",
+            "Add the regression suite workflow as a required status check and save",
+            "Done when merges are blocked unless the regression stage passes"
+          ],
+          "verify": [
+            "Open the branch protection rule in GitHub Enterprise and read the required checks",
+            "Pass when the suite is required"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Configure the smoke subset to run on every pull request in GitHub Actions",
+          "actor": "DevOps Engineer",
+          "sop": [
+            "Open the pipeline workflow file in the repo in GitHub Enterprise",
+            "Add a pull_request trigger for the smoke subset job in GitHub Actions",
+            "Commit the change and open a test PR to confirm the subset runs",
+            "Done when each PR triggers the smoke subset automatically"
+          ],
+          "verify": [
+            "Open a recent PR's checks in GitHub Actions",
+            "Pass when the smoke subset executed"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Schedule the full nightly run at 01:00 ET in GitHub Actions",
+          "actor": "DevOps Engineer",
+          "sop": [
+            "Open the workflow file's schedule section in GitHub Enterprise",
+            "Set the cron trigger to run nightly at 01:00 ET and commit",
+            "Confirm the schedule appears on the workflow in GitHub Actions",
+            "Done when the nightly schedule is active at 1 AM ET"
+          ],
+          "verify": [
+            "Read the workflow schedule in GitHub Actions",
+            "Pass when the 1 AM ET nightly trigger is set"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Confirm the nightly run executes 100 percent of automated cases in GitHub Actions",
+          "actor": "QA Analyst",
+          "sop": [
+            "Open the latest nightly run report in GitHub Actions",
+            "Compare the executed case count to the suite total",
+            "Check each skipped case carries a quarantine tag",
+            "Done when 0 cases are skipped without a quarantine tag"
+          ],
+          "verify": [
+            "Read the nightly run report in GitHub Actions",
+            "Pass when no untagged case was skipped"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Reconcile the automated case count to the regression inventory in Jira",
+          "actor": "QA Analyst",
+          "sop": [
+            "Count the automated cases in the suite repo in GitHub Enterprise",
+            "Count the manual-only cases in the regression inventory in Jira",
+            "Compare automated plus manual-only against the inventory total",
+            "Done when automated plus manual-only case counts equal the inventory total"
+          ],
+          "verify": [
+            "Compare the suite count in GitHub Enterprise to the inventory total in Jira",
+            "Pass when the counts reconcile"
+          ]
+        },
+        {
+          "n": 9,
+          "title": "Quarantine flaky cases below the 2 percent cap in GitHub Actions",
+          "actor": "QA Automation Engineer",
+          "sop": [
+            "Open the latest run report in GitHub Actions and list the flaky cases",
+            "Tag each flaky case as quarantined in the suite repo",
+            "Recompute the quarantined share and keep it under 2 percent of the suite",
+            "Done when the quarantined share stays under 2 percent of the suite"
+          ],
+          "verify": [
+            "Compute the quarantined share from the run report in GitHub Actions",
+            "Pass when it is under 2 percent"
+          ]
+        },
+        {
+          "n": 10,
+          "title": "Open an SDLC-Exception for each quarantined case in Jira",
+          "actor": "QA Automation Engineer",
+          "sop": [
+            "List the quarantined cases from the run report in GitHub Actions",
+            "Raise an SDLC-Exception in Jira for each with an owner",
+            "Set a 5-business-day fix SLA on each exception",
+            "Done when every quarantined case has an SDLC-Exception with owner and the 5-day SLA"
+          ],
+          "verify": [
+            "Open each quarantine exception in Jira",
+            "Pass when owner plus the 5-day SLA are recorded"
+          ]
+        },
+        {
+          "n": 11,
+          "title": "Retain JUnit results per build for 400 days in GitHub Actions",
+          "actor": "DevOps Engineer",
+          "sop": [
+            "Open the workflow's artifact upload step in GitHub Enterprise",
+            "Configure SHA-keyed JUnit XML plus the HTML report as uploaded artifacts",
+            "Set the artifact retention to 400 days and commit",
+            "Done when each run stores SHA-keyed JUnit XML with the HTML report"
+          ],
+          "verify": [
+            "Open a past build's artifacts in GitHub Actions",
+            "Pass when the JUnit artifacts are retrievable"
+          ]
+        },
+        {
+          "n": 12,
+          "title": "Record the Test Lead sign-off on the regression suite in Jira",
+          "actor": "QA Analyst",
+          "sop": [
+            "Open the suite story in Jira and assign it to the Test Lead for review",
+            "Ask the Test Lead to record the sign-off on the story",
+            "Done when the Test Lead sign-off is recorded on the suite story"
+          ],
+          "verify": [
+            "Open the suite story in Jira and read its comments",
+            "Pass when the Test Lead sign-off is present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "6d8ab888-677c-49e2-97ce-83e399917930",
+      "taskName": "Build reusable CI/CD pipeline templates",
+      "verifier": "Platform Engineering Lead",
+      "removeParticipants": [],
+      "steps": [
+        {
+          "n": 1,
+          "title": "Author a reusable workflow template per supported stack in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the pipeline-templates repo in GitHub Enterprise",
+            "Author one reusable workflow template file per supported stack in VS Code",
+            "Commit each template to the repo",
+            "Done when the template count equals the supported stack count"
+          ],
+          "verify": [
+            "Count the template files in the pipeline-templates repo in GitHub Enterprise against the stack list",
+            "Pass when they match"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Add the build stage to each template in GitHub Actions",
+          "actor": "DevOps Engineer",
+          "sop": [
+            "Open each template's workflow file in the pipeline-templates repo in GitHub Enterprise",
+            "Add a build stage job to the GitHub Actions workflow",
+            "Commit the change",
+            "Done when every template defines a build stage"
+          ],
+          "verify": [
+            "Read each template's workflow file in GitHub Enterprise",
+            "Pass when the build stage is defined"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Add the unit test stage with the 80 percent changed-line coverage gate in GitHub Actions",
+          "actor": "DevOps Engineer",
+          "sop": [
+            "Open each template's workflow file in the pipeline-templates repo in GitHub Enterprise",
+            "Add a unit test stage with a coverage gate on changed lines",
+            "Set the gate to fail builds under 80 percent changed-line coverage and commit",
+            "Done when the coverage gate fails builds under 80 percent on changed lines"
+          ],
+          "verify": [
+            "Trigger a below-threshold sample run in GitHub Actions",
+            "Pass when the gate fails the build"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Add the SAST stage enforcing 0 critical or high findings in GitHub Actions",
+          "actor": "DevOps Engineer",
+          "sop": [
+            "Open each template's workflow file in the pipeline-templates repo in GitHub Enterprise",
+            "Add a SAST stage to the workflow",
+            "Set the stage to block on any critical or high finding and commit",
+            "Done when the SAST stage blocks on any critical or high finding"
+          ],
+          "verify": [
+            "Review the SAST stage config in the workflow in GitHub Actions",
+            "Pass when the block threshold is 0 critical or high"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Add the SCA stage to each template in GitHub Actions",
+          "actor": "DevOps Engineer",
+          "sop": [
+            "Open each template's workflow file in the pipeline-templates repo in GitHub Enterprise",
+            "Add an SCA stage that scans third-party dependencies and commit",
+            "Done when every template scans third-party dependencies"
+          ],
+          "verify": [
+            "Read each template's workflow file in GitHub Enterprise",
+            "Pass when the SCA stage is defined"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Add the artifact publish stage to each template in GitHub Actions",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open each template's workflow file in the pipeline-templates repo in GitHub Enterprise",
+            "Add a stage that publishes a versioned artifact to the artifact registry",
+            "Commit the change",
+            "Done when every template publishes a versioned artifact"
+          ],
+          "verify": [
+            "Read each template's workflow file in GitHub Enterprise",
+            "Pass when the publish stage is defined"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Add the deploy stage to each template in GitHub Actions",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open each template's workflow file in the pipeline-templates repo in GitHub Enterprise",
+            "Add a deploy stage to the workflow and commit",
+            "Done when every template defines a deploy stage"
+          ],
+          "verify": [
+            "Read each template's workflow file in GitHub Enterprise",
+            "Pass when the deploy stage is defined"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Pin action versions in every template in GitHub Enterprise",
+          "actor": "DevOps Engineer",
+          "sop": [
+            "Search each template in the pipeline-templates repo in GitHub Enterprise for unpinned actions",
+            "Replace every floating reference with a pinned fixed version",
+            "Commit the changes",
+            "Done when no template references an unpinned action"
+          ],
+          "verify": [
+            "Search the templates in GitHub Enterprise for floating action references",
+            "Pass when no floating action reference is found"
+          ]
+        },
+        {
+          "n": 9,
+          "title": "Document the inputs in a README per template in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open each template folder in the pipeline-templates repo in GitHub Enterprise",
+            "Add a README documenting the template's inputs",
+            "Add an example consumer workflow to the README and commit",
+            "Done when no template ships without a README and an example consumer"
+          ],
+          "verify": [
+            "Open each template folder in GitHub Enterprise",
+            "Pass when a README plus example consumer exist"
+          ]
+        },
+        {
+          "n": 10,
+          "title": "Run a passing end-to-end pilot pipeline per template in GitHub Actions",
+          "actor": "Platform Engineering Lead",
+          "sop": [
+            "Trigger a pilot pipeline run for each template from the Actions tab in GitHub Actions",
+            "Watch each run through to completion",
+            "Record the green run link on the template's release notes before publishing",
+            "Done when each template has a recorded green pilot run before publish"
+          ],
+          "verify": [
+            "Open the pilot run per template in GitHub Actions",
+            "Pass when it completed green"
+          ]
+        },
+        {
+          "n": 11,
+          "title": "Tag each template version as immutable in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the Tags page of the pipeline-templates repo in GitHub Enterprise",
+            "Create an immutable version tag for each published template",
+            "Point consumers at the pinned tags only",
+            "Done when consumers reference templates only via pinned tags"
+          ],
+          "verify": [
+            "List the git tags on the pipeline-templates repo in GitHub Enterprise",
+            "Pass when each published template version is tagged"
+          ]
+        },
+        {
+          "n": 12,
+          "title": "Publish the release notes with the adoption guide in Confluence",
+          "actor": "Platform Engineering Lead",
+          "sop": [
+            "Open the templates release page in Confluence",
+            "Write the release notes with a timestamp",
+            "Add a link to the adoption guide and publish",
+            "Done when timestamped release notes and the guide are published"
+          ],
+          "verify": [
+            "Open the release notes page in Confluence and click the guide link",
+            "Pass when the adoption guide is linked"
+          ]
+        },
+        {
+          "n": 13,
+          "title": "Log each squad deviation as an SDLC-Exception ticket in Jira",
+          "actor": "Software Engineer",
+          "sop": [
+            "Compare each squad's pipelines in GitHub Actions to the published templates to spot deviations",
+            "Log an SDLC-Exception in Jira for each deviation with its compensating controls",
+            "Set the review date within 10 business days",
+            "Done when every deviation has an SDLC-Exception with compensating controls and a review date"
+          ],
+          "verify": [
+            "Open each deviation ticket in Jira",
+            "Pass when compensating controls plus the review date are present"
+          ]
+        },
+        {
+          "n": 14,
+          "title": "Record the platform engineer sign-off on the templates in Confluence",
+          "actor": "Platform Engineering Lead",
+          "sop": [
+            "Open the template release page in Confluence",
+            "Request DevOps / Platform Automation Engineer review of the templates",
+            "Record the sign-off on the release page",
+            "Done when the DevOps / Platform Automation Engineer sign-off is recorded"
+          ],
+          "verify": [
+            "Open the template release page in Confluence",
+            "Pass when the DevOps / Platform Automation Engineer sign-off is present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "c7243152-b9b5-4a03-ba23-fe3ec7aa7f92",
+      "taskName": "Build streaming processor with exactly-once semantics",
+      "verifier": "Software Engineer",
+      "removeParticipants": [],
+      "steps": [
+        {
+          "n": 1,
+          "title": "Implement the processor topology per the approved design in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the approved streaming design doc on the design page in Confluence",
+            "Implement the processor topology in VS Code to match the doc",
+            "Commit the topology code to the processor repo in GitHub Enterprise, citing the design doc version",
+            "Done when the topology matches the approved streaming design doc version"
+          ],
+          "verify": [
+            "Compare the merged topology code in GitHub Enterprise to the referenced design doc version",
+            "Pass when they match"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Enable the exactly_once_v2 processing guarantee in the job config in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the job config file in the processor repo in GitHub Enterprise",
+            "Set processing.guarantee to exactly_once_v2",
+            "Commit the change",
+            "Done when the committed config sets the exactly-once guarantee"
+          ],
+          "verify": [
+            "Read the job config in GitHub Enterprise",
+            "Pass when processing.guarantee equals exactly_once_v2"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Configure idempotent producers on the output topics in Event streaming platform (Kafka/Confluent)",
+          "actor": "Backend Developer",
+          "sop": [
+            "Open the producer configs for the financial topics in Confluent Control Center",
+            "Set enable.idempotence to true on every producer",
+            "Save and restart each producer to apply the setting",
+            "Done when every producer to a financial topic is idempotent"
+          ],
+          "verify": [
+            "Inspect the producer configs in Confluent Control Center",
+            "Pass when idempotence is enabled"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Configure transactional writes on the sink in Event streaming platform (Kafka/Confluent)",
+          "actor": "Backend Developer",
+          "sop": [
+            "Open the sink connector config in Confluent Control Center",
+            "Enable transactional writes on the sink",
+            "Remove any remaining at-least-once write path and save",
+            "Done when the sink commits via transactions with 0 at-least-once paths"
+          ],
+          "verify": [
+            "Inspect the sink connector config in Confluent Control Center",
+            "Pass when transactional writes are enabled"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Add a correlation ID to every record in GitHub Enterprise",
+          "actor": "Data Engineer",
+          "sop": [
+            "Open the record schema code in the processor repo in GitHub Enterprise",
+            "Add a correlation ID field to the schema",
+            "Stamp the ID on every record in the processor code and commit",
+            "Done when the processor stamps a correlation ID on all records"
+          ],
+          "verify": [
+            "Review the record schema code in GitHub Enterprise",
+            "Pass when the correlation ID field is set"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Route poison messages to the dead-letter topic in Event streaming platform (Kafka/Confluent)",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the processor's error-handling config in the repo in GitHub Enterprise",
+            "Route unprocessable messages to the DLQ topic with the error and offset attached",
+            "Deploy the change and confirm the DLQ topic exists in Confluent Control Center",
+            "Done when unprocessable messages land in the DLQ with error and offset"
+          ],
+          "verify": [
+            "Send a malformed test message to the input topic",
+            "Watch the DLQ topic in Confluent Control Center",
+            "Pass when it arrives on the DLQ topic with error and offset"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Configure an alert on a non-empty dead-letter topic in Grafana",
+          "actor": "Data Engineer",
+          "sop": [
+            "Open Alerting > Alert rules in Grafana",
+            "Create a rule on the DLQ depth metric that fires when depth rises above 0",
+            "Save the rule and set its notification channel",
+            "Done when DLQ depth above 0 raises the alert"
+          ],
+          "verify": [
+            "Place a test message on the DLQ topic",
+            "Watch the alert state in Grafana",
+            "Pass when the Grafana alert fires"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Externalize the runtime parameters per environment in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Search the processor code in GitHub Enterprise for hardcoded runtime parameters",
+            "Move checkpoint, timeout and parallelism settings into per-environment config files",
+            "Commit the config files and the cleaned code",
+            "Done when no runtime parameter is hardcoded"
+          ],
+          "verify": [
+            "Search the code in GitHub Enterprise for hardcoded runtime parameters",
+            "Pass when no runtime parameter is hardcoded"
+          ]
+        },
+        {
+          "n": 9,
+          "title": "Record the exactly-once approach in an ADR in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the docs/adr directory in the processor repo in GitHub Enterprise",
+            "Write the EOS ADR documenting the exactly-once approach",
+            "Set the decision date and commit",
+            "Done when the EOS ADR is committed to the docs/adr directory"
+          ],
+          "verify": [
+            "Open docs/adr in GitHub Enterprise",
+            "Pass when the EOS ADR exists with a decision date"
+          ]
+        },
+        {
+          "n": 10,
+          "title": "Run the duplicate-injection test of 10000 events in Event streaming platform (Kafka/Confluent)",
+          "actor": "Data Engineer",
+          "sop": [
+            "Inject 10000 events including deliberate duplicates into the input topic via the test harness",
+            "Read the output topic counts in Confluent Control Center",
+            "Compare the distinct output count to the distinct input count",
+            "Done when distinct output count equals distinct input count with 0 duplicates"
+          ],
+          "verify": [
+            "Open the EOS test report from the build artifacts in GitHub Actions",
+            "Pass when output equals input with 0 duplicates and 0 loss"
+          ]
+        },
+        {
+          "n": 11,
+          "title": "Force a restart mid-test to prove recovery in Event streaming platform (Kafka/Confluent)",
+          "actor": "Data Engineer",
+          "sop": [
+            "Kill the processor mid-test to force a restart while the duplicate-injection load runs",
+            "Open the consumer-group lag chart in Confluent Control Center",
+            "Watch the lag drain back to 0 after the processor restarts",
+            "Done when consumer-group lag returns to 0 after the forced restart"
+          ],
+          "verify": [
+            "Review the consumer-group lag chart in Confluent Control Center",
+            "Pass when lag drained to 0 after restart"
+          ]
+        },
+        {
+          "n": 12,
+          "title": "Attach the EOS test report to the build artifacts in GitHub Actions",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the build for the tested commit in GitHub Actions",
+            "Attach the EOS report as a build artifact tagged with the commit SHA",
+            "Reference the Jira story key on the artifact and set 12-month retention",
+            "Done when the EOS report is retained 12 months tagged to the Jira story with the commit SHA"
+          ],
+          "verify": [
+            "Open the build artifacts in GitHub Actions",
+            "Pass when the EOS report artifact is stored with the SHA"
+          ]
+        },
+        {
+          "n": 13,
+          "title": "Record the Tech Lead sign-off on the story in Jira",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the story in Jira and assign it to the Tech Lead for review",
+            "Ask the Tech Lead to record the sign-off on the story",
+            "Done when the Tech Lead sign-off is recorded on the story"
+          ],
+          "verify": [
+            "Open the story in Jira and read its comments",
+            "Pass when the Tech Lead sign-off is present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "113e1ab9-9c5b-4bc1-b436-3986a34054d1",
+      "taskName": "Capture and route architecture decision records",
+      "verifier": "Software Engineer",
+      "removeParticipants": [],
+      "steps": [
+        {
+          "n": 1,
+          "title": "Create the ADR from the MADR template in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the docs/adr directory in the repository in GitHub Enterprise",
+            "Copy the MADR template into a new file with the next sequential number",
+            "Commit the new ADR",
+            "Done when the new ADR follows the numbering sequence"
+          ],
+          "verify": [
+            "Open docs/adr in GitHub Enterprise and read the file numbering",
+            "Pass when the new ADR follows the numbering sequence"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Complete the Context section of the ADR in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the ADR file in docs/adr in GitHub Enterprise",
+            "Write the Context section describing the forces behind the decision",
+            "Commit the change",
+            "Done when the Context section is non-empty"
+          ],
+          "verify": ["Read the ADR in GitHub Enterprise", "Pass when the Context section is filled"]
+        },
+        {
+          "n": 3,
+          "title": "Complete the Decision section of the ADR in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the ADR file in docs/adr in GitHub Enterprise",
+            "State the chosen option in the Decision section",
+            "Commit the change",
+            "Done when the Decision section states the chosen option"
+          ],
+          "verify": [
+            "Read the ADR in GitHub Enterprise",
+            "Pass when the Decision section is filled"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Complete the Consequences section of the ADR in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the ADR file in docs/adr in GitHub Enterprise",
+            "Write the Consequences section covering the trade-offs",
+            "Commit the change",
+            "Done when the Consequences section is non-empty"
+          ],
+          "verify": [
+            "Read the ADR in GitHub Enterprise",
+            "Pass when the Consequences section is filled"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Set the ADR status field in GitHub Enterprise",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the ADR file in docs/adr in GitHub Enterprise",
+            "Set the status field to Proposed, Accepted or Superseded",
+            "Commit the change",
+            "Done when the status holds exactly one allowed value"
+          ],
+          "verify": [
+            "Read the ADR's status field in GitHub Enterprise",
+            "Pass when the status holds exactly one allowed value"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Route the ADR to the ARB within 2 business days in Confluence",
+          "actor": "Tech Lead",
+          "sop": [
+            "Open the weekly ARB agenda page in Confluence",
+            "Add the ADR with its GitHub Enterprise link to the agenda",
+            "Complete the entry within 2 business days of the ADR being raised",
+            "Done when the ADR appears on the weekly ARB agenda"
+          ],
+          "verify": [
+            "Open the ARB agenda in Confluence and compare the entry date to the ADR date",
+            "Pass when the ADR was added within 2 business days"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Record the named reviewer with the decision date on each merged ADR in GitHub Enterprise",
+          "actor": "Senior Developer",
+          "sop": [
+            "List the merged ADRs in docs/adr in GitHub Enterprise",
+            "Open each and record the named reviewer in the reviewer field",
+            "Record the decision date and commit",
+            "Done when 100 percent of merged ADRs carry a reviewer and decision date"
+          ],
+          "verify": [
+            "Inspect the merged ADRs in GitHub Enterprise",
+            "Pass when none lacks reviewer or decision date"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Record the ARB minute entry for each accepted ADR in Confluence",
+          "actor": "Solutions Architect",
+          "sop": [
+            "Open the ARB log page in Confluence",
+            "Add a minute entry for each accepted ADR with its number and decision",
+            "Publish the page",
+            "Done when every accepted ADR has a matching one-to-one minute entry"
+          ],
+          "verify": [
+            "Match accepted ADRs in docs/adr to minute entries in the ARB log in Confluence",
+            "Pass when there is a one-to-one match"
+          ]
+        },
+        {
+          "n": 9,
+          "title": "Escalate ADRs stuck in Proposed beyond 10 business days in Jira",
+          "actor": "Tech Lead",
+          "sop": [
+            "List the ADRs in docs/adr in GitHub Enterprise stuck in Proposed beyond 10 business days",
+            "Create an escalation ticket in Jira for each, assigned to the Enterprise Architect",
+            "Link the ADR on each ticket",
+            "Done when every stale Proposed ADR has an escalation ticket"
+          ],
+          "verify": [
+            "List the stale Proposed ADRs in GitHub Enterprise",
+            "Pass when each has an escalation ticket in Jira"
+          ]
+        },
+        {
+          "n": 10,
+          "title": "Back-fill any undocumented decision via an SDLC-Exception in Jira",
+          "actor": "Tech Lead",
+          "sop": [
+            "Review the ARB log in Confluence for decisions made without an ADR",
+            "Open an SDLC-Exception in Jira owned by the Tech Lead for each undocumented decision",
+            "Back-fill the ADR in docs/adr and link it on the exception within 5 business days",
+            "Done when the back-filled ADR is linked within 5 business days"
+          ],
+          "verify": [
+            "Open each SDLC-Exception in Jira",
+            "Pass when the back-filled ADR link is present"
+          ]
+        },
+        {
+          "n": 11,
+          "title": "Reconcile the ADR count to the ARB agenda item count in Confluence",
+          "actor": "Software Engineer",
+          "sop": [
+            "Count the ADRs added to docs/adr in GitHub Enterprise for the period",
+            "Count the ARB agenda items in Confluence for the same period",
+            "Chase any missing agenda entry or ADR until the counts align",
+            "Done when the period counts match exactly"
+          ],
+          "verify": [
+            "Compare the docs/adr count in GitHub Enterprise to the agenda item count in Confluence",
+            "Pass when the delta is 0"
+          ]
+        },
+        {
+          "n": 12,
+          "title": "Record the Enterprise Architect sign-off on the routing log in Confluence",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the ARB log in Confluence",
+            "Request Enterprise Architect review of the period's routing log",
+            "Record the sign-off on the log page",
+            "Done when the Enterprise Architect sign-off is recorded for the period"
+          ],
+          "verify": [
+            "Open the ARB log in Confluence",
+            "Pass when the Enterprise Architect sign-off is present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "b51fd13e-6cf0-46de-9e03-c034af0fdd5a",
+      "taskName": "Capture lessons learned from completed deliveries",
+      "verifier": "Software Engineer",
+      "removeParticipants": ["UI Developer"],
+      "steps": [
+        {
+          "n": 1,
+          "title": "Create a lessons-learned page for each completed delivery in Confluence",
+          "actor": "Scrum Master",
+          "sop": [
+            "Open the quarter's completed deliveries list on the delivery dashboard in Jira",
+            "Create a lessons-learned page in Confluence from the retro template for each delivery",
+            "Publish each page within 10 business days of its go-live date",
+            "Done when the page is created within 10 business days of go-live"
+          ],
+          "verify": [
+            "List the quarter's deliveries in Jira and open each retro page in Confluence",
+            "Pass when it is dated within 10 business days"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Record the What-Went-Well section on each page in Confluence",
+          "actor": "Scrum Master",
+          "sop": [
+            "Open each retro page in Confluence and click Edit",
+            "Fill in the What-Went-Well section from the session notes",
+            "Publish the page",
+            "Done when the section is non-null on every retro page"
+          ],
+          "verify": [
+            "Open each retro page in Confluence",
+            "Pass when the What-Went-Well section is filled"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Record the What-To-Improve section on each page in Confluence",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open each retro page in Confluence and click Edit",
+            "Fill in the What-To-Improve section from the session notes",
+            "Publish the page",
+            "Done when the section is non-null on every retro page"
+          ],
+          "verify": [
+            "Open each retro page in Confluence",
+            "Pass when the What-To-Improve section is filled"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Record the Root Cause section on each page in Confluence",
+          "actor": "Backend Developer",
+          "sop": [
+            "Open each retro page in Confluence and click Edit",
+            "Fill in the Root Cause section from the session notes",
+            "Publish the page",
+            "Done when the section is non-null on every retro page"
+          ],
+          "verify": [
+            "Open each retro page in Confluence",
+            "Pass when the Root Cause section is filled"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Create at least one action item ticket labeled lessons-learned in Jira",
+          "actor": "Scrum Master",
+          "sop": [
+            "Open each retro's action items on its page in Confluence",
+            "Create at least one Jira ticket per retro covering the actions",
+            "Apply the lessons-learned label to each ticket",
+            "Done when every retro yields at least one labeled action ticket"
+          ],
+          "verify": [
+            "Filter the lessons-learned label in Jira",
+            "Pass when at least one ticket exists per retro"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Assign an owner with a due date to each action item in Jira",
+          "actor": "Scrum Master",
+          "sop": [
+            "Open each action ticket in Jira",
+            "Set the assignee to the action owner",
+            "Set the due date and save",
+            "Done when no action item lacks an owner or a due date"
+          ],
+          "verify": ["Inspect each action ticket in Jira", "Pass when owner plus due date are set"]
+        },
+        {
+          "n": 7,
+          "title": "Link each action ticket back to its retro page in Jira",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open each action ticket in Jira",
+            "Add a web link back to its source retro page in Confluence",
+            "Done when every action ticket links to its source retro page"
+          ],
+          "verify": [
+            "Open each action ticket in Jira and click the retro link",
+            "Pass when the retro page link resolves"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Reconcile the retro page count to released fix-versions in Jira",
+          "actor": "Scrum Master",
+          "sop": [
+            "Count the released fix-versions for the quarter in Jira",
+            "Count the retro pages in Confluence for the same quarter",
+            "Compare the two counts and create any missing retro page",
+            "Done when coverage is 100 percent of completed deliveries"
+          ],
+          "verify": [
+            "Compare released fix-versions in Jira to Confluence retro pages",
+            "Pass when the delta is 0"
+          ]
+        },
+        {
+          "n": 9,
+          "title": "Schedule a catch-up retro for any delivery missing one in Confluence",
+          "actor": "Scrum Master",
+          "sop": [
+            "List the deliveries missing a retro page from the reconciliation in Jira",
+            "Schedule a catch-up retro within one sprint via a calendar invite to the team",
+            "Record the exception reason on the delivery's page in Confluence",
+            "Done when each catch-up retro is scheduled within one sprint with a reason noted"
+          ],
+          "verify": [
+            "Open each late delivery's page in Confluence",
+            "Pass when a scheduled catch-up retro and reason are noted"
+          ]
+        },
+        {
+          "n": 10,
+          "title": "Record the Tech Lead sign-off on the retro records in Confluence",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the retro index page in Confluence",
+            "Request Tech Lead review of the quarter's retro records",
+            "Record the sign-off on the index page",
+            "Done when the Tech Lead sign-off is recorded for the quarter"
+          ],
+          "verify": [
+            "Open the retro index in Confluence",
+            "Pass when the Tech Lead sign-off is present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2fl9j71s7zkfgz7dnccp82",
+      "taskName": "Capture retrospective knowledge outputs",
+      "verifier": "Scrum Master",
+      "removeParticipants": [],
+      "steps": [
+        {
+          "n": 1,
+          "title": "Publish a knowledge output page for each retrospective in Confluence",
+          "actor": "Scrum Master",
+          "sop": [
+            "Open the period's retrospectives list on the team's board in Jira",
+            "Create a knowledge output page in Confluence from the template for each retro",
+            "Publish each page within 3 business days of its retro",
+            "Done when each output page is published within 3 business days of the retro"
+          ],
+          "verify": [
+            "List the period's retros in Jira and open each output page in Confluence",
+            "Pass when each is published within 3 business days"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Record the source sprint ID on each output page in Confluence",
+          "actor": "Scrum Master",
+          "sop": [
+            "Open each output page in Confluence and click Edit",
+            "Set the source sprint field to the sprint ID",
+            "Publish the page",
+            "Done when every output page names its source sprint"
+          ],
+          "verify": [
+            "Open each output page in Confluence",
+            "Pass when the source sprint field is populated"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Set the category on each output record in Confluence",
+          "actor": "Scrum Master",
+          "sop": [
+            "Open each output record on its page in Confluence",
+            "Set the category field to lesson, action or pattern",
+            "Save the record",
+            "Done when exactly one category value is set"
+          ],
+          "verify": [
+            "Inspect each record in Confluence",
+            "Pass when exactly one category value is set"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Assign an owner to each output record in Confluence",
+          "actor": "Scrum Master",
+          "sop": [
+            "Open each output record on its page in Confluence",
+            "Set the owner field to the accountable person and save",
+            "Done when no output record lacks an owner"
+          ],
+          "verify": ["Inspect each record in Confluence", "Pass when the owner field is populated"]
+        },
+        {
+          "n": 5,
+          "title": "Link each action item to a tracking ticket in Jira",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open each action item on the output page in Confluence",
+            "Create or locate its tracking ticket in Jira",
+            "Add the Jira ticket link on the action item",
+            "Done when every action item carries a Jira link"
+          ],
+          "verify": [
+            "Open each action item in Confluence and click its ticket link",
+            "Pass when its linked ticket resolves in Jira"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Set the due date on each action ticket in Jira",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open each action ticket in Jira",
+            "Set the due date field and save",
+            "Done when no action ticket lacks a due date"
+          ],
+          "verify": ["Inspect each action ticket in Jira", "Pass when the due date is set"]
+        },
+        {
+          "n": 7,
+          "title": "Add the retro-output label to each page in Confluence",
+          "actor": "Scrum Master",
+          "sop": [
+            "Open each output page in Confluence",
+            "Apply the retro-output label from the labels editor",
+            "Done when every output page carries the retro-output label"
+          ],
+          "verify": [
+            "Run the retro-output label query in Confluence",
+            "Pass when every output page is returned"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Cross-link each output page from its retro issue in Jira",
+          "actor": "Scrum Master",
+          "sop": [
+            "Open each retro issue in Jira",
+            "Add a web link to its Confluence output page",
+            "Done when every retro issue links to its Confluence output page"
+          ],
+          "verify": [
+            "Open each retro issue in Jira and click the link",
+            "Pass when the output page link resolves"
+          ]
+        },
+        {
+          "n": 9,
+          "title": "Reconcile the output page count to the retro issue count in Jira",
+          "actor": "Scrum Master",
+          "sop": [
+            "Count the retro issues for the period in Jira",
+            "Run the retro-output label query in Confluence and count the pages",
+            "Compare the two counts and publish any missing page",
+            "Done when the variance between counts is 0"
+          ],
+          "verify": [
+            "Compare the retro-issue count in Jira to the labelled page count in Confluence",
+            "Pass when the variance is 0"
+          ]
+        },
+        {
+          "n": 10,
+          "title": "Raise an SDLC-Exception for any retro with no output in Jira",
+          "actor": "Scrum Master",
+          "sop": [
+            "List retros with no output page from the reconciliation in Jira",
+            "Raise an SDLC-Exception in Jira for each, owned by the Scrum Master",
+            "Set a 5-business-day remediation SLA on each exception",
+            "Done when each has an exception with owner and the 5-day SLA"
+          ],
+          "verify": [
+            "Open each exception in Jira",
+            "Pass when owner plus the 5-day SLA are recorded"
+          ]
+        },
+        {
+          "n": 11,
+          "title": "Record the Tech Lead sign-off on the output tree in Confluence",
+          "actor": "Scrum Master",
+          "sop": [
+            "Open the Retrospective Outputs tree in Confluence",
+            "Request Tech Lead review of the tree",
+            "Record the sign-off on the tree's index page",
+            "Done when the Tech Lead sign-off is recorded on the Retrospective Outputs tree"
+          ],
+          "verify": [
+            "Open the outputs tree index page in Confluence",
+            "Pass when the Tech Lead sign-off is present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "f42f4564-0a2c-4a59-b2b8-0126473503f1",
+      "taskName": "Categorize service request",
+      "verifier": "Demand Manager",
+      "removeParticipants": [],
+      "steps": [
+        {
+          "n": 1,
+          "title": "Pull the queue of New requests lacking classification in ServiceNow ITSM",
+          "actor": "Demand Manager",
+          "sop": [
+            "Run the unclassified-request filter on the request list in ServiceNow ITSM",
+            "Add every matching New request to the triage queue",
+            "Done when every unclassified New request appears on the triage queue"
+          ],
+          "verify": [
+            "Run the unclassified-request filter in ServiceNow ITSM and compare to the triage queue",
+            "Pass when each result is queued"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Set the category on each request in ServiceNow ITSM",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open each queued request in ServiceNow ITSM",
+            "Select the category from the category taxonomy dropdown and save",
+            "Done when no queued request lacks a category"
+          ],
+          "verify": [
+            "Inspect each request in ServiceNow ITSM",
+            "Pass when the category field is populated"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Set the priority from the impact-urgency matrix in ServiceNow ITSM",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open each queued request in ServiceNow ITSM",
+            "Read its impact and urgency values",
+            "Set the priority from the impact-urgency matrix and save",
+            "Done when every request priority derives from the matrix"
+          ],
+          "verify": [
+            "Spot-check request priorities in ServiceNow ITSM against the impact-urgency matrix",
+            "Pass when no mismatch is found"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Assign the fulfilling team on each request in ServiceNow ITSM",
+          "actor": "Demand Manager",
+          "sop": [
+            "Open each routed request in ServiceNow ITSM",
+            "Set the fulfilling team in the assignment group field and save",
+            "Done when 0 requests are routed with a null team"
+          ],
+          "verify": [
+            "Inspect each routed request in ServiceNow ITSM",
+            "Pass when the fulfilling team is set"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Attach the policy citation on regulated-data requests in ServiceNow ITSM",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open each regulated-data request in ServiceNow ITSM",
+            "Add the access-control policy citation or NYDFS 500.7 in the work notes",
+            "Save the request",
+            "Done when every regulated request carries the citation"
+          ],
+          "verify": [
+            "Open each regulated request in ServiceNow ITSM and read the work notes",
+            "Pass when the citation is recorded"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Record the taxonomy version on each classification in ServiceNow ITSM",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open each classified request in ServiceNow ITSM",
+            "Note the category taxonomy version used in the classification field",
+            "Save the request",
+            "Done when every classification notes the category taxonomy version"
+          ],
+          "verify": [
+            "Inspect classified requests in ServiceNow ITSM",
+            "Pass when the taxonomy version is noted"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Classify standard requests within 4 business hours in ServiceNow ITSM",
+          "actor": "Demand Manager",
+          "sop": [
+            "Run the SLA report for standard requests in ServiceNow ITSM",
+            "Read the share classified within 4 business hours",
+            "Chase any open request approaching the 4-hour SLA",
+            "Done when at least 98 percent of standard requests meet the 4-hour SLA"
+          ],
+          "verify": [
+            "Run the SLA report in ServiceNow ITSM",
+            "Pass when the standard-request rate is at least 98 percent"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Classify high-priority requests within 1 hour in ServiceNow ITSM",
+          "actor": "Demand Manager",
+          "sop": [
+            "Run the SLA report for high-priority requests in ServiceNow ITSM",
+            "Check each high-priority request's classification time against the 1-hour SLA",
+            "Done when high-priority requests are classified inside the 1-hour SLA"
+          ],
+          "verify": [
+            "Run the SLA report in ServiceNow ITSM",
+            "Pass when no high-priority request breached 1 hour"
+          ]
+        },
+        {
+          "n": 9,
+          "title": "Log each re-triage correction with rationale in the work notes in ServiceNow ITSM",
+          "actor": "Business Analyst",
+          "sop": [
+            "Review the triage queue in ServiceNow ITSM for misclassified requests",
+            "Correct each request's category or priority",
+            "Record the correction and its rationale in the work notes",
+            "Done when every correction carries a rationale"
+          ],
+          "verify": [
+            "Read the work notes on corrected requests in ServiceNow ITSM",
+            "Pass when each correction carries a rationale"
+          ]
+        },
+        {
+          "n": 10,
+          "title": "Raise a TRIAGE-Exception for unclassifiable requests in ServiceNow ITSM",
+          "actor": "Demand Manager",
+          "sop": [
+            "Review the triage queue in ServiceNow ITSM for requests that fit no category",
+            "Raise a TRIAGE-Exception on each and escalate to the service desk lead",
+            "Set resolution due within 1 business day",
+            "Done when each unclassifiable request has an escalation with the 1-day SLA"
+          ],
+          "verify": [
+            "Open each TRIAGE-Exception in ServiceNow ITSM",
+            "Pass when escalation plus the 1-day SLA are present"
+          ]
+        },
+        {
+          "n": 11,
+          "title": "Reconcile the classified count to the inbound count in ServiceNow ITSM",
+          "actor": "Demand Manager",
+          "sop": [
+            "Count the inbound requests for the period in ServiceNow ITSM",
+            "Count the classified requests and compare the two counts",
+            "Fix any request routed with a missing attribute",
+            "Done when 0 requests were routed with a missing attribute"
+          ],
+          "verify": [
+            "Compare inbound to classified counts in ServiceNow ITSM",
+            "Pass when no null-attribute routing is found"
+          ]
+        },
+        {
+          "n": 12,
+          "title": "Record the Production Support Engineer sign-off in ServiceNow ITSM",
+          "actor": "Demand Manager",
+          "sop": [
+            "Open the period record in ServiceNow ITSM",
+            "Request Production Support Engineer review of the period's classification",
+            "Record the sign-off on the period record",
+            "Done when the Production Support Engineer sign-off is recorded for the period"
+          ],
+          "verify": [
+            "Open the period record in ServiceNow ITSM",
+            "Pass when the Production Support Engineer sign-off is present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "c87d786f-ddd2-40d8-83e9-3c78bc467128",
+      "taskName": "Check demand for duplicates against backlog",
+      "verifier": "Product Owner",
+      "removeParticipants": [],
+      "steps": [
+        {
+          "n": 1,
+          "title": "Record the search keywords on the demand item in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open the demand item in Jira",
+            "Enter the search keywords into the duplicate-check field",
+            "Save the item",
+            "Done when the searched keywords are captured in the duplicate-check field"
+          ],
+          "verify": [
+            "Open the demand item in Jira",
+            "Pass when the duplicate-check field lists the keywords"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Search all open backlog items in the target value stream in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open the issue search in Jira and run the saved open-backlog search for the target value stream",
+            "Confirm the search scope covers the full open backlog with no status excluded",
+            "Note the candidate matches returned",
+            "Done when the search covers 100 percent of open items in the stream"
+          ],
+          "verify": [
+            "Re-run the saved search in Jira and read its scope",
+            "Pass when its scope matches the full open backlog"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Search items closed within the last 12 months in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open the issue search in Jira and run the saved closed-item search",
+            "Set the resolution date window to the trailing 12 months",
+            "Note the candidate matches returned",
+            "Done when the closed-item search covers the trailing 12 months"
+          ],
+          "verify": [
+            "Re-run the closed-item search in Jira and read the date window",
+            "Pass when the 12-month window was applied"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Link each candidate match to the demand item in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open the demand item in Jira",
+            "Add a relates-to or duplicates link for each candidate match from the Link action",
+            "Save each link",
+            "Done when each candidate is recorded with a typed link"
+          ],
+          "verify": [
+            "Open the demand item in Jira and expand its links",
+            "Pass when each candidate carries a typed link"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the duplicate-or-overlap decision on the demand item in Jira",
+          "actor": "Product Owner",
+          "sop": [
+            "Open the demand item in Jira and review each linked candidate",
+            "Record the duplicate-or-overlap decision in a comment",
+            "Complete the decision within 2 business days of the demand being logged",
+            "Done when the decision is recorded within 2 business days of the demand being logged"
+          ],
+          "verify": [
+            "Read the decision comment on the demand item in Jira",
+            "Pass when reviewer plus timestamp are present"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Close confirmed duplicates with the Duplicate resolution in Jira",
+          "actor": "Product Owner",
+          "sop": [
+            "Open each confirmed duplicate in Jira",
+            "Close it with the Duplicate resolution",
+            "Add a duplicates link to the master item",
+            "Done when each confirmed duplicate is closed and linked to the master item"
+          ],
+          "verify": [
+            "Open each closed duplicate in Jira",
+            "Pass when the Duplicate resolution plus master link are present"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Log each partial overlap for a merge-or-descope decision in Jira",
+          "actor": "Product Owner",
+          "sop": [
+            "Open each partial overlap linked on the demand item in Jira",
+            "Agree merge or de-scope with the affected item owners",
+            "Record the decision on the item within the 5-business-day SLA",
+            "Done when each overlap has a merge-or-descope decision within 5 business days"
+          ],
+          "verify": [
+            "Open each overlap item in Jira and read the decision",
+            "Pass when a decision was recorded within 5 business days"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Record the Product Owner sign-off on the duplicate check in Jira",
+          "actor": "Product Owner",
+          "sop": [
+            "Open the demand item in Jira and review the duplicate-check evidence",
+            "Add the sign-off comment on the item",
+            "Done when the check evidence is complete on the demand item"
+          ],
+          "verify": [
+            "Open the demand item in Jira and read its comments",
+            "Pass when the Product Owner sign-off is present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "cmr2flb5t1sxbkfgz24f6g5tv",
+      "taskName": "Collect developer satisfaction scores",
+      "verifier": "Platform Engineering Lead",
+      "removeParticipants": [],
+      "steps": [
+        {
+          "n": 1,
+          "title": "Launch the quarterly DevEx survey to all engineers in Microsoft 365 / SharePoint",
+          "actor": "Platform Engineering Lead",
+          "sop": [
+            "Open the quarterly DevEx survey in Microsoft Forms",
+            "Set the collection window to open for 2 weeks with start and end dates",
+            "Send the survey invitation to the full engineer distribution list",
+            "Done when the survey is sent to the whole delivery organization with the window dates set"
+          ],
+          "verify": [
+            "Open the survey's send log in Microsoft Forms and compare recipients to the full engineer list",
+            "Pass when the full list was invited with the window dates set"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Record the approved methodology version on the survey in Microsoft 365 / SharePoint",
+          "actor": "Platform Engineering Lead",
+          "sop": [
+            "Open the survey in Microsoft Forms",
+            "Add the approved instrument version reference to the survey header",
+            "Save the survey",
+            "Done when the survey references the approved instrument version"
+          ],
+          "verify": [
+            "Open the survey header in Microsoft Forms",
+            "Pass when the methodology version is cited"
+          ]
+        },
+        {
+          "n": 3,
+          "title": "Capture an anonymized respondent token on each response in Microsoft 365 / SharePoint",
+          "actor": "Platform Engineering Lead",
+          "sop": [
+            "Open the survey response settings in Microsoft Forms",
+            "Enable the anonymized respondent token and disable collection of names and emails",
+            "Submit a test response to confirm no PII is captured",
+            "Done when responses carry tokens with no PII"
+          ],
+          "verify": [
+            "Sample responses in Microsoft Forms",
+            "Pass when tokens are present with no identifying data"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Capture the squad on each response in Microsoft 365 / SharePoint",
+          "actor": "Software Engineer",
+          "sop": [
+            "Open the survey responses in Microsoft Forms",
+            "Check the squad question is answered on every response",
+            "Chase squads whose responses omit the squad field",
+            "Done when every response records its squad"
+          ],
+          "verify": [
+            "Sample responses in Microsoft Forms",
+            "Pass when the squad field is populated"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Exclude responses missing required Likert items in Microsoft 365 / SharePoint",
+          "actor": "Software Engineer",
+          "sop": [
+            "Export the responses from Microsoft Forms and filter for missing required Likert items",
+            "Exclude each incomplete response from the score calculation set",
+            "Done when only complete responses feed the score calculation"
+          ],
+          "verify": [
+            "Filter the exported responses for incomplete Likert items",
+            "Pass when none entered the scored set"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Reconcile responses received to invitations sent in Microsoft 365 / SharePoint",
+          "actor": "Platform Engineering Lead",
+          "sop": [
+            "Read the invitations sent count from the survey send log in Microsoft Forms",
+            "Read the responses received count from the responses tab",
+            "Compute the response rate from the two control totals",
+            "Done when the response rate is computed from the two control totals"
+          ],
+          "verify": [
+            "Recompute the rate from the invitation and response counts in Microsoft Forms",
+            "Pass when it matches"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Re-survey squads below the 60 percent response rate once in Microsoft 365 / SharePoint",
+          "actor": "Platform Engineering Lead",
+          "sop": [
+            "Compute the per-squad response rates from the Microsoft Forms export",
+            "Identify squads below the 60 percent response rate",
+            "Re-send the survey once to each low-rate squad and log any remaining shortfall",
+            "Done when each low-rate squad received exactly one re-survey"
+          ],
+          "verify": [
+            "Check the send log in Microsoft Forms for each low-rate squad",
+            "Pass when each received exactly one re-survey"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Compute the eNPS score per the approved formula in Microsoft 365 / SharePoint",
+          "actor": "Platform Engineering Lead",
+          "sop": [
+            "Open the scored response set exported from Microsoft Forms",
+            "Apply the versioned eNPS formula to completed responses only",
+            "Record the computed score with the formula version",
+            "Done when the score uses only completed responses and the versioned formula"
+          ],
+          "verify": [
+            "Recompute the eNPS from the scored set exported from Microsoft Forms",
+            "Pass when it matches the published score"
+          ]
+        },
+        {
+          "n": 9,
+          "title": "Roll up groups below 5 responses before reporting in BI/reporting platform",
+          "actor": "Platform Engineering Lead",
+          "sop": [
+            "Open the eNPS report in Power BI",
+            "Identify any reporting group with fewer than 5 responses",
+            "Roll each small group up into its parent group and refresh the report",
+            "Done when no reported group has fewer than 5 responses"
+          ],
+          "verify": [
+            "Review the eNPS report in Power BI",
+            "Pass when no group is below the n=5 threshold"
+          ]
+        },
+        {
+          "n": 10,
+          "title": "Export the anonymized results with the survey ID in Enterprise data warehouse/lakehouse",
+          "actor": "Software Engineer",
+          "sop": [
+            "Export the PII-free results from Microsoft Forms",
+            "Stamp the export with the survey ID and a UTC timestamp",
+            "Load it into the enterprise data warehouse for 24 months of trend analysis",
+            "Done when the export carries the survey ID and timestamp with no PII"
+          ],
+          "verify": [
+            "Run a SQL query against the loaded survey table in the enterprise data warehouse",
+            "Pass when the export carries the survey ID and timestamp with no PII"
+          ]
+        },
+        {
+          "n": 11,
+          "title": "Record the Platform Engineering Lead sign-off on the results in Confluence",
+          "actor": "Platform Engineering Lead",
+          "sop": [
+            "Create the quarterly results page in Confluence and publish it",
+            "Add the sign-off comment on the page",
+            "Done when the quarterly results page is published with a sign-off"
+          ],
+          "verify": [
+            "Open the quarterly results page in Confluence",
+            "Pass when the Platform Engineering Lead sign-off is present"
+          ]
+        }
+      ]
+    },
+    {
+      "taskId": "42facdb3-1064-4154-ac90-259bf9fe134d",
+      "taskName": "Communicate demand intake decision",
+      "verifier": "Demand Manager",
+      "removeParticipants": [],
+      "steps": [
+        {
+          "n": 1,
+          "title": "Record the intake decision with rationale in PPM tool (Clarity/Planview/Jira Align)",
+          "actor": "Demand Manager",
+          "sop": [
+            "Open the demand item in PPM tool (Clarity/Planview/Jira Align)",
+            "Record the intake decision with its rationale",
+            "Reference the intake scoring model result in the rationale and save",
+            "Done when the decision is recorded with rationale and the scoring reference"
+          ],
+          "verify": [
+            "Open the decision record in the PPM tool",
+            "Pass when rationale plus scoring reference are present"
+          ]
+        },
+        {
+          "n": 2,
+          "title": "Record the priority queue position on the demand item in Jira",
+          "actor": "Demand Manager",
+          "sop": [
+            "Open the demand item in Jira",
+            "Enter the prioritization queue position on the item and save",
+            "Done when the demand item shows its prioritization outcome"
+          ],
+          "verify": ["Open the demand item in Jira", "Pass when the queue position is recorded"]
+        },
+        {
+          "n": 3,
+          "title": "Resolve the recipient list from the requester field in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open the demand item's requester field in Jira",
+            "Resolve the requesting stakeholders and look up their sponsor",
+            "Add the requester and sponsor to the recipient list",
+            "Done when the recipient list includes the requester and sponsor"
+          ],
+          "verify": [
+            "Compare the recipient list to the requester field in Jira",
+            "Pass when the sponsor is included"
+          ]
+        },
+        {
+          "n": 4,
+          "title": "Store the recipient list with the communication record in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Open the communication record in Jira",
+            "Attach the resolved recipient list to the record and save",
+            "Done when the stored record names every recipient"
+          ],
+          "verify": [
+            "Open the communication record in Jira",
+            "Pass when the recipient list is attached"
+          ]
+        },
+        {
+          "n": 5,
+          "title": "Record the next steps on the communication in Jira",
+          "actor": "Demand Manager",
+          "sop": [
+            "Open the communication record in Jira",
+            "State the decision and the priority in the record body",
+            "Write the next steps section and save",
+            "Done when the communication states decision, priority and next steps"
+          ],
+          "verify": [
+            "Read the communication record in Jira",
+            "Pass when the next steps section is populated"
+          ]
+        },
+        {
+          "n": 6,
+          "title": "Send the decision notification within 3 business days in Jira",
+          "actor": "Demand Manager",
+          "sop": [
+            "Open the finished communication record in Jira",
+            "Send it to all resolved recipients",
+            "Confirm the send timestamp falls within 3 business days of the decision",
+            "Done when the notification is sent within 3 business days of the decision"
+          ],
+          "verify": [
+            "Compare the send timestamp to the decision date on the record in Jira",
+            "Pass when it is within 3 business days"
+          ]
+        },
+        {
+          "n": 7,
+          "title": "Log undeliverable notifications with a disposition in Jira",
+          "actor": "Business Analyst",
+          "sop": [
+            "Review the send log on the communication record in Jira for undeliverable notifications",
+            "Record resend, re-triage or escalate as the disposition on each undeliverable entry",
+            "Done when every undeliverable notification carries a disposition"
+          ],
+          "verify": [
+            "Open each undeliverable entry in Jira",
+            "Pass when a disposition value is recorded"
+          ]
+        },
+        {
+          "n": 8,
+          "title": "Reconcile the decided-item count to the communicated count in Jira",
+          "actor": "Demand Manager",
+          "sop": [
+            "Count the decided demand items for the period in Jira",
+            "Count the sent communications for the same period",
+            "Send a communication for any decided item still lacking one",
+            "Done when no decided item lacks a stakeholder notification"
+          ],
+          "verify": [
+            "Compare decided items to sent communications in Jira",
+            "Pass when the delta is 0"
+          ]
+        },
+        {
+          "n": 9,
+          "title": "Escalate disputed decisions to the PMO Manager in Jira",
+          "actor": "Demand Manager",
+          "sop": [
+            "Review each decided demand item in Jira for dispute comments on the decision",
+            "Create a dispute ticket escalated to the PMO Manager with a named owner",
+            "Track each dispute ticket to closure",
+            "Done when each dispute is tracked to closure with a named owner"
+          ],
+          "verify": [
+            "Open each dispute ticket in Jira",
+            "Pass when owner plus closure status are present"
+          ]
+        },
+        {
+          "n": 10,
+          "title": "Record the PMO Manager sign-off on the communication record in Jira",
+          "actor": "Demand Manager",
+          "sop": [
+            "Open the communication record in Jira",
+            "Request PMO Manager review of the record",
+            "Record the sign-off on the communication record",
+            "Done when the PMO Manager sign-off is recorded"
+          ],
+          "verify": [
+            "Open the communication record in Jira",
+            "Pass when the PMO Manager sign-off is present"
+          ]
+        }
+      ]
+    }
+  ]
+}

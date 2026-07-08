@@ -14,6 +14,8 @@ import { Card, Chip, ErrorMessage, Input, LoadingState } from '../../components/
 
 type ValueStream = { id: string; name: string; domain: string | null };
 type Responsible = { roleId: string; roleName: string; roleLevel: string | null };
+// One work-plan key; generic = from the assigned pattern, else item-specific.
+type PlanKey = { key: string; generic: boolean };
 type Item = {
   id: string;
   category: string;
@@ -35,7 +37,8 @@ type Item = {
   valueStreams: ValueStream[];
   // Work Library plan keys (generic template keys + item-specific steps) —
   // values are filled in the Work Library, this view shows the structure.
-  plan: { checklist: string[]; testing: string[] } | null;
+  // generic distinguishes pattern keys from item-specific steps in the display.
+  plan: { checklist: PlanKey[]; testing: PlanKey[] } | null;
 };
 // Top-level rows are groups; their decomposed child standards ride along.
 type Group = Item & { subs: Item[] };
@@ -342,13 +345,39 @@ export default function StandardArea() {
 // Surface a granular standard as an independently testable + applicable rule:
 // the ordered verification steps, the evidence they leave, who applies it, and
 // the tailored agent skill that enforces + tests it.
+// Ordered plan keys split into labeled generic (pattern) and specific (this
+// item) groups; numbering runs continuously across the two groups.
+function PlanKeyList({ keys }: { keys: PlanKey[] }) {
+  const generic = keys.filter((k) => k.generic);
+  const specific = keys.filter((k) => !k.generic);
+  const group = (label: string, rows: PlanKey[], start: number) =>
+    rows.length > 0 && (
+      <div>
+        <div className="text-[9px] font-semibold uppercase tracking-[0.08em] text-[#8a94a0]">
+          {label}
+        </div>
+        <ol start={start} className="text-xs text-[#525252] list-decimal pl-4 space-y-0.5">
+          {rows.map((k, i) => (
+            <li key={i}>{k.key}</li>
+          ))}
+        </ol>
+      </div>
+    );
+  return (
+    <div className="space-y-1">
+      {group('Generic steps · pattern', generic, 1)}
+      {group('Specific steps · this item', specific, generic.length + 1)}
+    </div>
+  );
+}
+
 function StandardMeta({
   item,
   onViewSkill,
 }: {
   item: {
     id: string;
-    plan: { checklist: string[]; testing: string[] } | null;
+    plan: { checklist: PlanKey[]; testing: PlanKey[] } | null;
     agentSkill: string | null;
     appliers: { roleId: string; roleName: string }[];
   };
@@ -366,11 +395,7 @@ function StandardMeta({
           <span className="mt-px text-[9px] font-semibold uppercase tracking-[0.08em] text-[#047857] bg-[#ecfdf5] rounded px-1 py-px flex-shrink-0">
             Checklist
           </span>
-          <ol className="text-xs text-[#525252] list-decimal pl-4 space-y-0.5">
-            {checklist.map((s, i) => (
-              <li key={i}>{s}</li>
-            ))}
-          </ol>
+          <PlanKeyList keys={checklist} />
         </div>
       )}
       {testing.length > 0 && (
@@ -378,11 +403,7 @@ function StandardMeta({
           <span className="mt-px text-[9px] font-semibold uppercase tracking-[0.08em] text-[#0070AD] bg-[#eef6fb] rounded px-1 py-px flex-shrink-0">
             Testing
           </span>
-          <ol className="text-xs text-[#525252] list-decimal pl-4 space-y-0.5">
-            {testing.map((s, i) => (
-              <li key={i}>{s}</li>
-            ))}
-          </ol>
+          <PlanKeyList keys={testing} />
         </div>
       )}
       {(checklist.length > 0 || testing.length > 0) && (

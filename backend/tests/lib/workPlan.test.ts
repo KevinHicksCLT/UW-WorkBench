@@ -33,7 +33,12 @@ const LINKS = [
   },
   {
     processNodeId: 'n1',
-    template: { id: 'tpl-ts', kind: 'TEST', sortOrder: 2, keys: [{ id: 'k3', key: 'Test method' }] },
+    template: {
+      id: 'tpl-ts',
+      kind: 'TEST',
+      sortOrder: 2,
+      keys: [{ id: 'k3', key: 'Test method' }],
+    },
   },
 ];
 
@@ -83,12 +88,13 @@ describe('taskPlans', () => {
     const plan = plans.get('n1');
 
     expect(plan?.checklist).toEqual([
-      { key: 'Owner', value: 'Alice', defined: true }, // role FK resolved, not the raw value
-      { key: 'Extra step', value: null, defined: false },
+      // role FK resolved, not the raw value; template key → generic
+      { key: 'Owner', value: 'Alice', defined: true, generic: true },
+      { key: 'Extra step', value: null, defined: false, generic: false },
     ]);
     expect(plan?.testing).toEqual([
-      { key: 'Test method', value: null, defined: false },
-      { key: 'Perf test', value: 'Perf report', defined: true },
+      { key: 'Test method', value: null, defined: false, generic: true },
+      { key: 'Perf test', value: 'Perf report', defined: true, generic: false },
     ]);
     expect(plan?.standards).toEqual([]);
     expect(plan?.regulations).toEqual([]);
@@ -134,7 +140,12 @@ describe('taskPlans', () => {
       answer({ standardId: 's1', kind: 'TEST', step: 'Sample audit' }),
     ]);
     prismaMock.nodeRegulationEvidence.findMany.mockResolvedValue([
-      answer({ regId: 'r1', kind: 'CHECKLIST', step: 'Record consent', application: { name: 'OneTrust' } }),
+      answer({
+        regId: 'r1',
+        kind: 'CHECKLIST',
+        step: 'Record consent',
+        application: { name: 'OneTrust' },
+      }),
     ]);
 
     const plan = (await taskPlans(['n1'], { includeTied: true })).get('n1');
@@ -144,14 +155,15 @@ describe('taskPlans', () => {
       id: 's1',
       source: 'Risk',
       direct: true,
-      checklist: [{ key: 'Verify log', value: 'done', defined: true }],
-      testing: [{ key: 'Sample audit', value: null, defined: false }],
+      // evidence rows are task-local by definition → never generic
+      checklist: [{ key: 'Verify log', value: 'done', defined: true, generic: false }],
+      testing: [{ key: 'Sample audit', value: null, defined: false, generic: false }],
     });
     expect(plan?.regulations[0]).toMatchObject({
       id: 'r1',
       name: 'GDPR Art. 5',
       source: 'EU',
-      checklist: [{ key: 'Record consent', value: 'OneTrust', defined: true }],
+      checklist: [{ key: 'Record consent', value: 'OneTrust', defined: true, generic: false }],
     });
     // 2 own rows + 1 tied std + 1 tied reg evidence defined; totals include all rows.
     expect(plan?.defined).toBe(4);
