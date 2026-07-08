@@ -4,6 +4,7 @@ import TaskValidationControl, {
   type TaskValidation,
 } from '../../components/TaskValidationControl';
 import { Card, Chip, EmptyState, Select } from '../../components/ui';
+import SectionHeader, { StreamDot } from './SectionHeader';
 import type { ProfileTask } from './types';
 
 // Task list summary — collapsed rows show task · value stream · validation
@@ -12,9 +13,12 @@ import type { ProfileTask } from './types';
 // A value-stream filter keeps big roles scannable.
 export default function TaskSummarySection({
   tasks,
+  streamColor,
   onValidation,
 }: {
   tasks: ProfileTask[];
+  /** Stable per-value-stream color, shared with the other profile cards. */
+  streamColor: Map<string, string>;
   onValidation: (nodeRoleId: string, v: TaskValidation) => void;
 }) {
   const [open, setOpen] = useState<Set<string>>(new Set());
@@ -36,28 +40,48 @@ export default function TaskSummarySection({
 
   return (
     <Card variant="elevated" className="overflow-hidden">
-      <div className="px-4 py-2.5 border-b border-[#eaeaea] flex items-center gap-2 flex-wrap">
-        <h2 className="text-base font-semibold text-[#171717]">Task Summary</h2>
-        <span className="text-[11px] text-[#a3a3a3] tnum">
-          {visible.length}
-          {vsFilter ? ` of ${tasks.length}` : ''}
-        </span>
-        {streams.length > 1 && (
-          <Select
-            aria-label="Filter by value stream"
-            value={vsFilter}
-            onChange={(e) => setVsFilter(e.target.value)}
-            className="ml-auto !py-1 text-xs max-w-[240px]"
+      <SectionHeader
+        iconClass="bg-[#e0f2fe] text-[#0369a1]"
+        icon={
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <option value="">All value streams</option>
-            {streams.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </Select>
-        )}
-      </div>
+            <path d="M9 6h11M9 12h11M9 18h11" />
+            <path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />
+          </svg>
+        }
+        title="Task Summary"
+        count={
+          <>
+            {visible.length}
+            {vsFilter ? ` of ${tasks.length}` : ''}
+          </>
+        }
+        right={
+          streams.length > 1 ? (
+            <Select
+              aria-label="Filter by value stream"
+              value={vsFilter}
+              onChange={(e) => setVsFilter(e.target.value)}
+              className="ml-auto !py-1 text-xs max-w-[240px]"
+            >
+              <option value="">All value streams</option>
+              {streams.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </Select>
+          ) : undefined
+        }
+      />
       {visible.length === 0 ? (
         <EmptyState className="px-4 py-6" message="No tasks are assigned to this role yet." />
       ) : (
@@ -88,8 +112,9 @@ export default function TaskSummarySection({
                   <path d="M9 18l6-6-6-6" />
                 </svg>
                 <span className="flex-1 min-w-0 text-sm text-[#171717] truncate">{t.name}</span>
-                <span className="hidden sm:inline text-[11px] text-[#a3a3a3] truncate max-w-[180px]">
-                  {t.valueStreamName}
+                <span className="hidden sm:flex items-center gap-1.5 min-w-0 max-w-[180px]">
+                  <StreamDot color={streamColor.get(t.valueStreamName) ?? '#a3a3a3'} />
+                  <span className="text-[11px] text-[#737373] truncate">{t.valueStreamName}</span>
                 </span>
                 <ValidationPill validation={t.validation} />
               </button>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import TaskValidationControl, { type TaskValidation } from '../../components/TaskValidationControl';
 import { Card, EmptyState, StatusPill } from '../../components/ui';
+import SectionHeader, { StreamDot } from './SectionHeader';
 import type { ProfileDeliverable } from './types';
 
 // Deliverables the role is responsible for — Owner/Contributor pill + value
@@ -9,9 +10,12 @@ import type { ProfileDeliverable } from './types';
 // with the same validation control as the task summary (one link, one truth).
 export default function DeliverablesSection({
   deliverables,
+  streamColor,
   onValidation,
 }: {
   deliverables: ProfileDeliverable[];
+  /** Stable per-value-stream color, shared with the other profile cards. */
+  streamColor: Map<string, string>;
   onValidation: (nodeRoleId: string, v: TaskValidation) => void;
 }) {
   const [open, setOpen] = useState<Set<string>>(new Set());
@@ -25,10 +29,26 @@ export default function DeliverablesSection({
 
   return (
     <Card variant="elevated" className="overflow-hidden">
-      <div className="px-4 py-2.5 border-b border-[#eaeaea] flex items-baseline gap-2">
-        <h2 className="text-base font-semibold text-[#171717]">Deliverables</h2>
-        <span className="text-[11px] text-[#a3a3a3] tnum">{deliverables.length}</span>
-      </div>
+      <SectionHeader
+        iconClass="bg-[#eef2ff] text-[#4338ca]"
+        icon={
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M21 8l-9-5-9 5 9 5 9-5z" />
+            <path d="M3 8v8l9 5 9-5V8" />
+          </svg>
+        }
+        title="Deliverables"
+        count={deliverables.length}
+      />
       {deliverables.length === 0 ? (
         <EmptyState className="px-4 py-6" message="No deliverables are linked to this role yet." />
       ) : (
@@ -60,8 +80,9 @@ export default function DeliverablesSection({
                 </svg>
                 <span className="flex-1 min-w-0 text-sm text-[#171717] truncate">{d.title}</span>
                 {d.valueStreamName && (
-                  <span className="hidden sm:inline text-[11px] text-[#a3a3a3] truncate max-w-[180px]">
-                    {d.valueStreamName}
+                  <span className="hidden sm:flex items-center gap-1.5 min-w-0 max-w-[180px]">
+                    <StreamDot color={streamColor.get(d.valueStreamName) ?? '#a3a3a3'} />
+                    <span className="text-[11px] text-[#737373] truncate">{d.valueStreamName}</span>
                   </span>
                 )}
                 <StatusPill
