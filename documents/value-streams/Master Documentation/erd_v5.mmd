@@ -647,10 +647,26 @@ erDiagram
     string category
     string title
     string requirement
-    string lineOfBusiness
+    string lineOfBusiness "coarse scalar; granular lines via RequirementLineOfBusiness"
+    string_array markets "PERSONAL|COMMERCIAL market-segment tags"
     string regime "GDPR|CCPA-CPRA|NYDFS-500|SERFF|IIPRC|IAIABC-EDI|..."
     string confidence "BASELINE|VERIFIED|DERIVED|STALE"
     string agentSkill "FB-59 — SDLC skill for migrated privacy/cyber regimes"
+  }
+  LineOfBusiness {
+    string id PK
+    string companyId FK
+    string code "slug, unique per company"
+    string label
+    string group "family group (Individual Life, Medical & Health, …) — table/filter roll-up"
+    string_array segments "PERSONAL|COMMERCIAL|FEDERAL|INTERNATIONAL"
+    int sortOrder
+  }
+  RequirementLineOfBusiness {
+    string id PK
+    string companyId FK
+    string regId FK "-> RegulatoryRequirement"
+    string lobId FK "-> LineOfBusiness"
   }
   RegulatorySource {
     string id PK
@@ -954,6 +970,8 @@ erDiagram
   Deliverable ||--o{ RegulationDeliverable : "evidences"
   RegulatoryRequirement ||--o{ RoleRegulation : "owned/done-by"
   Role ||--o{ RoleRegulation : "owns/contributes"
+  RegulatoryRequirement ||--o{ RequirementLineOfBusiness : "applies-to"
+  LineOfBusiness ||--o{ RequirementLineOfBusiness : "governs"
   ProcessNode ||--o{ NodeStandard : ""
   Standard ||--o{ NodeStandard : ""
   Role ||--o{ RoleStandard : "owns/follows"
