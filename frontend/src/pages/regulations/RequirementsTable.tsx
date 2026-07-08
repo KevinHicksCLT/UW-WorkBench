@@ -1,16 +1,19 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useCompany } from '../../lib/company';
 import { withCompany } from '../../lib/portfolio';
-import { LoadingState, Select } from '../../components/ui';
+import { HeaderComboFilter } from '../../components/Sheet';
+import { ListSearch } from '../../components/sheet/headerControls';
 import { type VsLink } from '../../components/RequirementLinks';
 import { catLabel, lobGroups, marketDisplay } from './Regulations';
 
-// Server-driven, paginated requirements table. The catalog is tens of thousands
-// of rows, so filtering/sorting/paging happen in the API (single source of
-// truth = the DB) and only one bounded page is ever in the browser. Shared by
-// the Regulations page (per-lens) and the regime page (fixed regime filter).
+// Server-driven requirements list. The catalog is tens of thousands of rows, so
+// filtering happens in the API (single source of truth = the DB) and the list
+// lazy-loads one page at a time on scroll — rendered as a single continuous
+// list, never a huge client-side table. Per-column combobox filters (the same
+// control the Sheet uses) sit in the header; their options come from a cheap
+// distinct-values endpoint scoped to the lens.
 
 export type ReqRow = {
   id: string;
@@ -28,9 +31,15 @@ export type ReqRow = {
   contributors: { id: string; name: string }[];
 };
 type Page = { rows: ReqRow[]; total: number; page: number; pageSize: number };
+type Filters = {
+  categories: string[];
+  regimes: string[];
+  jurisdictions: { code: string; name: string }[];
+};
 
-const MARKETS = ['PERSONAL', 'COMMERCIAL'];
-const GROUPS = [
+const MARKET_OPTS = ['All', 'Personal', 'Commercial', 'Both'];
+const GROUP_OPTS = [
+  'All',
   'Property',
   'Personal Auto',
   'Commercial Auto',
@@ -48,168 +57,259 @@ const GROUPS = [
   'Alternative Risk',
   'Specialty & Other',
 ];
+const PAGE_SIZE = 100;
+const MARKET_PARAM: Record<string, string> = { Personal: 'PERSONAL', Commercial: 'COMMERCIAL' };
 
 /**
- * @param baseParams query params always applied (e.g. `{ lens: 'state' }` or
- *   `{ regime: 'GDPR' }`). Filters + search + page are layered on top.
- * @param categories category tokens for the Category dropdown (from overview).
+ * @param baseParams query params always applied (e.g. `{ lens: 'state' }` or `{ regime: 'GDPR' }`).
  */
-export function RequirementsTable({
-  baseParams,
-  categories,
-}: {
-  baseParams: Record<string, string>;
-  categories: string[];
-}) {
+export function RequirementsTable({ baseParams }: { baseParams: Record<string, string> }) {
   const navigate = useNavigate();
   const { companyId } = useCompany();
-  const [market, setMarket] = useState('');
-  const [group, setGroup] = useState('');
-  const [category, setCategory] = useState('');
+  const [filters, setFilters] = useState<Filters>({
+    categories: [],
+    regimes: [],
+    jurisdictions: [],
+  });
+
+  // Selected values (single-pick comboboxes → first entry used).
+  const [regulator, setRegulator] = useState<string[]>([]);
+  const [market, setMarket] = useState<string[]>([]);
+  const [group, setGroup] = useState<string[]>([]);
+  const [regime, setRegime] = useState<string[]>([]);
+  const [category, setCategory] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [debounced, setDebounced] = useState('');
-  const [page, setPage] = useState(1);
-  const [data, setData] = useState<Page | null>(null);
-  const [loading, setLoading] = useState(true);
-  const pageSize = 100;
 
-  // Debounce the free-text search.
+  const [rows, setRows] = useState<ReqRow[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const baseKey = JSON.stringify(baseParams);
+
+  // Distinct filter options for this lens.
+  useEffect(() => {
+    if (!companyId) return;
+    const params = new URLSearchParams(baseParams);
+    api
+      .get<Filters>(withCompany(`/regulations/requirement-filters?${params.toString()}`, companyId))
+      .then(setFilters)
+      .catch(() => setFilters({ categories: [], regimes: [], jurisdictions: [] }));
+  }, [companyId, baseKey]);
+
   useEffect(() => {
     const t = setTimeout(() => setDebounced(search.trim()), 300);
     return () => clearTimeout(t);
   }, [search]);
-  // Any filter change resets to page 1.
-  const baseKey = JSON.stringify(baseParams);
-  useEffect(() => setPage(1), [market, group, category, debounced, baseKey]);
 
-  const firstLoad = useRef(true);
+  const nameToCode = useMemo(
+    () => new Map(filters.jurisdictions.map((j) => [j.name, j.code])),
+    [filters.jurisdictions],
+  );
+
+  // The active query params from the current filter selection.
+  const queryParams = useCallback(
+    (pageNum: number) => {
+      const p = new URLSearchParams({
+        ...baseParams,
+        page: String(pageNum),
+        pageSize: String(PAGE_SIZE),
+      });
+      if (regulator[0]) p.set('state', nameToCode.get(regulator[0]) ?? regulator[0]);
+      if (market[0] === 'Both') p.set('market', 'BOTH');
+      else if (market[0] && MARKET_PARAM[market[0]]) p.set('market', MARKET_PARAM[market[0]]);
+      if (group[0]) p.set('group', group[0]);
+      if (regime[0]) p.set('regime', regime[0]);
+      if (category[0]) p.set('category', category[0]);
+      if (debounced) p.set('search', debounced);
+      return p;
+    },
+    [baseKey, regulator, market, group, regime, category, debounced, nameToCode],
+  );
+
+  const filterKey = JSON.stringify([
+    baseKey,
+    regulator,
+    market,
+    group,
+    regime,
+    category,
+    debounced,
+  ]);
+
+  // Reset + load page 1 whenever a filter changes.
   useEffect(() => {
     if (!companyId) return;
-    const params = new URLSearchParams({
-      ...baseParams,
-      page: String(page),
-      pageSize: String(pageSize),
-    });
-    if (market) params.set('market', market);
-    if (group) params.set('group', group);
-    if (category) params.set('category', category);
-    if (debounced) params.set('search', debounced);
+    let active = true;
     setLoading(true);
+    setPage(1);
     api
-      .get<Page>(withCompany(`/regulations/requirements?${params.toString()}`, companyId))
-      .then(setData)
-      .catch(() => setData({ rows: [], total: 0, page: 1, pageSize }))
-      .finally(() => {
-        setLoading(false);
-        firstLoad.current = false;
-      });
-  }, [companyId, baseKey, market, group, category, debounced, page]);
+      .get<Page>(withCompany(`/regulations/requirements?${queryParams(1).toString()}`, companyId))
+      .then((d) => {
+        if (!active) return;
+        setRows(d.rows);
+        setTotal(d.total);
+      })
+      .catch(() => {
+        if (active) {
+          setRows([]);
+          setTotal(0);
+        }
+      })
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, [companyId, filterKey]);
 
-  const totalPages = data ? Math.max(1, Math.ceil(data.total / pageSize)) : 1;
-  const anyFilter = !!(market || group || category || debounced);
-  const catOptions = useMemo(
-    () => [...categories].sort((a, b) => catLabel(a).localeCompare(catLabel(b))),
-    [categories],
+  // Lazy-load the next page when the sentinel scrolls into view.
+  const sentinel = useRef<HTMLDivElement>(null);
+  const loadingMore = useRef(false);
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || !companyId) return;
+    const io = new IntersectionObserver((entries) => {
+      if (!entries[0].isIntersecting || loadingMore.current) return;
+      if (rows.length >= total) return;
+      loadingMore.current = true;
+      const next = page + 1;
+      api
+        .get<Page>(
+          withCompany(`/regulations/requirements?${queryParams(next).toString()}`, companyId),
+        )
+        .then((d) => {
+          setRows((prev) => [...prev, ...d.rows]);
+          setPage(next);
+        })
+        .finally(() => {
+          loadingMore.current = false;
+        });
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [companyId, rows.length, total, page, queryParams]);
+
+  const anyFilter = !!(
+    regulator[0] ||
+    market[0] ||
+    group[0] ||
+    regime[0] ||
+    category[0] ||
+    debounced
+  );
+  const clearAll = () => {
+    setRegulator([]);
+    setMarket([]);
+    setGroup([]);
+    setRegime([]);
+    setCategory([]);
+    setSearch('');
+  };
+
+  const jurOpts = useMemo(
+    () => ['All', ...filters.jurisdictions.map((j) => j.name)],
+    [filters.jurisdictions],
+  );
+  const regimeOpts = useMemo(() => ['All', ...filters.regimes], [filters.regimes]);
+  // Category combobox shows friendly labels but filters by token — map both ways.
+  const catLabelToToken = useMemo(
+    () => new Map(filters.categories.map((c) => [catLabel(c), c])),
+    [filters.categories],
+  );
+  const catDisplayOpts = useMemo(
+    () => ['All', ...filters.categories.map(catLabel).sort()],
+    [filters.categories],
   );
 
   return (
     <div>
-      {/* Toolbar — server-side filters + search + result count */}
-      <div className="flex flex-wrap items-center gap-2 mb-2">
+      <div className="flex items-center justify-between gap-3 pb-1.5 flex-wrap">
         <span className="text-[11px] text-[#737373] tnum">
-          {data ? `${data.total.toLocaleString()} requirements` : '…'}
+          {loading && !rows.length ? '…' : `${total.toLocaleString()} requirements`}
+          {anyFilter && (
+            <button onClick={clearAll} className="ml-2 text-[#2563eb] hover:underline">
+              Clear filters
+            </button>
+          )}
         </span>
-        <Select
-          value={market}
-          onChange={(e) => setMarket(e.target.value)}
-          aria-label="Filter by market"
-          className="text-xs py-1 w-[110px]"
-        >
-          <option value="">All markets</option>
-          {MARKETS.map((m) => (
-            <option key={m} value={m}>
-              {m === 'PERSONAL' ? 'Personal' : 'Commercial'}
-            </option>
-          ))}
-        </Select>
-        <Select
-          value={group}
-          onChange={(e) => setGroup(e.target.value)}
-          aria-label="Filter by line-of-business group"
-          className="text-xs py-1 w-[150px]"
-        >
-          <option value="">All lines</option>
-          {GROUPS.map((gp) => (
-            <option key={gp} value={gp}>
-              {gp}
-            </option>
-          ))}
-        </Select>
-        <Select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          aria-label="Filter by category"
-          className="text-xs py-1 w-[150px]"
-        >
-          <option value="">All categories</option>
-          {catOptions.map((c) => (
-            <option key={c} value={c}>
-              {catLabel(c)}
-            </option>
-          ))}
-        </Select>
-        <input
+        <ListSearch
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={setSearch}
           placeholder="Search title, regulation, citation…"
-          aria-label="Search requirements"
-          className="flex-1 min-w-[180px] max-w-xs rounded border border-[#eaeaea] bg-white px-2 py-1 text-xs text-[#171717] placeholder:text-[#a3a3a3] focus:outline-none focus:border-[#d4d4d4]"
         />
-        {anyFilter && (
-          <button
-            onClick={() => {
-              setMarket('');
-              setGroup('');
-              setCategory('');
-              setSearch('');
-            }}
-            className="text-[11px] text-[#2563eb] hover:underline"
-          >
-            Clear filters
-          </button>
-        )}
       </div>
 
-      <div className="rounded-xl border border-[#eaeaea] overflow-hidden bg-white">
+      <div className="rounded-xl border border-[#eaeaea] bg-white overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-[12px] border-collapse">
-            <thead>
-              <tr className="bg-[#fafafa] text-left text-[10px] font-semibold uppercase tracking-[0.06em] text-[#737373]">
-                <th className="px-3 py-2 font-semibold">Regulator</th>
-                <th className="px-3 py-2 font-semibold">Market</th>
-                <th className="px-3 py-2 font-semibold">Line of business</th>
-                <th className="px-3 py-2 font-semibold">Regulation</th>
-                <th className="px-3 py-2 font-semibold">Requirement</th>
-                <th className="px-3 py-2 font-semibold">Category</th>
-                <th className="px-3 py-2 font-semibold">Owner</th>
-                <th className="px-3 py-2 font-semibold w-[52px]">Plan</th>
+            <thead className="bg-[#fafafa] border-b border-[#eaeaea]">
+              <tr className="align-top">
+                <th className="text-left">
+                  <HeaderComboFilter
+                    label="Regulator"
+                    value={regulator}
+                    onChange={setRegulator}
+                    options={jurOpts}
+                  />
+                </th>
+                <th className="text-left">
+                  <HeaderComboFilter
+                    label="Market"
+                    value={market}
+                    onChange={setMarket}
+                    options={MARKET_OPTS}
+                  />
+                </th>
+                <th className="text-left">
+                  <HeaderComboFilter
+                    label="Line of business"
+                    value={group}
+                    onChange={setGroup}
+                    options={GROUP_OPTS}
+                  />
+                </th>
+                <th className="text-left">
+                  <HeaderComboFilter
+                    label="Regulation"
+                    value={regime}
+                    onChange={setRegime}
+                    options={regimeOpts}
+                  />
+                </th>
+                <th className="px-2 py-1 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373]">
+                  Requirement
+                </th>
+                <th className="text-left">
+                  <HeaderComboFilter
+                    label="Category"
+                    value={category[0] ? [catLabel(category[0])] : []}
+                    onChange={(v) => setCategory(v[0] ? [catLabelToToken.get(v[0]) ?? v[0]] : [])}
+                    options={catDisplayOpts}
+                  />
+                </th>
+                <th className="px-2 py-1 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373]">
+                  Owner
+                </th>
+                <th className="px-2 py-1 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-[#737373] w-[52px]">
+                  Plan
+                </th>
               </tr>
             </thead>
             <tbody>
-              {loading && (!data || firstLoad.current) ? (
+              {loading && !rows.length ? (
                 <tr>
-                  <td colSpan={8} className="px-3 py-6">
-                    <LoadingState />
+                  <td colSpan={8} className="px-3 py-8 text-center text-[#a3a3a3] text-xs">
+                    Loading…
                   </td>
                 </tr>
-              ) : data && data.rows.length === 0 ? (
+              ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-3 py-6 text-center text-[#a3a3a3]">
+                  <td colSpan={8} className="px-3 py-8 text-center text-[#a3a3a3] text-xs">
                     No requirements match the filters.
                   </td>
                 </tr>
               ) : (
-                data?.rows.map((r) => {
+                rows.map((r) => {
                   const groups = lobGroups(r);
                   return (
                     <tr
@@ -244,6 +344,7 @@ export function RequirementsTable({
                             to={`/regulations/regulation/${encodeURIComponent(r.regime)}`}
                             onClick={(e) => e.stopPropagation()}
                             className="text-[#171717] hover:underline"
+                            title={`${r.regime} — open the regulation`}
                           >
                             {r.regime}
                           </Link>
@@ -272,50 +373,13 @@ export function RequirementsTable({
             </tbody>
           </table>
         </div>
-      </div>
-
-      {/* Pagination */}
-      {data && data.total > pageSize && (
-        <div className="flex items-center justify-between mt-2 text-[11px] text-[#525252]">
-          <span className="tnum">
-            Page {data.page.toLocaleString()} of {totalPages.toLocaleString()} ·{' '}
-            {data.total.toLocaleString()} total
-          </span>
-          <div className="flex items-center gap-1">
-            <PageBtn
-              label="‹ Prev"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            />
-            <PageBtn
-              label="Next ›"
-              disabled={page >= totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            />
+        {/* Lazy-load sentinel */}
+        {rows.length < total && (
+          <div ref={sentinel} className="py-3 text-center text-[11px] text-[#a3a3a3]">
+            Loading more… ({rows.length.toLocaleString()} of {total.toLocaleString()})
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
-  );
-}
-
-function PageBtn({
-  label,
-  disabled,
-  onClick,
-}: {
-  label: string;
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onClick}
-      className="rounded border border-[#eaeaea] bg-white px-2 py-1 text-[11px] text-[#171717] hover:border-[#d4d4d4] disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
-    >
-      {label}
-    </button>
   );
 }

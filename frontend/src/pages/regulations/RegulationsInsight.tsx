@@ -296,7 +296,7 @@ function CatalogBody({ overview }: { overview: Overview | null }) {
         )}
       </div>
       <SectionCard title="All requirements">
-        <RequirementsTable baseParams={{}} categories={Object.keys(r.byCategory)} />
+        <RequirementsTable baseParams={{}} />
       </SectionCard>
     </div>
   );

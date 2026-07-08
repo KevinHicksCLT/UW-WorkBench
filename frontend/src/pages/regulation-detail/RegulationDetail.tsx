@@ -479,72 +479,74 @@ export default function RegulationDetail() {
           </SectionCard>
         )}
 
-        {!isFederal && (
-          <>
-            <SectionCard title={`Agent rules (${detail.rules.length})`}>
-              <p className="text-xs text-[#a3a3a3] mb-3">
-                Machine-readable rules derived from this state&apos;s requirements — encoded so
-                agents can run compliance checks against them. A requirement states the legal
-                obligation; an agent rule is the checkable control for it. Automated execution is a
-                future phase.
-              </p>
-              <div className="divide-y divide-[#f5f5f5]">
-                {detail.rules.map((r) => (
-                  <div key={r.id} className="py-2">
-                    <button
-                      className="flex items-center gap-2 w-full text-left group"
-                      onClick={() => setOpenRule(openRule === r.id ? null : r.id)}
-                      aria-expanded={openRule === r.id}
-                      title="Expand the machine-readable rule"
-                    >
-                      <span className="text-sm font-medium tnum text-[#171717] group-hover:underline">
-                        {r.ruleCode}
-                      </span>
-                      <span className="flex-1" />
-                      <span className="text-[#a3a3a3] text-xs">
-                        {openRule === r.id ? '▾' : '▸'}
-                      </span>
-                    </button>
-                    {r.description && (
-                      <p className="text-xs text-[#525252] mt-0.5">{r.description}</p>
-                    )}
-                    {openRule === r.id && (
-                      <pre className="mt-2 rounded-lg bg-[#fafafa] border border-[#eaeaea] p-3 text-[11px] text-[#262626] overflow-x-auto">
-                        {JSON.stringify(r.ruleJson, null, 2)}
-                      </pre>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </SectionCard>
-
-            <SectionCard title={`Regulatory sources (${detail.sources.length})`}>
-              <p className="text-xs text-[#a3a3a3] mb-2">
-                The official sites and feeds this state&apos;s requirements come from — including
-                the pages where the regulator posts bulletins and notices. Automated monitoring is a
-                future phase — nothing is polled today.
-              </p>
-              <div className="divide-y divide-[#f5f5f5]">
-                {detail.sources.map((s) => (
-                  <div key={s.id} className="flex items-center gap-2 py-2 text-sm">
-                    <a
-                      href={s.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-medium text-[#171717] hover:underline truncate"
-                    >
-                      {s.name} ↗
-                    </a>
-                    <StatusPill tone="slate">{label(s.sourceType)}</StatusPill>
-                    <StatusPill tone={s.authority === 'OFFICIAL_REGULATOR' ? 'green' : 'blue'}>
-                      {label(s.authority)}
-                    </StatusPill>
-                  </div>
-                ))}
-              </div>
-            </SectionCard>
-          </>
+        {/* Agent rules — machine-readable controls (state-derived today). */}
+        {detail.rules.length > 0 && (
+          <SectionCard title={`Agent rules (${detail.rules.length})`}>
+            <p className="text-xs text-[#a3a3a3] mb-3">
+              Machine-readable rules derived from this regulator&apos;s requirements — encoded so
+              agents can run compliance checks against them. A requirement states the legal
+              obligation; an agent rule is the checkable control for it. Automated execution is a
+              future phase.
+            </p>
+            <div className="divide-y divide-[#f5f5f5]">
+              {detail.rules.map((r) => (
+                <div key={r.id} className="py-2">
+                  <button
+                    className="flex items-center gap-2 w-full text-left group"
+                    onClick={() => setOpenRule(openRule === r.id ? null : r.id)}
+                    aria-expanded={openRule === r.id}
+                    title="Expand the machine-readable rule"
+                  >
+                    <span className="text-sm font-medium tnum text-[#171717] group-hover:underline">
+                      {r.ruleCode}
+                    </span>
+                    <span className="flex-1" />
+                    <span className="text-[#a3a3a3] text-xs">{openRule === r.id ? '▾' : '▸'}</span>
+                  </button>
+                  {r.description && (
+                    <p className="text-xs text-[#525252] mt-0.5">{r.description}</p>
+                  )}
+                  {openRule === r.id && (
+                    <pre className="mt-2 rounded-lg bg-[#fafafa] border border-[#eaeaea] p-3 text-[11px] text-[#262626] overflow-x-auto">
+                      {JSON.stringify(r.ruleJson, null, 2)}
+                    </pre>
+                  )}
+                </div>
+              ))}
+            </div>
+          </SectionCard>
         )}
+
+        {/* Regulatory sources — shown for every regulator (state, federal, international). */}
+        <SectionCard title={`Regulatory sources (${detail.sources.length})`}>
+          <p className="text-xs text-[#a3a3a3] mb-2">
+            The official sites and feeds this regulator&apos;s requirements come from — including
+            the pages where it posts bulletins and notices. Automated monitoring is a future phase —
+            nothing is polled today.
+          </p>
+          {detail.sources.length === 0 ? (
+            <p className="text-sm text-[#a3a3a3]">No sources on file for this regulator yet.</p>
+          ) : (
+            <div className="divide-y divide-[#f5f5f5]">
+              {detail.sources.map((s) => (
+                <div key={s.id} className="flex items-center gap-2 py-2 text-sm">
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium text-[#171717] hover:underline truncate"
+                  >
+                    {s.name} ↗
+                  </a>
+                  <StatusPill tone="slate">{label(s.sourceType)}</StatusPill>
+                  <StatusPill tone={s.authority === 'OFFICIAL_REGULATOR' ? 'green' : 'blue'}>
+                    {label(s.authority)}
+                  </StatusPill>
+                </div>
+              ))}
+            </div>
+          )}
+        </SectionCard>
       </div>
     </div>
   );

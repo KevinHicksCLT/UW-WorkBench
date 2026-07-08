@@ -36,7 +36,7 @@ export default function RegimeDetail() {
       {/* What this regulation IS — static copy keyed by regime name. */}
       <p className="text-sm text-[#525252] leading-relaxed mb-5 max-w-3xl">{regimeHelp(name)}</p>
 
-      <RequirementsTable baseParams={{ regime: name }} categories={[]} />
+      <RequirementsTable baseParams={{ regime: name }} />
     </div>
   );
 }

@@ -28,8 +28,11 @@ export function registerLensRoutes(router: Router): void {
         sourceCount,
         coverage,
       ] = await Promise.all([
+        // The Jurisdictions headline counts real US states (+ DC) only — federal
+        // agencies live under the Federal lens, and the synthetic multistate
+        // "NAIC" model-law container is not a state.
         prisma.jurisdiction.findMany({
-          where: { companyId, regulatorType: { notIn: ['FEDERAL_SECURITIES', 'INTERNATIONAL'] } },
+          where: { companyId, regulatorType: 'STATE_INSURANCE_REGULATOR', code: { not: 'NAIC' } },
           select: {
             filingPortal: true,
             compactStatus: true,
@@ -435,10 +438,13 @@ export function registerLensRoutes(router: Router): void {
         };
       else if (lens === 'international')
         where.jurisdiction = { ...(where.jurisdiction as object), regulatorType: 'INTERNATIONAL' };
-      // Market segment filter (PERSONAL | COMMERCIAL) — array-contains.
+      // Market segment filter — PERSONAL | COMMERCIAL | BOTH (BOTH = tagged with
+      // both segments, i.e. the cross-market obligations).
       const markets = list(q.market);
-      if (markets)
-        where.markets = markets.length === 1 ? { has: markets[0] } : { hasSome: markets };
+      if (markets) {
+        if (markets.includes('BOTH')) where.markets = { hasEvery: ['PERSONAL', 'COMMERCIAL'] };
+        else where.markets = markets.length === 1 ? { has: markets[0] } : { hasSome: markets };
+      }
       // Line-of-business family group filter (via the junction).
       const groups = list(q.group);
       if (groups) where.lineOfBusinessLinks = { some: { lob: { group: { in: groups } } } };
@@ -504,6 +510,45 @@ export function registerLensRoutes(router: Router): void {
       ]);
       const vsMap = await vsForRegulations(rows.map((r) => r.id));
       res.json({ rows: rows.map((r) => withValueStreamLinks(r, vsMap)), total, page, pageSize });
+    } catch (e) {
+      next(e);
+    }
+  });
+
+  // ── Requirement filter options ────────────────────────────────────────────────
+  // Distinct values for the table's per-column combobox filters, scoped to the
+  // current lens (or a fixed regime). Cheap groupBy/distinct queries so the
+  // table can offer real options without loading rows.
+  router.get('/requirement-filters', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const companyId = await activeCompanyId(req, res);
+      if (!companyId) return;
+      const where: Record<string, unknown> = { companyId, status: 'ACTIVE' };
+      const lens = str(req.query.lens);
+      if (lens === 'state') where.jurisdiction = { regulatorType: 'STATE_INSURANCE_REGULATOR' };
+      else if (lens === 'federal')
+        where.jurisdiction = { regulatorType: { in: ['FEDERAL', 'FEDERAL_SECURITIES'] } };
+      else if (lens === 'international') where.jurisdiction = { regulatorType: 'INTERNATIONAL' };
+      if (str(req.query.regime)) where.regime = String(req.query.regime);
+      const [cats, regimes, jurRows] = await Promise.all([
+        prisma.regulatoryRequirement.groupBy({
+          by: ['category'],
+          where,
+          orderBy: { category: 'asc' },
+        }),
+        prisma.regulatoryRequirement.groupBy({ by: ['regime'], where, orderBy: { regime: 'asc' } }),
+        prisma.regulatoryRequirement.findMany({
+          where,
+          select: { jurisdiction: { select: { code: true, name: true } } },
+          distinct: ['jurisdictionId'],
+          orderBy: { jurisdiction: { name: 'asc' } },
+        }),
+      ]);
+      res.json({
+        categories: cats.map((c) => c.category),
+        regimes: regimes.map((r) => r.regime).filter(Boolean),
+        jurisdictions: jurRows.map((j) => j.jurisdiction),
+      });
     } catch (e) {
       next(e);
     }

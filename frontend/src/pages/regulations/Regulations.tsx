@@ -272,7 +272,6 @@ export default function Regulations() {
   const { data: overview } = useApi<Overview>(
     companyId ? withCompany('/regulations/overview', companyId) : null,
   );
-  const categories = overview ? Object.keys(overview.requirements.byCategory) : [];
 
   return (
     <div>
@@ -333,7 +332,7 @@ export default function Regulations() {
         ))}
       </div>
 
-      <RequirementsTable baseParams={{ lens: LENS_PARAM[tab] }} categories={categories} />
+      <RequirementsTable baseParams={{ lens: LENS_PARAM[tab] }} />
     </div>
   );
 }
