@@ -13,8 +13,8 @@ import {
   type VsLink,
   type VsOption,
 } from '../../components/RequirementLinks';
-import { FlagPill, catLabel } from '../regulations/Regulations';
-import { EmptyState, ErrorMessage, LoadingState, StatusPill } from '../../components/ui';
+import { catLabel } from '../regulations/Regulations';
+import { BackButton, ErrorMessage, LoadingState, StatusPill } from '../../components/ui';
 
 // State detail — /regulations/:code. Regulator identity + taxonomy flags in the
 // header; sections for the compliance profile (FULL_PROFILE states), the
@@ -66,6 +66,7 @@ type Detail = {
   profileDepth: string;
   lastReviewedAt: string | null;
   lastVerifiedAt: string | null;
+  updatedAt: string;
   requirements: Requirement[];
   integrations: {
     id: string;
@@ -117,6 +118,58 @@ const USAGE_PILL: Record<string, string> = {
   TRANSITIONING: 'pill-amber',
   NOT_USED: 'pill-slate',
 };
+
+// Spelled-out filing facts — plain-English values for the state taxonomy
+// codes, limited to what matters when applying a requirement here.
+const FILING_PORTAL_TEXT: Record<string, string> = {
+  SERFF: 'File electronically through SERFF (the NAIC filing system)',
+  PROPRIETARY: "File through the state's own portal — SERFF not accepted",
+  MIXED: "SERFF for most filings, plus the state's own portal for some",
+};
+const COMPACT_TEXT: Record<string, string> = {
+  MEMBER: 'Member — one IIPRC filing covers life/annuity products here and in other member states',
+  NON_MEMBER: 'Not a member — life/annuity products must be filed with this state separately',
+};
+const WC_TEXT: Record<string, string> = {
+  EDI: 'Report claims electronically (IAIABC EDI — FROI/SROI)',
+  NON_EDI: 'Report claims manually or via the state portal — no EDI mandate',
+  MIXED: 'EDI for some reports, manual/portal for others',
+  MONOPOLISTIC_FUND: "Coverage only through the state's monopolistic fund — no private market",
+  STATE_SPECIFIC: 'State-specific reporting arrangement — check the requirements below',
+};
+const AUTO_TEXT: Record<string, string> = {
+  YES: 'Insured vehicles must be reported to the state verification system',
+  NO: 'No continuous verification reporting required',
+  PARTIAL: 'Verification reporting required in limited cases',
+  EMERGING: 'Verification program being introduced — watch for reporting duties',
+  TRANSITIONING: 'Verification program changing — reporting duties in flux',
+};
+const APCD_TEXT: Record<string, string> = {
+  YES: 'Health claims must be submitted to the state all-payer claims database',
+  NO: 'No all-payer claims database mandate',
+  PARTIAL: 'Limited all-payer claims database reporting',
+  EMERGING: 'All-payer claims database being introduced',
+};
+
+/** One filing fact — label + plain-English value (+ optional state detail). */
+function FilingFact({
+  name,
+  value,
+  detail,
+}: {
+  name: string;
+  value: string;
+  detail?: string | null;
+}) {
+  return (
+    <div className="flex items-baseline gap-3 text-sm">
+      <span className="w-40 flex-shrink-0 text-xs text-[#a3a3a3]">{name}</span>
+      <span className="text-[#262626]" title={detail ?? undefined}>
+        {value}
+      </span>
+    </div>
+  );
+}
 const label = (v: string) =>
   v
     .replace(/_/g, ' ')
@@ -173,9 +226,10 @@ export default function RegulationDetail() {
         },
     );
 
-  // Federal / national regulators carry no state taxonomy flags or state-only
-  // sections (integrations, bulletins, rules, monitored sources) — hide them.
-  const isFederal = detail.regulatorType === 'FEDERAL_SECURITIES';
+  // Only US state insurance regulators carry the state taxonomy flags and
+  // state-only sections (filing facts, integrations, agent rules, sources).
+  // Federal agencies and international regulators hide them.
+  const isFederal = detail.regulatorType !== 'STATE_INSURANCE_REGULATOR';
 
   return (
     <div>
@@ -188,6 +242,7 @@ export default function RegulationDetail() {
         }
         actions={
           <div className="flex items-center gap-2">
+            <BackButton />
             {detail.regulatorWebsite && (
               <a
                 href={detail.regulatorWebsite}
@@ -208,7 +263,9 @@ export default function RegulationDetail() {
         }
       />
 
-      {/* Flag strip — state taxonomy flags (states only). */}
+      {/* Filing facts — what you need to know to comply in this state, spelled
+          out (research-metadata flags like SBS/priority/profile depth are
+          intentionally not shown). */}
       {isFederal ? (
         detail.summaryRegulator && (
           <div className="mb-6 text-sm text-[#525252] leading-relaxed">
@@ -216,34 +273,35 @@ export default function RegulationDetail() {
           </div>
         )
       ) : (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-6 text-xs text-[#666666]">
-          {detail.priorityTier === 'PRIORITY' && (
-            <StatusPill tone="amber">Priority state</StatusPill>
-          )}
-          {detail.profileDepth === 'FULL_PROFILE' && (
-            <StatusPill tone="blue">Full compliance profile</StatusPill>
-          )}
-          <span className="flex items-center gap-1.5">
-            Filing portal{' '}
-            <FlagPill value={detail.filingPortal} detail={detail.filingPortalDetail} />
-          </span>
-          <span className="flex items-center gap-1.5">
-            Compact <FlagPill value={detail.compactStatus} />
-          </span>
-          <span className="flex items-center gap-1.5">
-            Auto verify{' '}
-            <FlagPill value={detail.autoVerification} detail={detail.autoVerificationDetail} />
-          </span>
-          <span className="flex items-center gap-1.5">
-            Workers' comp{' '}
-            <FlagPill value={detail.workersCompModel} detail={detail.workersCompDetail} />
-          </span>
-          <span className="flex items-center gap-1.5">
-            APCD <FlagPill value={detail.apcd} />
-          </span>
-          <span className="flex items-center gap-1.5">
-            SBS <FlagPill value={detail.sbs} />
-          </span>
+        <div className="mb-6 space-y-1.5">
+          <FilingFact
+            name="Product filing"
+            value={FILING_PORTAL_TEXT[detail.filingPortal] ?? label(detail.filingPortal)}
+            detail={detail.filingPortalDetail}
+          />
+          <FilingFact
+            name="Insurance Compact"
+            value={COMPACT_TEXT[detail.compactStatus] ?? label(detail.compactStatus)}
+          />
+          <FilingFact
+            name="Workers' comp claims"
+            value={WC_TEXT[detail.workersCompModel] ?? label(detail.workersCompModel)}
+            detail={detail.workersCompDetail}
+          />
+          <FilingFact
+            name="Auto verification"
+            value={AUTO_TEXT[detail.autoVerification] ?? label(detail.autoVerification)}
+            detail={detail.autoVerificationDetail}
+          />
+          <FilingFact
+            name="Health claims (APCD)"
+            value={APCD_TEXT[detail.apcd] ?? label(detail.apcd)}
+          />
+          <div className="text-xs text-[#a3a3a3]">
+            {detail.lastVerifiedAt &&
+              `Verified ${new Date(detail.lastVerifiedAt).toLocaleDateString()} · `}
+            Updated {new Date(detail.updatedAt).toLocaleDateString()}
+          </div>
         </div>
       )}
 
@@ -265,31 +323,33 @@ export default function RegulationDetail() {
         )}
 
         <SectionCard title={`Requirements (${detail.requirements.length})`}>
-          <div className="divide-y divide-[#f5f5f5]">
+          <div className="-mx-5 -mb-5 rounded-b-lg overflow-hidden">
             {detail.requirements.map((r) => (
-              <div key={r.id} className="py-2.5">
-                <div className="text-sm font-medium text-[#171717]">{r.title}</div>
+              <div
+                key={r.id}
+                className="px-5 py-2.5 border-b border-[#f0f0f0] last:border-0 border-l-2 border-l-[#e5e5e5] bg-white hover:bg-[#fafafa] transition-colors duration-100"
+              >
+                <Link
+                  to={`/regulations/requirement/${r.id}`}
+                  className="text-sm font-medium text-[#171717] hover:underline"
+                >
+                  {r.title}
+                </Link>
                 <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                  {r.regime && <StatusPill tone="blue">{r.regime}</StatusPill>}
+                  {r.regime && (
+                    <Link to={`/regulations/regulation/${encodeURIComponent(r.regime)}`}>
+                      <StatusPill
+                        tone="blue"
+                        className="hover:underline"
+                        title="Open regulation page"
+                      >
+                        {r.regime}
+                      </StatusPill>
+                    </Link>
+                  )}
                   <StatusPill tone="slate">{catLabel(r.category)}</StatusPill>
                   {r.lineOfBusiness !== 'ALL' && (
                     <StatusPill tone="slate">{label(r.lineOfBusiness)}</StatusPill>
-                  )}
-                  {r.obligationType === 'FILING_GATE' && (
-                    <StatusPill tone="amber">Filing gate</StatusPill>
-                  )}
-                  {r.confidence !== 'BASELINE' && (
-                    <StatusPill
-                      tone={
-                        r.confidence === 'VERIFIED'
-                          ? 'green'
-                          : r.confidence === 'STALE'
-                            ? 'red'
-                            : 'amber'
-                      }
-                    >
-                      {label(r.confidence)}
-                    </StatusPill>
                   )}
                   <LinkChips links={r.valueStreamLinks} />
                   {canEdit && (
@@ -305,31 +365,47 @@ export default function RegulationDetail() {
                 <div className="flex flex-wrap gap-x-4 mt-1 text-xs text-[#a3a3a3]">
                   {r.owner && (
                     <span>
-                      Owner: <span className="text-[#525252]">{r.owner.name}</span>
+                      Owner:{' '}
+                      <Link to={`/roles/${r.owner.id}`} className="text-[#525252] hover:underline">
+                        {r.owner.name}
+                      </Link>
                     </span>
                   )}
                   {r.contributors.length > 0 && (
                     <span>
                       Contributors:{' '}
-                      <span className="text-[#525252]">
-                        {r.contributors.map((c) => c.name).join(', ')}
-                      </span>
+                      {r.contributors.map((c, i) => (
+                        <span key={c.id}>
+                          {i > 0 && ', '}
+                          <Link to={`/roles/${c.id}`} className="text-[#525252] hover:underline">
+                            {c.name}
+                          </Link>
+                        </span>
+                      ))}
                     </span>
                   )}
                   {r.citation && <span>Citation: {r.citation}</span>}
                   {r.frequency && <span>Frequency: {r.frequency}</span>}
                 </div>
                 {editing === r.id && (
-                  <LinksEditor
-                    requirementId={r.id}
-                    links={r.valueStreamLinks}
-                    valueStreams={valueStreams}
-                    onSaved={(links) => {
-                      patchLinks(r.id, links);
-                      setEditing(null);
-                    }}
-                    onCancel={() => setEditing(null)}
-                  />
+                  <>
+                    {/* What editing applicability actually does (SCRUM-40). */}
+                    <p className="text-[11px] text-[#a3a3a3] mt-2 leading-relaxed">
+                      Linking a value stream applies this regulation to every task under it;
+                      removing a link withdraws it. Task lists, the Inspector&apos;s Governance tab,
+                      and the coverage rollups all update from those task links.
+                    </p>
+                    <LinksEditor
+                      requirementId={r.id}
+                      links={r.valueStreamLinks}
+                      valueStreams={valueStreams}
+                      onSaved={(links) => {
+                        patchLinks(r.id, links);
+                        setEditing(null);
+                      }}
+                      onCancel={() => setEditing(null)}
+                    />
+                  </>
                 )}
               </div>
             ))}
@@ -387,118 +463,74 @@ export default function RegulationDetail() {
           </SectionCard>
         )}
 
-        {detail.summaryIntegration && (
-          <SectionCard title="Integration narrative (from the baseline document)">
-            <AssistantMarkdown content={detail.summaryIntegration} />
+        {/* Agent rules — machine-readable controls (state-derived today). */}
+        {detail.rules.length > 0 && (
+          <SectionCard title={`Agent rules (${detail.rules.length})`}>
+            <p className="text-xs text-[#a3a3a3] mb-3">
+              Machine-readable rules derived from this regulator&apos;s requirements — encoded so
+              agents can run compliance checks against them. A requirement states the legal
+              obligation; an agent rule is the checkable control for it. Automated execution is a
+              future phase.
+            </p>
+            <div className="divide-y divide-[#f5f5f5]">
+              {detail.rules.map((r) => (
+                <div key={r.id} className="py-2">
+                  <button
+                    className="flex items-center gap-2 w-full text-left group"
+                    onClick={() => setOpenRule(openRule === r.id ? null : r.id)}
+                    aria-expanded={openRule === r.id}
+                    title="Expand the machine-readable rule"
+                  >
+                    <span className="text-sm font-medium tnum text-[#171717] group-hover:underline">
+                      {r.ruleCode}
+                    </span>
+                    <span className="flex-1" />
+                    <span className="text-[#a3a3a3] text-xs">{openRule === r.id ? '▾' : '▸'}</span>
+                  </button>
+                  {r.description && (
+                    <p className="text-xs text-[#525252] mt-0.5">{r.description}</p>
+                  )}
+                  {openRule === r.id && (
+                    <pre className="mt-2 rounded-lg bg-[#fafafa] border border-[#eaeaea] p-3 text-[11px] text-[#262626] overflow-x-auto">
+                      {JSON.stringify(r.ruleJson, null, 2)}
+                    </pre>
+                  )}
+                </div>
+              ))}
+            </div>
           </SectionCard>
         )}
-        {detail.summaryStatutes && (
-          <SectionCard title="Statutes & regulations (from the baseline document)">
-            <AssistantMarkdown content={detail.summaryStatutes} />
-          </SectionCard>
-        )}
 
-        {!isFederal && (
-          <>
-            <SectionCard title={`Bulletins (${detail.bulletins.length})`}>
-              {detail.bulletins.length === 0 && (
-                <EmptyState
-                  baseClassName="text-sm text-[#a3a3a3]"
-                  message="No bulletins on file for this state yet — the baseline document named only a handful; the Phase 2 pipeline appends here continuously."
-                />
-              )}
-              <div className="divide-y divide-[#f5f5f5]">
-                {detail.bulletins.map((b) => (
-                  <div key={b.id} className="py-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-[#171717]">
-                        {b.url ? (
-                          <a
-                            className="hover:underline"
-                            href={b.url}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            {b.reference} ↗
-                          </a>
-                        ) : (
-                          b.reference
-                        )}
-                      </span>
-                      {b.issuedDate && (
-                        <span className="text-xs text-[#a3a3a3] tnum">
-                          {new Date(b.issuedDate).toLocaleDateString()}
-                        </span>
-                      )}
-                    </div>
-                    {b.summary && <p className="text-xs text-[#525252] mt-0.5">{b.summary}</p>}
-                  </div>
-                ))}
-              </div>
-            </SectionCard>
-
-            <SectionCard title={`Compliance rules (${detail.rules.length})`}>
-              <p className="text-xs text-[#a3a3a3] mb-3">
-                Machine-readable controls from the per-state rules artifact. Stored and displayed in
-                Phase 1 — execution against operational signals is a future phase.
-              </p>
-              <div className="divide-y divide-[#f5f5f5]">
-                {detail.rules.map((r) => (
-                  <div key={r.id} className="py-2">
-                    <button
-                      className="flex items-center gap-2 w-full text-left"
-                      onClick={() => setOpenRule(openRule === r.id ? null : r.id)}
-                      aria-expanded={openRule === r.id}
-                    >
-                      <span className="text-sm font-medium tnum text-[#171717]">{r.ruleCode}</span>
-                      <span className="flex-1" />
-                      <span className="text-[#a3a3a3] text-xs">
-                        {openRule === r.id ? '▾' : '▸'}
-                      </span>
-                    </button>
-                    {r.description && (
-                      <p className="text-xs text-[#525252] mt-0.5">{r.description}</p>
-                    )}
-                    {openRule === r.id && (
-                      <pre className="mt-2 rounded-lg bg-[#fafafa] border border-[#eaeaea] p-3 text-[11px] text-[#262626] overflow-x-auto">
-                        {JSON.stringify(r.ruleJson, null, 2)}
-                      </pre>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </SectionCard>
-
-            <SectionCard title={`Monitored sources (${detail.sources.length})`}>
-              <div className="divide-y divide-[#f5f5f5]">
-                {detail.sources.map((s) => (
-                  <div key={s.id} className="flex items-center gap-2 py-2 text-sm">
-                    <a
-                      href={s.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-medium text-[#171717] hover:underline truncate"
-                    >
-                      {s.name} ↗
-                    </a>
-                    <StatusPill tone="slate">{label(s.sourceType)}</StatusPill>
-                    <StatusPill tone={s.authority === 'OFFICIAL_REGULATOR' ? 'green' : 'blue'}>
-                      {label(s.authority)}
-                    </StatusPill>
-                    {s.monitor && (
-                      <StatusPill
-                        tone="amber"
-                        title={`Phase 2 pipeline tier: ${label(s.checkTier)}`}
-                      >
-                        Monitored · {s.checkTier === 'PRIORITY_DAILY' ? 'daily' : 'weekly'}
-                      </StatusPill>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </SectionCard>
-          </>
-        )}
+        {/* Regulatory sources — shown for every regulator (state, federal, international). */}
+        <SectionCard title={`Regulatory sources (${detail.sources.length})`}>
+          <p className="text-xs text-[#a3a3a3] mb-2">
+            The official sites and feeds this regulator&apos;s requirements come from — including
+            the pages where it posts bulletins and notices. Automated monitoring is a future phase —
+            nothing is polled today.
+          </p>
+          {detail.sources.length === 0 ? (
+            <p className="text-sm text-[#a3a3a3]">No sources on file for this regulator yet.</p>
+          ) : (
+            <div className="divide-y divide-[#f5f5f5]">
+              {detail.sources.map((s) => (
+                <div key={s.id} className="flex items-center gap-2 py-2 text-sm">
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium text-[#171717] hover:underline truncate"
+                  >
+                    {s.name} ↗
+                  </a>
+                  <StatusPill tone="slate">{label(s.sourceType)}</StatusPill>
+                  <StatusPill tone={s.authority === 'OFFICIAL_REGULATOR' ? 'green' : 'blue'}>
+                    {label(s.authority)}
+                  </StatusPill>
+                </div>
+              ))}
+            </div>
+          )}
+        </SectionCard>
       </div>
     </div>
   );

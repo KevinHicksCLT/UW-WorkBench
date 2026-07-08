@@ -24,6 +24,8 @@ export interface NodeRoleEntry {
   name: string; // displayValue
   role_: string; // "Owner" | "Participant"
   ownerLevel: string | null;
+  /** NodeRole.validationStatus — UNREVIEWED | CONFIRMED | REASSIGNED | NOT_PERFORMED. */
+  validationStatus: string;
   /** Present (possibly null) only when requested via `withOrgUnit`. */
   orgUnit?: RoleOrgUnitRef | null;
 }
@@ -34,7 +36,10 @@ async function fetchNodeRoles(nodeIds: string[]) {
   return prisma.nodeRole.findMany({
     where: { processNodeId: { in: ids } },
     select: {
-      processNodeId: true, role_: true, ownerLevel: true,
+      processNodeId: true,
+      role_: true,
+      ownerLevel: true,
+      validationStatus: true,
       role: { select: { id: true, displayValue: true } },
     },
   });
@@ -45,7 +50,12 @@ async function orgUnitsByRole(roleIds: string[]): Promise<Map<string, RoleOrgUni
   if (!roleIds.length) return new Map();
   const roles = await prisma.role.findMany({
     where: { id: { in: roleIds } },
-    select: { id: true, orgUnit: { select: { id: true, displayValue: true, parent: { select: { displayValue: true } } } } },
+    select: {
+      id: true,
+      orgUnit: {
+        select: { id: true, displayValue: true, parent: { select: { displayValue: true } } },
+      },
+    },
   });
   return new Map(roles.map((r) => [r.id, r.orgUnit]));
 }
@@ -64,7 +74,13 @@ export async function rolesForNodes(
     : null;
   const out = new Map<string, NodeRoleEntry[]>();
   for (const r of rows) {
-    const entry: NodeRoleEntry = { id: r.role.id, name: r.role.displayValue, role_: r.role_, ownerLevel: r.ownerLevel };
+    const entry: NodeRoleEntry = {
+      id: r.role.id,
+      name: r.role.displayValue,
+      role_: r.role_,
+      ownerLevel: r.ownerLevel,
+      validationStatus: r.validationStatus,
+    };
     if (homes) entry.orgUnit = homes.get(r.role.id) ?? null;
     const list = out.get(r.processNodeId);
     if (list) list.push(entry);
@@ -80,9 +96,18 @@ export async function rolesForNodesByRelation(
   const rows = await fetchNodeRoles(nodeIds);
   const out = new Map<string, { owners: NodeRoleEntry[]; participants: NodeRoleEntry[] }>();
   for (const r of rows) {
-    const entry: NodeRoleEntry = { id: r.role.id, name: r.role.displayValue, role_: r.role_, ownerLevel: r.ownerLevel };
+    const entry: NodeRoleEntry = {
+      id: r.role.id,
+      name: r.role.displayValue,
+      role_: r.role_,
+      ownerLevel: r.ownerLevel,
+      validationStatus: r.validationStatus,
+    };
     let bucket = out.get(r.processNodeId);
-    if (!bucket) { bucket = { owners: [], participants: [] }; out.set(r.processNodeId, bucket); }
+    if (!bucket) {
+      bucket = { owners: [], participants: [] };
+      out.set(r.processNodeId, bucket);
+    }
     (r.role_ === 'Owner' ? bucket.owners : bucket.participants).push(entry);
   }
   return out;

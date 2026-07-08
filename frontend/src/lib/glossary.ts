@@ -86,7 +86,15 @@ export const GLOSSARY: GlossaryGroup[] = [
         aka: 'Company · Domain · Division · Value Stream · Process Area · Sub-Process · Step',
         definition:
           'The operating model numbered by depth, so it reads the same across companies. Process Level 0 is the Company; Process Level 1 is a Domain (top grouping, e.g. Core Insurance); Process Level 2 is a Division; Process Level 3 is the Value Stream; Process Level 4 is a Process Area; Process Level 5 is a Sub-Process; Process Level 6 is a single ordered Process Step. In Data Admin the top tiers are the Process 0 / 1 / 2 tabs, and the value-stream tree (Process Levels 3–6) is edited as one level-numbered list.',
-        values: ['Process Level 0 — Company', 'Process Level 1 — Domain', 'Process Level 2 — Division', 'Process Level 3 — Value Stream', 'Process Level 4 — Process Area', 'Process Level 5 — Sub-Process', 'Process Level 6 — Process Step'],
+        values: [
+          'Process Level 0 — Company',
+          'Process Level 1 — Domain',
+          'Process Level 2 — Division',
+          'Process Level 3 — Value Stream',
+          'Process Level 4 — Process Area',
+          'Process Level 5 — Sub-Process',
+          'Process Level 6 — Process Step',
+        ],
       },
       {
         term: 'Process Step',
@@ -123,10 +131,9 @@ export const GLOSSARY: GlossaryGroup[] = [
       },
       {
         term: 'Role ↔ Value Stream',
-        aka: 'Participation Type',
+        aka: 'Participation',
         definition:
-          'The link recording that a role takes part in a value stream, and in what capacity — distinguishing who runs the work from who merely supports or controls it.',
-        values: ['Lead', 'Core', 'Support', 'Oversight', 'Control'],
+          'The link recording that a role takes part in a value stream — derived from the tasks the role holds in that stream. (The old Lead/Core/Support participation tags were retired.)',
       },
     ],
   },
@@ -156,13 +163,13 @@ export const GLOSSARY: GlossaryGroup[] = [
       {
         term: 'Analysis Status',
         definition:
-          'The per-subject tracker behind the Metrics tab\'s analysis-coverage view: whether a value stream, division, or role has been analyzed for AI opportunity yet, with a planned date and completion date — the stage that comes before AI adoption.',
+          "The per-subject tracker behind the Metrics tab's analysis-coverage view: whether a value stream, division, or role has been analyzed for AI opportunity yet, with a planned date and completion date — the stage that comes before AI adoption.",
         values: ['Not Started', 'In Progress', 'Complete'],
       },
       {
         term: 'AI Disposition',
         definition:
-          'The outcome of analyzing a task for AI: automated away, discarded as unnecessary, augmented (human + AI), or left manual. Drives the Metrics tab\'s adoption percentages.',
+          "The outcome of analyzing a task for AI: automated away, discarded as unnecessary, augmented (human + AI), or left manual. Drives the Metrics tab's adoption percentages.",
         values: ['Automated', 'Discarded', 'Augmented', 'Manual'],
       },
       {
@@ -223,7 +230,13 @@ export const GLOSSARY: GlossaryGroup[] = [
       {
         term: 'Change Type',
         definition: 'The kind of change a scenario represents.',
-        values: ['Automation', 'Application rationalization', 'Control uplift', 'SaaS replacement', 'Digital enablement'],
+        values: [
+          'Automation',
+          'Application rationalization',
+          'Control uplift',
+          'SaaS replacement',
+          'Digital enablement',
+        ],
       },
       {
         term: 'Risk',

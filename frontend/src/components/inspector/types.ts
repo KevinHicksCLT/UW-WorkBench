@@ -12,6 +12,7 @@ export type RoleDetail = {
   name: string;
   relation: Relation;
   raci?: string | null;
+  validationStatus?: string;
 };
 export type RoleRollup = { roleId: string; name: string; relation: Relation; tasks: number };
 export type AppDetail = { usageId: string; appId: string; name: string; usageType: string };

@@ -7,6 +7,7 @@ import { requirePermission } from '../middleware/permissions.js';
 import { logger } from '../lib/logger.js';
 import { ancestorNames } from '../lib/resolvers/index.js';
 import { assembleRoleProfile, groupByChecklist } from '../lib/roleProfile.js';
+import { VALIDATION_SELECT, validationView } from '../lib/roleTaskValidation.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -274,8 +275,10 @@ router.get('/:id/profile', async (req: Request, res: Response, next: NextFunctio
       prisma.nodeRole.findMany({
         where: { roleId: role.id },
         select: {
+          id: true,
           role_: true,
           processNode: { select: { id: true, displayValue: true, sortOrder: true } },
+          ...VALIDATION_SELECT,
         },
       }),
       prisma.roleDeliverable.findMany({
@@ -289,12 +292,25 @@ router.get('/:id/profile', async (req: Request, res: Response, next: NextFunctio
       }),
     ]);
     const nodeIds = nodeRoles.map((n) => n.processNode.id);
-    const [loc, nodeDelivs] = await Promise.all([
+    const [loc, nodeDelivs, nodeApps, nodeChecklists] = await Promise.all([
       ancestorNames(nodeIds),
       nodeIds.length
         ? prisma.nodeDeliverable.findMany({
             where: { processNodeId: { in: nodeIds } },
             select: { processNodeId: true, deliverable: { select: { id: true, title: true } } },
+          })
+        : Promise.resolve([]),
+      nodeIds.length
+        ? prisma.nodeAppUsage.findMany({
+            where: { processNodeId: { in: nodeIds }, usageType: 'performed' },
+            select: { processNodeId: true, application: { select: { id: true, name: true } } },
+          })
+        : Promise.resolve([]),
+      nodeIds.length
+        ? prisma.nodeChecklist.findMany({
+            where: { processNodeId: { in: nodeIds } },
+            orderBy: { checklistItemId: 'asc' },
+            select: { processNodeId: true, checklistItem: { select: { id: true, text: true } } },
           })
         : Promise.resolve([]),
     ]);
@@ -305,6 +321,8 @@ router.get('/:id/profile', async (req: Request, res: Response, next: NextFunctio
         nodeRoles,
         roleDelivs,
         nodeDelivs,
+        nodeApps,
+        nodeChecklists,
         checkItems: checkItems.map((c) => ({ text: c.text, checklist: c.checklist?.name ?? null })),
         loc,
       }),
@@ -350,12 +368,15 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     if (!role) return res.status(404).json({ error: 'Not found' });
 
     const [nodeRoles, roleDelivs, checkItems] = await Promise.all([
-      // The role's task links (Owner = Lead, Participant = Support).
+      // The role's task links (Owner = Lead, Participant = Support), with the
+      // link's validation state (single source of truth on NodeRole).
       prisma.nodeRole.findMany({
         where: { roleId: role.id },
         select: {
+          id: true,
           role_: true,
           processNode: { select: { id: true, displayValue: true, sortOrder: true } },
+          ...VALIDATION_SELECT,
         },
       }),
       // The deliverables the role owns/contributes.
@@ -375,8 +396,10 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     const nodeIds = nodeRoles.map((n) => n.processNode.id);
     const loc = await ancestorNames(nodeIds);
 
-    // processTasks — one per task node the role leads/supports.
+    // processTasks — one per task node the role leads/supports, each carrying
+    // its NodeRole link id + validation state so the drawer can attest inline.
     type ProcTask = {
+      nodeRoleId: string;
       valueStreamId: string;
       valueStreamName: string;
       l3: string | null;
@@ -385,11 +408,13 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       name: string;
       relation: 'Lead' | 'Support';
       outputs: string | null;
+      validation: ReturnType<typeof validationView>;
     };
     const processTasks: ProcTask[] = nodeRoles
       .map((nr) => {
         const a = loc.get(nr.processNode.id);
         return {
+          nodeRoleId: nr.id,
           valueStreamId: a?.valueStreamId ?? '',
           valueStreamName: a?.valueStreamName ?? '—',
           l3: a?.l3 ?? null,
@@ -398,6 +423,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
           name: nr.processNode.displayValue,
           relation: (nr.role_ === 'Owner' ? 'Lead' : 'Support') as 'Lead' | 'Support',
           outputs: null,
+          validation: validationView(nr),
         };
       })
       .sort(
@@ -440,7 +466,19 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
             },
           ]
         : [];
-    const deliverableCount = ioRows.reduce((n, r) => n + r.deliverables.length, 0);
+    // Deliverable count = union of direct RoleDeliverable links and the
+    // deliverables reachable through the role's task nodes (same derivation
+    // as the profile page, so the drawer's headline matches it).
+    const nodeDelivs = nodeIds.length
+      ? await prisma.nodeDeliverable.findMany({
+          where: { processNodeId: { in: nodeIds } },
+          select: { deliverableId: true },
+        })
+      : [];
+    const deliverableCount = new Set([
+      ...roleDelivs.map((d) => d.deliverable.id),
+      ...nodeDelivs.map((d) => d.deliverableId),
+    ]).size;
     const inputCount = 0;
 
     // participation — the distinct value streams the role's task nodes roll up

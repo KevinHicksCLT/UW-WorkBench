@@ -264,12 +264,15 @@ export function Tile({
   hint,
   tone = 'neutral',
   compact = false,
+  onClick,
 }: {
   label: string;
   value: ReactNode;
   hint?: string;
   tone?: 'neutral' | 'positive' | 'negative';
   compact?: boolean;
+  /** When set, the tile is a drill-down affordance — clickable with hover ring. */
+  onClick?: () => void;
 }) {
   const color =
     tone === 'positive'
@@ -277,10 +280,30 @@ export function Tile({
       : tone === 'negative'
         ? 'text-[#be123c]'
         : 'text-[#171717]';
+  const drill = onClick
+    ? {
+        onClick,
+        role: 'button' as const,
+        tabIndex: 0,
+        onKeyDown: (e: React.KeyboardEvent) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick();
+          }
+        },
+      }
+    : {};
+  const drillClass = onClick
+    ? ' cursor-pointer transition-shadow duration-150 hover:ring-1 hover:ring-[#d4d4d4]'
+    : '';
   if (compact) {
     // Denser stat for headline strips (e.g. Regulations overview) — smaller box.
     return (
-      <Card variant="elevated" className="px-3 py-2 text-center">
+      <Card
+        variant="elevated"
+        className={`px-3 py-2 text-center flex flex-col justify-center${drillClass}`}
+        {...drill}
+      >
         <div className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#a3a3a3]">
           {label}
         </div>
@@ -290,7 +313,11 @@ export function Tile({
     );
   }
   return (
-    <Card variant="elevated" className="p-4 text-center">
+    <Card
+      variant="elevated"
+      className={`p-4 text-center flex flex-col justify-center${drillClass}`}
+      {...drill}
+    >
       <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">
         {label}
       </div>

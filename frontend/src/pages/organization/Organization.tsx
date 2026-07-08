@@ -1,13 +1,10 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { api } from '../../lib/api';
+import { useSearchParams } from 'react-router-dom';
 import { useHeaderBreadcrumbSlot } from '../../lib/breadcrumbs';
+import OrgDrillToc from '../../components/OrgDrillToc';
 import OrgListExplorer from '../../components/OrgListExplorer';
 import OrgMapCanvas from '../../viz/org-map/OrgMapCanvas';
 import OrgTable from '../org-table/OrgTable';
-import RoleDrawer from '../../components/RoleDrawer';
-import { TocView, ViewPills, type TocRow } from '../../components/TocView';
-import { ErrorMessage, LoadingState } from '../../components/ui';
+import { ViewPills } from '../../components/TocView';
 
 // Organization tab — mirrors the Value Streams tab: a floating segmented control
 // toggles views of the SAME org spine:
@@ -19,87 +16,47 @@ import { ErrorMessage, LoadingState } from '../../components/ui';
 //          with the shared metrics sidebar.
 // A fourth, toggle-less surface — 'detail' — renders the old OrgTable drill-down
 // for the `?view=departments` deep link (the departments overview only exists
-// there). `?role=<id>` deep links land on the LIST view with the role's full
-// detail drawer open (the standalone role page was retired into RoleDrawer).
+// there). `?role=<id>` deep links land on the LIST view; the role's detail
+// drawer itself is the GLOBAL RoleDrawerHost (Layout) — this page only needs
+// the param to pick the view, never to mount/close the drawer.
 type View = 'toc' | 'list' | 'map' | 'detail';
 
-// TOC rows — one per ORG division (OrgUnit L2), from the org-table bootstrap:
-// real division ids (what /divisions/:id expects), role counts homed in the
-// division + its departments, and the parent segment. (/explorer/overview is
-// the VALUE-STREAM map bootstrap — its "divisions" are process L2 nodes.)
-function OrgToc({ leading }: { leading?: React.ReactNode }) {
-  const navigate = useNavigate();
-  const [rows, setRows] = useState<TocRow[] | null>(null);
-  const [error, setError] = useState('');
-  useEffect(() => {
-    api
-      .get<{
-        segments: {
-          divisions: { id: string; name: string; segment: string; roleCount: number }[];
-        }[];
-      }>('/explorer/org-table')
-      .then((t) => {
-        setRows(
-          t.segments
-            .flatMap((s) => s.divisions)
-            .filter((d) => d.id !== '__unassigned') // pseudo-bucket, not a navigable division
-            .sort((a, b) => a.name.localeCompare(b.name))
-            .map((d) => ({
-              id: d.id,
-              name: d.name,
-              count: d.roleCount,
-              extra: d.segment,
-              onClick: () => navigate(`/divisions/${d.id}`),
-            })),
-        );
-      })
-      .catch((e) => setError(e.message ?? 'Failed to load'));
-  }, [navigate]);
-
-  if (error) return <ErrorMessage>{error}</ErrorMessage>;
-  if (!rows) return <LoadingState message="Loading organization…" className="animate-pulse" />;
-  return (
-    <TocView
-      rows={rows}
-      nameLabel="Division"
-      countLabel="Roles"
-      extraLabel="Segment"
-      unit="divisions"
-      searchPlaceholder="Search division, segment…"
-      leading={leading}
-      totals={`${rows.length} divisions · ${rows.reduce((a, r) => a + r.count, 0)} roles`}
-    />
-  );
-}
-
 export default function Organization() {
-  // Deep links: `?view=departments` (home "Departments" tile) opens the OrgTable
-  // drill-down — the 'detail' surface (OrgTable consumes and clears the param,
-  // so this only latches the surface on). `?role=<id>` (links from Work /
-  // External / Standards / the org map's role leaves / old /roles/:id URLs)
-  // opens that role's detail drawer OVER whatever view is active — the user
-  // stays exactly where they drilled to, in map or list. The param is consumed
-  // and cleared here so re-clicking the same link re-opens the drawer.
+  // View state lives in the URL — the single record of "where I was":
+  // `?view=departments` (home "Departments" tile) opens the OrgTable drill-down
+  // ('detail' surface); `?view=map|list` forces that view; `?role=<id>` (links
+  // from Work / External / Standards / the org map's role leaves / old
+  // /roles/:id URLs) picks the LIST view so the role's row is visible under
+  // the global RoleDrawerHost. The params are KEPT (not stripped) so the
+  // breadcrumb trail, browser back/forward, and a reload all land the user
+  // back on the same spot.
   const [searchParams, setSearchParams] = useSearchParams();
-  const [view, setView] = useState<View>(() =>
-    searchParams.get('view') === 'departments'
+  const viewParam = searchParams.get('view');
+  const roleId = searchParams.get('role');
+  const view: View =
+    viewParam === 'departments'
       ? 'detail'
-      : searchParams.get('role')
-        ? 'list'
-        : 'toc',
-  );
-  const [roleDrawerId, setRoleDrawerId] = useState<string | null>(searchParams.get('role'));
-  useEffect(() => {
-    if (searchParams.get('view') === 'departments') setView('detail');
-    const role = searchParams.get('role');
-    if (role) {
-      setRoleDrawerId(role);
-      setView('list');
-      const next = new URLSearchParams(searchParams);
-      next.delete('role');
-      setSearchParams(next, { replace: true });
-    }
-  }, [searchParams, setSearchParams]);
+      : viewParam === 'map' || viewParam === 'list'
+        ? viewParam
+        : roleId
+          ? 'list'
+          : 'toc';
+
+  const setView = (v: View) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (v === 'toc') {
+          next.delete('view');
+          next.delete('role');
+        } else if (v !== 'detail') {
+          next.set('view', v);
+        }
+        return next;
+      },
+      { replace: true },
+    );
+  };
 
   // In map view the drill breadcrumb claims the GLOBAL header bar (Layout's
   // BreadcrumbBar) and OrgMapCanvas portals into it — no in-page header strip.
@@ -123,13 +80,14 @@ export default function Organization() {
         {view === 'toc' ? (
           <div className="h-full overflow-auto">
             <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-6">
-              <OrgToc
+              <OrgDrillToc
+                startAt="segment"
                 leading={<ViewPills options={pillOptions} view={view} onChange={setView} />}
               />
             </div>
           </div>
         ) : view === 'list' ? (
-          <OrgListExplorer focusRoleId={roleDrawerId} />
+          <OrgListExplorer />
         ) : view === 'map' ? (
           // Map view: a literal drill-down map of the org spine, full-bleed.
           <OrgMapCanvas breadcrumbSlot={crumbSlot} />
@@ -142,9 +100,6 @@ export default function Organization() {
             </div>
           </div>
         )}
-
-        {/* Deep-linked role detail — slides over the active view in place. */}
-        {roleDrawerId && <RoleDrawer roleId={roleDrawerId} onClose={() => setRoleDrawerId(null)} />}
       </div>
     </div>
   );

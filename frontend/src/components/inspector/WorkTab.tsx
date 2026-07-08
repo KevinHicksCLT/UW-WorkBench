@@ -6,6 +6,7 @@
  */
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
+import { useOpenRole } from '../../lib/roleDrawer';
 import { SkeletonLoader } from '../ui';
 import { AddPicker, Empty, LinkOut, DetachBtn } from './atoms';
 import type { AfterFn, Payload, PlanRow, TiedPlan } from './types';
@@ -344,6 +345,7 @@ function TiedBlock({
 }
 
 function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
+  const openRole = useOpenRole();
   const [open, setOpen] = useState(true);
   const tied = [...t.standards, ...t.regulations];
   const kids =
@@ -394,7 +396,7 @@ function TaskChain({ t, onNav }: { t: ChainTask; onNav: (p: string) => void }) {
           {t.roles.map((r) => (
             <button
               key={r.roleId}
-              onClick={() => onNav(`/organization?role=${encodeURIComponent(r.roleId)}`)}
+              onClick={() => openRole(r.roleId)}
               className="flex items-center gap-1.5 text-left group/r"
             >
               <span

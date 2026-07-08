@@ -26,7 +26,9 @@ export const fmt = {
   date(d: DateLike) {
     if (!d) return '—';
     return new Date(d).toLocaleDateString('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
     });
   },
   month(d: DateLike) {
@@ -45,29 +47,20 @@ export const STAGE_LABELS: Record<string, string> = {
 export const STAGE_ORDER = ['IDEA', 'PLAN', 'EXECUTE', 'COMPLETE'];
 
 export const STATUS_PILL_CLASS: Record<string, string> = {
-  ON_TRACK:  'pill-green',
-  AT_RISK:   'pill-amber',
+  ON_TRACK: 'pill-green',
+  AT_RISK: 'pill-amber',
   OFF_TRACK: 'pill-red',
   // Value-delta statuses — used on value-stream connection summaries.
-  GAIN:      'chip-gain',
-  LOSS:      'chip-loss',
-  OVERLAP:   'chip-overlap',
+  GAIN: 'chip-gain',
+  LOSS: 'chip-loss',
+  OVERLAP: 'chip-overlap',
 };
 
 export const STATUS_LABEL: Record<string, string> = {
-  ON_TRACK:  'On Track',
-  AT_RISK:   'At Risk',
+  ON_TRACK: 'On Track',
+  AT_RISK: 'At Risk',
   OFF_TRACK: 'Off Track',
-  GAIN:      'Gain',
-  LOSS:      'Loss',
-  OVERLAP:   'Overlap',
-};
-
-// Value-stream participation types (from the workbook) → pill style.
-export const PARTICIPATION_CLASS: Record<string, string> = {
-  Lead: 'pill-blue',
-  Core: 'pill-green',
-  Support: 'pill-slate',
-  Oversight: 'pill-amber',
-  Control: 'pill-amber',
+  GAIN: 'Gain',
+  LOSS: 'Loss',
+  OVERLAP: 'Overlap',
 };

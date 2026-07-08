@@ -1,16 +1,9 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
+import { useOpenRole } from '../../lib/roleDrawer';
 import PageHeader from '../../components/PageHeader';
 import { Card, EmptyState, ErrorMessage, LoadingState } from '../../components/ui';
-
-const PART_CLASS: Record<string, string> = {
-  Lead: 'part-lead',
-  Core: 'part-core',
-  Control: 'part-control',
-  Oversight: 'part-oversight',
-  Support: 'part-support',
-};
 
 type Participation = {
   valueStreamId: string;
@@ -105,6 +98,7 @@ function RoleRows({
   isOpen: boolean;
   onToggle: () => void;
 }) {
+  const openRole = useOpenRole();
   // distinct value streams for the inline cell
   const streams = Array.from(new Map(r.participations.map((p) => [p.valueStreamId, p])).values());
   return (
@@ -133,13 +127,16 @@ function RoleRows({
           </svg>
         </td>
         <td className="px-2 py-2.5">
-          <Link
-            to={`/roles/${r.id}`}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              openRole(r.id);
+            }}
             className="text-[#171717] font-medium hover:underline"
-            onClick={(e) => e.stopPropagation()}
           >
             {r.name}
-          </Link>
+          </button>
         </td>
         <td className="px-2 py-2.5 text-[#525252]">
           {r.roleLevel && r.roleLevel !== 'Individual Contributor' ? r.roleLevel : '—'}
@@ -151,11 +148,7 @@ function RoleRows({
           ) : (
             <div className="flex flex-wrap gap-1">
               {streams.slice(0, 4).map((p) => (
-                <span
-                  key={p.valueStreamId}
-                  className={PART_CLASS[p.participationType] ?? 'chip-soft'}
-                  title={`${p.participationType} · ${p.domain ?? ''}`}
-                >
+                <span key={p.valueStreamId} className="chip-soft" title={p.domain ?? undefined}>
                   {p.valueStreamName}
                 </span>
               ))}
@@ -187,13 +180,9 @@ function RoleRows({
               />
             ) : (
               <div className="space-y-1.5 max-w-3xl">
+                {/* Plain rows — the retired Lead/Core/Support tag is gone. */}
                 {r.participations.map((p, i) => (
                   <div key={i} className="flex items-start gap-2 text-sm">
-                    <span
-                      className={`${PART_CLASS[p.participationType] ?? 'chip-soft'} flex-shrink-0 mt-0.5`}
-                    >
-                      {p.participationType}
-                    </span>
                     <div className="min-w-0">
                       <Link
                         to={`/overview?focus=${p.valueStreamId}`}

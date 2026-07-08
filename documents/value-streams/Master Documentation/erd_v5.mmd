@@ -197,6 +197,13 @@ erDiagram
     string roleId FK
     string role "Owner|Participant"
     string ownerLevel
+    string validationStatus "UNREVIEWED|CONFIRMED|REASSIGNED|NOT_PERFORMED"
+    string validationNote
+    string validatedByEmail
+    datetime validatedAt
+    string reassignedToRoleId FK
+    string reassignedToApplicationId FK
+    string reassignedToExternalPartyId FK
   }
   NodeRegulation {
     string status "was RequirementValueStream; -> RegulatoryRequirement"
@@ -647,10 +654,26 @@ erDiagram
     string category
     string title
     string requirement
-    string lineOfBusiness
+    string lineOfBusiness "coarse scalar; granular lines via RequirementLineOfBusiness"
+    string_array markets "PERSONAL|COMMERCIAL market-segment tags"
     string regime "GDPR|CCPA-CPRA|NYDFS-500|SERFF|IIPRC|IAIABC-EDI|..."
     string confidence "BASELINE|VERIFIED|DERIVED|STALE"
     string agentSkill "FB-59 — SDLC skill for migrated privacy/cyber regimes"
+  }
+  LineOfBusiness {
+    string id PK
+    string companyId FK
+    string code "slug, unique per company"
+    string label
+    string group "family group (Individual Life, Medical & Health, …) — table/filter roll-up"
+    string_array segments "PERSONAL|COMMERCIAL|FEDERAL|INTERNATIONAL"
+    int sortOrder
+  }
+  RequirementLineOfBusiness {
+    string id PK
+    string companyId FK
+    string regId FK "-> RegulatoryRequirement"
+    string lobId FK "-> LineOfBusiness"
   }
   RegulatorySource {
     string id PK
@@ -946,6 +969,9 @@ erDiagram
   Deliverable ||--o{ RoleDeliverable : "has"
   ProcessNode ||--o{ NodeRole : "owner/participant"
   Role ||--o{ NodeRole : "assigned-to"
+  Role ||--o{ NodeRole : "reassigned-to"
+  Application ||--o{ NodeRole : "reassigned-to"
+  ExternalParty ||--o{ NodeRole : "reassigned-to"
   ProcessNode ||--o{ NodeRegulation : ""
   RegulatoryRequirement ||--o{ NodeRegulation : ""
   RegulatoryRequirement ||--o{ RegulationApplication : "governs"
@@ -954,6 +980,8 @@ erDiagram
   Deliverable ||--o{ RegulationDeliverable : "evidences"
   RegulatoryRequirement ||--o{ RoleRegulation : "owned/done-by"
   Role ||--o{ RoleRegulation : "owns/contributes"
+  RegulatoryRequirement ||--o{ RequirementLineOfBusiness : "applies-to"
+  LineOfBusiness ||--o{ RequirementLineOfBusiness : "governs"
   ProcessNode ||--o{ NodeStandard : ""
   Standard ||--o{ NodeStandard : ""
   Role ||--o{ RoleStandard : "owns/follows"

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
+import { useOpenRole } from '../../lib/roleDrawer';
 import PageHeader from '../../components/PageHeader';
 import SkillViewer from '../../components/SkillViewer';
 import { skillLabel } from '../../lib/skills';
@@ -58,6 +59,7 @@ type Data = {
 
 export default function StandardArea() {
   const { id } = useParams();
+  const openRole = useOpenRole();
   const { data, error, loading } = useApi<Data>(id ? `/explorer/standards/${id}` : null);
   const [q, setQ] = useState('');
   const [viewSkill, setViewSkill] = useState<string | null>(null);
@@ -291,13 +293,16 @@ export default function StandardArea() {
                             </div>
                             {it.responsible ? (
                               <div className="text-sm">
-                                <Link
-                                  to={`/roles/${it.responsible.roleId}`}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openRole(it.responsible!.roleId);
+                                  }}
                                   className="text-[#171717] hover:underline"
-                                  onClick={(e) => e.stopPropagation()}
                                 >
                                   {it.responsible.roleName}
-                                </Link>
+                                </button>
                                 {it.ownerRole && it.ownerRole !== it.responsible.roleName && (
                                   <span className="text-xs text-[#a3a3a3]"> ({it.ownerRole})</span>
                                 )}
@@ -378,6 +383,7 @@ function StandardMeta({
   };
   onViewSkill: (skill: string) => void;
 }) {
+  const openRole = useOpenRole();
   const checklist = item.plan?.checklist ?? [];
   const testing = item.plan?.testing ?? [];
   if (!checklist.length && !testing.length && !item.appliers.length && !item.agentSkill)
@@ -417,11 +423,14 @@ function StandardMeta({
           <div className="flex flex-wrap gap-1">
             {item.appliers.map((a) => (
               <Chip
-                as={Link}
+                as="button"
                 key={a.roleId}
-                to={`/roles/${a.roleId}`}
+                type="button"
                 className="hover:bg-[#eaeaea]"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openRole(a.roleId);
+                }}
               >
                 {a.roleName}
               </Chip>

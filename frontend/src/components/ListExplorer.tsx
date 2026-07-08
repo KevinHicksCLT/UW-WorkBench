@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { DOMAIN_HEX, type DivisionSummary } from '../viz/model';
 import { api } from '../lib/api';
 import Inspector from './Inspector';
@@ -159,16 +160,40 @@ export default function ListExplorer({
 
   // Right-hand inspector — same component the map docks. `base` = the cell
   // clicked in the sheet (a process node); the inspector handles its own drill.
-  const [base, setBase] = useState<{ level: string; id: string } | null>(null);
+  // The open node is mirrored to `?node=` so leaving the page and coming back
+  // (breadcrumb, browser back, reload) reopens the exact same spot.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [base, setBase] = useState<{ level: string; id: string } | null>(() => {
+    const node = searchParams.get('node');
+    return node ? { level: 'node', id: node } : null;
+  });
 
-  const openMetrics = (level: string, id: string) => setBase({ level, id });
-  const closeMetrics = () => setBase(null);
+  const setNodeParam = (id: string | null) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (id) next.set('node', id);
+        else next.delete('node');
+        return next;
+      },
+      { replace: true },
+    );
+  };
+  const openMetrics = (level: string, id: string) => {
+    setBase({ level, id });
+    setNodeParam(id);
+  };
+  const closeMetrics = () => {
+    setBase(null);
+    setNodeParam(null);
+  };
 
   // Deep-linked focus (value-stream links across the app land here): open the
-  // stream's detail in the sidebar; the Value stream filter below narrows the
-  // sheet to just that stream once the tree is loaded.
+  // stream's detail in the sidebar — unless a more specific `?node=` spot is
+  // being restored. The Value stream filter below narrows the sheet to just
+  // that stream once the tree is loaded.
   useEffect(() => {
-    if (focusVsId) openMetrics('valueStream', focusVsId);
+    if (focusVsId && !searchParams.get('node')) openMetrics('valueStream', focusVsId);
   }, [focusVsId]);
 
   useEffect(() => {

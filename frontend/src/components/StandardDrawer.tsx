@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
+import { useOpenRole } from '../lib/roleDrawer';
 import SkillViewer from './SkillViewer';
 import { skillLabel } from '../lib/skills';
 import { Chip, DrawerShell, EmptyState, ErrorMessage, SkeletonLoader } from './ui';
@@ -84,6 +85,7 @@ export default function StandardDrawer({
   itemId: string;
   onClose: () => void;
 }) {
+  const openRole = useOpenRole();
   const [data, setData] = useState<AreaData | null>(null);
   const [error, setError] = useState('');
   const [viewSkill, setViewSkill] = useState<string | null>(null);
@@ -239,12 +241,13 @@ export default function StandardDrawer({
             <SectionLabel>Responsible role</SectionLabel>
             {item.responsible ? (
               <div className="text-sm">
-                <Link
-                  to={`/roles/${item.responsible.roleId}`}
+                <button
+                  type="button"
+                  onClick={() => openRole(item.responsible!.roleId)}
                   className="text-[#171717] hover:underline"
                 >
                   {item.responsible.roleName}
-                </Link>
+                </button>
                 {item.ownerRole && item.ownerRole !== item.responsible.roleName && (
                   <span className="text-xs text-[#a3a3a3]"> ({item.ownerRole})</span>
                 )}
@@ -274,10 +277,11 @@ export default function StandardDrawer({
               <div className="flex flex-wrap gap-1">
                 {item.appliers.map((a) => (
                   <Chip
-                    as={Link}
+                    as="button"
                     key={a.roleId}
-                    to={`/roles/${a.roleId}`}
+                    type="button"
                     className="hover:bg-[#eaeaea]"
+                    onClick={() => openRole(a.roleId)}
                   >
                     {a.roleName}
                   </Chip>

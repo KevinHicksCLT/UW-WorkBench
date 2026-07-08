@@ -30,7 +30,13 @@ import { TasksTab, RolesTab, AppsTab, DeliverablesTab } from './inspector/entity
 import { ChecklistTab, TestingTab } from './inspector/planTabs';
 
 // ── Inspector ─────────────────────────────────────────────────────────────────
-export default function Inspector({ nodeId, onClose, onRetarget, accent, startCollapsed }: {
+export default function Inspector({
+  nodeId,
+  onClose,
+  onRetarget,
+  accent,
+  startCollapsed,
+}: {
   nodeId: string;
   onClose?: () => void;
   // Re-target the inspector to another node (breadcrumb crumb / child drill).
@@ -51,14 +57,31 @@ export default function Inspector({ nodeId, onClose, onRetarget, accent, startCo
   const load = useCallback(() => {
     let cancelled = false;
     setLoading(true);
-    api.get<Payload>(`/inspector/${encodeURIComponent(nodeId)}`)
-      .then((d) => { if (!cancelled) { setData(d); setLoading(false); if (!d.detail) setEdit(false); } })
-      .catch(() => { if (!cancelled) { setData(null); setLoading(false); } });
-    return () => { cancelled = true; };
+    api
+      .get<Payload>(`/inspector/${encodeURIComponent(nodeId)}`)
+      .then((d) => {
+        if (!cancelled) {
+          setData(d);
+          setLoading(false);
+          if (!d.detail) setEdit(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setData(null);
+          setLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [nodeId]);
 
   useEffect(() => load(), [load]);
-  useEffect(() => { setTab('Overview'); setEdit(false); }, [nodeId]);
+  useEffect(() => {
+    setTab('Overview');
+    setEdit(false);
+  }, [nodeId]);
 
   const showToast = (msg: string, sub: string, undo?: () => void) => {
     setToast({ msg, sub, undo });
@@ -72,24 +95,57 @@ export default function Inspector({ nodeId, onClose, onRetarget, accent, startCo
     return `Now applied in ${bits.join(', ')}`;
   };
   // Any write reloads the canonical record so every tab + the rollups reflect it.
-  const after = async (msg: string, sub: string, undo?: () => void) => { load(); showToast(msg, sub, undo); };
+  const after = async (msg: string, sub: string, undo?: () => void) => {
+    load();
+    showToast(msg, sub, undo);
+  };
 
   const detail = !!data?.detail;
+  // At the L5 task level the Tasks tab has no children to drill and Testing
+  // belongs to the deliverable/plan layer — both are hidden (meeting decision:
+  // "that needs to be removed — we're at the task level").
+  const visibleTabs = detail ? TABS.filter((t) => t !== 'Tasks' && t !== 'Testing') : TABS;
+  useEffect(() => {
+    if (detail && (tab === 'Tasks' || tab === 'Testing')) setTab('Overview');
+  }, [detail, tab]);
   // Top-accent bar carries the node's domain color (overridable by the host).
   accent = accent ?? (data?.domain ? DOMAIN_HEX[data.domain] : undefined);
 
   // ── Collapsed rail (map parity) ─────────────────────────────────────────────
   if (collapsed) {
     return (
-      <aside className="hidden md:flex flex-col items-center bg-[#eaf1ff] border-l border-[#cdddff] flex-shrink-0"
-        style={{ width: 44, ...(accent ? { background: `${accent}14`, borderColor: `${accent}45` } : {}) }}>
-        <button onClick={() => setCollapsed(false)} aria-label="Expand panel" title="Expand panel"
+      <aside
+        className="hidden md:flex flex-col items-center bg-[#eaf1ff] border-l border-[#cdddff] flex-shrink-0"
+        style={{
+          width: 44,
+          ...(accent ? { background: `${accent}14`, borderColor: `${accent}45` } : {}),
+        }}
+      >
+        <button
+          onClick={() => setCollapsed(false)}
+          aria-label="Expand panel"
+          title="Expand panel"
           className="mt-3 w-8 h-8 rounded-full bg-[#0070AD] text-white shadow-sm hover:bg-[#005a8c] flex items-center justify-center"
-          style={accent ? { background: accent } : undefined}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+          style={accent ? { background: accent } : undefined}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.25"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
         </button>
-        <div className="mt-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0070AD] [writing-mode:vertical-rl] rotate-180 select-none max-h-[60vh] overflow-hidden text-ellipsis"
-          style={accent ? { color: accent } : undefined} title={data?.name ?? 'Inspector'}>
+        <div
+          className="mt-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0070AD] [writing-mode:vertical-rl] rotate-180 select-none max-h-[60vh] overflow-hidden text-ellipsis"
+          style={accent ? { color: accent } : undefined}
+          title={data?.name ?? 'Inspector'}
+        >
           {data?.name ?? 'Inspector'}
         </div>
       </aside>
@@ -97,18 +153,29 @@ export default function Inspector({ nodeId, onClose, onRetarget, accent, startCo
   }
 
   return (
-    <aside className="hidden md:flex flex-col bg-white border-l border-[#eaeaea] flex-shrink-0 relative overflow-hidden"
-      style={{ width: 560, minWidth: 480, ...(accent ? { borderTop: `3px solid ${accent}` } : {}) }}>
-
+    <aside
+      className="hidden md:flex flex-col bg-white border-l border-[#eaeaea] flex-shrink-0 relative overflow-hidden"
+      style={{ width: 560, minWidth: 480, ...(accent ? { borderTop: `3px solid ${accent}` } : {}) }}
+    >
       {/* Edit-mode banner — saved to the single source of truth. */}
       {edit && (
-        <div className="flex-shrink-0 z-20 flex items-center gap-2 px-4 py-2.5 bg-[#e7f6ef] border-b border-[#bfe3d0]"
-          style={{ boxShadow: 'inset 4px 0 0 #1e9e6a' }}>
+        <div
+          className="flex-shrink-0 z-20 flex items-center gap-2 px-4 py-2.5 bg-[#e7f6ef] border-b border-[#bfe3d0]"
+          style={{ boxShadow: 'inset 4px 0 0 #1e9e6a' }}
+        >
           <div className="min-w-0 flex-1">
             <div className="text-[12px] font-bold text-[#15603f]">✎ Edit mode</div>
-            <div className="text-[10.5px] text-[#1e7a52] leading-snug">⟲ Saved to the single source of truth — every change applies across all tabs &amp; the whole app</div>
+            <div className="text-[10.5px] text-[#1e7a52] leading-snug">
+              ⟲ Saved to the single source of truth — every change applies across all tabs &amp; the
+              whole app
+            </div>
           </div>
-          <button onClick={() => setEdit(false)} className="flex-shrink-0 rounded-md bg-[#1e9e6a] px-3 py-1.5 text-[11.5px] font-bold text-white hover:bg-[#178a5b]">Done</button>
+          <button
+            onClick={() => setEdit(false)}
+            className="flex-shrink-0 rounded-md bg-[#1e9e6a] px-3 py-1.5 text-[11.5px] font-bold text-white hover:bg-[#178a5b]"
+          >
+            Done
+          </button>
         </div>
       )}
 
@@ -122,26 +189,69 @@ export default function Inspector({ nodeId, onClose, onRetarget, accent, startCo
                 {data.breadcrumb.map((c, i) => (
                   <span key={c.id}>
                     {i > 0 && <span className="mx-1">▸</span>}
-                    <button onClick={() => onRetarget(c.id)} className="hover:text-[#1d4ed8] hover:underline">{c.name}</button>
+                    <button
+                      onClick={() => onRetarget(c.id)}
+                      className="hover:text-[#1d4ed8] hover:underline"
+                    >
+                      {c.name}
+                    </button>
                   </span>
                 ))}
               </div>
             ) : null}
-            <div className="text-[15px] font-bold text-[#171717] leading-snug">{loading ? 'Loading…' : data?.name ?? '—'}</div>
+            <div className="text-[15px] font-bold text-[#171717] leading-snug">
+              {loading ? 'Loading…' : (data?.name ?? '—')}
+            </div>
             {data && (data.levelLabel || data.code) && (
               <div className="text-[10px] text-[#a3a3a3] mt-0.5">
-                {data.levelLabel}{data.code ? <> · <span className="font-semibold text-[#737575] tabular-nums">#{data.code}</span></> : null}
+                {data.levelLabel}
+                {data.code ? (
+                  <>
+                    {' '}
+                    ·{' '}
+                    <span className="font-semibold text-[#737575] tabular-nums">#{data.code}</span>
+                  </>
+                ) : null}
               </div>
             )}
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
-            <button onClick={() => setCollapsed(true)} aria-label="Minimize" title="Minimize panel"
-              className="text-[#a3a3a3] hover:text-[#171717] w-6 h-6 rounded-md hover:bg-[#fafafa] flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+            <button
+              onClick={() => setCollapsed(true)}
+              aria-label="Minimize"
+              title="Minimize panel"
+              className="text-[#a3a3a3] hover:text-[#171717] w-6 h-6 rounded-md hover:bg-[#fafafa] flex items-center justify-center"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 6l6 6-6 6" />
+              </svg>
             </button>
             {onClose && (
-              <button onClick={onClose} aria-label="Close" className="text-[#a3a3a3] hover:text-[#171717] w-6 h-6 rounded-md hover:bg-[#fafafa] flex items-center justify-center">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+              <button
+                onClick={onClose}
+                aria-label="Close"
+                className="text-[#a3a3a3] hover:text-[#171717] w-6 h-6 rounded-md hover:bg-[#fafafa] flex items-center justify-center"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                >
+                  <path d="M6 6l12 12M18 6L6 18" />
+                </svg>
               </button>
             )}
           </div>
@@ -151,8 +261,15 @@ export default function Inspector({ nodeId, onClose, onRetarget, accent, startCo
         {data && !loading && (
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {detail && (
-              <button onClick={() => setEdit((e) => !e)}
-                className={'ml-auto rounded-md px-2.5 py-1 text-[11px] font-semibold ' + (edit ? 'bg-[#eaeaea] text-[#525252]' : 'bg-[#2563eb] text-white hover:bg-[#1d4ed8]')}>
+              <button
+                onClick={() => setEdit((e) => !e)}
+                className={
+                  'ml-auto rounded-md px-2.5 py-1 text-[11px] font-semibold ' +
+                  (edit
+                    ? 'bg-[#eaeaea] text-[#525252]'
+                    : 'bg-[#2563eb] text-white hover:bg-[#1d4ed8]')
+                }
+              >
                 {edit ? 'Done' : '✎ Edit'}
               </button>
             )}
@@ -163,13 +280,30 @@ export default function Inspector({ nodeId, onClose, onRetarget, accent, startCo
       {/* Tab strip */}
       {data && !loading && (
         <div className="flex-shrink-0 flex items-center gap-1 px-2 py-1.5 border-b border-[#eaeaea] overflow-x-auto">
-          {TABS.map((t) => {
+          {visibleTabs.map((t) => {
             const n = tabCount(data, t);
             const active = tab === t;
             return (
-              <button key={t} onClick={() => setTab(t)}
-                className={'flex-shrink-0 rounded-md px-2 py-1 text-[11.5px] font-medium whitespace-nowrap ' + (active ? 'bg-[#eaf1fe] text-[#1d4ed8] font-semibold' : 'text-[#737575] hover:bg-[#fafafa]')}>
-                {t}{n != null && <span className={'ml-1 tabular-nums ' + (active ? 'text-[#1d4ed8]' : 'text-[#a3a3a3]')}>({n})</span>}
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={
+                  'flex-shrink-0 rounded-md px-2 py-1 text-[11.5px] font-medium whitespace-nowrap ' +
+                  (active
+                    ? 'bg-[#eaf1fe] text-[#1d4ed8] font-semibold'
+                    : 'text-[#737575] hover:bg-[#fafafa]')
+                }
+              >
+                {t}
+                {n != null && (
+                  <span
+                    className={
+                      'ml-1 tabular-nums ' + (active ? 'text-[#1d4ed8]' : 'text-[#a3a3a3]')
+                    }
+                  >
+                    ({n})
+                  </span>
+                )}
               </button>
             );
           })}
@@ -183,12 +317,20 @@ export default function Inspector({ nodeId, onClose, onRetarget, accent, startCo
           <SkeletonLoader count={6} height={56} className="grid grid-cols-2 gap-2" />
         ) : (
           <>
-            {tab === 'Overview' && <OverviewTab data={data} onTab={setTab} onRetarget={onRetarget} />}
+            {tab === 'Overview' && (
+              <OverviewTab data={data} onTab={setTab} onRetarget={onRetarget} />
+            )}
             {tab === 'Work' && <WorkTab data={data} edit={edit} onNav={navigate} after={after} />}
             {tab === 'Tasks' && <TasksTab data={data} onRetarget={onRetarget} />}
-            {tab === 'Roles' && <RolesTab data={data} edit={edit} onNav={navigate} after={after} propText={propText} />}
-            {tab === 'Applications' && <AppsTab data={data} edit={edit} onNav={navigate} after={after} propText={propText} />}
-            {tab === 'Deliverables' && <DeliverablesTab data={data} edit={edit} onNav={navigate} after={after} />}
+            {tab === 'Roles' && (
+              <RolesTab data={data} edit={edit} after={after} propText={propText} />
+            )}
+            {tab === 'Applications' && (
+              <AppsTab data={data} edit={edit} onNav={navigate} after={after} propText={propText} />
+            )}
+            {tab === 'Deliverables' && (
+              <DeliverablesTab data={data} edit={edit} onNav={navigate} after={after} />
+            )}
             {tab === 'Checklist' && <ChecklistTab data={data} onNav={navigate} />}
             {tab === 'Testing' && <TestingTab data={data} onNav={navigate} />}
             {tab === 'Governance' && <GovernancePanel data={data} />}
@@ -196,8 +338,13 @@ export default function Inspector({ nodeId, onClose, onRetarget, accent, startCo
             {/* Auto-association reminder (no manual node ops) — scrolls with content. */}
             {detail && edit && (
               <div className="mt-4 rounded-lg bg-[#f4ecf7] border border-[#e6d6f0] px-3 py-2.5">
-                <div className="text-[11.5px] font-semibold text-[#6c3fa0]">No manual hierarchy steps.</div>
-                <div className="text-[11px] text-[#7c4db8] leading-snug">When you add or move an item, the app places it and wires the associations automatically.</div>
+                <div className="text-[11.5px] font-semibold text-[#6c3fa0]">
+                  No manual hierarchy steps.
+                </div>
+                <div className="text-[11px] text-[#7c4db8] leading-snug">
+                  When you add or move an item, the app places it and wires the associations
+                  automatically.
+                </div>
               </div>
             )}
           </>
@@ -211,7 +358,17 @@ export default function Inspector({ nodeId, onClose, onRetarget, accent, startCo
             <div className="text-[12px] text-white">✓ {toast.msg}</div>
             <div className="text-[11px] text-[#9fe3c0] leading-snug">{toast.sub}</div>
           </div>
-          {toast.undo && <button onClick={() => { toast.undo!(); setToast(null); }} className="flex-shrink-0 text-[12px] font-bold text-[#7fb2ff]">Undo</button>}
+          {toast.undo && (
+            <button
+              onClick={() => {
+                toast.undo!();
+                setToast(null);
+              }}
+              className="flex-shrink-0 text-[12px] font-bold text-[#7fb2ff]"
+            >
+              Undo
+            </button>
+          )}
         </div>
       )}
     </aside>
