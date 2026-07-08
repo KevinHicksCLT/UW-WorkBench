@@ -585,7 +585,9 @@ async function main() {
   const { id: companyId, tenantId } = company;
 
   const states = await prisma.jurisdiction.findMany({
-    where: { companyId, regulatorType: 'STATE_INSURANCE_REGULATOR' },
+    // Real US states + DC only — the multistate NAIC model-law body is not a
+    // filing state and must not receive per-state/per-line filing obligations.
+    where: { companyId, regulatorType: 'STATE_INSURANCE_REGULATOR', code: { not: 'NAIC' } },
     select: { id: true, code: true, name: true, regulatorName: true, regulatorWebsite: true },
     orderBy: { code: 'asc' },
   });

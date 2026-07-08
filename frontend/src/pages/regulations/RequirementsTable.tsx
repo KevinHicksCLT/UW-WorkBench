@@ -290,7 +290,7 @@ export function RequirementsTable({ baseParams }: { baseParams: Record<string, s
                   className="grid items-stretch divide-x divide-[#f0f0f0] border-b border-[#f5f5f5] last:border-0 cursor-pointer hover:bg-[#fafafa] transition-colors duration-100"
                   style={{ gridTemplateColumns: GRID }}
                 >
-                  <div className="px-2 py-1.5 min-w-0 text-[12px]">
+                  <div className="px-2 py-1.5 min-w-0 text-[12px] truncate">
                     <Link
                       to={`/regulations/${r.jurisdiction.code}`}
                       onClick={(e) => e.stopPropagation()}
@@ -298,8 +298,7 @@ export function RequirementsTable({ baseParams }: { baseParams: Record<string, s
                       title={`${r.jurisdiction.name} — open regulator page`}
                     >
                       {r.jurisdiction.name}
-                    </Link>{' '}
-                    <span className="text-[11px] text-[#a3a3a3] tnum">{r.jurisdiction.code}</span>
+                    </Link>
                   </div>
                   <div className="px-2 py-1.5 text-[12px] text-[#525252]">
                     {marketDisplay(r.markets)}
