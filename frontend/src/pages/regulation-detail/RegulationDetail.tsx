@@ -13,7 +13,7 @@ import {
   type VsLink,
   type VsOption,
 } from '../../components/RequirementLinks';
-import { catLabel, CONFIDENCE_HELP, OBLIGATION_HELP } from '../regulations/Regulations';
+import { catLabel, OBLIGATION_HELP } from '../regulations/Regulations';
 import { BackButton, ErrorMessage, LoadingState, StatusPill } from '../../components/ui';
 
 // State detail — /regulations/:code. Regulator identity + taxonomy flags in the
@@ -351,20 +351,6 @@ export default function RegulationDetail() {
                   {r.obligationType === 'FILING_GATE' && (
                     <StatusPill tone="amber" title={OBLIGATION_HELP.FILING_GATE}>
                       Filing gate
-                    </StatusPill>
-                  )}
-                  {r.confidence !== 'BASELINE' && (
-                    <StatusPill
-                      tone={
-                        r.confidence === 'VERIFIED'
-                          ? 'green'
-                          : r.confidence === 'STALE'
-                            ? 'red'
-                            : 'amber'
-                      }
-                      title={CONFIDENCE_HELP[r.confidence]}
-                    >
-                      {label(r.confidence)}
                     </StatusPill>
                   )}
                   <LinkChips links={r.valueStreamLinks} />

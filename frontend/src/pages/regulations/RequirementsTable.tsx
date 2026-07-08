@@ -14,13 +14,7 @@ import {
   type VsLink,
   type VsOption,
 } from '../../components/RequirementLinks';
-import {
-  catLabel,
-  lobGroups,
-  marketDisplay,
-  CONFIDENCE_HELP,
-  OBLIGATION_HELP,
-} from './Regulations';
+import { catLabel, lobGroups, marketDisplay, OBLIGATION_HELP } from './Regulations';
 
 // Server-driven requirements grid — the ONE table used for every regulations
 // list (Regulations lens, regime page, catalog). Matches the dense Sheet look
@@ -76,12 +70,6 @@ const GROUP_OPTS = [
 ];
 const PAGE_SIZE = 100;
 const GRID = '150px 90px 150px 160px minmax(0,2fr) 140px minmax(0,1.2fr) 56px';
-
-const lobLabel = (v: string) =>
-  v
-    .replace(/_/g, ' ')
-    .toLowerCase()
-    .replace(/^\w/, (c) => c.toUpperCase());
 
 export function RequirementsTable({
   baseParams,
@@ -311,20 +299,6 @@ export function RequirementsTable({
                     {r.obligationType === 'FILING_GATE' && (
                       <StatusPill tone="amber" title={OBLIGATION_HELP.FILING_GATE}>
                         Filing gate
-                      </StatusPill>
-                    )}
-                    {r.confidence !== 'BASELINE' && (
-                      <StatusPill
-                        tone={
-                          r.confidence === 'VERIFIED'
-                            ? 'green'
-                            : r.confidence === 'STALE'
-                              ? 'red'
-                              : 'amber'
-                        }
-                        title={CONFIDENCE_HELP[r.confidence]}
-                      >
-                        {lobLabel(r.confidence)}
                       </StatusPill>
                     )}
                     <LinkChips links={r.valueStreamLinks} />
