@@ -4,6 +4,7 @@ import { api } from '../../lib/api';
 import { useCompany } from '../../lib/company';
 import { useOpenRole } from '../../lib/roleDrawer';
 import PageHeader from '../../components/PageHeader';
+import ProcedureValue from '../../components/ProcedureValue';
 import { withCompany } from '../../lib/portfolio';
 import { Sheet, SheetCell, type SheetCol } from '../../components/Sheet';
 import { TocView, ViewPills } from '../../components/TocView';
@@ -369,8 +370,8 @@ function DetailBody({ detail }: { detail: Detail }) {
                             {r.defined ? (
                               <span>
                                 <span className="text-[#8a94a0]">{r.key}: </span>
-                                <span className="text-[#171717] whitespace-pre-line">
-                                  {r.value}
+                                <span className="text-[#171717]">
+                                  <ProcedureValue value={r.value ?? ''} />
                                 </span>
                               </span>
                             ) : (

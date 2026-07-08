@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { useOpenRole } from '../../lib/roleDrawer';
 import { SkeletonLoader } from '../ui';
+import ProcedureValue from '../ProcedureValue';
 import { AddPicker, Empty, LinkOut, DetachBtn } from './atoms';
 import type { AfterFn, Payload, PlanRow, TiedPlan } from './types';
 
@@ -130,8 +131,9 @@ const ChainPlanLine = ({ r }: { r: PlanRow }) => (
       {r.defined ? (
         <>
           <span className="text-[#8a94a0]">{r.key}: </span>
-          {/* pre-line: multi-line procedure values render one sub-step per line */}
-          <span className="text-[#171717] whitespace-pre-line">{r.value}</span>
+          <span className="text-[#171717]">
+            <ProcedureValue value={r.value ?? ''} />
+          </span>
         </>
       ) : (
         <span className="text-[#6b7785]">{r.key}</span>
