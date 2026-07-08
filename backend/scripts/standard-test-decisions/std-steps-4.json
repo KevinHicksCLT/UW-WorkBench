@@ -1,0 +1,223 @@
+{
+  "standards": [
+    {
+      "id": "cmqscp3oz1n5mmbk8w0mgzz9i",
+      "name": "Idempotent",
+      "test": [
+        "Rerun three pipelines covering premium, claims, and billing for an already-processed batch in the non-prod orchestrator (Airflow)",
+        "Query the target tables in the warehouse database and compare row counts and key aggregates before and after each rerun",
+        "Open each pipeline's source in GitHub Enterprise and confirm merge-on-key, overwrite-by-partition, or equivalent dedup logic",
+        "Open the replay runbook in Confluence and confirm it documents replay scope by partition or key range",
+        "Search ServiceNow ITSM for a ticket or log showing the replay procedure was executed within the past 12 months",
+        "Pass when reruns add zero net new duplicates, aggregates match, no pipeline is INSERT-only append, and a replay ran in 12 months"
+      ]
+    },
+    {
+      "id": "cmqscp3q01n5ombk81drn9kwt",
+      "name": "Incremental Loads",
+      "test": [
+        "Open the job configuration or source for five recurring policy and claims history loads in GitHub Enterprise",
+        "Confirm each job bounds its extract with a watermark column, change-tracking token, or CDC high-water-mark, not a full scan",
+        "Open the last 30 days of run logs in the scheduler (Airflow) and check each run records start and end watermark values",
+        "Verify each run's lower bound equals the prior run's upper bound across the 30-day window",
+        "Open the job inventory register in Confluence and list all full-refresh jobs with their initial-load or recovery classification",
+        "Pass when all five jobs use watermarks, watermark continuity holds, and no unclassified full refresh runs on a recurring schedule"
+      ]
+    },
+    {
+      "id": "cmqscp5481n8ambk8lcjqd1fi",
+      "name": "Infrastructure as Code for All Environments",
+      "test": [
+        "Open the IaC repo in GitHub Enterprise and confirm compute, network, storage, and security groups are defined per environment",
+        "Run terraform plan (or AWS Config drift detection) against dev, test, and prod and export the drift report",
+        "Confirm the drift report shows zero unmanaged or manually modified resources in each environment",
+        "Export the past 30 days of CloudTrail events and flag any console change without a matching IaC commit",
+        "Open the IaC workflow in GitHub Actions and confirm the drift check is a required step that blocks apply on failure",
+        "Pass when drift is zero in all environments, no out-of-band console changes exist, and the drift gate is non-bypassable"
+      ]
+    },
+    {
+      "id": "cmqscp5581n8cmbk8fi4s889z",
+      "name": "Instant Rollback Capability",
+      "test": [
+        "Open the release pipelines for three production services in GitHub Actions, including one policy and one claims service",
+        "Confirm each pipeline defines an automated rollback step such as blue/green swap, canary abort, or prior image redeploy",
+        "Open the pipeline run history in GitHub Actions and verify a rollback drill or event ran within the past 90 days per service",
+        "Open the migration scripts for the last two releases in GitHub Enterprise and confirm backward compatibility for one version",
+        "Run a simulated rollback in the test environment for one service and record time from initiation to confirmed healthy state",
+        "Pass when rollback is automated, exercised within 90 days, migrations are backward compatible, and time meets the rollback SLA"
+      ]
+    },
+    {
+      "id": "cmqscp6fk1naombk8lfqdfywn",
+      "name": "Integration Tests for External Dependencies",
+      "test": [
+        "Open the CI test inventory in GitHub Actions for each service calling MVR, credit bureau, payment, reinsurer, or state APIs",
+        "Confirm a named integration test class or file exists per external dependency in the repository in GitHub Enterprise",
+        "Run the integration test stage in GitHub Actions and confirm the run log shows sandbox or stub URLs, never production endpoints",
+        "Inspect the test cases in GitHub Enterprise for at least one timeout, HTTP 5xx, and malformed-response scenario per dependency",
+        "Confirm each failure-mode test asserts the service's error handling, not merely the absence of an exception",
+        "Open the merge gate settings in GitHub Actions and confirm a failure-mode test failure blocks the build from release",
+        "Pass when every external dependency has passing sandbox tests covering timeout, 5xx, and malformed responses, gated in CI"
+      ]
+    },
+    {
+      "id": "cmqscpo861o70mbk81azv4ew0",
+      "name": "Issue Logging",
+      "test": [
+        "Export the issue log for a sample of five active projects from Jira",
+        "Check every open or recently closed issue has a unique ID, impact description, date raised, and severity with no blank field",
+        "Open the status reports and meeting minutes for the same period in Confluence and list every impacting problem discussed",
+        "Match each discussed problem to a Jira issue raised within one business day and flag unlogged items as process breaches",
+        "Check last-modified timestamps in Jira show weekly updates and no severity-1 issue past its target date without escalation",
+        "Pass when all mandatory fields are populated, discussed problems are logged within one business day, and breaches reach the PMO"
+      ]
+    },
+    {
+      "id": "cmqscp4rp1n7mmbk89u5arrgj",
+      "name": "Issues Logged in Tracking System",
+      "test": [
+        "Run a filter in Jira for all data quality issues logged in the past 90 days",
+        "Check every record has severity, affected dataset, business impact, and an assigned owner with none of the four fields missing",
+        "Pick five data quality alerts or audit findings from the same period and match each to a logged Jira issue",
+        "Filter Jira for issues idle beyond the defined aging threshold and check each carries a documented review note",
+        "Open the stewardship meeting minutes in Confluence and confirm aging review appears in the two most recent meetings",
+        "Pass when no issue lacks a mandatory field, every sampled alert is logged, and aging review is documented in both meetings"
+      ]
+    },
+    {
+      "id": "cmqscp5s61n9mmbk85vslexc4",
+      "name": "Kept Current",
+      "test": [
+        "Open the 10 most recent merged pull requests with code or config changes in GitHub Enterprise",
+        "Check each PR diff and flag any change that invalidates a README section without updating the README in the same PR",
+        "Open the onboarding checklists for the last 2 engineers onboarded to each team in Confluence",
+        "Confirm README accuracy was checked at onboarding and any inaccuracies were logged as defects in Jira",
+        "Open the repo health review records for the past 6 months in Confluence and confirm one README review completed per quarter",
+        "Pass when sampled PRs update invalidated README content in-PR and quarterly reviews raised and resolved README defects"
+      ]
+    },
+    {
+      "id": "cmqscp5c31n8qmbk8dbhnhyzt",
+      "name": "Language-Specific Style Guides Enforced via Linters",
+      "test": [
+        "Open the CI workflow file for each approved language's repository in GitHub Actions",
+        "Confirm the language-appropriate linter (ESLint, Checkstyle) runs as a required build step",
+        "Push a branch with a deliberate style violation and open a pull request in GitHub Enterprise",
+        "Confirm the lint stage in GitHub Actions fails the build and the merge is blocked",
+        "Review the last 10 merged pull requests in GitHub Enterprise for lint bypasses without a documented approved exception",
+        "Pass when linters are required steps, the seeded violation blocks merge, and no unapproved bypass exists in the 10 PRs"
+      ]
+    },
+    {
+      "id": "cmqscp3do1n54mbk8m6ubfgf4",
+      "name": "Lineage Captured",
+      "test": [
+        "Open the lineage graph for three priority datasets, e.g. loss reserve, earned premium, surrender roll-forward, in Purview",
+        "Trace each graph from source system through every transformation pipeline to the final report and note any broken node",
+        "Apply a simulated schema change to one source table and run the impact-analysis function in Purview",
+        "Confirm the impact list covers all downstream stages and reports and is generated within one business day",
+        "Open the pipeline configuration records in Purview and count active pipelines requiring manual lineage entry",
+        "Pass when all three lineage paths are unbroken, impact analysis is complete and automatic, and under 5% need manual entry"
+      ]
+    },
+    {
+      "id": "cmqscp6ua1nbembk8rcpgs2wt",
+      "name": "Linked to Work Item",
+      "test": [
+        "Open the pre-receive hook configuration on every protected repository in GitHub Enterprise",
+        "Confirm the hook rejects commit messages lacking a work-item reference matching the pattern [A-Z]+-[0-9]+",
+        "Push a test commit with no reference to a non-production branch and confirm GitHub Enterprise rejects it citing the policy",
+        "Sample 25 recent merged commits across at least five repos and note each referenced work-item ID",
+        "Look up each ID in Jira and confirm it exists, was approved or in progress at commit time, and is not a placeholder",
+        "Pass when the hook blocks unreferenced commits and all 25 sampled commits trace to valid approved work items"
+      ]
+    },
+    {
+      "id": "cmqscp6gk1naqmbk8p8f0ok8y",
+      "name": "Load Tests Before Production",
+      "test": [
+        "Open the change-impact assessment for each candidate release in Jira",
+        "Confirm changes touching billing, FNOL intake, or bordereaux paths are tagged as requiring a load test before promotion",
+        "Open the load test scripts in GitHub Enterprise and check the traffic model uses documented billing-peak or CAT FNOL volumes",
+        "Run the load test in the production-like environment and export the results report",
+        "Compare p95 and p99 latency and throughput line-by-line against the service's published capacity targets",
+        "Open the release gate log in GitHub Actions and find a sample run where a breached target blocked promotion",
+        "Pass when load tests use peak traffic models, results meet capacity targets, and any breach hard-blocks the release"
+      ]
+    },
+    {
+      "id": "cmqscp6i31nasmbk8bohfb4je",
+      "name": "Manual Testing for Exploratory Only",
+      "test": [
+        "Open the exploratory session records for the current release cycle in Jira (Zephyr or Xray)",
+        "Confirm each session has a written charter naming the feature, scenario scope, or usability question under investigation",
+        "Cross-reference the defect log in Jira and confirm each reproducible exploratory defect links an automated test before closure",
+        "Open the regression suite runs in GitHub Actions and confirm execution is fully automated with no manual re-execution steps",
+        "Confirm no standing manual regression test plans exist in Jira (Zephyr or Xray)",
+        "Sample five exploratory defects from the past quarter and open each linked automated test in GitHub Enterprise",
+        "Pass when every session is charter-driven and all five sampled defects link automated tests present in the codebase"
+      ]
+    },
+    {
+      "id": "cmqscp3qx1n5qmbk8vbdremm7",
+      "name": "Medallion Architecture (Bronze/Silver/Gold)",
+      "test": [
+        "Open the lake catalog (Unity Catalog, AWS Glue, or Azure Purview) and confirm distinct Bronze, Silver, and Gold zones exist",
+        "Open the promotion criteria in Confluence and confirm row-count thresholds, null-rate limits, and schema rules per boundary",
+        "Connect Power BI to the Bronze zone with a business-user credential and confirm access is denied or no Bronze datasets appear",
+        "Sample five Claims, Finance, or Actuarial dashboards in Power BI and confirm each reads Silver or Gold tables only",
+        "Open the onboarding checklists for three recent datasets in Confluence and confirm zone assignment and criteria sign-off",
+        "Pass when all three zones exist with written criteria, Bronze is closed to consumers, and zero sampled dashboards read Bronze"
+      ]
+    },
+    {
+      "id": "cmqscois61m4mmbk8wzagy3ai",
+      "name": "Message schemas are registered and version-pinned",
+      "test": [
+        "Open Confluent Schema Registry and enumerate every schema used by policy and partner integrations",
+        "Confirm each schema entry carries an explicit version identifier, not latest or an unversioned alias",
+        "Open the deployment configs for three channels (new business, in-force servicing, partner feed) in GitHub Enterprise",
+        "Confirm each config pins a specific schema version ID rather than a dynamic or floating reference",
+        "Attempt to register a breaking change, removing a mandatory field, under the same name and version in the registry",
+        "Pass when every schema is version-pinned in the registry and configs and the registry rejects the breaking overwrite"
+      ]
+    },
+    {
+      "id": "cmqscp6jk1naumbk8glp27aai",
+      "name": "Minimum 80 Percent Line Coverage",
+      "test": [
+        "Open the CI pipeline definition for each in-scope codebase in GitHub Actions",
+        "Confirm a coverage gate step reads the unit test report and fails builds below 80 percent line coverage",
+        "Open the latest successful build's coverage report in GitHub Actions and check coverage is at or above 80 percent overall",
+        "Open the three most recent pull requests in GitHub Enterprise and confirm at least one was challenged for coverage inflation",
+        "Push a sample branch with coverage below the threshold to a test repo and confirm the GitHub Actions gate blocks the merge",
+        "Pass when gates enforce 80 percent, latest builds meet it codebase-wide, and the low-coverage sample merge is blocked"
+      ]
+    },
+    {
+      "id": "cmqscp3rz1n5smbk85axljifj",
+      "name": "Monitoring and Alerting",
+      "test": [
+        "Open the metric inventory for the last 30 days in Datadog and list metrics emitted per active production pipeline",
+        "Confirm each pipeline emits run status, duration, row count, and data freshness for the full 30-day window",
+        "Open each pipeline's alert configuration in Datadog and match thresholds to the SLAs in its data contract or runbook",
+        "Review the last three failure incidents in PagerDuty and check on-call notification timestamps fall within the response window",
+        "Open the on-call rotation and runbook in Confluence and confirm updates within 90 days plus close and regulatory escalations",
+        "Pass when all four metrics exist per pipeline, thresholds map to SLAs, alerts paged in window, and the runbook is current"
+      ]
+    },
+    {
+      "id": "cmqscp94j1nfsmbk873xupegw",
+      "name": "Multi-AZ Deployment Required for Production",
+      "test": [
+        "Export the production workload deployment inventory from the AWS console",
+        "Verify each workload places compute, database replicas, and load balancers in two or more distinct availability zones",
+        "For each single-AZ workload, open the exception record in ServiceNow ITSM and check signed risk acceptance and expiry date",
+        "Open the latest DR or resilience test results for three critical workloads in Confluence and confirm service survived AZ loss",
+        "Open the IaC templates in GitHub Enterprise and confirm policy-as-code enforces multi-AZ for the sampled workloads",
+        "Pass when all production workloads span two or more AZs or hold signed unexpired exceptions and policy blocks single-AZ"
+      ]
+    }
+  ]
+}

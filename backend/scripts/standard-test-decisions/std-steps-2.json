@@ -1,0 +1,223 @@
+{
+  "standards": [
+    {
+      "id": "cmqscp6px1nb6mbk8u4b3r7yl",
+      "name": "CI Must Pass",
+      "test": [
+        "Open Settings > Branches on each production-target repository in GitHub Enterprise and open the protection rule.",
+        "Confirm required status checks list tests, coverage threshold, SAST security scan, and lint on the latest commit SHA.",
+        "Open a test PR with a deliberately failing unit test in GitHub Enterprise and attempt to merge into the protected branch.",
+        "Export the merge audit log for the past 90 days from GitHub Enterprise and list merges with failed or skipped required checks.",
+        "For each such merge, open the linked emergency exception ticket in ServiceNow ITSM and check approval and remediation notes.",
+        "Pass when merges are blocked on red checks and every red-build merge in 90 days has an approved exception ticket."
+      ]
+    },
+    {
+      "id": "cmqscp50i1n82mbk8li260ohf",
+      "name": "CI Pipeline for All Repositories",
+      "test": [
+        "Export the full repository inventory from the organization repositories page in GitHub Enterprise.",
+        "Check each active repo in GitHub Enterprise for a workflow file under .github/workflows on the default branch.",
+        "Open GitHub Actions run history for a random sample of at least 10 repos spanning apps, internal tools, and finance batch jobs.",
+        "Confirm each sampled repo ran compile and test stages on the most recent default-branch push within the last 30 days.",
+        "Attempt a production deployment for a repo with no active pipeline and confirm the deploy gate in GitHub Actions blocks it.",
+        "Open the sampled workflow definitions in GitHub Enterprise and confirm build and test stages are required, not skippable.",
+        "Pass when 100% of active repos have compile-and-test pipelines and the no-pipeline deployment attempt is blocked."
+      ]
+    },
+    {
+      "id": "cmqscpmdk1o3ombk8fq3vr39b",
+      "name": "Capacity Planning",
+      "test": [
+        "Open the sprint capacity worksheets for the last four sprints on the team page in Confluence.",
+        "Confirm each worksheet deducts planned leave, holidays, production support rotations, and onboarding from person-days.",
+        "Open the Velocity report under the board's Reports tab in Jira and compare each sprint commitment to the adjusted forecast.",
+        "Trace the most recent externally communicated delivery date to a capacity-adjusted calculation in the Confluence planning record.",
+        "Where actual velocity deviated over 15% from forecast, locate the documented re-forecast or retrospective action in Confluence.",
+        "Pass when all four sprints are capacity-adjusted, commitments fit forecasts, and external dates trace to adjusted forecasts."
+      ]
+    },
+    {
+      "id": "cmqscpn3g1o50mbk8qktqtjrh",
+      "name": "Capacity Validation",
+      "test": [
+        "Open the capacity validation worksheet for the intake period under review in the PPM tool (Clarity/Planview).",
+        "Confirm every approved initiative shows a staffing plan with confirmed availability percentages and no unresolved TBD slots.",
+        "Open the capacity-queued backlog in the PPM tool and confirm each deferred intake item cites a staffing or funding rationale.",
+        "For a sample of three approved initiatives, trace funding from the intake record to the budget authorization in the PPM tool.",
+        "Confirm each sampled initiative received a budget code or cost-center authorization dated before project kick-off.",
+        "Pass when no approved initiative has a TBD slot, all deferred items carry capacity rationale, and all three fundings trace."
+      ]
+    },
+    {
+      "id": "cmqscp3k91n5embk88vzqljzw",
+      "name": "Change Data Capture for Real-Time",
+      "test": [
+        "Open the pipeline configuration repo in GitHub Enterprise for each near-real-time feed such as claims status and fraud screening.",
+        "Confirm each feed uses a CDC mechanism (log-based, trigger-based, or outbox) rather than high-frequency batch queries.",
+        "Open the CDC connector configuration in Kafka Connect and confirm DELETE and schema-change events are captured, not discarded.",
+        "Open the replication-lag dashboard in Grafana and confirm an active lag alert threshold with a recent lag metric recorded.",
+        "Check the alerting ruleset in Grafana and confirm lag threshold breaches route to an incident notification.",
+        "Pass when every near-real-time feed uses CDC with delete and schema-change handling and an active replication-lag alert."
+      ]
+    },
+    {
+      "id": "cmqscp5q71n9imbk88q7k8pe2",
+      "name": "Changelog Maintained",
+      "test": [
+        "Open the versioned changelog file in each API repository in GitHub Enterprise.",
+        "Compare changelog entries to the release tag list in GitHub Enterprise and confirm no release version is absent.",
+        "Confirm entries label additions, deprecations, and breaking changes distinctly for each release.",
+        "For the 3 most recent deprecations, compare the changelog commit dates in GitHub Enterprise to the removal release dates.",
+        "Check the API versioning policy in Confluence and confirm each notice met the full deprecation-notice period before removal.",
+        "Survey one internal and one external consumer team and record whether each planned upgrade work from the changelog alone.",
+        "Pass when no release is missing, all 3 deprecations met the notice period, and both consumers relied on the changelog alone."
+      ]
+    },
+    {
+      "id": "cmqscp4o01n7gmbk8nzsb85bd",
+      "name": "Completeness Above 99%",
+      "test": [
+        "Open the completeness rule set for each governed dataset in Collibra Data Quality.",
+        "Confirm every defined critical data element has a completeness rule configured with a 99% pass threshold.",
+        "Export the most recent completeness results from Collibra Data Quality and compute the pass rate per critical field.",
+        "Open the quality dashboard in Collibra and list any datasets flagged below the 99% threshold.",
+        "For each flagged dataset, open its remediation ticket in ServiceNow ITSM and confirm an assigned owner and due date.",
+        "Review the dashboard access list in Collibra and confirm owner, steward, and consumer groups all have visibility.",
+        "Pass when all critical fields exceed 99% populated and every flagged dataset has an open remediation record with owner and date."
+      ]
+    },
+    {
+      "id": "cmqscp5801n8imbk8esnnzfjh",
+      "name": "Complex Logic Commented",
+      "test": [
+        "Run a code search in GitHub Enterprise for premium, reinsurance, state, rate, and filing keywords across in-scope repos.",
+        "Open each matching method and confirm an inline comment explains the business rationale, not line-by-line mechanics.",
+        "For a sample of five commented blocks, verify the comment cites a source requirement, regulatory filing, or product spec.",
+        "Open a test pull request in GitHub Enterprise changing a complex-logic block without a qualifying comment.",
+        "Confirm the review checklist or automated lint rule in GitHub Actions blocks or flags the merge.",
+        "Pass when all five sampled blocks carry rationale comments with citations and the uncommented PR is flagged or blocked."
+      ]
+    },
+    {
+      "id": "cmqscp9q01ngumbk80987man9",
+      "name": "Conceptual, Logical, and Physical Models Required",
+      "test": [
+        "List significant data initiatives active or completed in the past 12 months in the PPM tool (Clarity/Planview).",
+        "Open each initiative's design-gate space in Confluence and locate the conceptual, logical, and physical model documents.",
+        "Trace every conceptual entity to a logical entity and every logical entity to a physical table, logging any gap as a finding.",
+        "Open the gate review minutes or ADR approvals in Confluence and confirm each model level was signed off at its design gate.",
+        "Pass when every initiative has all three models with full entity traceability and recorded sign-off at each gate."
+      ]
+    },
+    {
+      "id": "cmqscp51f1n84mbk8i3h7eo38",
+      "name": "Consistent Dev, Test, and Prod Environments",
+      "test": [
+        "Open the infrastructure-as-code templates and image manifests in GitHub Enterprise for dev, test, and prod.",
+        "Compare OS image tags, runtime versions, and middleware versions across the three tiers and record every difference.",
+        "Query the CMDB in ServiceNow ITSM for each environment's network topology and verify parity beyond scale parameters.",
+        "Open the deviation register in Confluence and confirm each entry has justification, reviewer approval, and a remediation date.",
+        "Flag any difference found in the comparisons that is absent from the deviation register as a control failure.",
+        "Open the last release certification for a policy or claims system in Confluence and check the reproducibility attestation.",
+        "Pass when stack versions match across tiers, all deviations are registered and reviewed, and the certification attests parity."
+      ]
+    },
+    {
+      "id": "cmqscp78k1nc4mbk8j8j63i0r",
+      "name": "Consumer-Driven Contracts",
+      "test": [
+        "Open the Pact Broker and confirm every known consuming team of each in-scope API has published at least one contract.",
+        "For the policy administration API, compare the provider interface in the Pact Broker against the union of registered contracts.",
+        "On a test branch in GitHub Enterprise, remove a required response field from the policy administration API.",
+        "Run provider verification in GitHub Actions and confirm every dependent consumer contract fails before the deploy gate.",
+        "Open the onboarding checklist for a recently integrated consumer in Confluence and confirm its contract predates staging.",
+        "Pass when all consumers have contracts, the breaking change fails verification, and the new consumer registered before staging."
+      ]
+    },
+    {
+      "id": "cmqscp79o1nc6mbk8tv9nqs5q",
+      "name": "Contract Testing in CI/CD",
+      "test": [
+        "Open the provider pipeline workflow in GitHub Actions and confirm a contract-test stage fetches broker contracts before deploy.",
+        "Open the most recent provider run log in GitHub Actions and confirm verification executed against all consumer contracts.",
+        "Locate the most recent failed contract verification in the GitHub Actions run history.",
+        "Confirm in GitHub Actions that the failed build promoted no artifact to staging or production.",
+        "Open a consumer pipeline such as the agent portal in GitHub Actions and confirm it verifies the provider's published contract.",
+        "Pass when both provider and consumer pipelines run mandatory contract stages and the failed verification blocked promotion."
+      ]
+    },
+    {
+      "id": "cmqscp6e01nammbk8u3kkbgln",
+      "name": "Contract Tests for APIs",
+      "test": [
+        "Open the Pact Broker and confirm every active API has a registered consumer contract with a passing latest verification.",
+        "Open the provider and at least two consumer pipeline workflows in GitHub Actions and confirm verification is a required stage.",
+        "Push a deliberate breaking schema change to the provider API on a test branch in GitHub Enterprise.",
+        "Confirm the provider pipeline in GitHub Actions fails at contract verification and names the violated consumer contract.",
+        "Filter the Pact Broker verification matrix to the last 30 days and check for deployments with unverified or failing contracts.",
+        "Pass when all contracts verify green on both sides, the stage is non-skippable, and no 30-day deploy had failing contracts."
+      ]
+    },
+    {
+      "id": "cmqscp61a1na2mbk84y76mky0",
+      "name": "Dashboards per Service",
+      "test": [
+        "Export the production service inventory from the CMDB in ServiceNow ITSM.",
+        "Open Grafana and confirm a dedicated dashboard exists for every inventoried production service, flagging any gap.",
+        "For three sampled dashboards including a claims-facing and an underwriting-facing service, check RED and utilization panels.",
+        "Confirm each sampled dashboard in Grafana also shows a business indicator such as quotes issued or claims processed.",
+        "Compare five dashboards in Grafana against the approved common template for section order, panel naming, and thresholds.",
+        "Check last-modified dates in Grafana against each service's last deployment, flagging dashboards unedited beyond 90 days.",
+        "Pass when every service has a dashboard, sampled panels are complete, layouts match the template, and none are stale past 90 days."
+      ]
+    },
+    {
+      "id": "cmqscp3lx1n5gmbk8a2ok7wtg",
+      "name": "Data Contracts Enforced",
+      "test": [
+        "For five sampled pipelines spanning claims, policy, and billing feeds, open each contract artifact in the schema registry.",
+        "Confirm each contract specifies field types, nullability, and key constraints agreed with the producing system team.",
+        "Replay a load with a deliberate violation, such as a null in a non-nullable field, in a non-production pipeline environment.",
+        "Confirm the pipeline quarantines the record or halts the load and no violated record reaches the downstream target table.",
+        "Search the last 30 days of run logs in the pipeline orchestrator (Airflow) for violations with record-level detail logged.",
+        "Pass when all five contracts are complete, the injected violation is quarantined or halted, and dispositions match criticality."
+      ]
+    },
+    {
+      "id": "cmqscp4qa1n7kmbk8cxw4odar",
+      "name": "Data Quality Scores Published",
+      "test": [
+        "Open the enterprise data quality dashboard in Collibra and confirm composite scores display per dataset and per domain.",
+        "Open sampled dataset detail pages in the Collibra data catalog and confirm the quality scores surface there.",
+        "Retrieve governance forum minutes for the prior two quarters from Confluence and confirm quality trends were reviewed in both.",
+        "Identify domains below threshold for two or more consecutive periods and open each remediation plan in Confluence.",
+        "Confirm each plan names an owner and target date, then review Collibra access roles for owner, steward, and consumer groups.",
+        "Pass when scores publish in dashboard and catalog, both quarters show trend review, and each low-scoring domain has a plan."
+      ]
+    },
+    {
+      "id": "cmqscp32w1n4imbk8cl9att9q",
+      "name": "Data Validation",
+      "test": [
+        "Open the latest premium, reserve, and claims report releases and their tie-out workbooks in SharePoint.",
+        "Compare each report total to the source-system extract or general ledger and confirm variance within the documented tolerance.",
+        "Confirm each workbook sits in the designated SharePoint repository with a version stamp matching the report release date.",
+        "Cross-check reserve totals in one actuarial report against the actuarial control schedule such as the IBNR summary sign-off.",
+        "Confirm any reconciliation differences carry a documented explanation and recorded approval in the workbook.",
+        "Pass when every report total ties out within tolerance and each release retains a version-stamped, signed tie-out workbook."
+      ]
+    },
+    {
+      "id": "cmqscp5b31n8ombk86nscxr7f",
+      "name": "Debt Ratio Below 15 Percent of Velocity",
+      "test": [
+        "Open the Velocity report under the board's Reports tab in Jira for the last three completed sprints.",
+        "Calculate each sprint's debt-remediation story-point ratio from the Jira sprint reports and compare to the 15% ceiling.",
+        "For any sprint at or above 12%, locate the documented feature-intake throttle decision (label or board policy note) in Jira.",
+        "Open the sprint planning notes in Confluence and confirm a written threshold-monitoring practice with pre-sprint sign-off.",
+        "Pass when no sprint exceeds 15%, every near-ceiling sprint shows an enacted throttle decision, and sign-offs are recorded."
+      ]
+    }
+  ]
+}
