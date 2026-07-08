@@ -44,12 +44,15 @@ export function useWorkToc(
   const prefKey = `work.toc.group.${tab}`;
   const saved = typeof prefs[prefKey] === 'string' ? (prefs[prefKey] as string) : null;
 
-  const [view, setView] = useState<'toc' | 'list'>('toc');
+  const [view, setView] = useState<'toc' | 'list' | 'drill'>('toc');
   const [groupBy, setGroupBy] = useState<string>(saved ?? 'valueStream');
   const [preFilter, setPreFilter] = useState<{ col: string; value: string } | null>(null);
+  // The group value being drilled into (view === 'drill').
+  const [drillValue, setDrillValue] = useState<string | null>(null);
   useEffect(() => {
     setView('toc');
     setPreFilter(null);
+    setDrillValue(null);
   }, [tab]);
   // Sync the grouping when the tab switches or the async preference load lands
   // (kept separate from the view reset so a background save can't yank the
@@ -72,19 +75,25 @@ export function useWorkToc(
   // Values a row belongs to under the active grouping — multi-valued for
   // deliverable roles (one deliverable counts once per assigned role). Each
   // accessor mirrors the matching List column's filter value exactly.
+  const valuesOf = useMemo(
+    () =>
+      (row: DeliverableSlice | TaskSlice): string[] => {
+        if (tab === 'deliverables') {
+          const d = row as DeliverableSlice;
+          if (group.key === 'role') return d.roles?.length ? d.roles : [dash];
+          return [d.valueStreamName ?? dash];
+        }
+        const t = row as TaskSlice;
+        if (group.key === 'division') return [t.division ?? dash];
+        if (group.key === 'deliverable') return [t.deliverableTitle ?? dash];
+        if (group.key === 'role') return [t.owner ?? dash];
+        return [t.deliverableId ? (vsByDeliverable.get(t.deliverableId) ?? dash) : dash];
+      },
+    [tab, group, vsByDeliverable, dash],
+  );
+
+  // Clicking a TOC row drills into that group (Standards-style descent).
   const tocRows = useMemo<TocRow[]>(() => {
-    const valuesOf = (row: DeliverableSlice | TaskSlice): string[] => {
-      if (tab === 'deliverables') {
-        const d = row as DeliverableSlice;
-        if (group.key === 'role') return d.roles?.length ? d.roles : [dash];
-        return [d.valueStreamName ?? dash];
-      }
-      const t = row as TaskSlice;
-      if (group.key === 'division') return [t.division ?? dash];
-      if (group.key === 'deliverable') return [t.deliverableTitle ?? dash];
-      if (group.key === 'role') return [t.owner ?? dash];
-      return [t.deliverableId ? (vsByDeliverable.get(t.deliverableId) ?? dash) : dash];
-    };
     const rows: (DeliverableSlice | TaskSlice)[] = tab === 'deliverables' ? deliverables : tasks;
     const counts = new Map<string, number>();
     for (const r of rows) for (const v of valuesOf(r)) counts.set(v, (counts.get(v) ?? 0) + 1);
@@ -95,13 +104,29 @@ export function useWorkToc(
         name,
         count,
         onClick: () => {
-          setPreFilter({ col: group.col, value: name });
-          setView('list');
+          setDrillValue(name);
+          setView('drill');
         },
       }));
-  }, [tab, group, deliverables, tasks, vsByDeliverable, dash]);
+  }, [tab, deliverables, tasks, valuesOf]);
 
-  return { view, setView, preFilter, setPreFilter, group, groups, pickGroup, tocRows };
+  /** Whether a row belongs to the drilled-into group value. */
+  const inDrill = (row: DeliverableSlice | TaskSlice) =>
+    drillValue != null && valuesOf(row).includes(drillValue);
+
+  return {
+    view,
+    setView,
+    preFilter,
+    setPreFilter,
+    drillValue,
+    setDrillValue,
+    inDrill,
+    group,
+    groups,
+    pickGroup,
+    tocRows,
+  };
 }
 
 /** Quick re-grouping chips shown on the TOC strip. */

@@ -1,12 +1,10 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { api } from '../../lib/api';
+import { useSearchParams } from 'react-router-dom';
 import { useHeaderBreadcrumbSlot } from '../../lib/breadcrumbs';
+import OrgDrillToc from '../../components/OrgDrillToc';
 import OrgListExplorer from '../../components/OrgListExplorer';
 import OrgMapCanvas from '../../viz/org-map/OrgMapCanvas';
 import OrgTable from '../org-table/OrgTable';
-import { TocView, ViewPills, type TocRow } from '../../components/TocView';
-import { ErrorMessage, LoadingState } from '../../components/ui';
+import { ViewPills } from '../../components/TocView';
 
 // Organization tab — mirrors the Value Streams tab: a floating segmented control
 // toggles views of the SAME org spine:
@@ -22,55 +20,6 @@ import { ErrorMessage, LoadingState } from '../../components/ui';
 // drawer itself is the GLOBAL RoleDrawerHost (Layout) — this page only needs
 // the param to pick the view, never to mount/close the drawer.
 type View = 'toc' | 'list' | 'map' | 'detail';
-
-// TOC rows — one per ORG division (OrgUnit L2), from the org-table bootstrap:
-// real division ids (what /divisions/:id expects), role counts homed in the
-// division + its departments, and the parent segment. (/explorer/overview is
-// the VALUE-STREAM map bootstrap — its "divisions" are process L2 nodes.)
-function OrgToc({ leading }: { leading?: React.ReactNode }) {
-  const navigate = useNavigate();
-  const [rows, setRows] = useState<TocRow[] | null>(null);
-  const [error, setError] = useState('');
-  useEffect(() => {
-    api
-      .get<{
-        segments: {
-          divisions: { id: string; name: string; segment: string; roleCount: number }[];
-        }[];
-      }>('/explorer/org-table')
-      .then((t) => {
-        setRows(
-          t.segments
-            .flatMap((s) => s.divisions)
-            .filter((d) => d.id !== '__unassigned') // pseudo-bucket, not a navigable division
-            .sort((a, b) => a.name.localeCompare(b.name))
-            .map((d) => ({
-              id: d.id,
-              name: d.name,
-              count: d.roleCount,
-              extra: d.segment,
-              onClick: () => navigate(`/divisions/${d.id}`),
-            })),
-        );
-      })
-      .catch((e) => setError(e.message ?? 'Failed to load'));
-  }, [navigate]);
-
-  if (error) return <ErrorMessage>{error}</ErrorMessage>;
-  if (!rows) return <LoadingState message="Loading organization…" className="animate-pulse" />;
-  return (
-    <TocView
-      rows={rows}
-      nameLabel="Division"
-      countLabel="Roles"
-      extraLabel="Segment"
-      unit="divisions"
-      searchPlaceholder="Search division, segment…"
-      leading={leading}
-      totals={`${rows.length} divisions · ${rows.reduce((a, r) => a + r.count, 0)} roles`}
-    />
-  );
-}
 
 export default function Organization() {
   // View state lives in the URL — the single record of "where I was":
@@ -131,7 +80,8 @@ export default function Organization() {
         {view === 'toc' ? (
           <div className="h-full overflow-auto">
             <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-6">
-              <OrgToc
+              <OrgDrillToc
+                startAt="segment"
                 leading={<ViewPills options={pillOptions} view={view} onChange={setView} />}
               />
             </div>
