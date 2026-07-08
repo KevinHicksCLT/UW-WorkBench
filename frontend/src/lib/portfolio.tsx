@@ -299,7 +299,11 @@ export function Tile({
   if (compact) {
     // Denser stat for headline strips (e.g. Regulations overview) — smaller box.
     return (
-      <Card variant="elevated" className={`px-3 py-2 text-center${drillClass}`} {...drill}>
+      <Card
+        variant="elevated"
+        className={`px-3 py-2 text-center flex flex-col justify-center${drillClass}`}
+        {...drill}
+      >
         <div className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[#a3a3a3]">
           {label}
         </div>
@@ -309,7 +313,11 @@ export function Tile({
     );
   }
   return (
-    <Card variant="elevated" className={`p-4 text-center${drillClass}`} {...drill}>
+    <Card
+      variant="elevated"
+      className={`p-4 text-center flex flex-col justify-center${drillClass}`}
+      {...drill}
+    >
       <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">
         {label}
       </div>
