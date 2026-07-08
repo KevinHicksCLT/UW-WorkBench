@@ -226,9 +226,10 @@ export default function RegulationDetail() {
         },
     );
 
-  // Federal / national regulators carry no state taxonomy flags or state-only
-  // sections (integrations, bulletins, rules, monitored sources) — hide them.
-  const isFederal = detail.regulatorType === 'FEDERAL_SECURITIES';
+  // Only US state insurance regulators carry the state taxonomy flags and
+  // state-only sections (filing facts, integrations, agent rules, sources).
+  // Federal agencies and international regulators hide them.
+  const isFederal = detail.regulatorType !== 'STATE_INSURANCE_REGULATOR';
 
   return (
     <div>

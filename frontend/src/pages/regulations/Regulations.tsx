@@ -84,11 +84,13 @@ export const OBLIGATION_HELP: Record<string, string> = {
 const TABS = ['International', 'Federal', 'State'] as const;
 type Tab = (typeof TABS)[number];
 
-// regulatorType → which lens a regulation belongs to.
+// regulatorType → which lens a regulation belongs to. Federal covers the
+// securities regime plus every other US federal agency (FEDERAL); International
+// covers all non-US regulators (EU/UK/Canada/Bermuda …); State is the rest.
 const LENS_TYPE: Record<Tab, (t: string) => boolean> = {
   International: (t) => t === 'INTERNATIONAL',
-  Federal: (t) => t === 'FEDERAL_SECURITIES',
-  State: (t) => t !== 'INTERNATIONAL' && t !== 'FEDERAL_SECURITIES',
+  Federal: (t) => t === 'FEDERAL_SECURITIES' || t === 'FEDERAL',
+  State: (t) => t === 'STATE_INSURANCE_REGULATOR',
 };
 
 // Flag display helpers — normalized token → short label + pill tone. Kept here
@@ -143,6 +145,14 @@ const CATEGORY_LABEL: Record<string, string> = {
   DATA_CALL: 'Data call',
   CYBERSECURITY: 'Cybersecurity',
   DATA_PRIVACY: 'Data privacy',
+  AI_GOVERNANCE: 'AI governance',
+  CLIMATE_RISK: 'Climate risk',
+  SANCTIONS_AML: 'Sanctions & AML',
+  SUITABILITY: 'Suitability',
+  OPERATIONAL_RESILIENCE: 'Operational resilience',
+  CATASTROPHE_REPORTING: 'Catastrophe reporting',
+  UNCLAIMED_PROPERTY: 'Unclaimed property',
+  CONSUMER_PROTECTION: 'Consumer protection',
   OTHER: 'Other',
 };
 export const catLabel = (c: string) => CATEGORY_LABEL[c] ?? flagLabel(c);
@@ -163,6 +173,14 @@ export const CATEGORY_HELP: Record<string, string> = {
   DATA_CALL: 'Ad-hoc or recurring data requests issued by the regulator',
   CYBERSECURITY: 'Information-security program, incident-notification, and certification duties',
   DATA_PRIVACY: 'Collection, use, and protection of personal data',
+  AI_GOVERNANCE: 'Governance, testing, and documentation of AI systems used in insurance decisions',
+  CLIMATE_RISK: 'Climate-risk disclosure, scenario analysis, and related supervisory reporting',
+  SANCTIONS_AML: 'Anti-money-laundering programs and sanctions (OFAC) screening',
+  SUITABILITY: 'Best-interest / suitability standards for product recommendations',
+  OPERATIONAL_RESILIENCE: 'ICT risk, business continuity, and third-party resilience duties',
+  CATASTROPHE_REPORTING: 'Event-driven catastrophe and residual-market reporting',
+  UNCLAIMED_PROPERTY: 'Death-benefit matching and unclaimed-property escheat duties',
+  CONSUMER_PROTECTION: 'Consumer disclosures, marketing conduct, and fair-treatment duties',
   OTHER: 'Obligations outside the named compliance domains',
 };
 // What each named regulation / regime IS — shown on the regime page header.
@@ -212,6 +230,9 @@ export const LOB_HELP: Record<string, string> = {
   AUTO: 'Personal and commercial auto',
   HEALTH: 'Health insurance',
   SURPLUS_LINES: 'Surplus-lines / non-admitted business',
+  PROPERTY: 'Property & homeowners lines',
+  COMMERCIAL_LIABILITY: 'Commercial / general liability lines',
+  REINSURANCE: 'Assumed and ceded reinsurance',
 };
 
 const dash = <span className="text-[#d4d4d4]">—</span>;
