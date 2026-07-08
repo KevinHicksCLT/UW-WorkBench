@@ -1,14 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCompany } from '../../lib/company';
 import { useApi } from '../../lib/useApi';
 import { withCompany, Tile } from '../../lib/portfolio';
 import { useRegisterCrumb } from '../../lib/breadcrumbs';
-import { Sheet, type SheetCol } from '../../components/Sheet';
-import { type VsLink } from '../../components/RequirementLinks';
-
-type RoleRef = { id: string; name: string };
+import { RequirementsTable } from './RequirementsTable';
 
 // Regulations — three lenses, each a FLAT table where every row is ONE atomic
 // regulation. Rows open the regulation's own page (/regulations/requirement/:id);
@@ -18,32 +14,7 @@ type RoleRef = { id: string; name: string };
 //   Federal: the federal / national securities regime (FINRA/SEC/MSRB).
 //   State (default): the 50-state (+DC) insurance regulatory baseline.
 
-type LobLink = { lob: { code: string; label: string } };
-type RequirementRow = {
-  id: string;
-  category: string;
-  title: string;
-  lineOfBusiness: string;
-  markets: string[];
-  lineOfBusinessLinks: LobLink[];
-  citation: string | null;
-  obligationType: string;
-  frequency: string | null;
-  status: string;
-  confidence: string;
-  agentSkill: string | null;
-  regime: string | null;
-  jurisdiction: {
-    id: string;
-    code: string;
-    name: string;
-    priorityTier: string;
-    regulatorType: string;
-  };
-  valueStreamLinks: VsLink[];
-  owner: RoleRef | null;
-  contributors: RoleRef[];
-};
+type LobLink = { lob: { code: string; label: string; group?: string } };
 
 // Market-segment display helpers (shared with the detail page).
 export const MARKET_LABEL: Record<string, string> = {
@@ -65,6 +36,11 @@ export const lobLabels = (r: {
   if (links.length) return links;
   return [r.lineOfBusiness === 'ALL' ? 'All lines' : flagLabel(r.lineOfBusiness)];
 };
+// Distinct family groups the requirement's lines roll up to (table roll-up view;
+// the requirement detail page still lists the specific lines).
+export const lobGroups = (r: { lineOfBusinessLinks?: { lob: { group: string } }[] }): string[] => [
+  ...new Set((r.lineOfBusinessLinks ?? []).map((l) => l.lob.group)),
+];
 
 export type Overview = {
   jurisdictionCount: number;
@@ -106,15 +82,6 @@ export const OBLIGATION_HELP: Record<string, string> = {
 };
 const TABS = ['International', 'Federal', 'State'] as const;
 type Tab = (typeof TABS)[number];
-
-// regulatorType → which lens a regulation belongs to. Federal covers the
-// securities regime plus every other US federal agency (FEDERAL); International
-// covers all non-US regulators (EU/UK/Canada/Bermuda …); State is the rest.
-const LENS_TYPE: Record<Tab, (t: string) => boolean> = {
-  International: (t) => t === 'INTERNATIONAL',
-  Federal: (t) => t === 'FEDERAL_SECURITIES' || t === 'FEDERAL',
-  State: (t) => t === 'STATE_INSURANCE_REGULATOR',
-};
 
 // Flag display helpers — normalized token → short label + pill tone. Kept here
 // (with FlagPill) because RegulationDetail imports both for the state flag strip.
@@ -278,14 +245,18 @@ export const LOB_HELP: Record<string, string> = {
   REINSURANCE: 'Assumed and ceded reinsurance',
 };
 
-const dash = <span className="text-[#d4d4d4]">—</span>;
-
 // The active lens survives drill-down navigation (sessionStorage) so history
 // back lands the user on the lens they left, not the default.
 const TAB_KEY = 'regulations.lens';
 const initialTab = (): Tab => {
   const saved = sessionStorage.getItem(TAB_KEY);
   return TABS.includes(saved as Tab) ? (saved as Tab) : 'International';
+};
+
+const LENS_PARAM: Record<Tab, string> = {
+  International: 'international',
+  Federal: 'federal',
+  State: 'state',
 };
 
 export default function Regulations() {
@@ -301,44 +272,7 @@ export default function Regulations() {
   const { data: overview } = useApi<Overview>(
     companyId ? withCompany('/regulations/overview', companyId) : null,
   );
-
-  const [requirements, setRequirements] = useState<RequirementRow[] | null>(null);
-  useEffect(() => {
-    if (!companyId) return;
-    api
-      .get<RequirementRow[]>(withCompany('/regulations/requirements', companyId))
-      .then(setRequirements)
-      .catch(() => setRequirements([]));
-  }, [companyId]);
-
-  const rows = (requirements ?? []).filter((r) => LENS_TYPE[tab](r.jurisdiction.regulatorType));
-
-  // Lens tabs — segmented control, same format as the Value Streams / Org view
-  // toggle. Rendered inside the Sheet totals strip (leading), so the totals sit
-  // to the right of the selector on one row.
-  const tabs = (
-    <div
-      className="inline-flex items-center gap-0.5 rounded-full border border-[#eaeaea] bg-white p-0.5"
-      role="tablist"
-      aria-label="Regulations lenses"
-    >
-      {TABS.map((t) => (
-        <button
-          key={t}
-          type="button"
-          role="tab"
-          aria-selected={tab === t}
-          onClick={() => setTab(t)}
-          className={
-            'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors duration-150 ' +
-            (tab === t ? 'bg-[#171717] text-white' : 'text-[#525252] hover:text-[#171717]')
-          }
-        >
-          {t}
-        </button>
-      ))}
-    </div>
-  );
+  const categories = overview ? Object.keys(overview.requirements.byCategory) : [];
 
   return (
     <div>
@@ -355,212 +289,51 @@ export default function Regulations() {
           <Tile
             compact
             label="Requirements"
-            value={overview.requirements.total}
+            value={overview.requirements.total.toLocaleString()}
             hint={`${overview.requirements.mapped} mapped to value streams`}
             onClick={() => navigate('/regulations/catalog')}
           />
           <Tile
             compact
             label="Agent rules"
-            value={overview.ruleCount}
+            value={overview.ruleCount.toLocaleString()}
             hint="machine-readable checks"
             onClick={() => navigate('/regulations/rules')}
           />
           <Tile
             compact
             label="Regulatory sources"
-            value={overview.sourceCount}
+            value={overview.sourceCount.toLocaleString()}
             hint="official regulator sites & feeds"
             onClick={() => navigate('/regulations/sources')}
           />
         </div>
       )}
 
-      <RegulationTable
-        rows={rows}
-        loading={requirements === null}
-        firstLabel={tab === 'State' ? 'State' : 'Regulator'}
-        emptyText={`No ${tab === 'State' ? 'state' : tab.toLowerCase()} requirements on file.`}
-        onOpen={(id) => navigate(`/regulations/requirement/${id}`)}
-        leading={tabs}
-      />
-    </div>
-  );
-}
+      {/* Lens tabs */}
+      <div
+        className="inline-flex items-center gap-0.5 rounded-full border border-[#eaeaea] bg-white p-0.5 mb-2"
+        role="tablist"
+        aria-label="Regulations lenses"
+      >
+        {TABS.map((t) => (
+          <button
+            key={t}
+            type="button"
+            role="tab"
+            aria-selected={tab === t}
+            onClick={() => setTab(t)}
+            className={
+              'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors duration-150 ' +
+              (tab === t ? 'bg-[#171717] text-white' : 'text-[#525252] hover:text-[#171717]')
+            }
+          >
+            {t}
+          </button>
+        ))}
+      </div>
 
-// ── Flat regulation table — one atomic regulation per row, no expand ────────────
-function RegulationTable({
-  rows,
-  loading,
-  firstLabel,
-  emptyText,
-  onOpen,
-  leading,
-}: {
-  rows: RequirementRow[];
-  loading: boolean;
-  firstLabel: string;
-  emptyText: string;
-  onOpen: (id: string) => void;
-  leading?: React.ReactNode;
-}) {
-  const cols: SheetCol<RequirementRow>[] = [
-    {
-      key: 'juris',
-      label: firstLabel,
-      width: '140px',
-      value: (r) => r.jurisdiction.name,
-      hint: 'Issuing jurisdiction — click the name for the regulator page; click anywhere else on the row for the regulation itself',
-      render: (r) => (
-        <span className="inline-flex items-center gap-1.5 min-w-0">
-          <Link
-            to={`/regulations/${r.jurisdiction.code}`}
-            onClick={(e) => e.stopPropagation()}
-            className="truncate text-[12px] font-medium text-[#171717] hover:underline"
-            title={`${r.jurisdiction.name} — open regulator page`}
-          >
-            {r.jurisdiction.name}
-          </Link>
-          <span className="text-[11px] text-[#a3a3a3] tnum flex-shrink-0">
-            {r.jurisdiction.code}
-          </span>
-        </span>
-      ),
-    },
-    {
-      key: 'market',
-      label: 'Market',
-      width: '92px',
-      // A both-market row carries both filter values so filtering Personal or
-      // Commercial still surfaces it; the cell displays the collapsed label.
-      values: (r) => (r.markets?.length ? marketValues(r.markets) : ['—']),
-      hint: 'Which market the obligation applies to — Personal, Commercial, or Both. Enterprise/corporate obligations apply to both.',
-      render: (r) => (
-        <span className="truncate text-[12px] text-[#525252]">{marketDisplay(r.markets)}</span>
-      ),
-    },
-    {
-      key: 'lob',
-      label: 'Line of business',
-      width: '130px',
-      // Granular lines from the taxonomy junction; falls back to the coarse
-      // scalar. 'All lines' stays distinct from the filter's no-filter "All".
-      values: (r) => lobLabels(r),
-      hint: 'The insurance line(s) the obligation governs — filter here to cut cross-line noise',
-      render: (r) => {
-        const labels = lobLabels(r);
-        const isAll = labels.length === 1 && labels[0] === 'All lines';
-        return (
-          <span
-            className={'truncate text-[12px] ' + (isAll ? 'text-[#a3a3a3]' : 'text-[#525252]')}
-            title={labels.join(', ')}
-          >
-            {labels.length > 2 ? `${labels.length} lines` : labels.join(', ')}
-          </span>
-        );
-      },
-    },
-    {
-      key: 'regime',
-      label: 'Regulation',
-      width: '120px',
-      value: (r) => r.regime ?? '',
-      hint: 'Named regulation / regime (e.g. GDPR, CCPA-CPRA, NYDFS-500) — click to open the regulation and see every requirement in it',
-      render: (r) =>
-        r.regime ? (
-          <Link
-            to={`/regulations/regulation/${encodeURIComponent(r.regime)}`}
-            onClick={(e) => e.stopPropagation()}
-            className="truncate text-[12px] text-[#171717] hover:underline"
-            title={`${r.regime} — open regulation page`}
-          >
-            {r.regime}
-          </Link>
-        ) : (
-          dash
-        ),
-    },
-    {
-      key: 'requirement',
-      label: 'Requirement',
-      width: 'minmax(0,2fr)',
-      value: (r) => r.title,
-      hint: 'The single atomic requirement — click the row to open its page for the full text',
-      render: (r) => (
-        <span className="truncate text-[12px] text-[#262626] hover:underline" title={r.title}>
-          {r.title}
-        </span>
-      ),
-    },
-    {
-      key: 'category',
-      label: 'Category',
-      width: '130px',
-      value: (r) => catLabel(r.category),
-      hint: 'Compliance domain — used for grouping and filtering',
-      render: (r) => (
-        <span className="truncate text-[12px] text-[#525252]">{catLabel(r.category)}</span>
-      ),
-    },
-    {
-      key: 'owner',
-      label: 'Owner',
-      width: 'minmax(0,1fr)',
-      value: (r) => r.owner?.name ?? '',
-      hint: 'The role accountable for meeting this obligation',
-      render: (r) => (
-        <span className="truncate text-[12px] text-[#525252]" title={r.owner?.name}>
-          {r.owner ? r.owner.name : dash}
-        </span>
-      ),
-    },
-    {
-      key: 'contributors',
-      label: 'Contributors',
-      width: 'minmax(0,1.3fr)',
-      values: (r) => r.contributors.map((c) => c.name),
-      hint: 'Roles that participate in fulfilling the obligation alongside the owner',
-      render: (r) => (
-        <span
-          className="truncate text-[12px] text-[#525252]"
-          title={r.contributors.map((c) => c.name).join(', ')}
-        >
-          {r.contributors.length ? r.contributors.map((c) => c.name).join(', ') : dash}
-        </span>
-      ),
-    },
-    {
-      key: 'plan',
-      label: 'Plan',
-      width: '64px',
-      value: () => '',
-      hint: 'Checklist & testing plan for this regulation in the Work Library',
-      render: (r) => (
-        <Link
-          to={`/work-library?type=regulation&id=${r.id}`}
-          onClick={(e) => e.stopPropagation()}
-          className="text-[11.5px] font-medium text-[#2563eb] hover:underline"
-        >
-          Plan ↗
-        </Link>
-      ),
-    },
-  ];
-  return (
-    <Sheet
-      sheetKey="regulations"
-      rows={rows}
-      cols={cols}
-      rowKey={(r) => r.id}
-      loading={loading}
-      unit="requirements"
-      emptyText={emptyText}
-      defaultSort={{ col: 'juris', dir: 1 }}
-      summarize={(v) =>
-        `${new Set(v.map((r) => r.jurisdiction.code)).size} jurisdictions · ${v.filter((r) => r.valueStreamLinks.length).length} mapped`
-      }
-      onRowClick={(r) => onOpen(r.id)}
-      leading={leading}
-    />
+      <RequirementsTable baseParams={{ lens: LENS_PARAM[tab] }} categories={categories} />
+    </div>
   );
 }

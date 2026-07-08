@@ -7,6 +7,7 @@ import PageHeader from '../../components/PageHeader';
 import { useRegisterCrumb } from '../../lib/breadcrumbs';
 import { BackButton, EmptyState, Input, LoadingState, StatusPill } from '../../components/ui';
 import { catLabel, CONFIDENCE_HELP, type Overview } from './Regulations';
+import { RequirementsTable } from './RequirementsTable';
 
 // Overview-card insight pages — /regulations/{jurisdictions,catalog,rules,sources}.
 // Each of the four Regulations summary cards drills into one of these: a stat
@@ -27,16 +28,6 @@ type JurRow = {
   profileDepth: string;
   lastVerifiedAt: string | null;
   _count: { requirements: number; bulletins: number; rules: number; sources: number };
-};
-type ReqRow = {
-  id: string;
-  title: string;
-  category: string;
-  lineOfBusiness: string;
-  confidence: string;
-  regime: string | null;
-  jurisdiction: { code: string; name: string; regulatorType: string };
-  valueStreamLinks: { valueStreamId: string }[];
 };
 type RuleRow = {
   id: string;
@@ -169,7 +160,6 @@ export default function RegulationsInsight({ kind }: { kind: InsightKind }) {
 
   const overview = useApi<Overview>(kind === 'catalog' ? p('/regulations/overview') : null);
   const jur = useApi<JurRow[]>(kind === 'jurisdictions' ? p('/regulations/jurisdictions') : null);
-  const reqs = useApi<ReqRow[]>(kind === 'catalog' ? p('/regulations/requirements') : null);
   const rules = useApi<RuleRow[]>(kind === 'rules' ? p('/regulations/rules') : null);
   const sources = useApi<SourceRow[]>(kind === 'sources' ? p('/regulations/sources') : null);
 
@@ -193,9 +183,7 @@ export default function RegulationsInsight({ kind }: { kind: InsightKind }) {
       <p className="text-sm text-[#525252] leading-relaxed mb-5 max-w-3xl">{META[kind].blurb}</p>
 
       {kind === 'jurisdictions' && <JurisdictionsBody rows={jur.data} loading={jur.loading} />}
-      {kind === 'catalog' && (
-        <CatalogBody rows={reqs.data} loading={reqs.loading} overview={overview.data} />
-      )}
+      {kind === 'catalog' && <CatalogBody overview={overview.data} />}
       {kind === 'rules' && <RulesBody rows={rules.data} loading={rules.loading} />}
       {kind === 'sources' && <SourcesBody rows={sources.data} loading={sources.loading} />}
     </div>
@@ -255,78 +243,38 @@ function JurisdictionsBody({ rows, loading }: { rows: JurRow[] | null; loading: 
 }
 
 // ── Requirements catalog ─────────────────────────────────────────────────────
-function CatalogBody({
-  rows,
-  loading,
-  overview,
-}: {
-  rows: ReqRow[] | null;
-  loading: boolean;
-  overview: Overview | null;
-}) {
-  const navigate = useNavigate();
-  const [query, setQuery] = useState('');
-  // Tile drill filter — clicking a stat card narrows the list below it.
-  const [tileFilter, setTileFilter] = useState<'all' | 'mapped' | 'unmapped' | 'verified'>('all');
-  const byCategory = useMemo(() => tally(rows ?? [], (r) => catLabel(r.category)), [rows]);
-  const byLob = useMemo(
-    () =>
-      tally(rows ?? [], (r) =>
-        r.lineOfBusiness === 'ALL' ? 'All lines' : label(r.lineOfBusiness),
-      ),
-    [rows],
-  );
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return (rows ?? []).filter((row) => {
-      if (tileFilter === 'mapped' && !row.valueStreamLinks.length) return false;
-      if (tileFilter === 'unmapped' && row.valueStreamLinks.length) return false;
-      if (tileFilter === 'verified' && row.confidence !== 'VERIFIED') return false;
-      if (!q) return true;
-      return (
-        row.title.toLowerCase().includes(q) ||
-        row.jurisdiction.name.toLowerCase().includes(q) ||
-        (row.regime ?? '').toLowerCase().includes(q) ||
-        catLabel(row.category).toLowerCase().includes(q)
-      );
-    });
-  }, [rows, query, tileFilter]);
-  if (loading || !rows || !overview) return <LoadingState />;
+// Charts come from the server-side aggregates in /overview (no all-rows load);
+// the list is the shared server-driven paginated table.
+function CatalogBody({ overview }: { overview: Overview | null }) {
+  if (!overview) return <LoadingState />;
   const r = overview.requirements;
-  const listTitle =
-    tileFilter === 'all'
-      ? 'All requirements'
-      : tileFilter === 'verified'
-        ? 'Verified requirements'
-        : tileFilter === 'mapped'
-          ? 'Mapped requirements'
-          : 'Unmapped requirements';
+  const byCategory = Object.entries(r.byCategory)
+    .map(([k, n]) => [catLabel(k), n] as [string, number])
+    .sort((a, b) => b[1] - a[1]);
+  const coverage = overview.coverageByValueStream ?? [];
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <Tile compact label="Requirements" value={r.total} onClick={() => setTileFilter('all')} />
+        <Tile compact label="Requirements" value={r.total.toLocaleString()} />
         <Tile
           compact
           label="Mapped"
           value={r.mapped}
           tone="positive"
           hint="linked to value streams"
-          onClick={() => setTileFilter('mapped')}
         />
         <Tile
           compact
           label="Unmapped"
-          value={r.unmapped}
+          value={r.unmapped.toLocaleString()}
           tone="negative"
           hint="still need mapping"
-          onClick={() => setTileFilter('unmapped')}
         />
         <Tile
           compact
           label="Verified"
-          value={r.byConfidence.VERIFIED ?? 0}
+          value={(r.byConfidence.VERIFIED ?? 0).toLocaleString()}
           hint="confirmed at the source"
-          onClick={() => setTileFilter('verified')}
         />
       </div>
       <div className="grid md:grid-cols-2 gap-5">
@@ -341,45 +289,14 @@ function CatalogBody({
         <SectionCard title="By category">
           <BarList data={byCategory} />
         </SectionCard>
-        <SectionCard title="By line of business">
-          <BarList data={byLob} />
-        </SectionCard>
-      </div>
-      <SectionCard
-        title={`${listTitle} (${filtered.length})`}
-        actions={
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search requirements…"
-            aria-label="Search requirements"
-            className="max-w-xs"
-          />
-        }
-      >
-        {filtered.length === 0 ? (
-          <EmptyState message="No requirements match." />
-        ) : (
-          <div className="divide-y divide-[#f5f5f5]">
-            {filtered.map((row) => (
-              <button
-                key={row.id}
-                type="button"
-                onClick={() => navigate(`/regulations/requirement/${row.id}`)}
-                className="w-full text-left py-2 flex items-center gap-2 hover:bg-[#fafafa] -mx-2 px-2 rounded-md transition-colors duration-100 group"
-              >
-                <span className="text-sm text-[#171717] group-hover:underline truncate">
-                  {row.title}
-                </span>
-                <span className="flex-1" />
-                <span className="text-[11px] text-[#a3a3a3] flex-shrink-0">
-                  {row.jurisdiction.name}
-                </span>
-                <StatusPill tone="slate">{catLabel(row.category)}</StatusPill>
-              </button>
-            ))}
-          </div>
+        {coverage.length > 0 && (
+          <SectionCard title="Coverage by value stream">
+            <BarList data={coverage.map((c) => [c.valueStream ?? '—', c.requirementCount])} />
+          </SectionCard>
         )}
+      </div>
+      <SectionCard title="All requirements">
+        <RequirementsTable baseParams={{}} categories={Object.keys(r.byCategory)} />
       </SectionCard>
     </div>
   );

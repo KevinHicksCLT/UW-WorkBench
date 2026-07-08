@@ -421,10 +421,29 @@ export function registerLensRoutes(router: Router): void {
       if (!where.status) where.status = 'ACTIVE';
       const states = list(q.state);
       if (states) where.jurisdiction = { code: { in: states.map((s) => s.toUpperCase()) } };
+      // Lens → regulatorType set (Federal covers securities + agencies).
+      const lens = str(q.lens);
+      if (lens === 'state')
+        where.jurisdiction = {
+          ...(where.jurisdiction as object),
+          regulatorType: 'STATE_INSURANCE_REGULATOR',
+        };
+      else if (lens === 'federal')
+        where.jurisdiction = {
+          ...(where.jurisdiction as object),
+          regulatorType: { in: ['FEDERAL', 'FEDERAL_SECURITIES'] },
+        };
+      else if (lens === 'international')
+        where.jurisdiction = { ...(where.jurisdiction as object), regulatorType: 'INTERNATIONAL' };
       // Market segment filter (PERSONAL | COMMERCIAL) — array-contains.
       const markets = list(q.market);
       if (markets)
         where.markets = markets.length === 1 ? { has: markets[0] } : { hasSome: markets };
+      // Line-of-business family group filter (via the junction).
+      const groups = list(q.group);
+      if (groups) where.lineOfBusinessLinks = { some: { lob: { group: { in: groups } } } };
+      const lobCodes = list(q.lob);
+      if (lobCodes) where.lineOfBusinessLinks = { some: { lob: { code: { in: lobCodes } } } };
       // Rows live on tasks; "in this value stream" = any linked task under the VS.
       if (str(q.valueStreamId))
         where.nodeRegulations = {
@@ -436,48 +455,55 @@ export function registerLensRoutes(router: Router): void {
       if (str(q.search)) {
         where.OR = [
           { title: { contains: String(q.search), mode: 'insensitive' } },
-          { requirement: { contains: String(q.search), mode: 'insensitive' } },
+          { regime: { contains: String(q.search), mode: 'insensitive' } },
           { citation: { contains: String(q.search), mode: 'insensitive' } },
         ];
       }
-      // Lean list projection — the flat table + regime/catalog lists need these
-      // fields only. The full `requirement` text (largest per-row string) is
-      // fetched lazily on the single-requirement endpoint, keeping the ~1.3k-row
-      // catalog payload small and fast.
-      const rows = await prisma.regulatoryRequirement.findMany({
-        where,
-        orderBy: [{ jurisdiction: { name: 'asc' } }, { category: 'asc' }, { title: 'asc' }],
-        select: {
-          id: true,
-          category: true,
-          title: true,
-          lineOfBusiness: true,
-          markets: true,
-          obligationType: true,
-          frequency: true,
-          status: true,
-          confidence: true,
-          agentSkill: true,
-          regime: true,
-          // Combined-columns merge (FB-61): the row surfaces its jurisdiction's
-          // key state flags.
-          jurisdiction: {
-            select: {
-              id: true,
-              code: true,
-              name: true,
-              priorityTier: true,
-              regulatorType: true,
-              filingPortal: true,
-              compactStatus: true,
-            },
+      // Pagination — the catalog is large (tens of thousands of rows), so the
+      // list is always served in bounded pages with a total count. Lean
+      // projection; the full `requirement` text loads lazily on the detail page.
+      const pageSize = Math.min(Math.max(Number(q.pageSize) || 100, 1), 500);
+      const page = Math.max(Number(q.page) || 1, 1);
+      const select = {
+        id: true,
+        category: true,
+        title: true,
+        lineOfBusiness: true,
+        markets: true,
+        obligationType: true,
+        frequency: true,
+        status: true,
+        confidence: true,
+        agentSkill: true,
+        regime: true,
+        jurisdiction: {
+          select: {
+            id: true,
+            code: true,
+            name: true,
+            priorityTier: true,
+            regulatorType: true,
+            filingPortal: true,
+            compactStatus: true,
           },
-          lineOfBusinessLinks: { select: { lob: { select: { code: true, label: true } } } },
-          ...NODE_REG_INCLUDE,
         },
-      });
+        lineOfBusinessLinks: {
+          select: { lob: { select: { code: true, label: true, group: true } } },
+        },
+        ...NODE_REG_INCLUDE,
+      };
+      const [total, rows] = await Promise.all([
+        prisma.regulatoryRequirement.count({ where }),
+        prisma.regulatoryRequirement.findMany({
+          where,
+          orderBy: [{ jurisdiction: { name: 'asc' } }, { category: 'asc' }, { title: 'asc' }],
+          select,
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+        }),
+      ]);
       const vsMap = await vsForRegulations(rows.map((r) => r.id));
-      res.json(rows.map((r) => withValueStreamLinks(r, vsMap)));
+      res.json({ rows: rows.map((r) => withValueStreamLinks(r, vsMap)), total, page, pageSize });
     } catch (e) {
       next(e);
     }
