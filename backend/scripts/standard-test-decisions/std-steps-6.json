@@ -1,0 +1,219 @@
+{
+  "standards": [
+    {
+      "id": "cmqscp7jr1ncqmbk8evwecgs6",
+      "name": "Published to Developer Portal",
+      "test": [
+        "Export the API list from the internal service registry and open the API catalog on the enterprise developer portal",
+        "Cross-reference the portal's published API count against the Architecture integration catalog in Confluence",
+        "Open the portal pages for three recently delivered APIs including one consumed by an agency or broker partner",
+        "Confirm each page links a versioned OpenAPI spec, usage guide, changelog, and active sandbox environment",
+        "Open the release workflow for two API-producing services in GitHub Actions and locate the automated portal-publish step",
+        "Search the developer portal for a business term such as policy or claim and inspect the top result for stale duplicates",
+        "Pass when every registry API is published with guide and sandbox, publish is automated, and search shows no stale active versions"
+      ]
+    },
+    {
+      "id": "cmqscp6y21nbmmbk882oq68hf",
+      "name": "Pull Request Required for Main and Develop",
+      "test": [
+        "Open Settings > Branches on each repository in GitHub Enterprise and inspect the protection rules for main and develop",
+        "Confirm both branches require a pull request, at least one approval, and have Include administrators enabled",
+        "Run a direct git push to main and then develop from an administrator account on one representative repository",
+        "Export 20 merge events to main and develop from the prior 60 days across at least four repos via the GitHub Enterprise audit log",
+        "Open each sampled merge in GitHub Enterprise and check the PR has required approvals, a passing CI check, and a distinct author",
+        "Pass when both direct pushes are rejected, protection settings match policy, and all 20 merges trace to compliant PRs"
+      ]
+    },
+    {
+      "id": "cmqscoh7i1m24mbk8hmgrzh91",
+      "name": "Quality Gates",
+      "test": [
+        "Open the pipeline workflow YAML in GitHub Actions and check fail conditions for tests, coverage, High severity scans, and lint",
+        "Push a branch with a known vulnerable dependency, then open the run in GitHub Actions and confirm it fails and blocks promotion",
+        "List builds promoted to production-bound environments in the past 90 days in the GitHub Actions deployments view",
+        "Open the linked exception record in ServiceNow ITSM for any promotion lacking a passing gate and check team-lead approval",
+        "Review the workflow settings in GitHub Actions and confirm no unconditional manual override or bypass path exists",
+        "Pass when gates are codified, the seeded failure blocks promotion, and promoted builds all pass or hold approved exceptions"
+      ]
+    },
+    {
+      "id": "cmqscp5vv1n9smbk87l9mzurv",
+      "name": "README Covers Purpose, Setup, Run, Test, and Deploy",
+      "test": [
+        "Open the root README of each repository under review in GitHub Enterprise",
+        "Check each README for Purpose/Business Capability, Setup, Run Locally, Test, and Deploy sections, flagging placeholders",
+        "Follow only the README on a clean workstation in VS Code to reach a running local instance, logging any undocumented step",
+        "Cross-reference the stated business capability against the value-stream catalog in Confluence",
+        "Pass when every README has all five sections, a local instance runs with zero undocumented steps, and a real capability is named"
+      ]
+    },
+    {
+      "id": "cmqscp66z1naambk8yr5ha7qw",
+      "name": "RED Metrics (Rate, Errors, Duration)",
+      "test": [
+        "Query rate, error, and latency series for every production service in the service inventory in the Datadog metrics explorer",
+        "Check the prior 7-day window in Datadog for gaps in any service's rate, error, or latency series, targeting zero gaps",
+        "Open the metric definitions for three sampled services in Datadog and confirm p50, p95, and p99 latency, not mean only",
+        "Open the published SLOs for two services in Datadog and confirm thresholds cite p95 or p99 latency and error rate",
+        "Open the incident triage runbook for one sampled service in Confluence and confirm RED metrics are the first-tier signals",
+        "Pass when services emit gap-free RED metrics for 7 days, latency is percentile-based, and SLOs reference p95/p99 and error rate"
+      ]
+    },
+    {
+      "id": "cmqscp7ku1ncsmbk8l4hjgcvp",
+      "name": "RESTful Design",
+      "test": [
+        "Open the OpenAPI specification for each API on the developer portal and list every operation and its HTTP method",
+        "Confirm only GET, POST, PUT, PATCH, and DELETE appear, GET has no request body, and PATCH/PUT semantics are correct",
+        "Run a sample of 10 calls covering each method in use via the API gateway test console and record the status codes",
+        "Check policy, claim, and billing URI paths for noun-based hierarchy and zero RPC-style verbs like /createPolicy",
+        "Run an SSL Labs scan against each API hostname and confirm HTTPS-only with TLS 1.2 minimum enforced at the gateway",
+        "Pass when specs use only standard methods, the 10 calls return correct status codes, URIs are noun-based, and TLS 1.2+ holds"
+      ]
+    },
+    {
+      "id": "cmqscp7lu1ncumbk88gy3thn6",
+      "name": "RFC 7807 Problem Details Format",
+      "test": [
+        "Submit a malformed policy number to an underwriting, a claims, and a billing endpoint via the API gateway test console",
+        "Confirm each error response is application/problem+json with type, title, status, detail, and instance members",
+        "Open the OpenAPI specification on the developer portal and confirm extensions like declineReasonCode are documented",
+        "Export the last 30 days of error logs from the API gateway and sample 20 4xx/5xx responses",
+        "Check each sampled response for legacy formats such as plain text, custom JSON, or HTML, targeting zero",
+        "Pass when all triggered errors are RFC 7807 compliant, extensions are documented, and zero sampled responses are legacy"
+      ]
+    },
+    {
+      "id": "cmqscp37s1n4smbk8v03mmcl5",
+      "name": "Refresh Schedule Defined",
+      "test": [
+        "Open the published refresh schedule in Confluence for five production reports spanning financial and claims domains",
+        "Confirm each schedule states cadence, data-as-of timestamp, and the upstream pipeline dependency",
+        "Export the last 30 days of refresh and pipeline run logs from Airflow for the sampled reports",
+        "Compare run timestamps to confirm no report refresh started before its upstream dependency completed",
+        "Survey a sample of report consumers via Microsoft Forms on where the schedule is published and the data-as-of timing",
+        "Pass when all five reports state all three fields, no refresh preceded upstream completion, and consumers answer correctly"
+      ]
+    },
+    {
+      "id": "cmqscp9dx1ngambk8kunihnf2",
+      "name": "Required Tags: Owner, CostCenter, Environment",
+      "test": [
+        "Run a tag-compliance scan across all subscriptions and accounts in the cloud governance tool (Azure Policy) and export results",
+        "Check the export shows 0% of resources missing Owner, CostCenter, or Environment tag values",
+        "Compare tag values against the enterprise reference data export (cost-center list, environment enum), targeting 0% invalid",
+        "Open the remediation queue in ServiceNow ITSM and check every flagged resource has an assigned ticket with a due date",
+        "Confirm no unresolved tag violation in ServiceNow ITSM is older than the 5 business day remediation SLA",
+        "Pass when 0% of resources are untagged, 0% carry out-of-catalog values, and no violation exceeds the remediation SLA"
+      ]
+    },
+    {
+      "id": "cmqscp38o1n4umbk8ne8wtn63",
+      "name": "Requirements Documented",
+      "test": [
+        "Open the requirements pages in Confluence for five sampled reports including at least one statutory or NAIC-linked report",
+        "Verify each contains business question, audience, source data, calculations, regulatory context, and owner approval",
+        "Open the earliest development artifact for each report in Jira and compare its creation date to the approval date",
+        "Cross-check any cited statutory or NAIC obligation against the regulatory filing inventory in Confluence",
+        "Pass when all six sections are present and signed, approval pre-dates development, and citations match the inventory"
+      ]
+    },
+    {
+      "id": "cmqscp4v51n7smbk8csomhpjp",
+      "name": "Root Cause Analysis",
+      "test": [
+        "Filter the data quality issue register in Jira for all issues at or above the defined severity threshold",
+        "Confirm each above-threshold issue links a completed RCA document in Confluence with author, date, and version",
+        "Open three sampled RCA documents in Confluence and check separate labeled sections for record correction and systemic cause",
+        "Verify each sampled RCA names the specific source field, pipeline job and step, or business process ID at fault",
+        "Open each RCA's corrective action in Jira and confirm an owner, a due date, and a status matching the stated resolution",
+        "Pass when every above-threshold issue has a complete RCA with separated sections, a precise origin, and a tracked action"
+      ]
+    },
+    {
+      "id": "cmqscp68b1nacmbk8boqyksun",
+      "name": "Runbook Linked",
+      "test": [
+        "Export the full alert inventory from PagerDuty and check every alert definition has a non-empty, reachable runbook URL",
+        "Open the linked runbooks in Confluence for 10 sampled paging alerts including two touching claims payments or policyholder data",
+        "Confirm each runbook covers diagnosis steps, remediation options, and escalation contacts with a business escalation path",
+        "Submit a test alert definition with no runbook URL through the promotion pipeline in GitHub Actions and confirm rejection",
+        "Review the last 30 days of merged alert-definition PRs in GitHub Enterprise and check each carried a runbook link at merge",
+        "Pass when all alerts link reachable runbooks, sampled runbooks are complete, and the runbook-absent test alert is blocked"
+      ]
+    },
+    {
+      "id": "cmqscp3uh1n5wmbk8928m3303",
+      "name": "Schema Evolution Handled",
+      "test": [
+        "Open the data contracts in Confluence for the five highest-volume feeds and check each documents schema-evolution handling",
+        "Add a new nullable column to one feed's source schema in the non-production database and run the pipeline end-to-end",
+        "Confirm in the pipeline run logs that the run succeeds, the column is captured or ignored, and no failure alert fires",
+        "Rename or drop a required column in the non-production source schema and rerun the same pipeline",
+        "Confirm the run fails with an error naming the column and feed, and check the alert was delivered in PagerDuty",
+        "Check the last five merged pipeline PRs in GitHub Enterprise for required schema-contract test results such as dbt tests",
+        "Pass when all five contracts document handling, the additive run succeeds, and the breaking run fails loudly with an alert"
+      ]
+    },
+    {
+      "id": "cmqscp3fo1n58mbk8vh1uvkb0",
+      "name": "Searchable",
+      "test": [
+        "Run five searches in the enterprise data catalog using business terms like incurred loss and a known table name and tag",
+        "Record the result rank of the expected authoritative asset for each query, targeting the top five results",
+        "Run the metadata completeness report in the enterprise data catalog and check blank descriptions or tags stay under 10%",
+        "Open the curation log in the enterprise data catalog and confirm a stale or duplicate sweep within the past 180 days",
+        "Pass when all five queries hit the top five, completeness is at least 90%, and a curation sweep is logged within 180 days"
+      ]
+    },
+    {
+      "id": "cmqscpa7h1nhqmbk8lypmxqqx",
+      "name": "Searchable Metadata",
+      "test": [
+        "Pull a random sample of 20 assets from the enterprise data catalog and open each asset's metadata page",
+        "Confirm 100% of the 20 have non-empty schema, description, classification, and at least one quality indicator",
+        "Run keyword and domain-filter searches in the catalog for three insurance terms such as earned premium and loss ratio",
+        "Run the metadata freshness report in the enterprise data catalog and flag assets not updated within the 90-day threshold",
+        "Open remediation tickets in Jira for flagged assets and five prior-quarter defects and check open assignment or signed closure",
+        "Pass when all 20 samples are fully populated, all three searches return assets, and stale or defect items are ticketed or closed"
+      ]
+    },
+    {
+      "id": "cmqscphl81nuymbk8l3ifj8xx",
+      "name": "Secure Configuration Baseline",
+      "test": [
+        "Open the configuration baseline repository in GitHub Enterprise and confirm an approved baseline per supported OS platform",
+        "Check the latest baseline commit in GitHub Enterprise references a change ticket and a peer-reviewed pull request",
+        "Run the Chef InSpec compliance scan against ten random production hosts spanning at least two OS platforms",
+        "Record each host's drift results from the scan, targeting zero unexcepted deviations",
+        "Open the remediation tracker in ServiceNow ITSM and check systems were fixed within SLA or hold a signed exception with expiry",
+        "Pass when baselines are versioned and change-managed, sampled hosts show zero unexcepted drift, and no remediation is overdue"
+      ]
+    },
+    {
+      "id": "cmqsconzs1mdqmbk87e84q6wh",
+      "name": "Security Exception Process",
+      "test": [
+        "Export all active and closed exceptions from the security exception register in ServiceNow ITSM",
+        "Check each entry for owner risk acceptance, compensating controls, CISO approval, expiry date, and re-review date",
+        "Verify compensating controls for five sampled active exceptions by opening the cited artifact such as a firewall rule or alert",
+        "Filter the register for expired entries lacking a renewal, closure, or escalation decision, targeting zero",
+        "Cross-check waived vulnerability tickets in ServiceNow ITSM against register entries to confirm no shadow exceptions",
+        "Pass when every exception is fully documented and approved, sampled controls are live, and zero expired or shadow items exist"
+      ]
+    },
+    {
+      "id": "cmqscp5fz1n8ymbk8khdps7ca",
+      "name": "SonarQube Gates Enforced",
+      "test": [
+        "Open each in-scope project's Quality Gate screen in SonarQube and confirm the enterprise-standard gate is assigned",
+        "Open the latest main-branch run for each repo in GitHub Actions and confirm the SonarQube gate step is a required check",
+        "Verify in GitHub Actions that any recent gate failure blocked the build from proceeding to deployment",
+        "Attempt to lower a project's gate stringency in SonarQube without an approved exception and note the block or audit entry",
+        "Review the gate-change audit log in SonarQube for any unapproved looser configuration in history",
+        "Pass when every project uses the standard gate, the gate blocks deployment on failure, and no unapproved loosening exists"
+      ]
+    }
+  ]
+}

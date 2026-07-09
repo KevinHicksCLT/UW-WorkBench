@@ -1,0 +1,205 @@
+{
+  "standards": [
+    {
+      "id": "cmqscpgbe1nsmmbk84p8jjgen",
+      "name": "NIST CSF or ISO 27001 Controls Mapped to Systems",
+      "test": [
+        "Export the NIST CSF/ISO 27001 control-to-system mapping matrix from the GRC workspace in ServiceNow ITSM.",
+        "Compare the matrix against the CMDB application list in ServiceNow ITSM for systems onboarded or retired in the past 12 months.",
+        "For five sampled systems open the linked evidence artifact in Confluence and match it to the stated implementation status.",
+        "Check the matrix record in ServiceNow ITSM for a last-reviewed date, owner sign-off and a documented update process.",
+        "Pass when every in-scope system is mapped with owner, status and evidence source, and all five sampled artifacts are current."
+      ]
+    },
+    {
+      "id": "cmqscp6wb1nbimbk8xjdtaqkl",
+      "name": "No Direct Commits to Main or Master",
+      "test": [
+        "Open Settings > Branches on every in-scope repository in GitHub Enterprise and review push restrictions on main/master.",
+        "Confirm the protection rule in GitHub Enterprise lists zero direct-push grantees, including admins and service accounts.",
+        "Push a test commit to main from a standard account and an admin account in a representative repo in GitHub Enterprise.",
+        "Export the prior 90 days of push events for main/master from the GitHub Enterprise audit log and look for non-PR commits.",
+        "Pass when both test pushes are rejected and the 90-day audit log shows zero direct commits to main or master."
+      ]
+    },
+    {
+      "id": "cmqscp64b1na6mbk8n20ygiys",
+      "name": "No PII in Logs",
+      "test": [
+        "Run the automated PII detection scan over the prior 24 hours of production log streams and open the scan report in Splunk.",
+        "Open the logging configuration for three sampled services in GitHub Enterprise and check masking rules apply at emission.",
+        "Search Splunk with SSN, email and cardholder regex patterns across FNOL intake and policy administration service logs.",
+        "Export the past 12 months of PII-in-logs findings from ServiceNow ITSM and check each was handled as a security incident.",
+        "Pass when both scans return zero unmasked PII, masking is configured in all three services and prior findings closed in SLA."
+      ]
+    },
+    {
+      "id": "cmqscp5jw1n96mbk89uyy4g7f",
+      "name": "No PR Open Beyond 48 Hours Without Action",
+      "test": [
+        "Export all PRs opened in the past 60 days from GitHub Enterprise with opened and first-activity timestamps.",
+        "Flag every exported PR exceeding 48 hours with no approval, change request or hold note recorded in GitHub Enterprise.",
+        "For each flagged PR open the escalation notification record in Jira and confirm it was raised within the 48-hour window.",
+        "Open the stale-PR report on the engineering dashboard and confirm the alert rule exists and fired for each flagged PR.",
+        "Pass when every PR breaching 48 hours has a matching escalation record and the stale-PR alert fired for each instance."
+      ]
+    },
+    {
+      "id": "cmqscp6kn1nawmbk8i85nvdj6",
+      "name": "No Untested Public Methods",
+      "test": [
+        "Run the public-method coverage report in SonarQube and list any public method with zero covering test invocations.",
+        "For ten sampled public methods across services open their unit tests in GitHub Enterprise and check a success-path assertion.",
+        "For the same ten methods confirm at least one principal error-case test exists in GitHub Enterprise.",
+        "Open the Definition of Done page in Confluence and check it requires unit tests for new or modified public methods.",
+        "Open the CI workflow in GitHub Actions and identify the step or coverage gate that blocks untested public methods.",
+        "Pass when the report shows zero untested public methods and all ten sampled methods cover success plus one error case."
+      ]
+    },
+    {
+      "id": "cmqscokis1m7qmbk80uj5nhuo",
+      "name": "Non-Functional Requirements",
+      "test": [
+        "Open the project's design-approval package in Confluence and locate the version-controlled NFR document.",
+        "Check in Confluence that all five NFR dimensions carry quantified targets, not placeholders.",
+        "Open the approval record in Jira and confirm both required sign-offs are timestamped before the design-approval milestone.",
+        "Trace two randomly sampled NFRs to a design decision or acceptance-test criterion recorded in Jira.",
+        "For systems in production open the monitoring dashboard and check each quantified NFR has a live metric or scheduled audit.",
+        "Pass when all five dimensions show quantified dual-approved targets and both sampled NFRs trace to downstream artifacts."
+      ]
+    },
+    {
+      "id": "cmqscp65r1na8mbk85jxlakkb",
+      "name": "On-Call Rotation",
+      "test": [
+        "Open the on-call schedules in PagerDuty and check primary and secondary coverage for the current and next two periods.",
+        "Open the on-call rotation policy page in Confluence and check handoff steps, escalation tiers and max consecutive hours.",
+        "For three engineers on active rotations open the training system record and confirm a completed shadow shift per service.",
+        "Open the escalation policy configuration in PagerDuty for two sampled production services and check auto-escalation timings.",
+        "Pass when every production service shows gap-free primary and secondary coverage and all three sampled shadow shifts exist."
+      ]
+    },
+    {
+      "id": "cmqscp5tf1n9ombk8gq23fix3",
+      "name": "Onboarding Guide for New Developers",
+      "test": [
+        "Open the team onboarding guide in Confluence and check domain context, system landscape, access requests and local setup.",
+        "Open the guide's change history in GitHub Enterprise and find the most recent joiner's corrective update commit.",
+        "Follow the local-setup section on a clean VM and note any undocumented manual steps needed to reach a working environment.",
+        "Pass when all four sections are present and non-stub, the joiner's fix commit exists and setup needs no out-of-band steps."
+      ]
+    },
+    {
+      "id": "cmqscp7gs1nckmbk8gosmbh1y",
+      "name": "OpenAPI 3.0 Specs Required",
+      "test": [
+        "Pull the OpenAPI 3.0 spec for one randomly selected API from its repository in GitHub Enterprise.",
+        "Run the Spectral lint stage on the spec in the CI pipeline (GitHub Actions) and open the rule-violation report.",
+        "Open the route list for the API in the API gateway console and compare deployed paths against the spec's path list.",
+        "Open the architecture review sign-off log in Confluence and check the spec was approved before the last release gate.",
+        "Pass when the lint shows zero critical errors, no undocumented routes are deployed and the sign-off references the spec."
+      ]
+    },
+    {
+      "id": "cmqscp5ut1n9qmbk8f7w0sm1w",
+      "name": "OpenAPI Spec Auto-Generated",
+      "test": [
+        "Open the CI workflow for each HTTP API repo in GitHub Actions and locate the non-skippable spec-generation step.",
+        "Push a branch with a malformed annotation in GitHub Enterprise and trigger the build in GitHub Actions.",
+        "Confirm in GitHub Actions that the broken build failed and produced no deployable artifact.",
+        "Compare the spec published in the API gateway against the artifact of the latest successful GitHub Actions build.",
+        "Check a downstream consumer repo in GitHub Enterprise for an import or generated client referencing the published spec.",
+        "Pass when the broken build is blocked, the published spec matches the build artifact and a downstream dependency exists."
+      ]
+    },
+    {
+      "id": "cmqscp3en1n56mbk83o5pt6g0",
+      "name": "Ownership, Classification, and Refresh Frequency Documented",
+      "test": [
+        "Export the full asset list from the data catalog with owner, sensitivity classification and refresh-frequency columns.",
+        "Check the export shows all three attributes populated for 100% of assets using labels from the enterprise scheme.",
+        "For 10 sampled Confidential-PII or Restricted assets open access controls in the data platform and compare to classification.",
+        "Open the most recent periodic catalog review report in Confluence and check it is dated within the last 90 days.",
+        "Trace each gap listed in the review to a remediation ticket in Jira and record its open or closed status.",
+        "Pass when 100% of assets carry all three attributes, no sampled access exceeds classification and every gap has a ticket."
+      ]
+    },
+    {
+      "id": "cmqscp5l71n98mbk8z26weoo4",
+      "name": "PRs Reviewed Within Four Hours",
+      "test": [
+        "Export PR event logs for the past 30 days from GitHub Enterprise with submission and first-review timestamps.",
+        "Compute first-review latency in business hours for each exported PR and flag any exceeding four business hours.",
+        "Open the review coverage schedule in Confluence and check review duty is assigned across all squad time zones.",
+        "Open the team working agreement in Confluence and confirm it cites the four-business-hour first-review commitment.",
+        "Pass when the 30-day export shows first substantive reviews within four business hours and coverage closes timezone gaps."
+      ]
+    },
+    {
+      "id": "cmqscp5m71n9ambk871sxrrvu",
+      "name": "Pairing Required for Complex Features",
+      "test": [
+        "Open sprint planning notes for the last two sprints in Confluence and list features designated complex requiring pairing.",
+        "For each designated feature open the work item in Jira and confirm two named engineers are assigned.",
+        "Open the commit history for each feature in GitHub Enterprise and check both authors committed across the full build period.",
+        "Open each feature's PR in GitHub Enterprise and check any solo-author submission carries an approved pairing exception.",
+        "Pass when every designated complex feature shows dual-author involvement end to end or a recorded approved exception."
+      ]
+    },
+    {
+      "id": "cmqscp6ls1naymbk8q8t2kn8n",
+      "name": "Performance Baseline Established",
+      "test": [
+        "Open each in-scope service's performance baseline record in Confluence and check p50/p95/p99, throughput and CPU/memory.",
+        "Check the baseline timestamp in Confluence postdates the service's most recent significant release.",
+        "Open the latest post-release performance test report in the CI pipeline (GitHub Actions) and find the baseline comparison.",
+        "Open the release runbook in Confluence and locate the mandatory baseline-comparison step before production promotion.",
+        "Pass when every baseline covers all metrics at reference load, is current and the latest report compares deltas against it."
+      ]
+    },
+    {
+      "id": "cmqscp2ye1n4ambk8m0v8mkq5",
+      "name": "Performance Metrics Tracked",
+      "test": [
+        "Open the model inventory and check each production model lists its metrics, computation cadence and validation benchmarks.",
+        "For five sampled models pull the last three cadence-period performance records from the model inventory.",
+        "Check each sampled record was computed on schedule and logged in the model inventory, not held in ad hoc analyst files.",
+        "Open the dashboard access log and confirm documented visibility for the model owner and the model risk function.",
+        "Pass when all five sampled models show on-schedule logged metrics against benchmarks with owner and risk-function access."
+      ]
+    },
+    {
+      "id": "cmqscp36t1n4qmbk8em43cf2h",
+      "name": "Performance Under 5 Second Load",
+      "test": [
+        "Run the documented concurrent-user load against the production dashboard in the load-testing tool and record render time.",
+        "Review aggregation table definitions, query execution plans and cache configuration in the BI platform's admin console.",
+        "Pull the UAT performance test log and any post-data-model-change re-test records from Confluence and check sign-off.",
+        "Pass when measured and logged initial render times are 5 seconds or less under typical load with tuning artifacts in place."
+      ]
+    },
+    {
+      "id": "cmqscpagw1ni6mbk8b8hx7nm9",
+      "name": "PlantUML or Mermaid",
+      "test": [
+        "List every architecture and design diagram in active project documentation in Confluence and note each source format.",
+        "Search each repo in GitHub Enterprise for a committed .puml or .mmd/Mermaid source file matching every listed diagram.",
+        "Open the documentation site build in GitHub Actions and confirm diagrams render from source at build time, not uploads.",
+        "Open a test PR changing one line of a diagram source in GitHub Enterprise and check a text diff and rendered preview show.",
+        "Pass when zero diagrams exist only as binary drawing-tool exports and the test PR shows a readable diff with auto-render."
+      ]
+    },
+    {
+      "id": "cmqscpn7t1o58mbk8t2b6f6xd",
+      "name": "Prioritization Criteria",
+      "test": [
+        "Open the published Prioritization Criteria document in Confluence and check weights, scoring scale and board approval date.",
+        "Check the document history in Confluence for any criterion or weight change lacking a formal board resolution.",
+        "For five requests approved in the past two quarters open the scoring worksheets in the PPM tool (Clarity/Planview).",
+        "Compare each worksheet's criteria and weights to the published document and check composite scores predate backlog entry.",
+        "Search the PPM tool for any worksheet using a criterion or weight absent from the approved document.",
+        "Pass when all five worksheets match the published criteria and weights exactly and no per-request adjustments are found."
+      ]
+    }
+  ]
+}
