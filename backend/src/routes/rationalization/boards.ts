@@ -3,7 +3,7 @@
 // new-initiative starter stage, and the user-curated layout overlay.
 import type { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../../db/prisma.js';
-import { LAYERS, progressOf } from '../../lib/rationalization.js';
+import { LAYERS, columnStatsOf, normalizeStatsOf, progressOf } from '../../lib/rationalization.js';
 import { logAudit } from '../../services/audit.js';
 import { activeCompanyId, capdanCounts, csv, valueStreamIdsForRoles } from './helpers.js';
 
@@ -11,45 +11,69 @@ import { activeCompanyId, capdanCounts, csv, valueStreamIdsForRoles } from './he
 // with one starter stage: 2 placeholder legacy apps, the five per-layer CAPDAN
 // components, and five layer-appropriate green-field targets (no findings yet).
 // Findings are then authored via the generic /admin CRUD.
-const GF_NEW: Record<string, { suffix: string; kind: string; tech: string; owner: string }> = {
+//
+// Scaffold content is DATA: seeded WorkspaceVocabulary rows (kind SCAFFOLD,
+// one per layer, meta {suffix, kind, tech, component}). The literals below are
+// only the pre-seed fallback so a fresh environment can still scaffold.
+interface ScaffoldTemplate {
+  suffix: string;
+  kind: string;
+  tech: string;
+  component: string;
+}
+const SCAFFOLD_FALLBACK: Record<string, ScaffoldTemplate> = {
   UI: {
     suffix: 'Web App',
     kind: 'Web App',
     tech: 'React 18 + TypeScript',
-    owner: 'UX Engineering',
+    component: 'UI Components / Fields',
   },
   Integration: {
     suffix: 'API Gateway',
     kind: 'API Service',
     tech: 'Spring Cloud Gateway, Kafka',
-    owner: 'Integration Squad',
+    component: 'Integration Logic',
   },
   'Business Service': {
     suffix: 'Domain Service',
     kind: 'Microservice',
     tech: 'Java 21 / Spring Boot',
-    owner: 'Domain Squad',
+    component: 'Business Service Logic',
   },
   Data: {
     suffix: 'Data Store',
     kind: 'Data Platform',
     tech: 'Postgres, Debezium CDC',
-    owner: 'Data Platform Team',
+    component: 'Data Schema & Payload',
   },
   Infrastructure: {
     suffix: 'Platform & Security',
     kind: 'Platform',
     tech: 'OPA, mTLS, OpenTelemetry',
-    owner: 'Platform Security',
+    component: 'Infra Security Rules & Logs',
   },
 };
-const COMP_NEW: Record<string, string> = {
-  UI: 'UI Components / Fields',
-  Integration: 'Integration Logic',
-  'Business Service': 'Business Service Logic',
-  Data: 'Data Schema & Payload',
-  Infrastructure: 'Infra Security Rules & Logs',
-};
+
+/** Seeded scaffold templates by layer token, falling back per layer pre-seed. */
+async function scaffoldTemplates(companyId: string): Promise<Record<string, ScaffoldTemplate>> {
+  const rows = await prisma.workspaceVocabulary.findMany({
+    where: { companyId, domain: 'APPLICATION', kind: 'SCAFFOLD' },
+    select: { token: true, meta: true },
+  });
+  const templates: Record<string, ScaffoldTemplate> = { ...SCAFFOLD_FALLBACK };
+  for (const r of rows) {
+    const m = (r.meta ?? {}) as Partial<ScaffoldTemplate>;
+    if (m.suffix && m.kind && m.component) {
+      templates[r.token] = {
+        suffix: m.suffix,
+        kind: m.kind,
+        tech: m.tech ?? '',
+        component: m.component,
+      };
+    }
+  }
+  return templates;
+}
 
 export function registerBoardRoutes(router: Router) {
   // GET /rationalization — value-stream stages (chevrons) for the active company,
@@ -92,6 +116,7 @@ export function registerBoardRoutes(router: Router) {
           stageOrder: s.stageOrder,
           businessProcess: s.businessProcess,
           status: s.status,
+          domain: s.domain,
           illustrative: s.illustrative,
           findings: s.capabilities.length,
           byCapdan: capdanCounts(s.capabilities),
@@ -122,6 +147,7 @@ export function registerBoardRoutes(router: Router) {
 
       const base = `rwn_${Date.now().toString(36)}`;
       const tenantId = req.tenantId;
+      const templates = await scaffoldTemplates(companyId);
       const ws = await prisma.rationalizationWorkspace.create({
         data: {
           id: base,
@@ -152,7 +178,7 @@ export function registerBoardRoutes(router: Router) {
         // erd_v5: ownerRole is now an optional Role FK (ownerRoleId); the scaffold's
         // illustrative free-text owner is dropped (no free-text column).
         data: LAYERS.map((layer, li) => {
-          const g = GF_NEW[layer];
+          const g = templates[layer];
           return {
             id: `${base}_s${li}`,
             tenantId,
@@ -174,8 +200,8 @@ export function registerBoardRoutes(router: Router) {
           companyId,
           workspaceId: ws.id,
           layer,
-          name: COMP_NEW[layer],
-          destination: `${stageName} ${GF_NEW[layer].suffix}`,
+          name: templates[layer].component,
+          destination: `${stageName} ${templates[layer].suffix}`,
           microserviceId: `${base}_s${li}`,
           migrationStatus: 'Identified',
           illustrative: true,
@@ -203,6 +229,10 @@ export function registerBoardRoutes(router: Router) {
           components: true,
           capabilities: true,
           screens: { orderBy: { name: 'asc' } },
+          normalizationEntries: {
+            orderBy: [{ layer: 'asc' }, { sortOrder: 'asc' }, { notation: 'asc' }],
+            include: { capabilities: { select: { id: true } } },
+          },
         },
       });
       if (!w) return res.status(404).json({ error: 'Not found' });
@@ -231,11 +261,37 @@ export function registerBoardRoutes(router: Router) {
         description: w.description,
         northstar: w.northstar,
         status: w.status,
+        domain: w.domain,
         illustrative: w.illustrative,
         layout: w.layout ?? null,
         progress: progressFor(caps),
         counts: { findings: caps.length, ...capdanCounts(caps) },
         byLayer,
+        // v3 board roll-ups: per-legacy-column header stats + Normalize header.
+        columnStats: columnStatsOf(
+          caps.map((c) => ({
+            sourceId: c.appId,
+            moves: c.capdan === 'Relocate' || c.capdan === 'Eliminate',
+            dead: c.deadCode,
+          })),
+        ),
+        normalizeStats: normalizeStatsOf(
+          caps.length,
+          w.normalizationEntries.map((n) => n.matchStatus),
+        ),
+        // v3 Normalize boxes: one entry per normalized item (#N-101 …).
+        normalizationEntries: w.normalizationEntries.map((n) => ({
+          id: n.id,
+          layer: n.layer,
+          notation: n.notation,
+          name: n.name,
+          matchStatus: n.matchStatus,
+          matchBasis: n.matchBasis,
+          differenceNote: n.differenceNote,
+          proposedResolution: n.proposedResolution,
+          componentId: n.componentId,
+          findingIds: n.capabilities.map((c) => c.id),
+        })),
         // Brown-field apps (the grid columns) + shared services (own lane, WR-15).
         apps: w.apps.map((a) => ({
           id: a.id,
@@ -296,6 +352,10 @@ export function registerBoardRoutes(router: Router) {
           effort: c.effort,
           complexity: c.complexity,
           migrationStatus: c.migrationStatus,
+          // v3 board: dead-code lane, Normalize roll-up link, WHY THIS MOVES.
+          deadCode: c.deadCode,
+          normalizationEntryId: c.normalizationEntryId,
+          whyThisMoves: c.whyThisMoves ?? null,
         })),
       });
     } catch (e) {
