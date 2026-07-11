@@ -60,4 +60,4 @@ npm run db:setup -w cascade-backend   # prisma generate + migrate deploy + seed
 2. Indexes for any new FK or hot where-clause column (`@@index`) — Postgres does not
    auto-index FKs.
 3. For Neon branch operations (create/seed/promote/delete), use the
-   **neon-db-branch-ops** skill and `scripts/neon-branch-*.mjs` — data-loss footguns.
+   **session-flow** skill and `scripts/neon-*.mjs` — data-loss footguns.
