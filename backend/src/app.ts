@@ -29,7 +29,7 @@ import adminAiRoutes from './routes/adminAi.js';
 import builderRoutes from './routes/builder.js';
 import adminRoleRoutes from './routes/adminRole.js';
 import dashboardRoutes from './routes/dashboard.js';
-import rationalizationRoutes from './routes/rationalization.js';
+import rationalizationRoutes from './routes/rationalization/index.js';
 import portfolioRoutes from './routes/portfolio/index.js';
 import workRoutes from './routes/work.js';
 import workLibraryRoutes from './routes/work-library/index.js';
