@@ -39,6 +39,8 @@ const WorkLibrary = lazy(() => import('./pages/work-library/WorkLibrary'));
 const Approvals = lazy(() => import('./pages/approvals/Approvals'));
 const Applications = lazy(() => import('./pages/applications/Applications'));
 const ApplicationKind = lazy(() => import('./pages/applications/ApplicationKind'));
+const ProductModels = lazy(() => import('./pages/product-models/ProductModels'));
+const ProductModelSegment = lazy(() => import('./pages/product-models/ProductModelSegment'));
 const External = lazy(() => import('./pages/external/External'));
 const Regulations = lazy(() => import('./pages/regulations/Regulations'));
 const RegulationDetail = lazy(() => import('./pages/regulation-detail/RegulationDetail'));
@@ -386,6 +388,25 @@ export default function App() {
                     element={
                       <G k="applications">
                         <ApplicationKind />
+                      </G>
+                    }
+                  />
+                  {/* Product Models — legacy product-model catalog (fourth
+            rationalizable structure of the Workspace). TOC by segment + Sheet
+            list; segment drill mirrors the application-kind page. */}
+                  <Route
+                    path="/product-models"
+                    element={
+                      <G k="product-models">
+                        <ProductModels />
+                      </G>
+                    }
+                  />
+                  <Route
+                    path="/product-models/segments/:segment"
+                    element={
+                      <G k="product-models">
+                        <ProductModelSegment />
                       </G>
                     }
                   />

@@ -28,6 +28,8 @@ const ROUTES: Array<{ path: string; name: string; readySelector?: string }> = [
   { path: '/work-library', name: 'work-library' },
   { path: '/regulations', name: 'regulations' },
   { path: '/applications', name: 'applications' },
+  { path: '/product-models', name: 'product-models' },
+  { path: '/portfolio?domain=product-models', name: 'portfolio-products' },
   { path: '/external', name: 'external' },
   { path: '/search?q=payroll', name: 'search' },
   { path: '/admin', name: 'admin' },
