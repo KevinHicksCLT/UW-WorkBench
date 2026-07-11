@@ -6,7 +6,9 @@ erDiagram
   %% diagram reflects the WHOLE app schema (backend/prisma/schema.prisma):
   %%   - Portfolio SPM (Program -> Workstream -> PortfolioInitiative + children)
   %%   - 50-state Regulations (Jurisdiction-keyed, RegulatoryRequirement single reg)
-  %%   - App Rationalization (workspace decomposition)
+  %%   - App Rationalization (workspace decomposition + v3 Normalize entries)
+  %%   - Product Model Rationalization (legacy models -> 11-component findings
+  %%     -> canonical models; WorkspaceVocabulary = DB-driven board vocabulary)
   %%   - Scenario, TelemetrySignal, NodeAiAdoption, AnalysisStatus
   %% All operating-model links are real FKs into the spine (ProcessNode/OrgUnit/Role).
   %% dbValue = system/generic name; displayValue = admin-editable label (relabel
@@ -725,6 +727,7 @@ erDiagram
     string applicationId FK "-> Application (nullable, WR-01; free-text label kept as fallback)"
     string valueStreamNodeId FK "-> ProcessNode (nullable; was valueStreamId)"
     string status_
+    string domain "APPLICATION|PRODUCT_MODEL (one workspace list serves both)"
     bool illustrative
   }
   RationalizationApp {
@@ -762,6 +765,9 @@ erDiagram
     string recommendedLayer "suggested correct layer for misplaced items (nullable)"
     string capdan "Common|Different|Relocate|Eliminate"
     string treatment
+    string normalizationEntryId FK "-> NormalizationEntry v3 Normalize roll-up (nullable)"
+    bool deadCode "v3 dead-code lane"
+    json whyThisMoves "v3 WHY THIS MOVES panel {captured,sent,processed,validated,lands} (nullable)"
   }
   AnatomyCategory {
     string status "reference catalog: what belongs/must-not-be in each layer (WR-06)"
@@ -802,6 +808,113 @@ erDiagram
     int wave
     string ownerRoleId FK "-> Role (nullable; was ownerRole)"
     string status_
+  }
+  NormalizationEntry {
+    string status "v3 Normalize box entry (#N-101), app domain"
+    string id PK
+    string companyId FK
+    string workspaceId FK
+    string componentId FK "-> RationalizationComponent (nullable)"
+    string layer
+    string notation "N-101, unique per workspace"
+    string name
+    string matchStatus "AUTO|REVIEW|HELD"
+    string matchBasis "nullable"
+    string differenceNote "nullable"
+    string proposedResolution "HELD cards (nullable)"
+  }
+  WorkspaceVocabulary {
+    string status "DB-driven board vocabulary (replaces hardcoded FE constants)"
+    string id PK
+    string companyId FK
+    string domain "APPLICATION|PRODUCT_MODEL"
+    string kind "LAYER|CLASSIFICATION|STATUS|MODE|VIEW|DISPOSITION|MATCH_STATUS|SCAFFOLD"
+    string token "stable key"
+    string label
+    string color "tailwind token (nullable)"
+    json meta "legend text, scaffold payloads (nullable)"
+  }
+  %% ---------- PRODUCT MODEL RATIONALIZATION ----------
+  ProductModelWorkspace {
+    string status "legacy models -> component findings -> canonical models"
+    string id PK
+    string companyId FK
+    string name
+    string northstar
+    string status_
+    bool illustrative
+  }
+  LegacyProductModel {
+    string status "legacy product definition in a source system (board column)"
+    string id PK
+    string companyId FK
+    string workspaceId FK
+    string name
+    string sourceSystem "estate app it lives in (nullable)"
+    string segment "SMB|Large Commercial|Personal Lines|Specialty... (nullable)"
+    string geography "US|US-East|UK... (nullable)"
+    string disposition "Retain|Refactor|Replace|Retire"
+  }
+  ProductModelComponent {
+    string status "normalized target component per product-component row"
+    string id PK
+    string companyId FK
+    string workspaceId FK
+    string canonicalModelId FK "-> CanonicalProductModel (nullable)"
+    string component "one of the 11 product-component axis tokens"
+    string name
+    string migrationStatus
+  }
+  ProductModelAnatomyCategory {
+    string status "reference catalog per component x scope x view; slug = SKOS id"
+    string id PK
+    string companyId FK
+    string component "Party & Roles|Product Hierarchy|... (11)"
+    string scope "COMMON|SEGMENT|GEOGRAPHY"
+    string view "COMPONENT|BEHAVIOR|MISPLACED"
+    string slug "stable kebab-case, unique per company (tbi:pma-<slug>)"
+    string name
+    string description "plain-language"
+    string recommendedComponent "MISPLACED rows: where it belongs (nullable)"
+  }
+  ProductModelFinding {
+    string status "atomic observation about a legacy model in one component"
+    string id PK
+    string companyId FK
+    string workspaceId FK
+    string legacyModelId FK
+    string anatomyCategoryId FK "-> ProductModelAnatomyCategory (nullable)"
+    string targetComponentId FK "-> ProductModelComponent (nullable)"
+    string normalizationEntryId FK "-> ProductModelNormalizationEntry (nullable)"
+    string component "row axis token"
+    string name
+    string detail "atomic specifics: field names, form numbers, thresholds (nullable)"
+    string scope "Common|Segment|Geography|Eliminate"
+    string segmentValue "nullable"
+    string geographyValue "nullable"
+    bool deadCode "v3 dead-code lane"
+    json whyThisMoves "v3 WHY THIS MOVES panel (nullable)"
+  }
+  ProductModelNormalizationEntry {
+    string status "v3 Normalize box entry, product domain (twin of NormalizationEntry)"
+    string id PK
+    string companyId FK
+    string workspaceId FK
+    string componentId FK "-> ProductModelComponent (nullable)"
+    string layer "row axis token (one of the 11)"
+    string notation "N-101, unique per workspace"
+    string name
+    string matchStatus "AUTO|REVIEW|HELD"
+  }
+  CanonicalProductModel {
+    string status "north-star model per major line; status roll-up computed on read"
+    string id PK
+    string companyId FK
+    string workspaceId FK
+    string ownerRoleId FK "-> Role (nullable)"
+    string name
+    string lineOfBusiness "Commercial Package|Personal Auto|... (nullable)"
+    bool illustrative
   }
   %% ---------- IDENTITY & ENTITLEMENTS (RBAC/ABAC + preferences) ----------
   Tenant {
@@ -1097,6 +1210,25 @@ erDiagram
   RationalizationMicroservice ||--o{ RationalizationComponent : "lands"
   Role |o--o{ RationalizationMicroservice : "owns"
   Role |o--o{ RationalizationPlanStep : "owns"
+  RationalizationWorkspace ||--o{ NormalizationEntry : "normalizes (v3)"
+  RationalizationComponent |o--o{ NormalizationEntry : "folds-into"
+  NormalizationEntry |o--o{ RationalizationCapability : "rolls-up"
+  Company ||--o{ WorkspaceVocabulary : "defines vocabulary"
+  %% product model rationalization
+  Company ||--o{ ProductModelWorkspace : "rationalizes products"
+  Company ||--o{ ProductModelAnatomyCategory : "defines product taxonomy"
+  ProductModelWorkspace ||--o{ LegacyProductModel : "decomposes"
+  ProductModelWorkspace ||--o{ ProductModelComponent : "normalizes"
+  ProductModelWorkspace ||--o{ ProductModelFinding : "finds"
+  ProductModelWorkspace ||--o{ CanonicalProductModel : "targets"
+  ProductModelWorkspace ||--o{ ProductModelNormalizationEntry : "normalizes (v3)"
+  LegacyProductModel ||--o{ ProductModelFinding : "exposes"
+  ProductModelAnatomyCategory |o--o{ ProductModelFinding : "classifies"
+  ProductModelComponent |o--o{ ProductModelFinding : "target"
+  ProductModelComponent |o--o{ ProductModelNormalizationEntry : "folds-into"
+  ProductModelNormalizationEntry |o--o{ ProductModelFinding : "rolls-up"
+  CanonicalProductModel |o--o{ ProductModelComponent : "built-from"
+  Role |o--o{ CanonicalProductModel : "owns"
   %% derived
   Role }o..o{ ProcessNode : "derived (via work)"
   %% identity & entitlements
@@ -1185,6 +1317,15 @@ erDiagram
   style ScreenAsset fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
   style RationalizationMicroservice fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
   style RationalizationPlanStep fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style NormalizationEntry fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style WorkspaceVocabulary fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style ProductModelWorkspace fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style LegacyProductModel fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style ProductModelComponent fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style ProductModelAnatomyCategory fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style ProductModelFinding fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style ProductModelNormalizationEntry fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
+  style CanonicalProductModel fill:#F6DDCC,stroke:#A04000,stroke-width:2px,color:#6E2C00
   style WorkTemplate fill:#E9F7EF,stroke:#27AE60,stroke-width:2px,color:#196F3D
   style WorkTemplateKey fill:#E9F7EF,stroke:#27AE60,stroke-width:2px,color:#196F3D
   style NodeWorkTemplate fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
