@@ -16,7 +16,23 @@ import { resolveSpineRefs, type SpineRefs } from './resolveSpineRefs.js';
 type Layer = 'UI' | 'Integration' | 'Business Service' | 'Data' | 'Infrastructure';
 type Capdan = 'Common' | 'Different' | 'Relocate' | 'Eliminate';
 
-type Item = { name: string; code1: string; code2: string };
+// v3 board authored data: per-item normalization verdicts and per-category
+// "WHY THIS MOVES" panels ({captured, sent, processed, validated, lands}).
+type Why = {
+  captured?: string;
+  sent?: string;
+  processed?: string;
+  validated?: string;
+  lands?: string;
+};
+type Norm = {
+  status?: 'AUTO' | 'REVIEW' | 'HELD';
+  basis?: string; // "all 14 fields match on name, type and order"
+  note?: string; // difference note for REVIEW/HELD
+  resolution?: string; // proposed resolution shown on HELD cards
+};
+
+type Item = { name: string; code1: string; code2: string; norm?: Norm; dead?: boolean };
 type Cat = {
   category: string;
   capdan: Capdan;
@@ -25,6 +41,7 @@ type Cat = {
   rationale: string;
   effort: string;
   complexity: string;
+  why?: Why;
   items: Item[];
 };
 type LayerDef = { component: string; pattern: string; targetTech: string; cats: Cat[] };
@@ -123,6 +140,7 @@ const R = (
   effort: string,
   complexity: string,
   items: Item[],
+  why?: Why,
 ): Cat => ({
   category,
   capdan: 'Relocate',
@@ -131,6 +149,7 @@ const R = (
   rationale,
   effort,
   complexity,
+  why,
   items,
 });
 const E = (
@@ -189,6 +208,10 @@ const INITIATIVES: Initiative[] = [
                     name: 'Validate FEIN',
                     code1: 'SubmissionForm.aspx.cs : ValidateFein()',
                     code2: 'SubmitAction.java : validateFein()',
+                    norm: {
+                      basis:
+                        'FEIN — text (9), checksum + IRS format — both implementations match on field, mask and error text.',
+                    },
                   },
                   {
                     name: 'Validate effective dates',
@@ -199,8 +222,23 @@ const INITIATIVES: Initiative[] = [
                     name: 'Sanctions pre-check',
                     code1: 'SubmissionForm.aspx.cs : Sanctions()',
                     code2: 'SubmitAction.java : sanctions()',
+                    norm: {
+                      status: 'REVIEW',
+                      note: 'Same OFAC list check — PolicyPro screens at submit, QuoteMaster screens on name change; retry semantics differ.',
+                      resolution:
+                        'Screen once at the gateway on submit, with delta re-screen on party change.',
+                    },
                   },
                 ],
+                {
+                  captured:
+                    'FEIN, effective dates and prior-carrier details from the ACORD 125 screen.',
+                  validated:
+                    'Format checks and the sanctions pre-check run inline in screen code-behind.',
+                  sent: 'The full form posts to the submission service only after client-side checks pass.',
+                  lands:
+                    'API-gateway request validation (Integration) — one rule set for both channels.',
+                },
               ),
               E(
                 'State management',
@@ -213,6 +251,7 @@ const INITIATIVES: Initiative[] = [
                     name: 'ViewState cache',
                     code1: 'SubmissionForm.aspx (ViewState)',
                     code2: 'HttpSession (wizard)',
+                    dead: true,
                   },
                 ],
               ),
@@ -252,6 +291,13 @@ const INITIATIVES: Initiative[] = [
                     code2: 'BrokerAction.java : triage()',
                   },
                 ],
+                {
+                  processed:
+                    'Appetite triage and auto-decline decisions execute inside the broker endpoint.',
+                  sent: 'Declines are emailed from the integration tier, bypassing the audit trail.',
+                  lands:
+                    'Domain rules service (Business Service) — routed decisions with full audit.',
+                },
               ),
             ],
           },
@@ -271,8 +317,22 @@ const INITIATIVES: Initiative[] = [
                     name: 'Appetite check',
                     code1: 'AppetiteEngine.cs',
                     code2: 'AppetiteRules.java',
+                    norm: {
+                      status: 'HELD',
+                      note: 'Both compute appetite from class + state + TIV — PolicyPro consults an embedded 2016 matrix, QuoteMaster reads a rules table; results disagree for 7 classes.',
+                      resolution:
+                        'Adopt the rules-table version; retire the embedded matrix after class-by-class sign-off.',
+                    },
                   },
-                  { name: 'Clearance / dedup', code1: 'Clearance.cs', code2: 'Clearance.java' },
+                  {
+                    name: 'Clearance / dedup',
+                    code1: 'Clearance.cs',
+                    code2: 'Clearance.java',
+                    norm: {
+                      basis:
+                        'Insured name — text (120); FEIN — text (9); Address hash — computed; Broker of record — FK — all 9 clearance fields match on name, type and order.',
+                    },
+                  },
                 ],
               ),
               D(
@@ -386,13 +446,30 @@ const INITIATIVES: Initiative[] = [
                     name: 'Validate rating factors',
                     code1: 'Rating.js : validateFactors()',
                     code2: 'rating.js : validateFactors()',
+                    norm: {
+                      basis:
+                        'Territory — pick list; Class code — text (5); Limit — money; Deductible — pick list — all 11 factor inputs match on name, type and order.',
+                    },
                   },
                   {
                     name: 'Min/max premium check',
                     code1: 'Rating.js : checkBounds()',
                     code2: 'rating.js : checkBounds()',
+                    norm: {
+                      status: 'REVIEW',
+                      note: 'Same bounds check — PolicyPro applies a $500 floor client-side, QuoteMaster reads the filed minimum table; floors disagree in NY.',
+                      resolution: 'Enforce the filed state minimum-premium table at the gateway.',
+                    },
                   },
                 ],
+                {
+                  captured: 'Rating factors and premium bounds entered on the rating worksheet.',
+                  validated:
+                    'Min/max premium and factor ranges checked in browser JavaScript only.',
+                  sent: 'Unvalidated factor payloads reach the rating engine when JS is bypassed.',
+                  lands:
+                    'API-gateway request validation (Integration) — server-side, jurisdiction-aware.',
+                },
               ),
             ],
           },
@@ -422,7 +499,14 @@ const INITIATIVES: Initiative[] = [
                 'UI reaches into the DB.',
                 'M',
                 'Medium',
-                [{ name: 'Direct rate reads', code1: 'RateDao.cs', code2: 'RateDao.java' }],
+                [
+                  {
+                    name: 'Direct rate reads',
+                    code1: 'RateDao.cs',
+                    code2: 'RateDao.java',
+                    dead: true,
+                  },
+                ],
               ),
             ],
           },
@@ -442,6 +526,10 @@ const INITIATIVES: Initiative[] = [
                     name: 'Base rate calc',
                     code1: 'RatingEngine.cs : CalcBaseRate()',
                     code2: 'RatingEngine.java : calcBase()',
+                    norm: {
+                      basis:
+                        'Rate order of calculation — 12 steps match on sequence and rounding; factor tables keyed identically (territory, class, limit).',
+                    },
                   },
                   {
                     name: 'Rating adjustments',
@@ -493,6 +581,14 @@ const INITIATIVES: Initiative[] = [
                     code2: 'PKG_RATING.calc',
                   },
                 ],
+                {
+                  processed:
+                    'Rate adjustment math executes in usp_RateAdjust / PKG_RATING at commit time.',
+                  validated:
+                    'No unit tests — stored-procedure changes ship straight to production data.',
+                  lands:
+                    'Decision service (Business Service) with versioned, testable rating steps.',
+                },
               ),
             ],
           },
@@ -549,8 +645,22 @@ const INITIATIVES: Initiative[] = [
                     name: 'Reg-reporting completeness',
                     code1: 'BindPolicy.aspx.cs : RegCheck()',
                     code2: 'BillAction.java : regCheck()',
+                    norm: {
+                      status: 'REVIEW',
+                      note: 'Same completeness fields — PolicyPro blocks bind on failure, BillCenter only warns; enforcement timing differs.',
+                      resolution:
+                        'Blocking server-side check in the policy domain service for both paths.',
+                    },
                   },
                 ],
+                {
+                  captured:
+                    'Pre-bind confirmation and regulatory-reporting fields on the bind screen.',
+                  validated:
+                    'Regulated completeness checks run in screen code and can be skipped by API callers.',
+                  lands:
+                    'Policy domain service (Business Service) — checks enforced on every bind path.',
+                },
               ),
             ],
           },
@@ -635,6 +745,13 @@ const INITIATIVES: Initiative[] = [
                     code2: 'TRG_REG (Oracle)',
                   },
                 ],
+                {
+                  processed:
+                    'Stat-code derivation and reg extracts fire from row-level DB triggers.',
+                  validated:
+                    'Trigger failures roll back unrelated policy writes with opaque errors.',
+                  lands: 'Policy domain service (Business Service) emitting reg events explicitly.',
+                },
               ),
             ],
           },
@@ -688,6 +805,12 @@ const INITIATIVES: Initiative[] = [
                     code2: 'PreviewAction.java : merge()',
                   },
                 ],
+                {
+                  captured: 'Merge variables resolved from the policy at preview time.',
+                  processed: 'Clause assembly and field substitution run in the preview screen.',
+                  lands:
+                    'Content service (Business Service) — one assembly path for preview and issuance.',
+                },
               ),
             ],
           },
@@ -766,7 +889,14 @@ const INITIATIVES: Initiative[] = [
                 'Template paths hard-coded.',
                 'S',
                 'Low',
-                [{ name: 'Hard-coded paths', code1: 'FormsConfig.cs', code2: 'forms.properties' }],
+                [
+                  {
+                    name: 'Hard-coded paths',
+                    code1: 'FormsConfig.cs',
+                    code2: 'forms.properties',
+                    dead: true,
+                  },
+                ],
               ),
             ],
           },
@@ -813,7 +943,17 @@ const INITIATIVES: Initiative[] = [
                 'Structured FNOL capture to keep.',
                 'M',
                 'Medium',
-                [{ name: 'Loss details form', code1: 'fnol.jsp', code2: 'LossForm.blade.php' }],
+                [
+                  {
+                    name: 'Loss details form',
+                    code1: 'fnol.jsp',
+                    code2: 'LossForm.blade.php',
+                    norm: {
+                      basis:
+                        'Claim number — text (12); Policy number — text (10); Date of loss — date; Loss type — pick list, 11 options — all 14 fields match on name, type and order.',
+                    },
+                  },
+                ],
               ),
               R(
                 'Business validations',
@@ -827,8 +967,22 @@ const INITIATIVES: Initiative[] = [
                     name: 'Coverage-in-force check',
                     code1: 'FnolAction.java : coverageCheck()',
                     code2: 'FnolController.php : coverage()',
+                    norm: {
+                      status: 'REVIEW',
+                      note: 'Same 22 fields — flow shape and validation timing differ: ClaimsLegacy checks at save, FNOL Portal checks per field.',
+                      resolution:
+                        'Validate once at the gateway with field-level errors returned in a single response.',
+                    },
                   },
                 ],
+                {
+                  captured: 'Policy number and date of loss during loss entry.',
+                  sent: 'A coverage-verification call to policy admin fires from the intake screen.',
+                  validated:
+                    'Coverage-in-force decided in screen code with two different timing models.',
+                  lands:
+                    'API-gateway request validation (Integration) — one coverage check for all channels.',
+                },
               ),
               E(
                 'Green-screen entry',
@@ -836,7 +990,7 @@ const INITIATIVES: Initiative[] = [
                 '3270 terminal entry is slow.',
                 'L',
                 'High',
-                [{ name: '3270 intake map', code1: 'CICS : FNOLMAP', code2: '—' }],
+                [{ name: '3270 intake map', code1: 'CICS : FNOLMAP', code2: '—', dead: true }],
               ),
             ],
           },
@@ -873,6 +1027,13 @@ const INITIATIVES: Initiative[] = [
                     code2: 'FnolController.php : route()',
                   },
                 ],
+                {
+                  processed:
+                    'Adjuster assignment and fast-track selection execute inside ESB routing scripts.',
+                  validated:
+                    'Routing changes require an ESB deploy; no business-readable rule trace.',
+                  lands: 'Claims domain service (Business Service) — DMN-managed assignment rules.',
+                },
               ),
             ],
           },
@@ -905,7 +1066,7 @@ const INITIATIVES: Initiative[] = [
                 [{ name: 'Claim tables', code1: 'DB2.CLAIM', code2: 'mysql.claim' }],
               ),
               E('VSAM extracts', 'Replace with CDC.', 'Nightly flat-file extracts.', 'L', 'High', [
-                { name: 'Nightly VSAM extract', code1: 'VSAM : CLMEXT', code2: '—' },
+                { name: 'Nightly VSAM extract', code1: 'VSAM : CLMEXT', code2: '—', dead: true },
               ]),
             ],
           },
@@ -978,7 +1139,17 @@ const INITIATIVES: Initiative[] = [
                 'Regulated reserving.',
                 'L',
                 'High',
-                [{ name: 'Reserve calc', code1: 'ReserveEngine.java', code2: 'ReserveCalc.cs' }],
+                [
+                  {
+                    name: 'Reserve calc',
+                    code1: 'ReserveEngine.java',
+                    code2: 'ReserveCalc.cs',
+                    norm: {
+                      basis:
+                        'Reserve class — pick list; Initial reserve — money; Review trigger — days — both reserving implementations match on inputs, steps and rounding.',
+                    },
+                  },
+                ],
               ),
               D(
                 'Settlement workflow',
@@ -1016,19 +1187,25 @@ const INITIATIVES: Initiative[] = [
   },
 ];
 
+// Exported for the seed unit tests (referential checks on the authored data).
+export { INITIATIVES };
+
 export async function seedRationalization(
   prisma: PrismaClient,
   ctx: { tenantId: string; companyId: string; refs?: SpineRefs },
 ) {
   const { tenantId, companyId } = ctx;
   const refs = ctx.refs ?? (await resolveSpineRefs(prisma, companyId));
-  await prisma.rationalizationWorkspace.deleteMany({ where: { companyId } });
+  // Wholesale-replace the ILLUSTRATIVE seed boards only — user-authored boards
+  // (illustrative=false, e.g. the Self Anatomy board) survive reseeds.
+  await prisma.rationalizationWorkspace.deleteMany({ where: { companyId, illustrative: true } });
 
   const wsRows: Prisma.RationalizationWorkspaceCreateManyInput[] = [];
   const appRows: Prisma.RationalizationAppCreateManyInput[] = [];
   const svcRows: Prisma.RationalizationMicroserviceCreateManyInput[] = [];
   const compRows: Prisma.RationalizationComponentCreateManyInput[] = [];
   const capRows: Prisma.RationalizationCapabilityCreateManyInput[] = [];
+  const normRows: Prisma.NormalizationEntryCreateManyInput[] = [];
 
   for (const initiative of INITIATIVES) {
     // The workspace's value stream = the initiative's platform mapped to a VS node
@@ -1085,7 +1262,16 @@ export async function seedRationalization(
         return id;
       });
 
-      (Object.keys(stage.layers) as Layer[]).forEach((layer, li) => {
+      // Deterministic component id per layer row — needed up front so v3
+      // Normalize entries (including relocations landing in another row) can
+      // reference their box's component.
+      const stageLayers = Object.keys(stage.layers) as Layer[];
+      const compIdByLayer = new Map<Layer, string>(
+        stageLayers.map((layer, li) => [layer, `rc_${stage.key}_${li}`]),
+      );
+      let normSeq = 101; // stable per-workspace notations: N-101, N-102, …
+
+      stageLayers.forEach((layer, li) => {
         const def = stage.layers[layer];
         const advance = clamp(stage.base + LAYER_OFFSET[layer]);
         // Green-field target — one per IT layer, named + teched for that layer.
@@ -1126,6 +1312,44 @@ export async function seedRationalization(
 
         def.cats.forEach((cat, ci) => {
           const treatment = cat.capdan === 'Eliminate' ? 'Eliminate' : 'Retain';
+
+          // v3 Normalize entries — one normalized item per kept finding name;
+          // the raw findings from both legacy apps roll up into it (2→1).
+          // Relocations land in the Normalize box of their DESTINATION row.
+          // Eliminated / dead-code findings do not normalize.
+          const entryIdByItem = new Map<string, string>();
+          if (cat.capdan !== 'Eliminate') {
+            const entryLayer = cat.targetLayer ?? layer;
+            cat.items.forEach((it, ii) => {
+              if (it.dead) return;
+              const id = `rn_${stage.key}_${li}_${ci}_${ii}`;
+              entryIdByItem.set(it.name, id);
+              const sources = it.code2 === '—' ? 1 : 2;
+              normRows.push({
+                id,
+                tenantId,
+                companyId,
+                workspaceId: wsId,
+                layer: entryLayer,
+                notation: `N-${normSeq++}`,
+                name: it.name,
+                matchStatus: it.norm?.status ?? 'AUTO',
+                matchBasis:
+                  it.norm?.basis ??
+                  (it.norm?.status && it.norm.status !== 'AUTO'
+                    ? null
+                    : sources === 2
+                      ? `Both implementations expose "${it.name}" (${it.code1} / ${it.code2}) — matched on name, layer and category; 2→1.`
+                      : `Single source (${it.code1}) — carried forward 1→1.`),
+                differenceNote: it.norm?.note ?? null,
+                proposedResolution: it.norm?.resolution ?? null,
+                componentId: compIdByLayer.get(entryLayer) ?? null,
+                sortOrder: normSeq,
+                illustrative: true,
+              });
+            });
+          }
+
           appIds.forEach((appId, ai) => {
             cat.items.forEach((it, ii) => {
               if (ai === 1 && it.code2 === '—') return; // app-2 doesn't have this finding
@@ -1164,6 +1388,10 @@ export async function seedRationalization(
                 rationale: cat.rationale,
                 effort: cat.effort,
                 complexity: cat.complexity,
+                // v3 board fields
+                normalizationEntryId: entryIdByItem.get(it.name) ?? null,
+                deadCode: it.dead ?? false,
+                whyThisMoves: cat.why ?? undefined,
                 illustrative: true,
               });
             });
@@ -1176,11 +1404,13 @@ export async function seedRationalization(
   await prisma.rationalizationWorkspace.createMany({ data: wsRows });
   await prisma.rationalizationMicroservice.createMany({ data: svcRows });
   await prisma.rationalizationComponent.createMany({ data: compRows });
+  await prisma.normalizationEntry.createMany({ data: normRows });
   await prisma.rationalizationApp.createMany({ data: appRows });
   await prisma.rationalizationCapability.createMany({ data: capRows });
 
   const inits = new Set(wsRows.map((w) => w.application)).size;
+  const dead = capRows.filter((c) => c.deadCode).length;
   console.log(
-    `   + ${inits} initiatives, ${wsRows.length} stages, ${appRows.length} apps, ${compRows.length} CAPDAN components, ${svcRows.length} green-field (per layer), ${capRows.length} findings`,
+    `   + ${inits} initiatives, ${wsRows.length} stages, ${appRows.length} apps, ${compRows.length} CAPDAN components, ${svcRows.length} green-field (per layer), ${capRows.length} findings, ${normRows.length} normalize entries (${dead} dead-code)`,
   );
 }
