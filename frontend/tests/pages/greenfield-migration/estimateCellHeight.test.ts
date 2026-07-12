@@ -1,21 +1,36 @@
 // cellGeometry — the deterministic cell-height estimator behind WR-10's
-// variable slot heights, plus the slot height/offset math.
+// variable slot heights (now with v3 WHY-THIS-MOVES panels + anatomy rows),
+// the Normalize-box estimator, the dead-lane math and slot height/offsets.
 import { describe, expect, it } from 'vitest';
 import {
+  ANATOMY_ROW_H,
   CELL_BASE_H,
   CHIP_ROW_H,
+  DEAD_BASE_H,
+  DEAD_ROW_H,
   DIVIDER_H,
   EMPTY_CELL_H,
   ITEM_FLAG_H,
   ITEM_H,
   ITEM_SCREEN_H,
+  ITEM_WHY_H,
+  NORM_BASE_H,
+  NORM_ENTRY_H,
+  NORM_HELD_H,
   SLOT_H,
   SLOT_MARGIN,
+  deadLaneHeight,
   estimateCellHeight,
+  estimateNormalizeHeight,
   slotHeightFor,
   slotOffsets,
 } from '../../../src/pages/greenfield-migration/cellGeometry';
-import type { CategoryTag, Finding } from '../../../src/lib/rationalization';
+import {
+  defaultStays,
+  type CategoryTag,
+  type Finding,
+  type NormalizationEntry,
+} from '../../../src/lib/rationalization';
 
 let seq = 0;
 const finding = (over: Partial<Finding> = {}): Finding => ({
@@ -37,6 +52,9 @@ const finding = (over: Partial<Finding> = {}): Finding => ({
   effort: null,
   complexity: null,
   migrationStatus: 'Identified',
+  deadCode: false,
+  normalizationEntryId: null,
+  whyThisMoves: null,
   ...over,
 });
 
@@ -49,6 +67,7 @@ const tag = (
   layer: 'UI',
   category,
   capdan: 'Common',
+  stays: defaultStays(over.capdan ?? 'Common'),
   targetLayer: null,
   count: findings.length,
   findings,
@@ -98,6 +117,24 @@ describe('estimateCellHeight', () => {
     );
   });
 
+  it('adds a WHY THIS MOVES panel only to expanded misplaced items that carry one', () => {
+    const why = { captured: 'age, state', lands: 'FNOL Intake Domain Service' };
+    const red = tag('Rules', [finding({ capdan: 'Relocate', whyThisMoves: why })], {
+      capdan: 'Relocate',
+    });
+    const green = tag('Forms', [finding({ whyThisMoves: why })]); // stays → panel hidden
+    expect(estimateCellHeight([red], ['Rules'])).toBe(
+      CELL_BASE_H + DIVIDER_H + CHIP_ROW_H + ITEM_H + ITEM_FLAG_H + ITEM_WHY_H,
+    );
+    expect(estimateCellHeight([green], ['Forms'])).toBe(CELL_BASE_H + CHIP_ROW_H + ITEM_H);
+  });
+
+  it('adds one line per matched anatomy sub-category via the callback', () => {
+    const tags = [tag('Forms', [finding()])];
+    const base = estimateCellHeight(tags, ['Forms']);
+    expect(estimateCellHeight(tags, ['Forms'], () => 4)).toBe(base + 4 * ANATOMY_ROW_H);
+  });
+
   it('ignores expanded categories that are not among the tags', () => {
     const tags = [tag('Forms', [finding()])];
     expect(estimateCellHeight(tags, ['Not here'])).toBe(estimateCellHeight(tags, []));
@@ -106,6 +143,43 @@ describe('estimateCellHeight', () => {
   it('is deterministic for the same inputs', () => {
     const tags = [tag('Forms', [finding({ screenRef: 'Home' })])];
     expect(estimateCellHeight(tags, ['Forms'])).toBe(estimateCellHeight(tags, ['Forms']));
+  });
+});
+
+describe('estimateNormalizeHeight', () => {
+  const entry = (over: Partial<NormalizationEntry> = {}): NormalizationEntry => ({
+    id: `e-${seq++}`,
+    layer: 'UI',
+    notation: 'N-101',
+    name: 'Loss Capture Form',
+    matchStatus: 'AUTO',
+    matchBasis: null,
+    differenceNote: null,
+    proposedResolution: null,
+    componentId: null,
+    findingIds: [],
+    ...over,
+  });
+
+  it('is the base height for an empty box', () => {
+    expect(estimateNormalizeHeight([])).toBe(NORM_BASE_H);
+  });
+
+  it('charges AUTO entries the row height and HELD/REVIEW the card height', () => {
+    expect(
+      estimateNormalizeHeight([
+        entry(),
+        entry({ matchStatus: 'REVIEW' }),
+        entry({ matchStatus: 'HELD' }),
+      ]),
+    ).toBe(NORM_BASE_H + NORM_ENTRY_H + 2 * NORM_HELD_H);
+  });
+});
+
+describe('deadLaneHeight', () => {
+  it('charges the heading plus one row per dead finding', () => {
+    expect(deadLaneHeight(0)).toBe(DEAD_BASE_H);
+    expect(deadLaneHeight(7)).toBe(DEAD_BASE_H + 7 * DEAD_ROW_H);
   });
 });
 

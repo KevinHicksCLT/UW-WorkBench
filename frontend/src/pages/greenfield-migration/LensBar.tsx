@@ -1,21 +1,22 @@
 /**
- * WR-01 tri-mode inspection lens bar — the workspace's selector row, extracted
- * from GreenfieldMigration.tsx. Makes Kevin's three inspection choices
- * explicit: a segmented mode switch (Applications | Value streams | Roles), a
- * per-mode multi-select filter, then the board picker. Single-application mode
- * keeps the original L3 → L4 lens cascade (name-token matching, unchanged);
- * every other shape lists the filtered boards in one application-grouped
- * "Board" select. The row actions (findings view toggle, Edit board, + New…)
- * live here too.
+ * The workspace's selector row: the PM-04 domain segmented control
+ * (Application ↔ Product Model Rationalization), the WR-01 inspection-mode
+ * switch and per-mode multi-select — BOTH driven by vocabulary MODE rows
+ * (3-A: no hardcoded mode/view arrays) — then the board picker.
+ * Single-application mode keeps the original L3 → L4 lens cascade; every
+ * other shape lists the filtered boards in one grouped "Board" select.
+ * Product modes (Legacy Product Models / Segment / Geography) filter through
+ * one multi-select fed by GET /product-models (PM-05 client half). The row
+ * actions (findings view toggle, Edit board, + New…) live here too.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../../lib/api';
 import { Button } from '../../components/ui';
-import type { FindingView, StageListItem } from '../../lib/rationalization';
+import { lensModeOf, type Domain, type StageListItem } from '../../lib/rationalization';
 import { lensTokens, lensScore, LensField, LENS_SELECT_CLS, type LensL3 } from './lens';
 import { MultiSelect, type MultiSelectOption } from './MultiSelect';
 
-/** Which entity the lens filters boards by (WR-01). */
+/** Which entity the app-domain lens filters boards by (WR-01). */
 export type LensMode = 'applications' | 'valueStreams' | 'roles';
 
 /** Stage list row + the lens FKs GET /rationalization now returns (WR-01). */
@@ -24,17 +25,21 @@ export type StageRow = StageListItem & {
   valueStreamNodeId: string | null;
 };
 
-const MODES: { value: LensMode; label: string }[] = [
-  { value: 'applications', label: 'Applications' },
-  { value: 'valueStreams', label: 'Value streams' },
-  { value: 'roles', label: 'Roles' },
+export type SegmentOption = { value: string; label: string };
+
+/** PM-04 domain options — the frozen §6.2 domain enum (control, not vocab). */
+export const DOMAIN_OPTIONS: SegmentOption[] = [
+  { value: 'APPLICATION', label: 'Application Rationalization' },
+  { value: 'PRODUCT_MODEL', label: 'Product Model Rationalization' },
 ];
 
-// WR-06 anatomy lens options for the segmented control.
-const VIEWS: { value: FindingView; label: string }[] = [
-  { value: 'COMPONENT', label: 'Components' },
-  { value: 'BEHAVIOR', label: 'Behavior' },
-];
+/** Parse the `?domain=` deep-link value (Agent 4's Portfolio.tsx seam). */
+export const parseDomainParam = (v: string | null): Domain | null =>
+  v === 'product-models' || v === 'PRODUCT_MODEL'
+    ? 'PRODUCT_MODEL'
+    : v === 'applications' || v === 'APPLICATION'
+      ? 'APPLICATION'
+      : null;
 
 // Shared segmented-control chrome (same visual family as Components|Behavior).
 const SEGMENT_GROUP_CLS =
@@ -44,10 +49,45 @@ const segmentCls = (active: boolean) =>
     active ? 'bg-[#171717] text-white' : 'bg-white text-[#525252] hover:bg-[#fafafa]'
   }`;
 
+function Segmented({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: SegmentOption[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  if (options.length === 0) return null;
+  return (
+    <div role="group" aria-label={label} className={SEGMENT_GROUP_CLS}>
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          onClick={() => onChange(o.value)}
+          aria-pressed={value === o.value}
+          className={segmentCls(value === o.value)}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export type LensBarProps = {
-  mode: LensMode;
-  onModeChange: (mode: LensMode) => void;
-  /** Distinct (applicationId ?? label) pairs from the unfiltered stage list. */
+  /** PM-04 domain switch — options provided by the shell (frozen DTO enum). */
+  domain: Domain;
+  domainOptions: SegmentOption[];
+  onDomainChange: (d: Domain) => void;
+  /** MODE vocabulary rows for the active domain (3-A). */
+  modeOptions: SegmentOption[];
+  modeToken: string;
+  onModeToken: (token: string) => void;
+  /** App-domain filters (WR-01). */
   appOptions: MultiSelectOption[];
   selApps: string[];
   onAppsChange: (ids: string[]) => void;
@@ -55,14 +95,20 @@ export type LensBarProps = {
   onStreamsChange: (ids: string[]) => void;
   selRoles: string[];
   onRolesChange: (ids: string[]) => void;
+  /** Product-domain filter for the active mode (models / segments / geos). */
+  productOptions: MultiSelectOption[];
+  productSelected: string[];
+  onProductSelected: (ids: string[]) => void;
   /** The filtered stages (mode filter applied + sorted) the picker operates on. */
   stages: StageRow[];
   selectedId: string | null;
   onSelectStage: (id: string) => void;
   /** True when the classic single-application L3/L4 cascade should render. */
   cascade: boolean;
-  view: FindingView;
-  onViewChange: (view: FindingView) => void;
+  /** VIEW vocabulary rows (empty → domain has no view axis, toggle hidden). */
+  viewOptions: SegmentOption[];
+  view: string;
+  onViewChange: (view: string) => void;
   hasDetail: boolean;
   editing: boolean;
   saving: boolean;
@@ -73,30 +119,22 @@ export type LensBarProps = {
   newTitle: string;
 };
 
-export function LensBar({
-  mode,
-  onModeChange,
-  appOptions,
-  selApps,
-  onAppsChange,
-  selStreams,
-  onStreamsChange,
-  selRoles,
-  onRolesChange,
-  stages,
-  selectedId,
-  onSelectStage,
-  cascade,
-  view,
-  onViewChange,
-  hasDetail,
-  editing,
-  saving,
-  onStartEdit,
-  onExitEdit,
-  onNew,
-  newTitle,
-}: LensBarProps) {
+export function LensBar(props: LensBarProps) {
+  const {
+    domain,
+    domainOptions,
+    onDomainChange,
+    modeOptions,
+    modeToken,
+    onModeToken,
+    stages,
+    selectedId,
+    onSelectStage,
+    cascade,
+  } = props;
+  const modeKey = lensModeOf(modeToken);
+  const isProducts = domain === 'PRODUCT_MODEL';
+
   // The canonical lens tree. Its top level ("divisions") is the levelNumber-2
   // value-stream nodes — their ids match StageRow.valueStreamNodeId and the
   // server's ?valueStreamIds filter — and feeds the VS multi-select; the nested
@@ -144,7 +182,7 @@ export function LensBar({
   // one row per role×checklist item, so dedupe by roleId.
   const [roleOptions, setRoleOptions] = useState<MultiSelectOption[] | null>(null);
   useEffect(() => {
-    if (mode !== 'roles' || roleOptions !== null) return;
+    if (isProducts || modeKey !== 'roles' || roleOptions !== null) return;
     api
       .get<{ rows: { roleId: string; role: string }[] }>('/roles')
       .then(({ rows }) => {
@@ -157,7 +195,7 @@ export function LensBar({
         );
       })
       .catch(() => setRoleOptions([]));
-  }, [mode, roleOptions]);
+  }, [isProducts, modeKey, roleOptions]);
 
   // ── L3 → L4 lens cascade (single-application mode only) ───────────────────
   const [selL3, setSelL3] = useState('');
@@ -189,7 +227,7 @@ export function LensBar({
   }, [cascade, stages, lensTree]);
 
   // Only L3 value streams / L4 processes that resolve to an existing analysis
-  // board (a matched stage) are offered in the cascade — everything else is hidden.
+  // board (a matched stage) are offered in the cascade.
   const boardTree = useMemo(
     () =>
       lensTree
@@ -251,63 +289,80 @@ export function LensBar({
     return [...groups.entries()];
   }, [stages]);
 
+  const activeModeLabel = modeOptions.find((m) => m.value === modeToken)?.label ?? modeToken;
+
   return (
     <div className="flex flex-wrap items-end gap-2 mb-3">
-      {/* WR-01 mode switch — which entity the lens filters boards by. */}
-      <div role="group" aria-label="Inspection lens" className={SEGMENT_GROUP_CLS}>
-        {MODES.map((m) => (
-          <button
-            key={m.value}
-            type="button"
-            onClick={() => onModeChange(m.value)}
-            aria-pressed={mode === m.value}
-            className={segmentCls(mode === m.value)}
-          >
-            {m.label}
-          </button>
-        ))}
-      </div>
+      {/* PM-04: which rationalization domain the workspace inspects. */}
+      <Segmented
+        label="Rationalization domain"
+        options={domainOptions}
+        value={domain}
+        onChange={(v) => onDomainChange(v as Domain)}
+      />
+
+      {/* WR-01 mode switch — vocabulary MODE rows for the active domain. */}
+      <Segmented
+        label="Inspection lens"
+        options={modeOptions}
+        value={modeToken}
+        onChange={onModeToken}
+      />
 
       {/* Per-mode multi-select filter. */}
-      {mode === 'applications' && (
-        <LensField label="Applications" interactive>
+      {isProducts ? (
+        <LensField label={activeModeLabel} interactive>
           <MultiSelect
-            label="Applications"
-            options={appOptions}
-            selected={selApps}
-            onChange={onAppsChange}
-            emptyLabel="All applications"
+            label={activeModeLabel}
+            options={props.productOptions}
+            selected={props.productSelected}
+            onChange={props.onProductSelected}
+            emptyLabel={`All ${activeModeLabel.toLowerCase()}`}
           />
         </LensField>
-      )}
-      {mode === 'valueStreams' && (
-        <LensField label="Value streams" interactive>
-          <MultiSelect
-            label="Value streams"
-            options={vsOptions}
-            selected={selStreams}
-            onChange={onStreamsChange}
-            emptyLabel="All value streams"
-          />
-        </LensField>
-      )}
-      {mode === 'roles' && (
-        <LensField label="Roles" interactive>
-          <MultiSelect
-            label="Roles"
-            options={roleOptions ?? []}
-            selected={selRoles}
-            onChange={onRolesChange}
-            searchable
-            emptyLabel="All roles"
-            loading={roleOptions === null}
-          />
-        </LensField>
+      ) : (
+        <>
+          {modeKey === 'applications' && (
+            <LensField label="Applications" interactive>
+              <MultiSelect
+                label="Applications"
+                options={props.appOptions}
+                selected={props.selApps}
+                onChange={props.onAppsChange}
+                emptyLabel="All applications"
+              />
+            </LensField>
+          )}
+          {modeKey === 'valueStreams' && (
+            <LensField label="Value streams" interactive>
+              <MultiSelect
+                label="Value streams"
+                options={vsOptions}
+                selected={props.selStreams}
+                onChange={props.onStreamsChange}
+                emptyLabel="All value streams"
+              />
+            </LensField>
+          )}
+          {modeKey === 'roles' && (
+            <LensField label="Roles" interactive>
+              <MultiSelect
+                label="Roles"
+                options={roleOptions ?? []}
+                selected={props.selRoles}
+                onChange={props.onRolesChange}
+                searchable
+                emptyLabel="All roles"
+                loading={roleOptions === null}
+              />
+            </LensField>
+          )}
+        </>
       )}
 
       {/* Board picker: the classic L3/L4 cascade for a single application, or
-          one application-grouped Board select for every other filter shape. */}
-      {cascade
+          one grouped Board select for every other filter shape. */}
+      {cascade && !isProducts
         ? lensTree.length > 0 &&
           stages.length > 0 && (
             <>
@@ -372,47 +427,49 @@ export function LensBar({
           )}
 
       <div className="flex-1" />
-      {/* WR-02: actions live on the selector row — no separate status bar,
-          so the board reclaims the vertical space. */}
-      {/* WR-06: anatomy lens — which findings feed the legacy cells. */}
-      {hasDetail && (
-        <div role="group" aria-label="Findings view" className={SEGMENT_GROUP_CLS}>
-          {VIEWS.map((v) => (
-            <button
-              key={v.value}
-              type="button"
-              onClick={() => onViewChange(v.value)}
-              aria-pressed={view === v.value}
-              className={segmentCls(view === v.value)}
-            >
-              {v.label}
-            </button>
-          ))}
-        </div>
+      {/* WR-02: actions live on the selector row — no separate status bar. */}
+      {/* WR-06: anatomy lens — VIEW vocabulary rows (hidden when the domain
+          defines none, e.g. product models). */}
+      {props.hasDetail && (
+        <Segmented
+          label="Findings view"
+          options={props.viewOptions}
+          value={props.view}
+          onChange={props.onViewChange}
+        />
       )}
-      {hasDetail &&
-        (editing ? (
+      {props.hasDetail &&
+        !isProducts &&
+        (props.editing ? (
           <Button
             variant="ghost"
-            onClick={onExitEdit}
-            disabled={saving}
+            onClick={props.onExitEdit}
+            disabled={props.saving}
             className="text-[12px] flex-shrink-0"
           >
             Exit
           </Button>
         ) : (
-          <Button variant="secondary" onClick={onStartEdit} className="text-[12px] flex-shrink-0">
+          <Button
+            variant="secondary"
+            onClick={props.onStartEdit}
+            className="text-[12px] flex-shrink-0"
+          >
             Edit board
           </Button>
         ))}
-      <Button
-        variant="secondary"
-        onClick={onNew}
-        className="text-[12px] flex-shrink-0"
-        title={newTitle}
-      >
-        + New…
-      </Button>
+      {/* Board layout editing + "+ New…" stay app-domain until the product
+          workspace CRUD endpoints land (Agent 2). */}
+      {!isProducts && (
+        <Button
+          variant="secondary"
+          onClick={props.onNew}
+          className="text-[12px] flex-shrink-0"
+          title={props.newTitle}
+        >
+          + New…
+        </Button>
+      )}
     </div>
   );
 }

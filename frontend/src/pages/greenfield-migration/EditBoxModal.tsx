@@ -1,29 +1,134 @@
 /**
- * Box editor popup for the Application Rationalization board — double-clicking
- * any box in edit mode opens this popup. It resolves the box to its underlying
- * record (brown-field app · CAPDAN component · green-field service) and edits
- * the right fields against the matching PATCH endpoint. Extracted verbatim
- * from GreenfieldMigration.tsx.
+ * Box editor popup for the workspace board — double-clicking a box in edit
+ * mode opens it (brown-field app · Normalize component · greenfield service),
+ * and the v3 findings UI (PM-07 / 3-D) reuses it to create or reclassify a
+ * finding: scope picker from the classification vocabulary, segment/geography
+ * values (product domain), target component, plain summary and dead-code
+ * flag. Fixture-sourced boards save through `onLocalPatch` until Agent 2's
+ * findings endpoints land.
  */
 import { useMemo, useState } from 'react';
 import { api } from '../../lib/api';
-import type { StageDetail } from '../../lib/rationalization';
-import { Button, ErrorMessage, Input, Textarea } from '../../components/ui';
+import type {
+  ClassificationMeta,
+  Domain,
+  Finding,
+  Layer,
+  StageDetail,
+} from '../../lib/rationalization';
+import { Button, ErrorMessage, Input, Select, Textarea } from '../../components/ui';
+import { createFinding, patchFinding, type BoardSource } from './data';
 
-type BoxField = { key: string; label: string; placeholder?: string; multiline?: boolean };
+export type EditTarget =
+  | { kind: 'app' | 'component' | 'service'; id: string }
+  | { kind: 'finding'; id: string }
+  | { kind: 'newFinding'; appId: string; layer: Layer };
+
+type BoxField = {
+  key: string;
+  label: string;
+  placeholder?: string;
+  multiline?: boolean;
+  /** Render a select instead of a text input. */
+  options?: { value: string; label: string }[];
+};
 type BoxConfig = {
-  endpoint: string;
+  /** PATCH endpoint for the classic box kinds; finding kinds save via save(). */
+  endpoint?: string;
   eyebrow: string;
   title: string;
   fields: BoxField[];
   values: Record<string, string>;
 };
 
+/** Extra context the finding editor needs (vocabulary + board). */
+export type EditBoxContext = {
+  domain: Domain;
+  source: BoardSource;
+  classification: ClassificationMeta;
+  layers: Layer[];
+  /** Local mutation fallback for fixture-sourced boards (PM-07). */
+  onLocalPatch?: (
+    findingId: string | null,
+    patch: Partial<Finding>,
+    cell?: { appId: string; layer: Layer },
+  ) => void;
+};
+
+const findingFields = (detail: StageDetail, ctx: EditBoxContext): BoxField[] => {
+  const scopeOptions = ctx.classification.order.map((t) => ({
+    value: t,
+    label: ctx.classification.byToken[t]?.label ?? t,
+  }));
+  const componentOptions = [
+    { value: '', label: '— none —' },
+    ...detail.components.map((c) => ({ value: c.layer, label: `${c.name} (${c.layer})` })),
+  ];
+  return [
+    { key: 'name', label: 'Name' },
+    { key: 'category', label: 'Category', placeholder: 'e.g. Deductible structures' },
+    { key: 'capdan', label: 'Classification / scope', options: scopeOptions },
+    ...(ctx.domain === 'PRODUCT_MODEL'
+      ? [
+          { key: 'segmentValue', label: 'Segment value', placeholder: 'e.g. SMB Commercial' },
+          { key: 'geographyValue', label: 'Geography value', placeholder: 'e.g. US-NY' },
+        ]
+      : []),
+    { key: 'targetLayer', label: 'Target component', options: componentOptions },
+    { key: 'plainSummary', label: 'Plain-language summary', multiline: true },
+    {
+      key: 'deadCode',
+      label: 'Dead code',
+      options: [
+        { value: 'false', label: 'No' },
+        { value: 'true', label: 'Yes — retire with sign-off' },
+      ],
+    },
+  ];
+};
+
 function buildBoxConfig(
-  target: { kind: string; id: string },
+  target: EditTarget,
   detail: StageDetail,
+  ctx: EditBoxContext,
 ): BoxConfig | null {
   const v = (s: string | null | undefined) => s ?? '';
+  if (target.kind === 'finding') {
+    const f = detail.findings.find((x) => x.id === target.id);
+    if (!f) return null;
+    return {
+      eyebrow: `Finding · ${f.layer}`,
+      title: 'Reclassify finding',
+      fields: findingFields(detail, ctx),
+      values: {
+        name: f.name,
+        category: v(f.category),
+        capdan: f.capdan,
+        segmentValue: v(f.segmentValue),
+        geographyValue: v(f.geographyValue),
+        targetLayer: v(f.targetLayer),
+        plainSummary: v(f.plainSummary),
+        deadCode: String(f.deadCode),
+      },
+    };
+  }
+  if (target.kind === 'newFinding') {
+    return {
+      eyebrow: `New finding · ${target.layer}`,
+      title: 'Add finding',
+      fields: findingFields(detail, ctx),
+      values: {
+        name: '',
+        category: '',
+        capdan: ctx.classification.order[0] ?? '',
+        segmentValue: '',
+        geographyValue: '',
+        targetLayer: '',
+        plainSummary: '',
+        deadCode: 'false',
+      },
+    };
+  }
   if (target.kind === 'app') {
     const a = detail.apps.find((x) => x.id === target.id);
     if (!a) return null;
@@ -62,7 +167,7 @@ function buildBoxConfig(
         { key: 'destination', label: 'Destination', placeholder: 'greenfield target' },
         { key: 'targetTech', label: 'Target tech' },
         { key: 'pattern', label: 'Pattern', placeholder: 'e.g. Strangler facade' },
-        { key: 'principle', label: 'Principle (CAPDAN rationale)', multiline: true },
+        { key: 'principle', label: 'Principle (rationale)', multiline: true },
       ],
       values: {
         name: v(c.name),
@@ -96,18 +201,35 @@ function buildBoxConfig(
   };
 }
 
+/** The form → §6.2 finding patch (empty selects become nulls). */
+export function findingPatch(form: Record<string, string>): Partial<Finding> {
+  return {
+    name: form.name?.trim(),
+    category: form.category?.trim() || null,
+    capdan: form.capdan,
+    scope: form.capdan,
+    segmentValue: form.segmentValue?.trim() || null,
+    geographyValue: form.geographyValue?.trim() || null,
+    targetLayer: form.targetLayer || null,
+    plainSummary: form.plainSummary?.trim() || null,
+    deadCode: form.deadCode === 'true',
+  };
+}
+
 export function EditBoxModal({
   target,
   detail,
+  ctx,
   onClose,
   onSaved,
 }: {
-  target: { kind: 'app' | 'component' | 'service'; id: string };
+  target: EditTarget;
   detail: StageDetail;
+  ctx: EditBoxContext;
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const cfg = useMemo(() => buildBoxConfig(target, detail), [target, detail]);
+  const cfg = useMemo(() => buildBoxConfig(target, detail, ctx), [target, detail, ctx]);
   const [form, setForm] = useState<Record<string, string>>(() => cfg?.values ?? {});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -122,7 +244,25 @@ export function EditBoxModal({
     setSaving(true);
     setError('');
     try {
-      await api.patch(cfg!.endpoint, form);
+      if (target.kind === 'finding' || target.kind === 'newFinding') {
+        const patch = findingPatch(form);
+        const cell =
+          target.kind === 'newFinding' ? { appId: target.appId, layer: target.layer } : undefined;
+        if (ctx.source === 'fixture' && ctx.onLocalPatch) {
+          // Demo board — Agent 2's findings endpoints aren't live yet.
+          ctx.onLocalPatch(target.kind === 'finding' ? target.id : null, patch, cell);
+        } else if (target.kind === 'finding') {
+          await patchFinding(ctx.domain, target.id, patch);
+        } else {
+          await createFinding(ctx.domain, detail.id, {
+            ...patch,
+            appId: target.appId,
+            layer: target.layer,
+          });
+        }
+      } else {
+        await api.patch(cfg!.endpoint!, form);
+      }
       onSaved();
       onClose();
     } catch (e) {
@@ -170,7 +310,18 @@ export function EditBoxModal({
           {cfg.fields.map((f, i) => (
             <div key={f.key}>
               <label className="block text-[11px] font-medium text-[#525252] mb-1">{f.label}</label>
-              {f.multiline ? (
+              {f.options ? (
+                <Select
+                  value={form[f.key] ?? ''}
+                  onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                >
+                  {f.options.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </Select>
+              ) : f.multiline ? (
                 <Textarea
                   rows={2}
                   value={form[f.key] ?? ''}
