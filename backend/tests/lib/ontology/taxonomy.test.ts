@@ -8,6 +8,7 @@ const prismaMock = vi.hoisted(() => ({
   standard: { findMany: vi.fn(), count: vi.fn() },
   application: { findMany: vi.fn(), count: vi.fn() },
   role: { findMany: vi.fn(), count: vi.fn() },
+  productModelAnatomyCategory: { findMany: vi.fn(), count: vi.fn() },
 }));
 vi.mock('../../../src/db/prisma.js', () => ({ prisma: prismaMock }));
 
@@ -51,7 +52,7 @@ describe('scheme registry', () => {
   it('knows its schemes and rejects unknown ones', () => {
     expect(SCHEMES).toContain('process');
     expect(isScheme('roles')).toBe(true);
-    expect(isScheme('product-model')).toBe(false); // joins after PM-01 lands
+    expect(isScheme('product-model')).toBe(true);
     expect(isScheme('nonsense')).toBe(false);
   });
 
@@ -121,6 +122,55 @@ describe('buildScheme', () => {
     expect(hg?.notation).toBe('HG');
   });
 
+  it('product-model: components become top concepts, anatomy rows their children', async () => {
+    prismaMock.productModelAnatomyCategory.findMany.mockResolvedValue([
+      {
+        component: 'Rating & Pricing',
+        scope: 'COMMON',
+        view: 'COMPONENT',
+        slug: 'base-rate-tables',
+        name: 'Base rate tables',
+        recommendedComponent: null,
+      },
+      {
+        component: 'Rating & Pricing',
+        scope: 'GEOGRAPHY',
+        view: 'MISPLACED',
+        slug: 'state-minimum-premium',
+        name: 'State minimum premium',
+        recommendedComponent: 'Regulatory & Filings',
+      },
+    ]);
+    const nodes = await buildScheme('product-model', 'co1');
+    expect(nodes).toEqual([
+      {
+        id: 'pm-rating-pricing',
+        label: 'Rating & Pricing',
+        notation: null,
+        parentId: null,
+        extra: null,
+      },
+      {
+        id: 'pma-base-rate-tables',
+        label: 'Base rate tables',
+        notation: null,
+        parentId: 'pm-rating-pricing',
+        extra: { scope: 'COMMON' },
+      },
+      {
+        id: 'pma-state-minimum-premium',
+        label: 'State minimum premium',
+        notation: null,
+        parentId: 'pm-rating-pricing',
+        extra: {
+          scope: 'GEOGRAPHY',
+          view: 'MISPLACED',
+          recommendedComponent: 'Regulatory & Filings',
+        },
+      },
+    ]);
+  });
+
   it('roles: org units that home roles become top concepts', async () => {
     prismaMock.role.findMany.mockResolvedValue([
       {
@@ -155,12 +205,14 @@ describe('schemeCounts', () => {
     prismaMock.standard.count.mockResolvedValue(3);
     prismaMock.application.count.mockResolvedValue(2);
     prismaMock.role.count.mockResolvedValue(1);
+    prismaMock.productModelAnatomyCategory.count.mockResolvedValue(6);
     await expect(schemeCounts('co1')).resolves.toEqual({
       process: 5,
       organization: 4,
       standards: 3,
       applications: 2,
       roles: 1,
+      'product-model': 6,
     });
     expect(prismaMock.standard.count).toHaveBeenCalledWith({ where: { companyId: 'co1' } });
   });

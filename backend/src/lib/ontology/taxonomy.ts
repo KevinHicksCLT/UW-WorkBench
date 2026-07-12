@@ -10,8 +10,14 @@ import { prisma } from '../../db/prisma.js';
 export const TB_NS = 'https://w3id.org/transformation-bridge/ontology#';
 export const TBI_NS = 'https://w3id.org/transformation-bridge/id/';
 
-// 'product-model' joins this list once PM-01 lands ProductModelAnatomyCategory.
-export const SCHEMES = ['process', 'organization', 'standards', 'applications', 'roles'] as const;
+export const SCHEMES = [
+  'process',
+  'organization',
+  'standards',
+  'applications',
+  'roles',
+  'product-model',
+] as const;
 export type SchemeId = (typeof SCHEMES)[number];
 
 export const SCHEME_TITLES: Record<SchemeId, string> = {
@@ -20,6 +26,7 @@ export const SCHEME_TITLES: Record<SchemeId, string> = {
   standards: 'Standards',
   applications: 'Applications',
   roles: 'Roles',
+  'product-model': 'Product Model',
 };
 
 export interface TaxonomyNode {
@@ -201,12 +208,53 @@ async function rolesScheme(companyId: string): Promise<TaxonomyNode[]> {
   ];
 }
 
+async function productModelScheme(companyId: string): Promise<TaxonomyNode[]> {
+  // Top concepts = the 11 product components (tbi:pm-<slug>); children = the
+  // anatomy sub-categories (tbi:pma-<slug>), scope carried as extra (§6.3 —
+  // skos:scopeNote at export time).
+  const rows = await prisma.productModelAnatomyCategory.findMany({
+    where: { companyId },
+    orderBy: [{ component: 'asc' }, { scope: 'asc' }, { view: 'asc' }, { sortOrder: 'asc' }],
+    select: {
+      component: true,
+      scope: true,
+      view: true,
+      slug: true,
+      name: true,
+      recommendedComponent: true,
+    },
+  });
+  const componentSlug = (c: string) => `pm-${c.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+  const components = [...new Set(rows.map((r) => r.component))];
+  return [
+    ...components.map((c) => ({
+      id: componentSlug(c),
+      label: c,
+      notation: null,
+      parentId: null,
+      extra: null,
+    })),
+    ...rows.map((r) => ({
+      id: `pma-${r.slug}`,
+      label: r.name,
+      notation: null,
+      parentId: componentSlug(r.component),
+      extra: {
+        scope: r.scope,
+        ...(r.view !== 'COMPONENT' ? { view: r.view } : {}),
+        ...(r.recommendedComponent ? { recommendedComponent: r.recommendedComponent } : {}),
+      },
+    })),
+  ];
+}
+
 const BUILDERS: Record<SchemeId, (companyId: string) => Promise<TaxonomyNode[]>> = {
   process: processScheme,
   organization: organizationScheme,
   standards: standardsScheme,
   applications: applicationsScheme,
   roles: rolesScheme,
+  'product-model': productModelScheme,
 };
 
 export function isScheme(value: string): value is SchemeId {
@@ -220,12 +268,20 @@ export function buildScheme(scheme: SchemeId, companyId: string): Promise<Taxono
 
 /** Concept count per scheme (cheap — one count query each, in parallel). */
 export async function schemeCounts(companyId: string): Promise<Record<SchemeId, number>> {
-  const [process, organization, standards, applications, roles] = await Promise.all([
+  const [process, organization, standards, applications, roles, productModel] = await Promise.all([
     prisma.processNode.count({ where: { companyId } }),
     prisma.orgUnit.count({ where: { companyId } }),
     prisma.standard.count({ where: { companyId } }),
     prisma.application.count({ where: { companyId } }),
     prisma.role.count({ where: { companyId } }),
+    prisma.productModelAnatomyCategory.count({ where: { companyId } }),
   ]);
-  return { process, organization, standards, applications, roles };
+  return {
+    process,
+    organization,
+    standards,
+    applications,
+    roles,
+    'product-model': productModel,
+  };
 }
