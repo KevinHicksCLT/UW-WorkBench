@@ -26,6 +26,8 @@ export type NormalizeNodeData = {
   matchMeta: MatchMeta;
   /** The two legacy sources framing the comparison columns. */
   sourceNames: [string, string] | null;
+  /** The layer's accent color (vocabulary dot) — the wireframe's per-row border. */
+  accent?: string | null;
   onEntryAction?: (entryId: string, action: EntryAction) => void;
 };
 
@@ -93,7 +95,7 @@ function NormalizedCell({ e, d }: { e: NormalizationEntry; d: NormalizeNodeData 
           <span className="inline-flex items-center rounded bg-white/80 border border-[#c7d2fe] px-1 text-[9px] font-bold text-[#4338ca]">
             #{e.notation}
           </span>
-          <div className="text-[11px] font-bold text-[#171717] leading-tight mt-0.5">{e.name}</div>
+          <div className="text-[10px] font-bold text-[#171717] leading-tight mt-0.5">{e.name}</div>
           <div className="text-[10px] text-[#525252] mt-0.5">
             {lineCount ? `${lineCount}+ fields · ` : ''}1 capability
           </div>
@@ -136,7 +138,7 @@ function SourceCardCell({ card, source }: { card: SourceCard | undefined; source
       {card.lines && (
         <div className="mt-0.5">
           {card.lines.map((line) => (
-            <div key={line} className="flex items-center gap-1 text-[10px] leading-[15px]">
+            <div key={line} className="flex items-center gap-1 text-[9px] leading-[13px]">
               <span className="text-[#525252] truncate flex-1">{line}</span>
               <span aria-hidden="true" className="text-[#10b981] text-[9px] flex-shrink-0">
                 ✓
@@ -231,29 +233,32 @@ export function NormalizeNode({ data }: NodeProps) {
   const d = data as NormalizeNodeData;
   const { shown, hidden } = visibleNormalizeEntries(d.entries);
   const hasCards = shown.some((e) => (e.sourceCards ?? []).length > 0);
+  const accent = d.accent ?? '#6366f1';
   return (
     <div
-      className="rounded-lg border-2 border-[#c7d2fe] bg-[#f5f7ff] shadow-sm px-2.5 py-2 cursor-pointer hover:border-[#a5b4fc]"
-      style={{ width: NORM_W }}
+      className="rounded-md border-2 bg-white shadow-sm px-2 py-1.5 cursor-pointer hover:shadow"
+      style={{ width: NORM_W, borderColor: accent }}
       title="Click for the normalized findings"
     >
       {sideHandles}
       <div className="flex items-start justify-between gap-2">
-        <div className="text-[14px] font-bold text-[#171717] leading-tight">{d.name}</div>
-        <div className="text-[11px] text-[#4338ca] tnum flex-shrink-0 mt-0.5 font-semibold">
-          {d.rawCount} raw → {d.entries.length}
+        <div className="text-[11.5px] font-bold text-[#171717] leading-tight">· {d.name}</div>
+        <div className="text-[9.5px] tnum flex-shrink-0 mt-px font-bold">
+          <span className="text-[#171717]">{d.rawCount} raw</span>{' '}
+          <span style={{ color: accent }}>→ {d.entries.length}</span>
         </div>
       </div>
-      {d.destination && <div className="text-[11px] text-[#0f766e] mt-0.5">→ {d.destination}</div>}
       {/* 3-column header band — SOURCE A | SOURCE B | NORMALIZED */}
       {hasCards && d.sourceNames && (
-        <div className="grid grid-cols-3 gap-1 mt-1.5 border-b border-[#dfe3f5] pb-0.5">
+        <div
+          className="grid grid-cols-3 gap-1 mt-1 border-b pb-0.5"
+          style={{ borderColor: `${accent}55` }}
+        >
           {[d.sourceNames[0], d.sourceNames[1], 'Normalized'].map((h, i) => (
             <div
               key={h}
-              className={`text-[9px] font-bold uppercase tracking-[0.07em] truncate ${
-                i === 2 ? 'text-[#4338ca]' : 'text-[#8f8f8f]'
-              }`}
+              className="text-[8px] font-bold uppercase tracking-[0.06em] truncate"
+              style={{ color: i === 2 ? accent : '#8f8f8f' }}
             >
               {h}
             </div>
@@ -261,7 +266,7 @@ export function NormalizeNode({ data }: NodeProps) {
         </div>
       )}
       {shown.length > 0 && (
-        <div className="mt-1.5 space-y-1">
+        <div className="mt-1 space-y-1">
           {shown.map((e) =>
             (e.sourceCards ?? []).length > 0 ? (
               <ComparisonRow key={e.id} e={e} d={d} />
@@ -272,8 +277,8 @@ export function NormalizeNode({ data }: NodeProps) {
         </div>
       )}
       {hidden > 0 && (
-        <div className="mt-1 text-[10px] text-[#8f8f8f] italic">
-          + {hidden} more normalized — click the box for the full list
+        <div className="mt-0.5 text-[8.5px] text-[#8f8f8f] italic">
+          + {hidden} more normalized — click for the full list
         </div>
       )}
     </div>

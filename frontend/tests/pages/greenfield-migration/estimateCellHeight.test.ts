@@ -6,8 +6,7 @@ import { describe, expect, it } from 'vitest';
 import {
   CELL_BASE_H,
   CELL_HEADER_H,
-  DEAD_BASE_H,
-  DEAD_ROW_H,
+  DEAD_LANE_H,
   EMPTY_CELL_H,
   EXPAND_ALL,
   ITEM_ROW_H,
@@ -20,7 +19,7 @@ import {
   NORM_HELD_EXTRA,
   SLOT_H,
   SLOT_MARGIN,
-  VISIBLE_ROWS,
+  STAY_CAP,
   deadLaneHeight,
   estimateCellHeight,
   estimateNormalizeHeight,
@@ -90,23 +89,28 @@ describe('estimateCellHeight', () => {
     expect(estimateCellHeight(tags, [])).toBe(CELL_HEADER_H + CELL_BASE_H + 3 * ITEM_ROW_H);
   });
 
-  it('caps visible rows and adds the "+N more" fold beyond the cap', () => {
-    const many = tag(
+  it('folds stays past STAY_CAP but always shows every mover', () => {
+    const stays = tag(
       'Forms',
-      Array.from({ length: VISIBLE_ROWS + 3 }, () => finding()),
+      Array.from({ length: STAY_CAP + 4 }, () => finding()),
     );
-    expect(estimateCellHeight([many], [])).toBe(
-      CELL_HEADER_H + CELL_BASE_H + VISIBLE_ROWS * ITEM_ROW_H + MORE_ROW_H,
+    const movers = tag(
+      'Rules',
+      Array.from({ length: 2 }, () => finding({ capdan: 'Relocate' })),
+      { capdan: 'Relocate' },
+    );
+    expect(estimateCellHeight([stays, movers], [])).toBe(
+      CELL_HEADER_H + CELL_BASE_H + (STAY_CAP + 2) * ITEM_ROW_H + MORE_ROW_H,
     );
   });
 
-  it('EXPAND_ALL shows every row (fold row still charged)', () => {
+  it('EXPAND_ALL shows every row (collapse row still charged)', () => {
     const many = tag(
       'Forms',
-      Array.from({ length: VISIBLE_ROWS + 3 }, () => finding()),
+      Array.from({ length: STAY_CAP + 3 }, () => finding()),
     );
     expect(estimateCellHeight([many], [EXPAND_ALL])).toBe(
-      CELL_HEADER_H + CELL_BASE_H + (VISIBLE_ROWS + 3) * ITEM_ROW_H + MORE_ROW_H,
+      CELL_HEADER_H + CELL_BASE_H + (STAY_CAP + 3) * ITEM_ROW_H + MORE_ROW_H,
     );
   });
 
@@ -166,9 +170,9 @@ describe('estimateNormalizeHeight', () => {
 });
 
 describe('deadLaneHeight', () => {
-  it('charges the heading plus one row per dead finding', () => {
-    expect(deadLaneHeight(0)).toBe(DEAD_BASE_H);
-    expect(deadLaneHeight(7)).toBe(DEAD_BASE_H + 7 * DEAD_ROW_H);
+  it('is the wireframe single-line band regardless of count', () => {
+    expect(deadLaneHeight(0)).toBe(DEAD_LANE_H);
+    expect(deadLaneHeight(7)).toBe(DEAD_LANE_H);
   });
 });
 

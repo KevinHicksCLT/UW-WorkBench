@@ -34,7 +34,6 @@ import {
   NORM_W,
   PANEL_GAP,
   PANEL_PAD,
-  X,
   columnXs,
   deadLaneHeight,
   estimateCellHeight,
@@ -250,15 +249,8 @@ export function buildBoardBase(
   const deadFindings = detail.findings.filter((f) => f.deadCode);
   const hasDeadLane = deadFindings.length > 0;
 
+  // No far-left layer labels — the wireframe's sections self-label.
   layers.forEach((layer, li) => {
-    nodes.push({
-      id: `lbl:${layer}`,
-      type: 'layerLabel',
-      position: { x: X.label, y: offsets[li] + slotHeights[li] / 2 - 12 },
-      data: { layer, hint: opts.layerHints?.[layer] ?? null },
-      ...lock,
-    });
-
     const tags = tagsByLayer[li];
     if (selApp) {
       nodes.push({
@@ -335,11 +327,22 @@ export function buildBoardBase(
           entries: layerEntries,
           matchMeta,
           sourceNames,
+          accent: opts.layerMeta?.[layer]?.dot ?? null,
           onEntryAction: opts.onEntryAction,
         },
       });
     }
   });
+
+  // The wireframe's panel-footer legend under the legacy column.
+  if (selApp)
+    nodes.push({
+      id: 'note:legend',
+      type: 'note',
+      position: { x: xs.legacy + PANEL_PAD, y: boardHeight + PANEL_PAD - 6 },
+      data: { width: LEG_W },
+      ...lock,
+    });
 
   // Greenfield services — slotted onto the shared baseline grid at the slot
   // nearest the centre of the layers they own. Collisions advance to the
@@ -366,7 +369,7 @@ export function buildBoardBase(
     nodes.push({
       id: `svc:${m.id}`,
       type: 'service',
-      position: { x: xs.greenfield + PANEL_PAD, y: slotY(slot) + stack * 100 },
+      position: { x: xs.greenfield + PANEL_PAD, y: slotY(slot) + stack * 76 },
       data: { name: m.name, status: m.status, tech: m.techStack, layers: owned, count },
     });
   });

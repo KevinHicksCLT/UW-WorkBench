@@ -488,14 +488,8 @@ export default function ApplicationRationalization({
                   onNodeClick={onNodeClick}
                   onNodeDoubleClick={onNodeDoubleClick}
                   fitView
-                  // Fit the WIDTH; a tall board pans vertically instead of
-                  // shrinking to an unreadable thumbnail (v3 wireframe density).
-                  fitViewOptions={{ padding: 0.03, minZoom: 0.55, maxZoom: 0.95 }}
-                  onInit={(inst) => {
-                    // Start at the TOP of the board (fitView centers vertically).
-                    const vp = inst.getViewport();
-                    inst.setViewport({ ...vp, y: 16 + 72 * vp.zoom });
-                  }}
+                  // The wireframe shows the WHOLE board at once — fit it.
+                  fitViewOptions={{ padding: 0.02, maxZoom: 1 }}
                   nodesDraggable={editing}
                   nodesConnectable={editing}
                   elementsSelectable={editing}

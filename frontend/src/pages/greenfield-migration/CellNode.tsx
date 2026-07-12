@@ -17,7 +17,7 @@ import type {
   LayerMeta,
   WhyThisMoves,
 } from '../../lib/rationalization';
-import { BOX_W, EXPAND_ALL, VISIBLE_ROWS, whyToken } from './cellGeometry';
+import { BOX_W, EXPAND_ALL, visibleCellRows, whyToken } from './cellGeometry';
 
 // Handles are hidden in read mode and revealed via the `.board-editing` CSS
 // class on the canvas when editing; connectability follows the global
@@ -75,23 +75,23 @@ function WhyThisMovesPanel({ why }: { why: WhyThisMoves }) {
     ['Validation', why.validated],
   ];
   return (
-    <div className="mt-1 mb-1 rounded-md border border-[#fecdd3] border-l-2 border-l-[#e11d48] bg-[#fff7f7] px-2.5 py-2">
-      <div className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#be123c]">
+    <div className="mt-0.5 mb-0.5 rounded border border-[#fecdd3] border-l-2 border-l-[#e11d48] bg-[#fff7f7] px-2 py-1">
+      <div className="text-[8.5px] font-bold uppercase tracking-[0.07em] text-[#be123c]">
         Why this moves — what happens on this screen
       </div>
-      <div className="mt-1 space-y-0.5">
+      <div className="mt-0.5">
         {rows
           .filter((r): r is [string, string] => Boolean(r[1]))
           .map(([k, v]) => (
-            <div key={k} className="flex gap-2 text-[11px] leading-snug">
-              <span className="w-[64px] flex-shrink-0 text-[#a3a3a3] font-medium">{k}</span>
-              <span className="text-[#525252]">{v}</span>
+            <div key={k} className="flex gap-1.5 text-[9.5px] leading-[13px]">
+              <span className="w-[52px] flex-shrink-0 text-[#a3a3a3] font-medium">{k}</span>
+              <span className="text-[#525252] truncate">{v}</span>
             </div>
           ))}
         {why.lands && (
-          <div className="flex gap-2 text-[11px] leading-snug">
-            <span className="w-[64px] flex-shrink-0 text-[#a3a3a3] font-medium">Lands in</span>
-            <span className="font-semibold text-[#0f766e]">{why.lands}</span>
+          <div className="flex gap-1.5 text-[9.5px] leading-[13px]">
+            <span className="w-[52px] flex-shrink-0 text-[#a3a3a3] font-medium">Lands in</span>
+            <span className="font-semibold text-[#0f766e] truncate">{why.lands}</span>
           </div>
         )}
       </div>
@@ -115,7 +115,7 @@ function ItemRow({ f, tag, d }: { f: Finding; tag: CategoryTag; d: CellNodeData 
           d.onSelectFinding?.(f);
           if (canExpand) d.onToggle(d.appId, d.layer, whyToken(f.id));
         }}
-        className={`w-full flex items-center gap-1.5 rounded-md border px-2 py-1 text-left ${
+        className={`w-full flex items-center gap-1 rounded border px-1.5 py-0.5 text-left ${
           tag.stays
             ? 'border-transparent hover:border-[#e5e5e5] bg-transparent'
             : whyOpen
@@ -126,25 +126,25 @@ function ItemRow({ f, tag, d }: { f: Finding; tag: CategoryTag; d: CellNodeData 
       >
         <span
           aria-hidden="true"
-          className={`text-[12px] font-bold leading-none flex-shrink-0 ${
+          className={`text-[10px] font-bold leading-none flex-shrink-0 ${
             tag.stays ? 'text-[#10b981]' : 'text-[#e11d48]'
           }`}
         >
           {tag.stays ? '✓' : '✗'}
         </span>
         <span
-          className="flex-shrink-0 max-w-[92px] truncate rounded border border-[#dbe4f0] bg-[#f0f6ff] px-1 py-px text-[10px] font-semibold text-[#1d4ed8]"
+          className="flex-shrink-0 max-w-[80px] truncate rounded border border-[#dbe4f0] bg-[#f0f6ff] px-1 text-[8.5px] font-semibold text-[#1d4ed8]"
           title={tag.category}
         >
           {tag.category}
         </span>
-        <span className="text-[12px] text-[#171717] leading-snug truncate flex-1 min-w-0">
+        <span className="text-[10px] text-[#171717] leading-[13px] truncate flex-1 min-w-0">
           {f.name}
         </span>
         {tag.stays ? (
-          <span className="flex-shrink-0 text-[10px] text-[#a3a3a3]">correct here</span>
+          <span className="flex-shrink-0 text-[8.5px] text-[#a3a3a3]">correct here</span>
         ) : (
-          <span className="flex-shrink-0 inline-flex items-center rounded border border-[#fecdd3] bg-[#fff1f2] px-1.5 py-px text-[10px] font-bold text-[#be123c]">
+          <span className="flex-shrink-0 inline-flex items-center rounded border border-[#fecdd3] bg-[#fff1f2] px-1 text-[8.5px] font-bold text-[#be123c]">
             → {moveDestination(f, d.sharedNames)}
           </span>
         )}
@@ -157,7 +157,7 @@ function ItemRow({ f, tag, d }: { f: Finding; tag: CategoryTag; d: CellNodeData 
               e.stopPropagation();
               d.onEditFinding?.(f.id);
             }}
-            className="flex-shrink-0 text-[11px] text-[#c9c9c9] hover:text-[#171717] leading-none"
+            className="flex-shrink-0 text-[9px] text-[#c9c9c9] hover:text-[#171717] leading-none"
             title="Edit finding"
           >
             ✎
@@ -171,94 +171,85 @@ function ItemRow({ f, tag, d }: { f: Finding; tag: CategoryTag; d: CellNodeData 
 
 export function CellNode({ data }: NodeProps) {
   const d = data as CellNodeData;
-  // Stay rows first, then movers — the wireframe's reading order.
-  const rows: { f: Finding; tag: CategoryTag }[] = [];
+  // The wireframe's reading order: stays first, then every mover.
+  const stayRows: { f: Finding; tag: CategoryTag }[] = [];
+  const moveRows: { f: Finding; tag: CategoryTag }[] = [];
   for (const tag of d.tags.filter((t) => t.stays))
-    for (const f of tag.findings) rows.push({ f, tag });
+    for (const f of tag.findings) stayRows.push({ f, tag });
   for (const tag of d.tags.filter((t) => !t.stays))
-    for (const f of tag.findings) rows.push({ f, tag });
+    for (const f of tag.findings) moveRows.push({ f, tag });
+  const total = stayRows.length + moveRows.length;
 
-  const stay = rows.filter((r) => r.tag.stays).length;
-  const move = rows.length - stay;
   const showAll = d.expanded.includes(EXPAND_ALL);
-  const visible = showAll ? rows : rows.slice(0, VISIBLE_ROWS);
-  const hidden = rows.length - visible.length;
+  const { shown, hidden } = visibleCellRows(stayRows, moveRows, showAll);
   const meta = d.layerMeta;
+  const dot = meta?.dot ?? '#a3a3a3';
 
   return (
     <div
-      className="rounded-lg border border-[#e7e2d8] bg-[#fffdf8] shadow-sm px-2.5 py-2"
+      className="rounded-md border border-[#e8e6e1] bg-white shadow-sm px-1.5 py-1.5"
       style={{ width: BOX_W }}
     >
       {sideHandles}
-      {/* Section header — dot · "<layer> layer" · descriptor · count · roll-up */}
-      <div className="flex items-center gap-1.5 border-b border-[#f0ece2] pb-1.5 mb-1.5">
+      {/* Section header strip — tinted by the layer's dot color. */}
+      <div
+        className="flex items-center gap-1 rounded px-1.5 py-1 mb-1"
+        style={{ background: `${dot}14` }}
+      >
         <span
           aria-hidden="true"
-          className="w-2 h-2 rounded-full flex-shrink-0"
-          style={{ background: meta?.dot ?? '#a3a3a3' }}
+          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+          style={{ background: dot }}
         />
-        <span className="text-[12px] font-bold text-[#171717]">{d.layer} layer</span>
+        <span className="text-[10.5px] font-bold text-[#171717]">{d.layer} layer</span>
         {meta?.descriptor && (
-          <span className="text-[10px] text-[#a3a3a3] truncate">{meta.descriptor}</span>
+          <span className="text-[8.5px] text-[#a3a3a3] truncate">{meta.descriptor}</span>
         )}
-        <span className="inline-flex items-center justify-center min-w-[20px] h-[16px] rounded-full bg-[#f0f0f0] px-1 text-[10px] font-bold text-[#525252]">
-          {rows.length}
+        <span className="inline-flex items-center justify-center min-w-[16px] h-[13px] rounded-full bg-white/80 px-1 text-[8.5px] font-bold text-[#525252]">
+          {total}
         </span>
         <span className="flex-1" />
-        <span className="text-[10px] font-semibold tnum flex-shrink-0">
-          {stay > 0 && <span className="text-[#047857]">{stay} stay</span>}
-          {stay > 0 && move > 0 && <span className="text-[#d4d4d4]"> · </span>}
-          {move > 0 && <span className="text-[#be123c]">{move} move</span>}
+        <span className="text-[8.5px] font-semibold tnum flex-shrink-0">
+          {stayRows.length > 0 && <span className="text-[#047857]">{stayRows.length} stay</span>}
+          {stayRows.length > 0 && moveRows.length > 0 && (
+            <span className="text-[#d4d4d4]"> · </span>
+          )}
+          {moveRows.length > 0 && <span className="text-[#be123c]">{moveRows.length} move</span>}
         </span>
       </div>
 
-      {rows.length === 0 ? (
-        <span className="text-[13px] text-[#cfcfcf]">—</span>
+      {total === 0 ? (
+        <span className="text-[11px] text-[#cfcfcf]">—</span>
       ) : (
-        <div className="space-y-px">
-          {visible.map(({ f, tag }) => (
+        <div>
+          {shown.map(({ f, tag }) => (
             <ItemRow key={f.id} f={f} tag={tag} d={d} />
           ))}
-          {hidden > 0 && (
+          {(hidden > 0 || showAll) && (
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 d.onToggle(d.appId, d.layer, EXPAND_ALL);
               }}
-              className="px-2 pt-0.5 text-[11px] font-medium text-[#8f8f8f] hover:text-[#171717]"
+              className="px-1.5 pt-0.5 text-[9px] font-medium text-[#8f8f8f] hover:text-[#171717]"
             >
-              + {hidden} more…
+              {showAll ? '− collapse' : `+ ${hidden} more…`}
             </button>
           )}
-          {showAll && rows.length > VISIBLE_ROWS && (
+          {d.onAddFinding && (
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                d.onToggle(d.appId, d.layer, EXPAND_ALL);
+                d.onAddFinding?.(d.appId, d.layer);
               }}
-              className="px-2 pt-0.5 text-[11px] font-medium text-[#8f8f8f] hover:text-[#171717]"
+              className="px-1.5 pt-0.5 text-[9px] font-medium text-[#c9c9c9] hover:text-[#171717]"
+              title="Add a finding to this section"
             >
-              − collapse
+              + finding
             </button>
           )}
-        </div>
-      )}
-      {d.onAddFinding && (
-        <div className="mt-1">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              d.onAddFinding?.(d.appId, d.layer);
-            }}
-            className="text-[11px] font-medium text-[#c9c9c9] hover:text-[#171717]"
-            title="Add a finding to this section"
-          >
-            + finding
-          </button>
         </div>
       )}
     </div>

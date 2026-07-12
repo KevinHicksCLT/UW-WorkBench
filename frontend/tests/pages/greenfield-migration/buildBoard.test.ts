@@ -50,7 +50,8 @@ describe('buildBoardBase — product domain (fixture)', () => {
     const { board, detail } = productBoard();
     // 11 product components, one section cell each — for the first model only.
     expect(ofType(board.nodes, 'cell')).toHaveLength(11);
-    expect(ofType(board.nodes, 'layerLabel')).toHaveLength(11);
+    // The wireframe's sections self-label — no far-left layer labels.
+    expect(ofType(board.nodes, 'layerLabel')).toHaveLength(0);
     const first = detail.apps.filter((a) => a.kind !== 'SHARED_SERVICE')[0];
     for (const cell of ofType(board.nodes, 'cell'))
       expect((cell.data as { appId: string }).appId).toBe(first.id);

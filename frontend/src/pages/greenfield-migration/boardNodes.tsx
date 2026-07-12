@@ -33,27 +33,13 @@ function ServiceNode({ data }: NodeProps) {
     >
       {sideHandles}
       <div className="flex items-center justify-between">
-        <div className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#0f766e]">
+        <div className="text-[9px] font-bold uppercase tracking-[0.08em] text-[#0f766e]">
           {d.status}
         </div>
-        <div className="text-[12px] text-[#0f766e] tnum">{d.count} in ›</div>
+        <div className="text-[9.5px] text-[#0f766e] tnum">{d.count} in ›</div>
       </div>
-      <div className="text-[18px] font-bold text-[#171717] leading-tight mt-0.5">{d.name}</div>
-      {/* Rows this target owns — only worth showing when it spans more than
-          the row it sits on (a single row is already given by alignment) */}
-      {d.layers.length > 1 && (
-        <div className="flex flex-wrap gap-1 mt-1.5">
-          {d.layers.map((l) => (
-            <span
-              key={l}
-              className="inline-flex items-center rounded border border-[#99f6e4] bg-white/70 px-1.5 py-0.5 text-[12px] font-medium text-[#0f766e]"
-            >
-              {l}
-            </span>
-          ))}
-        </div>
-      )}
-      {d.tech && <div className="text-[12px] text-[#a3a3a3] mt-1.5 leading-snug">{d.tech}</div>}
+      <div className="text-[12px] font-bold text-[#171717] leading-tight mt-0.5">{d.name}</div>
+      {d.tech && <div className="text-[9px] text-[#8f8f8f] mt-0.5 leading-snug">{d.tech}</div>}
     </div>
   );
 }
@@ -170,9 +156,10 @@ function LayerLabelNode({ data }: NodeProps) {
 export type DeadItem = { id: string; name: string; appName: string; retired: boolean };
 
 /**
- * Full-width red band listing `deadCode` findings across all sources —
- * unreachable / superseded code retired with sign-off (the retire button
- * confirms through useDialogs in the shell).
+ * Full-width red band — the wireframe's single-line dead-code lane:
+ * `Dead code 7 · across both apps — unreachable / superseded, retire with
+ * sign-off`. The item names ride in the band's tooltip; retirement runs from
+ * the drill-down (the first unretired item keeps a compact Retire affordance).
  */
 function DeadLaneNode({ data }: NodeProps) {
   const d = data as {
@@ -181,58 +168,47 @@ function DeadLaneNode({ data }: NodeProps) {
     appCount: number;
     onRetire?: (findingId: string) => void;
   };
+  const open = d.items.filter((it) => !it.retired);
   return (
     <div
-      className="rounded-xl border-2 border-dashed border-[#fecdd3] bg-[#fff7f7] px-4 py-3"
+      className="rounded-lg border border-[#fecdd3] bg-[#fff1f2] px-3 py-2 flex items-center gap-2"
       style={{ width: d.width }}
+      title={d.items.map((it) => `${it.name} — ${it.appName}`).join('\n')}
     >
       <Handle id="l" type="target" position={Position.Left} className="board-handle" />
-      <div className="flex items-center gap-2">
-        <span className="text-[12px] font-bold text-[#be123c]">Dead code · {d.items.length}</span>
-        <span className="text-[11px] text-[#a3a3a3]">
-          across {d.appCount === 1 ? 'one source' : `${d.appCount} sources`} — unreachable /
-          superseded, retire with sign-off
-        </span>
-      </div>
-      <div className="mt-1.5 space-y-1">
-        {d.items.map((it) => (
-          <div
-            key={it.id}
-            className="flex items-center gap-2 rounded-md border border-[#fecdd3] bg-white/70 px-2 py-1"
-          >
-            <span aria-hidden="true" className="text-[12px] font-bold text-[#e11d48] flex-shrink-0">
-              ✗
-            </span>
-            <span
-              className="text-[12px] font-medium text-[#171717] truncate flex-1 min-w-0"
-              title={it.name}
-            >
-              {it.name}
-            </span>
-            <span className="text-[10px] text-[#a3a3a3] flex-shrink-0 truncate max-w-[180px]">
-              {it.appName}
-            </span>
-            {it.retired ? (
-              <span className="inline-flex items-center rounded border border-[#e2e8f0] bg-[#f8fafc] px-1.5 py-0.5 text-[10px] font-semibold text-[#475569] flex-shrink-0">
-                Retired
-              </span>
-            ) : (
-              d.onRetire && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    d.onRetire?.(it.id);
-                  }}
-                  className="rounded border border-[#fecdd3] bg-white px-1.5 py-0.5 text-[10px] font-semibold text-[#be123c] hover:shadow-sm flex-shrink-0"
-                >
-                  Retire
-                </button>
-              )
-            )}
-          </div>
-        ))}
-      </div>
+      <span className="text-[11px] font-bold text-[#be123c] flex-shrink-0">
+        Dead code <span className="tnum">{d.items.length}</span>
+      </span>
+      <span className="text-[10px] text-[#8f8f8f] truncate">
+        across {d.appCount === 1 ? 'one source' : `${d.appCount === 2 ? 'both' : d.appCount} apps`}{' '}
+        — unreachable / superseded, retire with sign-off
+      </span>
+      <span className="flex-1" />
+      {open.length > 0 && d.onRetire && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            d.onRetire?.(open[0].id);
+          }}
+          className="flex-shrink-0 rounded border border-[#fecdd3] bg-white px-1.5 py-px text-[9px] font-semibold text-[#be123c] hover:shadow-sm"
+          title={`Retire "${open[0].name}"`}
+        >
+          Retire next ({open.length})
+        </button>
+      )}
+    </div>
+  );
+}
+
+/** The wireframe's panel-footer legend line under the legacy column. */
+function NoteNode({ data }: NodeProps) {
+  const d = data as { width: number };
+  return (
+    <div className="text-[8.5px] leading-snug text-[#8f8f8f]" style={{ width: d.width }}>
+      <span className="font-semibold text-[#047857]">Green line</span> = in the right layer.{' '}
+      <span className="font-semibold text-[#be123c]">Red line</span> = misplaced, shows where it
+      goes. Every section collapses with its counts.
     </div>
   );
 }
@@ -246,5 +222,6 @@ export const nodeTypes = {
   header: HeaderNode,
   layerLabel: LayerLabelNode,
   deadLane: DeadLaneNode,
+  note: NoteNode,
 };
 export const edgeTypes = { relocate: RelocateEdge };
