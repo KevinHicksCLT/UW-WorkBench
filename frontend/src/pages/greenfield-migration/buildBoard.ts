@@ -1,10 +1,13 @@
 /**
- * Data → board builder for the workspace board (v3). ONE builder serves both
- * domains — the row axis, classification meta and domain arrive as options
- * (from the vocabulary), never as hardcoded arrays. Renders N legacy columns
- * (the pre-v3 two-app cap is gone), per-column roll-up headers, Normalize
- * boxes with normalization entries, the full-width dead-code lane, the
- * shared-services lane (WR-15), and the green stay / red move edge model.
+ * Data → board builder for the workspace board (v3 wireframe). ONE builder
+ * serves both domains — the row axis, classification meta and domain arrive as
+ * options (from the vocabulary), never as hardcoded arrays.
+ *
+ * v3 wireframe layout: ONE legacy panel on the left showing the selected
+ * source's findings per layer section (app-switcher chips in its header), the
+ * wide Normalize comparison column in the center (side-by-side source cards),
+ * the Greenfield targets on the right, and the full-width dead-code lane.
+ * Green stay-edges and red move-edges carry the wireframe's count badges.
  */
 import type { Node, Edge } from '@xyflow/react';
 import {
@@ -14,38 +17,42 @@ import {
   type ClassificationMeta,
   type ColumnStats,
   type Domain,
+  type Finding,
   type FindingView,
   type Layer,
+  type LayerMeta,
   type MatchMeta,
   type NormalizationEntry,
   type StageDetail,
 } from '../../lib/rationalization';
 import {
-  BOX_W,
-  PANEL_PAD,
-  PANEL_W,
-  PANEL_GAP,
+  GF_W,
   HEADER_H,
   LANE_GAP,
   LANE_H,
+  LEG_W,
+  NORM_W,
+  PANEL_GAP,
+  PANEL_PAD,
   X,
+  columnXs,
   deadLaneHeight,
   estimateCellHeight,
   estimateNormalizeHeight,
-  panelX,
+  panelW,
   slotHeightFor,
   slotOffsets,
 } from './cellGeometry';
 import { tagKey, type CellAnatomyRow, type CellScreen, type ToggleCategoryFn } from './CellNode';
 import type { EntryAction } from './normalizeNodes';
-import { chainEdge, greenfieldEdge, moveEdge, sharedEdge, stayEdge } from './edges';
+import { greenfieldEdge, moveEdge, sharedEdge, stayEdge } from './edges';
 import type { DeadItem } from './boardNodes';
 
 /** Inputs that shape the derived board beyond the stage detail itself. */
 export type BoardBuildOptions = {
   /** WR-06 anatomy lens — null when the domain has no view axis. */
   view: FindingView | null;
-  /** WR-10 in-box expansion state: `cell:<appId>:<layer>` → expanded categories. */
+  /** Expansion tokens per cell: `cell:<appId>:<layer>` → tokens. */
   expanded: Record<string, string[]>;
   onToggleCategory: ToggleCategoryFn;
   /** Anatomy-catalog rows (chip tooltips + product in-box anatomy, 3-D). */
@@ -53,19 +60,24 @@ export type BoardBuildOptions = {
   /** Vocabulary-derived lookups (3-A) — the axis and all meta. */
   layers: Layer[];
   layerHints?: Record<string, string>;
+  layerMeta?: Record<string, LayerMeta>;
   classification: ClassificationMeta;
   matchMeta: MatchMeta;
   domain: Domain;
+  /** Which legacy source the left panel shows (defaults to the first). */
+  selectedSourceId?: string | null;
+  onSelectSource?: (appId: string) => void;
   /** Selected source pair framing Normalize comparisons when > 2 columns. */
   comparePair?: [string, string] | null;
   /** v3 interactions (all optional — the builder stays renderable in tests). */
+  onSelectFinding?: (finding: Finding) => void;
   onEntryAction?: (entryId: string, action: EntryAction) => void;
   onRetireFinding?: (findingId: string) => void;
   onEditFinding?: (findingId: string) => void;
   onAddFinding?: (appId: string, layer: Layer) => void;
 };
 
-/** Header stats line: `12 screens · 80 steps · 43 correct · 17 move`. */
+/** Header stats line: `12 screens · 60 steps · 43 correct · 17 move`. */
 export function columnStatsLine(stats: ColumnStats | undefined, screens: number): string | null {
   if (!stats) return null;
   const parts = [
@@ -95,6 +107,7 @@ export function buildBoardBase(
   // Shared services (WR-15) live in their own lane, not the legacy columns.
   const legacyApps = detail.apps.filter((a) => a.kind !== 'SHARED_SERVICE');
   const sharedApps = detail.apps.filter((a) => a.kind === 'SHARED_SERVICE');
+  const selApp = legacyApps.find((a) => a.id === opts.selectedSourceId) ?? legacyApps[0] ?? null;
   const entries = detail.normalizationEntries ?? [];
   const entriesByLayer = new Map<Layer, NormalizationEntry[]>();
   for (const e of entries) {
@@ -102,6 +115,16 @@ export function buildBoardBase(
     arr.push(e);
     entriesByLayer.set(e.layer, arr);
   }
+
+  // The two sources framing the Normalize comparison columns.
+  const pairApps =
+    legacyApps.length > 2 && opts.comparePair
+      ? (opts.comparePair
+          .map((id) => legacyApps.find((a) => a.id === id))
+          .filter(Boolean) as typeof legacyApps)
+      : legacyApps.slice(0, 2);
+  const sourceNames: [string, string] | null =
+    pairApps.length === 2 ? [pairApps[0].name, pairApps[1].name] : null;
 
   // Layers owned by each greenfield service + kept-finding counts.
   const layersByService = new Map<string, Layer[]>();
@@ -135,28 +158,16 @@ export function buildBoardBase(
   for (const s of detail.screens)
     if (s.appId) screensByApp.set(s.appId, (screensByApp.get(s.appId) ?? 0) + 1);
 
-  // Matched anatomy sub-categories per expanded tag (product boards, capped).
-  const anatomyFor = (layer: Layer, capdan: string): CellAnatomyRow[] =>
-    (anatomyByLayerScope[`${layer}␟${(capdan ?? '').toUpperCase()}`] ?? []).slice(0, 6);
-
-  // Variable slot heights (WR-10 + v3): tags per layer × app are
-  // view-filtered; each layer's slot grows to fit its tallest box — legacy
-  // cells (with expansions, WHY panels, anatomy) or the Normalize box.
+  // Variable slot heights: the selected source's cell vs the Normalize box.
   const expandedFor = (appId: string, layer: Layer) => expanded[`cell:${appId}:${layer}`] ?? [];
-  const tagsByLayerApp = layers.map((layer) =>
-    legacyApps.map((a) =>
-      categoryTags(detail.findings, layer, classification, a.id, view ?? undefined),
-    ),
+  const tagsByLayer = layers.map((layer) =>
+    selApp
+      ? categoryTags(detail.findings, layer, classification, selApp.id, view ?? undefined)
+      : [],
   );
   const slotHeights = layers.map((layer, li) =>
     slotHeightFor([
-      ...legacyApps.map((a, i) =>
-        estimateCellHeight(tagsByLayerApp[li][i], expandedFor(a.id, layer), (tag) =>
-          expandedFor(a.id, layer).includes(tag.category)
-            ? anatomyFor(layer, tag.capdan).length
-            : 0,
-        ),
-      ),
+      selApp ? estimateCellHeight(tagsByLayer[li], expandedFor(selApp.id, layer)) : 0,
       estimateNormalizeHeight(entriesByLayer.get(layer) ?? []),
     ]),
   );
@@ -164,44 +175,55 @@ export function buildBoardBase(
   const slotY = (li: number) => offsets[li] + PANEL_PAD;
   const boardHeight = slotHeights.reduce((s, h) => s + h, 0);
 
-  // Panels — one framed column per stage (each legacy source, Normalize,
-  // Greenfield); header text is a separate node ON the band so the panel can
-  // stay pointer-transparent (pan/zoom passes through, dblclick-app works).
-  const appXs = legacyApps.map((_, i) => panelX(i));
-  const capX = panelX(legacyApps.length);
-  const svcX = panelX(legacyApps.length + 1);
+  // Panels — the three v3 columns (legacy source, Normalize, Greenfield).
+  const xs = columnXs();
   const panelHeight = HEADER_H + boardHeight + PANEL_PAD;
   const ns = detail.normalizeStats;
-  const columns: { key: string; x: number; title: string; stats: string | null; appId?: string }[] =
-    [
-      ...legacyApps.map((a, i) => ({
-        key: `app${i}`,
-        x: appXs[i],
-        title: a.name,
-        stats: columnStatsLine(columnStatsById.get(a.id), screensByApp.get(a.id) ?? 0),
-        appId: a.id,
-      })),
-      {
-        key: 'cap',
-        x: capX,
-        title: 'Normalize',
-        stats: ns
-          ? `${ns.raw} raw → ${ns.normalized} · ${ns.awaitingReview} awaiting review`
-          : null,
-      },
-      {
-        key: 'svc',
-        x: svcX,
-        title: 'Greenfield',
-        stats: detail.microservices.length ? `${detail.microservices.length} targets` : null,
-      },
-    ];
+  const selStats = selApp ? columnStatsById.get(selApp.id) : undefined;
+  const columns: {
+    key: string;
+    x: number;
+    width: number;
+    title: string;
+    sub?: string | null;
+    stats: string | null;
+    appId?: string;
+    sources?: { id: string; name: string }[];
+  }[] = [
+    {
+      key: 'legacy',
+      x: xs.legacy,
+      width: LEG_W,
+      title: selApp?.name ?? 'Legacy',
+      sub: 'what each screen captures · sends · processes · validates',
+      stats: selApp ? columnStatsLine(selStats, screensByApp.get(selApp.id) ?? 0) : null,
+      appId: selApp?.id,
+      sources: legacyApps.map((a) => ({ id: a.id, name: a.name })),
+    },
+    {
+      key: 'cap',
+      x: xs.normalize,
+      width: NORM_W,
+      title: 'Normalize',
+      sub: sourceNames ? `${sourceNames[0]} + ${sourceNames[1]} — one normalized model` : null,
+      stats: ns
+        ? `${ns.raw} raw steps · ${ns.normalized} normalized · ${ns.awaitingReview} awaiting review`
+        : null,
+    },
+    {
+      key: 'svc',
+      x: xs.greenfield,
+      width: GF_W,
+      title: 'Greenfield',
+      stats: detail.microservices.length ? `${detail.microservices.length} targets` : null,
+    },
+  ];
   for (const col of columns) {
     nodes.push({
       id: `panel:${col.key}`,
       type: 'panel',
       position: { x: col.x, y: -HEADER_H },
-      data: { height: panelHeight },
+      data: { height: panelHeight, width: panelW(col.width) },
       zIndex: -10,
       focusable: false,
       style: { pointerEvents: 'none' },
@@ -210,20 +232,23 @@ export function buildBoardBase(
     nodes.push({
       id: col.appId ? `hdr:${col.appId}` : `hdr:${col.key}`,
       type: 'header',
-      position: { x: col.x + PANEL_PAD, y: -HEADER_H + 10 },
-      data: { title: col.title, stats: col.stats, ...(col.appId ? { appId: col.appId } : {}) },
+      position: { x: col.x + PANEL_PAD, y: -HEADER_H + 8 },
+      data: {
+        title: col.title,
+        sub: col.sub ?? null,
+        stats: col.stats,
+        width: col.width,
+        ...(col.appId ? { appId: col.appId } : {}),
+        ...(col.sources && col.sources.length > 1
+          ? { sources: col.sources, selectedId: col.appId, onSelect: opts.onSelectSource }
+          : {}),
+      },
       ...lock,
     });
   }
 
-  // Which pair the Normalize comparison verdicts frame (>2 sources, 3-B).
-  const pairLabel =
-    legacyApps.length > 2 && opts.comparePair
-      ? opts.comparePair
-          .map((id) => legacyApps.find((a) => a.id === id)?.name)
-          .filter(Boolean)
-          .join(' vs ')
-      : null;
+  const deadFindings = detail.findings.filter((f) => f.deadCode);
+  const hasDeadLane = deadFindings.length > 0;
 
   layers.forEach((layer, li) => {
     nodes.push({
@@ -234,66 +259,65 @@ export function buildBoardBase(
       ...lock,
     });
 
-    // Edges flow strictly left → right so nothing crosses a box: each source
-    // chains into the next, and only the LAST column connects across to the
-    // Normalize box (kept + relocate findings of all sources union onto it).
-    const tagsByApp = tagsByLayerApp[li];
-    legacyApps.forEach((a, i) => {
+    const tags = tagsByLayer[li];
+    if (selApp) {
       nodes.push({
-        id: `cell:${a.id}:${layer}`,
+        id: `cell:${selApp.id}:${layer}`,
         type: 'cell',
-        position: { x: appXs[i] + PANEL_PAD, y: slotY(li) },
+        position: { x: xs.legacy + PANEL_PAD, y: slotY(li) },
         data: {
           layer,
-          appId: a.id,
-          tags: tagsByApp[i],
-          expanded: expandedFor(a.id, layer),
+          appId: selApp.id,
+          tags,
+          expanded: expandedFor(selApp.id, layer),
           onToggle: onToggleCategory,
           screens: screenByName,
           tips: tipsByLayer[layer] ?? {},
           sharedNames: sharedNameById,
           classification,
+          layerMeta: opts.layerMeta?.[layer] ?? null,
           anatomyByTag: Object.fromEntries(
-            tagsByApp[i]
-              .filter((t) => expandedFor(a.id, layer).includes(t.category))
-              .map((t) => [tagKey(t), anatomyFor(layer, t.capdan)]),
+            tags.map((t) => [
+              tagKey(t),
+              (anatomyByLayerScope[`${layer}␟${(t.capdan ?? '').toUpperCase()}`] ?? []).slice(0, 6),
+            ]),
           ),
+          onSelectFinding: opts.onSelectFinding,
           onEditFinding: opts.onEditFinding,
           onAddFinding: opts.onAddFinding,
         },
         selectable: false,
       });
-      if (i > 0 && tagsByApp[i - 1].length > 0)
-        edges.push(
-          chainEdge(
-            `f-${layer}-${i}`,
-            `cell:${legacyApps[i - 1].id}:${layer}`,
-            `cell:${a.id}:${layer}`,
-          ),
-        );
-    });
+    }
 
     const hasNormalizeBox =
       detail.components.some((c) => c.layer === layer) || entriesByLayer.has(layer);
-    const lastCell = legacyApps.length
-      ? `cell:${legacyApps[legacyApps.length - 1].id}:${layer}`
-      : null;
-    if (lastCell && hasNormalizeBox && tagsByApp.some((tags) => tags.some((t) => t.stays)))
-      edges.push(stayEdge(`c-${layer}`, lastCell, `cap:${layer}`));
+    const cellId = selApp ? `cell:${selApp.id}:${layer}` : null;
 
-    // Relocations leave this layer for another — red move-edges down the lane.
-    const relocateTargets = [
-      ...new Set(
-        tagsByApp
-          .flat()
-          .filter((t) => !t.stays && t.targetLayer)
-          .map((t) => t.targetLayer as Layer),
-      ),
-    ];
-    for (const target of relocateTargets) {
-      if (!lastCell || layerIndex[target] === undefined) continue;
-      edges.push(moveEdge(`r-${layer}-${target}`, lastCell, `cap:${target}`, `→ ${target}`));
+    // Green stay-edge with the wireframe's count badge.
+    const stayCount = tags
+      .filter((t) => t.stays)
+      .reduce((s, t) => s + t.findings.filter((f) => !f.deadCode).length, 0);
+    if (cellId && hasNormalizeBox && stayCount > 0)
+      edges.push(stayEdge(`c-${layer}`, cellId, `cap:${layer}`, stayCount));
+
+    // Relocations leave this layer for another — red move-edges with counts.
+    const moversByTarget = new Map<Layer, number>();
+    for (const t of tags) {
+      if (t.stays || !t.targetLayer) continue;
+      const live = t.findings.filter((f) => !f.deadCode).length;
+      if (live > 0)
+        moversByTarget.set(t.targetLayer, (moversByTarget.get(t.targetLayer) ?? 0) + live);
     }
+    for (const [target, count] of moversByTarget) {
+      if (!cellId || layerIndex[target] === undefined) continue;
+      edges.push(moveEdge(`r-${layer}-${target}`, cellId, `cap:${target}`, `→ ${target}`, count));
+    }
+
+    // Dead findings in this section drop to the dead-code lane.
+    const deadCount = tags.reduce((s, t) => s + t.findings.filter((f) => f.deadCode).length, 0);
+    if (cellId && hasDeadLane && deadCount > 0)
+      edges.push(moveEdge(`dead-${layer}`, cellId, 'lane:dead', '→ Dead code', deadCount));
 
     if (hasNormalizeBox) {
       const comp = detail.components.find((c) => c.layer === layer);
@@ -301,7 +325,7 @@ export function buildBoardBase(
       nodes.push({
         id: `cap:${layer}`,
         type: 'capdan',
-        position: { x: capX + PANEL_PAD, y: slotY(li) },
+        position: { x: xs.normalize + PANEL_PAD, y: slotY(li) },
         data: {
           layer,
           name: comp?.name ?? layer,
@@ -310,7 +334,7 @@ export function buildBoardBase(
           rawCount: liveFindings.filter((f) => f.layer === layer).length,
           entries: layerEntries,
           matchMeta,
-          pairLabel,
+          sourceNames,
           onEntryAction: opts.onEntryAction,
         },
       });
@@ -342,7 +366,7 @@ export function buildBoardBase(
     nodes.push({
       id: `svc:${m.id}`,
       type: 'service',
-      position: { x: svcX + PANEL_PAD, y: slotY(slot) + stack * 92 },
+      position: { x: xs.greenfield + PANEL_PAD, y: slotY(slot) + stack * 100 },
       data: { name: m.name, status: m.status, tech: m.techStack, layers: owned, count },
     });
   });
@@ -355,10 +379,9 @@ export function buildBoardBase(
 
   // Full-width lanes below the grid: the v3 dead-code lane, then the
   // shared-services lane (WR-15).
-  const columnsW = panelX(legacyApps.length + 1) + PANEL_W;
+  const columnsW = xs.greenfield + panelW(GF_W);
   let laneTop = boardHeight + PANEL_PAD + LANE_GAP;
-  const deadFindings = detail.findings.filter((f) => f.deadCode);
-  if (deadFindings.length > 0) {
+  if (hasDeadLane) {
     const appName = (id: string) => detail.apps.find((a) => a.id === id)?.name ?? 'unknown';
     const items: DeadItem[] = deadFindings.map((f) => ({
       id: f.id,
@@ -383,7 +406,7 @@ export function buildBoardBase(
   }
 
   if (sharedApps.length > 0) {
-    const boxesW = PANEL_PAD * 2 + sharedApps.length * BOX_W + (sharedApps.length - 1) * PANEL_GAP;
+    const boxesW = PANEL_PAD * 2 + sharedApps.length * GF_W + (sharedApps.length - 1) * PANEL_GAP;
     nodes.push({
       id: 'panel:sharedLane',
       type: 'panel',
@@ -398,7 +421,7 @@ export function buildBoardBase(
       id: 'hdr:sharedLane',
       type: 'header',
       position: { x: PANEL_PAD, y: laneTop + 14 },
-      data: { title: 'Shared services', stats: null },
+      data: { title: 'Shared services', stats: null, width: GF_W },
       ...lock,
     });
     const countByService = new Map<string, number>();
@@ -409,15 +432,14 @@ export function buildBoardBase(
       nodes.push({
         id: `shared:${s.id}`,
         type: 'shared',
-        position: { x: PANEL_PAD + i * (BOX_W + PANEL_GAP), y: laneTop + HEADER_H + PANEL_PAD },
+        position: { x: PANEL_PAD + i * (GF_W + PANEL_GAP), y: laneTop + HEADER_H + PANEL_PAD },
         data: { name: s.name, tech: s.techStack, count: countByService.get(s.id) ?? 0 },
       });
     });
     // One arrow per (cell → shared service) pair with relocating findings.
-    const legacyIds = new Set(legacyApps.map((a) => a.id));
     const pairs = new Set<string>();
     for (const f of detail.findings) {
-      if (!f.sharedServiceId || !legacyIds.has(f.appId)) continue;
+      if (!f.sharedServiceId || f.appId !== selApp?.id) continue;
       const key = `${f.appId}:${f.layer}:${f.sharedServiceId}`;
       if (pairs.has(key)) continue;
       pairs.add(key);

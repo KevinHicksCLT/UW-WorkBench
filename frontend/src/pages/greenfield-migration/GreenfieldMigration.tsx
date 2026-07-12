@@ -16,9 +16,11 @@ import {
   lensModeOf,
   pct,
   type Domain,
+  type Finding,
   type FindingView,
   type Layer,
 } from '../../lib/rationalization';
+import { whyToken } from './cellGeometry';
 import { Card, ErrorMessage, LoadingState } from '../../components/ui';
 import { nodeTypes, edgeTypes } from './boardNodes';
 import { buildBoardBase } from './buildBoard';
@@ -103,11 +105,14 @@ export default function ApplicationRationalization({
   const [showLog, setShowLog] = useState(false);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  // WR-06 view toggle + WR-10 in-box expansion (cell:appId:layer → categories).
+  // WR-06 view toggle + in-box expansion (cell:appId:layer → tokens).
   const [view, setView] = useState('');
   const [expanded, setExpanded] = useState<Record<string, string[]>>({});
   // 3-B: which source pair frames Normalize comparisons when > 2 columns.
   const [comparePair, setComparePair] = useState<[string, string] | null>(null);
+  // v3: which legacy source the left panel shows + the selected-finding ribbon.
+  const [selectedSource, setSelectedSource] = useState<string | null>(null);
+  const [ribbonFinding, setRibbonFinding] = useState<Finding | null>(null);
   const editingRef = useRef(false);
   useEffect(() => {
     editingRef.current = editing;
@@ -130,6 +135,8 @@ export default function ApplicationRationalization({
       setEditing(false);
       setExpanded({});
       setComparePair(null);
+      setSelectedSource(null);
+      setRibbonFinding(null);
       setProductSelected([]);
       setSearchParams(
         (prev) => {
@@ -177,6 +184,8 @@ export default function ApplicationRationalization({
     setEditing(false); // leave any in-progress board edit when switching stages
     setExpanded({}); // in-box expansions are per-stage
     setComparePair(null);
+    setSelectedSource(null);
+    setRibbonFinding(null);
     if (!selectedId) {
       clearDetail();
       setLog([]);
@@ -241,6 +250,34 @@ export default function ApplicationRationalization({
     if (legacyApps.length <= 2) return null;
     return comparePair ?? [legacyApps[0].id, legacyApps[1].id];
   }, [legacyApps, comparePair]);
+
+  // Default the wireframe's opened WHY-THIS-MOVES panel: the first mover whose
+  // panel tells the full story (≥ 4 fields) starts expanded on a fresh board.
+  useEffect(() => {
+    if (!detail) return;
+    const srcId = selectedSource ?? legacyApps[0]?.id;
+    if (!srcId) return;
+    const marquee = detail.findings.find(
+      (f) =>
+        f.appId === srcId &&
+        !f.deadCode &&
+        f.whyThisMoves &&
+        Object.values(f.whyThisMoves).filter(Boolean).length >= 4,
+    );
+    if (!marquee) return;
+    setExpanded((prev) => {
+      if (Object.keys(prev).length > 0) return prev; // the user already drove it
+      return { [`cell:${srcId}:${marquee.layer}`]: [whyToken(marquee.id)] };
+    });
+  }, [detail, selectedSource, legacyApps]);
+
+  const onSelectFinding = useCallback((f: Finding) => setRibbonFinding(f), []);
+  const onSelectSource = useCallback((appId: string) => {
+    setSelectedSource(appId);
+    setExpanded({});
+    setRibbonFinding(null);
+  }, []);
+
   const base = useMemo(
     () =>
       buildBoardBase(detail, {
@@ -250,10 +287,14 @@ export default function ApplicationRationalization({
         catalog: board.catalog,
         layers: vocab.layers,
         layerHints: vocab.layerHints,
+        layerMeta: vocab.layerMeta,
         classification: vocab.classification,
         matchMeta: vocab.matchMeta,
         domain,
+        selectedSourceId: selectedSource,
+        onSelectSource,
         comparePair: effectivePair,
+        onSelectFinding,
         onEntryAction: actions.onEntryAction,
         onRetireFinding: actions.onRetireFinding,
         onEditFinding: editing ? undefined : onEditFinding,
@@ -267,7 +308,10 @@ export default function ApplicationRationalization({
       board.catalog,
       vocab,
       domain,
+      selectedSource,
+      onSelectSource,
       effectivePair,
+      onSelectFinding,
       actions,
       onEditFinding,
       onAddFinding,
@@ -384,6 +428,36 @@ export default function ApplicationRationalization({
             onComparePair={setComparePair}
           />
 
+          {/* v3 selected-finding trail ribbon — ⊗ name · why → destination. */}
+          {ribbonFinding && !editing && (
+            <div className="flex items-center gap-2 rounded-lg border border-[#fecdd3] bg-[#fff7f7] px-3 py-1.5 mb-2 text-[12px]">
+              <button
+                type="button"
+                aria-label="Clear selected finding"
+                onClick={() => setRibbonFinding(null)}
+                className="flex-shrink-0 text-[#be123c] font-bold hover:opacity-70"
+              >
+                ⊗
+              </button>
+              <span className="font-bold text-[#be123c] truncate">{ribbonFinding.name}</span>
+              {(ribbonFinding.whyThisMoves?.validated ?? ribbonFinding.plainSummary) && (
+                <span className="text-[#525252] truncate">
+                  {ribbonFinding.whyThisMoves?.validated ?? ribbonFinding.plainSummary}
+                </span>
+              )}
+              {ribbonFinding.targetLayer && (
+                <span className="flex-shrink-0 font-semibold text-[#1d4ed8]">
+                  → {ribbonFinding.targetLayer}
+                </span>
+              )}
+              {ribbonFinding.whyThisMoves?.lands && (
+                <span className="flex-shrink-0 font-semibold text-[#0f766e] truncate">
+                  → {ribbonFinding.whyThisMoves.lands}
+                </span>
+              )}
+            </div>
+          )}
+
           {editing && detail && (
             <div className="text-[11px] text-[#a3a3a3] mb-2">
               Editing: drag boxes · drag edge dots to draw arrows · Delete removes a selected arrow
@@ -414,7 +488,14 @@ export default function ApplicationRationalization({
                   onNodeClick={onNodeClick}
                   onNodeDoubleClick={onNodeDoubleClick}
                   fitView
-                  fitViewOptions={{ padding: 0.04 }}
+                  // Fit the WIDTH; a tall board pans vertically instead of
+                  // shrinking to an unreadable thumbnail (v3 wireframe density).
+                  fitViewOptions={{ padding: 0.03, minZoom: 0.55, maxZoom: 0.95 }}
+                  onInit={(inst) => {
+                    // Start at the TOP of the board (fitView centers vertically).
+                    const vp = inst.getViewport();
+                    inst.setViewport({ ...vp, y: 16 + 72 * vp.zoom });
+                  }}
                   nodesDraggable={editing}
                   nodesConnectable={editing}
                   elementsSelectable={editing}

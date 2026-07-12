@@ -10,6 +10,7 @@ import { useCompany } from '../../lib/company';
 import {
   classificationFrom,
   layerHintsFrom,
+  layerMetaFrom,
   layersFrom,
   legendFrom,
   matchMetaFrom,
@@ -18,6 +19,7 @@ import {
   type ClassificationMeta,
   type Domain,
   type Layer,
+  type LayerMeta,
   type LegendItem,
   type MatchMeta,
   type StatusMeta,
@@ -30,6 +32,7 @@ export type Vocabulary = {
   /** Board row axis (5 IT layers / 11 product components). */
   layers: Layer[];
   layerHints: Record<string, string>;
+  layerMeta: Record<string, LayerMeta>;
   classification: ClassificationMeta;
   statusMeta: StatusMeta;
   matchMeta: MatchMeta;
@@ -70,6 +73,7 @@ export function useVocabulary(domain: Domain): Vocabulary {
       rows,
       layers: layersFrom(rows),
       layerHints: layerHintsFrom(rows),
+      layerMeta: layerMetaFrom(rows),
       classification: classificationFrom(rows),
       statusMeta: statusesFrom(rows),
       matchMeta: matchMetaFrom(rows),

@@ -62,8 +62,25 @@ export const layersFrom = (rows: VocabularyRow[]): Layer[] =>
 /** LAYER token → short hint ("what screens capture") from row meta. */
 export function layerHintsFrom(rows: VocabularyRow[]): Record<string, string> {
   const out: Record<string, string> = {};
-  for (const r of vocabOf(rows, 'LAYER'))
-    if (typeof r.meta?.hint === 'string') out[r.token] = r.meta.hint;
+  for (const r of vocabOf(rows, 'LAYER')) {
+    const hint = r.meta?.descriptor ?? r.meta?.hint;
+    if (typeof hint === 'string') out[r.token] = hint;
+  }
+  return out;
+}
+
+export type LayerMeta = { descriptor: string | null; dot: string };
+
+/** LAYER token → section-header meta (subtitle + dot color) for the v3 panel. */
+export function layerMetaFrom(rows: VocabularyRow[]): Record<string, LayerMeta> {
+  const out: Record<string, LayerMeta> = {};
+  for (const r of vocabOf(rows, 'LAYER')) {
+    const descriptor = r.meta?.descriptor ?? r.meta?.hint;
+    out[r.token] = {
+      descriptor: typeof descriptor === 'string' ? descriptor : null,
+      dot: typeof r.meta?.dot === 'string' ? r.meta.dot : colorMeta(r.color).dot,
+    };
+  }
   return out;
 }
 

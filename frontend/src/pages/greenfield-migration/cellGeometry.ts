@@ -1,9 +1,8 @@
 /**
- * Pure geometry for the Option C rationalization board — shared layout
- * constants, the deterministic per-cell height estimator that drives variable
- * slot heights (WR-10 in-box expansion + v3 WHY-THIS-MOVES panels), the
- * Normalize-box estimator, and the slot-height/offset math.
- * No React / React Flow imports so the estimators are unit-testable.
+ * Pure geometry for the workspace board (v3 wireframe layout) — per-column
+ * widths (legacy panel / Normalize / Greenfield), the deterministic height
+ * estimators that drive variable slot heights, and the slot-height/offset
+ * math. No React / React Flow imports so the estimators are unit-testable.
  *
  * Estimates are deliberately GENEROUS: boxes are top-aligned in their slot, so
  * over-estimating just leaves invisible margin below a box, while
@@ -12,18 +11,32 @@
  */
 import type { CategoryTag, NormalizationEntry } from '../../lib/rationalization';
 
-// Option C geometry — one shared baseline grid across all panels: every box
-// sits top-aligned in its layer SLOT, panels differ only in x. The gap
-// between panels is the arrow lane.
-export const BOX_W = 290; // unified box width (WR-05 sizing preserved)
+// v3 wireframe columns: ONE legacy source panel (app-switcher chips in its
+// header), a wide Normalize comparison column, and the Greenfield targets.
+// Every box sits top-aligned in its layer SLOT; the gap between panels is the
+// arrow lane.
+export const LEG_W = 330; // legacy panel box width (item rows)
+export const NORM_W = 500; // Normalize box width (3-column comparison table)
+export const GF_W = 290; // greenfield target box width
+export const BOX_W = LEG_W; // legacy-cell width (kept name for node components)
 export const PANEL_PAD = 14;
-export const PANEL_W = BOX_W + PANEL_PAD * 2;
-export const PANEL_GAP = 46;
-export const HEADER_H = 60; // in-panel header band (title + v3 stats line)
-export const SLOT_H = 180; // minimum layer slot height (shared across panels)
+export const PANEL_GAP = 110; // arrow lane between panels
+export const HEADER_H = 64; // in-panel header band (title + stats + chips)
+export const SLOT_H = 150; // minimum layer slot height (shared across panels)
 export const SLOT_MARGIN = 28; // breathing room under the tallest box in a slot
-const STRIDE = PANEL_W + PANEL_GAP;
-export const panelX = (i: number) => i * STRIDE;
+
+/** Panel outer width for a given box width. */
+export const panelW = (boxW: number) => boxW + PANEL_PAD * 2;
+export const PANEL_W = panelW(LEG_W); // legacy panel outer width (legacy name)
+
+/** X positions of the three v3 columns (legacy, Normalize, Greenfield). */
+export function columnXs(): { legacy: number; normalize: number; greenfield: number } {
+  const legacy = 0;
+  const normalize = legacy + panelW(LEG_W) + PANEL_GAP;
+  const greenfield = normalize + panelW(NORM_W) + PANEL_GAP;
+  return { legacy, normalize, greenfield };
+}
+
 export const X = { label: -170 };
 export const ROW_H = SLOT_H; // relocation-edge label math
 
@@ -38,58 +51,86 @@ export const DEAD_BASE_H = 58; // lane heading + paddings
 /** Estimated height of the dead-code lane for `count` findings. */
 export const deadLaneHeight = (count: number): number => DEAD_BASE_H + count * DEAD_ROW_H;
 
-// ── Cell height estimation (WR-10 + v3) ─────────────────────────────────────
-// Component sizing assumptions (each a ceiling of the rendered CellNode CSS):
+// ── Legacy cell height estimation (v3 item rows) ────────────────────────────
+// The cell renders a section header (dot + "<layer> layer" + descriptor +
+// count + stay/move roll-up) then one compact row per finding: ✓/✗ + category
+// tag + name + "correct here" / relocation badge. Rows past the visible cap
+// collapse behind "+ N more…"; a mover's WHY-THIS-MOVES panel expands inline.
+export const CELL_HEADER_H = 46; // section header row + divider
+export const CELL_BASE_H = 34; // paddings + "+ finding" footer + slack
+export const ITEM_ROW_H = 34; // one compact finding row
+export const ITEM_WHY_H = 150; // expanded WHY THIS MOVES panel ceiling
+export const MORE_ROW_H = 24; // "+ N more…" toggle row
+export const VISIBLE_ROWS = 5; // rows shown before the "+ N more…" fold
 export const EMPTY_CELL_H = 52; // "—" placeholder box
-export const CELL_BASE_H = 58; // py-3 padding + 2px borders + "+ finding" footer + slack
-export const CHIP_ROW_H = 32; // one category chip row (chip ~26px + gap)
-export const DIVIDER_H = 30; // "Doesn't belong here" divider row + margins
-export const ITEM_H = 78; // expanded finding: ✓/✗ + name + ≤2 summary lines
-export const ITEM_SCREEN_H = 28; // screen chip line under a finding
-export const ITEM_FLAG_H = 22; // red relocation badge line (→ Business …)
-export const ITEM_WHY_H = 104; // expanded WHY THIS MOVES panel ceiling
-export const ANATOMY_ROW_H = 24; // one matched anatomy sub-category line
+
+/** Sentinel tokens carried in the cell's `expanded` list. */
+export const EXPAND_ALL = '¶all';
+export const whyToken = (findingId: string) => `why:${findingId}`;
 
 /**
- * Deterministic estimated pixel height of one legacy cell box given its
- * (view-filtered) category tags and the categories currently expanded in it.
- * Assumes every collapsed chip takes its own row (generous — chips actually
- * wrap several to a row); every expanded finding renders ✓/✗ + name + summary,
- * plus a screen-chip row when screenRef is set, a relocation badge line and a
- * WHY THIS MOVES panel for misplaced items, and one line per matched anatomy
- * sub-category (product boards).
+ * Deterministic estimated pixel height of one legacy cell given its
+ * (view-filtered) category tags and the expansion tokens active in it
+ * (EXPAND_ALL shows every row; `why:<findingId>` opens that mover's panel).
  */
-export function estimateCellHeight(
-  tags: CategoryTag[],
-  expandedCategories: string[],
-  anatomyRows: (tag: CategoryTag) => number = () => 0,
-): number {
-  if (tags.length === 0) return EMPTY_CELL_H;
-  let h = CELL_BASE_H;
-  if (tags.some((t) => !t.stays)) h += DIVIDER_H;
-  for (const t of tags) {
-    h += CHIP_ROW_H;
-    if (!expandedCategories.includes(t.category)) continue;
-    for (const f of t.findings) {
-      h += ITEM_H;
-      if (f.screenRef) h += ITEM_SCREEN_H;
-      if (!t.stays) h += ITEM_FLAG_H;
-      if (!t.stays && f.whyThisMoves) h += ITEM_WHY_H;
-    }
-    h += anatomyRows(t) * ANATOMY_ROW_H;
-  }
+export function estimateCellHeight(tags: CategoryTag[], expandedTokens: string[]): number {
+  const findings = tags.flatMap((t) => t.findings);
+  if (findings.length === 0) return EMPTY_CELL_H;
+  const showAll = expandedTokens.includes(EXPAND_ALL);
+  const visible = showAll ? findings.length : Math.min(findings.length, VISIBLE_ROWS);
+  let h = CELL_HEADER_H + CELL_BASE_H + visible * ITEM_ROW_H;
+  if (findings.length > VISIBLE_ROWS) h += MORE_ROW_H;
+  const openWhys = new Set(
+    expandedTokens.filter((t) => t.startsWith('why:')).map((t) => t.slice(4)),
+  );
+  const considered = showAll ? findings : findings.slice(0, VISIBLE_ROWS);
+  for (const f of considered) if (f.whyThisMoves && openWhys.has(f.id)) h += ITEM_WHY_H;
   return h;
 }
 
-// ── Normalize box estimation (v3) ───────────────────────────────────────────
-export const NORM_BASE_H = 88; // box padding + name + roll-up + destination + pair line
-export const NORM_ENTRY_H = 60; // one AUTO entry row (#N-101 + basis line)
-export const NORM_HELD_H = 124; // one HELD/REVIEW card (note + resolution + actions)
+// ── Normalize box estimation (v3 comparison table) ──────────────────────────
+export const NORM_BASE_H = 92; // box padding + title row + 3-column header band
+export const NORM_ENTRY_H = 56; // one compact entry row (#N-101, no cards)
+export const NORM_HELD_EXTRA = 64; // resolution + actions on HELD/REVIEW rows
+export const NORM_CARD_LINE_H = 17; // one field line in a source card
+export const NORM_CARD_BASE_H = 64; // card title + verdict strip + paddings
+export const NORM_MORE_H = 20; // "+ N more normalized…" note row
+export const NORM_COMPACT_CAP = 3; // compact rows shown per box (wireframe density)
+
+/**
+ * The entries a Normalize box actually displays (wireframe density): every
+ * comparison-card entry, then non-AUTO compact rows, then AUTO compact rows,
+ * capped at NORM_COMPACT_CAP compact rows. The remainder folds into a count.
+ */
+export function visibleNormalizeEntries(entries: NormalizationEntry[]): {
+  shown: NormalizationEntry[];
+  hidden: number;
+} {
+  const withCards = entries.filter((e) => (e.sourceCards ?? []).length > 0);
+  const compact = entries.filter((e) => (e.sourceCards ?? []).length === 0);
+  const compactRanked = [
+    ...compact.filter((e) => e.matchStatus !== 'AUTO'),
+    ...compact.filter((e) => e.matchStatus === 'AUTO'),
+  ];
+  const shownCompact = compactRanked.slice(0, NORM_COMPACT_CAP);
+  return { shown: [...withCards, ...shownCompact], hidden: compact.length - shownCompact.length };
+}
 
 /** Estimated pixel height of one Normalize box given its entries. */
 export function estimateNormalizeHeight(entries: NormalizationEntry[]): number {
   let h = NORM_BASE_H;
-  for (const e of entries) h += e.matchStatus === 'AUTO' ? NORM_ENTRY_H : NORM_HELD_H;
+  const { shown, hidden } = visibleNormalizeEntries(entries);
+  for (const e of shown) {
+    const cards = e.sourceCards ?? [];
+    if (cards.length > 0) {
+      const lines = Math.max(...cards.map((c) => c.lines?.length ?? 3), 3);
+      h += NORM_CARD_BASE_H + lines * NORM_CARD_LINE_H;
+    } else {
+      h += NORM_ENTRY_H;
+    }
+    if (e.matchStatus !== 'AUTO') h += NORM_HELD_EXTRA;
+  }
+  if (hidden > 0) h += NORM_MORE_H;
   return h;
 }
 

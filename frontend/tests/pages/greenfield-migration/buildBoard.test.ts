@@ -1,7 +1,8 @@
-// buildBoard — the ONE domain-generic board builder (3-B/3-C): N legacy
-// columns, vocabulary-driven axis, Normalize entries, dead-code lane, and the
-// green-stay / red-move edge model. Exercised against the §6.2 product
-// fixture and a synthetic 3-source application board.
+// buildBoard — the ONE domain-generic board builder (v3 wireframe): a single
+// legacy panel showing the selected source (app-switcher chips in its header),
+// vocabulary-driven axis, Normalize comparison boxes, dead-code lane, and the
+// green-stay / red-move count-badged edge model. Exercised against the §6.2
+// product fixture and a synthetic 3-source application board.
 import { describe, expect, it } from 'vitest';
 import type { Node } from '@xyflow/react';
 import {
@@ -45,11 +46,22 @@ function productBoard() {
 const ofType = (nodes: Node[], type: string) => nodes.filter((n) => n.type === type);
 
 describe('buildBoardBase — product domain (fixture)', () => {
-  it('renders one cell per legacy model × vocabulary layer (no 2-column cap)', () => {
-    const { board } = productBoard();
-    // 4 legacy product models × 11 product components.
-    expect(ofType(board.nodes, 'cell')).toHaveLength(44);
+  it('renders ONE legacy panel (the selected source) with a cell per layer', () => {
+    const { board, detail } = productBoard();
+    // 11 product components, one section cell each — for the first model only.
+    expect(ofType(board.nodes, 'cell')).toHaveLength(11);
     expect(ofType(board.nodes, 'layerLabel')).toHaveLength(11);
+    const first = detail.apps.filter((a) => a.kind !== 'SHARED_SERVICE')[0];
+    for (const cell of ofType(board.nodes, 'cell'))
+      expect((cell.data as { appId: string }).appId).toBe(first.id);
+  });
+
+  it('puts the source-switcher chips on the legacy header', () => {
+    const { board, detail } = productBoard();
+    const legacy = detail.apps.filter((a) => a.kind !== 'SHARED_SERVICE');
+    const hdr = board.nodes.find((n) => n.id === `hdr:${legacy[0].id}`);
+    const sources = (hdr?.data as { sources: { id: string }[] }).sources;
+    expect(sources.map((s) => s.id)).toEqual(legacy.map((a) => a.id));
   });
 
   it('creates a Normalize box per layer with a component, carrying its entries', () => {
@@ -90,12 +102,12 @@ describe('buildBoardBase — product domain (fixture)', () => {
     const cap = board.nodes.find((n) => n.id === 'hdr:cap');
     const ns = detail.normalizeStats!;
     expect((cap?.data as { stats: string }).stats).toBe(
-      `${ns.raw} raw → ${ns.normalized} · ${ns.awaitingReview} awaiting review`,
+      `${ns.raw} raw steps · ${ns.normalized} normalized · ${ns.awaitingReview} awaiting review`,
     );
   });
 });
 
-// ── Application domain, 3 sources (the lifted cap + red move edges) ─────────
+// ── Application domain, 3 sources (source switcher + red move edges) ────────
 
 let seq = 0;
 const finding = (over: Partial<Finding>): Finding => ({
@@ -186,7 +198,7 @@ describe('buildBoardBase — application domain, 3 sources', () => {
   const rows = fixtureVocabulary('APPLICATION');
   const classification = classificationFrom(rows);
   const layers = layersFrom(rows);
-  const build = (comparePair: [string, string] | null = null) =>
+  const build = (opts: { selectedSourceId?: string; comparePair?: [string, string] } = {}) =>
     buildBoardBase(withV3Defaults(appDetail(), classification), {
       view: 'COMPONENT',
       expanded: {},
@@ -195,29 +207,41 @@ describe('buildBoardBase — application domain, 3 sources', () => {
       classification,
       matchMeta: matchMetaFrom(rows),
       domain: 'APPLICATION',
-      comparePair,
+      comparePair: opts.comparePair ?? null,
+      selectedSourceId: opts.selectedSourceId ?? null,
     });
 
-  it('renders all three legacy columns and chains them left → right', () => {
+  it('renders one cell per layer for the selected source only', () => {
     const board = build();
-    expect(ofType(board.nodes, 'cell')).toHaveLength(3 * layers.length);
-    // a1 → a2 → a3 chain on the UI row (both predecessors have tags).
-    expect(board.edges.filter((e) => e.id.startsWith('f-UI'))).toHaveLength(2);
+    expect(ofType(board.nodes, 'cell')).toHaveLength(layers.length);
+    for (const cell of ofType(board.nodes, 'cell'))
+      expect((cell.data as { appId: string }).appId).toBe('a1');
+    const switched = build({ selectedSourceId: 'a3' });
+    for (const cell of ofType(switched.nodes, 'cell'))
+      expect((cell.data as { appId: string }).appId).toBe('a3');
   });
 
-  it('draws the relocation as a red move-edge from the last column', () => {
-    const board = build();
+  it('draws the relocation as a count-badged red move-edge from the selected source', () => {
+    const board = build({ selectedSourceId: 'a3' });
     const move = board.edges.find((e) => e.id === 'r-UI-Business Service');
     expect(move).toBeDefined();
     expect(move?.style?.stroke).toBe(EDGE_MOVE);
     expect(move?.source).toBe('cell:a3:UI');
     expect(move?.target).toBe('cap:Business Service');
+    expect((move?.data as { label: string }).label).toBe('1');
+  });
+
+  it('carries the stay count on the green edge', () => {
+    const board = build();
+    const stay = board.edges.find((e) => e.id === 'c-UI');
+    expect(stay).toBeDefined();
+    expect((stay?.data as { label: string }).label).toBe('1');
   });
 
   it('frames Normalize comparisons with the selected pair when > 2 sources', () => {
-    const board = build(['a1', 'a3']);
+    const board = build({ comparePair: ['a1', 'a3'] });
     const cap = board.nodes.find((n) => n.id === 'cap:UI');
-    expect((cap?.data as NormalizeNodeData).pairLabel).toBe('App a1 vs App a3');
+    expect((cap?.data as NormalizeNodeData).sourceNames).toEqual(['App a1', 'App a3']);
   });
 });
 

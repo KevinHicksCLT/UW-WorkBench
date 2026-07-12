@@ -148,6 +148,19 @@ export type Microservice = {
   ownerRole: string | null;
 };
 
+/**
+ * One side of a Normalize comparison (v3 wireframe): a legacy source's version
+ * of the normalized item — itemized field lines ("Claim number — text (12)")
+ * or a "SOURCE DOES" narrative.
+ */
+export type SourceCard = {
+  source: string;
+  title: string;
+  lines?: string[];
+  does?: string;
+  moreNote?: string;
+};
+
 /** One normalized item in a Normalize box (#N-101 …) — §6.2. */
 export type NormalizationEntry = {
   id: string;
@@ -158,6 +171,8 @@ export type NormalizationEntry = {
   matchBasis: string | null;
   differenceNote: string | null;
   proposedResolution: string | null;
+  /** Side-by-side comparison cards, index-aligned to the legacy sources. */
+  sourceCards?: SourceCard[] | null;
   componentId: string | null;
   findingIds: string[];
 };

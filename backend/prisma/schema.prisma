@@ -2052,6 +2052,9 @@ model NormalizationEntry {
   matchBasis         String? // "all 14 fields match on name, type and order"
   differenceNote     String? // "same 22 fields — flow shape and validation timing differ"
   proposedResolution String? // shown on HELD cards awaiting sign-off
+  // v3 side-by-side comparison cards: [{source, title, lines[], does?, moreNote?}]
+  // — one card per legacy source, rendered in the Normalize box's source columns.
+  sourceCards        Json?
   componentId        String?
   component          RationalizationComponent? @relation(fields: [componentId], references: [id], onDelete: SetNull)
   sortOrder          Int                       @default(0)
@@ -2255,6 +2258,8 @@ model ProductModelNormalizationEntry {
   matchBasis         String?
   differenceNote     String?
   proposedResolution String?
+  // v3 side-by-side comparison cards — same shape as NormalizationEntry.sourceCards.
+  sourceCards        Json?
   componentId        String?
   component          ProductModelComponent? @relation(fields: [componentId], references: [id], onDelete: SetNull)
   sortOrder          Int                    @default(0)

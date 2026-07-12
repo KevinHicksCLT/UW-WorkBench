@@ -4,9 +4,9 @@
  * legacy-cell node in CellNode.tsx; the Normalize box in normalizeNodes.tsx;
  * edge components/factories in edges.tsx; geometry in cellGeometry.ts.
  */
-import type { NodeProps } from '@xyflow/react';
+import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { Layer } from '../../lib/rationalization';
-import { BOX_W, PANEL_W, HEADER_H } from './cellGeometry';
+import { GF_W, PANEL_W, HEADER_H } from './cellGeometry';
 import { CellNode, sideHandles } from './CellNode';
 import { NormalizeNode } from './normalizeNodes';
 import { RelocateEdge } from './edges';
@@ -20,10 +20,15 @@ function ServiceNode({ data }: NodeProps) {
     layers: Layer[];
     count: number;
   };
+  const building = d.status.toLowerCase() === 'building' || d.status.toLowerCase() === 'live';
   return (
     <div
-      className="rounded-xl border-2 border-[#a7f3d0] bg-[#ecfdf5] shadow-sm px-4 py-3 cursor-pointer hover:border-[#6ee7b7]"
-      style={{ width: BOX_W }}
+      className={`rounded-xl border-2 shadow-sm px-4 py-3 cursor-pointer ${
+        building
+          ? 'border-[#a7f3d0] bg-[#ecfdf5] hover:border-[#6ee7b7]'
+          : 'border-[#d1fae5] bg-[#f4fdf9] hover:border-[#a7f3d0]'
+      }`}
+      style={{ width: GF_W }}
       title="Click for the granular detail of this greenfield target"
     >
       {sideHandles}
@@ -59,7 +64,7 @@ function SharedServiceNode({ data }: NodeProps) {
   return (
     <div
       className="rounded-xl border-2 border-[#bae6fd] bg-[#f0f9ff] shadow-sm px-4 py-3 cursor-pointer hover:border-[#7dd3fc]"
-      style={{ width: BOX_W }}
+      style={{ width: GF_W }}
       title="Click for the findings this shared service absorbs"
     >
       {sideHandles}
@@ -94,14 +99,51 @@ function PanelNode({ data }: NodeProps) {
   );
 }
 
-/** Column header band: title + the v3 roll-up line (…43 correct · 17 move). */
+/**
+ * Column header band: title + subtitle + the v3 roll-up line
+ * (…43 correct · 17 move) + the legacy panel's source-switcher chips.
+ */
 function HeaderNode({ data }: NodeProps) {
-  const d = data as { title: string; stats?: string | null; appId?: string };
+  const d = data as {
+    title: string;
+    sub?: string | null;
+    stats?: string | null;
+    width?: number;
+    appId?: string;
+    sources?: { id: string; name: string }[];
+    selectedId?: string;
+    onSelect?: (appId: string) => void;
+  };
   return (
-    <div style={{ width: BOX_W }} title={d.title}>
-      <div className="text-[15px] font-bold text-[#171717] leading-tight truncate text-center">
-        {d.title}
+    <div style={{ width: d.width ?? GF_W }} title={d.title}>
+      <div className="flex items-center justify-center gap-1.5">
+        <span className="text-[15px] font-bold text-[#171717] leading-tight truncate">
+          {d.title}
+        </span>
+        {d.sources?.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              d.onSelect?.(s.id);
+            }}
+            className={`rounded px-1.5 py-px text-[10px] font-semibold border truncate max-w-[110px] ${
+              s.id === d.selectedId
+                ? 'bg-[#171717] text-white border-[#171717]'
+                : 'bg-white text-[#525252] border-[#e5e5e5] hover:border-[#a3a3a3]'
+            }`}
+            title={`Show ${s.name}`}
+          >
+            {s.name}
+          </button>
+        ))}
       </div>
+      {d.sub && (
+        <div className="text-[9.5px] text-[#a3a3a3] leading-tight text-center truncate mt-0.5">
+          {d.sub}
+        </div>
+      )}
       {d.stats && (
         <div className="text-[10.5px] text-[#68727a] tnum leading-tight text-center truncate mt-0.5">
           {d.stats}
@@ -144,6 +186,7 @@ function DeadLaneNode({ data }: NodeProps) {
       className="rounded-xl border-2 border-dashed border-[#fecdd3] bg-[#fff7f7] px-4 py-3"
       style={{ width: d.width }}
     >
+      <Handle id="l" type="target" position={Position.Left} className="board-handle" />
       <div className="flex items-center gap-2">
         <span className="text-[12px] font-bold text-[#be123c]">Dead code · {d.items.length}</span>
         <span className="text-[11px] text-[#a3a3a3]">

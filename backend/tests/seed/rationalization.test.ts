@@ -67,8 +67,15 @@ describe('rationalization seed data (v3)', () => {
     const fnol = allCats.find(
       ({ stage, cat }) => stage === 'CFNOL' && cat.category === 'Loss capture forms',
     );
-    const item = fnol?.cat.items.find((i) => i.name === 'Loss details form');
-    expect(item?.norm?.basis).toContain('Claim number — text (12)');
-    expect(item?.norm?.basis).toContain('Loss type — pick list, 11 options');
+    const item = fnol?.cat.items.find((i) => i.name === 'Loss capture form');
+    // v3 comparison cards carry the field grain, one card per legacy source.
+    const cards = item?.norm?.cards ?? [];
+    expect(cards).toHaveLength(2);
+    for (const card of cards) {
+      expect(card.lines).toContain('Claim number — text (12)');
+      expect(card.lines).toContain('Loss type — pick list, 11 options');
+      expect(card.moreNote).toBe('+ 9 more fields — all matching');
+    }
+    expect(item?.norm?.basis).toContain('All 14 fields match');
   });
 });

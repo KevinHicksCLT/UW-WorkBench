@@ -3,7 +3,8 @@
  * legend: GREEN edges are items that are correct and stay in their row (cell →
  * Normalize, Normalize → Greenfield); RED edges are relocations leaving their
  * row (and shared-service absorptions, WR-15, which keep their sky tint to
- * stay distinguishable inside their own lane).
+ * stay distinguishable inside their own lane). Stay/move edges carry the
+ * wireframe's small circled count badge.
  */
 import {
   MarkerType,
@@ -13,7 +14,6 @@ import {
   type Edge,
   type EdgeProps,
 } from '@xyflow/react';
-import { ROW_H } from './cellGeometry';
 
 export const EDGE_STAY = '#10b981'; // green — correct, stays in its row
 export const EDGE_MOVE = '#dc2626'; // red — misplaced, needs to move
@@ -21,9 +21,8 @@ export const EDGE_SHARED = '#0284c7'; // sky — absorbed by a shared service (W
 export const EDGE_CHAIN = '#cbd5e1'; // neutral — source A → source B flow hint
 
 /**
- * Smooth bezier relocation arrow. The curve lives entirely in the lane between
- * the columns; the label is pinned to the empty horizontal gap just before the
- * target row (the path midpoint can land on a box, the row gap never does).
+ * Smooth bezier arrow with the wireframe's circled count badge pinned to the
+ * curve, just past the source (where the lane is empty).
  */
 export function RelocateEdge({
   id,
@@ -46,26 +45,30 @@ export function RelocateEdge({
     targetPosition,
     curvature: 0.4,
   });
-  const dir = targetY >= sourceY ? 1 : -1;
-  const lx = (sourceX + targetX) / 2;
-  const ly = targetY - dir * (ROW_H * 0.52);
+  // Badge sits in the lane just after the source box.
+  const t = 0.22;
+  const lx = sourceX + (targetX - sourceX) * t;
+  const ly = sourceY + (targetY - sourceY) * t;
   const d = data as { label?: string; color?: string } | undefined;
   return (
     <>
       <BaseEdge id={id} path={path} style={style} markerEnd={markerEnd} />
-      <EdgeLabelRenderer>
-        <div
-          style={{
-            position: 'absolute',
-            transform: `translate(-50%, -50%) translate(${lx}px, ${ly}px)`,
-            pointerEvents: 'none',
-            color: d?.color ?? EDGE_MOVE,
-          }}
-          className="rounded bg-white/85 px-1 text-[12px] font-semibold whitespace-nowrap"
-        >
-          {d?.label}
-        </div>
-      </EdgeLabelRenderer>
+      {d?.label && (
+        <EdgeLabelRenderer>
+          <div
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -50%) translate(${lx}px, ${ly}px)`,
+              pointerEvents: 'none',
+              color: d?.color ?? EDGE_MOVE,
+              borderColor: d?.color ?? EDGE_MOVE,
+            }}
+            className="flex items-center justify-center min-w-[18px] h-[18px] rounded-full border bg-white px-1 text-[10px] font-bold whitespace-nowrap shadow-sm"
+          >
+            {d.label}
+          </div>
+        </EdgeLabelRenderer>
+      )}
     </>
   );
 }
@@ -92,26 +95,33 @@ export const chainEdge = (id: string, source: string, target: string): Edge => (
 });
 
 /** Green stay-edge: correct findings flowing into their row's Normalize box. */
-export const stayEdge = (id: string, source: string, target: string): Edge => ({
-  id,
-  source,
-  target,
-  sourceHandle: 'r',
-  targetHandle: 'l',
-  type: 'default',
-  style: { stroke: EDGE_STAY, strokeWidth: 1.75 },
-  markerEnd: arrow(EDGE_STAY),
-});
-
-/** Red move-edge: a relocation leaving its row for another Normalize box. */
-export const moveEdge = (id: string, source: string, target: string, label: string): Edge => ({
+export const stayEdge = (id: string, source: string, target: string, count?: number): Edge => ({
   id,
   source,
   target,
   sourceHandle: 'r',
   targetHandle: 'l',
   type: 'relocate',
-  data: { label, color: EDGE_MOVE },
+  data: count ? { label: String(count), color: EDGE_STAY } : {},
+  style: { stroke: EDGE_STAY, strokeWidth: 1.75 },
+  markerEnd: arrow(EDGE_STAY),
+});
+
+/** Red move-edge: a relocation leaving its row for another Normalize box. */
+export const moveEdge = (
+  id: string,
+  source: string,
+  target: string,
+  label: string,
+  count?: number,
+): Edge => ({
+  id,
+  source,
+  target,
+  sourceHandle: 'r',
+  targetHandle: 'l',
+  type: 'relocate',
+  data: { label: count ? String(count) : label, color: EDGE_MOVE },
   animated: true,
   style: { stroke: EDGE_MOVE, strokeWidth: 1.75, strokeDasharray: '5 3' },
   markerEnd: arrow(EDGE_MOVE, 16),

@@ -132,14 +132,18 @@ export function buildVocabularyRows(): VocabRow[] {
   const rows: VocabRow[] = [];
 
   // ── APPLICATION domain ──
-  const appLayers: [string, string][] = [
-    ['UI', 'sky'],
-    ['Integration', 'violet'],
-    ['Business Service', 'amber'],
-    ['Data', 'emerald'],
-    ['Infrastructure', 'slate'],
+  // meta.descriptor = the v3 wireframe's layer-section subtitle ("what screens
+  // capture"); meta.dot = the section-header dot color.
+  const appLayers: [string, string, string, string][] = [
+    ['UI', 'sky', 'what screens capture', '#0ea5e9'],
+    ['Integration', 'violet', 'how data is sent', '#7c3aed'],
+    ['Business Service', 'amber', 'processing & validations', '#d97706'],
+    ['Data', 'emerald', "what's stored", '#10b981'],
+    ['Infrastructure', 'slate', 'security & ops', '#64748b'],
   ];
-  appLayers.forEach(([t, c], i) => rows.push(row('APPLICATION', 'LAYER', t, t, c, i)));
+  appLayers.forEach(([t, c, descriptor, dot], i) =>
+    rows.push(row('APPLICATION', 'LAYER', t, t, c, i, { descriptor, dot })),
+  );
 
   // CAPDAN classes — meta carries the exact chip/dot presentation the board
   // renders today (moved verbatim from frontend CAPDAN_META).

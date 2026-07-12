@@ -1,29 +1,32 @@
-// cellGeometry — the deterministic cell-height estimator behind WR-10's
-// variable slot heights (now with v3 WHY-THIS-MOVES panels + anatomy rows),
-// the Normalize-box estimator, the dead-lane math and slot height/offsets.
+// cellGeometry — the deterministic cell-height estimator behind the v3
+// legacy-panel item rows (visible cap + "+N more" fold + WHY-THIS-MOVES
+// expansion), the Normalize comparison-table estimator, the dead-lane math and
+// slot height/offsets.
 import { describe, expect, it } from 'vitest';
 import {
-  ANATOMY_ROW_H,
   CELL_BASE_H,
-  CHIP_ROW_H,
+  CELL_HEADER_H,
   DEAD_BASE_H,
   DEAD_ROW_H,
-  DIVIDER_H,
   EMPTY_CELL_H,
-  ITEM_FLAG_H,
-  ITEM_H,
-  ITEM_SCREEN_H,
+  EXPAND_ALL,
+  ITEM_ROW_H,
   ITEM_WHY_H,
+  MORE_ROW_H,
   NORM_BASE_H,
+  NORM_CARD_BASE_H,
+  NORM_CARD_LINE_H,
   NORM_ENTRY_H,
-  NORM_HELD_H,
+  NORM_HELD_EXTRA,
   SLOT_H,
   SLOT_MARGIN,
+  VISIBLE_ROWS,
   deadLaneHeight,
   estimateCellHeight,
   estimateNormalizeHeight,
   slotHeightFor,
   slotOffsets,
+  whyToken,
 } from '../../../src/pages/greenfield-migration/cellGeometry';
 import {
   defaultStays,
@@ -75,74 +78,50 @@ const tag = (
 });
 
 describe('estimateCellHeight', () => {
-  it('returns the empty-cell height when the cell has no tags', () => {
+  it('returns the empty-cell height when the cell has no findings', () => {
     expect(estimateCellHeight([], [])).toBe(EMPTY_CELL_H);
   });
 
-  it('collapsed-only: base + one chip row per tag', () => {
+  it('charges the section header, base and one row per visible finding', () => {
     const tags = [
       tag('Forms', [finding(), finding()]),
       tag('Grids', [finding({ category: 'Grids' })]),
     ];
-    expect(estimateCellHeight(tags, [])).toBe(CELL_BASE_H + 2 * CHIP_ROW_H);
+    expect(estimateCellHeight(tags, [])).toBe(CELL_HEADER_H + CELL_BASE_H + 3 * ITEM_ROW_H);
   });
 
-  it('adds the "Doesn\'t belong here" divider when a red tag is present', () => {
-    const tags = [
-      tag('Forms', [finding()]),
-      tag('Reports', [finding({ capdan: 'Eliminate' })], { capdan: 'Eliminate' }),
-    ];
-    expect(estimateCellHeight(tags, [])).toBe(CELL_BASE_H + DIVIDER_H + 2 * CHIP_ROW_H);
-  });
-
-  it('one expanded category with n items adds an item row per finding', () => {
-    const tags = [
-      tag('Forms', [finding(), finding(), finding()]),
-      tag('Grids', [finding({ category: 'Grids' })]),
-    ];
-    expect(estimateCellHeight(tags, ['Forms'])).toBe(CELL_BASE_H + 2 * CHIP_ROW_H + 3 * ITEM_H);
-  });
-
-  it('adds screen-chip rows and red flag lines to expanded items', () => {
-    const red = tag(
-      'Business logic',
-      [
-        finding({ capdan: 'Relocate', screenRef: 'User Admin › Users' }),
-        finding({ capdan: 'Relocate' }),
-      ],
-      { capdan: 'Relocate', targetLayer: 'Business Service' },
+  it('caps visible rows and adds the "+N more" fold beyond the cap', () => {
+    const many = tag(
+      'Forms',
+      Array.from({ length: VISIBLE_ROWS + 3 }, () => finding()),
     );
-    expect(estimateCellHeight([red], ['Business logic'])).toBe(
-      CELL_BASE_H + DIVIDER_H + CHIP_ROW_H + 2 * (ITEM_H + ITEM_FLAG_H) + ITEM_SCREEN_H,
+    expect(estimateCellHeight([many], [])).toBe(
+      CELL_HEADER_H + CELL_BASE_H + VISIBLE_ROWS * ITEM_ROW_H + MORE_ROW_H,
     );
   });
 
-  it('adds a WHY THIS MOVES panel only to expanded misplaced items that carry one', () => {
+  it('EXPAND_ALL shows every row (fold row still charged)', () => {
+    const many = tag(
+      'Forms',
+      Array.from({ length: VISIBLE_ROWS + 3 }, () => finding()),
+    );
+    expect(estimateCellHeight([many], [EXPAND_ALL])).toBe(
+      CELL_HEADER_H + CELL_BASE_H + (VISIBLE_ROWS + 3) * ITEM_ROW_H + MORE_ROW_H,
+    );
+  });
+
+  it('adds a WHY THIS MOVES panel only for open why-tokens on movers', () => {
     const why = { captured: 'age, state', lands: 'FNOL Intake Domain Service' };
-    const red = tag('Rules', [finding({ capdan: 'Relocate', whyThisMoves: why })], {
-      capdan: 'Relocate',
-    });
-    const green = tag('Forms', [finding({ whyThisMoves: why })]); // stays → panel hidden
-    expect(estimateCellHeight([red], ['Rules'])).toBe(
-      CELL_BASE_H + DIVIDER_H + CHIP_ROW_H + ITEM_H + ITEM_FLAG_H + ITEM_WHY_H,
-    );
-    expect(estimateCellHeight([green], ['Forms'])).toBe(CELL_BASE_H + CHIP_ROW_H + ITEM_H);
-  });
-
-  it('adds one line per matched anatomy sub-category via the callback', () => {
-    const tags = [tag('Forms', [finding()])];
-    const base = estimateCellHeight(tags, ['Forms']);
-    expect(estimateCellHeight(tags, ['Forms'], () => 4)).toBe(base + 4 * ANATOMY_ROW_H);
-  });
-
-  it('ignores expanded categories that are not among the tags', () => {
-    const tags = [tag('Forms', [finding()])];
-    expect(estimateCellHeight(tags, ['Not here'])).toBe(estimateCellHeight(tags, []));
+    const mover = finding({ capdan: 'Relocate', whyThisMoves: why });
+    const red = tag('Rules', [mover], { capdan: 'Relocate' });
+    const base = estimateCellHeight([red], []);
+    expect(estimateCellHeight([red], [whyToken(mover.id)])).toBe(base + ITEM_WHY_H);
+    expect(estimateCellHeight([red], [whyToken('someone-else')])).toBe(base);
   });
 
   it('is deterministic for the same inputs', () => {
     const tags = [tag('Forms', [finding({ screenRef: 'Home' })])];
-    expect(estimateCellHeight(tags, ['Forms'])).toBe(estimateCellHeight(tags, ['Forms']));
+    expect(estimateCellHeight(tags, [EXPAND_ALL])).toBe(estimateCellHeight(tags, [EXPAND_ALL]));
   });
 });
 
@@ -165,14 +144,24 @@ describe('estimateNormalizeHeight', () => {
     expect(estimateNormalizeHeight([])).toBe(NORM_BASE_H);
   });
 
-  it('charges AUTO entries the row height and HELD/REVIEW the card height', () => {
+  it('charges compact rows for card-less entries and HELD/REVIEW extra', () => {
     expect(
       estimateNormalizeHeight([
         entry(),
         entry({ matchStatus: 'REVIEW' }),
         entry({ matchStatus: 'HELD' }),
       ]),
-    ).toBe(NORM_BASE_H + NORM_ENTRY_H + 2 * NORM_HELD_H);
+    ).toBe(NORM_BASE_H + 3 * NORM_ENTRY_H + 2 * NORM_HELD_EXTRA);
+  });
+
+  it('charges comparison-card entries by their tallest card', () => {
+    const cards = [
+      { source: 'A', title: 'Loss capture form', lines: ['a', 'b', 'c', 'd', 'e'] },
+      { source: 'B', title: 'Loss capture form', lines: ['a', 'b'] },
+    ];
+    expect(estimateNormalizeHeight([entry({ sourceCards: cards })])).toBe(
+      NORM_BASE_H + NORM_CARD_BASE_H + 5 * NORM_CARD_LINE_H,
+    );
   });
 });
 
@@ -186,7 +175,7 @@ describe('deadLaneHeight', () => {
 describe('slotHeightFor / slotOffsets', () => {
   it('never returns less than the base SLOT_H contribution', () => {
     expect(slotHeightFor([])).toBe(SLOT_H);
-    expect(slotHeightFor([EMPTY_CELL_H, CELL_BASE_H + CHIP_ROW_H])).toBe(SLOT_H);
+    expect(slotHeightFor([EMPTY_CELL_H, CELL_HEADER_H])).toBe(SLOT_H);
   });
 
   it('grows to the tallest estimated box plus the margin', () => {

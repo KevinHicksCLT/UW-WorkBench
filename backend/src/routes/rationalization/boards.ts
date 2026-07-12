@@ -289,6 +289,7 @@ export function registerBoardRoutes(router: Router) {
           matchBasis: n.matchBasis,
           differenceNote: n.differenceNote,
           proposedResolution: n.proposedResolution,
+          sourceCards: n.sourceCards ?? null,
           componentId: n.componentId,
           findingIds: n.capabilities.map((c) => c.id),
         })),

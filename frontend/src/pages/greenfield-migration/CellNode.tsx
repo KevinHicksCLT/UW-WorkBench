@@ -1,9 +1,9 @@
 /**
- * Legacy-cell node for the rationalization board (WR-06/WR-10 + v3): category
- * chips colored by the classification vocabulary, in-box expansion where each
- * finding renders as a ✓ "correct here" / ✗ "needs to move" row with a
- * relocation badge, an expandable WHY THIS MOVES panel for misplaced items,
- * and matched anatomy sub-categories on product boards.
+ * Legacy-panel section node for the workspace board (v3 wireframe): one box
+ * per layer row showing the section header (colored dot + "<layer> layer" +
+ * descriptor + count + stay/move roll-up) and one compact row per finding —
+ * ✓ "correct here" or ✗ with a relocation badge — with an inline
+ * WHY-THIS-MOVES panel for misplaced items and a "+ N more…" fold.
  *
  * Any change to the rendered row structure must be mirrored in the height
  * ceilings in cellGeometry.ts (estimateCellHeight) or rows can overlap.
@@ -14,9 +14,10 @@ import type {
   ClassificationMeta,
   Finding,
   Layer,
+  LayerMeta,
   WhyThisMoves,
 } from '../../lib/rationalization';
-import { BOX_W } from './cellGeometry';
+import { BOX_W, EXPAND_ALL, VISIBLE_ROWS, whyToken } from './cellGeometry';
 
 // Handles are hidden in read mode and revealed via the `.board-editing` CSS
 // class on the canvas when editing; connectability follows the global
@@ -28,14 +29,14 @@ export const sideHandles = (
   </>
 );
 
-export type ToggleCategoryFn = (appId: string, layer: Layer, category: string) => void;
+export type ToggleCategoryFn = (appId: string, layer: Layer, token: string) => void;
 export type CellScreen = { url: string | null; kind: string };
 export type CellAnatomyRow = { name: string; description: string };
 export type CellNodeData = {
   layer: Layer;
   appId: string;
   tags: CategoryTag[];
-  /** Category names currently expanded inside this cell. */
+  /** Expansion tokens active in this cell (EXPAND_ALL / why:<findingId>). */
   expanded: string[];
   onToggle: ToggleCategoryFn;
   /** detail.screens by name — resolves a finding's screenRef to a link. */
@@ -46,8 +47,12 @@ export type CellNodeData = {
   sharedNames: Record<string, string>;
   /** Classification vocabulary — chip colors + stay/move (3-A). */
   classification: ClassificationMeta;
+  /** Section-header meta from the LAYER vocabulary row (descriptor + dot). */
+  layerMeta: LayerMeta | null;
   /** Matched anatomy sub-categories per tag key (`category␟capdan`) — 3-D. */
   anatomyByTag: Record<string, CellAnatomyRow[]>;
+  /** Ribbon selection (v3 top bar) — a row click reports its finding. */
+  onSelectFinding?: (finding: Finding) => void;
   /** Findings UI (PM-07): edit an expanded finding / add one to this cell. */
   onEditFinding?: (findingId: string) => void;
   onAddFinding?: (appId: string, layer: Layer) => void;
@@ -70,210 +75,187 @@ function WhyThisMovesPanel({ why }: { why: WhyThisMoves }) {
     ['Validation', why.validated],
   ];
   return (
-    <div className="mt-1 rounded-md border border-[#fecdd3] border-l-2 border-l-[#e11d48] bg-[#fff7f7] px-2 py-1.5">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#be123c]">
-        Why this moves
+    <div className="mt-1 mb-1 rounded-md border border-[#fecdd3] border-l-2 border-l-[#e11d48] bg-[#fff7f7] px-2.5 py-2">
+      <div className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#be123c]">
+        Why this moves — what happens on this screen
       </div>
-      <div className="text-[11px] text-[#525252] leading-snug mt-0.5">
+      <div className="mt-1 space-y-0.5">
         {rows
           .filter((r): r is [string, string] => Boolean(r[1]))
           .map(([k, v]) => (
-            <span key={k}>
-              <span className="text-[#a3a3a3] font-medium">{k}</span> {v} ·{' '}
-            </span>
+            <div key={k} className="flex gap-2 text-[11px] leading-snug">
+              <span className="w-[64px] flex-shrink-0 text-[#a3a3a3] font-medium">{k}</span>
+              <span className="text-[#525252]">{v}</span>
+            </div>
           ))}
         {why.lands && (
-          <span>
-            lands in <span className="font-semibold text-[#0f766e]">{why.lands}</span>
-          </span>
+          <div className="flex gap-2 text-[11px] leading-snug">
+            <span className="w-[64px] flex-shrink-0 text-[#a3a3a3] font-medium">Lands in</span>
+            <span className="font-semibold text-[#0f766e]">{why.lands}</span>
+          </div>
         )}
       </div>
     </div>
   );
 }
 
-function FindingRow({ f, tag, d }: { f: Finding; tag: CategoryTag; d: CellNodeData }) {
-  // Plain language is the DEFAULT; the technical version (code location,
-  // rationale, migration approach) lives on mouseover (WR feedback 2026-07-06).
-  const summary = f.plainSummary ?? f.rationale ?? f.migrationApproach ?? '';
+/** One compact finding row: ✓/✗ + category tag + name + stay/move caption. */
+function ItemRow({ f, tag, d }: { f: Finding; tag: CategoryTag; d: CellNodeData }) {
+  const whyOpen = d.expanded.includes(whyToken(f.id));
+  const canExpand = !tag.stays && Boolean(f.whyThisMoves);
   const technical = [f.codeRef, f.rationale, f.migrationApproach]
-    .filter((v): v is string => Boolean(v) && v !== summary)
+    .filter((v): v is string => Boolean(v))
     .join('  ·  ');
-  const screen = f.screenRef ? d.screens[f.screenRef] : undefined;
   return (
-    <div
-      className="rounded-md border border-[#f0e4cf] bg-white/60 px-2 py-1"
-      title={technical ? `Technical: ${technical}` : undefined}
-    >
-      <div className="flex items-start gap-1.5">
+    <div>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          d.onSelectFinding?.(f);
+          if (canExpand) d.onToggle(d.appId, d.layer, whyToken(f.id));
+        }}
+        className={`w-full flex items-center gap-1.5 rounded-md border px-2 py-1 text-left ${
+          tag.stays
+            ? 'border-transparent hover:border-[#e5e5e5] bg-transparent'
+            : whyOpen
+              ? 'border-[#fecdd3] bg-[#fff1f2]'
+              : 'border-transparent hover:border-[#fecdd3] bg-transparent'
+        }`}
+        title={technical ? `Technical: ${technical}` : f.name}
+      >
         <span
           aria-hidden="true"
-          className={`text-[12px] font-bold leading-snug flex-shrink-0 ${
+          className={`text-[12px] font-bold leading-none flex-shrink-0 ${
             tag.stays ? 'text-[#10b981]' : 'text-[#e11d48]'
           }`}
         >
           {tag.stays ? '✓' : '✗'}
         </span>
-        <div
-          className="text-[12.5px] font-semibold text-[#171717] leading-snug truncate flex-1 min-w-0"
-          title={f.name}
+        <span
+          className="flex-shrink-0 max-w-[92px] truncate rounded border border-[#dbe4f0] bg-[#f0f6ff] px-1 py-px text-[10px] font-semibold text-[#1d4ed8]"
+          title={tag.category}
         >
+          {tag.category}
+        </span>
+        <span className="text-[12px] text-[#171717] leading-snug truncate flex-1 min-w-0">
           {f.name}
-        </div>
+        </span>
+        {tag.stays ? (
+          <span className="flex-shrink-0 text-[10px] text-[#a3a3a3]">correct here</span>
+        ) : (
+          <span className="flex-shrink-0 inline-flex items-center rounded border border-[#fecdd3] bg-[#fff1f2] px-1.5 py-px text-[10px] font-bold text-[#be123c]">
+            → {moveDestination(f, d.sharedNames)}
+          </span>
+        )}
         {d.onEditFinding && (
-          <button
-            type="button"
+          <span
+            role="button"
+            tabIndex={-1}
             aria-label={`Edit ${f.name}`}
             onClick={(e) => {
               e.stopPropagation();
               d.onEditFinding?.(f.id);
             }}
-            className="flex-shrink-0 text-[11px] text-[#a3a3a3] hover:text-[#171717] leading-snug"
+            className="flex-shrink-0 text-[11px] text-[#c9c9c9] hover:text-[#171717] leading-none"
             title="Edit finding"
           >
             ✎
-          </button>
+          </span>
         )}
-      </div>
-      {summary && (
-        <div className="text-[12px] text-[#8f8f8f] leading-snug line-clamp-2 mt-0.5">{summary}</div>
-      )}
-      {f.screenRef &&
-        (screen?.url ? (
-          <a
-            href={screen.url}
-            target="_blank"
-            rel="noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="mt-1 inline-flex items-center gap-1 rounded border border-[#dbe4f0] bg-white px-1.5 py-0.5 text-[11px] font-medium text-[#1d4ed8] hover:border-[#bfdbfe]"
-            title={`Open ${f.screenRef}`}
-          >
-            {f.screenRef} ↗
-          </a>
-        ) : (
-          <span className="mt-1 inline-flex items-center rounded border border-[#e5e5e5] bg-white px-1.5 py-0.5 text-[11px] font-medium text-[#525252]">
-            {f.screenRef}
-          </span>
-        ))}
-      {!tag.stays && (
-        <div className="mt-0.5">
-          <span className="inline-flex items-center rounded border border-[#fecdd3] bg-[#fff1f2] px-1.5 py-0.5 text-[11px] font-semibold text-[#be123c]">
-            → {moveDestination(f, d.sharedNames)}
-          </span>
-        </div>
-      )}
-      {!tag.stays && f.whyThisMoves && <WhyThisMovesPanel why={f.whyThisMoves} />}
-    </div>
-  );
-}
-
-function TagChips({ tags, d }: { tags: CategoryTag[]; d: CellNodeData }) {
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {tags.map((t) => {
-        const meta = d.classification.byToken[t.capdan];
-        const cls =
-          meta?.chip ??
-          (t.stays
-            ? 'bg-[#ecfdf5] text-[#047857] border-[#a7f3d0]'
-            : 'bg-[#fff1f2] text-[#be123c] border-[#fecdd3]');
-        const open = d.expanded.includes(t.category);
-        const tip =
-          d.tips[t.category] ??
-          `${t.count} ${t.category} · ${t.stays ? 'belongs here' : t.targetLayer ? `move to ${t.targetLayer}` : 'needs to move'} — click to expand`;
-        const anatomy = d.anatomyByTag[tagKey(t)] ?? [];
-        const chip = (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              d.onToggle(d.appId, d.layer, t.category);
-            }}
-            aria-expanded={open}
-            className={`inline-flex items-center gap-1 rounded-md border pl-2 pr-1.5 py-0.5 text-[13px] font-medium hover:shadow-sm ${cls}`}
-            title={tip}
-          >
-            <span className="truncate max-w-[170px]">{t.category}</span>
-            {!t.stays && t.targetLayer && <span className="opacity-80">→ {t.targetLayer}</span>}
-            <span className="inline-flex items-center justify-center min-w-[18px] h-[17px] rounded-full bg-white/70 text-[12px] font-semibold px-0.5">
-              {t.count}
-            </span>
-            <span aria-hidden="true" className="text-[12px] opacity-70 leading-none">
-              {open ? '−' : '+'}
-            </span>
-          </button>
-        );
-        const key = tagKey(t);
-        if (!open) return <span key={key}>{chip}</span>;
-        return (
-          <div key={key} className="w-full">
-            {chip}
-            <div className="mt-1 space-y-1">
-              {t.findings.map((f) => (
-                <FindingRow key={f.id} f={f} tag={t} d={d} />
-              ))}
-            </div>
-            {anatomy.length > 0 && (
-              <div className="mt-1 rounded-md border border-[#e5e5e5] bg-white/60 px-2 py-1">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a3a3a3]">
-                  Matched anatomy
-                </div>
-                {anatomy.map((a) => (
-                  <div
-                    key={a.name}
-                    className="text-[11px] text-[#525252] leading-snug truncate"
-                    title={a.description}
-                  >
-                    · {a.name}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      })}
+      </button>
+      {whyOpen && f.whyThisMoves && <WhyThisMovesPanel why={f.whyThisMoves} />}
     </div>
   );
 }
 
 export function CellNode({ data }: NodeProps) {
   const d = data as CellNodeData;
-  const green = d.tags.filter((t) => t.stays);
-  const red = d.tags.filter((t) => !t.stays);
+  // Stay rows first, then movers — the wireframe's reading order.
+  const rows: { f: Finding; tag: CategoryTag }[] = [];
+  for (const tag of d.tags.filter((t) => t.stays))
+    for (const f of tag.findings) rows.push({ f, tag });
+  for (const tag of d.tags.filter((t) => !t.stays))
+    for (const f of tag.findings) rows.push({ f, tag });
+
+  const stay = rows.filter((r) => r.tag.stays).length;
+  const move = rows.length - stay;
+  const showAll = d.expanded.includes(EXPAND_ALL);
+  const visible = showAll ? rows : rows.slice(0, VISIBLE_ROWS);
+  const hidden = rows.length - visible.length;
+  const meta = d.layerMeta;
+
   return (
     <div
-      className="rounded-lg border-2 border-[#e7d3b5] bg-[#fdf8f0] shadow-sm px-4 py-3"
+      className="rounded-lg border border-[#e7e2d8] bg-[#fffdf8] shadow-sm px-2.5 py-2"
       style={{ width: BOX_W }}
     >
       {sideHandles}
-      {d.tags.length === 0 ? (
+      {/* Section header — dot · "<layer> layer" · descriptor · count · roll-up */}
+      <div className="flex items-center gap-1.5 border-b border-[#f0ece2] pb-1.5 mb-1.5">
+        <span
+          aria-hidden="true"
+          className="w-2 h-2 rounded-full flex-shrink-0"
+          style={{ background: meta?.dot ?? '#a3a3a3' }}
+        />
+        <span className="text-[12px] font-bold text-[#171717]">{d.layer} layer</span>
+        {meta?.descriptor && (
+          <span className="text-[10px] text-[#a3a3a3] truncate">{meta.descriptor}</span>
+        )}
+        <span className="inline-flex items-center justify-center min-w-[20px] h-[16px] rounded-full bg-[#f0f0f0] px-1 text-[10px] font-bold text-[#525252]">
+          {rows.length}
+        </span>
+        <span className="flex-1" />
+        <span className="text-[10px] font-semibold tnum flex-shrink-0">
+          {stay > 0 && <span className="text-[#047857]">{stay} stay</span>}
+          {stay > 0 && move > 0 && <span className="text-[#d4d4d4]"> · </span>}
+          {move > 0 && <span className="text-[#be123c]">{move} move</span>}
+        </span>
+      </div>
+
+      {rows.length === 0 ? (
         <span className="text-[13px] text-[#cfcfcf]">—</span>
       ) : (
-        <>
-          <TagChips tags={green} d={d} />
-          {red.length > 0 && (
-            <>
-              <div className={`flex items-center gap-2 mb-1.5 ${green.length > 0 ? 'mt-2' : ''}`}>
-                <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#cf8193]">
-                  Doesn’t belong here
-                </span>
-                <span className="flex-1 border-t border-[#f3d5da]" />
-              </div>
-              <TagChips tags={red} d={d} />
-            </>
+        <div className="space-y-px">
+          {visible.map(({ f, tag }) => (
+            <ItemRow key={f.id} f={f} tag={tag} d={d} />
+          ))}
+          {hidden > 0 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                d.onToggle(d.appId, d.layer, EXPAND_ALL);
+              }}
+              className="px-2 pt-0.5 text-[11px] font-medium text-[#8f8f8f] hover:text-[#171717]"
+            >
+              + {hidden} more…
+            </button>
           )}
-        </>
+          {showAll && rows.length > VISIBLE_ROWS && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                d.onToggle(d.appId, d.layer, EXPAND_ALL);
+              }}
+              className="px-2 pt-0.5 text-[11px] font-medium text-[#8f8f8f] hover:text-[#171717]"
+            >
+              − collapse
+            </button>
+          )}
+        </div>
       )}
       {d.onAddFinding && (
-        <div className="mt-1.5">
+        <div className="mt-1">
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
               d.onAddFinding?.(d.appId, d.layer);
             }}
-            className="text-[11px] font-medium text-[#a3a3a3] hover:text-[#171717]"
-            title="Add a finding to this cell"
+            className="text-[11px] font-medium text-[#c9c9c9] hover:text-[#171717]"
+            title="Add a finding to this section"
           >
             + finding
           </button>
