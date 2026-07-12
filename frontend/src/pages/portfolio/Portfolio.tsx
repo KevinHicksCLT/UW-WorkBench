@@ -1,13 +1,18 @@
-import { Card, EmptyState } from '../../components/ui';
+import { useSearchParams } from 'react-router-dom';
+import WorkspaceMap from '../workspace-map/WorkspaceMap';
 
-// Workspace — the previous Rationalization Workspace board UI was removed in
-// full (user direction 2026-07-12); this tab is an intentional blank slate
-// awaiting the next design. Deep-link params (?domain=, ?workspace=) are
-// accepted and ignored so old links still land here without erroring.
+// Workspace — the interactive rationalization map (brown-field decomposition →
+// Normalize → green-field target), rebuilt 2026-07-12 against the live
+// /rationalization API after the previous board was retired. Rendered bare —
+// no Card wrapper: the toolbar sits directly under the app breadcrumb and the
+// map canvas is the page's single card, filling the viewport.
+//
+// Deep links carry the lens in ?domain= (applications | value-streams | roles);
+// unknown values fall back to applications. ?workspace=<id> is accepted for
+// old links (the map validates it against the board list).
 export default function Portfolio() {
-  return (
-    <Card variant="elevated" className="p-4 border-l-[3px] border-l-[#4f46e5]">
-      <EmptyState message="The workspace board UI has been retired. A replacement design is pending." />
-    </Card>
-  );
+  const [params] = useSearchParams();
+  const domain = params.get('domain') ?? undefined;
+
+  return <WorkspaceMap initialDomain={domain} />;
 }
