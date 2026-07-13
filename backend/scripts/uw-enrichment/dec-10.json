@@ -1,0 +1,1752 @@
+{
+  "tasks": [
+    {
+      "id": "54723cb6-dfb7-4199-b01b-385feff7c386",
+      "owner": {
+        "action": "replace",
+        "name": "Delegated Authority Analyst"
+      },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager", "Portfolio UW Manager"],
+      "removeAppNames": [
+        "underwriting workstation",
+        "billing/commission platform",
+        "HRIS (Workday/SuccessFactors)"
+      ],
+      "addApps": [
+        {
+          "name": "Power BI",
+          "usageType": "performed"
+        },
+        {
+          "name": "GRC platform (Archer/ServiceNow GRC)",
+          "usageType": "performed"
+        },
+        {
+          "name": "Microsoft 365 / SharePoint",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The full in-force and new-business portfolio written under each coverholder/MGA binder in scope - premium, policy count, limits and exposure by line of business, geography and industry class - sourced from the quarterly bordereaux loaded into Guidewire PolicyCenter for the delegated-authority book."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The most recent completed calendar quarter (e.g. 2026-Q2, 2026-04-01 to 2026-06-30) with rolling four-quarter trend; bordereaux dated outside the quarter are excluded from the drift calculation."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each portfolio row carries coverholder id, LOB, state, industry/class code, written premium, aggregate limit and effective date; rows missing LOB, state or premium are quarantined until the coverholder resubmits a corrected bordereau."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Premium and policy-count totals from the bordereaux reconcile to booked premium in PolicyCenter for the binder; variance must be <=1% or the drift analysis is held until the bordereau is corrected (delta target 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The drift assessment workbook and Power BI extract are saved to SharePoint /DelegatedAuthority/Coverholders/<coverholder-id>/2026-Q2/appetite-drift-v1 with timestamp and version label, retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Any class or geography breaching the documented appetite band is logged as a drift exception in Archer GRC with owner and remediation action; material drift (>10% of band) is flagged for the coverholder review agenda."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "100% of coverholder binders in the delegated-authority book for the quarter (census, not a sample); each binder's mix is measured against its Binding Authority Agreement appetite schedule."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every LOB/geography/industry concentration is within the agreed appetite band and no single class exceeds its cap. FAIL = any concentration outside the band or any no-write class written."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "On FAIL, raise an appetite-drift exception in Archer GRC, notify the coverholder in writing, and add the item to the quarterly performance review; persistent drift escalates to the Delegated Authority Committee."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance: drift workbook complete for all in-scope binders, each concentration classified in/out of band, and every out-of-band item has a documented action; sign-off by the Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Archer GRC drift-exception log plus the SharePoint appetite-drift workbook under the coverholder's 2026-Q2 folder."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Measure each coverholder's written mix against its documented appetite by LOB, geography and industry",
+              "value": "Appetite schedule from the Binding Authority Agreement is loaded as the benchmark; each quarter's bordereau mix is compared class-by-class in the drift workbook."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify appetite bands are current and applied",
+              "value": "Confirm the appetite schedule version matches the active BAA and that 100% of in-scope classes have a defined band; 0 classes unbenchmarked."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp2qe1n3umbk8sm5m3zpe",
+          "checklist": [
+            {
+              "step": "Perform ongoing monitoring of the delegated coverholder each quarter",
+              "value": "Portfolio mix and concentration drift assessed every quarter as part of the coverholder monitoring cycle and recorded in Archer GRC."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm monitoring cadence met",
+              "value": "Every active coverholder has a completed quarterly drift assessment; 0 binders skipped in the quarter."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppf71o92mbk8voyj74ly",
+          "checklist": [
+            {
+              "step": "Track loss-ratio performance by line of business against target",
+              "value": "Bordereau loss ratios trended by LOB against the plan loss-ratio target as an appetite-drift indicator."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify loss-ratio outliers are flagged",
+              "value": "Any LOB exceeding target loss ratio by the defined tolerance is flagged in the drift workbook and carried to the review; 0 breaches unflagged."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fhs1e05nckfgzmt82of8b",
+      "owner": {
+        "action": "replace",
+        "name": "Delegated Authority Analyst"
+      },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager"],
+      "removeAppNames": [
+        "underwriting workstation",
+        "billing/commission platform",
+        "HRIS (Workday/SuccessFactors)"
+      ],
+      "addApps": [
+        {
+          "name": "Power BI",
+          "usageType": "performed"
+        },
+        {
+          "name": "Microsoft 365 / SharePoint",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The finalized quarterly coverholder performance scorecards for every active binder in the delegated-authority book, distributed to underwriting leadership (Portfolio UW Manager, Chief Underwriting Officer) and the Delegated Authority Committee."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The completed quarter the scorecards cover (e.g. 2026-Q2); distribution occurs within 30 business days of quarter-end per the delegated-authority reporting calendar."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203znmbk8n0lfz54r"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each scorecard PDF carries coverholder name, quarter, loss ratio, premium, policy count, RAG status and open-exception count; a scorecard missing RAG status or the quarter label is not released."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The distribution list count reconciles to the leadership/committee membership roster; every named recipient must appear on the delivery confirmation (delta 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The issued scorecard pack and the email/Teams distribution receipt are saved to SharePoint /DelegatedAuthority/Reporting/2026-Q2/scorecard-distribution-v1 with timestamp and version, retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A recipient bounce or a late scorecard is logged as a distribution exception in Archer GRC with owner and re-send action; unresolved within 2 business days it is escalated to the Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "100% of finalized scorecards for the quarter and 100% of the required leadership/committee recipients (census)."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = every scorecard delivered to every named recipient with read/delivery confirmation captured. FAIL = any scorecard undelivered or any required recipient omitted."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "On FAIL, re-send to the missed recipients, log the miss in Archer GRC, and confirm receipt; repeated distribution failures escalate to the Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Scorecard fields sourced from the Power BI Delegated Authority Performance dashboard data dictionary: coverholder_id, quarter, loss_ratio, written_premium, policy_count, rag_status, open_exceptions."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = number of scorecards generated equals number of active binders in PolicyCenter for the quarter; distribution receipt count equals the recipient roster count."
+        },
+        {
+          "answerId": "cmr2ocfzg0we5kaz3l0oimnzx",
+          "value": "In-scope period = the reporting quarter the scorecards cover (2026-Q2, effective 2026-04-01 to 2026-06-30); distribution effective date is the day the pack is issued, within 30 business days of quarter-end."
+        },
+        {
+          "answerId": "cmr2ocfzg0we6kaz3cthp5cbi",
+          "value": "Scorecards are produced from the approved Delegated Authority Performance dashboard v3 (Power BI), with loss-ratio and premium parameters sourced from the quarter's reconciled bordereaux in PolicyCenter."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp2qe1n3umbk8sm5m3zpe",
+          "checklist": [
+            {
+              "step": "Circulate coverholder monitoring results to accountable owners each quarter",
+              "value": "Scorecards distributed to underwriting leadership and the committee within 30 business days of quarter-end as the ongoing-monitoring reporting step."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify reporting cadence and completeness",
+              "value": "Every active coverholder scorecard reaches every required recipient each quarter; 0 gaps in the distribution log."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp16a1n14mbk82qvcxpe3",
+          "checklist": [
+            {
+              "step": "Report delegated-authority performance to the governing committee quarterly",
+              "value": "Scorecard pack forms the quarterly delegated-authority report to the Delegated Authority Committee/UW leadership."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm quarterly report issued",
+              "value": "Quarterly report delivered on or before the calendar deadline; 0 quarters missed in the trailing four."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "8357cd03-31c0-470a-ac8c-b2d4925316f4",
+      "owner": {
+        "action": "replace",
+        "name": "Bordereaux Analyst"
+      },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager", "Delegated Authority Analyst"],
+      "removeAppNames": ["claim file/document repository", "payment/subrogation system"],
+      "addApps": [
+        {
+          "name": "Power BI",
+          "usageType": "performed"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Binder-level loss-ratio, premium volume, policy count and claims-frequency KPIs for every coverholder/MGA binder, compiled from premium bordereaux in PolicyCenter and claims data in Guidewire ClaimCenter for the delegated-authority book."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The completed reporting quarter (e.g. 2026-Q2) with trailing 4-quarter and inception-to-date views; only bordereaux and claims transactions dated within the period are included."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rn03rpmbk8ew7et8hz"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each KPI row carries coverholder id, LOB, earned/written premium, incurred losses, policy count and claim count; rows with null premium or unmatched claims are held and flagged for bordereau correction."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Premium and claim totals reconcile between the coverholder bordereaux, PolicyCenter and ClaimCenter; the loss-ratio numerator (incurred) and denominator (earned premium) must tie to source ledgers with variance <=1% (target delta 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The KPI workbook and Power BI dataset are saved to SharePoint /DelegatedAuthority/Coverholders/<coverholder-id>/2026-Q2/binder-kpis-v1 with timestamp and version, retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Unreconciled premium/claims or a missing bordereau is logged as a data exception in Archer GRC with owner and a 10-business-day correction SLA before the KPI set is finalized."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The KPI methodology (loss-ratio definition, earning pattern, claims-frequency basis) follows the approved Delegated Authority KPI standard v2; any change to the calculation is version-controlled and re-approved by the Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2oamg4000llasb5mlmokig",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Loss-ratio and frequency are recomputed on a paid-only and incurred basis; a swing greater than 5 loss-ratio points between bases is flagged for review before publication."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Binders with earned premium below the USD 250k materiality floor are shown but excluded from RAG scoring; movements below 2 loss-ratio points are treated as immaterial."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "A sample of KPI rows is traced back to the underlying bordereau lines and ClaimCenter claim screens to confirm premium and incurred figures agree to source."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Claim status (open/closed/reopened) from ClaimCenter aligns to the frequency and severity rules used in the KPI so only valid claims are counted."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Loss dates and booking dates align to the reporting quarter; out-of-period transactions are reclassified to the correct quarter before totals are struck."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "cmqsck0rn03rpmbk8ew7et8hz"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "100% of active binders for the quarter (census); a 25-row sample per binder is traced to source to validate the compiled figures."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = all KPIs computed for every binder, source reconciliation within 1%, and sampled rows tie to source. FAIL = any binder with unreconciled premium/claims or a sampled row that does not trace."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "On FAIL, hold the KPI set, raise a data exception in Archer GRC, obtain the corrected bordereau, and re-run before the scorecards are produced."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance: KPI workbook complete for all binders, reconciliation evidence attached, sample trace passed, sign-off by the Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "SharePoint binder-kpis workbook plus the reconciliation tab; data exceptions in Archer GRC."
+        },
+        {
+          "answerId": "cmr2ocg100yhlkaz3jtvnbh2d",
+          "value": "KPIs are compiled using the approved Delegated Authority KPI methodology v2 (loss-ratio, frequency and premium-earning definitions); parameter source is the reconciled bordereaux in PolicyCenter and incurred data in ClaimCenter."
+        },
+        {
+          "answerId": "cmr2ocg100yhmkaz35eopkadh",
+          "value": "Field definitions (earned_premium, incurred_losses, policy_count, claim_count) come from the KPI data dictionary; control totals are the PolicyCenter written/earned premium and the ClaimCenter incurred totals for the binder."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppf71o92mbk8voyj74ly",
+          "checklist": [
+            {
+              "step": "Compute binder loss ratio against the line-of-business target",
+              "value": "Incurred loss ratio calculated per LOB and compared to the plan target on each binder scorecard."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify loss-ratio calculation and outliers",
+              "value": "Recompute loss ratio for a sample of binders; result ties to source within 1% and any LOB over target is flagged."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp2qe1n3umbk8sm5m3zpe",
+          "checklist": [
+            {
+              "step": "Produce quarterly performance KPIs as part of coverholder monitoring",
+              "value": "Binder KPI set generated every quarter for all active coverholders and fed into the scorecard/monitoring record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm KPI coverage",
+              "value": "Every active binder has a complete KPI set for the quarter; 0 binders missing."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp2l81n3kmbk8yc9dv6vr",
+          "checklist": [
+            {
+              "step": "Apply accuracy controls to the reported KPIs",
+              "value": "Reconciliation of premium and claims to source ledgers is performed before KPIs are published, with variances investigated."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test reporting accuracy",
+              "value": "Source-to-report reconciliation variance <=1% on all KPIs; unreconciled items resolved before release."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "4001a016-30c2-4fd0-b76b-dcfe3fa3ac5b",
+      "owner": {
+        "action": "replace",
+        "name": "Delegated Authority Analyst"
+      },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant", "QA Analyst"],
+      "addParticipants": ["Delegated Authority Manager"],
+      "removeAppNames": ["Regulatory Filing Portal (SERFF)"],
+      "addApps": [
+        {
+          "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "usageType": "performed"
+        },
+        {
+          "name": "Power BI",
+          "usageType": "performed"
+        },
+        {
+          "name": "Microsoft 365 / SharePoint",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The scheduled quarterly performance review meeting with each coverholder/MGA, covering scorecard results, appetite drift, open exceptions and remediation actions for the delegated-authority book."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The quarter under review (e.g. 2026-Q2); the meeting is held within 45 business days of quarter-end per the delegated-authority governance calendar."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203znmbk8n0lfz54r"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The review pack and minutes capture attendees, scorecard RAG, actions with owners and due dates, and coverholder responses; minutes without agreed actions/owners are not accepted as complete."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every active coverholder scheduled for the quarter has a held meeting and signed minutes; meetings held reconcile to the coverholder review schedule (delta 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Agenda, review pack and signed minutes are saved to SharePoint /DelegatedAuthority/Coverholders/<coverholder-id>/2026-Q2/review-minutes-v1 with timestamp and version, retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A missed or deferred review is logged as an exception in Archer GRC with a rescheduled date; any coverholder review deferred twice is escalated to the Delegated Authority Committee."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp2qe1n3umbk8sm5m3zpe",
+          "checklist": [
+            {
+              "step": "Hold structured quarterly performance reviews with each delegated coverholder",
+              "value": "Quarterly review meeting held with agenda, scorecard pack and minutes for every active coverholder."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify review completeness and cadence",
+              "value": "Every scheduled coverholder review is held and minuted in the quarter; 0 reviews missed without an escalation."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp2re1n3wmbk8sejk1tv2",
+          "checklist": [
+            {
+              "step": "Set review depth and frequency by coverholder risk tier",
+              "value": "Higher-tier coverholders receive deeper reviews and, where warranted, more frequent touchpoints per the tiering model."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm tier-appropriate review",
+              "value": "Each coverholder's review depth matches its assigned risk tier; 0 high-tier coverholders on a reduced review cycle."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp2sd1n3ymbk8ke7fihs7",
+          "checklist": [
+            {
+              "step": "Refresh due-diligence findings at the review",
+              "value": "Any material change in the coverholder's controls, staffing or licensing is captured and actioned in the review minutes."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify due-diligence currency",
+              "value": "Coverholder due-diligence record is current within the review cycle; 0 overdue refreshes."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "7a24fe11-45cf-4238-bb92-50bbcfbc4050",
+      "owner": {
+        "action": "replace",
+        "name": "Delegated Authority Analyst"
+      },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager"],
+      "removeAppNames": [
+        "underwriting workstation",
+        "billing/commission platform",
+        "HRIS (Workday/SuccessFactors)"
+      ],
+      "addApps": [
+        {
+          "name": "GRC platform (Archer/ServiceNow GRC)",
+          "usageType": "performed"
+        },
+        {
+          "name": "Microsoft 365 / SharePoint",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All exceptions identified during coverholder monitoring this quarter - appetite drift, authority breaches, bordereau data gaps, SLA and claims-handling failures - each recorded with remediation action and a responsible owner."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current monitoring quarter (e.g. 2026-Q2); exceptions carry their identified date and target closure date within the remediation window."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each exception record carries coverholder id, category, severity, description, root cause, remediation action, owner and due date; a record missing owner or due date is invalid and returned to the analyst."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Open exception count in Archer GRC reconciles to the exceptions raised across the quarter's scorecards and reviews; every scorecard-flagged item has a matching GRC record (delta 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The exception log export is saved to SharePoint /DelegatedAuthority/Coverholders/<coverholder-id>/2026-Q2/exceptions-log-v1 with timestamp and version, retained 7 years; the master record lives in Archer GRC."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Exceptions that cannot be actioned within SLA are dispositioned (remediate / risk-accept / waive) with rationale and Delegated Authority Manager approval; overdue high-severity items escalate to the committee."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "100% of exceptions raised during the quarter's monitoring (census); no sampling."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every exception has category, severity, root cause, action, owner and due date, and is logged in Archer GRC. FAIL = any exception missing an owner/action or tracked informally outside GRC."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Incomplete exceptions are returned to the analyst for completion within 5 business days; unresolved high-severity exceptions escalate to the Delegated Authority Committee."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance: all monitoring exceptions logged with owner and action, reconciled to scorecards/reviews, sign-off by the Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Archer GRC exception register plus the SharePoint quarterly exceptions-log export."
+        },
+        {
+          "answerId": "cmr2ocdxy0vagkaz3gee01dom",
+          "value": "Materiality/tolerance thresholds: appetite drift >10% of band, loss ratio >5 points over target, or any authority breach are material and must be logged as exceptions; movements within tolerance are noted but not raised."
+        },
+        {
+          "answerId": "cmr2ocdxy0vahkaz3we8iy3wq",
+          "value": "Authorized approver = Delegated Authority Manager for standard exception dispositions; risk-accept or waiver of a high-severity breach requires Chief Underwriting Officer approval per the delegated-authority delegation matrix."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp0pc1n08mbk8a42zeedy",
+          "checklist": [
+            {
+              "step": "Track every monitoring finding to closure in the GRC system",
+              "value": "Each exception logged in Archer GRC with owner, action and due date; none tracked informally in email or spreadsheets."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify findings tracking completeness",
+              "value": "Scorecard/review-flagged items reconcile 1:1 to Archer GRC records; 0 findings untracked."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp0u91n0imbk8zljy4ihh",
+          "checklist": [
+            {
+              "step": "Assign a remediation action plan and owner to each exception",
+              "value": "Every exception has a documented remediation action, accountable owner and target date recorded in Archer GRC."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test action-plan aging",
+              "value": "0 exceptions open past their due date without an approved disposition or extension."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp2qe1n3umbk8sm5m3zpe",
+          "checklist": [
+            {
+              "step": "Capture coverholder monitoring exceptions as part of the ongoing-monitoring cycle",
+              "value": "Exceptions arising from quarterly monitoring are documented and fed into the coverholder's performance record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm monitoring exceptions recorded",
+              "value": "Every monitoring cycle that identified an issue has a corresponding logged exception; 0 unrecorded issues."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "c7b899e3-f656-420f-a506-1badad292e00",
+      "owner": {
+        "action": "replace",
+        "name": "Delegated Authority Manager"
+      },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Chief Underwriting Officer"],
+      "removeAppNames": ["underwriting workstation", "billing/commission platform"],
+      "addApps": [
+        {
+          "name": "Microsoft 365 / SharePoint",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Coverholders with persistent underperformance or systemic control failures - repeated appetite drift, unremediated authority breaches, or adverse loss-ratio trends across two or more quarters - escalated to the Delegated Authority Committee."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Trailing 2-4 quarters of performance evidencing the persistence (e.g. 2025-Q4 through 2026-Q2); the escalation is submitted for the next scheduled committee meeting."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The escalation pack carries coverholder id, the pattern of breaches with dates, prior remediation attempts, financial impact and a recommended action (remediation plan / restriction / termination); a pack without a recommendation is not submitted."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Escalated cases reconcile to the Archer GRC exception log - every case cites the underlying open exceptions and their aging; the count of cited exceptions matches the open GRC records (delta 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The escalation memo and committee submission are saved to SharePoint /DelegatedAuthority/Committee/2026-Q3/escalation-<coverholder-id>-v1 with timestamp and version, retained 7 years; the case is logged in Archer GRC."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "If the committee defers a decision, the deferral and interim risk-mitigation (e.g. binder suspension) are recorded with a review date; failure to convene the committee within SLA escalates to the Chief Underwriting Officer."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0ro03sjmbk8hjhb90bw"
+        },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Pre/post view compares the coverholder's KPIs and open-exception count before and after prior remediation to evidence that underperformance persisted despite action; the comparison is attached to the escalation memo."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "The escalation is raised as a governance case in Archer GRC and cross-linked to the coverholder's exception records and the committee agenda item id."
+        },
+        {
+          "templateKeyId": "cmr2oann90019lasbxpi8ldf9",
+          "roleId": "cmqsck0ro03sjmbk8hjhb90bw"
+        },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The committee decision (remediation mandate / authority restriction / termination) is recorded in the committee minutes and the Archer GRC case with rationale and effective date."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Recipients documented: Delegated Authority Committee members, Chief Underwriting Officer, the responsible portfolio underwriter and (on decision) the coverholder; distribution captured on the memo cover sheet."
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "100% of coverholders meeting the persistent-underperformance escalation trigger in the period (census)."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = each qualifying coverholder has an escalation submitted with evidence, recommendation and committee routing. FAIL = any qualifying coverholder not escalated or escalated without supporting evidence."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "Cases where evidence is incomplete are returned for completion within 5 business days; genuinely urgent control failures are escalated immediately outside the quarterly cycle."
+        },
+        {
+          "templateKeyId": "cmr2v89jj0013xa9iy2urljqv",
+          "roleId": "cmqsck0ro03sjmbk8hjhb90bw"
+        },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "The delegation matrix records that binder restriction or termination decisions sit with the Delegated Authority Committee/Chief Underwriting Officer, not the analyst or manager acting alone."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp0zg1n0smbk8ky6lt3d3",
+          "checklist": [
+            {
+              "step": "Apply defined escalation triggers for persistent underperformance",
+              "value": "Documented triggers (repeated breaches, adverse loss-ratio trend, unremediated exceptions) drive escalation to the Delegated Authority Committee."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify triggers are applied",
+              "value": "Every coverholder meeting a trigger in the period was escalated; 0 qualifying cases held back."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppse1o9smbk8sec8gva2",
+          "checklist": [
+            {
+              "step": "Route authority exceptions and restrictions for senior approval",
+              "value": "Binder restriction/termination and any authority exception require Chief Underwriting Officer / committee approval with documentation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm approval authority",
+              "value": "Each escalation decision carries the correct senior sign-off recorded in the minutes; 0 decisions taken below required authority."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp0u91n0imbk8zljy4ihh",
+          "checklist": [
+            {
+              "step": "Track the committee-mandated action to closure",
+              "value": "Committee decisions become tracked action plans with owner and due date in Archer GRC."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test mandated-action aging",
+              "value": "0 committee-mandated actions open past due without an approved extension."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fhrqw05hekfgz5hw74rut",
+      "owner": {
+        "action": "replace",
+        "name": "Delegated Authority Analyst"
+      },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager", "Bordereaux Analyst"],
+      "removeAppNames": [
+        "underwriting workstation",
+        "billing/commission platform",
+        "HRIS (Workday/SuccessFactors)"
+      ],
+      "addApps": [
+        {
+          "name": "Power BI",
+          "usageType": "performed"
+        },
+        {
+          "name": "Microsoft 365 / SharePoint",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The quarterly performance scorecard for each coverholder/MGA binder - loss ratio, premium, policy count, claims frequency, appetite adherence, SLA and open-exception RAG - built from the compiled binder KPIs for the delegated-authority book."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The completed reporting quarter (e.g. 2026-Q2) with trailing 4-quarter trend; scorecards are finalized within 25 business days of quarter-end."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203znmbk8n0lfz54r"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each scorecard carries coverholder id, quarter, KPI values, RAG ratings and open-exception count; a scorecard missing a RAG rating or a KPI value is not finalized."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Scorecard KPI values reconcile to the compiled binder-KPI workbook and to PolicyCenter/ClaimCenter source totals; variance <=1% (target delta 0) before finalization."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The finalized scorecard PDF and source dataset are saved to SharePoint /DelegatedAuthority/Coverholders/<coverholder-id>/2026-Q2/scorecard-v1 with timestamp and version, retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A KPI that fails reconciliation or a missing RAG threshold is logged as an exception in Archer GRC and the scorecard held until corrected; unresolved within 5 business days it escalates to the Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "100% of active binders for the quarter (census); each scorecard's KPIs are re-checked against the compiled workbook."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = every binder has a complete, reconciled scorecard with RAG ratings applied. FAIL = any scorecard with an unreconciled KPI, missing RAG rating or absent version/timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "On FAIL, hold the scorecard, raise an exception in Archer GRC, correct the KPI, and re-issue before distribution."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Scorecard field definitions come from the Delegated Authority KPI data dictionary: loss_ratio, written_premium, earned_premium, policy_count, claim_frequency, rag_status."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control totals: scorecard premium and incurred figures equal the compiled binder-KPI workbook totals, which in turn tie to PolicyCenter and ClaimCenter."
+        },
+        {
+          "answerId": "cmr2ocfzg0we3kaz38r1e8tir",
+          "value": "In-scope period = the reporting quarter (2026-Q2, effective 2026-04-01 to 2026-06-30); scorecard effective date is finalization, within 25 business days of quarter-end."
+        },
+        {
+          "answerId": "cmr2ocfzg0we4kaz33v8o70ft",
+          "value": "Scorecards are produced from the approved Delegated Authority Performance dashboard v3 (Power BI) using the approved KPI methodology v2; parameter source is the reconciled binder-KPI workbook."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp2qe1n3umbk8sm5m3zpe",
+          "checklist": [
+            {
+              "step": "Produce a quarterly scorecard for each delegated coverholder",
+              "value": "RAG scorecard generated every quarter for every active coverholder as the ongoing-monitoring output."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify scorecard coverage",
+              "value": "Every active binder has a finalized scorecard for the quarter; 0 binders missing."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppf71o92mbk8voyj74ly",
+          "checklist": [
+            {
+              "step": "Rate loss-ratio performance against LOB target on the scorecard",
+              "value": "Scorecard RAG for loss ratio is set against the LOB plan target for the binder."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify loss-ratio RAG",
+              "value": "Recompute loss ratio for a sample; RAG classification matches the target thresholds with 0 misclassifications."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp2l81n3kmbk8yc9dv6vr",
+          "checklist": [
+            {
+              "step": "Apply accuracy controls before the scorecard is finalized",
+              "value": "KPI values reconciled to source and RAG thresholds applied consistently before release."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test scorecard accuracy",
+              "value": "Source-to-scorecard reconciliation variance <=1%; 0 unreconciled scorecards issued."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "0a5e624b-6f09-4b5c-849a-bc00f8ba85ba",
+      "owner": {
+        "action": "replace",
+        "name": "Delegated Authority Analyst"
+      },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager", "Claims Director / Manager"],
+      "removeAppNames": ["claim file/document repository", "payment/subrogation system"],
+      "addApps": [
+        {
+          "name": "Power BI",
+          "usageType": "performed"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Coverholder/TPA claims-handling performance against binder SLA commitments and settlement-authority limits - cycle time, reserve accuracy, leakage, complaint rates and out-of-authority settlements - reviewed from ClaimCenter and the bordereaux for the delegated-authority book."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The completed quarter (e.g. 2026-Q2) with trailing 4-quarter trend; only claims transactions dated in the period are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each claims-review row carries claim id, coverholder id, LOB, settlement amount, authority limit, key dates and SLA metrics; rows missing settlement amount or authority limit are held for bordereau correction."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Claim counts and paid totals from the claims bordereau reconcile to ClaimCenter for the binder; out-of-authority settlements are counted and must tie to the exception log (target delta 0 on reconciliation)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The claims-handling review workbook is saved to SharePoint /DelegatedAuthority/Coverholders/<coverholder-id>/2026-Q2/claims-review-v1 with timestamp and version, retained 7 years per claims-record retention."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Any settlement above delegated authority or SLA breach is logged as an exception in Archer GRC with owner and remediation; systemic claims-handling failure is escalated to the committee."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "A sample of claims is traced from the bordereau to the ClaimCenter file to confirm settlement amount, authority approval and key dates match source."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Claim status (open/closed/reopened/litigated) aligns to the SLA and authority rules so cycle-time and leakage metrics count the correct populations."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "FNOL, reserve-set and close dates align to the SLA definitions; out-of-period claims are reassigned to the correct quarter before metrics are struck."
+        },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "The review cites the Unfair Claims Settlement Practices obligations and the binder's settlement-authority schedule as the standards the coverholder's claims handling is tested against."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "Claims review evidence is retained for 7 years (or the state claims-record minimum, whichever is longer) in SharePoint and Archer GRC."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "Any reportable market-conduct or complaint item identified is routed to Compliance to meet the applicable state reporting deadline; the routing date is recorded."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All settled and open claims for the binder in the quarter (census on authority breaches; 25-file sample per binder for handling-quality review)."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = claims handled within SLA and settlement authority, reserves adequate, complaints within tolerance. FAIL = any out-of-authority settlement, SLA breach beyond tolerance, or unfair-claims-practice indicator."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "On FAIL, log the exception in Archer GRC, require a coverholder remediation plan, and refer potential unfair-claims-practice issues to Compliance; repeat failures escalate to the committee."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance: claims review complete for the binder, sample traced to source, authority-breach census done, sign-off by the Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "SharePoint claims-review workbook and Archer GRC exceptions; sampled claim files in ClaimCenter."
+        },
+        {
+          "answerId": "cmr2ocdxy0v9nkaz3iuucyodk",
+          "value": "Field definitions (settlement_amount, authority_limit, fnol_date, close_date, sla_days) come from the claims-review data dictionary; control totals are the ClaimCenter paid and claim-count figures for the binder."
+        },
+        {
+          "answerId": "cmr2ocdxy0v9okaz3zite4v2o",
+          "value": "Applicable rules: state Unfair Claims Settlement Practices Acts and the binder's delegated settlement-authority schedule; any breach is cited in the finding and routed to Compliance where reportable."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp1xh1n2embk85fionh5t",
+          "checklist": [
+            {
+              "step": "Test coverholder claims handling against unfair-claims-practices requirements",
+              "value": "Claims sample reviewed for timely acknowledgement, fair investigation and prompt settlement per the state UCSPA standards."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify unfair-claims-practice indicators",
+              "value": "0 unfair-claims-practice indicators unaddressed; any indicator is logged and referred to Compliance."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp2qe1n3umbk8sm5m3zpe",
+          "checklist": [
+            {
+              "step": "Include claims-handling performance in coverholder monitoring",
+              "value": "Claims SLA and authority compliance assessed each quarter as part of the coverholder monitoring cycle."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm claims monitoring performed",
+              "value": "Every coverholder with delegated claims authority has a claims-handling review each quarter; 0 skipped."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp2p61n3smbk84d3qbexs",
+          "checklist": [
+            {
+              "step": "Test claims handling against the binder/TPA contract SLA and authority terms",
+              "value": "Settlement authority limits and SLA commitments from the Binding Authority Agreement / TPA contract are the benchmark for the review."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify contract-term adherence",
+              "value": "0 settlements above the contracted authority limit without documented pre-approval."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmqwos2hu008nd29hdiqyhoyx",
+          "checklist": [
+            {
+              "step": "Confirm the coverholder/TPA meets third-party service-provider security requirements for claims data",
+              "value": "Coverholder handling nonpublic claims information is covered by the third-party service-provider policy with security controls and access limits verified."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify third-party security controls",
+              "value": "Coverholder's access controls and data-handling attestations are current; 0 unaddressed third-party security gaps for the claims data."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "298bce08-ed2a-4b81-8cb5-2642ccf5da3d",
+      "owner": {
+        "action": "replace",
+        "name": "Delegated Authority Analyst"
+      },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager"],
+      "removeAppNames": [
+        "underwriting workstation",
+        "billing/commission platform",
+        "HRIS (Workday/SuccessFactors)"
+      ],
+      "addApps": [
+        {
+          "name": "GRC platform (Archer/ServiceNow GRC)",
+          "usageType": "performed"
+        },
+        {
+          "name": "Microsoft 365 / SharePoint",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The coverholder's cumulative performance monitoring record - scorecards, exceptions, review minutes and remediation status - updated for the quarter and linked to the next delegated-authority renewal assessment."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The completed quarter just monitored (e.g. 2026-Q2), with the record carrying forward to the next authority renewal review date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The record carries coverholder id, current-quarter KPIs and RAG, open/closed exceptions, review outcome and a link to the renewal case; a record missing the renewal link or the current RAG is incomplete."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The record's exception and scorecard entries reconcile to Archer GRC and the quarter's scorecard pack; the count of open items in the record matches the GRC open count (delta 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The updated monitoring record is versioned in Archer GRC and exported to SharePoint /DelegatedAuthority/Coverholders/<coverholder-id>/monitoring-record-v<n> with timestamp, retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "If the renewal link cannot be established (e.g. renewal case not yet open) the gap is logged with a follow-up date; stale records not updated within the cycle are flagged to the Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Pre/post comparison shows the record's prior-quarter state versus the updated state, confirming new KPIs, exceptions and review outcomes were carried in and the renewal link added; comparison saved with the record."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "The update is captured as a versioned change on the Archer GRC monitoring-record case, cross-linked to the quarter's scorecard and the renewal assessment case id."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "100% of active coverholders (census); each monitoring record is confirmed current and linked to its renewal case."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every record carries the current-quarter results, reconciled exceptions and a live renewal link. FAIL = any record stale, unreconciled, or missing the renewal linkage."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Stale or unlinked records are corrected within 5 business days; unresolved gaps are escalated to the Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance: monitoring record updated and reconciled for all coverholders, renewal link present, sign-off by the Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Archer GRC monitoring-record case history plus the SharePoint record export."
+        },
+        {
+          "answerId": "cmr2ocg110yigkaz3pvukivpc",
+          "value": "In-scope period = the just-completed monitoring quarter (2026-Q2, 2026-04-01 to 2026-06-30); the record carries forward to the next authority renewal effective date for the coverholder."
+        },
+        {
+          "answerId": "cmr2ocg110yihkaz3mu0y1h6x",
+          "value": "Field definitions (rag_status, open_exceptions, review_outcome, renewal_case_id) come from the monitoring-record schema; control totals are the Archer GRC open-exception count and the quarter's scorecard values."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp2qe1n3umbk8sm5m3zpe",
+          "checklist": [
+            {
+              "step": "Maintain a current ongoing-monitoring record for each coverholder",
+              "value": "Monitoring record updated every quarter with KPIs, exceptions and review outcomes for every active coverholder."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify record currency",
+              "value": "Every active coverholder record reflects the latest quarter; 0 records stale beyond one cycle."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp2re1n3wmbk8sejk1tv2",
+          "checklist": [
+            {
+              "step": "Carry the coverholder risk tier into the renewal linkage",
+              "value": "Current performance and tier feed the next authority renewal assessment via the linked renewal case."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm renewal linkage by tier",
+              "value": "Every monitoring record links to its renewal case with tier carried forward; 0 missing links for renewing coverholders."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp0pc1n08mbk8a42zeedy",
+          "checklist": [
+            {
+              "step": "Reconcile open findings into the monitoring record",
+              "value": "Open and closed exceptions from Archer GRC are reflected in the record with current status."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify findings reconciliation",
+              "value": "Record open-item count reconciles 1:1 to Archer GRC; 0 discrepancies."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "0d385969-c43b-449d-93ee-5867d6e35080",
+      "owner": {
+        "action": "replace",
+        "name": "Delegated Authority Analyst"
+      },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant", "QA Analyst"],
+      "addParticipants": ["Delegated Authority Manager", "Underwriting Quality / Audit Manager"],
+      "removeAppNames": ["underwriting workstation", "billing/commission platform"],
+      "addApps": [
+        {
+          "name": "Microsoft 365 / SharePoint",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Verification and investigation of whether each coverholder is operating within its delegated authority terms - binding limits, LOB/geography restrictions, referral triggers, no-write list and settlement authority - testing bordereaux against the Binding Authority Agreement in PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The completed quarter (e.g. 2026-Q2); all risks bound and claims settled in the period are tested against the authority in force on their effective dates."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each tested row carries policy/claim id, coverholder id, LOB, state, limit bound, premium, and the applicable BAA authority value; rows lacking the BAA limit or the bound value cannot be tested and are held."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The count of risks bound in the bordereau reconciles to PolicyCenter for the binder; every risk is tested against its authority limit and the breach count is exact (target delta 0 on population)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The compliance-verification workbook and breach evidence are saved to SharePoint /DelegatedAuthority/Coverholders/<coverholder-id>/2026-Q2/authority-compliance-v1 with timestamp and version, retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Each identified breach (over-limit bind, out-of-appetite class, missed referral, no-write violation) is logged in Archer GRC with severity and remediation; systemic breaches trigger escalation to the committee."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "Census test of all risks bound and claims settled in the quarter against their authority limits, plus a 25-file deep-dive sample per binder for referral-trigger and documentation compliance."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = 100% of binds within delegated limits, appetite and referral rules with required documentation. FAIL = any over-authority bind, no-write violation, missed mandatory referral, or undocumented exception."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "On FAIL, log the breach in Archer GRC, require coverholder corrective action, and consider binder restriction; confirmed unauthorised binding is escalated to the Delegated Authority Committee."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dates = the authority terms in force on each risk's bound date; a mid-quarter authority change is applied from its effective date so risks are tested against the correct version."
+        },
+        {
+          "answerId": "cmr2ocdwr0tp7kaz3sztc75ng",
+          "value": "Acceptance criteria: every in-scope risk tested against its BAA authority, all breaches logged with severity and remediation, and the deep-dive sample documentation reviewed; evidence lands in the SharePoint authority-compliance workbook and Archer GRC, signed off by the Delegated Authority Manager."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Test binds against the coverholder's authority levels by premium, limit and line of business",
+              "value": "Each bound risk is compared to the BAA schedule of limits by LOB, state and premium band."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify authority-level adherence",
+              "value": "0 risks bound above the delegated limit or outside the permitted LOB/geography without documented pre-approval."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp161o8cmbk8jeoutzfd",
+          "checklist": [
+            {
+              "step": "Confirm only authorised coverholder staff bound within scope",
+              "value": "Bind records checked so only personnel named in the binder's authority schedule exercised binding authority."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify authorised binding",
+              "value": "0 binds by unauthorised users; any exception logged and referred."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp2qe1n3umbk8sm5m3zpe",
+          "checklist": [
+            {
+              "step": "Verify authority-term compliance as part of ongoing coverholder monitoring",
+              "value": "Authority-compliance testing runs each quarter for every active coverholder and feeds the monitoring record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm compliance testing coverage",
+              "value": "Every active binder has an authority-compliance test in the quarter; 0 binders untested."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmqwos2hu008nd29hdiqyhoyx",
+          "checklist": [
+            {
+              "step": "Verify the coverholder meets third-party service-provider security and access requirements",
+              "value": "Coverholder exercising delegated authority over nonpublic information is covered by the third-party service-provider policy; access and data controls confirmed during verification."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test third-party security compliance",
+              "value": "Coverholder access-control and encryption attestations current; 0 unaddressed third-party security findings."
+            }
+          ]
+        },
+        {
+          "regId": "cmrc4ulc405qtv8f8s2rtkbnd",
+          "checklist": [
+            {
+              "step": "Confirm the coverholder/producer remains OFAC-screened as a distribution partner",
+              "value": "Verify the coverholder was screened against SDN/consolidated lists at appointment and on list updates, and that insured screening before binding is being performed."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify sanctions screening",
+              "value": "Coverholder appointment screening and ongoing refresh evidenced; 0 unscreened binds sampled."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "03e72bf7-b479-4948-9b76-79c6e5ad6060",
+      "owner": {
+        "action": "replace",
+        "name": "Delegated Authority Analyst"
+      },
+      "removeRoleNames": [
+        "Underwriter",
+        "Underwriting Assistant",
+        "Legal Counsel",
+        "Business Analyst"
+      ],
+      "addParticipants": ["Delegated Authority Manager"],
+      "removeAppNames": ["Regulatory Filing Portal (SERFF)"],
+      "addApps": [
+        {
+          "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "usageType": "performed"
+        },
+        {
+          "name": "GRC platform (Archer/ServiceNow GRC)",
+          "usageType": "memorialized"
+        },
+        {
+          "name": "Microsoft 365 / SharePoint",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The delegated-authority control parameters for a coverholder binder configured in Guidewire PolicyCenter - binding limits by LOB/limit/premium, permitted states and classes, referral triggers, no-write rules and settlement-authority caps."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Effective from the binder's inception/renewal effective date (e.g. 2026-07-01); parameters remain in force until the next authority amendment."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each configured parameter carries LOB, limit/premium band, permitted geography/class, referral trigger and effective date, and maps 1:1 to the signed Binding Authority Agreement schedule; any parameter without a BAA source clause is not saved."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The count and values of configured parameters reconcile to the BAA authority schedule; a four-eyes check confirms every schedule line is represented in the system (delta 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Configuration screenshots and the parameter mapping sheet are saved to SharePoint /DelegatedAuthority/Coverholders/<coverholder-id>/setup/authority-config-v1 with timestamp and version, retained for the life of the binder plus 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Any mismatch between the BAA and the configured parameter is logged in Archer GRC and corrected before the binder is activated; go-live is blocked until 0 open configuration exceptions."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Configure clear authority levels by premium, limit and line of business",
+              "value": "PolicyCenter authority parameters set to enforce the BAA limits per LOB, premium band and geography."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify configured limits match the agreement",
+              "value": "Four-eyes check confirms every configured limit ties to the BAA schedule; 0 mismatches before activation."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Configure documented referral triggers in the system",
+              "value": "Referral rules (limit breach, restricted class, aggregation) configured so out-of-authority risks are auto-referred."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test referral triggers",
+              "value": "Test transactions confirm each configured trigger fires and routes correctly; 0 triggers failing to fire."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp161o8cmbk8jeoutzfd",
+          "checklist": [
+            {
+              "step": "Restrict binding to authorised users and within the configured caps",
+              "value": "System roles and caps set so only authorised coverholder profiles can bind within the delegated limits."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify binding restrictions",
+              "value": "Attempted over-limit or unauthorised binds are blocked in test; 0 unauthorised binds possible."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "fc1a42a3-0467-4a7b-81f6-c986387bffc6",
+      "owner": {
+        "action": "replace",
+        "name": "Delegated Authority Manager"
+      },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Claims Director / Manager", "Legal Counsel"],
+      "removeAppNames": ["claim file/document repository", "payment/subrogation system"],
+      "addApps": [
+        {
+          "name": "Microsoft 365 / SharePoint",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The claims-handling authority and TPA arrangements for a coverholder binder - settlement-authority limits, reserve authority, claims-reporting thresholds, TPA scope, complaint handling and audit rights - documented in the Binding Authority Agreement and TPA schedule."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Effective from the binder/TPA appointment date (e.g. 2026-07-01), reviewed at each renewal; reporting thresholds apply to claims arising on or after that date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The arrangement records settlement-authority caps by LOB, reserve-authority limit, large-loss reporting threshold, TPA scope and audit rights; a schedule missing the reporting threshold or audit-rights clause is not finalized."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Documented authority caps and thresholds reconcile to the underwriting appetite and the reinsurance/treaty reporting requirements; the TPA scope matches the licensed lines (delta 0 against the BAA)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The signed claims-authority schedule and TPA agreement are saved to SharePoint /DelegatedAuthority/Coverholders/<coverholder-id>/setup/claims-authority-v1 and the executed contract in the contract repository, retained for the life of the binder plus 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Open points (e.g. undefined threshold, missing audit clause) are logged in Archer GRC and closed before the arrangement goes live; the binder cannot activate claims authority with open exceptions."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sample claims-authority parameters trace back to the signed BAA/TPA schedule clauses to confirm the documented caps and thresholds match the executed contract."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Claim status and reporting-trigger fields in ClaimCenter align to the defined reporting thresholds so large losses are escalated per the arrangement."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Reporting-deadline and review dates align to the contract terms (e.g. large loss reported within 5 business days of the coverholder becoming aware)."
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "The full claims-authority schedule and TPA arrangement for the binder (census of clauses), validated against the executed contract and appetite."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = every claims-authority cap, reporting threshold, TPA scope and audit right is documented and consistent with the contract and appetite. FAIL = any undefined cap/threshold or missing audit/reporting clause."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "On FAIL, hold finalization, log the gap in Archer GRC, obtain the missing clause or approval, and re-review before activation."
+        },
+        {
+          "templateKeyId": "cmr2v89jj0013xa9iy2urljqv",
+          "roleId": "cmqsck0ro03snmbk82axdlit6"
+        },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "The delegation matrix records that claims settlement above the delegated cap reverts to the carrier's Claims Director/Manager and that TPA appointment/scope changes require Delegated Authority Manager and Legal sign-off."
+        },
+        {
+          "answerId": "cmr2ocg150ymxkaz3kiiv6fyj",
+          "value": "Materiality/tolerance thresholds: settlement-authority cap per LOB, reserve-authority limit, and the large-loss reporting threshold (e.g. any claim >USD 100k or any coverage dispute) that obliges the coverholder/TPA to notify the carrier."
+        },
+        {
+          "answerId": "cmr2ocg150ymykaz3nr5c0f4a",
+          "value": "Field definitions (settlement_cap, reserve_authority, reporting_threshold, tpa_scope, audit_rights) come from the claims-authority schedule; control totals reconcile the documented caps to the underwriting appetite and treaty reporting requirements."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp2p61n3smbk84d3qbexs",
+          "checklist": [
+            {
+              "step": "Document claims-handling authority and TPA scope in the binder/TPA contract",
+              "value": "Settlement and reserve caps, reporting thresholds, TPA scope and audit rights defined in the Binding Authority Agreement and TPA schedule."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify contract completeness",
+              "value": "Every required claims-authority clause (caps, thresholds, audit rights) is present and executed; 0 missing mandatory clauses."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp1xh1n2embk85fionh5t",
+          "checklist": [
+            {
+              "step": "Embed fair-claims-handling obligations in the TPA arrangement",
+              "value": "TPA required to meet Unfair Claims Settlement Practices standards for acknowledgement, investigation and settlement timeliness."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify fair-claims obligations",
+              "value": "Contract includes UCSPA-aligned service standards and reporting; 0 gaps against the state requirements."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp2sd1n3ymbk8ke7fihs7",
+          "checklist": [
+            {
+              "step": "Complete TPA due diligence before granting claims authority",
+              "value": "TPA licensing, financials, E&O cover and claims-handling controls assessed and documented before appointment."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify TPA due diligence",
+              "value": "Due-diligence pack complete and current for the TPA; 0 outstanding items at go-live."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmqwos2hu008nd29hdiqyhoyx",
+          "checklist": [
+            {
+              "step": "Include third-party service-provider security requirements in the TPA agreement",
+              "value": "TPA agreement includes the required security, access-control and breach-notification clauses for handling nonpublic claims information."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify third-party security clauses",
+              "value": "TPA contract carries the third-party service-provider security provisions and current attestations; 0 missing clauses."
+            }
+          ]
+        },
+        {
+          "regId": "cmrc4um3u05rxv8f8e7dp0h7o",
+          "checklist": [
+            {
+              "step": "Screen the TPA/vendor against OFAC sanctions lists at appointment",
+              "value": "TPA and its principals screened against SDN/consolidated lists before the arrangement is executed and on list updates."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify vendor sanctions screening",
+              "value": "TPA appointment sanctions screening evidenced with no unresolved hits; 0 vendors onboarded without screening."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -4,6 +4,7 @@ import { useAuth } from '../../lib/auth';
 import { can } from '../../lib/permissions';
 import { useCompany } from '../../lib/company';
 import { useApi } from '../../lib/useApi';
+import { api } from '../../lib/api';
 import { withCompany, SectionCard } from '../../lib/portfolio';
 import PageHeader from '../../components/PageHeader';
 import { LinkChips, LinksEditor, type VsLink } from '../../components/RequirementLinks';
@@ -41,6 +42,7 @@ type Requirement = {
   regime: string | null;
   sourceNote: string | null;
   agentSkill: string | null;
+  complianceFlagged: boolean;
   effectiveDate: string | null;
   lastVerifiedAt: string | null;
   updatedAt: string;
@@ -114,6 +116,7 @@ export default function RequirementDetail() {
   );
   const plan = useApi<Plan>(id ? `/work-library/plan/regulation/${id}` : null);
   const [links, setLinks] = useState<VsLink[] | null>(null);
+  const [flagOverride, setFlagOverride] = useState<boolean | null>(null);
 
   if (req.error) {
     return (
@@ -131,6 +134,18 @@ export default function RequirementDetail() {
   if (req.loading || !req.data) return <LoadingState />;
   const r = req.data;
   const vsLinks = links ?? r.valueStreamLinks;
+  const flagged = flagOverride ?? r.complianceFlagged;
+  const toggleFlag = async () => {
+    const next = !flagged;
+    setFlagOverride(next);
+    try {
+      await api.patch(withCompany(`/regulations/requirements/${r.id}`, companyId!), {
+        complianceFlagged: next,
+      });
+    } catch {
+      setFlagOverride(!next);
+    }
+  };
 
   return (
     <div>
@@ -141,15 +156,18 @@ export default function RequirementDetail() {
         actions={
           <div className="flex items-center gap-2">
             <BackButton />
-            {r.citationUrl && (
-              <a
-                href={r.citationUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-md border border-[#eaeaea] bg-white px-3 py-1.5 text-xs font-medium text-[#171717] hover:border-[#d4d4d4] transition-colors duration-150"
+            {canEdit && (
+              <button
+                onClick={toggleFlag}
+                className={
+                  'rounded-md border px-3 py-1.5 text-xs font-medium transition-colors duration-150 ' +
+                  (flagged
+                    ? 'border-[#059669] bg-[#ecfdf5] text-[#059669]'
+                    : 'border-[#eaeaea] bg-white text-[#171717] hover:border-[#d4d4d4]')
+                }
               >
-                Citation source ↗
-              </a>
+                {flagged ? '✓ In Compliance' : 'Flag as Compliance'}
+              </button>
             )}
             <Link
               to={`/regulations/${r.jurisdiction.code}`}
@@ -171,8 +189,7 @@ export default function RequirementDetail() {
         <SectionCard title="Requirement">
           <p className="text-sm text-[#525252] leading-relaxed">{r.requirement}</p>
           <div className="flex flex-wrap gap-x-4 mt-2 text-xs text-[#a3a3a3]">
-            {r.citation && <span>Citation: {r.citation}</span>}
-            {r.sourceNote && <span>Source: {r.sourceNote}</span>}
+            {r.sourceNote && <span>{r.sourceNote}</span>}
             {r.agentSkill && <span>Agent skill: {r.agentSkill}</span>}
           </div>
         </SectionCard>
@@ -248,6 +265,19 @@ export default function RequirementDetail() {
             {r.lastVerifiedAt && `Verified ${fmtDate(r.lastVerifiedAt)} · `}
             Updated {fmtDate(r.updatedAt)}
           </div>
+          {r.citationUrl && (
+            <div className="mt-1.5 text-xs">
+              <span className="text-[#a3a3a3]">Source: </span>
+              <a
+                href={r.citationUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[#2563eb] hover:underline"
+              >
+                {r.citation || r.citationUrl} ↗
+              </a>
+            </div>
+          )}
         </SectionCard>
 
         <SectionCard title="Accountability">

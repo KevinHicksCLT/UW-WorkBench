@@ -1,0 +1,1528 @@
+{
+  "tasks": [
+    {
+      "id": "cmr2flad41skgkfgznm8ufbdn",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All open underwriting referrals awaiting a higher-authority decision that this underwriter originated; scope = the referral queue in the underwriting workstation for the underwriter's book, one referral tracked to closure at a time."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From referral submission timestamp to referral disposition (approve/decline/return); target turnaround per the referral SLA (decision documented within 24 hours of the referral reaching the authorized level)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each referral record shows: risk reference, referral reason/trigger, referred-to authority level, submitted date/time, current status, and target decision date. A referral missing status or referred-to level is returned to the originator for correction."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Open-referral count in the underwriting workstation reconciles to the referral log; every referral has exactly one current status and no referral is stuck in a null state. Delta between queue and log must be 0 at day close."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Referral status history (submitted, in-review, decided) retained on the PAS/workstation record with user id and timestamp; status snapshot exported weekly to the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/ and versioned."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Referrals exceeding the SLA are escalated to the Senior Underwriter and logged as an ageing exception with reason (awaiting info / reviewer unavailable) and a 1-business-day chase SLA."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Not model-driven; tracking follows the current referral-management procedure v-current (referral SLA and escalation rules) approved by Underwriting Management."
+        },
+        {
+          "templateKeyId": "cmr2oamg4000llasb5mlmokig",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "No numeric model; the only threshold is the referral ageing SLA, monitored so items approaching the limit are surfaced a day early."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: any referral open beyond the 24-hour decision SLA, or a decision affecting binding, is treated as material and escalated to the Senior Underwriter."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All open referrals in the underwriter's queue plus a weekly review of referrals closed in the prior 7 days for timely, documented disposition."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = every referral shows a current status, correct next-authority routing and a decision within SLA; FAIL = any null-status, mis-routed or SLA-breached referral."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "SLA-breached or stalled referrals are escalated to the Senior Underwriter and chased daily until dispositioned."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance: referral tracked to a documented disposition within SLA, reviewed by the Senior Underwriter."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Referral status history and disposition on the underwriting workstation record and the weekly snapshot on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Confirm each tracked item was raised against a documented referral trigger",
+              "value": "Referral record cites the specific trigger (limit above authority, restricted class, catastrophe aggregation) from the referral-trigger matrix v-current."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify triggers are documented on open referrals",
+              "value": "Sample 100% of open referrals; every one names a valid trigger; 0 referrals without a trigger reference."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Ensure each referral is routed to the correct next authority level with a recommendation",
+              "value": "Referral shows the underwriter's recommendation and is addressed to the next authority tier per the authority matrix."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check routing and recommendation completeness",
+              "value": "For all tracked referrals the referred-to level matches the authority matrix and a written recommendation is present; 0 mis-routed items."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Keep the referral trail in the underwriting file",
+              "value": "All referral correspondence and the final disposition filed on the risk record in the underwriting workstation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect file completeness",
+              "value": "Sampled closed referrals show submission, decision and rationale on file; 0 files missing the disposition note."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "ac0b369a-1988-45ea-808a-177863b8daf7",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Reinsurance Analyst", "Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The subject risk being placed and the applicable treaty programme layers; scope = one risk's gross and net line computed against the surplus/quota-share retention and each excess-of-loss layer in the reinsurance administration system."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "As at the risk's inception/effective date and the treaty year in force at that date; recalculated on any mid-term endorsement that changes exposure."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "d67c486b-98ee-4128-8863-de6062eac135"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Inputs present and valid: gross line/limit, company retention, treaty cession percentages, layer attachment/exhaustion points, and any facultative amounts. Missing retention or attachment values block the calculation."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Gross line = net retained line + total ceded (treaty + facultative); the three figures reconcile to the cent and the net line does not exceed the automatic treaty capacity. Any imbalance flagged as a defect."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Line-position worksheet stored on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/ with the treaty version reference, calculation timestamp and preparer id; superseded versions retained."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A computed net line above retained-capacity or a negative residual is logged as an exception, referred to the Senior Underwriter, and resolved before the risk is bound."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Calculation follows the current ceded-reinsurance methodology and the treaty slip in force (treaty year and endorsement number recorded); method approved by the Reinsurance Manager."
+        },
+        {
+          "templateKeyId": "cmr2oamg4000llasb5mlmokig",
+          "roleId": "cmqsck0rq03wqmbk8n6kqfsi1"
+        },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity checked by re-running the net line at +/-10% on the gross limit to confirm the risk stays within automatic capacity across the band."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: any residual net line above 100% of the per-risk retention, or within 5% of automatic treaty capacity, is treated as material and escalated."
+        },
+        {
+          "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "The single risk's line calculation plus a quarterly re-performance sample of 15 bound risks in the same treaty programme."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = independent recomputation matches the recorded net/gross lines to the cent and cession percentages tie to the slip; FAIL = any variance > 0 or cession outside slip terms."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "On a mismatch the risk is held, the Reinsurance Analyst re-derives the figures, and a correcting entry is booked in the reinsurance administration system before binding."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "Ceded-reinsurance calculation method, treaty slip version and layer schedule as filed for the current treaty year."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "Retention, cession percentages and attachment points sourced directly from the executed treaty slip held in the reinsurance administration system; gross limit from the PAS."
+        },
+        {
+          "answerId": "cmr2ocdxm0uujkaz3dx7q5391",
+          "value": "Acceptance: net and gross lines reconcile to the treaty slip and net line is within automatic capacity, signed off by the Senior Underwriter. Evidence: the versioned line-position worksheet and slip reference on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Compute the net line against the underwriter's per-risk authority and treaty capacity",
+              "value": "Retained net line checked against the authority matrix limit for this line of business and the automatic treaty ceiling."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify net line stays within authority and capacity",
+              "value": "For the sampled risks, net retained line <= per-risk authority and <= automatic treaty capacity; 0 breaches."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the line-position calculation on the risk record",
+              "value": "Worksheet, slip reference and reconciliation retained on the reinsurance case file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect calculation documentation",
+              "value": "Sampled risks each have a filed, versioned line-position worksheet; 0 undocumented placements."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2flbg31t42kfgznzrhl5p6",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Reinsurance Analyst", "Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform", "GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [
+        {
+          "name": "Reinsurance administration system",
+          "usageType": "performed"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The subject risk versus remaining automatic treaty capacity for its line/class; scope = one risk checked against the current treaty programme's used-vs-available capacity in the reinsurance administration system."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "As at the risk's effective date within the in-force treaty year; capacity read at the time of the check and re-verified if binding is delayed beyond 5 business days."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "d67c486b-98ee-4128-8863-de6062eac135"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Required values present: risk limit, class eligibility, treaty aggregate limit, capacity already committed, and any aggregation/peril accumulation for the same treaty. Missing committed-capacity data blocks the check."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Available capacity = treaty aggregate limit minus committed capacity; the residual reconciles to the reinsurance ledger and equals or exceeds the risk's ceded requirement. Any negative residual is a stop."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Capacity-availability confirmation (screenshot/export of the utilisation report) retained on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/ with timestamp and treaty version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Insufficient automatic capacity is logged as an exception and routed to facultative assessment or Senior Underwriter referral before the risk proceeds."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "The single-risk capacity check plus a monthly review of 20 recently bound risks confirming each fit within available treaty capacity at bind."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = ceded requirement <= available automatic capacity and class is treaty-eligible; FAIL = capacity shortfall or ineligible class bound without facultative/referral."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On a shortfall the risk is diverted to facultative placement or referred up; capacity override recorded only with Senior Underwriter approval."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance: documented confirmation that available treaty capacity meets or exceeds the risk requirement for the correct class and treaty year."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Utilisation report and confirmation filed on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Trigger a referral when automatic capacity is insufficient",
+              "value": "Capacity shortfall against the treaty aggregate is a documented referral trigger routed to Senior Underwriter / facultative."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify shortfalls were referred",
+              "value": "Every sampled risk with a capacity gap has a referral or facultative record; 0 unreferred over-capacity binds."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the capacity confirmation",
+              "value": "Capacity utilisation evidence retained on the risk record before binding."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect capacity evidence",
+              "value": "Sampled bound risks each carry a dated capacity confirmation; 0 missing."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "badd398b-77a8-490b-98eb-43adab61e53b",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Reinsurance Analyst", "Chief Underwriting Officer"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "ERP/General ledger (SAP/Oracle/Workday Financials)"
+      ],
+      "addApps": [
+        {
+          "name": "Reinsurance administration system",
+          "usageType": "performed"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The pre-bind capacity gate for a risk requiring reinsurance support; scope = confirmation that treaty and/or facultative capacity is secured and documented before binding authority is exercised on the risk."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Immediately before bind; confirmation must be current as at the intended effective date and re-checked if bind slips beyond the quote validity period."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "d67c486b-98ee-4128-8863-de6062eac135"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Confirmed and evidenced: treaty capacity available or facultative cover placed, reinsurer/broker confirmation on file, cession terms agreed, and OFAC screening of the reinsurer cleared. Any unconfirmed element blocks bind."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Sum of secured capacity (treaty automatic + facultative bound) equals or exceeds the ceded amount required for the risk; the figures tie to the reinsurance administration system and the facultative confirmation."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Capacity-confirmation package (treaty utilisation + facultative binder + sanctions clearance) retained on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/ with timestamp; version-locked at the moment of bind."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "If capacity is not fully confirmed, binding is withheld and the gap is escalated to the Chief Underwriting Officer; any exception bind requires documented CUO approval."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0ro03sjmbk8hjhb90bw"
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All risks bound in the period that required reinsurance support (100% census of reinsurance-dependent binds), checked for a pre-bind capacity confirmation."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = every reinsurance-dependent bind has a dated capacity confirmation and cleared reinsurer screening before the bind timestamp; FAIL = any bind preceding confirmation."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "A bind found without prior confirmation is flagged to the CUO, the cover position is re-verified, and the control gap is logged with remediation."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dates = the risk's inception through the treaty year in force; confirmations valid only for that effective-date window."
+        },
+        {
+          "answerId": "cmr2ocfyr0vhokaz3gge0ko08",
+          "value": "Acceptance: capacity fully secured and reinsurer screening cleared before bind, evidenced by the confirmation package and CUO sign-off on any exception. Evidence located on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp161o8cmbk8jeoutzfd",
+          "checklist": [
+            {
+              "step": "Bind only after capacity is confirmed and by authorized staff",
+              "value": "Bind action gated in the PAS to authorized underwriters and only once the capacity-confirmation flag is set."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify authorization and gating",
+              "value": "Sampled binds show an authorized user and a pre-bind capacity confirmation; 0 binds by unauthorized users or without confirmation."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Refer where capacity is not secured",
+              "value": "Unsecured capacity is a mandatory referral trigger to the CUO before any bind."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify referral on unsecured capacity",
+              "value": "Every risk lacking secured capacity has a CUO referral; 0 exceptions bound without approval."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the confirmation before bind",
+              "value": "Confirmation package present on the risk file with a timestamp preceding the bind."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect timing of evidence",
+              "value": "Confirmation timestamp precedes bind timestamp on 100% of sampled risks."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc4um3u05rxv8f8e7dp0h7o",
+          "checklist": [
+            {
+              "step": "Screen the reinsurer/broker counterparty against OFAC lists before ceding",
+              "value": "Reinsurer, broker and any intermediary screened against SDN/consolidated lists; clear result attached to the capacity-confirmation package before bind."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify counterparty screening cleared",
+              "value": "100% of reinsurance-dependent binds show a cleared reinsurer OFAC screen dated before bind; any hit blocked and escalated to sanctions/AML."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e194e8b2-96e1-4c3a-8de2-e8fcefb237d8",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Reinsurance Accountant", "Reinsurance Analyst"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [
+        {
+          "name": "Reinsurance administration system",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The cession hand-off for a bound risk: premium cession, ceding commission and reporting obligations passed to reinsurance accounting; scope = one risk's cession record and its reporting entries."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current cession/accounting period (monthly bordereau cycle) covering the risk's bound premium; hand-off completed within 5 business days of bind."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "d67c486b-98ee-4128-8863-de6062eac135"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Cession record complete: ceded premium, cession percentage, ceding commission, treaty/facultative reference, effective dates and reinsurer party. Missing commission or reinsurer reference returns the item to the underwriter."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Ceded premium in the reinsurance administration system reconciles to the gross premium x cession percentage recorded in the PAS, and posts to the correct GL account; delta must be 0 before the item is accepted by accounting."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Cession hand-off note and reconciliation retained on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/ and cross-referenced to the ERP/GL posting; timestamped and versioned."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Cession discrepancies (mismatched percentage, wrong reinsurer) are logged and routed back to the underwriter/Reinsurance Analyst for correction before the bordereau closes."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "46204647-a631-4517-bcb8-5ae5ed35b750"
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "All cession hand-offs in the current bordereau cycle (census) reviewed for complete, reconciled records passed to accounting."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = every ceded item reconciles to PAS premium and posts to the correct GL with all required fields; FAIL = any unreconciled or incompletely-referenced cession."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "Unreconciled cessions are held out of the bordereau, escalated to the Reinsurance Manager, and corrected before period close."
+        },
+        {
+          "templateKeyId": "cmr2v89jj0013xa9iy2urljqv",
+          "roleId": "cmqsck0rq03wsmbk8hzl4z5y6"
+        },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "Hand-off authority follows the reinsurance operations RACI; the underwriter prepares, the Reinsurance Accountant accepts, and the Reinsurance Manager authorizes bordereau close per the documented delegation matrix."
+        },
+        {
+          "answerId": "cmr2ocdw30srzkaz3facp1nht",
+          "value": "Field definitions (ceded premium, cession %, ceding commission, treaty ref, effective dates) sourced from the ceded-reinsurance data dictionary; control total = sum of ceded premium equals gross premium x cession % with 0 variance to the ERP/GL posting."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the cession hand-off on the risk file",
+              "value": "Cession note, reconciliation and reinsurer reference filed on the reinsurance case file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect hand-off documentation",
+              "value": "Sampled cessions each have a filed, reconciled hand-off note; 0 undocumented hand-offs."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail from bind to cession posting",
+              "value": "Traceable chain: PAS bind -> reinsurance administration system cession -> ERP/GL posting, each with user and timestamp."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Trace the audit chain",
+              "value": "For sampled risks the full bind-to-posting trail is intact; 0 broken links."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2flb7i1sxvkfgzuy7qp4a8",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Reinsurance Analyst", "Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform", "GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [
+        {
+          "name": "Reinsurance administration system",
+          "usageType": "performed"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Assessment of whether a risk falls within the treaty's automatic acceptance criteria; scope = one risk tested against the treaty slip's eligibility rules (class, limit, territory, exclusions) in the reinsurance administration system."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "As at the risk's effective date under the in-force treaty year; re-assessed on any endorsement altering class, limit or territory."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "d67c486b-98ee-4128-8863-de6062eac135"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Rule inputs present: line of business/class code, sum insured/limit, territory, occupancy/peril, and treaty exclusion list. Missing class or limit blocks the eligibility determination."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Number of eligibility rules evaluated equals the count in the treaty slip; each rule returns pass/fail and the aggregate decision (automatic vs referral) is single-valued. Any un-evaluated rule is a defect."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Eligibility determination (rules matrix result) retained on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/ with the treaty version and timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A risk failing any automatic criterion is logged as ineligible and routed to facultative assessment or authority referral; overrides require Senior Underwriter documentation."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "The single-risk eligibility test plus a monthly sample of 20 automatically-accepted risks re-checked against treaty criteria."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = all treaty automatic criteria satisfied and no exclusion breached; FAIL = any criterion failed yet accepted automatically."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Ineligible risks accepted in error are unwound or re-placed facultatively; the control miss is logged and referred to the Senior Underwriter."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance: documented rule-by-rule confirmation that the risk meets every automatic acceptance criterion for the treaty year."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Eligibility matrix result filed on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Refer risks that fail automatic acceptance",
+              "value": "Any failed treaty criterion is a documented referral trigger to facultative/Senior Underwriter."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify ineligible risks were referred",
+              "value": "Every sampled ineligible risk has a referral or facultative record; 0 ineligible automatic acceptances."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the eligibility determination",
+              "value": "Rules-matrix result and treaty reference retained on the risk file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect eligibility evidence",
+              "value": "Sampled risks each carry a dated eligibility determination; 0 missing."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "96975cfd-7f02-4b65-892e-dfb30b6660b7",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": [
+        "Underwriting Assistant",
+        "Underwriter",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": ["Reinsurance Analyst"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Determination of whether a risk needs facultative reinsurance because line size, limit or class exceeds automatic treaty capacity or hits a treaty exclusion; scope = one risk assessed for a facultative need."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "As at the risk's effective date under the in-force treaty year; re-assessed on endorsements that increase exposure."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "d67c486b-98ee-4128-8863-de6062eac135"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Inputs present: requested limit/line size, automatic treaty capacity remaining, class eligibility and exclusions, and any aggregation. Missing capacity or exclusion data blocks the assessment."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Facultative need = requested line minus automatic capacity available (and any excluded portion); the residual requiring facultative is computed and reconciles to the treaty utilisation. A negative or unexplained residual is a defect."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Facultative-need assessment retained on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/ with treaty version and timestamp; feeds the facultative submission if positive."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "If the need is ambiguous (borderline capacity), the item is logged and referred to the Senior Underwriter for a documented decision before proceeding."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "The single-risk assessment plus a quarterly sample of 15 large/over-line risks reviewed for a correct facultative-need decision."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every risk exceeding automatic capacity or hitting an exclusion has a facultative-need flag and residual computed; FAIL = an over-line risk with no facultative assessment."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "A missed facultative need is escalated to the Senior Underwriter and the risk is held from binding until cover is arranged."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance: documented facultative-need decision with the computed residual and rationale, reviewed by the Senior Underwriter."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Assessment filed on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Trigger facultative assessment when capacity is exceeded",
+              "value": "Line size above automatic treaty capacity or a treaty exclusion is a documented trigger for facultative assessment."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify triggers acted on",
+              "value": "Every sampled over-line risk shows a facultative-need assessment; 0 unassessed over-line risks."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Route borderline needs up with a recommendation",
+              "value": "Ambiguous facultative-need cases referred to the Senior Underwriter with a written recommendation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check referral recommendations",
+              "value": "Referred cases each carry a recommendation and disposition; 0 undocumented referrals."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the facultative-need assessment",
+              "value": "Assessment and residual computation retained on the risk file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect assessment documentation",
+              "value": "Sampled risks each carry a dated facultative-need assessment; 0 missing."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "416e6ac5-5f3e-4b61-8f1b-7f5f3902b29c",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Facultative Reinsurance Specialist / Underwriter", "Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [
+        {
+          "name": "Reinsurance administration system",
+          "usageType": "performed"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Negotiation of facultative terms, rate and ceding commission with reinsurers or via a broker for a specific over-line/excluded risk; scope = one facultative placement's quote round and agreed terms."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The placement window from submission to firm order, targeting agreed terms before the risk's effective date; typically within the firm-quote SLA of 5 business days."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "d67c486b-98ee-4128-8863-de6062eac135"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Terms captured: reinsurer(s), ceded share, rate/premium, ceding commission, special conditions/warranties, and validity. Missing rate or share blocks acceptance of terms."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Agreed ceded shares sum to the required facultative amount (100% of the placement or documented shortfall); premium x rate reconciles across reinsurer lines. Any signing over/under 100% is flagged."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Quote comparison, negotiation correspondence and the agreed slip retained on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/ with timestamps and reinsurer identities; superseded quotes kept for audit."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Terms outside the underwriter's authority or above target ceding cost are referred to the Senior Underwriter; unplaced shares logged and re-marketed."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Pricing tested against the approved technical/actuarial rate for the risk and the treaty benchmark; method and rate version recorded on the placement."
+        },
+        {
+          "templateKeyId": "cmr2oamg4000llasb5mlmokig",
+          "roleId": "cmqsck0rq03w2mbk84o4w6iug"
+        },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: agreed facultative rate compared to technical rate at +/-10% to confirm the cession remains economically acceptable."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: a ceding cost above the technical price by more than 10%, or an uncovered share above 10%, is escalated before order."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "The single placement plus a quarterly sample of 10 facultative placements reviewed for terms within authority and adequate pricing."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = agreed terms within authority, fully placed (or documented shortfall), and priced at or above technical rate; FAIL = under-priced, over-authority or unplaced without referral."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Off-benchmark or unplaced terms are referred to the Senior Underwriter; the risk is not bound net of a gap without documented approval."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance: firm order confirmed with agreed share, rate and conditions signed off by the Senior Underwriter."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Agreed slip and quote trail on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppa51o8smbk82mw0frsj",
+          "checklist": [
+            {
+              "step": "Benchmark facultative pricing against the actuarial/technical rate",
+              "value": "Agreed ceded rate compared to the Pricing Actuary's technical rate for the risk; deviation documented with rationale."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify pricing adequacy",
+              "value": "Sampled placements priced at or above technical rate, or an approved deviation on file; 0 unjustified under-pricing."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the negotiation record and agreed terms",
+              "value": "Quote comparison, correspondence and firm slip retained on the risk file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect negotiation documentation",
+              "value": "Sampled placements each show the quote trail and agreed slip; 0 undocumented placements."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of quotes and orders",
+              "value": "Each quote round, counter and firm order timestamped with reinsurer identity in the reinsurance administration system."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Trace quote-to-order history",
+              "value": "Sampled placements show a complete, ordered quote-to-firm-order trail; 0 gaps."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc4um3u05rxv8f8e7dp0h7o",
+          "checklist": [
+            {
+              "step": "Screen reinsurers and brokers before agreeing terms",
+              "value": "Each reinsurer and broker on the placement screened against OFAC SDN/consolidated lists before a firm order is accepted."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify counterparty clearance",
+              "value": "100% of placed reinsurers show a cleared OFAC screen dated before order; any hit blocks the cession and is escalated."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d5da6c91-541e-496e-baf5-d2bc2e5644ad",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Facultative Reinsurance Specialist / Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The facultative submission package assembled for market placement of one risk; scope = the underwriting information set (risk summary, exposures, loss history, valuations, requested cession) for a single facultative offering."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Prepared ahead of the placement window so terms can be agreed before the risk's effective date; assembled within 2 business days of the facultative need being confirmed."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "d67c486b-98ee-4128-8863-de6062eac135"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Package complete: risk description, sums insured/limits, occupancy/COPE or medical/exposure detail, 5-year loss history, valuation basis, requested share and any survey/engineering reports. Missing loss history or limits blocks issue."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Document count in the package reconciles to the facultative submission checklist (all mandatory items present); attachment count and total sums insured tie to the PAS record. Any missing mandatory item is a gap."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The issued submission package (PDF set + cover slip) retained on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/ with version and timestamp; the exact set sent to each reinsurer recorded."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "An incomplete package is held from issue; missing items are logged and chased from the broker/underwriter with a 1-business-day SLA before market release."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rp03udmbk87drpe1i1"
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "The single submission package plus a quarterly sample of 10 issued packages inspected for completeness against the facultative checklist."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = all mandatory checklist items present, legible and consistent with the PAS; FAIL = any mandatory item missing or inconsistent."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "An incomplete or inconsistent package is returned for correction and not released to market until the checklist is fully satisfied."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Package fields (sum insured, limit, requested share, loss ratios) defined per the facultative submission data dictionary and mapped to PAS source fields."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total: total sums insured and requested cession in the package equal the PAS-recorded values with 0 variance."
+        },
+        {
+          "answerId": "cmr2ocdws0tpgkaz3hbz268s7",
+          "value": "Acceptance: package passes the facultative submission checklist and reconciles to the PAS before market release, signed off by the Facultative Reinsurance Specialist. Evidence: versioned package on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Meet minimum submission content before issue",
+              "value": "Package includes all mandatory facultative items (limits, exposures, 5-year losses, valuation, requested share) per the submission standard."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify minimum content",
+              "value": "Sampled packages each satisfy the minimum submission checklist; 0 issued short of mandatory content."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the issued package and distribution list",
+              "value": "Final package and the record of what was sent to each reinsurer retained on the risk file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect issued-package evidence",
+              "value": "Sampled placements each have a filed, versioned package and distribution record; 0 missing."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc4um3u05rxv8f8e7dp0h7o",
+          "checklist": [
+            {
+              "step": "Screen target reinsurers/brokers before distributing the submission",
+              "value": "Reinsurers and brokers on the distribution list screened against OFAC lists before the package is released to them."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify distribution-list screening",
+              "value": "100% of reinsurers receiving the package show a cleared OFAC screen; any hit removed from distribution and escalated."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a35726d2-4c31-45bd-a9eb-5f3cb650f4cf",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Reinsurance Analyst"],
+      "removeAppNames": ["billing/commission platform", "GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [
+        {
+          "name": "Reinsurance administration system",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Entry of reinsurance participation (treaty cession and/or facultative shares) onto the policy record; scope = one policy's reinsurance detail keyed into the policy administration system and mirrored to the reinsurance administration system."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At bind/issue of the policy and on any endorsement changing the cession; recorded within 2 business days of the participation being agreed."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Fields keyed and valid: reinsurer(s), treaty/facultative reference, ceded share/percentage, ceded premium, ceding commission and effective dates. Missing reinsurer or share fails validation."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Ceded amounts recorded in the PAS reconcile to the agreed slip and to the reinsurance administration system entry; ceded premium = gross x cession percentage with 0 variance."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The keyed participation record (PAS screen + slip) retained on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/ with entry timestamp and user id; endorsement history preserved."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Validation failures or reconciliation breaks are logged and corrected before the policy is finalized; the item is not closed until PAS and reinsurance admin agree."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Entry follows the current ceded-reinsurance recording procedure and the executed slip version; method approved by the Reinsurance Manager."
+        },
+        {
+          "templateKeyId": "cmr2oamg4000llasb5mlmokig",
+          "roleId": "cmqsck0rq03wqmbk8n6kqfsi1"
+        },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Not model-driven; a re-key check confirms recorded shares are insensitive to entry error by re-deriving ceded premium from gross x percentage."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: any ceded-premium variance above the reconciliation tolerance (>0) between PAS and reinsurance admin is corrected before close."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sample participation records trace to the executed slip and the negotiation file; keyed shares match the source slip screen-for-screen."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy and cession status fields (bound, ceded, endorsed) align to the reinsurance workflow states in the PAS."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Effective/expiry and cession dates align to the treaty year and policy period; no date outside the policy term."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "The single record plus a monthly sample of 20 policies with reinsurance participation re-checked against slips."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = every mandatory cession field keyed and reconciled to the slip; FAIL = any missing field or PAS/slip mismatch."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Mismatches are corrected and re-verified; unresolved breaks are escalated to the Reinsurance Analyst before period close."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Cession fields defined per the ceded-reinsurance data dictionary and mapped from the executed slip to PAS fields."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total: sum of ceded premium recorded in PAS equals gross premium x cession percentage and ties to the reinsurance administration system."
+        },
+        {
+          "answerId": "cmr2ocg120yjvkaz3f0q5vqyv",
+          "value": "Approved recording method = current ceded-reinsurance procedure and the executed treaty/facultative slip version; parameters (share, rate, commission, dates) sourced directly from that slip held in the reinsurance administration system."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the recorded participation against the policy",
+              "value": "Keyed cession record and source slip retained on the policy file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect recording documentation",
+              "value": "Sampled policies each have a filed participation record tying to the slip; 0 undocumented cessions."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of the entry",
+              "value": "PAS records user, timestamp and before/after values for each cession entry and endorsement."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify the entry audit trail",
+              "value": "Sampled cession entries show a complete change history; 0 entries without user/timestamp."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fjc3w0vpkkfgzd9tdpo01",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Reinsurance Underwriter", "Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Coordination of the reinsurer's concurrent underwriting decision on a referred/large risk through to a concluded position; scope = one risk requiring the reinsurer's concurrence before the direct decision is finalized."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From referral of the risk to the reinsurer through to the reinsurer's documented concurrence/decline; managed within the case turnaround SLA and before the quote validity expires."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "d67c486b-98ee-4128-8863-de6062eac135"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Case complete for concurrence: underwriting file, terms proposed, reinsurer questions logged, and the reinsurer's decision with any conditions. Missing the reinsurer's documented position keeps the case open."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Reinsurer decisions received reconcile to the referrals sent (each referred risk has one concluded reinsurer position); no open referral without a logged outcome. Delta must be 0 at conclusion."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Concurrent-decision correspondence and the reinsurer's final position retained on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/ with timestamps; conditions carried into the direct terms."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Delays or divergent reinsurer views are escalated to the Senior Underwriter; the direct decision is not concluded until the reinsurer position (or a documented waiver) is on file."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "The single case plus a quarterly sample of 12 concurrent-decision cases reviewed for a documented reinsurer position and aligned direct terms."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = each case has a documented reinsurer decision and the direct terms reflect any conditions; FAIL = a concluded direct decision without the reinsurer position."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Cases concluded without reinsurer concurrence are flagged to the Senior Underwriter and re-opened until the position or waiver is documented."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance: reinsurer's concurrent decision documented and reconciled to the direct terms, reviewed by the Senior Underwriter."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Case correspondence and decision on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Refer to the reinsurer per concurrent-underwriting triggers",
+              "value": "Risks meeting the concurrent-underwriting threshold are referred to the reinsurer per the documented trigger before conclusion."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify concurrence referrals",
+              "value": "Every sampled qualifying risk shows a reinsurer referral and logged outcome; 0 concluded without concurrence."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the concurrent-decision trail",
+              "value": "Reinsurer correspondence, questions and final position retained on the risk file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect concurrence documentation",
+              "value": "Sampled cases each carry the reinsurer's documented position; 0 missing."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "02c9844d-8c00-40d6-9279-e65a3a348475",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Reinsurance Accountant", "Bordereaux Analyst"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [
+        {
+          "name": "Reinsurance administration system",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Coordination of premium cession and bordereau reporting to reinsurers with the reinsurance accounting team; scope = the current period's ceded-premium bordereau across the treaty/facultative programme."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current monthly/quarterly bordereau reporting cycle; submitted to reinsurers within the treaty-stipulated reporting deadline (e.g. 30 days after period end)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "d67c486b-98ee-4128-8863-de6062eac135"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Bordereau fields complete per treaty: policy/risk ref, ceded premium, cession percentage, ceding commission, effective dates and reinsurer share. Missing commission or share fails the bordereau build."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Total ceded premium on the bordereau reconciles to the reinsurance administration system and to the ERP/GL ceded-premium account; line count equals bound cessions in the period with 0 variance."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The submitted bordereau and reconciliation retained on the reinsurance case file in the reinsurance administration system under /reinsurance/<treaty-year>/<risk-ref>/ and cross-referenced to the GL posting; versioned with submission timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Reconciliation breaks or late data are logged, held from submission, and escalated to the Reinsurance Manager; corrected before the bordereau is released to reinsurers."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "46204647-a631-4517-bcb8-5ae5ed35b750"
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "All cessions in the reporting period (census) validated on the bordereau before submission to reinsurers."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = bordereau totals reconcile to reinsurance admin and ERP/GL with complete fields; FAIL = any variance or missing mandatory field."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "Unreconciled or incomplete lines are held out of the submission, escalated to the Reinsurance Manager, and corrected before the reporting deadline."
+        },
+        {
+          "templateKeyId": "cmr2v89jj0013xa9iy2urljqv",
+          "roleId": "cmqsck0rq03wsmbk8hzl4z5y6"
+        },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "Reporting authority follows the reinsurance operations delegation matrix: underwriter/analyst prepares, Bordereaux Analyst validates, Reinsurance Accountant reconciles, Reinsurance Manager authorizes submission."
+        },
+        {
+          "answerId": "cmr2ocdw30ss0kaz3meonjg63",
+          "value": "Field definitions (ceded premium, cession %, ceding commission, reinsurer share, effective dates) per the bordereau/ceded-reinsurance data dictionary; control total = bordereau ceded premium equals the reinsurance-admin and ERP/GL ceded-premium balances with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the submitted bordereau and reconciliation",
+              "value": "Bordereau, reconciliation and submission record retained on the reporting file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect reporting documentation",
+              "value": "Sampled periods each have a filed, reconciled bordereau with submission evidence; 0 undocumented submissions."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail from cession to reported bordereau",
+              "value": "Traceable chain: bound cession -> reinsurance admin -> bordereau line -> ERP/GL, each timestamped."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Trace the reporting audit chain",
+              "value": "For sampled cessions the full cession-to-bordereau trail is intact and reconciled; 0 broken links."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

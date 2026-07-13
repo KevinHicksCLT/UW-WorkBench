@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { DOMAIN_HEX, type DivisionSummary } from '../viz/model';
 import { api } from '../lib/api';
@@ -138,12 +138,18 @@ const EmptyRow = ({ text }: { text: string }) => (
 export default function ListExplorer({
   focusVsId = null,
   focusVsName = null,
+  leading,
+  lensBar,
 }: {
   companyName?: string;
   divisions?: DivisionSummary[];
   streams?: number;
   focusVsId?: string | null;
   focusVsName?: string | null;
+  /** View pills (TOC | Map | List), leftmost in the header strip. */
+  leading?: ReactNode;
+  /** Variant lens bar rendered in the header strip, right of the view pills. */
+  lensBar?: ReactNode;
 }) {
   const [tree, setTree] = useState<Tree | null>(null);
   const [loading, setLoading] = useState(true);
@@ -554,27 +560,32 @@ export default function ListExplorer({
       {/* Side-by-side: sheet scrolls, metrics panel sits beside it (no overlay). */}
       <div className="h-full flex relative">
         <div className="flex-1 min-w-0 flex flex-col">
-          {/* Very slim strip: totals + clear. Lives OUTSIDE the scroll area so the
-              sticky sheet header pins below it instead of sliding over the
-              floating List|Map toggle (pl clears the toggle). */}
-          {/* pr clears the card padding + the scroll area's scrollbar so the
+          {/* Header block lives OUTSIDE the scroll area so the sticky sheet
+              header pins below it. Totals sit on their own line ABOVE the
+              pills/lens strip — the strip is too crowded to also hold them.
+              pr clears the card padding + the scroll area's scrollbar so the
               search box lines up with the table's right edge (doesn't hang past). */}
-          <div className="flex-shrink-0 flex items-center gap-3 flex-wrap pr-[31px] pl-[240px] h-[57px]">
+          <div className="flex-shrink-0 pl-4 pr-[31px] pt-3 pb-2">
             {!loading && !error && (
-              <>
-                <span className="text-[11px] text-[#737373] tnum">
-                  {totals.vs} value streams · {totals.subs} L4 processes · {totals.steps} L5
-                  processes
-                </span>
-                {anyFilter && (
-                  <LinkButton onClick={clear} className="text-[11px] font-medium">
-                    Clear filters
-                  </LinkButton>
-                )}
-                <div className="flex-1" />
-                <ListSearch value={search} onChange={setSearch} />
-              </>
+              <div className="pb-2 text-[11px] text-[#737373] tnum">
+                {totals.vs} value streams · {totals.subs} L4 processes · {totals.steps} L5 processes
+              </div>
             )}
+            <div className="flex items-center gap-3 flex-wrap">
+              {leading}
+              {lensBar}
+              {!loading && !error && (
+                <>
+                  {anyFilter && (
+                    <LinkButton onClick={clear} className="text-[11px] font-medium">
+                      Clear filters
+                    </LinkButton>
+                  )}
+                  <div className="flex-1" />
+                  <ListSearch value={search} onChange={setSearch} />
+                </>
+              )}
+            </div>
           </div>
           <div ref={scrollRef} onScroll={onScroll} className="flex-1 min-h-0 overflow-auto">
             <div className="px-3 sm:px-4 pb-4">

@@ -16,16 +16,40 @@ type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
 interface Tables {
   /** Quoted node table, e.g. "ProcessNode". */
-  node: '"ProcessNode"' | '"OrgUnit"';
+  node: '"ProcessNode"' | '"OrgUnit"' | '"ProductNode"';
   /** Quoted closure table, e.g. "ProcessNodeClosure". */
-  closure: '"ProcessNodeClosure"' | '"OrgUnitClosure"';
+  closure: '"ProcessNodeClosure"' | '"OrgUnitClosure"' | '"ProductNodeClosure"';
   /** Quoted level-type FK column, e.g. "processLevelTypeId". */
-  levelFk: '"processLevelTypeId"' | '"orgLevelTypeId"';
+  levelFk: '"processLevelTypeId"' | '"orgLevelTypeId"' | '"productLevelTypeId"';
+  /** Only ProcessNode carries the `isTask` column (erd_v5: L5 = task). */
+  hasIsTask: boolean;
 }
 
-const PROCESS: Tables = { node: '"ProcessNode"', closure: '"ProcessNodeClosure"', levelFk: '"processLevelTypeId"' };
-const ORG: Tables = { node: '"OrgUnit"', closure: '"OrgUnitClosure"', levelFk: '"orgLevelTypeId"' };
-const TABLES_FOR = (spine: 'processNode' | 'orgUnit'): Tables => (spine === 'processNode' ? PROCESS : ORG);
+export type Spine = 'processNode' | 'orgUnit' | 'productNode';
+
+/** The process-spine level at which a node is a task leaf (erd_v5: L5 = task). */
+const TASK_LEVEL = 5;
+
+const PROCESS: Tables = {
+  node: '"ProcessNode"',
+  closure: '"ProcessNodeClosure"',
+  levelFk: '"processLevelTypeId"',
+  hasIsTask: true,
+};
+const ORG: Tables = {
+  node: '"OrgUnit"',
+  closure: '"OrgUnitClosure"',
+  levelFk: '"orgLevelTypeId"',
+  hasIsTask: false,
+};
+const PRODUCT: Tables = {
+  node: '"ProductNode"',
+  closure: '"ProductNodeClosure"',
+  levelFk: '"productLevelTypeId"',
+  hasIsTask: false,
+};
+const TABLES_FOR = (spine: Spine): Tables =>
+  spine === 'processNode' ? PROCESS : spine === 'orgUnit' ? ORG : PRODUCT;
 
 // ── Primitive closure operations (run on a given tx + table pair) ────────────
 
@@ -37,7 +61,12 @@ const TABLES_FOR = (spine: 'processNode' | 'orgUnit'): Tables => (spine === 'pro
  * If parentId is null the node is a root → only the self-row is written.
  * The node's own parentId column is assumed already set by the caller (create()).
  */
-async function insertNodeTx(tx: Tx, t: Tables, nodeId: string, parentId: string | null): Promise<void> {
+async function insertNodeTx(
+  tx: Tx,
+  t: Tables,
+  nodeId: string,
+  parentId: string | null,
+): Promise<void> {
   await tx.$executeRawUnsafe(
     `INSERT INTO ${t.closure} ("ancestorId", "descendantId", "depth") VALUES ($1, $1, 0)`,
     nodeId,
@@ -62,7 +91,12 @@ async function insertNodeTx(tx: Tx, t: Tables, nodeId: string, parentId: string 
  *  (b) re-create them against the new parent's ancestor chain;
  *  (c) update the node's own parentId.
  */
-async function moveSubtreeTx(tx: Tx, t: Tables, nodeId: string, newParentId: string | null): Promise<void> {
+async function moveSubtreeTx(
+  tx: Tx,
+  t: Tables,
+  nodeId: string,
+  newParentId: string | null,
+): Promise<void> {
   // (a) Drop every edge whose descendant is inside the subtree but whose ancestor
   //     is NOT — i.e. the old links into the subtree from above.
   await tx.$executeRawUnsafe(
@@ -97,19 +131,43 @@ async function moveSubtreeTx(tx: Tx, t: Tables, nodeId: string, newParentId: str
 /**
  * Re-level the moved ProcessNode subtree: rewrite `processLevelTypeId` for every
  * node in the subtree by its depth below `nodeId`. `levelByDepth` maps the relative
- * depth (0 = the moved node itself) → the target `ProcessLevelType.id`. The ids are
- * allow-listed by the caller (resolved from the company's level types) and bound as
- * parameters — never interpolated. One UPDATE per distinct depth (≤ tree height).
+ * depth (0 = the moved node itself) → the target level's `{ id, levelNumber }`. The
+ * ids are allow-listed by the caller (resolved from the company's level types) and
+ * bound as parameters — never interpolated. One UPDATE per distinct depth (≤ tree
+ * height). On the process spine this also flips `isTask` to match the new level
+ * (erd_v5: L5 = task) — a node dragged onto/off L5 must stop being a stale leaf/
+ * container, or the Inspector's edit affordances and every isTask-scoped query
+ * (Work Library, dashboards, regulations) go out of sync with the visible tree.
  */
-async function relevelSubtreeTx(tx: Tx, t: Tables, nodeId: string, levelByDepth: Map<number, string>): Promise<void> {
-  for (const [depth, ltId] of levelByDepth) {
-    await tx.$executeRawUnsafe(
-      `UPDATE ${t.node} SET ${t.levelFk} = $1
-         WHERE "id" IN (
-           SELECT "descendantId" FROM ${t.closure} WHERE "ancestorId" = $2 AND "depth" = $3
-         )`,
-      ltId, nodeId, depth,
-    );
+async function relevelSubtreeTx(
+  tx: Tx,
+  t: Tables,
+  nodeId: string,
+  levelByDepth: Map<number, { id: string; levelNumber: number }>,
+): Promise<void> {
+  for (const [depth, { id: ltId, levelNumber }] of levelByDepth) {
+    if (t.hasIsTask) {
+      await tx.$executeRawUnsafe(
+        `UPDATE ${t.node} SET ${t.levelFk} = $1, "isTask" = $4
+           WHERE "id" IN (
+             SELECT "descendantId" FROM ${t.closure} WHERE "ancestorId" = $2 AND "depth" = $3
+           )`,
+        ltId,
+        nodeId,
+        depth,
+        levelNumber === TASK_LEVEL,
+      );
+    } else {
+      await tx.$executeRawUnsafe(
+        `UPDATE ${t.node} SET ${t.levelFk} = $1
+           WHERE "id" IN (
+             SELECT "descendantId" FROM ${t.closure} WHERE "ancestorId" = $2 AND "depth" = $3
+           )`,
+        ltId,
+        nodeId,
+        depth,
+      );
+    }
   }
 }
 
@@ -118,8 +176,15 @@ async function relevelSubtreeTx(tx: Tx, t: Tables, nodeId: string, levelByDepth:
  * edits can share one transaction (the canvas's batched Save). Works on either spine
  * (ProcessNode / OrgUnit). When `levelByDepth` is empty the level is unchanged.
  */
+/** A relative depth's target level, resolved by the caller from the company's level types. */
+export type LevelByDepth = Map<number, { id: string; levelNumber: number }>;
+
 export async function moveSubtreeWithRelevelTx(
-  tx: Tx, spine: 'processNode' | 'orgUnit', nodeId: string, newParentId: string | null, levelByDepth?: Map<number, string>,
+  tx: Tx,
+  spine: Spine,
+  nodeId: string,
+  newParentId: string | null,
+  levelByDepth?: LevelByDepth,
 ): Promise<void> {
   const t = TABLES_FOR(spine);
   await moveSubtreeTx(tx, t, nodeId, newParentId);
@@ -127,18 +192,30 @@ export async function moveSubtreeWithRelevelTx(
 }
 
 /** Back-compat process-only alias (kept for existing callers). */
-export const moveProcessSubtreeTx = (tx: Tx, nodeId: string, newParentId: string | null, levelByDepth?: Map<number, string>) =>
-  moveSubtreeWithRelevelTx(tx, 'processNode', nodeId, newParentId, levelByDepth);
+export const moveProcessSubtreeTx = (
+  tx: Tx,
+  nodeId: string,
+  newParentId: string | null,
+  levelByDepth?: LevelByDepth,
+) => moveSubtreeWithRelevelTx(tx, 'processNode', nodeId, newParentId, levelByDepth);
 
 /** Move + re-level a single subtree in its own transaction (either spine). */
-export function moveSubtreeWithRelevel(
-  args: { spine: 'processNode' | 'orgUnit'; nodeId: string; newParentId: string | null; levelByDepth?: Map<number, string> },
-): Promise<void> {
-  return prisma.$transaction((tx) => moveSubtreeWithRelevelTx(tx, args.spine, args.nodeId, args.newParentId, args.levelByDepth));
+export function moveSubtreeWithRelevel(args: {
+  spine: Spine;
+  nodeId: string;
+  newParentId: string | null;
+  levelByDepth?: LevelByDepth;
+}): Promise<void> {
+  return prisma.$transaction((tx) =>
+    moveSubtreeWithRelevelTx(tx, args.spine, args.nodeId, args.newParentId, args.levelByDepth),
+  );
 }
 /** Back-compat process-only alias. */
-export const moveProcessSubtreeWithRelevel = (args: { nodeId: string; newParentId: string | null; levelByDepth?: Map<number, string> }) =>
-  moveSubtreeWithRelevel({ spine: 'processNode', ...args });
+export const moveProcessSubtreeWithRelevel = (args: {
+  nodeId: string;
+  newParentId: string | null;
+  levelByDepth?: LevelByDepth;
+}) => moveSubtreeWithRelevel({ spine: 'processNode', ...args });
 
 /**
  * Delete the whole subtree rooted at `nodeId`: every descendant node row and the
@@ -165,10 +242,7 @@ async function deleteSubtreeTx(tx: Tx, t: Tables, nodeId: string): Promise<numbe
     subtreeIds,
   );
   // Delete the node rows (children cascade their junctions via onDelete:Cascade).
-  await tx.$executeRawUnsafe(
-    `DELETE FROM ${t.node} WHERE "id" = ANY($1::text[])`,
-    subtreeIds,
-  );
+  await tx.$executeRawUnsafe(`DELETE FROM ${t.node} WHERE "id" = ANY($1::text[])`, subtreeIds);
   return subtreeIds.length;
 }
 
@@ -225,8 +299,7 @@ function makeService(t: Tables): ClosureService {
       prisma.$transaction((tx) => insertNodeTx(tx, t, nodeId, parentId)),
     moveSubtree: ({ nodeId, newParentId }) =>
       prisma.$transaction((tx) => moveSubtreeTx(tx, t, nodeId, newParentId)),
-    deleteSubtree: ({ nodeId }) =>
-      prisma.$transaction((tx) => deleteSubtreeTx(tx, t, nodeId)),
+    deleteSubtree: ({ nodeId }) => prisma.$transaction((tx) => deleteSubtreeTx(tx, t, nodeId)),
     rebuildClosure: ({ companyId }) =>
       prisma.$transaction((tx) => rebuildClosureTx(tx, t, companyId)),
   };
@@ -236,8 +309,14 @@ function makeService(t: Tables): ClosureService {
 export const processClosure = makeService(PROCESS);
 /** Closure maintenance for the OrgUnit (organization) tree. */
 export const orgClosure = makeService(ORG);
+/** Closure maintenance for the ProductNode (product-model) tree. */
+export const productClosure = makeService(PRODUCT);
 
 /** Resolve a closure service by the builder's spine name. */
-export function closureFor(spine: 'processNode' | 'orgUnit'): ClosureService {
-  return spine === 'processNode' ? processClosure : orgClosure;
+export function closureFor(spine: Spine): ClosureService {
+  return spine === 'processNode'
+    ? processClosure
+    : spine === 'orgUnit'
+      ? orgClosure
+      : productClosure;
 }

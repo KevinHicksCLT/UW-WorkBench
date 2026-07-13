@@ -328,6 +328,9 @@ model Company {
   // Value-stream spine
   processLevelTypes         ProcessLevelType[]
   processNodes              ProcessNode[]
+  // Product spine
+  productLevelTypes         ProductLevelType[]
+  productNodes              ProductNode[]
   // Work & control
   deliverables              Deliverable[]
   checklists                Checklist[]
@@ -362,6 +365,10 @@ model Company {
   // App Rationalization
   rationalizationWorkspaces RationalizationWorkspace[]
   anatomyCategories         AnatomyCategory[]
+  // Product Model Rationalization
+  productModelWorkspaces      ProductModelWorkspace[]
+  productModelAnatomyCategories ProductModelAnatomyCategory[]
+  workspaceVocabularies       WorkspaceVocabulary[]
   // Scenario / telemetry / analysis
   scenarios                 Scenario[]
   telemetrySignals          TelemetrySignal[]
@@ -449,6 +456,7 @@ model Role {
   description   String? // 3–5 sentence job description grounded in the role's tasks/deliverables
   roleFamily    String? // functional family, e.g. Actuarial, Claims, Engineering
   roleLevel     String? // Executive | Senior Leadership | Manager | Individual Contributor
+  sortOrder     Int      @default(0) // display order within the role's org home (org map drag-reorder)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -470,6 +478,7 @@ model Role {
   initiativeResources           InitiativeResource[]
   rationalizationMicroservices  RationalizationMicroservice[] @relation("RationalizationMicroserviceOwner")
   rationalizationPlanSteps      RationalizationPlanStep[]     @relation("RationalizationPlanStepOwner")
+  canonicalProductModels        CanonicalProductModel[]       @relation("CanonicalProductModelOwner")
   // Work Library entity-typed values pointing at this role
   nodeTemplateAnswers           NodeTemplateAnswer[]
   standardTemplateAnswers       StandardTemplateAnswer[]
@@ -576,6 +585,67 @@ model ProcessNodeClosure {
   ancestor     ProcessNode @relation("ProcessNodeClosureAncestor", fields: [ancestorId], references: [id], onDelete: Cascade)
   descendantId String
   descendant   ProcessNode @relation("ProcessNodeClosureDescendant", fields: [descendantId], references: [id], onDelete: Cascade)
+  depth        Int
+
+  @@id([ancestorId, descendantId])
+  @@index([descendantId, depth])
+  @@index([ancestorId, depth])
+}
+
+// ─── PRODUCT SPINE (generic, level-typed) ───────────────────────────────
+// Third recursive spine alongside OrgUnit and ProcessNode: the product
+// hierarchy (Segment > LOB/Product Family > Product > Version/Jurisdiction >
+// Model Component by default — level names are per-company editable).
+
+model ProductLevelType {
+  id           String   @id @default(cuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  levelNumber  Int
+  dbValue      String // "L1 L2 L3 L4 L5"
+  displayValue String // EDITABLE: Segment, LOB / Product Family, Product, Version / Jurisdiction, Model Component ...
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  productNodes ProductNode[]
+
+  @@unique([companyId, levelNumber])
+  @@index([companyId])
+}
+
+model ProductNode {
+  id                 String           @id @default(cuid())
+  companyId          String
+  company            Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  productLevelTypeId String
+  productLevelType   ProductLevelType @relation(fields: [productLevelTypeId], references: [id])
+  parentId           String?
+  parent             ProductNode?     @relation("ProductNodeTree", fields: [parentId], references: [id])
+  children           ProductNode[]    @relation("ProductNodeTree")
+  dbValue            String
+  displayValue       String // EDITABLE label
+  description        String? // what this segment/product/version/component is
+  status             String? // version lifecycle: Active | Bound | Renewal only | Runoff | Expired
+  sortOrder          Int              @default(0)
+  code               String?
+  attributes         Json? // level-specific facts (system of record, jurisdiction, effective dates, owner, element source locations)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  // Closure (both directions)
+  ancestorEdges   ProductNodeClosure[] @relation("ProductNodeClosureAncestor")
+  descendantEdges ProductNodeClosure[] @relation("ProductNodeClosureDescendant")
+
+  @@index([companyId, productLevelTypeId])
+  @@index([parentId])
+}
+
+// DERIVED — fast subtree (move-with-children, rollups).
+model ProductNodeClosure {
+  ancestorId   String
+  ancestor     ProductNode @relation("ProductNodeClosureAncestor", fields: [ancestorId], references: [id], onDelete: Cascade)
+  descendantId String
+  descendant   ProductNode @relation("ProductNodeClosureDescendant", fields: [descendantId], references: [id], onDelete: Cascade)
   depth        Int
 
   @@id([ancestorId, descendantId])
@@ -1800,17 +1870,21 @@ model RationalizationWorkspace {
   valueStreamNodeId String?
   valueStreamNode   ProcessNode? @relation(fields: [valueStreamNodeId], references: [id], onDelete: SetNull)
   status            String       @default("In Progress") // Proposed | In Progress | Migrating | Complete
+  // Which rationalizable structure this board works on — one workspace list
+  // serves both rationalization types (Product Model Workspace build).
+  domain            String       @default("APPLICATION") // APPLICATION | PRODUCT_MODEL
   illustrative      Boolean      @default(true)
   layout            Json?
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
-  apps          RationalizationApp[]
-  capabilities  RationalizationCapability[]
-  components    RationalizationComponent[]
-  microservices RationalizationMicroservice[]
-  planSteps     RationalizationPlanStep[]
-  screens       ScreenAsset[]
+  apps                 RationalizationApp[]
+  capabilities         RationalizationCapability[]
+  components           RationalizationComponent[]
+  microservices        RationalizationMicroservice[]
+  planSteps            RationalizationPlanStep[]
+  screens              ScreenAsset[]
+  normalizationEntries NormalizationEntry[]
 
   @@unique([tenantId, companyId, name])
   @@index([companyId])
@@ -1867,7 +1941,8 @@ model RationalizationComponent {
   createdAt       DateTime                     @default(now())
   updatedAt       DateTime                     @updatedAt
 
-  capabilities RationalizationCapability[]
+  capabilities         RationalizationCapability[]
+  normalizationEntries NormalizationEntry[]
 
   @@index([companyId])
   @@index([workspaceId])
@@ -1949,6 +2024,13 @@ model RationalizationCapability {
   effort            String?
   complexity        String?
   notes             String?
+  // v3 board: the Normalize-column entry this raw finding rolls up into.
+  normalizationEntryId String?
+  normalizationEntry   NormalizationEntry?    @relation(fields: [normalizationEntryId], references: [id], onDelete: SetNull)
+  // v3 board: unreachable/superseded findings render in the dead-code lane.
+  deadCode          Boolean                   @default(false)
+  // v3 board "WHY THIS MOVES" panel: { captured, sent, processed, validated, lands }.
+  whyThisMoves      Json?
   illustrative      Boolean                   @default(true)
   createdAt         DateTime                  @default(now())
   updatedAt         DateTime                  @updatedAt
@@ -1958,6 +2040,7 @@ model RationalizationCapability {
   @@index([appId])
   @@index([componentId])
   @@index([sharedServiceId])
+  @@index([normalizationEntryId])
 }
 
 model RationalizationMicroservice {
@@ -2013,6 +2096,274 @@ model RationalizationPlanStep {
   @@index([companyId])
   @@index([workspaceId])
   @@index([workspaceId, wave, sequence])
+  @@index([ownerRoleId])
+}
+
+// One normalized item in a v3-board Normalize box (#N-101 …) — the roll-up a
+// group of raw findings (RationalizationCapability rows) merges into, with the
+// wireframe's AUTO / REVIEW / HELD match verdict. Application domain; the
+// product domain has a twin (ProductModelNormalizationEntry) because the two
+// finding sources cascade from different workspaces.
+model NormalizationEntry {
+  id                 String                    @id @default(cuid())
+  tenantId           String
+  companyId          String
+  workspaceId        String
+  workspace          RationalizationWorkspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  layer              String // row axis token (UI | Integration | Business Service | Data | Infrastructure)
+  notation           String // "N-101" — stable, unique per workspace
+  name               String
+  matchStatus        String                    @default("AUTO") // AUTO | REVIEW | HELD
+  matchBasis         String? // "all 14 fields match on name, type and order"
+  differenceNote     String? // "same 22 fields — flow shape and validation timing differ"
+  proposedResolution String? // shown on HELD cards awaiting sign-off
+  // v3 side-by-side comparison cards: [{source, title, lines[], does?, moreNote?}]
+  // — one card per legacy source, rendered in the Normalize box's source columns.
+  sourceCards        Json?
+  componentId        String?
+  component          RationalizationComponent? @relation(fields: [componentId], references: [id], onDelete: SetNull)
+  sortOrder          Int                       @default(0)
+  illustrative       Boolean                   @default(true)
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+
+  capabilities RationalizationCapability[]
+
+  @@unique([workspaceId, notation])
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([componentId])
+}
+
+// Board vocabulary — the "DB as source of truth" fix: one reference model
+// replaces every hardcoded frontend vocabulary constant (LAYERS, CAPDAN_META,
+// STATUS_META, MODES, VIEWS) and carries the product-model axis/scopes plus
+// the scaffold templates (kind SCAFFOLD) formerly hardcoded in the route.
+model WorkspaceVocabulary {
+  id        String  @id @default(cuid())
+  tenantId  String
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  domain    String // APPLICATION | PRODUCT_MODEL
+  kind      String // LAYER | CLASSIFICATION | STATUS | MODE | VIEW | DISPOSITION | MATCH_STATUS | SCAFFOLD
+  token     String // stable key, e.g. "UI", "Common", "Segment"
+  label     String
+  color     String? // tailwind token, e.g. "sky" — presentation defaults live with the data
+  sortOrder Int     @default(0)
+  meta      Json? // e.g. { legend: "correct — stays" } or scaffold template payloads
+
+  @@unique([companyId, domain, kind, token])
+  @@index([companyId])
+}
+
+// ─── PRODUCT MODEL RATIONALIZATION ──────────────────────────────────────
+// Fourth rationalizable structure (alongside Applications / Value Streams /
+// Roles): legacy product definitions are decomposed by the 11 product
+// components, findings are scoped Common | Segment | Geography | Eliminate,
+// normalized, and land on canonical (north-star) product models.
+
+model ProductModelWorkspace {
+  id           String  @id @default(cuid())
+  tenantId     String
+  companyId    String
+  company      Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  northstar    String?
+  status       String  @default("In Progress") // Proposed | In Progress | Migrating | Complete
+  illustrative Boolean @default(true)
+  layout       Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  legacyModels         LegacyProductModel[]
+  components           ProductModelComponent[]
+  findings             ProductModelFinding[]
+  canonicalModels      CanonicalProductModel[]
+  normalizationEntries ProductModelNormalizationEntry[]
+
+  @@unique([tenantId, companyId, name])
+  @@index([companyId])
+}
+
+// A legacy product definition as it exists in a source system today — the
+// board's left-hand columns (e.g. "PolicyPro — Commercial Package (East)").
+model LegacyProductModel {
+  id           String                @id @default(cuid())
+  tenantId     String
+  companyId    String
+  workspaceId  String
+  workspace    ProductModelWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  sourceSystem String? // the estate application it lives in (PolicyPro, QuoteMaster…)
+  segment      String? // SMB | Large Commercial | Personal Lines | Specialty | London Market…
+  geography    String? // US | US-East | US-NY | UK | EU…
+  disposition  String                @default("Refactor") // Retain | Refactor | Replace | Retire
+  position     Int                   @default(0)
+  illustrative Boolean               @default(true)
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+
+  findings ProductModelFinding[]
+
+  @@unique([workspaceId, name])
+  @@index([companyId])
+  @@index([workspaceId])
+}
+
+// Normalized target component per product-component row — what the kept
+// findings fold into; lands on a CanonicalProductModel (the green-field twin
+// of RationalizationComponent → RationalizationMicroservice).
+model ProductModelComponent {
+  id               String                 @id @default(cuid())
+  tenantId         String
+  companyId        String
+  workspaceId      String
+  workspace        ProductModelWorkspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  component        String // one of the 11 product-component axis tokens (Party & Roles…)
+  name             String
+  description      String?
+  principle        String?
+  canonicalModelId String?
+  canonicalModel   CanonicalProductModel? @relation(fields: [canonicalModelId], references: [id], onDelete: SetNull)
+  migrationStatus  String                 @default("Identified")
+  sortOrder        Int                    @default(0)
+  illustrative     Boolean                @default(true)
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  findings             ProductModelFinding[]
+  normalizationEntries ProductModelNormalizationEntry[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([canonicalModelId])
+}
+
+// Reference catalog for the product-model anatomy: per component × scope ×
+// view, the named sub-categories that belong there (mirrors AnatomyCategory,
+// WR-06, including the MISPLACED view). `slug` is the stable SKOS concept id
+// (tbi:pma-<slug>) used by the taxonomy exporter and the semantic matcher.
+model ProductModelAnatomyCategory {
+  id                   String  @id @default(cuid())
+  tenantId             String
+  companyId            String
+  company              Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  component            String // one of the 11 product-component axis tokens
+  scope                String // COMMON | SEGMENT | GEOGRAPHY
+  view                 String  @default("COMPONENT") // COMPONENT | BEHAVIOR | MISPLACED
+  slug                 String // stable kebab-case id, unique per company (SKOS concept id)
+  name                 String
+  description          String // plain-language, non-technical
+  recommendedComponent String? // MISPLACED rows: the component this concern belongs in
+  sortOrder            Int     @default(0)
+
+  findings ProductModelFinding[]
+
+  @@unique([companyId, slug])
+  @@unique([companyId, component, scope, view, name])
+  @@index([companyId, component])
+}
+
+// An atomic observation about a legacy product model within one component —
+// the board's cards (e.g. "Hired & non-owned auto endorsement CA 20 01
+// attached by default" — scope Segment/SMB).
+model ProductModelFinding {
+  id                   String                          @id @default(cuid())
+  tenantId             String
+  companyId            String
+  workspaceId          String
+  workspace            ProductModelWorkspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  legacyModelId        String
+  legacyModel          LegacyProductModel              @relation(fields: [legacyModelId], references: [id], onDelete: Cascade)
+  component            String // row axis token (one of the 11)
+  name                 String
+  detail               String? // the atomic specifics: field names, form numbers, thresholds
+  scope                String                          @default("Common") // Common | Segment | Geography | Eliminate
+  segmentValue         String? // scope Segment: which segment (SMB, Large Commercial…)
+  geographyValue       String? // scope Geography: which geography (US-NY, UK…)
+  sourceRef            String? // where it lives in the source (rate routine RT-114, VSAM copybook…)
+  anatomyCategoryId    String?
+  anatomyCategory      ProductModelAnatomyCategory?    @relation(fields: [anatomyCategoryId], references: [id], onDelete: SetNull)
+  targetComponentId    String?
+  targetComponent      ProductModelComponent?          @relation(fields: [targetComponentId], references: [id], onDelete: SetNull)
+  migrationStatus      String                          @default("Identified")
+  // v3 board: the Normalize-column entry this raw finding rolls up into.
+  normalizationEntryId String?
+  normalizationEntry   ProductModelNormalizationEntry? @relation(fields: [normalizationEntryId], references: [id], onDelete: SetNull)
+  // v3 board: unreachable/superseded findings render in the dead-code lane.
+  deadCode             Boolean                         @default(false)
+  // v3 board "WHY THIS MOVES" panel: { captured, sent, processed, validated, lands }.
+  whyThisMoves         Json?
+  illustrative         Boolean                         @default(true)
+  createdAt            DateTime                        @default(now())
+  updatedAt            DateTime                        @updatedAt
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([legacyModelId])
+  @@index([anatomyCategoryId])
+  @@index([targetComponentId])
+  @@index([normalizationEntryId])
+}
+
+// Product-domain twin of NormalizationEntry (same DTO shape; separate table so
+// each domain's entries cascade from their own workspace + component types).
+model ProductModelNormalizationEntry {
+  id                 String                 @id @default(cuid())
+  tenantId           String
+  companyId          String
+  workspaceId        String
+  workspace          ProductModelWorkspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  layer              String // row axis token (one of the 11 product components)
+  notation           String // "N-101" — stable, unique per workspace
+  name               String
+  matchStatus        String                 @default("AUTO") // AUTO | REVIEW | HELD
+  matchBasis         String?
+  differenceNote     String?
+  proposedResolution String?
+  // v3 side-by-side comparison cards — same shape as NormalizationEntry.sourceCards.
+  sourceCards        Json?
+  componentId        String?
+  component          ProductModelComponent? @relation(fields: [componentId], references: [id], onDelete: SetNull)
+  sortOrder          Int                    @default(0)
+  illustrative       Boolean                @default(true)
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  findings ProductModelFinding[]
+
+  @@unique([workspaceId, notation])
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([componentId])
+}
+
+// The north-star target — one canonical product model per major line, built
+// from linked ProductModelComponents. Status is a roll-up computed on read
+// from the linked components' migrationStatus (never denormalized).
+model CanonicalProductModel {
+  id             String                @id @default(cuid())
+  tenantId       String
+  companyId      String
+  workspaceId    String
+  workspace      ProductModelWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  lineOfBusiness String? // Commercial Package | Personal Auto | Annuity…
+  ownerRoleId    String?
+  ownerRole      Role?                 @relation("CanonicalProductModelOwner", fields: [ownerRoleId], references: [id], onDelete: SetNull)
+  position       Int                   @default(0)
+  illustrative   Boolean               @default(true)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  components ProductModelComponent[]
+
+  @@unique([workspaceId, name])
+  @@index([companyId])
+  @@index([workspaceId])
   @@index([ownerRoleId])
 }
 
@@ -2140,6 +2491,9 @@ model RegulatoryRequirement {
   lastVerifiedAt DateTime?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+  // User-flagged "we actually follow this as compliance practice" bucket —
+  // surfaces as the Compliance card/page, cutting across all three lenses.
+  complianceFlagged Boolean   @default(false)
 
   nodeRegulations           NodeRegulation[]
   regulationApplications    RegulationApplication[]
@@ -2159,6 +2513,7 @@ model RegulatoryRequirement {
   // and lineOfBusiness — a covering-ish composite keeps the large catalog fast.
   @@index([companyId, status, regime])
   @@index([companyId, status, lineOfBusiness])
+  @@index([companyId, complianceFlagged])
 }
 
 // Line-of-business taxonomy — the deduped NAIC annual-statement + Solvency II

@@ -50,3 +50,29 @@ WR-02/04/05/09 live and verified: headers read **Normalize** and **Greenfield** 
 ## Sequencing & dependencies
 
 R1 is pure TB work (one migration: anatomy fields + catalog + ScreenAsset + app FK). R2 needs pgvector enablement + an embedding pipeline (one-off + on-write). R3's WR-08 needs the approval framework (PR #44) merged. Recommended order: R1 → R2 → R3, with WR-07's TB self-analysis started during R1 (its output validates the R1 schema).
+
+## Product Model Workspace extension (PM items)
+
+Build plan: **`product-model-workspace-plan.md`** (this directory) — adds Product Models as the
+fourth rationalizable structure (v3 wireframe: `workspace wireframe.pdf`), DB-backed vocabulary,
+atomic ABC Insurance seed data, and a SKOS ontology layer. Four parallel branches
+(`pmw/agent-1-data` … `pmw/agent-4-pages`), merge order 1→2→3→4 into `Product-Model-Workspace`.
+
+| Item | What | Owner | Status |
+|---|---|---|---|
+| PM-01 | Schema migration (ProductModel*, NormalizationEntry, WorkspaceVocabulary, workspace `domain`) | Agent 1 | In flight (agent-1 branch) |
+| PM-02 | Anatomy + vocabulary seed, product demo workspace, app-board v3 refresh | Agent 1 | In flight (agent-1 branch) |
+| PM-03 | Master list + CRUD (`/product-models`) | Agent 2 (API) · Agent 4 (UI) | **UI done on agent-4 branch** (TOC/List/drawer/segment drill); API in flight |
+| PM-04 | Domain switch on the board | Agent 3 (board) · Agent 4 (deep link) | **`?domain=` deep-link seam done on agent-4 branch**; board lens in flight |
+| PM-05 | Inspection modes (Legacy models / Segment / Geography) | Agent 2 + Agent 3 | In flight |
+| PM-06 | Products board rendering (11 component rows, scope colors, in-box expand) | Agent 3 | In flight |
+| PM-07 | Findings CRUD (product domain) | Agent 2 + Agent 3 | In flight |
+| PM-08 | Canonical models + read-time status roll-up | Agent 2 | In flight |
+| PM-09 | Semantic/duplicate detection | — | **Deferred** (blocked on WR-12 pgvector; matcher interface is the swap point) |
+| PM-ONT | SKOS ontology exporter + `/taxonomy` API + matcher | Agent 1 + Agent 2 | In flight |
+
+Verification harness (agent-4 branch): `/product-models` + `/portfolio?domain=product-models` in
+the smoke ROUTES, `e2e/product-model-workspace.spec.ts`, and API-body baseline entries for
+`GET /product-models`, the vocabulary endpoint, and the first board detail
+(`documents/refactor-baseline/capture-api.sh`). Baselines re-captured at integration once
+Agent 1's seed + Agent 2's endpoints land.

@@ -30,7 +30,8 @@ export default function Layout({ children }: { children: ReactNode }) {
     location.pathname.startsWith('/overview') ||
     location.pathname.startsWith('/n/') ||
     location.pathname === '/roles' ||
-    location.pathname === '/organization';
+    location.pathname === '/organization' ||
+    location.pathname === '/product-models';
 
   useEffect(() => {
     setMobileMenuOpen(false);

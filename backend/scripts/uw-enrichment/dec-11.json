@@ -1,0 +1,1857 @@
+{
+  "tasks": [
+    {
+      "id": "ad788cdd-2e7b-494f-a6ba-7ed5103bf5b2",
+      "owner": {
+        "action": "replace",
+        "name": "Delegated Authority Analyst"
+      },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager", "Chief Underwriting Officer"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The delegated underwriting authority to be granted to the coverholder/MGA: lines of business, class and territory scope, product parameters, and per-risk and aggregate limits captured in the authority schedule."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The upcoming binder year (e.g. 2026-10-01 to 2027-09-30); authority is defined and approved before binder inception."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The delegated authority schedule v1.0 carries all required attributes: owning role, effective dates, line of business/class scope, quantified limits/thresholds, and linked approvals; any blank mandatory field blocks completion and is returned to the Delegated Authority Analyst."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Item counts for the delegated authority schedule v1.0 reconcile to the source register in the GRC authority register (Archer): every in-scope class/term is present with no orphan or duplicate rows; reconciliation delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The approved delegated authority schedule v1.0 is retained in the GRC authority register (Archer) and filed under /delegated-authority/<coverholder>/authority-schedule/ with an immutable timestamp and version label v<n>; retained for the greater of the contract term plus 7 years or the applicable state record-retention rule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Deviations from standard terms are logged as an exception in the GRC platform with owner, rationale, and disposition (approve / amend / reject); open exceptions carry a 10-business-day resolution SLA before escalation to the Chief Underwriting Officer."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0ro03sjmbk8hjhb90bw"
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "100% (census) of the delegated authority schedule v1.0 items produced in the in-scope period � no sampling; every class/term/threshold is inspected."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = the delegated authority schedule v1.0 is complete, internally consistent with the authority matrix, and carries the required approval(s) with 0 mandatory fields blank. FAIL = any missing term, limit outside the approved band, or absent sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, the item is returned to the Delegated Authority Analyst for correction and re-review; unresolved items are logged as a GRC exception assigned to the Chief Underwriting Officer with a 10-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance criteria for the delegated authority schedule v1.0 are documented in the control checklist: complete mandatory fields, alignment to the approved authority/appetite, and captured sign-off; the reviewer confirms each before acceptance."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence (approved delegated authority schedule v1.0, review notes, approval record) is stored in the GRC authority register (Archer) under /delegated-authority/<coverholder>/authority-schedule/ and cross-linked to the GRC control record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Set authority limits by premium, policy limit and line of business",
+              "value": "The authority matrix v3.2 states explicit per-risk and aggregate limits for each class and territory in scope, with no undefined bands."
+            },
+            {
+              "step": "Bind grantee authority to the documented schedule",
+              "value": "Delegated authority granted equals the classes/limits in the approved schedule; anything outside routes to referral."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify every in-scope class has a defined limit",
+              "value": "Sample 100% of classes in the matrix; 0 classes without a stated per-risk and aggregate limit."
+            },
+            {
+              "step": "Confirm bound business stays within limits",
+              "value": "Test that no term exceeds the matrix band; any exceedance is an exception with CUO approval."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Document referral triggers in the control framework",
+              "value": "Referral triggers (limit, class, CAT-aggregation, loss history) are listed with the authority level each escalates to."
+            },
+            {
+              "step": "Wire triggers into the workbench rules",
+              "value": "Each trigger maps to a system rule that stops binding and routes to the named authority."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test that triggers fire on breach",
+              "value": "Inject boundary cases; 100% of triggers route to the correct next authority with no silent pass-through."
+            },
+            {
+              "step": "Confirm trigger coverage",
+              "value": "Every documented trigger has a corresponding active rule; 0 orphaned triggers."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Apply the documented appetite by LOB/geography/industry",
+              "value": "Screening uses the current documented appetite statement; in/out-of-appetite classes and territories are explicit."
+            },
+            {
+              "step": "Flag CAT/appetite exceptions",
+              "value": "Out-of-appetite exposures (e.g. Tier-1 wind, SFHA) are flagged against the appetite rules."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify appetite currency",
+              "value": "Confirm the appetite statement in use is the current annually-approved version."
+            },
+            {
+              "step": "Test screening against appetite",
+              "value": "Sample submissions; 100% of out-of-appetite risks are correctly flagged."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "96fd2b80-78c0-4eb6-9274-5b85ac16e27f",
+      "owner": {
+        "action": "replace",
+        "name": "Delegated Authority Analyst"
+      },
+      "removeRoleNames": ["Business Analyst", "Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager", "Chief Underwriting Officer"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The control framework for the binding authority: binding conditions, co-signature/four-eyes requirements, referral triggers, and prohibited-class stops applied to all business bound under delegation."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The upcoming binder year (e.g. 2026-10-01 to 2027-09-30); framework fixed at binder inception and reviewed at mid-term."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The binder control framework document v1.0 carries all required attributes: owning role, effective dates, line of business/class scope, quantified limits/thresholds, and linked approvals; any blank mandatory field blocks completion and is returned to the Delegated Authority Analyst."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Item counts for the binder control framework document v1.0 reconcile to the source register in the GRC control library (Archer): every in-scope class/term is present with no orphan or duplicate rows; reconciliation delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The approved binder control framework document v1.0 is retained in the GRC control library (Archer) and filed under /delegated-authority/<coverholder>/control-framework/ with an immutable timestamp and version label v<n>; retained for the greater of the contract term plus 7 years or the applicable state record-retention rule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Deviations from standard terms are logged as an exception in the GRC platform with owner, rationale, and disposition (approve / amend / reject); open exceptions carry a 10-business-day resolution SLA before escalation to the Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "100% (census) of the binder control framework document v1.0 items produced in the in-scope period � no sampling; every class/term/threshold is inspected."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = the binder control framework document v1.0 is complete, internally consistent with the authority matrix, and carries the required approval(s) with 0 mandatory fields blank. FAIL = any missing term, limit outside the approved band, or absent sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, the item is returned to the Delegated Authority Analyst for correction and re-review; unresolved items are logged as a GRC exception assigned to the Delegated Authority Manager with a 10-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance criteria for the binder control framework document v1.0 are documented in the control checklist: complete mandatory fields, alignment to the approved authority/appetite, and captured sign-off; the reviewer confirms each before acceptance."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence (approved binder control framework document v1.0, review notes, approval record) is stored in the GRC control library (Archer) under /delegated-authority/<coverholder>/control-framework/ and cross-linked to the GRC control record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp161o8cmbk8jeoutzfd",
+          "checklist": [
+            {
+              "step": "Restrict binding to authorised personnel/systems",
+              "value": "Only the coverholder roles named in the agreement, within matrix limits, may bind; co-sign required above threshold."
+            },
+            {
+              "step": "Enforce four-eyes above threshold",
+              "value": "Binding conditions require a documented second signature for risks above the co-sign limit."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify binder authority list",
+              "value": "Confirm each binding party is named and in-authority; 0 unauthorised binders."
+            },
+            {
+              "step": "Sample bound risks for co-sign",
+              "value": "For risks above threshold, 100% show a captured second sign-off."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Document referral triggers in the control framework",
+              "value": "Referral triggers (limit, class, CAT-aggregation, loss history) are listed with the authority level each escalates to."
+            },
+            {
+              "step": "Wire triggers into the workbench rules",
+              "value": "Each trigger maps to a system rule that stops binding and routes to the named authority."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test that triggers fire on breach",
+              "value": "Inject boundary cases; 100% of triggers route to the correct next authority with no silent pass-through."
+            },
+            {
+              "step": "Confirm trigger coverage",
+              "value": "Every documented trigger has a corresponding active rule; 0 orphaned triggers."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppse1o9smbk8sec8gva2",
+          "checklist": [
+            {
+              "step": "Require CUO approval for appetite exceptions",
+              "value": "Any bind outside appetite requires documented Chief Underwriting Officer approval before the risk is accepted."
+            },
+            {
+              "step": "Log the exception with rationale",
+              "value": "Exception, rationale and CUO decision recorded in the GRC exception log."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify CUO sign-off on exceptions",
+              "value": "100% of out-of-appetite binds carry a CUO approval; 0 without."
+            },
+            {
+              "step": "Confirm documentation completeness",
+              "value": "Each exception has rationale and disposition; blanks are reopened."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "123b000d-3e6a-4dc6-b8ef-e28c7a94bfb6",
+      "owner": {
+        "action": "replace",
+        "name": "Delegated Authority Analyst"
+      },
+      "removeRoleNames": [
+        "Annuity Suitability Analyst",
+        "Business Analyst",
+        "Chief Underwriting Officer",
+        "Clearance Specialist",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Exposure Management Manager",
+        "Legal Counsel",
+        "Life Underwriter",
+        "New Business Case Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Risk Engineer",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriter",
+        "Underwriting Assistant",
+        "Underwriting Director / Manager",
+        "Wordings Coverage Specialist"
+      ],
+      "addParticipants": [],
+      "removeAppNames": ["Guidewire PolicyCenter; Earnix Rating & Pricing; Broker & Agent Portal"],
+      "addApps": [
+        {
+          "name": "underwriting workstation",
+          "usageType": "performed"
+        },
+        {
+          "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "usageType": "memorialized"
+        },
+        {
+          "name": "GRC platform (Archer/ServiceNow GRC)",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Ongoing monitoring controls and referral triggers over bound business: bordereaux exception rules, breach thresholds, CAT-aggregation and leakage triggers, and escalation routes."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The upcoming binder year (e.g. 2026-10-01 to 2027-09-30); monitoring rules effective from binder inception, tuned quarterly."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The binder monitoring control design v1.0 carries all required attributes: owning role, effective dates, line of business/class scope, quantified limits/thresholds, and linked approvals; any blank mandatory field blocks completion and is returned to the Delegated Authority Analyst."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Item counts for the binder monitoring control design v1.0 reconcile to the source register in the GRC monitoring dashboard (Archer): every in-scope class/term is present with no orphan or duplicate rows; reconciliation delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The approved binder monitoring control design v1.0 is retained in the GRC monitoring dashboard (Archer) and filed under /delegated-authority/<coverholder>/monitoring-controls/ with an immutable timestamp and version label v<n>; retained for the greater of the contract term plus 7 years or the applicable state record-retention rule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Deviations from standard terms are logged as an exception in the GRC platform with owner, rationale, and disposition (approve / amend / reject); open exceptions carry a 10-business-day resolution SLA before escalation to the Underwriting Quality / Audit Manager."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rr03y5mbk85lrlrry0"
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Maintain complete file documentation",
+              "value": "The control/monitoring design and its rationale are fully documented in the file of record."
+            },
+            {
+              "step": "Version and retain the documentation",
+              "value": "Documents are versioned and retained per the retention rule."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify documentation completeness",
+              "value": "Sample files; 0 with missing required documentation."
+            },
+            {
+              "step": "Confirm version control",
+              "value": "Each document shows author, version and date."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Document referral triggers in the control framework",
+              "value": "Referral triggers (limit, class, CAT-aggregation, loss history) are listed with the authority level each escalates to."
+            },
+            {
+              "step": "Wire triggers into the workbench rules",
+              "value": "Each trigger maps to a system rule that stops binding and routes to the named authority."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test that triggers fire on breach",
+              "value": "Inject boundary cases; 100% of triggers route to the correct next authority with no silent pass-through."
+            },
+            {
+              "step": "Confirm trigger coverage",
+              "value": "Every documented trigger has a corresponding active rule; 0 orphaned triggers."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppse1o9smbk8sec8gva2",
+          "checklist": [
+            {
+              "step": "Require CUO approval for appetite exceptions",
+              "value": "Any bind outside appetite requires documented Chief Underwriting Officer approval before the risk is accepted."
+            },
+            {
+              "step": "Log the exception with rationale",
+              "value": "Exception, rationale and CUO decision recorded in the GRC exception log."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify CUO sign-off on exceptions",
+              "value": "100% of out-of-appetite binds carry a CUO approval; 0 without."
+            },
+            {
+              "step": "Confirm documentation completeness",
+              "value": "Each exception has rationale and disposition; blanks are reopened."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "c23e2ab5-0a41-45dd-ac93-ba26ca57abf2",
+      "owner": {
+        "action": "replace",
+        "name": "Delegated Authority Analyst"
+      },
+      "removeRoleNames": [
+        "Business Analyst",
+        "Contract Administrator",
+        "Contracts Manager",
+        "Coverage Counsel",
+        "Employment Counsel",
+        "Government Affairs Manager",
+        "IP Counsel",
+        "Legal Operations Manager / Corporate Paralegal",
+        "Litigation Counsel",
+        "Litigation Manager",
+        "Privacy Counsel",
+        "Records Manager",
+        "Regulatory Attorney",
+        "Regulatory Counsel",
+        "Underwriter",
+        "Underwriting Assistant"
+      ],
+      "addParticipants": ["Delegated Authority Manager"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [
+        {
+          "name": "OpenText Document Mgmt",
+          "usageType": "performed"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The binding/delegated authority agreement wording: authority clauses, warranties, reporting and audit rights, claims-handling limits, and termination/run-off provisions for the coverholder contract."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current contract drafting cycle (e.g. 2026-07-01 to 2026-08-15), completed before the legal/compliance sign-off gate."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203zjmbk8y2uum9fk"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The draft binding authority agreement v0.3 carries all required attributes: owning role, effective dates, line of business/class scope, quantified limits/thresholds, and linked approvals; any blank mandatory field blocks completion and is returned to the Delegated Authority Analyst."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Item counts for the draft binding authority agreement v0.3 reconcile to the source register in the contract repository (OpenText): every in-scope class/term is present with no orphan or duplicate rows; reconciliation delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The approved draft binding authority agreement v0.3 is retained in the contract repository (OpenText) and filed under /delegated-authority/<coverholder>/agreement/ with an immutable timestamp and version label v<n>; retained for the greater of the contract term plus 7 years or the applicable state record-retention rule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Deviations from standard terms are logged as an exception in the GRC platform with owner, rationale, and disposition (approve / amend / reject); open exceptions carry a 10-business-day resolution SLA before escalation to the Legal Counsel."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rp03v5mbk8cz1pbndt"
+        },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "The draft binding authority agreement v0.3 cites the governing policy forms and, for non-admitted business, the applicable surplus-lines statute for each in-scope state; citations recorded on the cover sheet."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "Retention set to the greater of contract term plus 7 years or the strictest in-scope state requirement; retention tag applied in the contract repository (OpenText)."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "Any dependent form/rate filing is confirmed approved (SERFF status) before the term is relied on; filing dates recorded against the record."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "100% (census) of the draft binding authority agreement v0.3 items produced in the in-scope period � no sampling; every class/term/threshold is inspected."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = the draft binding authority agreement v0.3 is complete, internally consistent with the authority matrix, and carries the required approval(s) with 0 mandatory fields blank. FAIL = any missing term, limit outside the approved band, or absent sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "On FAIL, the item is returned to the Delegated Authority Analyst for correction and re-review; unresolved items are logged as a GRC exception assigned to the Legal Counsel with a 10-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions for the draft binding authority agreement v0.3 are taken from the authority-matrix/data-dictionary of record; each field's meaning, type, and valid values are documented."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control totals (class-level limit sums, item counts) are extracted from the contract repository (OpenText) and reconciled to the aggregate cap; variance must be 0."
+        },
+        {
+          "answerId": "cmr2ocdv50rlokaz3w12ncwkh",
+          "value": "Wording must conform to filed policy forms and, for non-admitted placements, the surplus-lines requirements of each in-scope state (e.g. NAIC Nonadmitted Insurance Model Act as adopted); citation recorded on the agreement cover sheet and in the GRC filing register."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp5u1o8kmbk8z2uf21t9",
+          "checklist": [
+            {
+              "step": "Use current approved form filings",
+              "value": "Agreement wording and bound forms match the current approved filings for each in-scope state."
+            },
+            {
+              "step": "Record filing references",
+              "value": "SERFF filing numbers cited against the agreement/record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify filing currency",
+              "value": "Confirm each in-scope state's form filing is approved and current; 0 expired/withdrawn."
+            },
+            {
+              "step": "Sample forms to filings",
+              "value": "Sampled bound forms trace to an approved filing."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp961o8qmbk8sb62ln4z",
+          "checklist": [
+            {
+              "step": "Confirm surplus-lines eligibility",
+              "value": "For non-admitted placements, surplus-lines eligibility and diligence are confirmed per each in-scope state."
+            },
+            {
+              "step": "Record surplus-lines evidence",
+              "value": "Eligibility, diligence and tax handling documented on the record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify eligibility documentation",
+              "value": "100% of non-admitted placements carry surplus-lines eligibility evidence."
+            },
+            {
+              "step": "Test tax/stamping handling",
+              "value": "Sampled placements show correct surplus-lines tax/stamping treatment."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Set authority limits by premium, policy limit and line of business",
+              "value": "The authority matrix v3.2 states explicit per-risk and aggregate limits for each class and territory in scope, with no undefined bands."
+            },
+            {
+              "step": "Bind grantee authority to the documented schedule",
+              "value": "Delegated authority granted equals the classes/limits in the approved schedule; anything outside routes to referral."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify every in-scope class has a defined limit",
+              "value": "Sample 100% of classes in the matrix; 0 classes without a stated per-risk and aggregate limit."
+            },
+            {
+              "step": "Confirm bound business stays within limits",
+              "value": "Test that no term exceeds the matrix band; any exceedance is an exception with CUO approval."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "d8112a87-8d56-4c19-aa57-a15f2d7ae364",
+      "owner": {
+        "action": "replace",
+        "name": "Delegated Authority Analyst"
+      },
+      "removeRoleNames": [
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Exposure Management Manager",
+        "Life Underwriter",
+        "New Business Case Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Risk Engineer",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriter",
+        "Underwriting Assistant",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist"
+      ],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Quantified authority limits by class, per-policy limit, premium size, and geographic territory for the delegated binder, recorded in the authority matrix."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The upcoming binder year (e.g. 2026-10-01 to 2027-09-30); limits set at inception and locked unless formally amended."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "027292ea-e459-414f-bdb1-3ab36faf3d33"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The authority matrix v3.2 carries all required attributes: owning role, effective dates, line of business/class scope, quantified limits/thresholds, and linked approvals; any blank mandatory field blocks completion and is returned to the Delegated Authority Analyst."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Item counts for the authority matrix v3.2 reconcile to the source register in the underwriting workbench authority matrix: every in-scope class/term is present with no orphan or duplicate rows; reconciliation delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The approved authority matrix v3.2 is retained in the underwriting workbench authority matrix and filed under /delegated-authority/<coverholder>/authority-matrix/ with an immutable timestamp and version label v<n>; retained for the greater of the contract term plus 7 years or the applicable state record-retention rule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Deviations from standard terms are logged as an exception in the GRC platform with owner, rationale, and disposition (approve / amend / reject); open exceptions carry a 10-business-day resolution SLA before escalation to the Chief Underwriting Officer."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0ro03sjmbk8hjhb90bw"
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled authority matrix v3.2 rows trace back to the source authority-matrix screens and the signed agreement; each sampled limit is verifiable to its source with 0 unmatched items."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Workflow status on the authority matrix v3.2 (draft / in-review / approved / active) matches the governance stage; no item is 'active' without a captured approval."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Effective, review, and expiry dates are populated and internally consistent (effective <= expiry; review date before inception); 0 out-of-sequence dates."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "cmqsck0rp03tvmbk89dtmyg17"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "100% (census) of the authority matrix v3.2 items produced in the in-scope period � no sampling; every class/term/threshold is inspected."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = the authority matrix v3.2 is complete, internally consistent with the authority matrix, and carries the required approval(s) with 0 mandatory fields blank. FAIL = any missing term, limit outside the approved band, or absent sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, the item is returned to the Delegated Authority Analyst for correction and re-review; unresolved items are logged as a GRC exception assigned to the Chief Underwriting Officer with a 10-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance criteria for the authority matrix v3.2 are documented in the control checklist: complete mandatory fields, alignment to the approved authority/appetite, and captured sign-off; the reviewer confirms each before acceptance."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence (approved authority matrix v3.2, review notes, approval record) is stored in the underwriting workbench authority matrix under /delegated-authority/<coverholder>/authority-matrix/ and cross-linked to the GRC control record."
+        },
+        {
+          "answerId": "cmr2ocdxy0vamkaz3db5t9zyk",
+          "value": "Limit fields (class code, per-risk limit, aggregate limit, max premium, territory) are defined in the authority-matrix data dictionary; control total = sum of class-level limits reconciled to the aggregate line-of-business cap held in the underwriting workbench (delta = 0)."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Set authority limits by premium, policy limit and line of business",
+              "value": "The authority matrix v3.2 states explicit per-risk and aggregate limits for each class and territory in scope, with no undefined bands."
+            },
+            {
+              "step": "Bind grantee authority to the documented schedule",
+              "value": "Delegated authority granted equals the classes/limits in the approved schedule; anything outside routes to referral."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify every in-scope class has a defined limit",
+              "value": "Sample 100% of classes in the matrix; 0 classes without a stated per-risk and aggregate limit."
+            },
+            {
+              "step": "Confirm bound business stays within limits",
+              "value": "Test that no term exceeds the matrix band; any exceedance is an exception with CUO approval."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Route over-authority items with a recommendation",
+              "value": "Submissions above the underwriter's band are referred to the next authority level with a written recommendation."
+            },
+            {
+              "step": "Record the referral decision",
+              "value": "The higher-authority decision and rationale are captured on the submission."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test referral completeness",
+              "value": "100% of over-authority submissions carry a referral with recommendation; 0 bound over-authority without sign-off."
+            },
+            {
+              "step": "Confirm decision capture",
+              "value": "Each referral shows a dated decision by the correct authority level."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Document referral triggers in the control framework",
+              "value": "Referral triggers (limit, class, CAT-aggregation, loss history) are listed with the authority level each escalates to."
+            },
+            {
+              "step": "Wire triggers into the workbench rules",
+              "value": "Each trigger maps to a system rule that stops binding and routes to the named authority."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test that triggers fire on breach",
+              "value": "Inject boundary cases; 100% of triggers route to the correct next authority with no silent pass-through."
+            },
+            {
+              "step": "Confirm trigger coverage",
+              "value": "Every documented trigger has a corresponding active rule; 0 orphaned triggers."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "95941f90-21ca-4bbe-aedf-2ceb99e7016e",
+      "owner": {
+        "action": "replace",
+        "name": "Delegated Authority Manager"
+      },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Analyst", "Legal Counsel"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Execution of the signed delegated authority agreement with the coverholder/MGA following governance-committee approval."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "On the effective date of the binder (e.g. 2026-10-01); execution occurs after committee approval and before any risk is bound."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The executed delegated authority agreement carries all required attributes: owning role, effective dates, line of business/class scope, quantified limits/thresholds, and linked approvals; any blank mandatory field blocks completion and is returned to the Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Item counts for the executed delegated authority agreement reconcile to the source register in the GRC contract register (Archer): every in-scope class/term is present with no orphan or duplicate rows; reconciliation delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The approved executed delegated authority agreement is retained in the GRC contract register (Archer) and filed under /delegated-authority/<coverholder>/executed-agreement/ with an immutable timestamp and version label v<n>; retained for the greater of the contract term plus 7 years or the applicable state record-retention rule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Deviations from standard terms are logged as an exception in the GRC platform with owner, rationale, and disposition (approve / amend / reject); open exceptions carry a 10-business-day resolution SLA before escalation to the Chief Underwriting Officer."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0ro03sjmbk8hjhb90bw"
+        },
+        {
+          "templateKeyId": "cmr2oann90019lasbxpi8ldf9",
+          "roleId": "cmqsck0ro03sjmbk8hjhb90bw"
+        },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The decision on the executed delegated authority agreement is documented with rationale, date, and approver in the GRC contract register (Archer) and mirrored to the GRC record."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Recipients (coverholder/MGA principal, broker, internal governance) are named on the distribution list with delivery timestamps retained."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "100% (census) of the executed delegated authority agreement items produced in the in-scope period � no sampling; every class/term/threshold is inspected."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = the executed delegated authority agreement is complete, internally consistent with the authority matrix, and carries the required approval(s) with 0 mandatory fields blank. FAIL = any missing term, limit outside the approved band, or absent sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, the item is returned to the Delegated Authority Manager for correction and re-review; unresolved items are logged as a GRC exception assigned to the Chief Underwriting Officer with a 10-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance criteria for the executed delegated authority agreement are documented in the control checklist: complete mandatory fields, alignment to the approved authority/appetite, and captured sign-off; the reviewer confirms each before acceptance."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence (approved executed delegated authority agreement, review notes, approval record) is stored in the GRC contract register (Archer) under /delegated-authority/<coverholder>/executed-agreement/ and cross-linked to the GRC control record."
+        },
+        {
+          "answerId": "cmr2ocfzq0wrrkaz3lwc0nyuo",
+          "value": "Signatory holds delegated execution authority per the company signing-authority matrix (CUO / Head of Delegated Authority band); the approval chain and authority band are recorded against the GRC contract record before signature."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp161o8cmbk8jeoutzfd",
+          "checklist": [
+            {
+              "step": "Restrict binding to authorised personnel/systems",
+              "value": "Only the coverholder roles named in the agreement, within matrix limits, may bind; co-sign required above threshold."
+            },
+            {
+              "step": "Enforce four-eyes above threshold",
+              "value": "Binding conditions require a documented second signature for risks above the co-sign limit."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify binder authority list",
+              "value": "Confirm each binding party is named and in-authority; 0 unauthorised binders."
+            },
+            {
+              "step": "Sample bound risks for co-sign",
+              "value": "For risks above threshold, 100% show a captured second sign-off."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp5u1o8kmbk8z2uf21t9",
+          "checklist": [
+            {
+              "step": "Use current approved form filings",
+              "value": "Agreement wording and bound forms match the current approved filings for each in-scope state."
+            },
+            {
+              "step": "Record filing references",
+              "value": "SERFF filing numbers cited against the agreement/record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify filing currency",
+              "value": "Confirm each in-scope state's form filing is approved and current; 0 expired/withdrawn."
+            },
+            {
+              "step": "Sample forms to filings",
+              "value": "Sampled bound forms trace to an approved filing."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc4ulc405qtv8f8s2rtkbnd",
+          "checklist": [
+            {
+              "step": "Screen the coverholder/MGA and its principals before appointment",
+              "value": "The delegated-authority partner and its beneficial owners are screened against OFAC SDN/consolidated lists before the agreement is executed."
+            },
+            {
+              "step": "Re-screen on list updates",
+              "value": "Partner records are re-screened on every OFAC list refresh during the binder term."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify pre-appointment screening",
+              "value": "100% of newly appointed coverholders show a cleared OFAC screen dated before execution; 0 appointments without."
+            },
+            {
+              "step": "Confirm hit handling",
+              "value": "Any potential match is escalated, blocked/reported as required, and evidenced in the GRC record."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "46f4ff81-adf3-444b-8742-98262391a7fa",
+      "owner": {
+        "action": "replace",
+        "name": "Legal Counsel"
+      },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Compliance Officer", "Delegated Authority Manager"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Legal review and regulatory-compliance sign-off on the delegated authority agreement terms and associated form/rate filings before binder inception."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The sign-off window preceding binder inception (e.g. 2026-08-15 to 2026-09-15); both sign-offs recorded before go-live."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rp03v5mbk8cz1pbndt"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The legal and compliance sign-off record carries all required attributes: owning role, effective dates, line of business/class scope, quantified limits/thresholds, and linked approvals; any blank mandatory field blocks completion and is returned to the Legal Counsel."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Item counts for the legal and compliance sign-off record reconcile to the source register in the GRC sign-off workflow (Archer): every in-scope class/term is present with no orphan or duplicate rows; reconciliation delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The approved legal and compliance sign-off record is retained in the GRC sign-off workflow (Archer) and filed under /delegated-authority/<coverholder>/legal-compliance-signoff/ with an immutable timestamp and version label v<n>; retained for the greater of the contract term plus 7 years or the applicable state record-retention rule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Deviations from standard terms are logged as an exception in the GRC platform with owner, rationale, and disposition (approve / amend / reject); open exceptions carry a 10-business-day resolution SLA before escalation to the Compliance Officer."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0ro03t4mbk8wnvbbqbg"
+        },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "The legal and compliance sign-off record cites the governing policy forms and, for non-admitted business, the applicable surplus-lines statute for each in-scope state; citations recorded on the cover sheet."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "Retention set to the greater of contract term plus 7 years or the strictest in-scope state requirement; retention tag applied in the GRC sign-off workflow (Archer)."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "Any dependent form/rate filing is confirmed approved (SERFF status) before the term is relied on; filing dates recorded against the record."
+        },
+        {
+          "templateKeyId": "cmr2oann90019lasbxpi8ldf9",
+          "roleId": "cmqsck0ro03t4mbk8wnvbbqbg"
+        },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The decision on the legal and compliance sign-off record is documented with rationale, date, and approver in the GRC sign-off workflow (Archer) and mirrored to the GRC record."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Recipients (coverholder/MGA principal, broker, internal governance) are named on the distribution list with delivery timestamps retained."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "cmqsck0rp03v5mbk8cz1pbndt"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "100% (census) of the legal and compliance sign-off record items produced in the in-scope period � no sampling; every class/term/threshold is inspected."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = the legal and compliance sign-off record is complete, internally consistent with the authority matrix, and carries the required approval(s) with 0 mandatory fields blank. FAIL = any missing term, limit outside the approved band, or absent sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "On FAIL, the item is returned to the Legal Counsel for correction and re-review; unresolved items are logged as a GRC exception assigned to the Compliance Officer with a 10-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance criteria for the legal and compliance sign-off record are documented in the control checklist: complete mandatory fields, alignment to the approved authority/appetite, and captured sign-off; the reviewer confirms each before acceptance."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence (approved legal and compliance sign-off record, review notes, approval record) is stored in the GRC sign-off workflow (Archer) under /delegated-authority/<coverholder>/legal-compliance-signoff/ and cross-linked to the GRC control record."
+        },
+        {
+          "answerId": "cmr2ocdxx0v9jkaz333p5xqi3",
+          "value": "Legal and compliance sign-off is recorded by named approvers holding the required authority band per the delegation matrix; dual sign-off (Legal Counsel + Compliance Officer) captured in the GRC workflow with timestamps."
+        },
+        {
+          "answerId": "cmr2ocdxx0v9kkaz3wmtpnbzs",
+          "value": "Compliance confirms current approved form and rate filings for each in-scope state (SERFF filing numbers) and surplus-lines eligibility where applicable; citations attached to the sign-off record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp851o8ombk8flf05lqe",
+          "checklist": [
+            {
+              "step": "Confirm rate filings approved before use",
+              "value": "Any rated term relies only on approved-and-effective rate filings."
+            },
+            {
+              "step": "Record rate filing approval",
+              "value": "Rate filing status and date recorded on the sign-off."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify approval status",
+              "value": "100% of relied-upon rate filings show approved status before effective date."
+            },
+            {
+              "step": "Test for unfiled deviations",
+              "value": "0 rate deviations outside the filed/authority band."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp5u1o8kmbk8z2uf21t9",
+          "checklist": [
+            {
+              "step": "Use current approved form filings",
+              "value": "Agreement wording and bound forms match the current approved filings for each in-scope state."
+            },
+            {
+              "step": "Record filing references",
+              "value": "SERFF filing numbers cited against the agreement/record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify filing currency",
+              "value": "Confirm each in-scope state's form filing is approved and current; 0 expired/withdrawn."
+            },
+            {
+              "step": "Sample forms to filings",
+              "value": "Sampled bound forms trace to an approved filing."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp961o8qmbk8sb62ln4z",
+          "checklist": [
+            {
+              "step": "Confirm surplus-lines eligibility",
+              "value": "For non-admitted placements, surplus-lines eligibility and diligence are confirmed per each in-scope state."
+            },
+            {
+              "step": "Record surplus-lines evidence",
+              "value": "Eligibility, diligence and tax handling documented on the record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify eligibility documentation",
+              "value": "100% of non-admitted placements carry surplus-lines eligibility evidence."
+            },
+            {
+              "step": "Test tax/stamping handling",
+              "value": "Sampled placements show correct surplus-lines tax/stamping treatment."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc4ulc405qtv8f8s2rtkbnd",
+          "checklist": [
+            {
+              "step": "Screen the coverholder/MGA and its principals before appointment",
+              "value": "The delegated-authority partner and its beneficial owners are screened against OFAC SDN/consolidated lists before the agreement is executed."
+            },
+            {
+              "step": "Re-screen on list updates",
+              "value": "Partner records are re-screened on every OFAC list refresh during the binder term."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify pre-appointment screening",
+              "value": "100% of newly appointed coverholders show a cleared OFAC screen dated before execution; 0 appointments without."
+            },
+            {
+              "step": "Confirm hit handling",
+              "value": "Any potential match is escalated, blocked/reported as required, and evidenced in the GRC record."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "062f7073-c742-4c45-a203-2b33f225b060",
+      "owner": {
+        "action": "replace",
+        "name": "Bordereaux Analyst"
+      },
+      "removeRoleNames": ["Business Analyst", "Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager", "Delegated Authority Analyst"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Bordereaux reporting specification for the binder: risk and premium/claims bordereaux frequency, mandatory data fields, file format, and submission deadlines the coverholder must meet."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The upcoming binder year (e.g. 2026-10-01 to 2027-09-30); monthly bordereaux due by the 15th business day of the following month."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqsck0rn03rpmbk8ew7et8hz"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The bordereaux reporting specification v1.0 carries all required attributes: owning role, effective dates, line of business/class scope, quantified limits/thresholds, and linked approvals; any blank mandatory field blocks completion and is returned to the Bordereaux Analyst."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Item counts for the bordereaux reporting specification v1.0 reconcile to the source register in the bordereaux management platform: every in-scope class/term is present with no orphan or duplicate rows; reconciliation delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The approved bordereaux reporting specification v1.0 is retained in the bordereaux management platform and filed under /delegated-authority/<coverholder>/bordereaux-spec/ with an immutable timestamp and version label v<n>; retained for the greater of the contract term plus 7 years or the applicable state record-retention rule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Deviations from standard terms are logged as an exception in the GRC platform with owner, rationale, and disposition (approve / amend / reject); open exceptions carry a 10-business-day resolution SLA before escalation to the Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "cmqsck0rn03rpmbk8ew7et8hz"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "100% (census) of the bordereaux reporting specification v1.0 items produced in the in-scope period � no sampling; every class/term/threshold is inspected."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = the bordereaux reporting specification v1.0 is complete, internally consistent with the authority matrix, and carries the required approval(s) with 0 mandatory fields blank. FAIL = any missing term, limit outside the approved band, or absent sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "On FAIL, the item is returned to the Bordereaux Analyst for correction and re-review; unresolved items are logged as a GRC exception assigned to the Delegated Authority Manager with a 10-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2v89jj0013xa9iy2urljqv",
+          "roleId": "cmqsck0rp03twmbk8kalntt8w"
+        },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "The approving authority is evidenced against the company delegation/signing-authority matrix; the Delegated Authority Manager band required for this decision is recorded on the record."
+        },
+        {
+          "answerId": "cmr2ocdy00vcnkaz3bisoheye",
+          "value": "Specification is effective for the full binder year; monthly reporting periods run calendar-month, with the first bordereaux covering the inception month and due 15 business days after month-end."
+        },
+        {
+          "answerId": "cmr2ocdy00vcokaz3flzfnl1t",
+          "value": "Mandatory bordereaux fields (Coverholder Reporting Standards v5.2: policy ref, inception/expiry, class, insured, TIV, gross premium, brokerage, tax) are defined in the spec; premium control total per file must reconcile to the billing/commission ledger (delta = 0)."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Maintain complete file documentation",
+              "value": "The control/monitoring design and its rationale are fully documented in the file of record."
+            },
+            {
+              "step": "Version and retain the documentation",
+              "value": "Documents are versioned and retained per the retention rule."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify documentation completeness",
+              "value": "Sample files; 0 with missing required documentation."
+            },
+            {
+              "step": "Confirm version control",
+              "value": "Each document shows author, version and date."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of changes",
+              "value": "All changes to the specification/limits are captured with user, timestamp and before/after values."
+            },
+            {
+              "step": "Retain the audit trail",
+              "value": "Audit trail retained in the system of record for the retention period."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit-trail completeness",
+              "value": "Sample changes; 100% show a full audit entry."
+            },
+            {
+              "step": "Test immutability",
+              "value": "Audit entries cannot be altered; 0 gaps in the sequence."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "2a798662-0309-499c-a9a0-76cd88a7be8e",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Integration Engineer", "Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter", "Exposure Management Manager"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [
+        {
+          "name": "Moody's RMS (Cat Model); Catastrophe Data Provider",
+          "usageType": "performed"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "New commercial and personal property submissions in the intake queue screened for CAT-zone, coastal, and wildland-urban-interface (WUI) exposure before appetite acceptance."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current new-business intake month (rolling, e.g. July 2026); each submission screened at triage within the 4-hour acknowledgement SLA."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "651d362a-de3b-4e34-89e5-504085d85d0d"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The CAT-zone screening result carries all required attributes: owning role, effective dates, line of business/class scope, quantified limits/thresholds, and linked approvals; any blank mandatory field blocks completion and is returned to the Underwriter."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Item counts for the CAT-zone screening result reconcile to the source register in Moody's RMS geospatial CAT-zone lookup: every in-scope class/term is present with no orphan or duplicate rows; reconciliation delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The approved CAT-zone screening result is retained in Moody's RMS geospatial CAT-zone lookup and filed under /underwriting/new-business/cat-screening/ with an immutable timestamp and version label v<n>; retained for the greater of the contract term plus 7 years or the applicable state record-retention rule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Deviations from standard terms are logged as an exception in the GRC platform with owner, rationale, and disposition (approve / amend / reject); open exceptions carry a 10-business-day resolution SLA before escalation to the Senior Underwriter."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "100% (census) of the CAT-zone screening result items produced in the in-scope period � no sampling; every class/term/threshold is inspected."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = the CAT-zone screening result is complete, internally consistent with the authority matrix, and carries the required approval(s) with 0 mandatory fields blank. FAIL = any missing term, limit outside the approved band, or absent sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "On FAIL, the item is returned to the Underwriter for correction and re-review; unresolved items are logged as a GRC exception assigned to the Senior Underwriter with a 10-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "Screening uses the current approved CAT model version (Moody's RMS release of record) and the company's documented CAT-zone appetite rules; version recorded on the result."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "Geocoding and hazard parameters sourced from the licensed RMS/Catastrophe Data Provider feed of record; parameter set and vintage stamped on the run."
+        },
+        {
+          "answerId": "cmr2ocdxr0v01kaz3fjt3c3ax",
+          "value": "Acceptance criterion: every property risk carries a geocoded CAT-zone flag (Tier 1 wind, SFHA flood zone, WUI class) before appetite decision; screening evidence and the RMS run reference are stored on the submission record in the underwriting workbench."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Apply the documented appetite by LOB/geography/industry",
+              "value": "Screening uses the current documented appetite statement; in/out-of-appetite classes and territories are explicit."
+            },
+            {
+              "step": "Flag CAT/appetite exceptions",
+              "value": "Out-of-appetite exposures (e.g. Tier-1 wind, SFHA) are flagged against the appetite rules."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify appetite currency",
+              "value": "Confirm the appetite statement in use is the current annually-approved version."
+            },
+            {
+              "step": "Test screening against appetite",
+              "value": "Sample submissions; 100% of out-of-appetite risks are correctly flagged."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppuf1o9wmbk8chlv6qe5",
+          "checklist": [
+            {
+              "step": "Maintain and enforce the no-write list",
+              "value": "Prohibited classes/insureds on the no-write list are enforced as hard stops in the workbench eligibility rules."
+            },
+            {
+              "step": "Route hits to declination",
+              "value": "No-write hits route directly to declination or exception referral."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify no-write enforcement",
+              "value": "Test known prohibited exposures; 100% are stopped, 0 bound."
+            },
+            {
+              "step": "Confirm list currency",
+              "value": "No-write list matches the current approved version; changes are version-controlled."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "f5f46368-52f4-4c0b-9fc6-5e486afa598c",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter", "Reinsurance Analyst"],
+      "removeAppNames": ["billing/commission platform", "HRIS (Workday/SuccessFactors)"],
+      "addApps": [
+        {
+          "name": "Sapiens ReinsurancePro; Broker & Agent Portal; Microsoft Excel",
+          "usageType": "performed"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Each new submission's total insured value and requested limit assessed against the individual underwriter's authority band and available treaty reinsurance capacity."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current new-business intake month (rolling, e.g. July 2026); assessed at triage before any indication is issued."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "027292ea-e459-414f-bdb1-3ab36faf3d33"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The authority and capacity assessment note carries all required attributes: owning role, effective dates, line of business/class scope, quantified limits/thresholds, and linked approvals; any blank mandatory field blocks completion and is returned to the Underwriter."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Item counts for the authority and capacity assessment note reconcile to the source register in the underwriting workbench authority/capacity check: every in-scope class/term is present with no orphan or duplicate rows; reconciliation delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The approved authority and capacity assessment note is retained in the underwriting workbench authority/capacity check and filed under /underwriting/new-business/authority-capacity/ with an immutable timestamp and version label v<n>; retained for the greater of the contract term plus 7 years or the applicable state record-retention rule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Deviations from standard terms are logged as an exception in the GRC platform with owner, rationale, and disposition (approve / amend / reject); open exceptions carry a 10-business-day resolution SLA before escalation to the Senior Underwriter."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "100% (census) of the authority and capacity assessment note items produced in the in-scope period � no sampling; every class/term/threshold is inspected."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = the authority and capacity assessment note is complete, internally consistent with the authority matrix, and carries the required approval(s) with 0 mandatory fields blank. FAIL = any missing term, limit outside the approved band, or absent sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "On FAIL, the item is returned to the Underwriter for correction and re-review; unresolved items are logged as a GRC exception assigned to the Senior Underwriter with a 10-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance criteria for the authority and capacity assessment note are documented in the control checklist: complete mandatory fields, alignment to the approved authority/appetite, and captured sign-off; the reviewer confirms each before acceptance."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence (approved authority and capacity assessment note, review notes, approval record) is stored in the underwriting workbench authority/capacity check under /underwriting/new-business/authority-capacity/ and cross-linked to the GRC control record."
+        },
+        {
+          "answerId": "cmr2ocdww0tvakaz32xc3bl1n",
+          "value": "Materiality thresholds: submissions above the underwriter's per-risk authority or exceeding 80% of remaining treaty capacity are referred up; those within band and capacity proceed. Thresholds sourced from the authority matrix v3.2 and the current treaty capacity register."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Set authority limits by premium, policy limit and line of business",
+              "value": "The authority matrix v3.2 states explicit per-risk and aggregate limits for each class and territory in scope, with no undefined bands."
+            },
+            {
+              "step": "Bind grantee authority to the documented schedule",
+              "value": "Delegated authority granted equals the classes/limits in the approved schedule; anything outside routes to referral."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify every in-scope class has a defined limit",
+              "value": "Sample 100% of classes in the matrix; 0 classes without a stated per-risk and aggregate limit."
+            },
+            {
+              "step": "Confirm bound business stays within limits",
+              "value": "Test that no term exceeds the matrix band; any exceedance is an exception with CUO approval."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Route over-authority items with a recommendation",
+              "value": "Submissions above the underwriter's band are referred to the next authority level with a written recommendation."
+            },
+            {
+              "step": "Record the referral decision",
+              "value": "The higher-authority decision and rationale are captured on the submission."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test referral completeness",
+              "value": "100% of over-authority submissions carry a referral with recommendation; 0 bound over-authority without sign-off."
+            },
+            {
+              "step": "Confirm decision capture",
+              "value": "Each referral shows a dated decision by the correct authority level."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fkqj01izqkfgzs1c73ftj",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [
+        {
+          "name": "Broker & Agent Portal; Microsoft 365 / SharePoint",
+          "usageType": "performed"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Declinations issued on new-business submissions that fall outside appetite or authority, communicated to the producing broker."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current new-business intake month (rolling, e.g. July 2026); declination communicated within 24 hours of the decline decision."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The declination notice to broker carries all required attributes: owning role, effective dates, line of business/class scope, quantified limits/thresholds, and linked approvals; any blank mandatory field blocks completion and is returned to the Underwriter."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Item counts for the declination notice to broker reconcile to the source register in the CRM broker-communication log (Salesforce): every in-scope class/term is present with no orphan or duplicate rows; reconciliation delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The approved declination notice to broker is retained in the CRM broker-communication log (Salesforce) and filed under /underwriting/new-business/declinations/ with an immutable timestamp and version label v<n>; retained for the greater of the contract term plus 7 years or the applicable state record-retention rule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Deviations from standard terms are logged as an exception in the GRC platform with owner, rationale, and disposition (approve / amend / reject); open exceptions carry a 10-business-day resolution SLA before escalation to the Senior Underwriter."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oann90019lasbxpi8ldf9",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The decision on the declination notice to broker is documented with rationale, date, and approver in the CRM broker-communication log (Salesforce) and mirrored to the GRC record."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Recipients (coverholder/MGA principal, broker, internal governance) are named on the distribution list with delivery timestamps retained."
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "100% (census) of the declination notice to broker items produced in the in-scope period � no sampling; every class/term/threshold is inspected."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = the declination notice to broker is complete, internally consistent with the authority matrix, and carries the required approval(s) with 0 mandatory fields blank. FAIL = any missing term, limit outside the approved band, or absent sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "On FAIL, the item is returned to the Underwriter for correction and re-review; unresolved items are logged as a GRC exception assigned to the Senior Underwriter with a 10-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2v89jj0013xa9iy2urljqv",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "The approving authority is evidenced against the company delegation/signing-authority matrix; the Senior Underwriter band required for this decision is recorded on the record."
+        },
+        {
+          "answerId": "cmr2ocdxa0ueykaz3w8x1cvxs",
+          "value": "Acceptance criterion: a documented declination reason and a broker-facing decline notice sent within 24 hours; where a consumer report drove the decision, an FCRA adverse-action notice is issued. Evidence (sent notice, timestamp) stored on the submission record and CRM log."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppyc1oa4mbk8t9plrx0e",
+          "checklist": [
+            {
+              "step": "Document the declination reason",
+              "value": "Every declination records a specific, non-generic reason on the submission."
+            },
+            {
+              "step": "Link the reason to appetite/authority",
+              "value": "The decline reason references the appetite/authority rule that was breached."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify reason capture",
+              "value": "100% of declinations carry a documented reason; 0 blank."
+            },
+            {
+              "step": "Confirm reason validity",
+              "value": "Sampled reasons map to a real appetite/authority rule."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppz61oa6mbk8listnjqx",
+          "checklist": [
+            {
+              "step": "Send the decline notice within 24 hours",
+              "value": "A broker-facing decline notice is issued within 24 hours of the decision."
+            },
+            {
+              "step": "Retain the sent notice",
+              "value": "Sent notice and timestamp retained on the submission and CRM log."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test the 24-hour SLA",
+              "value": "Measure decision-to-notice time; 100% within 24 hours."
+            },
+            {
+              "step": "Confirm notice retention",
+              "value": "Each declination has a retained, timestamped notice."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrbfze3b004zv8kg01hq58ql",
+          "checklist": [
+            {
+              "step": "Issue an FCRA adverse-action notice where a consumer report drove the decline",
+              "value": "Where a consumer/credit-based insurance report contributed to the declination, an adverse-action notice with the CRA identification and consumer rights is sent."
+            },
+            {
+              "step": "Record the basis and delivery",
+              "value": "The report used, decision basis, and notice delivery are recorded on the submission."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify adverse-action issuance",
+              "value": "For declinations that used a consumer report, 100% have a compliant adverse-action notice sent; 0 missing."
+            },
+            {
+              "step": "Confirm notice content",
+              "value": "Sampled notices include CRA name/address and free-report/dispute rights."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2a6b7ed4-1883-4ff8-8dae-67c58dc0d27e",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Integration Engineer", "Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Submissions carrying out-of-appetite or prohibited-class (no-write list) exposures flagged for declination or exception referral during triage."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current new-business intake month (rolling, e.g. July 2026); flags applied at triage before appetite acceptance."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "027292ea-e459-414f-bdb1-3ab36faf3d33"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The appetite/prohibited-class flag record carries all required attributes: owning role, effective dates, line of business/class scope, quantified limits/thresholds, and linked approvals; any blank mandatory field blocks completion and is returned to the Underwriter."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Item counts for the appetite/prohibited-class flag record reconcile to the source register in the underwriting workbench appetite/eligibility rules: every in-scope class/term is present with no orphan or duplicate rows; reconciliation delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The approved appetite/prohibited-class flag record is retained in the underwriting workbench appetite/eligibility rules and filed under /underwriting/new-business/appetite-flags/ with an immutable timestamp and version label v<n>; retained for the greater of the contract term plus 7 years or the applicable state record-retention rule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Deviations from standard terms are logged as an exception in the GRC platform with owner, rationale, and disposition (approve / amend / reject); open exceptions carry a 10-business-day resolution SLA before escalation to the Senior Underwriter."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "100% (census) of the appetite/prohibited-class flag record items produced in the in-scope period � no sampling; every class/term/threshold is inspected."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = the appetite/prohibited-class flag record is complete, internally consistent with the authority matrix, and carries the required approval(s) with 0 mandatory fields blank. FAIL = any missing term, limit outside the approved band, or absent sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "On FAIL, the item is returned to the Underwriter for correction and re-review; unresolved items are logged as a GRC exception assigned to the Senior Underwriter with a 10-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "The current new-business intake month (rolling, e.g. July 2026); flags applied at triage before appetite acceptance."
+        },
+        {
+          "answerId": "cmr2ocdwb0t2xkaz3vdodfoxt",
+          "value": "Acceptance criterion: every out-of-appetite or no-write-list hit is flagged with the triggering rule and routed to declination or exception referral; the rule id, decision, and reviewer are recorded on the submission in the underwriting workbench."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppvi1o9ymbk83x2euqy4",
+          "checklist": [
+            {
+              "step": "Screen against defined target classes",
+              "value": "Target classes and selection criteria are documented; submissions are matched to them at triage."
+            },
+            {
+              "step": "Flag non-target/prohibited classes",
+              "value": "Risks outside target classes or on the no-write list are flagged for declination/referral."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify target-class criteria exist",
+              "value": "Confirm selection criteria are documented for each target class in scope."
+            },
+            {
+              "step": "Test flagging accuracy",
+              "value": "Sample 25 submissions/quarter; 100% of non-target risks correctly flagged."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppuf1o9wmbk8chlv6qe5",
+          "checklist": [
+            {
+              "step": "Maintain and enforce the no-write list",
+              "value": "Prohibited classes/insureds on the no-write list are enforced as hard stops in the workbench eligibility rules."
+            },
+            {
+              "step": "Route hits to declination",
+              "value": "No-write hits route directly to declination or exception referral."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify no-write enforcement",
+              "value": "Test known prohibited exposures; 100% are stopped, 0 bound."
+            },
+            {
+              "step": "Confirm list currency",
+              "value": "No-write list matches the current approved version; changes are version-controlled."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

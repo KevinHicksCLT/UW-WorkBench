@@ -28,6 +28,7 @@ export function registerWriteRoutes(router: Router): void {
     confidence: z.string().optional(),
     regime: z.string().nullable().optional(),
     sourceNote: z.string().nullable().optional(),
+    complianceFlagged: z.boolean().optional(),
   });
 
   router.post('/requirements', async (req: Request, res: Response, next: NextFunction) => {
@@ -87,6 +88,7 @@ export function registerWriteRoutes(router: Router): void {
     'confidence',
     'regime',
     'sourceNote',
+    'complianceFlagged',
   ] as const;
 
   router.patch('/requirements/:id', async (req: Request, res: Response, next: NextFunction) => {

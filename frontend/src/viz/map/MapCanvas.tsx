@@ -29,7 +29,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { mapNodeTypes, MAP_CARD_W, MAP_CARD_H } from '../nodes/MapNode';
+import { mapNodeTypes, MAP_CARD_W, MAP_CARD_H, sentenceCase } from '../nodes/MapNode';
 import type { DivisionSummary } from '../model';
 import { MetricsDrawer, type Dashboard, type MetricSection } from '../../components/MetricsSidebar';
 import ValueStreamDrawer from '../../components/ValueStreamDrawer';
@@ -37,10 +37,14 @@ import TestingTemplateModal from '../../components/TestingTemplateModal';
 import Inspector from '../../components/Inspector';
 import { api } from '../../lib/api';
 import { useCompany } from '../../lib/company';
+import { useDialogs } from '../../lib/dialogs';
 import { useOpenRole } from '../../lib/roleDrawer';
 import {
   SHOW_METRICS_SIDEBAR,
   DRAGGABLE_TYPES,
+  LEVEL_LABEL,
+  MAX_LEVEL,
+  PLUS_GAP_SPREAD,
   catFor,
   type Category,
   type DragState,
@@ -222,6 +226,246 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
     focusedSubStepId,
   });
 
+  // Hovering "+" opens the insertion slot; CLOSING is delayed so micro pointer
+  // wobbles don't snap the row back and forth, and OPENING is idempotent: if
+  // the same gap is already open we return the previous state object so React
+  // bails out of the re-render. Without that bail-out every mouseover set a
+  // fresh gap object → re-render → xyflow re-inserted node DOM → the browser
+  // bounced hover off the badge → mouseleave/enter → set again — a ~40ms
+  // feedback storm that made the badge flash and swallow clicks.
+  const gapCloseTimer = useRef<number | null>(null);
+  const plusHoverGap = useCallback((g: GapState | null) => {
+    if (gapCloseTimer.current) {
+      window.clearTimeout(gapCloseTimer.current);
+      gapCloseTimer.current = null;
+    }
+    if (g)
+      setGap((prev) => (prev?.hover && prev.index === g.index && prev.type === g.type ? prev : g));
+    else
+      gapCloseTimer.current = window.setTimeout(() => {
+        gapCloseTimer.current = null;
+        // Only clear a hover-opened gap — a drag owns its own gap state.
+        setGap((prev) => (prev?.hover ? null : prev));
+      }, 250);
+  }, []);
+
+  // ── Add / Remove (edit mode) ──────────────────────────────────────────────
+  // Unlike drags/renames these are NOT staged — a create/delete is applied
+  // immediately (the backend maintains the closure transactionally) and the
+  // affected flows refetch. Deletes cascade the whole subtree behind a confirm
+  // modal; adds offer to capture the lower-level steps in the same flow.
+  const dialogs = useDialogs();
+
+  const refetchFocused = useCallback(() => {
+    onMoved?.();
+    if (focusedDivisionId) fetchFlow(focusedDivisionId);
+    if (focusedDivisionId && focusedVsId) fetchVsFlow(focusedDivisionId, focusedVsId);
+  }, [onMoved, focusedDivisionId, focusedVsId, fetchFlow, fetchVsFlow]);
+
+  // Create a node at `level` under `parentId` (prompting for its name); when a
+  // row anchor is given the new node is spliced in right after it. Afterwards
+  // the user is offered the lower-level children, one prompt at a time.
+  const createNode = useCallback(
+    async (level: number, parentId: string | null, row?: { ids: string[]; afterId: string }) => {
+      if (!companyId) return;
+      const label = LEVEL_LABEL[level] ?? 'node';
+      const name = await dialogs.prompt({
+        title: `Add ${label}`,
+        label: 'Name',
+        placeholder: `New ${label}`,
+        confirmLabel: 'Add',
+      });
+      if (!name) return;
+      try {
+        const created = (await api.post(
+          `/builder/nodes?companyId=${encodeURIComponent(companyId)}`,
+          {
+            typeKey: `p${level}`,
+            parentId,
+            name,
+          },
+        )) as { id: string };
+        if (row && parentId) {
+          const ids = row.ids.filter((id) => id !== created.id);
+          const at = ids.indexOf(row.afterId);
+          if (at >= 0) ids.splice(at + 1, 0, created.id);
+          else ids.push(created.id);
+          await api.post(`/builder/nodes/batch?companyId=${encodeURIComponent(companyId)}`, {
+            ops: [{ op: 'reorder', parentId, orderedIds: ids }],
+          });
+        }
+        // Connected-additions rule: a new container shouldn't stay empty —
+        // offer its lower-level steps in the same flow.
+        if (level < MAX_LEVEL) {
+          const childLabel = LEVEL_LABEL[level + 1] ?? 'node';
+          let addMore = await dialogs.confirm({
+            title: `Add ${childLabel}s under “${name}”?`,
+            message: `“${name}” was added. You can capture its lower-level ${childLabel}s now, one at a time.`,
+            confirmLabel: `Add ${childLabel}s`,
+            cancelLabel: 'Not now',
+          });
+          while (addMore) {
+            const childName = await dialogs.prompt({
+              title: `Add ${childLabel} under “${name}”`,
+              label: 'Name',
+              message: 'Cancel when you are done.',
+              confirmLabel: 'Add',
+            });
+            if (!childName) {
+              addMore = false;
+            } else {
+              await api.post(`/builder/nodes?companyId=${encodeURIComponent(companyId)}`, {
+                typeKey: `p${level + 1}`,
+                parentId: created.id,
+                name: childName,
+              });
+            }
+          }
+        }
+        flash('ok', 'Added.');
+        refetchFocused();
+      } catch (e) {
+        const msg = (e as Error)?.message;
+        flash('err', msg && !/HTTP/.test(msg) ? msg : 'Add failed.');
+      }
+    },
+    [companyId, dialogs, flash, refetchFocused],
+  );
+
+  // Row context for a canvas node: process level, effective parent, and the
+  // rendered sibling raw-id order (for splicing an added node into place).
+  const rowInfoFor = useCallback(
+    (n: Node): { level: number; parent: string | null; rowIds: string[] } | null => {
+      switch (n.type) {
+        case 'coreNode':
+          return { level: 1, parent: null, rowIds: [] };
+        case 'divisionNode': {
+          const cat = (n.data as { category?: string }).category ?? '';
+          return {
+            level: 2,
+            parent: domainIdByCat.get(cat) ?? null,
+            rowIds: displayDivisions.filter((d) => catFor(d) === cat).map((d) => d.id),
+          };
+        }
+        case 'valueStreamNode':
+          return { level: 3, parent: focusedDivisionId, rowIds: valueStreams.map((v) => v.id) };
+        case 'stepNode':
+          return { level: 4, parent: focusedVsId, rowIds: steps.map((s) => s.id) };
+        case 'subStepNode':
+          return {
+            level: 5,
+            parent: focusedStepId,
+            rowIds: focusedStep?.subSteps.map((s) => s.id) ?? [],
+          };
+        default:
+          return null;
+      }
+    },
+    [
+      domainIdByCat,
+      displayDivisions,
+      focusedDivisionId,
+      focusedVsId,
+      focusedStepId,
+      focusedStep,
+      valueStreams,
+      steps,
+    ],
+  );
+
+  // "+" on a card → add a sibling right after it (same level, same parent).
+  const handleAddAfter = useCallback(
+    (n: Node) => {
+      const info = rowInfoFor(n);
+      if (!info) return;
+      const raw = rawNodeId(n);
+      void createNode(
+        info.level,
+        info.parent,
+        raw && info.parent ? { ids: info.rowIds, afterId: raw } : undefined,
+      );
+    },
+    [rowInfoFor, rawNodeId, createNode],
+  );
+
+  // "−" on a card → confirm modal, then delete the node and its WHOLE subtree.
+  const handleRemove = useCallback(
+    async (n: Node, name: string) => {
+      if (!companyId) return;
+      const raw = rawNodeId(n);
+      if (!raw) return;
+      const ok = await dialogs.confirm({
+        title: `Remove “${sentenceCase(name)}”?`,
+        message: 'This permanently deletes this step and every step beneath it.',
+        danger: true,
+        confirmLabel: 'Remove',
+      });
+      if (!ok) return;
+      try {
+        await api.delete(
+          `/builder/nodes/${raw}?companyId=${encodeURIComponent(companyId)}&confirm=${encodeURIComponent(name)}`,
+        );
+        // Collapse focus off the deleted branch (each toggle clears its level + below).
+        if (raw === focusedSubStepId) onSubStepClick(raw);
+        else if (raw === focusedStepId) onStepClick(raw);
+        else if (raw === focusedVsId) onVsClick(raw);
+        else if (raw === focusedDivisionId) onDivisionClick(raw);
+        else if (selectedDomain && domainCatById.get(raw) === selectedDomain)
+          onDomainClick(selectedDomain);
+        // Drop any staged edits that reference the deleted node.
+        setPendingMoves((m) => {
+          if (!m.has(raw)) return m;
+          const next = new Map(m);
+          next.delete(raw);
+          return next;
+        });
+        setPendingRenames((m) => {
+          if (!m.has(raw)) return m;
+          const next = new Map(m);
+          next.delete(raw);
+          return next;
+        });
+        setPendingOrder((m) => {
+          let touched = false;
+          const next = new Map<string, string[]>();
+          for (const [p, ids] of m) {
+            if (p === raw) {
+              touched = true;
+              continue;
+            }
+            const filtered = ids.filter((id) => id !== raw);
+            if (filtered.length !== ids.length) touched = true;
+            next.set(p, filtered);
+          }
+          return touched ? next : m;
+        });
+        flash('ok', 'Removed.');
+        refetchFocused();
+      } catch (e) {
+        const msg = (e as Error)?.message;
+        flash('err', msg && !/HTTP/.test(msg) ? msg : 'Remove failed.');
+      }
+    },
+    [
+      companyId,
+      rawNodeId,
+      dialogs,
+      focusedSubStepId,
+      focusedStepId,
+      focusedVsId,
+      focusedDivisionId,
+      selectedDomain,
+      domainCatById,
+      onSubStepClick,
+      onStepClick,
+      onVsClick,
+      onDivisionClick,
+      onDomainClick,
+      flash,
+      refetchFocused,
+    ],
+  );
+
   // ── Metrics dashboard target (deepest focused level) ───────────────────────
   // The metrics/roles dashboards bottom out at the process-area (L3) level, so
   // drilling into L4 sub-processes / L5 steps keeps the L3 dashboard in view.
@@ -339,8 +583,11 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
         .sort((a, b) => (horiz ? a.position.x - b.position.x : a.position.y - b.position.y));
       const shiftIds = new Set(rowNodes.slice(gap.index).map((n) => n.id));
       if (shiftIds.size) {
-        const dx = horiz ? MAP_CARD_W + 12 : 0;
-        const dy = horiz ? 0 : MAP_CARD_H + 12;
+        // A drag opens a full card-width slot (the card will land there); a
+        // "+" hover spreads just enough to make room for the badge.
+        const spread = gap.hover ? PLUS_GAP_SPREAD : (horiz ? MAP_CARD_W : MAP_CARD_H) + 12;
+        const dx = horiz ? spread : 0;
+        const dy = horiz ? 0 : spread;
         result = result.map((n) =>
           shiftIds.has(n.id)
             ? { ...n, position: { x: n.position.x + dx, y: n.position.y + dy } }
@@ -348,7 +595,7 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
         );
       }
     }
-    return result.map((n) => {
+    const mapped = result.map((n) => {
       const draggable = DRAGGABLE_TYPES.has(n.type ?? '');
       const raw = rawNodeId(n);
       const renamed = raw != null ? pendingRenames.get(raw) : undefined;
@@ -361,13 +608,92 @@ function MapCanvasInner({ divisions, companyName, breadcrumbSlot, focusVsId, onM
         staged,
         dropTarget: nestTarget,
       };
+      if (draggable && !drag?.started) {
+        // Hover-only +/× badges. The remove confirm needs the SERVER name (a
+        // staged rename hasn't been saved yet), so capture it pre-overlay.
+        const orig = n.data as { name?: string; label?: string; pieceIndex?: number };
+        const serverName = orig.name ?? orig.label ?? '';
+        data.plusSide = n.type === 'subStepNode' ? 'bottom' : 'right';
+        data.onAddAfter = () => handleAddAfter(n);
+        data.onRemove = () => void handleRemove(n, serverName);
+        // Hovering "+" opens the insertion slot after this card (same gap the
+        // drag gesture uses), previewing where the new step will land.
+        data.onPlusHover = (h: boolean) =>
+          plusHoverGap(
+            h
+              ? { parent: '', index: (orig.pieceIndex ?? 0) + 1, type: n.type ?? '', hover: true }
+              : null,
+          );
+      }
       if (renamed !== undefined) {
         if (n.type === 'coreNode') data.label = renamed;
         else data.name = renamed;
       }
+      // Descending zIndex along the row: every card paints ABOVE its following
+      // sibling, so the "+" badge hanging into the gutter is always on top and
+      // reachable from any pointer direction (a :hover z-raise raced fast paths).
+      if (draggable) {
+        const idx = (n.data as { pieceIndex?: number }).pieceIndex ?? 0;
+        return { ...n, zIndex: 200 - idx, data };
+      }
       return { ...n, data };
     });
-  }, [nodes, editMode, drag, gap, nestTargetId, rawNodeId, pendingMoves, pendingRenames]);
+    // "+ Add …" placeholder under a focused node with no rendered children —
+    // the in-place way to seed a first child at any level.
+    const placeholders: Node[] = [];
+    const addPlaceholder = (parentCanvasId: string, childLevel: number, parentRaw: string) => {
+      const p = nodes.find((x) => x.id === parentCanvasId);
+      if (!p) return;
+      placeholders.push({
+        id: `add:${parentRaw}`,
+        type: 'addNode',
+        position: { x: p.position.x, y: p.position.y + MAP_CARD_H + 32 },
+        data: {
+          label: `Add ${LEVEL_LABEL[childLevel] ?? 'node'}`,
+          onClick: () => void createNode(childLevel, parentRaw),
+        },
+        draggable: false,
+        selectable: false,
+      });
+    };
+    if (!drag?.started) {
+      const domRaw = selectedDomain ? domainIdByCat.get(selectedDomain) : undefined;
+      if (selectedDomain && domRaw && !displayDivisions.some((d) => catFor(d) === selectedDomain))
+        addPlaceholder(`core:${selectedDomain}`, 2, domRaw);
+      if (focusedDivisionId && flowData && !flowLoading && valueStreams.length === 0)
+        addPlaceholder(focusedDivisionId, 3, focusedDivisionId);
+      if (focusedVsId && vsFlowData && !vsFlowLoading && steps.length === 0)
+        addPlaceholder(`vs:${focusedVsId}`, 4, focusedVsId);
+      if (focusedStepId && focusedStep && focusedStep.subSteps.length === 0)
+        addPlaceholder(`step:${focusedStepId}`, 5, focusedStepId);
+    }
+    return placeholders.length ? [...mapped, ...placeholders] : mapped;
+  }, [
+    nodes,
+    editMode,
+    drag,
+    gap,
+    nestTargetId,
+    rawNodeId,
+    pendingMoves,
+    pendingRenames,
+    handleAddAfter,
+    handleRemove,
+    createNode,
+    selectedDomain,
+    domainIdByCat,
+    displayDivisions,
+    focusedDivisionId,
+    focusedVsId,
+    focusedStepId,
+    focusedStep,
+    flowData,
+    vsFlowData,
+    flowLoading,
+    vsFlowLoading,
+    valueStreams,
+    steps,
+  ]);
 
   // While dragging, drop the lifted card's connectors so its line visibly detaches
   // from its parent (the card itself is hidden in displayNodes; its slot stays so

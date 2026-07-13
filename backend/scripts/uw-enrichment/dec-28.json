@@ -1,0 +1,1612 @@
+{
+  "tasks": [
+    {
+      "id": "a38d12ad-94d8-4f65-a897-e04313ee7f3a",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform", "Enterprise data warehouse/lakehouse"],
+      "addApps": [{ "name": "document management repository", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All bound or issued quotes for the current quarter whose indicated premium or limit approaches an underwriter authority threshold; scope = quotes in PolicyCenter (PAS) flagged 'authority-check-required' in the Quote Preparation & Quality Review queue."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current underwriting quarter only (e.g. 2026-Q3, 2026-07-01 to 2026-09-30); quotes released outside this window are excluded from the authority-verification sample."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each quote record shows premium, per-occurrence and aggregate limit, line of business, and the underwriter's authority band from the authority matrix v3.2 lookup; where a threshold is exceeded the referral-approval reference must be populated. A missing referral reference holds the quote."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The count of quotes exceeding authority in the underwriting workstation reconciles to the count of referral approvals on file in the document management repository; delta must be 0 before any over-authority quote is released."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The authority-matrix lookup screenshot and any referral-approval email are retained in /uw/quotes/<quote-no>/ with timestamp and version tag in OpenText; retained 7 years per the record-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A quote released above authority without approval is logged as an authority-breach exception in the workstation, routed to the Senior Underwriter, with disposition (ratify / rescind / re-quote) recorded within 1 business day."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Authority is determined against the approved underwriting authority matrix v3.2 (effective 2026-01-01), signed off by the Chief Underwriting Officer; superseded matrix versions are archived and never used for a live check."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Referral is triggered when premium is within 5% of, or exceeds, the underwriter's band ceiling, or when the requested limit exceeds the line-of-business cap; these sensitivity points are documented in the authority matrix."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Any quote above $250k premium or $5M limit is treated as material and requires Senior Underwriter referral regardless of band; the materiality cut-offs are stated in authority matrix v3.2."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "Sample of 25 issued quotes per quarter drawn from the authority-check queue, weighted toward those nearest the authority ceiling."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = 100% of sampled quotes at or above authority carry a matching, dated referral approval; FAIL = any quote issued above authority without an approval on file."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Failures are escalated to the Underwriting Quality / Audit Manager, the breach is logged, and the responsible underwriter's authority is reviewed; remediation completed within 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Quotes with a quote/effective date within the review quarter; the authority-matrix version in force on the quote date governs the check."
+        },
+        {
+          "answerId": "cmr2ocg0f0xpakaz3x85d9yw0",
+          "value": "Acceptance = the quote does not exceed underwriter authority, or it carries a valid dated referral approval; evidence (authority-matrix lookup plus referral approval) is stored in /uw/quotes/<quote-no>/ in OpenText and linked on the PAS quote record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Look up the underwriter's authority band by premium, limit and line of business",
+              "value": "Authority matrix v3.2 lookup performed in the workstation for every quote near a threshold; band ceiling recorded on the quote record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify the applied authority band matches the matrix",
+              "value": "For 25 sampled quotes the band on the record equals the matrix value for that premium/limit/LOB; 0 mismatches."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp161o8cmbk8jeoutzfd",
+          "checklist": [
+            {
+              "step": "Confirm only authorized personnel bound the quote",
+              "value": "Binding user in PolicyCenter is checked against the authorised-binder list; over-authority binds require a referral approval before release."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-check binder authorization",
+              "value": "0 sampled quotes bound by a user outside their authority without a documented referral approval."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Apply documented referral triggers to the quote",
+              "value": "Each quote is tested against the documented referral triggers (band ceiling, LOB cap, materiality thresholds) recorded in authority matrix v3.2."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm triggered referrals were raised",
+              "value": "Every sampled quote meeting a trigger has a corresponding referral record; 0 missed referrals."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "95bf1487-36f1-4f10-a2c5-8f263657f416",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "underwriting workstation", "usageType": "performed" },
+        { "name": "document management repository", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All mid-term endorsement requests in the current period whose revised risk profile (exposure, limit, coverage) may exceed the handling underwriter's authority; scope = endorsements in the PolicyCenter (PAS) endorsement queue for Mid-Term Endorsement & Adjustment Processing."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current processing month (e.g. 2026-07-01 to 2026-07-31); endorsements booked outside the window are excluded from this referral-assessment review."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The revised exposure, limit, premium delta and coverage change are populated on the endorsement, and the resulting authority band is computed via the authority matrix v3.2; a referral flag (yes/no) with rationale must be present."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of endorsements flagged 'referral required' reconciles to referral records opened; every endorsement where the post-change limit exceeds the band ceiling has a referral. Delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The referral-need determination memo is retained in /uw/endorsements/<policy-no>/ in OpenText with timestamp and version; retained 7 years per the record-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "An endorsement processed without an assessment where one was required is logged as an exception in the workstation, routed to the Senior Underwriter, with disposition (retrospective referral / ratify / void) within 1 business day."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "Sample of 25 processed endorsements per month, over-weighted to those with the largest premium or limit change."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every sampled endorsement whose revised profile breached an authority trigger shows a documented referral determination; FAIL = any breach handled without an assessment record."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Failures escalated to the Underwriting Quality / Audit Manager; the endorsement is re-reviewed and, if authority was exceeded, referred retrospectively; remediation within 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = a documented referral-need determination (referral raised, or rationale for no referral) exists for every in-scope endorsement before it is approved."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "The determination memo and any referral record are stored in /uw/endorsements/<policy-no>/ in OpenText and linked on the PAS endorsement transaction."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Test the revised risk profile against documented referral triggers",
+              "value": "Post-endorsement limit, exposure and premium delta are checked against the referral triggers in authority matrix v3.2."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm triggered endorsements were referred",
+              "value": "Every sampled endorsement meeting a trigger has a referral determination; 0 missed."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Route over-authority endorsements to the next authority level with a recommendation",
+              "value": "Referrals to the Senior Underwriter include the underwriter's recommendation and supporting rationale in the workstation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify referral packages are complete",
+              "value": "100% of referrals carry a written recommendation; incomplete referrals are returned and re-counted."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Recompute the authority band on the revised profile",
+              "value": "The endorsement's post-change premium/limit/LOB is re-scored against the authority matrix to confirm whether the handler retains authority."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify band recomputation",
+              "value": "Recomputed band matches the matrix for 25 sampled endorsements; 0 mismatches."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "4e19ccc4-b9ea-4644-af03-7a2f32fdeda5",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "underwriting workstation", "usageType": "performed" },
+        { "name": "billing/commission platform", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All mid-term endorsements requiring an additional or return premium calculation in the current period; scope = endorsement transactions in PolicyCenter (PAS) with a premium impact, rated pro-rata for the effective-to-expiry period."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The endorsement effective date through policy expiry (the unexpired term), booked within the current processing month; premium is earned only over that pro-rata window."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Revised exposure basis, rate, effective date and days-remaining are populated; PAS computes AP/RP pro-rata using filed rates. The premium delta, taxes and fees must all be present before booking."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The PAS-calculated AP/RP is reconciled to an independent pro-rata recomputation (rate x revised exposure x days-remaining/term); the two must agree within $1 or the transaction is held."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The rating worksheet and PAS premium-transaction screen are retained in /uw/endorsements/<policy-no>/ in OpenText with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A premium mismatch beyond the $1 tolerance is logged as an exception, routed to the Senior Underwriter, with disposition (re-rate / manual override with note / escalate to Pricing) within 1 business day."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The AP/RP is computed with the filed rating algorithm and rate tables current for the policy's state and effective date; the rate version is stamped on the rating worksheet."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Recomputation must match PAS within $1; a variance of >$1 or >0.5% of the endorsement premium triggers a re-rate before booking."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Premium deltas above $10,000 or short-rate/flat cancellations require Senior Underwriter review of the calculation basis; documented on the worksheet."
+        },
+        {
+          "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "Sample of 25 premium-bearing endorsements per month, including all return-premium and short-rate transactions."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = recomputed AP/RP agrees with PAS within $1 and uses filed rates for the correct state/effective date; FAIL = variance beyond tolerance or wrong rate version."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "Failed calculations are corrected and re-booked; systematic rating errors are escalated to Pricing/Product and logged; remediation within 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "Filed rating algorithm and rate table version in force for the policy state on the endorsement effective date, recorded on the rating worksheet."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "Parameters (revised exposure, rate, tax/fee schedule) source from the filed rate manual and the policy record in PolicyCenter; no manual rate entry without a documented override."
+        },
+        {
+          "answerId": "cmr2ocfzh0wgbkaz3ajvc0tuw",
+          "value": "In-scope effective dates = endorsement effective date through policy expiry; premium is pro-rated over the unexpired days of the term."
+        },
+        {
+          "answerId": "cmr2ocfzh0wgckaz3uweqxad6",
+          "value": "Field definitions (exposure basis, rate, term days, premium delta) and control totals are drawn from the PAS filed-rating data dictionary; the recomputation control total must reconcile to PAS within $1."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Apply filed rates for the correct state and effective date",
+              "value": "AP/RP uses the filed rate table in force for the policy state on the endorsement effective date, stamped on the worksheet."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify filed-rate application",
+              "value": "For 25 sampled endorsements the rate version matches the filed table for the state/date; 0 exceptions."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppc31o8wmbk8i3ty2jne",
+          "checklist": [
+            {
+              "step": "Document any deviation from filed rates within the authority matrix",
+              "value": "Manual overrides or deviations are recorded with reason and are within the underwriter's deviation authority per the matrix."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm deviations are authorized and documented",
+              "value": "0 rate deviations without a documented reason and an in-authority approval."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Retain the rating worksheet as an audit trail",
+              "value": "The pro-rata calculation and inputs are saved to /uw/endorsements/<policy-no>/ and linked on the PAS transaction."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit trail completeness",
+              "value": "Every sampled endorsement has a retained, versioned rating worksheet; 0 missing."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fjk1n0zo2kfgzrqbudvcf",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "underwriting workstation", "usageType": "performed" },
+        { "name": "document management repository", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All mid-term endorsements that required an authority referral in the current period; scope = endorsements whose approval must be memorialized in the endorsement file before the change is executed in PolicyCenter (PAS)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current processing month (e.g. 2026-07-01 to 2026-07-31); documentation is completed before the endorsement is booked, within 24 hours of approval."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The endorsement file records the approver name, authority level, approval date/time, the referred amount/limit, and the approval decision; a file lacking any of these cannot proceed to booking."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of endorsements requiring approval reconciles to the count with a documented approval note in the file; every approved endorsement has a matching note. Delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The approval note (email or workstation sign-off capture) is filed in /uw/endorsements/<policy-no>/ in OpenText with timestamp and version, and referenced on the PAS transaction; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "An endorsement executed without a documented approval is logged as a control exception, routed to the Senior Underwriter, with disposition (obtain retrospective approval / reverse) within 1 business day."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "Sample of 25 approval-bearing endorsements per month drawn from the referral log."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = each sampled endorsement file contains a complete, dated approval note by an authorized approver dated on or before booking; FAIL = missing, undated, or post-booking approval."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Failures escalated to the Underwriting Quality / Audit Manager; the file is completed or the endorsement reversed; remediation within 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Approver, authority level, approval timestamp and referred amount are captured per the endorsement-file data dictionary in the UW procedure."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "The count of documented approvals reconciles to the referral log control total for the month; 0 unmatched."
+        },
+        {
+          "answerId": "cmr2ocdw10splkaz3z4oa58pu",
+          "value": "Acceptance = the endorsement file holds a complete approval note (approver, authority level, date, decision) dated on or before execution; evidence stored in /uw/endorsements/<policy-no>/ in OpenText and linked on the PAS transaction."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Record the approval decision within 24 hours",
+              "value": "The approval note is entered in the endorsement file within 24 hours of the authority decision and before booking."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify 24-hour documentation SLA",
+              "value": "For 25 sampled endorsements the approval note timestamp is within 24 hours of approval and precedes booking; 0 breaches."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Maintain complete file documentation of the approval",
+              "value": "Approver, level, date, referred amount and decision are all present in /uw/endorsements/<policy-no>/."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect file completeness",
+              "value": "0 sampled endorsement files missing a required approval-documentation field."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppd31o8ymbk8q4zpd8lh",
+          "checklist": [
+            {
+              "step": "Document the basis for the approved change",
+              "value": "The file states the revised exposure/limit and the rationale supporting the approver's decision."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify documentation of basis",
+              "value": "Every sampled approved endorsement documents the change basis; 0 undocumented."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fe9ph00rprw9dmv1cbd1f",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "underwriting workstation", "usageType": "performed" },
+        { "name": "document management repository", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All booked mid-term endorsements in the current period for which an endorsement document must be issued and delivered to the producing broker; scope = endorsement documents generated from PolicyCenter (PAS)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current processing month; the endorsement document is delivered within 2 business days of booking."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The endorsement document shows policy number, endorsement number, effective date, revised terms and premium; the broker recipient and delivery channel (portal/email) are populated before send."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of booked endorsements reconciles to count of endorsement documents delivered; every booked endorsement has a delivered document. Delta must be 0 at month end."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The issued document and delivery confirmation (portal receipt or email log) are retained in /uw/endorsements/<policy-no>/ in OpenText with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A failed or bounced delivery is logged as an exception, routed to the Underwriting Assistant for re-send, with disposition recorded; unresolved after 2 business days escalates to the Senior Underwriter."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "Sample of 25 issued endorsements per month across brokers and delivery channels."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = document delivered to the correct broker within 2 business days with a delivery confirmation on file; FAIL = late, mis-addressed, or undocumented delivery."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Failures trigger re-issue and a delivery-defect note; recurring delivery failures are escalated to UW Operations; remediation within 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Endorsements with a booking date in the review month; the document effective date equals the endorsement effective date."
+        },
+        {
+          "answerId": "cmr2ocfyy0vrnkaz3095ei01x",
+          "value": "Acceptance = the endorsement document is delivered to the correct broker within 2 business days with delivery confirmation; evidence stored in /uw/endorsements/<policy-no>/ in OpenText and linked on the PAS transaction."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the issued document and delivery confirmation",
+              "value": "The endorsement document and portal/email delivery receipt are stored in /uw/endorsements/<policy-no>/."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect issuance file",
+              "value": "0 sampled endorsements missing the issued document or delivery confirmation."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp5u1o8kmbk8z2uf21t9",
+          "checklist": [
+            {
+              "step": "Issue the current filed form and edition",
+              "value": "The endorsement is generated from the current filed form/edition for the state; superseded forms are blocked in PAS."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify current form usage",
+              "value": "For 25 sampled endorsements the form edition matches the current filing for the state; 0 stale forms issued."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "9a9ef816-daf4-4f2f-8b72-5da10db7c414",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Senior Underwriter",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": ["Ceded Reinsurance Analyst"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "underwriting workstation", "usageType": "performed" },
+        { "name": "Reinsurance administration system", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All mid-term endorsements that change ceded exposure under a treaty or facultative cession; scope = endorsements whose premium/exposure change affects reinsurance cessions and must be notified to reinsurance accounting."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current processing month; cession-impacting endorsements are notified to reinsurance accounting within 2 business days of booking so the cession is captured in the reporting cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The notification identifies policy/endorsement number, treaty or fac certificate, revised ceded premium and ceded exposure, and effective date; a notification missing the treaty reference is rejected."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of cession-impacting endorsements reconciles to cession-adjustment notifications sent; the ceded-premium delta agrees between PolicyCenter and the reinsurance administration system. Delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The notification (workstation task/email) and the reinsurance-system booking confirmation are retained in /uw/endorsements/<policy-no>/ in OpenText with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A cession-impacting endorsement not notified within SLA is logged as an exception, routed to the Ceded Reinsurance Analyst, with disposition (send now / confirm not cedable) within 1 business day."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "Sample of 25 cession-impacting endorsements per month across treaty and facultative business."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = every cession-impacting endorsement has a notification with matching ceded premium/exposure booked in the reinsurance system within SLA; FAIL = missing or mismatched notification."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "Failures trigger a corrective notification and are escalated to the Reinsurance Ops team; systemic gaps logged; remediation within 10 business days."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "Who may confirm and book cession adjustments is recorded in the treaty-administration delegation matrix v2.1; the underwriter notifies and the Ceded Reinsurance Analyst books."
+        },
+        {
+          "answerId": "cmr2ocfyz0vs5kaz3rc57p1tk",
+          "value": "Acceptance = a cession-adjustment notification is sent and confirmed booked for every cession-impacting endorsement within 2 business days; evidence (notification + reinsurance-system confirmation) stored in /uw/endorsements/<policy-no>/ in OpenText."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Retain an audit trail of the cession notification",
+              "value": "The notification and reinsurance-system confirmation are stored in /uw/endorsements/<policy-no>/ and linked on the PAS transaction."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit trail",
+              "value": "Every sampled cession-impacting endorsement has a retained, dated notification; 0 missing."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the cession adjustment in the file",
+              "value": "Treaty/fac reference, revised ceded premium and exposure are recorded in the endorsement file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect cession documentation",
+              "value": "0 sampled endorsements missing the ceded-premium/exposure detail."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fjjtn0ziqkfgzzw91xvim",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "underwriting workstation", "usageType": "performed" },
+        { "name": "document management repository", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All mid-term endorsements whose revised profile exceeds the handling underwriter's authority and therefore require a higher-level approval before execution; scope = referred endorsements in the PolicyCenter (PAS) referral queue."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current processing month; approval is obtained before booking, with a target turnaround of 1 business day from referral."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The referral shows the revised exposure/limit, the authority band exceeded, the underwriter's recommendation, and the target approver; the approver's decision and identity are captured on grant."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of endorsements requiring approval reconciles to approvals granted before booking; no endorsement is booked with an open referral. Delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The approval record (workstation sign-off or email) is retained in /uw/endorsements/<policy-no>/ in OpenText with timestamp and approver identity; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "An endorsement booked before approval is granted is logged as a control breach, routed to the Underwriting Quality / Audit Manager, with disposition (ratify / reverse) within 1 business day."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "Sample of 25 referred endorsements per month from the referral queue."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = a dated approval by an authorized approver at the correct level exists before booking; FAIL = missing approval, wrong-level approver, or approval after booking."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Failures escalated to the Underwriting Quality / Audit Manager; the endorsement is ratified retrospectively or reversed; remediation within 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Approver identity, authority level, decision and timestamp are captured per the referral/approval data dictionary in the UW procedure."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "The count of granted approvals reconciles to the referral-queue control total for the month; 0 open referrals at booking."
+        },
+        {
+          "answerId": "cmr2ocdw10spkkaz3ncngoqed",
+          "value": "Acceptance = the required authority approval is granted by an authorized approver at the correct level before execution; evidence (approval record with approver identity and timestamp) stored in /uw/endorsements/<policy-no>/ in OpenText and linked on the PAS transaction."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Refer to the next authority level with a recommendation",
+              "value": "The referral to the Senior Underwriter / CUO includes the recommendation, revised profile and authority band exceeded."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify referral completeness and correct level",
+              "value": "For 25 sampled endorsements the approver's authority level covers the exposure; 0 wrong-level approvals."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppse1o9smbk8sec8gva2",
+          "checklist": [
+            {
+              "step": "Obtain CUO approval with documentation for appetite exceptions",
+              "value": "Endorsements outside appetite carry a documented CUO (or delegate) approval before execution."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify exception approvals",
+              "value": "0 appetite-exception endorsements executed without a documented senior approval."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Document the approval decision within 24 hours",
+              "value": "The approval is recorded before booking and within 24 hours of the decision."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify timeliness",
+              "value": "Approval timestamp precedes booking and is within 24 hours of decision for all sampled endorsements."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "49c715db-97e0-4f45-ba7d-d4e1996608b5",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "underwriting workstation", "usageType": "performed" },
+        { "name": "document management repository", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All inbound broker endorsement requests (exposure change, coverage addition, or policy correction) received in the current period; scope = requests logged into the PolicyCenter (PAS) endorsement intake queue."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current processing month; each request is acknowledged and logged within 4 hours of receipt."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The intake record captures policy number, requesting broker, request type, requested effective date and description of change, with the source email/attachment linked; a request missing the requested change or effective date is returned to the broker."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of received requests (broker portal + email intake) reconciles to endorsement intake records created; every received request has a log entry. Delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The broker request and acknowledgement are retained in /uw/endorsements/<policy-no>/ in OpenText with receipt timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "An incomplete or out-of-appetite request is logged as an exception with disposition (return for info / decline / route to underwriter) recorded within 4 hours; routed to the Underwriting Assistant for follow-up."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled intake records trace back to the originating broker email/portal submission and attachments in OpenText; every logged request has a source document."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Intake status (Received → Acknowledged → Assigned) matches the PAS activity log; no request is 'Assigned' without an acknowledgement recorded."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Receipt date/time and requested effective date are populated and consistent; requested effective dates that are back-dated beyond policy rules are flagged at intake."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "Sample of 25 logged endorsement requests per month across brokers and request types."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = request acknowledged and logged within 4 hours with all required fields and source document linked; FAIL = late acknowledgement, missing field, or no source document."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Failures trigger corrective logging and coaching; recurring late acknowledgements escalate to UW Operations; remediation within 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = every inbound request is logged with required fields, acknowledged within 4 hours, and linked to its source document."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Intake record and source document stored in /uw/endorsements/<policy-no>/ in OpenText and linked on the PAS intake transaction."
+        },
+        {
+          "answerId": "cmr2ocdxv0v6mkaz3q3zjrb6f",
+          "value": "Intake field definitions (policy no., broker, request type, effective date) follow the endorsement-intake data dictionary; the control total of logged requests reconciles to received portal/email submissions for the month."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppxd1oa2mbk82g6mira7",
+          "checklist": [
+            {
+              "step": "Acknowledge the request within 4 hours",
+              "value": "An acknowledgement is issued and logged within 4 hours of receipt of the broker request."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify 4-hour acknowledgement SLA",
+              "value": "For 25 sampled requests the acknowledgement timestamp is within 4 hours of receipt; 0 breaches."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Confirm minimum submission requirements at intake",
+              "value": "Policy number, request type, effective date and description are present before the request is accepted; incomplete requests are returned."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify completeness at intake",
+              "value": "0 accepted requests missing a minimum required field."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "8bf46799-7400-4222-aaff-85af9f8fa8ec",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "underwriting workstation", "usageType": "performed" },
+        { "name": "document management repository", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All approved mid-term endorsements requiring the policy administration system to be updated with revised coverage, exposures and premium; scope = endorsement transactions keyed into PolicyCenter (PAS)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current processing month; the PAS update is completed within 2 business days of approval, effective from the endorsement effective date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Revised coverage terms, exposures, limits and premium are entered on the endorsement transaction; effective date, form edition and premium delta must be populated and validated by PAS edits before commit."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The updated exposures and premium in PAS reconcile to the approved endorsement worksheet; premium delta and total insured value tie to the calculation. Any variance holds the commit."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "A before/after screen capture of the PAS record and the endorsement worksheet are retained in /uw/endorsements/<policy-no>/ in OpenText with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A data-entry mismatch versus the approved terms is logged as an exception, routed to the Underwriting Assistant/Senior Underwriter, with disposition (correct / re-approve) within 1 business day."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Premium on the update uses the filed rating result approved for the endorsement; the rate/version is unchanged from the approved worksheet."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Any keyed value differing from the approved worksheet by more than $1 or one coverage term triggers correction before commit."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Premium or TIV changes above $10,000 / material coverage changes require a second-person check before the record is committed."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled PAS records trace to the approved endorsement worksheet and broker request in OpenText; every changed field maps to an approved instruction."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Endorsement transaction status (Draft → Bound → Booked) in PAS matches the workflow; no record is Booked without approval recorded."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Effective date and transaction date are populated and consistent with the approved effective date and back-dating rules."
+        },
+        {
+          "templateKeyId": "cmr2oaqo3003rlasb1r26nwor",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaqpd003tlasbyv59t5v5",
+          "value": "Sample of 25 committed endorsement updates per month, weighted to large premium/coverage changes."
+        },
+        {
+          "templateKeyId": "cmr2oaqq9003vlasbyjg1pxll",
+          "value": "PASS = PAS record matches the approved worksheet on coverage, exposure and premium (within $1); FAIL = any field differs from approved terms."
+        },
+        {
+          "templateKeyId": "cmr2oaqrf003xlasb2mopahy1",
+          "value": "Failures are corrected in PAS and re-verified; systemic entry errors escalate to UW Operations; remediation within 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2oaqsp003zlasbtvvkt534",
+          "value": "Updates with a transaction date in the review month; effective dates equal the approved endorsement effective date."
+        },
+        {
+          "answerId": "cmr2ocdx30u4gkaz3e5ahvn9a",
+          "value": "Approved filed rate version and parameter source (revised exposure, limits, tax/fee schedule) are those on the approved endorsement worksheet; no re-rating occurs at data entry."
+        },
+        {
+          "answerId": "cmr2ocdx30u4hkaz35lxgmpky",
+          "value": "PAS field definitions (coverage, exposure, premium, effective date) follow the policy data dictionary; committed values reconcile to the approved worksheet control totals within $1."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the PAS update against approved terms",
+              "value": "Before/after captures and the approved worksheet are filed in /uw/endorsements/<policy-no>/."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect update documentation",
+              "value": "0 sampled updates without a retained before/after record."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Confirm premium reflects filed rates",
+              "value": "The committed premium equals the approved filed-rate calculation; no off-rate entry."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify premium correctness",
+              "value": "For 25 sampled updates the PAS premium equals the approved worksheet within $1; 0 exceptions."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Retain an audit trail of the change",
+              "value": "The PAS transaction and supporting worksheet are linked and versioned for audit."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit trail",
+              "value": "Every sampled update has a complete, versioned audit trail; 0 missing."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2feaf700s9rw9dchc6x2nu",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "underwriting workstation", "usageType": "performed" },
+        { "name": "document management repository", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All approved endorsements requiring the policy of record to be updated in the administration system; scope = policy-of-record updates committed in PolicyCenter (PAS) so the in-force record reflects the endorsement."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current processing month; the policy of record is updated within 2 business days of approval, effective from the endorsement effective date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The policy-of-record fields (coverage, limits, insured details, premium, effective date) are updated and pass PAS validation; the endorsement number is linked so the in-force record is complete."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The updated policy of record reconciles to the approved endorsement and the transaction ledger; premium and exposure on the in-force record equal the approved values. Delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The updated policy-of-record view and endorsement linkage are retained in /uw/endorsements/<policy-no>/ in OpenText with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A discrepancy between the in-force record and the approved endorsement is logged as an exception, routed to the Senior Underwriter, with disposition (correct / re-issue) within 1 business day."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "Sample of 25 policy-of-record updates per month across lines of business."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = the in-force policy of record matches the approved endorsement on all changed fields and links to the endorsement number; FAIL = any mismatch or missing linkage."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Failures are corrected and re-verified in PAS; recurring update errors escalate to UW Operations; remediation within 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Updates with a transaction date in the review month; the in-force effective date equals the endorsement effective date."
+        },
+        {
+          "answerId": "cmr2ocfyu0vlrkaz30t1bcps6",
+          "value": "Acceptance = the policy of record reflects the approved endorsement on all changed fields and is linked to the endorsement number; evidence (updated record view) stored in /uw/endorsements/<policy-no>/ in OpenText and linked on the PAS transaction."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the policy-of-record update",
+              "value": "The updated in-force record and endorsement linkage are filed in /uw/endorsements/<policy-no>/."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect record documentation",
+              "value": "0 sampled updates missing a retained policy-of-record view."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Retain an audit trail linking record to endorsement",
+              "value": "The in-force record links to the endorsement transaction and approved worksheet."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit trail",
+              "value": "Every sampled policy-of-record update links to its endorsement; 0 orphan updates."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "4715a14e-19cd-4731-be37-7e9e509dd5de",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "underwriting workstation", "usageType": "performed" },
+        { "name": "document management repository", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All inbound endorsement requests validated before processing in the current period; scope = requests checked in the workstation against in-force policy terms and the handling underwriter's authority for Mid-Term Endorsement & Adjustment Processing."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current processing month; validation is recorded before the endorsement proceeds, typically within 1 business day of intake."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The validation records that the requested change is permitted under the in-force policy form/terms, the policy is active, the effective date is within back-dating rules, and the change is within the underwriter's authority (or flagged for referral)."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of intake requests reconciles to validation records; every request has a validation outcome (valid / referral / return). Delta must be 0 before processing begins."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The validation note (policy-terms check + authority check) is retained in /uw/endorsements/<policy-no>/ in OpenText with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A request that fails validation (out of terms, out of authority, lapsed policy) is logged as an exception with disposition (refer / return to broker / decline) recorded within 1 business day; routed to the Senior Underwriter where authority is exceeded."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled validation records trace to the in-force policy record in PAS and the broker request in OpenText; every validation cites the policy form/terms checked."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Validation status (Valid / Referral / Returned) matches the PAS workflow; no endorsement proceeds to rating without a 'Valid' or approved-referral status."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Requested effective date is validated against policy inception/expiry and back-dating limits; out-of-range dates are flagged before processing."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "Sample of 25 validated endorsement requests per month across lines and change types."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = validation correctly confirms policy-term permissibility and authority (or referral) and matches the in-force record; FAIL = a request processed that was out of terms or out of authority without referral."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Failures escalated to the Underwriting Quality / Audit Manager; the endorsement is re-validated or reversed; remediation within 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Requests with an intake date in the review month; validation uses the in-force policy terms as at the requested effective date."
+        },
+        {
+          "answerId": "cmr2ocdx20u3ikaz3ca7d9slr",
+          "value": "Validation field definitions (policy status, form/terms, effective date, authority band) follow the endorsement-validation data dictionary; the count of validation records reconciles to intake requests for the month with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Check the change against the underwriter's authority",
+              "value": "The requested change is scored against the authority matrix v3.2; over-authority requests are flagged for referral before processing."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify authority validation",
+              "value": "For 25 sampled requests the authority determination matches the matrix; 0 over-authority requests processed without referral."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Apply referral triggers during validation",
+              "value": "Documented referral triggers are evaluated as part of validation and recorded on the validation note."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm triggered referrals raised",
+              "value": "Every sampled request meeting a trigger has a referral; 0 missed."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the validation outcome",
+              "value": "Policy-terms and authority checks and the outcome are filed in /uw/endorsements/<policy-no>/."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect validation documentation",
+              "value": "0 sampled endorsements missing a retained validation note."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fhtrx06e3kfgzw3pm2vjc",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform", "GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [{ "name": "document management repository", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All policies cancelled or non-renewed in the current period whose file must be archived; scope = closed policy files under Non-Renewal & Cancellation Management, archived from PolicyCenter (PAS) into the document management repository."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current processing month; files are archived within 5 business days of the cancellation/non-renewal effective date, and retained per the state and record-retention schedule (typically 7 years after termination)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "2908a095-10bc-4c8b-a423-1e234c745311"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The archived file contains the policy record, the cancellation/non-renewal notice with proof of mailing, the reason code, and the final premium/return-premium transaction; a file missing the notice or proof of mailing cannot be closed."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of cancelled/non-renewed policies in PAS reconciles to files archived in the repository; every terminated policy has an archived, indexed file. Delta must be 0 at month end."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The archived file is stored in /uw/closed/<policy-no>/ in OpenText with archive timestamp, retention class and version; retention clock set to the schedule and legal-hold flag honored."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A terminated policy without a complete archived file is logged as an exception, routed to the Underwriting Assistant, with disposition (locate/complete file) within 5 business days; incomplete non-renewal notices escalate to the Senior Underwriter."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled archive entries trace to the PAS policy record and the retained non-renewal/cancellation notice with proof of mailing; every archived file maps to a terminated policy."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy status in PAS is 'Cancelled' or 'Non-Renewed' and the file's archive status is 'Archived'; no active policy is archived and no terminated policy remains un-archived."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Cancellation/non-renewal effective date, notice-sent date and archive date are populated and consistent; notice-sent date satisfies the state advance-notice requirement."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "Sample of 25 archived closed-policy files per month across cancellation and non-renewal reasons."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = the file is completely archived and indexed with the notice and proof of mailing, retention set correctly; FAIL = missing notice, missing proof of mailing, or wrong retention class."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Failures are remediated by locating/completing the file; systemic gaps escalate to the Records Manager and UW Operations; remediation within 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Files for policies terminated in the review month; retention effective date starts at the cancellation/non-renewal effective date."
+        },
+        {
+          "answerId": "cmr2ocfzi0wgukaz3i9tq0mg8",
+          "value": "Archive field definitions (policy no., termination reason/date, notice date, retention class) follow the records-retention data dictionary; the archived-file count reconciles to PAS terminated-policy control totals for the month with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppli1o9embk8y3bvlnlf",
+          "checklist": [
+            {
+              "step": "Confirm the non-renewal notice met the state advance-notice requirement",
+              "value": "The archived file evidences the non-renewal notice and proof of mailing sent within the state-required advance period."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify notice compliance",
+              "value": "For 25 sampled non-renewals the notice-sent date meets the state advance-notice rule; 0 late or missing notices."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpq251oacmbk80nlgajf6",
+          "checklist": [
+            {
+              "step": "Ensure no silent non-renewals",
+              "value": "Every non-renewed policy in the archive has a documented notice and reason; none terminated without notice."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm notice for every non-renewal",
+              "value": "0 archived non-renewals lacking a documented notice and reason code."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Archive complete file documentation",
+              "value": "Policy record, notice, proof of mailing and final premium transaction are archived and indexed in /uw/closed/<policy-no>/."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect archive completeness",
+              "value": "0 sampled archived files missing a required document."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

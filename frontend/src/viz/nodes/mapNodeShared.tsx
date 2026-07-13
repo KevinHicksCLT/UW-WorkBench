@@ -18,7 +18,10 @@ export const MAP_CARD_H = 68;
 // Wrap-then-clamp for labels inside the fixed-size cards: wrap to multiple
 // lines, then ellipsize past the line budget so text never spills the box.
 export const CLAMP3: CSSProperties = {
-  display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+  display: '-webkit-box',
+  WebkitLineClamp: 3,
+  WebkitBoxOrient: 'vertical',
+  overflow: 'hidden',
 };
 
 // ── Display-time casing normalizer (defect backlog 02, D3.4) ─────────────────
@@ -34,10 +37,14 @@ export function sentenceCase(s: string): string {
 
 export function focusClass(s: NodeFocusState | undefined): string {
   switch (s) {
-    case 'dimmed':   return 'node-dimmed';
-    case 'focused':  return 'node-focused';
-    case 'expanded': return 'node-expanded';
-    default:         return 'node-neutral';
+    case 'dimmed':
+      return 'node-dimmed';
+    case 'focused':
+      return 'node-focused';
+    case 'expanded':
+      return 'node-expanded';
+    default:
+      return 'node-neutral';
   }
 }
 
@@ -69,10 +76,34 @@ export function editStyle(d: EditAffordance): CSSProperties {
 export function AllHandles() {
   return (
     <>
-      <Handle id="t" type="target"  position={Position.Top}    style={{ opacity: 0, pointerEvents: 'none' }} isConnectable={false} />
-      <Handle id="b" type="source"  position={Position.Bottom} style={{ opacity: 0, pointerEvents: 'none' }} isConnectable={false} />
-      <Handle id="l" type="target"  position={Position.Left}   style={{ opacity: 0, pointerEvents: 'none' }} isConnectable={false} />
-      <Handle id="r" type="source"  position={Position.Right}  style={{ opacity: 0, pointerEvents: 'none' }} isConnectable={false} />
+      <Handle
+        id="t"
+        type="target"
+        position={Position.Top}
+        style={{ opacity: 0, pointerEvents: 'none' }}
+        isConnectable={false}
+      />
+      <Handle
+        id="b"
+        type="source"
+        position={Position.Bottom}
+        style={{ opacity: 0, pointerEvents: 'none' }}
+        isConnectable={false}
+      />
+      <Handle
+        id="l"
+        type="target"
+        position={Position.Left}
+        style={{ opacity: 0, pointerEvents: 'none' }}
+        isConnectable={false}
+      />
+      <Handle
+        id="r"
+        type="source"
+        position={Position.Right}
+        style={{ opacity: 0, pointerEvents: 'none' }}
+        isConnectable={false}
+      />
     </>
   );
 }
@@ -103,10 +134,102 @@ export type DivisionNodeData = {
 // outline; the node currently hovered as a valid drop target gets an Apple-folder
 // style ring. Both are optional and absent (no visual change) in normal view.
 export type EditAffordance = {
-  editable?: boolean;   // draggable in edit mode → grab cursor + dashed outline
+  editable?: boolean; // draggable in edit mode → grab cursor + dashed outline
   dropTarget?: boolean; // currently the hovered valid drop target → ring
-  staged?: boolean;     // has an unsaved pending move/reorder → amber corner dot
+  staged?: boolean; // has an unsaved pending move/reorder → amber corner dot
+  // Hover-only add/remove badges (edit mode). "+" sits in the gutter after this
+  // card and inserts a sibling there; hovering it opens the insertion slot
+  // (onPlusHover drives the canvas gap state). "×" sits on the card's top-right
+  // corner and deletes the node and its whole subtree — the canvas guards it
+  // behind a confirm modal.
+  onAddAfter?: () => void;
+  onRemove?: () => void;
+  onPlusHover?: (hovering: boolean) => void;
+  plusSide?: 'right' | 'bottom'; // trailing edge: horizontal rows → right, vertical columns → bottom
 };
+
+// The "+ Add …" placeholder card shown under a focused node that has no
+// children yet (edit mode only) — the only way to seed a first child in place.
+export type AddNodeData = { label: string; onClick: () => void };
+
+// Hover-revealed "+" / "×" badges on an editable card (cards keep overflow
+// visible so these can straddle the edges). "×" pins to the card's top-right
+// corner; "+" sits centered in the sibling gutter after the card, and hovering
+// it opens the insertion slot via onPlusHover. Revealed by the .map-edit-badge
+// CSS hover rule. data-edit-btn marks them so the drag hooks ignore
+// pointer-downs on them.
+export function EditBadges({ d }: { d: EditAffordance }) {
+  if (!d.onAddAfter && !d.onRemove) return null;
+  const badge: CSSProperties = {
+    position: 'absolute',
+    width: 26,
+    height: 26,
+    borderRadius: '50%',
+    padding: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 17,
+    fontWeight: 600,
+    lineHeight: 1,
+    cursor: 'pointer',
+    background: '#ffffff',
+    border: '1px solid #d4d4d4',
+    color: '#525252',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.18)',
+    zIndex: 3,
+    userSelect: 'none',
+  };
+  // Hovering "+" spreads the siblings by PLUS_GAP_SPREAD (30px), growing the
+  // 12px gutter to 42px; the badge sits at that opened gap's midpoint (center
+  // 21px past the card edge → trailing edge at 34px for the 26px badge) so it
+  // reads as "the plus goes right here, between these two cards".
+  const plusPos: CSSProperties =
+    d.plusSide === 'bottom'
+      ? { bottom: -34, left: '50%', transform: 'translateX(-50%)' }
+      : { right: -34, top: '50%', transform: 'translateY(-50%)' };
+  return (
+    <>
+      {d.onRemove && (
+        <button
+          type="button"
+          data-edit-btn
+          aria-label="Remove this step and all steps beneath it"
+          title="Remove (children removed too)"
+          className="map-edit-badge"
+          style={{ ...badge, top: -10, right: -10 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            d.onRemove?.();
+          }}
+          onDoubleClick={(e) => e.stopPropagation()}
+        >
+          ×
+        </button>
+      )}
+      {d.onAddAfter && (
+        <button
+          type="button"
+          data-edit-btn
+          aria-label="Add a step here"
+          title="Add a step here"
+          className="map-edit-badge"
+          style={{ ...badge, ...plusPos }}
+          onClick={(e) => {
+            e.stopPropagation();
+            d.onPlusHover?.(false);
+            d.onAddAfter?.();
+          }}
+          onDoubleClick={(e) => e.stopPropagation()}
+          onMouseEnter={() => d.onPlusHover?.(true)}
+          onMouseLeave={() => d.onPlusHover?.(false)}
+        >
+          +
+        </button>
+      )}
+    </>
+  );
+}
 
 // Small amber corner dot marking a node with unsaved staged edits.
 export function StagedDot() {
@@ -114,9 +237,16 @@ export function StagedDot() {
     <div
       title="Unsaved change"
       style={{
-        position: 'absolute', top: -5, right: -5, width: 11, height: 11,
-        borderRadius: '50%', background: '#f59e0b', border: '2px solid #ffffff',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.25)', zIndex: 2,
+        position: 'absolute',
+        top: -5,
+        right: -5,
+        width: 11,
+        height: 11,
+        borderRadius: '50%',
+        background: '#f59e0b',
+        border: '2px solid #ffffff',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
+        zIndex: 2,
       }}
     />
   );

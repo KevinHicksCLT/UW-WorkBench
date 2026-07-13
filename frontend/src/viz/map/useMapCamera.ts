@@ -8,7 +8,14 @@ import { getViewportForBounds, type useReactFlow } from '@xyflow/react';
 
 import { MAP_CARD_W, MAP_CARD_H } from '../nodes/MapNode';
 import type { DivisionFlow, FlowStep, FlowValueStream } from '../model';
-import { READABLE_MIN_ZOOM, DIV_W, DIV_H, type Category, type DragState } from './constants';
+import {
+  MAP_TOP_PIN,
+  READABLE_MIN_ZOOM,
+  DIV_W,
+  DIV_H,
+  type Category,
+  type DragState,
+} from './constants';
 
 type Rf = ReturnType<typeof useReactFlow>;
 
@@ -32,55 +39,86 @@ export type UseMapCameraArgs = {
 };
 
 export function useMapCamera({
-  rf, paneW, paneH, dragRef, companyOpen, selectedDomain, level,
-  focusedDivisionId, focusedVsId, focusedStepId, focusedSubStepId,
-  flowData, vsFlowData, valueStreams, steps, focusedStep,
+  rf,
+  paneW,
+  paneH,
+  dragRef,
+  companyOpen,
+  selectedDomain,
+  level,
+  focusedDivisionId,
+  focusedVsId,
+  focusedStepId,
+  focusedSubStepId,
+  flowData,
+  vsFlowData,
+  valueStreams,
+  steps,
+  focusedStep,
 }: UseMapCameraArgs) {
   // ── Camera helpers ────────────────────────────────────────────────────────
   // Fit a specific set of nodes in frame (used to frame the whole process row).
-  const fitNodes = useCallback((nodeIds: string[], padding = 0.18) => {
-    if (dragRef.current?.started) return; // never move the camera mid-drag (would yank the dragged card away)
-    // Every map card is a known fixed size (MAP_CARD_W×MAP_CARD_H), so we don't
-    // wait on xyflow to MEASURE freshly-added nodes (that was clipping long
-    // columns whose bottom hadn't measured yet). Instead, once the nodes exist
-    // in the store (positions known), compute the exact bounding box and fitBounds
-    // it — the whole requested set lands completely in frame, deterministically.
-    let tries = 0;
-    const attempt = () => {
-      // Wait until the freshly-opened children exist in the store…
-      // Gate on the freshly-opened children existing in the store…
-      const req = nodeIds.map((id) => rf.getNode(id)).filter((n): n is NonNullable<typeof n> => !!n);
-      if (req.length < nodeIds.length && tries++ < 12) { requestAnimationFrame(attempt); return; }
-      if (!paneW || !paneH) return;
-      // Frame the WHOLE visible spine so the company root is always in bounds, then
-      // pin its TOP near the container top — the company stays LOCKED at the top on
-      // every drill (it must never scroll out of frame). Clamp the zoom to a
-      // readable floor so deep levels (the tall L5 leaf column) don't shrink to an
-      // unreadable size; when the spine is taller than fits, it overflows below the
-      // fold (pannable) rather than zooming out past legibility (backlog item 36).
-      const all = rf.getNodes();
-      if (!all.length) return;
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      for (const n of all) {
-        const w = n.measured?.width ?? n.width ?? MAP_CARD_W;
-        const h = n.measured?.height ?? n.height ?? MAP_CARD_H;
-        minX = Math.min(minX, n.position.x);
-        minY = Math.min(minY, n.position.y);
-        maxX = Math.max(maxX, n.position.x + w);
-        maxY = Math.max(maxY, n.position.y + h);
-      }
-      const fit = getViewportForBounds(
-        { x: minX, y: minY, width: maxX - minX, height: maxY - minY },
-        paneW, paneH, 0.05, 2, padding,
-      );
-      const zoom = Math.min(Math.max(fit.zoom, READABLE_MIN_ZOOM), 2);
-      const centerX = (minX + maxX) / 2;
-      // x: re-derive horizontal centering for the (possibly clamped) zoom; y: pin the
-      // spine top (company) to ~16px below the container top. One animated setViewport.
-      rf.setViewport({ x: paneW / 2 - centerX * zoom, y: 16 - minY * zoom, zoom }, { duration: 460 });
-    };
-    requestAnimationFrame(attempt);
-  }, [rf, paneW, paneH]);  
+  const fitNodes = useCallback(
+    (nodeIds: string[], padding = 0.18) => {
+      if (dragRef.current?.started) return; // never move the camera mid-drag (would yank the dragged card away)
+      // Every map card is a known fixed size (MAP_CARD_W×MAP_CARD_H), so we don't
+      // wait on xyflow to MEASURE freshly-added nodes (that was clipping long
+      // columns whose bottom hadn't measured yet). Instead, once the nodes exist
+      // in the store (positions known), compute the exact bounding box and fitBounds
+      // it — the whole requested set lands completely in frame, deterministically.
+      let tries = 0;
+      const attempt = () => {
+        // Wait until the freshly-opened children exist in the store…
+        // Gate on the freshly-opened children existing in the store…
+        const req = nodeIds
+          .map((id) => rf.getNode(id))
+          .filter((n): n is NonNullable<typeof n> => !!n);
+        if (req.length < nodeIds.length && tries++ < 12) {
+          requestAnimationFrame(attempt);
+          return;
+        }
+        if (!paneW || !paneH) return;
+        // Frame the WHOLE visible spine so the company root is always in bounds, then
+        // pin its TOP near the container top — the company stays LOCKED at the top on
+        // every drill (it must never scroll out of frame). Clamp the zoom to a
+        // readable floor so deep levels (the tall L5 leaf column) don't shrink to an
+        // unreadable size; when the spine is taller than fits, it overflows below the
+        // fold (pannable) rather than zooming out past legibility (backlog item 36).
+        const all = rf.getNodes();
+        if (!all.length) return;
+        let minX = Infinity,
+          minY = Infinity,
+          maxX = -Infinity,
+          maxY = -Infinity;
+        for (const n of all) {
+          const w = n.measured?.width ?? n.width ?? MAP_CARD_W;
+          const h = n.measured?.height ?? n.height ?? MAP_CARD_H;
+          minX = Math.min(minX, n.position.x);
+          minY = Math.min(minY, n.position.y);
+          maxX = Math.max(maxX, n.position.x + w);
+          maxY = Math.max(maxY, n.position.y + h);
+        }
+        const fit = getViewportForBounds(
+          { x: minX, y: minY, width: maxX - minX, height: maxY - minY },
+          paneW,
+          paneH,
+          0.05,
+          2,
+          padding,
+        );
+        const zoom = Math.min(Math.max(fit.zoom, READABLE_MIN_ZOOM), 2);
+        const centerX = (minX + maxX) / 2;
+        // x: re-derive horizontal centering for the (possibly clamped) zoom; y: pin the
+        // spine top (company) below the floating controls row. One animated setViewport.
+        rf.setViewport(
+          { x: paneW / 2 - centerX * zoom, y: MAP_TOP_PIN - minY * zoom, zoom },
+          { duration: 460 },
+        );
+      };
+      requestAnimationFrame(attempt);
+    },
+    [rf, paneW, paneH],
+  );
 
   // Fit the whole visible graph, then pin its top edge near the top of the
   // container — fitView alone centers vertically, which left a large empty band
@@ -94,34 +132,37 @@ export function useMapCamera({
     rf.fitView({ duration: 0, padding: 0.08, maxZoom: 0.95 }).then((applied) => {
       if (!applied) return;
       const { x, zoom } = rf.getViewport();
-      rf.setViewport({ x, y: 16, zoom }, { duration: 400 });
+      rf.setViewport({ x, y: MAP_TOP_PIN, zoom }, { duration: 400 });
     });
   }, [rf]);
 
-  const moveCameraToNode = useCallback((nodeId: string, yBias = 0.5) => {
-    if (dragRef.current?.started) return; // never move the camera mid-drag
-    setTimeout(() => {
-      const node = rf.getNode(nodeId);
-      if (!node) return;
-      const w = node.measured?.width ?? DIV_W;
-      const h = node.measured?.height ?? DIV_H;
-      const cx = node.position.x + w / 2;
-      // Bias y downward so opened children stay in frame
-      const cy = node.position.y + h / 2 + yBias * 80;
-      rf.setCenter(cx, cy, { zoom: 0.9, duration: 420 });
-    }, 60);
-  }, [rf]);  
+  const moveCameraToNode = useCallback(
+    (nodeId: string, yBias = 0.5) => {
+      if (dragRef.current?.started) return; // never move the camera mid-drag
+      setTimeout(() => {
+        const node = rf.getNode(nodeId);
+        if (!node) return;
+        const w = node.measured?.width ?? DIV_W;
+        const h = node.measured?.height ?? DIV_H;
+        const cx = node.position.x + w / 2;
+        // Bias y downward so opened children stay in frame
+        const cy = node.position.y + h / 2 + yBias * 80;
+        rf.setCenter(cx, cy, { zoom: 0.9, duration: 420 });
+      }, 60);
+    },
+    [rf],
+  );
 
   // Camera: company open/close → fit the visible graph (pinned to the top)
   useEffect(() => {
     fitTopView();
-  }, [companyOpen]);  
+  }, [companyOpen]);
 
   // Camera: domain selected → center on it (divisions appear below); deselected → fit
   useEffect(() => {
     if (selectedDomain && !focusedDivisionId) moveCameraToNode(`core:${selectedDomain}`, 1.4);
     else if (!selectedDomain && companyOpen) fitTopView();
-  }, [selectedDomain]);  
+  }, [selectedDomain]);
 
   // Camera: division collapsed back → re-center on its domain. The drill-IN move is
   // intentionally NOT here: when a division is focused its value streams are fetched,
@@ -129,7 +170,7 @@ export function useMapCamera({
   // moveCameraToNode here first hard-zoomed to 0.9 → visible zoom-in-then-out glitch.
   useEffect(() => {
     if (!focusedDivisionId && selectedDomain) moveCameraToNode(`core:${selectedDomain}`, 1.4);
-  }, [focusedDivisionId]);  
+  }, [focusedDivisionId]);
 
   // Camera: when the division's value streams arrive, frame the whole row — the
   // division plus its full left-to-right value-stream row, so nothing is cut off.
@@ -141,7 +182,7 @@ export function useMapCamera({
         setTimeout(() => moveCameraToNode(focusedDivisionId, 0.8), 120);
       }
     }
-  }, [flowData]);  
+  }, [flowData]);
 
   // Camera: VS drill-IN is framed by the vsFlowData effect below (top-pinned, whole
   // process row) once the steps arrive. No immediate moveCameraToNode here — it
@@ -157,7 +198,7 @@ export function useMapCamera({
         setTimeout(() => moveCameraToNode(`vs:${focusedVsId}`, 0.8), 120);
       }
     }
-  }, [vsFlowData]);  
+  }, [vsFlowData]);
 
   // Camera: L4 focused → frame the clicked step PLUS its full L5 task column, so
   // the step stays in view and every task is completely framed (nothing clipped).
@@ -169,7 +210,7 @@ export function useMapCamera({
     } else {
       moveCameraToNode(`step:${focusedStepId}`, 0.3);
     }
-  }, [focusedStepId]);  
+  }, [focusedStepId]);
 
   // Camera: L4 → focus sub-process. Frame it plus its full L5 process-step row.
   useEffect(() => {
@@ -180,5 +221,5 @@ export function useMapCamera({
     } else {
       moveCameraToNode(`substep:${focusedSubStepId}`, 0.3);
     }
-  }, [focusedSubStepId]);  
+  }, [focusedSubStepId]);
 }

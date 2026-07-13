@@ -1,0 +1,1587 @@
+{
+  "tasks": [
+    {
+      "id": "d8eec6e9-24ef-4082-bd2d-5c102cd30748",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter", "Medical / Nurse Case Manager"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All in-force life policies within the reinstatement window whose reinstatement request is under evaluation for whether underwriting approval and/or new evidence of insurability is required; scope = one policy per case, keyed on the policy record in the Guidewire PolicyCenter/ALIP policy administration system (PAS)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The lapse-to-request interval for the specific policy (from cancellation/lapse date to the reinstatement request date); reinstatement rules are applied as of the request date and the elapsed months drive the evidence-of-insurability tier."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Policy status = Lapsed/Cancelled, lapse date, product/plan code, face amount, elapsed months since lapse, and any prior underwriting class are populated and valid in PAS before the requirement tier is determined; a blank lapse date or face amount blocks the assessment."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The evidence-requirement decision reconciles to the reinstatement rules matrix: <6 months = simplified/no new evidence, 6-12 months = reinstatement application + short-form health statement, >12 months = full evidence of insurability; the tier selected must match the elapsed-months band with 0 exceptions."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The requirement determination memo is saved to the policy record in PAS and exported to the GRC platform under /underwriting/reinstatement/<policy-no>/ with timestamp and version label; retained per the life records retention schedule (7 years)."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Cases that fall outside the standard matrix (e.g. impaired-risk history, contestable-period overlap) are logged as reinstatement exceptions in the underwriting workstation with disposition (approve with evidence / decline / refer to Medical) and routed to the Senior Underwriter."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "The requirement tier on a sampled case traces to the lapse date and elapsed months shown on the PAS policy screen and the reinstatement rules matrix version cited in the memo."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Reinstatement workflow status advances Lapsed -> Reinstatement Under Review -> Evidence Requested/Not Required, matching the requirement determination; status in the underwriting workstation aligns to the decision recorded."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Lapse date, request-received date and evidence-due date are populated and internally consistent (request date after lapse date; evidence-due date = request date + 30 days) in PAS."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "Quarterly sample of 25 reinstatement determinations across products, drawn from PAS reinstatement-review queue for the quarter."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = requirement tier matches the elapsed-months band and product rule and is documented with sign-off; FAIL = wrong tier applied, missing health evidence where required, or no documented rationale. Target >= 98% conformance."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Failures are returned to the owning Underwriter for correction within 2 business days, re-evidence ordered if under-required, and repeat errors escalated to the Underwriting Manager for coaching."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = every reinstatement case has a documented evidence-requirement determination tied to the current rules matrix version, an approver sign-off, and (where >12 months) full evidence of insurability on file before approval."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence lands in the GRC platform folder /underwriting/reinstatement/<policy-no>/ and on the PAS policy record; sample-review results retained in the underwriting QA workbook."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Apply the documented reinstatement referral triggers",
+              "value": "Requirement matrix flags impaired-risk history, contestable-period overlap and elapsed >12 months as mandatory referrals to Senior Underwriter/Medical before approval."
+            },
+            {
+              "step": "Record the trigger evaluation on the case",
+              "value": "The determination memo records which referral triggers were checked and their outcome for each reinstatement case."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify triggered cases were referred",
+              "value": "In the quarterly sample of 25, 100% of cases meeting a referral trigger show a referral record and reviewer disposition."
+            },
+            {
+              "step": "Confirm no bypassed triggers",
+              "value": "0 approved reinstatements over 12 months lapsed without full evidence of insurability."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the reinstatement requirement rationale in the file",
+              "value": "Determination memo in PAS states elapsed months, rule tier, evidence required and rationale; no verbal-only decisions."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for documentation completeness",
+              "value": "25-file quarterly sample shows a complete requirement memo and approver sign-off on 100% of files."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Record the requirement decision within 24 hours",
+              "value": "Evidence-requirement determination is entered on the PAS policy record within one business day of the reinstatement request."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check decision timeliness",
+              "value": "Elapsed time between request-received timestamp and determination timestamp <= 24 business hours for >= 95% of sampled cases."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5p8gf0cb3v880iuotyh1p",
+          "checklist": [
+            {
+              "step": "Exclude genetic information from the reinstatement evidence set",
+              "value": "Health-evidence requirements for reinstatement request medical history and current-condition attestations only; genetic test results and family genetic history are not requested or used in the requirement determination."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify no genetic information was used",
+              "value": "Sample of reinstatement determinations shows 0 cases where a genetic test result or family genetic history influenced the evidence tier or reinstatement decision."
+            }
+          ]
+        },
+        {
+          "regId": "cmrbfzeoh005tv8kg30qi3b63",
+          "checklist": [
+            {
+              "step": "Confirm permissible purpose before ordering evidence",
+              "value": "Any MIB/attending-physician or consumer report ordered to support reinstatement is tied to the insured's written authorization and the underwriting permissible purpose recorded on the case."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify authorization on ordered reports",
+              "value": "100% of reinstatement cases where a consumer report was ordered have a valid signed authorization on file predating the order."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cmr2fkgel1dx7kfgzkqi2w8uk",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["underwriting workstation"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All outstanding premium (unpaid premium plus any interest/late charges per policy terms) that must be collected as a precondition to reinstating the lapsed policy; scope = one policy per case, driven from the billing/commission platform receivable balance."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From lapse date through the reinstatement request date: all premium due during the lapsed period is aggregated as the reinstatement amount owed as of the request date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "ab389893-e5d2-41f8-9add-08b96d035875"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Premium-in-arrears amount, interest/late fee, payment method and cleared-funds date are populated and valid in the billing/commission platform; reinstatement cannot proceed until the receivable shows a zero balance with cleared funds."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Sum of payments applied reconciles to the reinstatement amount owed (arrears + interest) with delta = 0; the billing receivable balance nets to zero and matches the amount cited in the reinstatement determination."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Payment receipt and reconciled receivable are stored on the PAS policy record and exported to the GRC platform under /underwriting/reinstatement/<policy-no>/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Partial payments, dishonored/NSF payments or disputed amounts are logged as billing exceptions in the billing/commission platform with disposition (hold reinstatement / request balance / refund) and the case is kept in Pending-Premium status until cleared."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "The collected amount on a sampled case traces to the billing receivable transactions and the payment gateway/receipt reference recorded in the billing platform."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Billing status advances Arrears -> Payment Received -> Cleared, and only a Cleared status permits the reinstatement workflow to move to reactivation."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Payment date and funds-cleared date are populated and precede the reinstatement effective date; no reinstatement effective date is set before the cleared-funds date."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "Quarterly sample of 25 reinstated policies drawn from the billing platform reinstatement-payment transactions for the quarter."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = full arrears plus interest collected with cleared funds before reinstatement effective date and receivable at zero; FAIL = reinstatement effected with an open balance or uncollected interest. Target 100% (control is preventive)."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Any reinstatement found effected with an open balance is reversed or the balance is billed and collected within 2 business days; root cause logged and escalated to the Underwriting Manager if a control override occurred."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = reinstatement amount owed fully collected and cleared, receivable balance zero, and payment evidence linked to the policy record before the reinstatement is issued."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Payment evidence in the billing/commission platform and the GRC folder /underwriting/reinstatement/<policy-no>/; sample results in the underwriting QA workbook."
+        },
+        {
+          "answerId": "cmr2ocdwz0tyzkaz3d5hiftkx",
+          "value": "Field definitions from the billing data dictionary: premium_in_arrears, interest_accrued, payment_applied, receivable_balance, funds_cleared_date. Control total = arrears + interest owed, reconciled to payments_applied with 0 variance and receivable_balance = 0."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of the reinstatement premium collection",
+              "value": "Every payment application, interest calculation and receivable adjustment is timestamped and user-attributed in the billing/commission platform."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify the audit trail is complete",
+              "value": "Sampled reinstatements show a continuous transaction trail from arrears to zero balance with no manual adjustments lacking a reason code."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document premium collection as a reinstatement precondition",
+              "value": "The file records the amount owed, amount collected, cleared-funds date and confirmation that collection preceded reinstatement."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for collection documentation",
+              "value": "25-file quarterly sample shows payment evidence and zero-balance confirmation on 100% of reinstated files."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "f3c8dd57-b12e-49ec-80cb-58fb75e3a44a",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Confirmation that elapsed time since cancellation/lapse falls within the reinstatement eligibility window per the policy contract and the applicable state reinstatement statute; scope = one policy per case, evaluated against the PAS lapse date."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Interval from cancellation/lapse date to reinstatement request date; the maximum window is typically 3 years for life (contract-specific) or the state-mandated period, measured as of the request date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Lapse date, request date, issue state, product/contract reinstatement clause and computed elapsed months are populated and valid in PAS; the eligibility clause version is cited before confirmation."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Computed elapsed months reconcile to the difference between request date and lapse date, and the eligibility determination (eligible/ineligible) matches the contract window and the state maximum, whichever is more favorable to the insured; delta between manual and system calc = 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The eligibility confirmation (window, cited clause, state rule, decision) is stored on the PAS policy record and exported to the GRC folder /underwriting/reinstatement/<policy-no>/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Cases outside the window are logged as ineligible with disposition (decline reinstatement / offer new-business application) in the underwriting workstation; borderline dates near the cutoff are referred to the Senior Underwriter."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "The eligibility decision on a sampled case traces to the lapse date on the PAS screen, the cited contract clause and the state reinstatement rule reference."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Reinstatement status is set to Eligible or Ineligible-Window and blocks downstream reactivation when Ineligible; status aligns with the confirmed window decision."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Lapse date and request date are valid and consistent (request after lapse) and the computed window end date is present and used in the eligibility check."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "Quarterly sample of 25 reinstatement eligibility confirmations from the PAS reinstatement queue for the quarter, spanning multiple issue states."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = elapsed months correctly computed and compared to the correct contract/state window with matching decision; FAIL = miscomputed elapsed time, wrong window applied, or eligible/ineligible decision inconsistent with the rule. Target >= 99%."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Failures are corrected within 2 business days; ineligible-but-reinstated cases are reversed and the insured offered a new-business path; systemic window-logic errors raised to Product/Compliance."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dating: eligibility is judged as of the request date against the lapse date; the reinstatement effective date is never earlier than the cleared-premium date."
+        },
+        {
+          "answerId": "cmr2ocdwe0t7gkaz3mft8hes7",
+          "value": "Field definitions from the PAS data dictionary: lapse_date, request_date, elapsed_months, contract_reinstatement_window, state_max_window, eligibility_decision. Control total = elapsed_months recomputed from dates reconciles to the system value with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the eligibility-window determination",
+              "value": "File records lapse date, elapsed months, the cited contract clause and state rule, and the eligible/ineligible decision."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for window documentation",
+              "value": "25-file quarterly sample shows a complete, cited eligibility determination on 100% of files."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Record the eligibility decision within 24 hours",
+              "value": "Eligible/ineligible confirmation is entered on the PAS record within one business day of the request."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check decision timeliness",
+              "value": "Time from request to eligibility confirmation <= 24 business hours for >= 95% of sampled cases."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "157e0752-3e2a-4c68-96ce-7fd6a2fa41b6",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "document management repository", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Issuance of the reinstatement confirmation to the insured and producer/broker, documenting the reinstatement effective date and any coverage gap during the lapsed period; scope = one confirmation per reinstated policy."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Confirmation is issued after premium is cleared and reactivation is effected, within 2 business days of reactivation; the coverage-gap period stated is lapse date through reinstatement effective date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Insured name, policy number, reinstatement effective date, coverage-gap dates, any revised terms/exclusions, and broker of record are populated and valid on the confirmation before send; a missing effective date or gap statement blocks issuance."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Confirmation content reconciles to the PAS policy record: effective date, coverage-gap window and any endorsements on the letter match the reactivated policy exactly; 0 field mismatches."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The issued confirmation (PDF) is stored in the document management repository and linked on the PAS policy record and GRC folder /underwriting/reinstatement/<policy-no>/ with send timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Undeliverable confirmations or insured disputes over the stated coverage gap are logged as exceptions in the underwriting workstation with disposition (resend / correct / escalate) and tracked to closure."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled confirmation content traces to the PAS effective-date and coverage-gap fields and the document management repository copy of the sent letter."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy status = Reinstated/In-Force and correspondence status = Confirmation Sent; the letter is only issued once status is Reinstated."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Reinstatement effective date and confirmation send date are populated and consistent (send date on or after effective date), and the coverage-gap start/end dates match the lapse and reinstatement dates."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "Quarterly sample of 25 issued reinstatement confirmations from the correspondence log in the document management repository."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = confirmation issued within 2 business days, states the correct effective date and coverage-gap window, and matches the policy record; FAIL = late, missing gap disclosure, or content mismatch. Target >= 98%."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Failures trigger a corrected confirmation within 1 business day; recurring content mismatches drive a template/merge-field fix routed through the Underwriting Manager."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dating: the confirmation states the reinstatement effective date (>= cleared-premium date) and the coverage-gap period (lapse date through effective date) explicitly, and is filed to the policy record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the reinstatement confirmation in the file",
+              "value": "The issued confirmation and its send record are filed against the policy, disclosing effective date and coverage gap."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample confirmations for completeness",
+              "value": "25-case quarterly sample shows a filed confirmation disclosing effective date and coverage gap on 100% of reinstatements."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Issue and record the confirmation within the SLA",
+              "value": "Confirmation is sent and logged within 2 business days of reactivation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check issuance timeliness",
+              "value": "Send date minus reactivation date <= 2 business days for >= 95% of sampled confirmations."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "e7c819af-3593-4f0a-9532-b5706d7bc158",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Reinsurance Analyst"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "billing/commission platform", "usageType": "performed" },
+        { "name": "Reinsurance administration system", "usageType": "performed" },
+        { "name": "GRC platform (Archer/ServiceNow GRC)", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Notification to billing and reinsurance accounting that the policy has been reinstated, including any premium adjustments and cession restatement required; scope = one reinstated policy, notifying the billing/commission platform and the reinsurance administration system."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Notification is sent within 1 business day of reactivation; premium and cession adjustments cover the lapsed-and-reinstated period from lapse date to reinstatement effective date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Policy number, reinstatement effective date, restated premium schedule, applicable treaty/cession identifiers and any commission adjustment are populated and valid on the notification before send."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Restated premium and ceded premium reconcile to the reinstated policy: billing receivable, ledger premium and reinsurance cession all reflect the same reinstated in-force amount; delta across billing and reinsurance systems = 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The billing and reinsurance notifications (with acknowledgements) are stored on the PAS policy record and exported to the GRC folder /underwriting/reinstatement/<policy-no>/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Un-acknowledged notifications or cession mismatches are logged as exceptions in the reinsurance administration system with disposition (re-notify / adjust cession / escalate to Reinsurance Accountant) and tracked to closure."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "The premium-adjustment figures on a sampled notification trace to the PAS restated premium schedule and the billing receivable transactions."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Notification status advances Pending -> Sent -> Acknowledged by both billing and reinsurance; reinstatement accounting is not treated as complete until both acknowledgements are recorded."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Reinstatement effective date and notification date are populated and consistent (notification within 1 business day of effective date); cession effective date matches the policy reinstatement date."
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "Quarterly sample of 25 reinstated policies checked for billing and reinsurance notification, drawn from the PAS reinstatement register."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = both billing and reinsurance notified and acknowledged with matching premium/cession within 1 business day; FAIL = missing notification, unacknowledged, or premium/cession mismatch. Target >= 98%."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "Failures trigger re-notification within 1 business day and a reconciliation entry; unresolved cession mismatches escalate to the Reinsurance Accountant and Reinsurance Manager."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "Delegation: routine reinstatement notifications are handled by the Underwriter/Underwriting Assistant; premium/cession adjustments above the treaty materiality threshold require Senior Underwriter and Reinsurance Manager sign-off per the authority matrix."
+        },
+        {
+          "answerId": "cmr2ocdxd0uiokaz3vkt0fqsv",
+          "value": "Field definitions from the PAS/reinsurance data dictionary: reinstated_premium, ceded_premium, treaty_id, commission_adjustment, effective_date. Control total = reinstated in-force premium reconciles across PAS, billing and reinsurance systems with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of reinstatement notifications",
+              "value": "Billing and reinsurance notifications and their acknowledgements are timestamped and user-attributed in PAS and the reinsurance administration system."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify the notification trail",
+              "value": "Sampled reinstatements show a complete send-and-acknowledge trail to both billing and reinsurance with reconciled premium."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document downstream notification in the file",
+              "value": "The file records that billing and reinsurance were notified of the reinstatement and any premium adjustment."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for notification evidence",
+              "value": "25-case quarterly sample shows filed billing and reinsurance notification evidence on 100% of reinstatements."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "868ac690-ad18-4393-bce6-b66221c127bd",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Reactivation of the lapsed policy in the policy administration system with the correct reinstatement effective date and confirmation of coverage continuity; scope = one policy per case, keyed on the PAS policy record."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Reactivation occurs once premium is cleared and eligibility/underwriting is confirmed; the effective date is set no earlier than the cleared-premium date and the coverage-continuity check spans lapse date to effective date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Reinstatement effective date, coverage terms, sum insured, beneficiary and any revised exclusions are populated and valid in PAS at reactivation; the policy status flips to In-Force only when all required fields pass validation."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Reactivated policy attributes reconcile to the pre-lapse policy plus any reinstatement changes; sum insured, premium mode and coverage codes match with 0 unexplained differences and the effective date equals the approved reinstatement date."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The reactivation transaction (before/after policy image) is retained on the PAS record and exported to the GRC folder /underwriting/reinstatement/<policy-no>/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Reactivation errors (wrong effective date, coverage-gap misstatement, failed continuity check) are logged as exceptions in the underwriting workstation with disposition (correct-and-reissue / reverse) and routed to the Senior Underwriter."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "The reactivated policy attributes on a sampled case trace to the pre-lapse policy image in PAS and the approved reinstatement transaction record."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy status advances Reinstatement Approved -> Reactivated/In-Force only after the effective date and coverage terms pass validation; status aligns to the reactivation decision."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Reinstatement effective date and reactivation transaction date are populated and consistent (effective date >= cleared-premium date), and lapse/effective dates bound the coverage-continuity window."
+        },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The PAS reinstatement/reactivation transaction rules and effective-dating configuration are the approved production version; any change to reinstatement date logic goes through change control before use."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: reactivations where the effective date differs from the request date by more than the standard grace, or where coverage terms changed, are flagged for independent re-check before the status flips to In-Force."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: any face-amount or coverage-term difference between the pre-lapse and reactivated policy is material and must be documented and approved; immaterial cosmetic differences are noted only."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "Quarterly sample of 25 reactivated policies drawn from the PAS reinstatement transaction log."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = policy reactivated with the approved effective date, coverage continuity confirmed, and attributes matching the pre-lapse policy plus approved changes; FAIL = wrong effective date, unconfirmed continuity, or unapproved coverage change. Target >= 99%."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Failures are corrected or reversed within 2 business days; incorrect effective dates that create an unintended coverage gap or overlap are escalated to the Underwriting Manager and Compliance."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = policy status In-Force with the correct reinstatement effective date, documented coverage continuity, and a retained before/after transaction image approved by the Senior Underwriter."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence in the PAS transaction log and the GRC folder /underwriting/reinstatement/<policy-no>/; sample results in the underwriting QA workbook."
+        },
+        {
+          "answerId": "cmr2ocg030x9nkaz3yz53rt7u",
+          "value": "Effective dating: reinstatement effective date >= cleared-premium date; coverage-continuity window evaluated from lapse date to effective date; overlaps or unintended gaps are rejected by the reactivation control."
+        },
+        {
+          "answerId": "cmr2ocg030x9okaz38bokojzz",
+          "value": "Approved methodology = the current production PAS reinstatement transaction ruleset and effective-dating parameters; parameter source is the change-controlled PAS configuration, version cited on the transaction record."
+        },
+        {
+          "answerId": "cmr2ocg030x9pkaz3y7311zrr",
+          "value": "Field definitions from the PAS data dictionary: reinstatement_effective_date, coverage_status, sum_insured, coverage_codes, prior_policy_image. Control total = reactivated policy attributes reconcile to pre-lapse image plus approved changes with 0 unexplained variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp161o8cmbk8jeoutzfd",
+          "checklist": [
+            {
+              "step": "Restrict reactivation to authorized personnel",
+              "value": "Only underwriters with reinstatement authority (per the authority matrix) can flip a policy from Lapsed to In-Force in PAS; access is role-gated."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify authorized reactivation",
+              "value": "100% of sampled reactivations were executed by a user with documented reinstatement authority; 0 unauthorized status changes."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of the reactivation",
+              "value": "The before/after policy image and effective-date change are timestamped and user-attributed in PAS."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify the reactivation audit trail",
+              "value": "Sampled reactivations show a complete transaction trail with the approved effective date and no unlogged manual overrides."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document coverage continuity in the file",
+              "value": "The file records the reinstatement effective date, the coverage-gap window and confirmation that continuity was validated."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for continuity documentation",
+              "value": "25-case quarterly sample shows documented effective date and continuity confirmation on 100% of reactivations."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5onpn0bdnv8807pn9u4yi",
+          "checklist": [
+            {
+              "step": "Screen the insured before re-establishing coverage",
+              "value": "Prior to reactivating the policy, the insured and any payor are screened against OFAC sanctions lists; a clear result is required before the status flips to In-Force."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify pre-reactivation screening",
+              "value": "100% of sampled reactivations show a documented OFAC screening result dated before the reinstatement effective date; any hit shows a blocked/escalated disposition."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "9ad32cf1-290a-45d8-9a57-0af7eaecc94d",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["payment/subrogation system"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Review of any loss activity, claims or material risk changes that occurred during the lapsed period before the policy is reinstated; scope = one policy per case, evaluated against claims history in the claims management platform and loss-history reports."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The lapsed period only: from lapse/cancellation date to reinstatement request date; claims, incidents and risk changes with a date-of-loss inside this window are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Claims history, loss-run, any reported incidents and material risk-change disclosures for the lapsed window are populated and valid; the review cannot be completed until a loss-history check for the period is on file."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The number and value of losses considered reconcile to the claims platform loss-run for the lapsed period; the review conclusion (no material change / adverse loss activity) matches the loss data with 0 unreconciled claims."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The loss-activity review memo and loss-run extract are stored on the PAS policy record and exported to the GRC folder /underwriting/reinstatement/<policy-no>/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Adverse loss activity or new material risk during the lapse is logged as an exception with disposition (decline reinstatement / reinstate with revised terms or exclusion / refer) in the underwriting workstation and routed to the Senior Underwriter."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Losses cited in the review trace to claim records in the claims management platform and the loss-history report for the lapsed period."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Reinstatement status reflects the loss-review outcome (Clear / Refer-Adverse-Loss); an adverse finding blocks straight-through reinstatement and forces referral."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Date-of-loss on each considered claim falls within the lapse window; lapse date and request date bound the review period and are validated for consistency."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "Quarterly sample of 25 reinstatement loss-activity reviews drawn from the PAS reinstatement queue for the quarter."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = loss-history for the full lapse window reviewed, findings documented, and adverse activity referred/actioned; FAIL = no loss check, incomplete window, or adverse loss ignored. Target >= 98%."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Failures are re-worked within 2 business days with a completed loss-history check; reinstatements approved despite unreviewed adverse losses are reversed and escalated to the Underwriting Manager."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = documented review of loss activity and material risk change over the entire lapse window, with any adverse finding reflected in the reinstatement decision and terms."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence in the GRC folder /underwriting/reinstatement/<policy-no>/, the claims platform loss-run and the PAS policy record."
+        },
+        {
+          "answerId": "cmr2ocg0x0yczkaz3l2x26u7l",
+          "value": "Materiality/tolerance: any claim above the line-of-business large-loss threshold, any pattern of frequency, or a coverage-relevant risk change during the lapse is material and forces referral; minor sub-threshold items are noted only."
+        },
+        {
+          "answerId": "cmr2ocg0x0yd0kaz31025g4eo",
+          "value": "Effective dates: review window = lapse date through reinstatement request date; only losses with a date-of-loss inside this window are assessed for the reinstatement decision."
+        },
+        {
+          "answerId": "cmr2ocg0x0yd1kaz325q1o5wf",
+          "value": "Field definitions from the claims data dictionary: claim_number, date_of_loss, incurred_amount, claim_status, cause_of_loss. Control total = count and incurred value of in-window claims reconcile between the loss-run and the review memo with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp6s1o8mmbk897wnw3vj",
+          "checklist": [
+            {
+              "step": "Perform ongoing risk monitoring before reinstating",
+              "value": "Loss activity and material risk change over the lapse period are reviewed as part of the reinstatement decision, not just at original underwriting."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify monitoring was performed",
+              "value": "Sampled reinstatements show a documented loss/risk review covering the full lapse window on 100% of cases."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Refer adverse loss activity per triggers",
+              "value": "Large losses, frequency patterns or coverage-relevant risk changes during the lapse trigger a mandatory referral to the Senior Underwriter."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify adverse cases were referred",
+              "value": "100% of sampled cases with in-window adverse loss show a referral and reviewer disposition."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the loss-activity review",
+              "value": "The file records the losses considered, the source loss-run and the review conclusion."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for review documentation",
+              "value": "25-file quarterly sample shows a complete loss-activity review memo on 100% of files."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrbfzeoh005tv8kg30qi3b63",
+          "checklist": [
+            {
+              "step": "Order loss-history consumer reports only for permissible purpose",
+              "value": "Any C.L.U.E./loss-history or claims consumer report pulled to review lapsed-period losses is obtained under the insurance-underwriting permissible purpose tied to the insured's authorization."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify permissible purpose and authorization",
+              "value": "100% of sampled cases using a third-party loss-history report show a permissible-purpose basis and, where required, a valid authorization on file before the pull."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "709cbd50-8e42-4537-9fa0-d48e87044fd5",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [],
+      "addApps": [{ "name": "underwriting workstation", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Underwriting assessment of the incremental gap-in-coverage risk created by the lapsed period before reinstatement, including moral hazard and anti-selection; scope = one policy per case, assessed in the underwriting workstation over Guidewire PolicyCenter/Earnix."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The lapsed window (lapse date to reinstatement effective date) is the gap being underwritten; the assessment is made as of the reinstatement request date using current risk information."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Gap length, reason for lapse, updated exposure/health or property information, and any loss activity in the gap are populated and valid; the risk assessment cannot be completed without the gap length and reason recorded."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The gap-risk rating reconciles to the reinstatement risk rules: short clean gaps reinstate on original terms, longer gaps or adverse change drive revised terms/exclusions or decline; the terms applied match the assessed risk tier with 0 exceptions."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The gap-risk assessment (rationale, rating, recommended terms) is stored on the PAS policy record and exported to the GRC folder /underwriting/reinstatement/<policy-no>/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Elevated gap risk or anti-selection indicators are logged as exceptions with disposition (reinstate with exclusion/rate-up / decline / refer) in the underwriting workstation and routed to the Senior Underwriter or authority level per the matrix."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Assess gap risk within authority limits",
+              "value": "The gap-in-coverage risk decision and any rate-up/exclusion are made within the underwriter's documented authority by premium, limit and line of business."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify decisions were within authority",
+              "value": "100% of sampled gap-risk decisions fall within the acting underwriter's authority or show an appropriate referral."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Refer elevated gap risk per triggers",
+              "value": "Long gaps, adverse loss in the gap, or anti-selection indicators trigger a mandatory referral before reinstatement."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify triggered referrals",
+              "value": "100% of sampled cases meeting a gap-risk trigger show a documented referral and disposition."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the gap-risk rationale",
+              "value": "The file records the gap length, reason, risk rating and recommended terms with supporting rationale."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for risk documentation",
+              "value": "25-file quarterly sample shows a complete gap-risk assessment on 100% of files."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrbfze3b004zv8kg01hq58ql",
+          "checklist": [
+            {
+              "step": "Issue an adverse action notice when a consumer report drives a less favorable reinstatement decision",
+              "value": "If a decline, rate-up or exclusion on the gap risk is based in whole or part on a consumer report, an FCRA adverse action notice with the CRA identity and dispute rights is sent to the insured."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify adverse action notices were issued",
+              "value": "100% of sampled reinstatement declines/rate-ups driven by a consumer report have a timely adverse action notice on file identifying the CRA and dispute rights."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6c0261ed-1d18-4962-88bb-c0bc24bb3ae1",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Underwriting Assistant",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "document management repository", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Receipt and validation of the reinstatement request from the insured or broker following lapse/cancellation, confirming completeness and eligibility before the case is worked; scope = one reinstatement request per policy, intake via PAS and the document management repository."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Validation occurs on request receipt; requests are acknowledged and validated within 2 business days of receipt, and the request date is checked against the reinstatement window measured from the lapse date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Policy number, requester identity and authority (insured or broker of record), signed reinstatement application/authorization, and lapse details are populated and valid; a request missing signature or broker-of-record authority is returned as incomplete."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The validated request reconciles to the PAS policy: the policy is genuinely lapsed/cancelled, the requester matches the policyholder/broker of record, and the request is within the eligibility window; any mismatch = 0 tolerance, request rejected."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The reinstatement request and validation checklist are stored in the document management repository and linked on the PAS record and GRC folder /underwriting/reinstatement/<policy-no>/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Incomplete, out-of-window or unauthorized requests are logged as intake exceptions in the underwriting workstation with disposition (return for info / decline / redirect to new-business) and tracked to closure."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Validated request details on a sampled case trace to the signed reinstatement application in the document management repository and the policy status in PAS."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Reinstatement status advances Request Received -> Validated/Complete or Returned-Incomplete; only Validated requests enter the underwriting queue."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Request-received date and lapse date are populated and consistent (request after lapse, within window); the acknowledgement date is within 2 business days of receipt."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "Quarterly sample of 25 reinstatement requests drawn from the PAS intake queue for the quarter."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = request complete, requester authorized, policy confirmed lapsed and within window, all validated before work begins; FAIL = incomplete, unauthorized requester, or out-of-window accepted. Target >= 98%."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Failures are returned to the requester within 1 business day with the specific missing items; unauthorized-requester cases are stopped and escalated to the Senior Underwriter/Compliance."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = every reinstatement request has a completed validation checklist (completeness, requester authority, eligibility window) and a documented accept/return decision before underwriting."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence in the document management repository, the PAS record, and the GRC folder /underwriting/reinstatement/<policy-no>/."
+        },
+        {
+          "answerId": "cmr2ocdxs0v20kaz30c389q86",
+          "value": "Field definitions from the PAS/DMS data dictionary: request_id, policy_number, requester_role, lapse_date, request_date, authorization_flag. Control total = validated requests reconcile to intake receipts with 0 unlogged or duplicate requests."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Enforce minimum submission requirements for reinstatement",
+              "value": "A request is not accepted for underwriting until the signed reinstatement application, authorization and required lapse details are present."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify completeness at intake",
+              "value": "100% of sampled accepted requests met the minimum reinstatement submission requirements before entering the queue."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the validation decision",
+              "value": "The intake checklist and accept/return decision with rationale are filed against the policy."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for validation documentation",
+              "value": "25-file quarterly sample shows a complete intake validation record on 100% of files."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Refer non-standard requests per triggers",
+              "value": "Out-of-window, unauthorized-requester or disputed requests are referred to the Senior Underwriter rather than processed straight through."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify referrals of non-standard requests",
+              "value": "100% of sampled non-standard requests show a referral and documented disposition."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5onpn0bdnv8807pn9u4yi",
+          "checklist": [
+            {
+              "step": "Screen the requesting/insured parties on intake",
+              "value": "On validating a reinstatement request that will re-establish coverage, the insured and payor are screened against OFAC sanctions lists before the case proceeds to reinstatement."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify sanctions screening on validated requests",
+              "value": "100% of sampled validated requests show an OFAC screening result before reinstatement is approved; any hit shows a blocked/escalated disposition."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cmr2fhjrr01vgkfgza1wsxuwd",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter", "Pricing Actuary"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Evaluation of the broker's counter-proposal (rate, terms, coverage asks) on a renewal account against the technical renewal pricing floor and appetite; scope = one renewal account per case, assessed in the underwriting workstation with the actuarial modeling platform."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The renewal cycle for the account, typically evaluated 60-90 days before expiry; the counter-proposal is assessed against the technical floor computed for the upcoming policy term."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "027292ea-e459-414f-bdb1-3ab36faf3d33"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Expiring premium, technical/renewal floor premium, loss ratio, broker counter-proposal terms and target loss ratio are populated and valid; the assessment cannot conclude without the technical floor and the counter-proposal figures recorded."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The counter-proposal premium is reconciled against the technical floor and authority matrix: acceptance only where premium >= floor or an approved deviation exists; the recommended position reconciles to the loss-ratio and rate-adequacy output with 0 unexplained gaps."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The assessment (floor, counter-proposal, gap, recommendation) is stored on the PAS/account record and exported to the GRC folder /underwriting/renewal/<account-no>/ with timestamp and version; retained per record schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Counter-proposals below the floor are logged as pricing-deviation exceptions with disposition (accept within authority / refer for deviation approval / decline-and-non-renew) in the underwriting workstation and routed per the authority matrix."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The renewal pricing model/floor methodology is the approved production version; the rate-adequacy and technical-floor calculation uses the change-controlled model version cited on the assessment."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03w2mbk84o4w6iug" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: the assessment shows the loss-ratio and combined-ratio impact of accepting the counter-proposal versus holding the floor, flagging cases where acceptance breaches the target loss ratio."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: a counter-proposal more than the authorized deviation percentage below the floor is material and requires Head of Pricing/CUO deviation approval; within-tolerance differences are handled at underwriter authority."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "Quarterly sample of 25 renewal counter-proposal assessments drawn from the renewal negotiation log for the quarter."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = counter-proposal compared to the correct technical floor, recommendation within authority or properly referred, and rationale documented; FAIL = no floor comparison, below-floor acceptance without approval, or missing rationale. Target >= 95%."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Below-floor acceptances without approval are unwound or ratified through deviation sign-off within 2 business days; repeat breaches escalate to the Underwriting Manager and Head of Pricing."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = each counter-proposal has a documented comparison to the technical floor, a recommendation within authority (or an approved deviation), and rate-adequacy support before a renewal position is communicated to the broker."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence in the GRC folder /underwriting/renewal/<account-no>/, the actuarial modeling platform output and the account record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppc31o8wmbk8i3ty2jne",
+          "checklist": [
+            {
+              "step": "Apply the authority matrix to any deviation from the floor",
+              "value": "Accepting a counter-proposal below the technical/filed floor requires deviation approval at the authority level tied to the deviation size."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify deviation approvals",
+              "value": "100% of sampled below-floor acceptances have a documented deviation approval at the correct authority level; 0 unauthorized below-floor renewals."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Base the floor on correctly applied filed rates",
+              "value": "The technical/renewal floor is derived from the current filed rates and rating factors for the risk, not ad-hoc figures."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify filed-rate basis",
+              "value": "Sampled assessments show the floor computed from the current filed rating with the rate version cited; 0 floors using superseded rates."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppf71o92mbk8voyj74ly",
+          "checklist": [
+            {
+              "step": "Test the counter-proposal against loss-ratio targets",
+              "value": "The assessment shows the projected loss ratio of the counter-proposal against the line-of-business target before a recommendation is made."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify loss-ratio testing",
+              "value": "100% of sampled assessments document the projected loss ratio versus target; acceptances breaching target show an approved rationale."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fkjy01fpjkfgz82gbkfxw",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Confirmation that firm binding instructions (order to bind the renewal/placement) are received from the broker before the quote/renewal expiry, and validated against the agreed terms; scope = one placement/renewal per case, tracked in PAS and the CRM."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Binding instructions must be received before the quote validity/renewal expiry date; the confirmation window closes at expiry and any instruction after expiry requires re-quote or extension."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Broker identity/authority, policy/quote reference, agreed premium and terms, requested effective date and receipt timestamp of the binding instruction are populated and valid; instructions that vary from the quoted terms are flagged before binding."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The binding instruction reconciles to the firm quote: premium, limits, deductibles and effective date on the instruction match the quoted terms in PAS; any variance blocks bind until re-confirmed, with 0 tolerance on premium/limit mismatch."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The binding instruction (email/portal message) and the terms match check are stored in the CRM and on the PAS record and GRC folder /underwriting/renewal/<account-no>/ with timestamp and version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Instructions received after expiry, or varying from quoted terms, are logged as exceptions in the underwriting workstation with disposition (re-quote / extend validity / decline) and routed to the Senior Underwriter for authority to bind."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Pre/post check: the bound policy record in PAS is compared to the firm quote and the binding instruction; premium, limits, terms and effective date match on all three before the policy is issued."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "The bind is linked to the underwriting case/change record in PAS and the CRM opportunity, cross-referencing the quote reference and the binding instruction message id."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "Quarterly sample of 25 bound renewals/placements drawn from the PAS bind register for the quarter."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = binding instruction received before expiry, matched to quoted terms, and bound by an authorized underwriter; FAIL = bound after expiry without extension, term mismatch, or unauthorized bind. Target >= 99%."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Failures trigger correction/endorsement or re-quote within 2 business days; binds executed after expiry or outside authority are escalated to the Underwriting Manager and reviewed for E&O exposure."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dating: the requested effective date on the binding instruction is validated against the quote validity; no cover is bound with an effective date before the instruction is confirmed and premium terms agreed."
+        },
+        {
+          "answerId": "cmr2ocdx30u5gkaz3ze5oyvkx",
+          "value": "Acceptance = binding instruction confirmed before expiry and matched to quoted terms, with an authorized bind and the instruction, quote and bound record all reconciling. Evidence: the binding instruction and terms-match check stored in the CRM and PAS, linked in the GRC folder /underwriting/renewal/<account-no>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp161o8cmbk8jeoutzfd",
+          "checklist": [
+            {
+              "step": "Bind only on authorized instructions",
+              "value": "Cover is bound only after a firm binding instruction is confirmed and only by an underwriter with binding authority for the risk."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify authorized binding",
+              "value": "100% of sampled binds show a confirmed binding instruction and an authorized underwriter; 0 unauthorized or instruction-less binds."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp3v1o8gmbk8cr3fdcp0",
+          "checklist": [
+            {
+              "step": "Document verbal or informal binding instructions within 24 hours",
+              "value": "Any verbal/phone binding instruction is confirmed in writing and filed within 24 hours before or immediately after bind."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify timely written confirmation",
+              "value": "Sampled binds originating from verbal instructions show written confirmation filed within 24 hours on 100% of cases."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppmg1o9gmbk892isfh9g",
+          "checklist": [
+            {
+              "step": "Ensure the quote reached the broker ahead of expiry",
+              "value": "The firm renewal quote underlying the binding instruction was delivered to the broker in advance of expiry so instructions can be confirmed in time."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify quote lead time",
+              "value": "Sampled bound renewals show the quote issued to the broker before expiry with adequate lead time; late-quote cases are flagged."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5onpn0bdnv8807pn9u4yi",
+          "checklist": [
+            {
+              "step": "Screen the insured before binding",
+              "value": "Before confirming binding instructions and binding cover, the insured and relevant parties are screened against OFAC sanctions lists; a clear result is required to bind."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify pre-bind screening",
+              "value": "100% of sampled binds show a documented OFAC screening result dated before the bind; any hit shows a blocked/escalated disposition and no cover bound."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "35ddae3c-1ccb-4961-9c20-e74b897618de",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [],
+      "addApps": [{ "name": "CRM (Salesforce/Dynamics)", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Documentation of the lost-renewal reason for each non-retained account (declined, lost to competitor, non-renewed by carrier, insured cancelled), captured in a structured reason-code taxonomy; scope = all non-retained renewal accounts in the period."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The renewal period being closed out (monthly/quarterly retention cycle); a lost-reason must be recorded for every account that reaches its expiry without renewing in that cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "212e5d6a-e332-4696-9a0c-a15fe20ef41e"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Account id, expiring premium, lost-reason code, competitor/price detail (where known) and free-text narrative are populated and valid in the CRM/PAS renewal record; a non-retained account without a reason code is flagged as incomplete."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The count of lost-reason records reconciles to the count of non-retained accounts for the period: every account with status Not-Renewed has exactly one reason code; delta between the non-retained list and the reason-coded list = 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The lost-renewal register (reason codes plus narratives) is retained in the CRM and exported to the GRC folder /underwriting/renewal/lost/<period>/ with timestamp and version for retention analytics."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Accounts marked lost without a reason, or with an ambiguous/other code lacking narrative, are logged as data-quality exceptions and returned to the owning underwriter for completion before the period closes."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpppd1o9mmbk81jlpiqdi",
+          "checklist": [
+            {
+              "step": "Feed lost reasons into the win-back process",
+              "value": "Documented lost-renewal reasons populate the win-back backlog so recoverable accounts (e.g. lost on price) can be targeted for re-approach."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify lost accounts enter win-back",
+              "value": "Sampled lost accounts with a recoverable reason code appear on the win-back list with a follow-up owner and date."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppoe1o9kmbk8sofla2a9",
+          "checklist": [
+            {
+              "step": "Use lost reasons to track retention against targets",
+              "value": "Lost-reason data is aggregated by segment and compared to retention-rate targets to inform renewal strategy."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify retention reporting completeness",
+              "value": "The period retention report reconciles non-retained accounts to reason-coded records with 0 uncoded losses; segment retention is reported against target."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the lost-renewal reason in the account file",
+              "value": "Each non-retained account file carries a reason code and supporting narrative rather than an unexplained lapse."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for reason documentation",
+              "value": "25-account quarterly sample shows a documented lost-reason code and narrative on 100% of non-retained accounts."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

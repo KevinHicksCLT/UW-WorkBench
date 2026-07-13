@@ -384,7 +384,23 @@ export default function RegulationDetail() {
                       ))}
                     </span>
                   )}
-                  {r.citation && <span>Citation: {r.citation}</span>}
+                  {r.citation && (
+                    <span>
+                      Citation:{' '}
+                      {r.citationUrl ? (
+                        <a
+                          href={r.citationUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[#2563eb] hover:underline"
+                        >
+                          {r.citation} ↗
+                        </a>
+                      ) : (
+                        r.citation
+                      )}
+                    </span>
+                  )}
                   {r.frequency && <span>Frequency: {r.frequency}</span>}
                 </div>
                 {editing === r.id && (

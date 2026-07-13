@@ -483,6 +483,7 @@ export function registerLensRoutes(router: Router): void {
           },
         };
       if (q.unmapped === '1') where.nodeRegulations = { none: {} };
+      if (q.complianceFlagged === '1') where.complianceFlagged = true;
       if (str(q.search)) {
         where.OR = [
           { title: { contains: String(q.search), mode: 'insensitive' } },
@@ -511,6 +512,7 @@ export function registerLensRoutes(router: Router): void {
         confidence: true,
         agentSkill: true,
         regime: true,
+        complianceFlagged: true,
         ...(detail ? { requirement: true, citation: true, citationUrl: true } : {}),
         jurisdiction: {
           select: {
@@ -579,6 +581,22 @@ export function registerLensRoutes(router: Router): void {
         }),
       ]);
       res.json({ requirements, jurisdictions, rules, sources });
+    } catch (e) {
+      next(e);
+    }
+  });
+
+  // ── Compliance bucket summary ─────────────────────────────────────────────────
+  // Total user-flagged requirements across all three lenses — drives the
+  // Compliance card on the Regulations landing page.
+  router.get('/compliance-summary', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const companyId = await activeCompanyId(req, res);
+      if (!companyId) return;
+      const count = await prisma.regulatoryRequirement.count({
+        where: { companyId, complianceFlagged: true },
+      });
+      res.json({ count });
     } catch (e) {
       next(e);
     }

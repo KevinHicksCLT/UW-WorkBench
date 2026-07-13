@@ -1,0 +1,159 @@
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">Interactive current-state product drill-down seeded with exact source locations for every model component element per segment.</h2>
+<div style="border:0.5px solid var(--border);border-radius:12px;background:var(--surface-2);overflow:hidden;">
+<div id="crumb" style="padding:14px 20px;border-bottom:0.5px solid var(--border);font-size:13px;color:var(--text-secondary);"></div>
+<div id="hd" style="padding:16px 20px 4px;"></div>
+<div id="app" style="padding:8px 20px 20px;"><p style="font-size:14px;color:var(--text-muted);">Loading…</p></div>
+</div>
+<script>
+const OWNER={"Product Taxonomy":"Product operations","Coverages":"Product operations","Terms":"Product operations","Rating":"Actuarial + IT","Pricing":"Actuarial","Underwriting Rules":"Underwriting","Forms":"Compliance / forms team","Filings":"Compliance","Lifecycle Behavior":"IT / policy operations"};
+const LOC={
+"Product Taxonomy":{
+"LOB":["PAS A — VSAM file PRODMSTR, field LOB-CD","Duck Creek — product definition XML, <LineOfBusiness> node","PAS C — DB2 table PROD_DEF, column LOB_CODE","Binder register — class of business tab, mapped to Lloyd's risk codes"],
+"Jurisdiction":["Product_Structure_Master.xlsx — tab 'States' (shared drive)","Duck Creek — state availability config per product","PAS C — table PROD_JURIS + program folder on S:\\Specialty","MRC slip — territory clause; binder schedule of territories"],
+"Program":["PAS A — PRODMSTR field PRGM-CD (3-char code, list held by product ops)","Duck Creek — program node in product hierarchy","Program folder S:\\Specialty\\Programs\\&lt;program name&gt;","Binding authority agreement — UMR (unique market reference)"],
+"Availability":["Product_Structure_Master.xlsx — tab 'Availability' + PAS A state flags (synced manually)","Duck Creek — availability rules; exceptions in UW bulletin emails","Appetite memo PDF per program (UW shared drive)","Binder schedule — territories and classes bound"],
+"Effective dates":["PAS A — PRODMSTR fields EFF-DT / EXP-DT (NB and RB separately)","Duck Creek — product version effective dating","PAS C — table PROD_VER, columns EFF_DT / EXP_DT","Binder admin — binder period inception / expiry"],
+"Product versions":["Product_Structure_Master.xlsx — tab 'Versions' (manual; drifts from PAS A)","Duck Creek product versions + rater version log (Rater_Changes.xlsx)","PAS C release notes + version tabs inside each Excel rater","Year of account (YOA) in binder admin system"]},
+"Coverages":{
+"Coverage grammar":["PAS A — coverage copybooks CVG-* (COBOL)","Duck Creek — coverage definitions in product model","Manuscript library — master wording .docx per program","MRC slip library — slip templates (SharePoint)"],
+"Insured perils":["Filed ISO forms (PDF) + PAS A peril codes PERIL-TBL","BOP bundle config in Duck Creek + ISO forms library","Manuscript all-risk wording — perils section","Slip perils clause (LMA clause library)"],
+"Exclusions":["Filed form exclusions sections (PDF, forms library)","ISO + amendatory endorsement PDFs (forms library)","Manuscript exclusions schedule per account","LMA exclusion clauses referenced on slip"],
+"Endorsements":["PAS A — endorsement master END-MSTR + forms library PDFs","Duck Creek — endorsement configuration","Manuscript endorsements folder per account","MRC addenda (slip endorsements) in binder admin"],
+"Packages":["PAS A — package codes PKG-CD in PRODMSTR","Duck Creek — BOP package definitions","Program structure document (Word, program folder)","Binder section / class groupings in binder schedule"]},
+"Terms":{
+"Limits":["PAS A — limit option table LMT-TBL","Duck Creek — limit option config","Program Excel — 'Limits' tab (schedule of limits, sub-limits)","Slip — limit, line size and order %; aggregates in binder admin"],
+"Deductibles":["PAS A — deductible table DED-TBL","Duck Creek — deductible option config","Program Excel — 'SIR / Deductibles' tab","Slip deductible clause"]},
+"Rating":{
+"Rating factors":["PAS A — COBOL RTG04 factor tables + Rate_Manual_HO.xlsx; known drift between the two","Standalone rater Rater_BOP.xlsm — factor tabs; partial duplicate in Duck Creek","Excel rater workbook per program (actuarial drive)","Actuarial pricing model + PMD benchmark tables"],
+"Rating algorithms":["PAS A — COBOL modules RTG01–RTG09; order of operations undocumented","Rater VBA modules + Duck Creek rating structures (dual maintenance)","Excel rater formulas — varies per deal workbook","Actuarial model documentation (methodology PDF)"]},
+"Pricing":{
+"Fees":["PAS A — fee table FEE-TBL","Duck Creek — fee configuration","Deal worksheet per account (Excel)","Slip — brokerage and fees section"],
+"Taxes":["PAS A — state tax table TAX-TBL (updated by compliance)","Duck Creek tax config + external tax service feed","Surplus lines tax spreadsheet (compliance drive)","Territory tax schedule — Lloyd's tax tool / Crystal"],
+"Rounding":["Hard-coded in COBOL RTG09 — no documentation","Implicit in rater cell formatting — never specified","Per-workbook formula conventions (inconsistent)","Actuarial model conventions (documented)"],
+"Overrides":["PAS A — override transaction screens; audit log only record","UW override log kept in Duck Creek notes fields","Pricing memo in deal file (Word)","Underwriter's line and stamp on slip"],
+"Minimum premiums":["Rate_Manual_HO.xlsx 'Min Prem' tab + COBOL validation check","Rater min-premium cells (Rater_BOP.xlsm)","Program guidelines PDF — minimum premium section","Binder terms — minimum and deposit premium"]},
+"Underwriting Rules":{
+"Questions":["PAS A — quote screen definitions (CICS maps)","Duck Creek — question set configuration","Application form PDFs per program","Proposal form + coverholder application pack"],
+"Eligibility":["UW_Guidelines_PL.docx + rules engine config; the two disagree in places","Class appetite matrix — Appetite_Matrix_SMB.xlsx","UW memo per program (Word)","Binding authority agreement — eligible classes and limits"],
+"Referrals":["Rules engine — referral threshold config","Duck Creek referral rules + informal email practice","All risks referred — no systematic rules","Binder referral conditions section"],
+"Decline rules":["Rules engine — decline list config","Appetite_Matrix_SMB.xlsx — 'Declined classes' tab","SME judgment — undocumented","Binder exclusions — classes not bound"],
+"Authority":["UW authority grid (Excel, shared drive; owned jointly with HR)","Authority matrix Excel (UW drive)","Individual letters of authority (PDF)","Binding authority agreement — authority section"],
+"Appetite boundaries":["Annual appetite statement (PowerPoint)","Appetite_Matrix_SMB.xlsx","Program appetite memo (Word)","Syndicate business plan + binder appetite statement"]},
+"Forms":{
+"Form triggers":["PAS A — form-attach logic in FRM-ATTACH copybook","Duck Creek — forms attachment rules","Manual selection by UW assistant (checklist in program folder)","Slip preparation checklist (broker + coverholder)"],
+"Policy language":["Forms library — ISO + company form PDFs (document mgmt system)","ISO electronic library + amendatory PDFs","Manuscript wordings .docx per account (manuscript library)","MRC slip + LMA clause library"]},
+"Filings":{
+"Filing references":["Filings_Log.xlsx (compliance drive) — SERFF tracking numbers","SERFF + state portal records; compliance log","Surplus lines filings log (compliance drive)","Lloyd's CDR submissions + Crystal market rules"],
+"State-specific variants":["Amendatory endorsements folder, organized by state","State exception pages in forms library","Largely n/a — surplus lines placements","Territory-specific clauses in slip library"]},
+"Lifecycle Behavior":{
+"Quote":["PAS A — quote module QTE (CICS)","Duck Creek — quote flow","Excel rater + manual proposal document","Slip preparation by broker"],
+"Bind":["PAS A — bind transaction BND","Duck Creek — bind flow","Bind memo + manual PAS C entry","Binder admin — risk written record"],
+"Issue":["PAS A — nightly issuance batch ISS-NIGHTLY","Duck Creek — issuance flow","Policy assembly by document team","Slip signing / policy production (market bureau)"],
+"Endorse":["PAS A — 28 endorsement transaction types","Duck Creek — endorsement flows","Manual endorsement + PAS C entry","MRC addendum (slip endorsement)"],
+"Renew":["PAS A — renewal batch RNW-CYCLE (COBOL); renewal premium logic lives only here","Duck Creek renewal flow + manual rater re-run","Renewal workbook per account","New binder period at YOA renewal"],
+"Cancel":["PAS A — cancel transaction CNC + pro-rata / short-rate tables","Duck Creek — cancellation flow","Manual calculation + PAS C entry","Notice of cancellation clause (LMA)"],
+"Reinstate":["PAS A — reinstatement transaction RNS; rarely used, undocumented","Duck Creek — reinstatement flow","Manual process","By negotiation with syndicate"],
+"Out-of-sequence rules":["PAS A — OOS handling in batch logic; known quirks, SME knowledge only","Duck Creek — OOS processing engine","Manual re-issue of documents","Sequenced by slip endorsement date"]}};
+function fmtOf(s){const l=s.toLowerCase();
+ if(/cobol|vsam|cics|batch|copybook/.test(l))return"Mainframe / COBOL";
+ if(/\.xls|excel|spreadsheet|workbook|matrix|grid/.test(l))return"Excel";
+ if(/\.docx|word|memo|wording/.test(l))return"Word";
+ if(/pdf/.test(l))return"PDF";
+ if(/duck creek|rules engine|pas c|pas a|pas b|binder admin/.test(l))return"System config";
+ if(/serff|portal|cdr|crystal/.test(l))return"Regulator system";
+ if(/slip|lma|mrc|binder|sharepoint|library/.test(l))return"Market doc / library";
+ if(/sme|manual|undocumented|judgment|negotiation/.test(l))return"Manual / SME";
+ if(/powerpoint/.test(l))return"PowerPoint";return"Document";}
+const FC={"Mainframe / COBOL":["#FAECE7","#712B13"],"Excel":["#EAF3DE","#27500A"],"Word":["#E6F1FB","#0C447C"],"PDF":["#E6F1FB","#0C447C"],"System config":["#EEEDFE","#3C3489"],"Regulator system":["#FBEAF0","#72243E"],"Market doc / library":["#E1F5EE","#085041"],"Manual / SME":["#FCEBEB","#791F1F"],"PowerPoint":["#E6F1FB","#0C447C"],"Document":["#F1EFE8","#444441"]};
+const fpill=(f)=>'<span style="display:inline-block;font-size:12px;padding:2px 10px;border-radius:10px;background:'+FC[f][0]+';color:'+FC[f][1]+';white-space:nowrap;">'+f+'</span>';
+const SEG={
+"Personal Lines":{i:0,sys:"PAS A (mainframe) · PAS B",variants:14,
+ b:{"Product Taxonomy":"Shared taxonomy","Coverages":"Packaged perils","Terms":"Fixed options","Rating":"Table rating","Pricing":"Table-driven fees","Underwriting Rules":"Rules engine","Forms":"State ISO forms","Filings":"State filings","Lifecycle Behavior":"PAS transaction flows"},
+ ext:[["Personal packaged policy",["Coverages","Terms","Rating","Pricing","Forms"]],["High-volume direct / aggregator",["Rating","Underwriting Rules","Forms","Lifecycle Behavior"]],["Household / multi-risk package",["Product Taxonomy","Coverages","Pricing"]]],
+ prod:[["HO-3 Homeowners","PAS A",[["v14","US-CA","Eff. 01/2026","Active"],["v13","US-TX","Eff. 07/2025","Active"],["v12","US-FL","Eff. 01/2024","Renewal only"]]],
+  ["PA Personal Auto 6-mo","PAS B",[["v9","US-CA","Eff. 03/2026","Active"],["v8","US-OH","Eff. 09/2025","Active"]]],
+  ["Dwelling Fire DP-3","PAS A",[["v5","US multi-state","Eff. 01/2023","Runoff"]]]]},
+"SMB":{i:1,sys:"Duck Creek (partial) · PAS B · standalone rater",variants:12,
+ b:{"Product Taxonomy":"Shared taxonomy","Coverages":"BOP bundles","Terms":"Fixed + optional","Rating":"Class-rated + IRPM","Pricing":"Class-rated fees","Underwriting Rules":"Class appetite","Forms":"ISO + amendatory","Filings":"State / country filings","Lifecycle Behavior":"PAS transaction flows"},
+ ext:[["SMB package / BOP",["Product Taxonomy","Coverages","Rating","Forms","Underwriting Rules"]],["SMB account structure",["Product Taxonomy","Lifecycle Behavior","Pricing"]],["Industry-class appetite",["Underwriting Rules","Rating","Forms"]]],
+ prod:[["BOP Select","Duck Creek",[["v6","US multi-state","Eff. 01/2026","Active"],["v5","US-NY","Eff. 06/2024","Renewal only"]]],
+  ["Small Fleet Commercial Auto","PAS B",[["v4","US multi-state","Eff. 10/2025","Active"]]],
+  ["Contractors Package","PAS B + rater",[["v3","US-12 states","Eff. 04/2025","Active"]]]]},
+"Specialty":{i:2,sys:"PAS C · Excel raters · manuscript library",variants:9,
+ b:{"Product Taxonomy":"Shared taxonomy","Coverages":"Manuscript covers","Terms":"Layers, sub-limits, SIRs","Rating":"Exposure / experience","Pricing":"Negotiated, overrides","Underwriting Rules":"Referral / manual","Forms":"Manuscript wordings","Filings":"Surplus lines, tax","Lifecycle Behavior":"PAS + manual workflow"},
+ ext:[["Large commercial manuscript",["Forms","Coverages","Underwriting Rules"]],["Large schedule-based risk",["Terms","Rating","Underwriting Rules"]],["Layered tower",["Terms","Rating","Pricing"]]],
+ prod:[["Property Manuscript Program","PAS C + Excel rater",[["v3","US + EU","Eff. 01/2026","Active"],["v2","US","Eff. 01/2024","Renewal only"]]],
+  ["Excess Liability Tower","PAS C",[["v2","US multi-state","Eff. 07/2025","Active"]]]]},
+"Lloyd's":{i:3,sys:"Binder admin · MRC slip library · bordereaux spreadsheets",variants:5,
+ b:{"Product Taxonomy":"Mapped to risk codes","Coverages":"Class-specific covers","Terms":"Line size, order %","Rating":"Actuarial + PMD","Pricing":"Territory tax tables","Underwriting Rules":"Binder authority","Forms":"MRC slip, LMA clauses","Filings":"CDR, tax, bordereaux","Lifecycle Behavior":"Binder admin workflow"},
+ ext:[["Lloyd's delegated authority",["Underwriting Rules","Forms","Filings","Lifecycle Behavior"]],["MGA / program administrator",["Underwriting Rules","Product Taxonomy","Filings"]]],
+ prod:[["Property Binder (DA)","Binder admin",[["2026 YOA","Worldwide ex-US","Inception 01/2026","Bound"],["2025 YOA","Worldwide ex-US","Expired 12/2025","Runoff"]]],
+  ["Cyber Lineslip","Binder admin",[["2026","UK / EU","Inception 01/2026","Bound"]]]]}
+};
+let path=[];
+const el=(id)=>document.getElementById(id);
+function crumb(){
+ let parts=[["Product Models",0]];
+ path.forEach((p,i)=>parts.push([p.label,i+1]));
+ el("crumb").innerHTML=parts.map((p,i)=>{
+  const last=i===parts.length-1;
+  return last?'<span style="color:var(--text-primary);font-weight:500;">'+p[0]+'</span>'
+  :'<a href="#" onclick="jump('+p[1]+');return false;" style="color:var(--text-accent);text-decoration:none;">'+p[0]+'</a><span style="margin:0 6px;color:var(--text-muted);">›</span>';
+ }).join("");
+}
+window.jump=(n)=>{path=path.slice(0,n);render();};
+function head(t,s){el("hd").innerHTML='<h2 style="margin:0 0 4px;font-size:18px;font-weight:500;">'+t+'</h2><p style="margin:0;font-size:13px;color:var(--text-secondary);">'+s+'</p>';}
+function tbl(cols,rows){
+ let h='<table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:12px;">';
+ h+='<tr>'+cols.map(c=>'<th style="text-align:left;font-size:12px;color:var(--text-muted);font-weight:500;padding:8px 10px;border-bottom:0.5px solid var(--border);">'+c+'</th>').join("")+'<th style="width:24px;border-bottom:0.5px solid var(--border);"></th></tr>';
+ rows.forEach(r=>{
+  const click=r.go?' onclick="'+r.go+'" onmouseover="this.style.background=\'var(--surface-1)\'" onmouseout="this.style.background=\'\'" style="cursor:pointer;"':'';
+  h+='<tr'+click+'>'+r.c.map((v,i)=>'<td style="padding:9px 10px;border-bottom:0.5px solid var(--border);'+(i===0?'font-weight:500;':'color:var(--text-secondary);')+'">'+v+'</td>').join("");
+  h+='<td style="border-bottom:0.5px solid var(--border);color:var(--text-muted);">'+(r.go?'<i class="ti ti-chevron-right" aria-hidden="true"></i>':'')+'</td></tr>';
+ });
+ return h+'</table>';
+}
+const st=(s)=>{const m={"Active":["#EAF3DE","#27500A"],"Bound":["#EAF3DE","#27500A"],"Renewal only":["#FAEEDA","#633806"]};const c=m[s]||["#F1EFE8","#444441"];
+ return '<span style="display:inline-block;font-size:12px;padding:2px 10px;border-radius:10px;background:'+c[0]+';color:'+c[1]+';">'+s+'</span>';};
+function render(){
+ crumb();const app=el("app");
+ if(path.length===0){
+  head("Product Models — current state","Products as they exist today, and the systems that hold them");
+  app.innerHTML=tbl(["Segment","Products live","Legacy variants","Where they run today"],
+   Object.keys(SEG).map(s=>{const g=SEG[s];
+    return {c:[s,g.prod.length,g.variants,g.sys],go:"go1('"+s+"')"}}));
+ } else if(path.length===1){
+  const s=path[0].seg,g=SEG[s];
+  head(s+" — model components today","Where each part of the product actually lives right now. Click a component for element-level locations");
+  app.innerHTML=tbl(["Component","Current expression","Formats holding it today","Maintained by"],
+   Object.keys(LOC).map(c=>{const fs=[...new Set(Object.values(LOC[c]).map(v=>fmtOf(v[g.i])))];
+    return {c:[c,g.b[c],fs.map(fpill).join(" "),OWNER[c]],go:"go2('"+c.replace(/'/g,"\\'")+"')"}}))
+   +'<p style="font-size:12px;color:var(--text-muted);margin:14px 0 0;">Product patterns in use: '+g.ext.map(e=>'<span style="display:inline-block;font-size:12px;padding:2px 10px;border-radius:10px;background:#EEEDFE;color:#3C3489;margin:0 4px 4px 0;">'+e[0]+'</span>').join("")+'</p>';
+ } else if(path.length===2){
+  const s=path[0].seg,g=SEG[s],c=path[1].comp;
+  head(c+" — "+s,"Exactly where each element lives today. Maintained by "+OWNER[c].toLowerCase());
+  let h='<p style="font-size:12px;color:var(--text-muted);margin:12px 0 0;font-weight:500;">Elements and their current source of truth</p>';
+  h+=tbl(["Element","Lives in","Format"],Object.keys(LOC[c]).map(e=>{const loc=LOC[c][e][g.i];
+   return {c:[e,loc,fpill(fmtOf(loc))]}}));
+  const xs=g.ext.filter(x=>x[1].includes(c));
+  h+='<p style="font-size:12px;color:var(--text-muted);margin:18px 0 0;font-weight:500;">Product patterns using this component</p>';
+  h+=xs.length?tbl(["Pattern","Also shapes"],xs.map(x=>({c:[x[0],x[1].filter(y=>y!==c).join(" · ")||"—"],go:"go3('"+x[0].replace(/'/g,"\\'")+"')"}))):'<p style="font-size:13px;color:var(--text-muted);margin-top:8px;">Standard shared behavior — no segment pattern modifies this component.</p>';
+  el("app").innerHTML=h;
+ } else if(path.length===3){
+  const s=path[0].seg,g=SEG[s],x=path[2].ext;
+  head(x+" — products in production","The products built on this pattern and the system each runs in today");
+  el("app").innerHTML=tbl(["Product","Runs in","Versions live","Jurisdictions"],
+   g.prod.map(p=>({c:[p[0],p[1],p[2].length,[...new Set(p[2].map(v=>v[1]))].join(" · ")],go:"go4('"+p[0].replace(/'/g,"\\'")+"')"})));
+ } else if(path.length===4){
+  const s=path[0].seg,g=SEG[s],p=g.prod.find(q=>q[0]===path[3].prodName);
+  head(p[0]+" — versions in force","The filed, dated variants of this product as they stand in "+p[1]+" today");
+  el("app").innerHTML=tbl(["Version","Jurisdiction","Effective","Status"],
+   p[2].map(v=>({c:[v[0],v[1],v[2],st(v[3])]})));
+ }
+}
+window.go1=(s)=>{path=[{label:s,seg:s}];render();};
+window.go2=(c)=>{path=path.slice(0,1);path.push({label:c,comp:c});render();};
+window.go3=(x)=>{path=path.slice(0,2);path.push({label:x,ext:x});render();};
+window.go4=(p)=>{path=path.slice(0,3);path.push({label:p,prodName:p});render();};
+render();
+</script>

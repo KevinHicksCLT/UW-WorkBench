@@ -28,7 +28,9 @@ export function registerOrgStandardsRoutes(router: Router): void {
         }),
         prisma.role.findMany({
           where: { companyId: c },
-          orderBy: { displayValue: 'asc' },
+          // sortOrder first — the org map's drag-reorder persists here (0 =
+          // never reordered → alphabetical within the untouched block).
+          orderBy: [{ sortOrder: 'asc' }, { displayValue: 'asc' }],
           select: { id: true, displayValue: true, orgUnitId: true },
         }),
         structureCounts(c),

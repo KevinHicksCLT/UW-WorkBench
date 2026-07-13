@@ -1,12 +1,141 @@
 /**
- * Inspector Checklist / Testing tabs — read-only surfacing of the Work Library
- * plan (defined key → green ✓ + value, missing → red ✗ + key) with rollup
+ * Inspector Checklist / Testing tabs — surfacing of the Work Library plan
+ * (defined key → green ✓ + value, missing → red ✗ + key) with rollup
  * summaries at container levels and deep links into the Work Library.
- * Extracted verbatim from Inspector.tsx.
+ * In edit mode at a task, a pattern picker assigns/unassigns CHECKLIST / TEST
+ * templates from the existing Work Library catalog (NodeWorkTemplate — the
+ * same records the Work Library screen edits, so both stay in sync).
  */
+import { useEffect, useRef, useState } from 'react';
+import { api } from '../../lib/api';
 import { Empty } from './atoms';
 import ProcedureValue from '../ProcedureValue';
-import type { Payload, PlanRow } from './types';
+import type { AfterFn, Payload, PlanRow } from './types';
+
+// ── Pattern picker (edit mode, task level) ──────────────────────────────────
+// Lists the company's Work Library templates of one kind; clicking toggles the
+// assignment via PUT /work-library/plan/task/:id/templates (the full selection
+// across BOTH kinds is preserved — only the clicked template flips).
+type TemplateLite = { id: string; kind: string; name: string; keys: { id: string }[] };
+
+function TemplatePicker({
+  taskId,
+  kind,
+  label,
+  after,
+}: {
+  taskId: string;
+  kind: 'CHECKLIST' | 'TEST';
+  label: string;
+  after: AfterFn;
+}) {
+  const [open, setOpen] = useState(false);
+  const [templates, setTemplates] = useState<TemplateLite[] | null>(null);
+  const [assigned, setAssigned] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    Promise.all([
+      api.get<{ templates: TemplateLite[] }>('/work-library/templates'),
+      api.get<{ assignedTemplateIds: string[] }>(`/work-library/plan/task/${taskId}`),
+    ])
+      .then(([t, p]) => {
+        if (cancelled) return;
+        setTemplates(t.templates.filter((x) => x.kind === kind));
+        setAssigned(p.assignedTemplateIds);
+      })
+      .catch(() => {
+        if (!cancelled) setTemplates([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, taskId, kind]);
+
+  useEffect(() => {
+    if (!open) return;
+    const h = (e: MouseEvent) => {
+      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [open]);
+
+  const toggle = async (t: TemplateLite) => {
+    if (busy) return;
+    const has = assigned.includes(t.id);
+    const next = has ? assigned.filter((x) => x !== t.id) : [...assigned, t.id];
+    setBusy(true);
+    try {
+      await api.put(`/work-library/plan/task/${taskId}/templates`, { templateIds: next });
+      setAssigned(next);
+      after(
+        has ? `${t.name} unassigned` : `${t.name} assigned`,
+        'Saved to the Work library — this task now carries the pattern everywhere',
+      );
+    } catch {
+      after('Could not update the pattern', 'The Work library rejected the change');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="relative flex justify-end mb-2" ref={boxRef}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="inline-flex items-center gap-1 rounded-md border border-[#9fb6e8] bg-[#eaf1fe] px-2.5 py-1 text-[11.5px] font-semibold text-[#1d4ed8] hover:bg-[#dceafe]"
+      >
+        ＋ Assign {label} pattern
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-30 mt-1 w-72 rounded-lg border border-[#e2e6ea] bg-white shadow-xl p-2">
+          {templates === null ? (
+            <div className="px-2 py-2 text-[11px] text-[#a3a3a3] italic">Loading patterns…</div>
+          ) : !templates.length ? (
+            <div className="px-2 py-2 text-[11px] text-[#a3a3a3] italic">
+              No {label} patterns in the Work library yet.
+            </div>
+          ) : (
+            <div className="max-h-56 overflow-y-auto flex flex-col gap-0.5">
+              {templates.map((t) => {
+                const has = assigned.includes(t.id);
+                return (
+                  <button
+                    key={t.id}
+                    disabled={busy}
+                    onClick={() => void toggle(t)}
+                    className={
+                      'text-left rounded-md px-2 py-1.5 disabled:opacity-50 ' +
+                      (has ? 'bg-[#e7f6ef] hover:bg-[#d6f0e2]' : 'hover:bg-[#f5f8ff]')
+                    }
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <span
+                        className={'text-[12px] ' + (has ? 'text-[#1e9e6a]' : 'text-transparent')}
+                      >
+                        ✓
+                      </span>
+                      <span className="text-[12px] text-[#171717] flex-1 min-w-0 truncate">
+                        {t.name}
+                      </span>
+                      <span className="text-[10px] text-[#a3a3a3]">
+                        {t.keys.length} key{t.keys.length === 1 ? '' : 's'}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── Checklist / Testing — Work Library plan views ───────────────────────────
 // Read-only surfacing of the item's plan: defined key → green ✓ + value,
@@ -118,13 +247,30 @@ function PlanRollupSummary({
   );
 }
 
-export function ChecklistTab({ data, onNav }: { data: Payload; onNav: (p: string) => void }) {
+export function ChecklistTab({
+  data,
+  onNav,
+  edit,
+  after,
+}: {
+  data: Payload;
+  onNav: (p: string) => void;
+  edit: boolean;
+  after: AfterFn;
+}) {
   if (!data.detail) return <PlanRollupSummary data={data} onNav={onNav} kind="Checklist" />;
   const rows = data.plan?.checklist ?? [];
   return (
     <div>
+      {edit && <TemplatePicker taskId={data.id} kind="CHECKLIST" label="checklist" after={after} />}
       {!rows.length && (
-        <Empty text="No checklist pattern assigned yet — add one in the Work library." />
+        <Empty
+          text={
+            edit
+              ? 'Assign a checklist pattern above — its keys appear here.'
+              : 'No checklist pattern assigned yet — add one in the Work library.'
+          }
+        />
       )}
       <PlanLines rows={rows} />
       <EditInLibrary nodeId={data.id} onNav={onNav} />
@@ -132,7 +278,17 @@ export function ChecklistTab({ data, onNav }: { data: Payload; onNav: (p: string
   );
 }
 
-export function TestingTab({ data, onNav }: { data: Payload; onNav: (p: string) => void }) {
+export function TestingTab({
+  data,
+  onNav,
+  edit,
+  after,
+}: {
+  data: Payload;
+  onNav: (p: string) => void;
+  edit: boolean;
+  after: AfterFn;
+}) {
   if (!data.detail) return <PlanRollupSummary data={data} onNav={onNav} kind="Testing" />;
   const plan = data.plan;
   const rows = plan?.testing ?? [];
@@ -140,8 +296,15 @@ export function TestingTab({ data, onNav }: { data: Payload; onNav: (p: string) 
   const tiedRows = tied.flatMap((t) => [...t.checklist, ...t.testing]);
   return (
     <div>
+      {edit && <TemplatePicker taskId={data.id} kind="TEST" label="testing" after={after} />}
       {!rows.length && (
-        <Empty text="No testing pattern assigned yet — pick one in the Work library." />
+        <Empty
+          text={
+            edit
+              ? 'Assign a testing pattern above — its keys appear here.'
+              : 'No testing pattern assigned yet — pick one in the Work library.'
+          }
+        />
       )}
       <PlanLines rows={rows} />
       {tied.length > 0 && (

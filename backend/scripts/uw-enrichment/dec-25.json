@@ -1,0 +1,1411 @@
+{
+  "tasks": [
+    {
+      "id": "da010e70-56eb-42c9-9e63-c70447982f42",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The single multi-line package submission whose property, general-liability and specialty desks are being priced to one indication (quote reference QT-<submission-id> in Guidewire PolicyCenter); scope = one account, all package lines, not a portfolio."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The active quote validity window for the submission - from first indication to the 30-day quote expiry within the current new-business cycle; superseded prior revisions are out of scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each line carries rated premium, limits, deductibles/retentions, rating factors and the pricing-tool run id; the package total equals the sum of line premiums and every line references the filed rate program used."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Package premium in PolicyCenter reconciles to the sum of the property, liability and specialty line premiums to the cent (delta = 0); any unpriced line blocks release of the combined indication."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The reconciled cross-line pricing worksheet and pricing-tool runs are saved to the underwriting file at /uw/<submission-id>/quoting/ with timestamp and revision label r<rev>; retained per the 7-year file-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A line priced outside filed rates or authority is stopped and logged as a referral exception in PolicyCenter with disposition (re-rate / obtain authority / decline line), owner = Senior Underwriter, resolved within 2 business days."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The cross-line pricing methodology and each line's rate program are the currently filed/approved versions (authority matrix v3.2); superseded rate tables are not used."
+        },
+        {
+          "templateKeyId": "cmr2oamg4000llasb5mlmokig",
+          "roleId": "cmqsck0rn03rbmbk8nq8b9t10"
+        },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity of the package premium to each line's key rating variables (limit, deductible, exposure base) is documented; a >10% swing on any line triggers a re-check."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "A line contributing >=20% of package premium or any deviation >5% from filed rate is treated as material and routed for Senior Underwriter / actuarial review."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "Census - all priced lines on the package (property, GL, specialty) for this submission."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = every line rated with the correct filed program, package total reconciles to the sum of lines, and cross-line credits are within authority; FAIL = any misfiled rate, unreconciled total, or out-of-authority credit."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "On FAIL the combined indication is held, the offending line is re-rated or referred, and the exception is cleared before the quote is released to the broker."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Line-level fields (premium, limit, deductible, exposure base, rate program id) are defined in the PolicyCenter rating data dictionary; one row per line."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = package premium; reconciles to the summed line premiums extracted from the pricing-tool runs with 0 variance."
+        },
+        {
+          "answerId": "cmr2ocdwp0tm2kaz32vblu08m",
+          "value": "Acceptance criteria: all package lines priced on filed rates, package total reconciled to the sum of lines, and cross-line pricing decisions within authority. Evidence: reconciled pricing worksheet and pricing-tool run ids stored at /uw/<submission-id>/quoting/ and linked on the PolicyCenter quote record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Apply the current filed rate program to every package line",
+              "value": "Each line's premium is produced by the mandated pricing tool using the filed/approved rate program; manual overrides are captured with a filed-rate reference."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify filed-rate use across lines",
+              "value": "For 100% of lines the rate program id matches the currently filed program and any deviation carries authority-matrix approval; 0 misfiled lines."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppg71o94mbk8gdzbxh5q",
+          "checklist": [
+            {
+              "step": "Price every line through the mandated pricing tool",
+              "value": "All property/GL/specialty premiums are generated in Earnix/PolicyCenter rating - no off-system spreadsheet pricing for rated lines."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm pricing-tool coverage",
+              "value": "Each priced line has a pricing-tool run id recorded on the quote; 0 lines priced outside the tool."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppa51o8smbk82mw0frsj",
+          "checklist": [
+            {
+              "step": "Route large or deviated package pricing for actuarial review",
+              "value": "Where package premium or any line exceeds the large-account threshold, the pricing is reviewed by actuarial before the indication is released."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check actuarial sign-off on large accounts",
+              "value": "Every package over the threshold has a dated actuarial-review note before quote release; 0 large accounts released without review."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "384f3dc9-9e74-420d-b8c7-f2e00211c4c8",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform", "GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The package submission being broken into its constituent lines of business (property, general liability, auto, umbrella, specialty) in PolicyCenter for the account under quote (QT-<submission-id>); scope = one submission."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current quoting window for the submission, from intake to quote release within the active new-business cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Every required line is listed with its class code, exposure basis and target rate program; the account's requested coverages map 1:1 to a decomposed line with no coverage left unassigned."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The count of decomposed lines equals the coverages requested on the submission/ACORD application; any coverage without a matching line is flagged as a gap (delta must be 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The line-decomposition schedule is saved to the underwriting file at /uw/<submission-id>/quoting/ with timestamp and revision label; retained per the 7-year file-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A requested coverage that falls outside appetite or lacks a rating program is logged as an exception with disposition (in-appetite / refer / decline coverage), owner = Senior Underwriter, cleared within 2 business days."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "Census - all coverages requested on the submission versus the lines decomposed for quoting."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every requested coverage maps to exactly one decomposed line within documented appetite; FAIL = any unassigned coverage, duplicate line, or out-of-appetite line carried forward."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "On FAIL the missing/extra line is corrected and any out-of-appetite coverage is referred before the package proceeds to rating."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance: complete, de-duplicated line list covering all requested coverages, each mapped to a rating program and within appetite."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "The line-decomposition schedule at /uw/<submission-id>/quoting/, linked on the PolicyCenter submission record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Confirm minimum submission data before decomposing lines",
+              "value": "Each intended line has the minimum submission requirements (exposure, class, prior loss) captured before it is opened for rating."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check submission completeness per line",
+              "value": "0 decomposed lines missing mandatory submission fields; incomplete lines are held pending broker follow-up."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Screen each decomposed line against documented appetite",
+              "value": "Every line is checked against the appetite matrix by LOB, geography and industry; in/out-of-appetite is recorded on the line."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify appetite screening",
+              "value": "100% of decomposed lines carry an appetite decision; any out-of-appetite line has a referral note before quoting."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "c1b2db2d-ffae-4775-9ec8-ee1084893d3f",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform", "GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The final package composition for the quoted account - each constituent line and its premium contribution - recorded in the PolicyCenter underwriting file (QT-<submission-id>); scope = one package quote."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current quoting window, from final rating to quote release within the active new-business cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The composition record lists every line, its premium, limits and share of total package premium; percentages sum to 100% and each line's premium ties to its rating run."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Sum of line premiums equals the package total booked on the quote to the cent (delta = 0); any rounding difference is reconciled and noted."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The package-composition summary is saved to the underwriting file at /uw/<submission-id>/quoting/ with timestamp and revision label; retained per the 7-year file-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A line whose premium contribution cannot be tied to its rating run is logged as an exception with disposition (re-rate / correct allocation), owner = Senior Underwriter, cleared within 1 business day."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "Census - every line in the package composition record for this quote."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = all lines documented with premium, limits and % contribution, totals reconcile to the package premium, and the record is signed off; FAIL = any missing line, unreconciled total, or absent sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "On FAIL the composition record is corrected and re-reconciled before the quote is issued; the correction is noted in the file."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Composition fields (line, premium, limit, % of package) defined in the PolicyCenter underwriting-file data dictionary; one row per line."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = documented package premium; reconciles to the sum of line premiums from the rating runs with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Record complete package composition in the underwriting file",
+              "value": "The file documents every line, premium and contribution so a reviewer can reconstruct the package without external notes."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect file completeness",
+              "value": "Sampled quote files show a composition record with all lines and premiums; 0 files with undocumented lines."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Preserve an audit trail of premium allocation",
+              "value": "Each line's premium ties to a timestamped rating run and any re-allocation is versioned in the file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Trace premium to rating runs",
+              "value": "For 100% of lines the documented premium reconciles to a rating-run id; 0 unsupported allocations."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "98a8b071-c76f-4845-8042-b8c400df9832",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform", "GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The inter-line coverage overlaps, gaps and cross-liability provisions within the package structure for the quoted account (QT-<submission-id>) in PolicyCenter; scope = the coverage interfaces between package lines, one submission."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current quoting window, from coverage review to quote release within the active new-business cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each identified overlap/gap is recorded with the lines involved, the resolution (endorsement, exclusion, other-insurance/cross-liability clause) and the wording reference; no unresolved coverage conflict remains open."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The count of coverage issues opened equals the count resolved before quote release; any open issue at release is a control breach (delta must be 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The coverage-resolution log and affected endorsements/wordings are saved to the underwriting file at /uw/<submission-id>/quoting/ with timestamp and revision label; retained per the 7-year file-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "An unresolved overlap/gap or non-standard wording is logged as a referral exception with disposition (endorse / exclude / refer to wordings), owner = Senior Underwriter, cleared before binding."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "Census - all inter-line coverage interfaces reviewed for this package (property/GL/auto/umbrella overlaps and gaps)."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = every identified overlap/gap resolved by endorsement, exclusion or cross-liability clause with a wording reference; FAIL = any open conflict or unreferenced wording at quote release."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL the affected coverage is corrected or referred to the wordings specialist; the quote is not released until the log is clear."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance: no unresolved inter-line overlap or gap; each resolution traced to a specific endorsement/wording and approved within authority."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Coverage-resolution log at /uw/<submission-id>/quoting/, linked to the affected endorsements on the PolicyCenter quote."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document every inter-line coverage resolution in the file",
+              "value": "Each overlap/gap and its resolution (endorsement, exclusion, cross-liability clause) is recorded with the wording reference in the underwriting file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect resolution documentation",
+              "value": "Sampled package files show a closed coverage-resolution log; 0 unresolved conflicts carried to bind."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Refer non-standard coverage resolutions per referral triggers",
+              "value": "Overlaps/gaps requiring manuscript wording or exceeding authority are referred to Senior Underwriter / wordings per documented referral triggers."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify referral of triggered items",
+              "value": "100% of trigger-hitting coverage issues have a referral record with disposition; 0 out-of-authority wordings bound without approval."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "a701ef57-d304-4ea0-8191-f2a3a8cbd636",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The final package quote reviewed for coverage consistency and gaps across all lines (QT-<submission-id>) in Guidewire PolicyCenter / Earnix; scope = the assembled package for one account before release."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current quoting window, at final review immediately before quote release within the active new-business cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Every line's limits, deductibles, terms and effective dates are cross-checked for consistency; conflicting or missing terms are identified and each line's coverage aligns with the account's intended program."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The number of consistency checks performed equals the number of package lines x the checklist points; all checks pass or carry a logged exception before release (open exceptions delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The coverage-consistency review checklist is saved to the underwriting file at /uw/<submission-id>/quoting/ with timestamp and reviewer; retained per the 7-year file-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A detected inconsistency or gap is logged as an exception with disposition (correct terms / endorse / refer), owner = Senior Underwriter, cleared before the quote is released."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowqe1mswmbk8wnjoqs6v",
+          "checklist": [
+            {
+              "step": "Perform an independent consistency review of the package",
+              "value": "A second underwriter checks limits, deductibles, terms and dates across lines for consistency before quote release."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm peer review occurred",
+              "value": "Sampled package quotes carry a dated peer-review checklist; 0 packages released without a consistency review."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the consistency review in the file",
+              "value": "The completed consistency checklist and any corrections are retained in the underwriting file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect review documentation",
+              "value": "100% of reviewed packages have a stored checklist; findings map to corrections or logged exceptions."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fkfpa1dlikfgza9wta2dv",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All non-converted (lost/declined) quotes in the reporting period, compiled with hit-ratio and decline patterns aggregated by segment (LOB, industry, size band, region); scope = the book's non-bound quotes, not a single account."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current reporting period - most recent completed quarter (e.g. 2026-Q2) - with rolling four-quarter comparison."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each non-converted quote carries LOB, segment, quoted premium, decline/loss reason code and competitor (where known); records missing a reason code are excluded and flagged for follow-up."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Quote counts by segment reconcile between PolicyCenter and the aggregated worksheet; bound + non-bound = total quoted for the period (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The segment aggregation worksheet is saved to the analysis folder at /uw/analytics/non-conversion/<period>/ with timestamp and version; retained per the 7-year file-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Quotes with a missing or ambiguous reason code are logged as data exceptions with disposition (obtain reason / exclude), owner = Senior Underwriter, resolved before the analysis is finalized."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The hit-ratio and segmentation methodology is the current approved definition (hit ratio = bound / quoted by segment); prior definitions are not mixed in."
+        },
+        {
+          "templateKeyId": "cmr2oamg4000llasb5mlmokig",
+          "roleId": "cmqsck0rn03rbmbk8nq8b9t10"
+        },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity of segment hit ratios to segment definition and small-sample cells is documented; segments with <30 quotes are flagged as low-confidence."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "A segment representing >=10% of quoted premium or a hit-ratio movement >5 points is treated as material for appetite/pricing attention."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "Census - all quotes in the period classified bound vs non-converted, aggregated by segment."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every non-converted quote has a reason code and segment, counts reconcile to PolicyCenter, and no segment double-counted; FAIL = unreconciled counts or >5% of quotes lacking a reason code."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "On FAIL the missing reason codes are sourced from underwriters/brokers or the affected records excluded with a note before publishing the aggregation."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance: reconciled non-conversion dataset with reason codes and segments, ready for appetite/pricing review."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Aggregation worksheet at /uw/analytics/non-conversion/<period>/, linked on the underwriting analytics register."
+        },
+        {
+          "answerId": "cmr2ocdwx0twpkaz3er0kzqif",
+          "value": "In-scope period = the completed reporting quarter (e.g. 2026-Q2, 2026-04-01 to 2026-06-30) with rolling four-quarter trend; effective dates taken from the quote-created date."
+        },
+        {
+          "answerId": "cmr2ocdwx0twqkaz3d8zqp6ye",
+          "value": "Field definitions (LOB, segment, quoted premium, reason code, bound flag) sourced from the PolicyCenter quote data dictionary; control total = total quotes in period, reconciling bound + non-converted to the quoted count with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpptg1o9umbk80uzl6cas",
+          "checklist": [
+            {
+              "step": "Aggregate hit-ratio against segment targets",
+              "value": "Non-conversion is summarized as hit ratio by segment and compared to the documented hit-ratio targets for each segment."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify hit-ratio computation",
+              "value": "Segment hit ratios recompute to bound/quoted from the reconciled dataset; 0 segments computed on unreconciled counts."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the aggregation and its sources",
+              "value": "The dataset, definitions and reconciliation are retained so the segment figures can be reproduced."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect analysis documentation",
+              "value": "The stored worksheet reproduces the published segment hit ratios; 0 unsupported figures."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fkfyt1dphkfgz87siuz64",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The aggregated hit-ratio and decline patterns by segment analyzed to inform appetite and pricing review; scope = the book's non-conversion dataset for the reporting period, feeding appetite/pricing recommendations."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current reporting period (most recent completed quarter) with rolling four-quarter trend for pattern detection."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each analyzed segment carries hit ratio, decline-reason mix, average rate deviation vs competitors (where known) and a preliminary appetite/pricing signal; segments with insufficient volume are marked low-confidence."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Segment totals used in the analysis reconcile to the source aggregation; recommendations reference only reconciled segments (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The pattern analysis and appetite/pricing recommendations are saved to /uw/analytics/non-conversion/<period>/ with timestamp and version; retained per the 7-year file-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A segment flagged for action but based on low volume or missing reasons is logged as an exception with disposition (gather data / defer), owner = Senior Underwriter, before any recommendation is escalated."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The analysis uses the current approved hit-ratio and price-competitiveness methodology; thresholds for 'systematic' pattern are the documented ones."
+        },
+        {
+          "templateKeyId": "cmr2oamg4000llasb5mlmokig",
+          "roleId": "cmqsck0rn03rbmbk8nq8b9t10"
+        },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity of conclusions to segment definition, period and competitor-data completeness is documented; conclusions are re-tested when a driver moves >10%."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "A segment is material for appetite/pricing action when it exceeds the documented premium share or shows a hit-ratio gap beyond the target tolerance."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "Census - all segments in the non-conversion dataset assessed for pricing vs appetite drivers."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = each recommendation is supported by reconciled data and the documented thresholds; FAIL = a recommendation on low-confidence or unreconciled segments."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "On FAIL the recommendation is downgraded to 'monitor' and additional data gathered before it is put to the appetite/pricing committee."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance: evidence-based appetite/pricing recommendations tied to specific segments and thresholds."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Analysis pack at /uw/analytics/non-conversion/<period>/, linked on the appetite/pricing review agenda."
+        },
+        {
+          "answerId": "cmr2ocdwy0typkaz3j4j2zsjk",
+          "value": "In-scope period = the completed reporting quarter with rolling four-quarter trend; effective dates from quote-created date."
+        },
+        {
+          "answerId": "cmr2ocdwy0tyqkaz371q4eyxv",
+          "value": "Field definitions (segment, hit ratio, reason mix, rate deviation) from the underwriting analytics data dictionary; control total = segment quote counts reconciling to the source aggregation with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpptg1o9umbk80uzl6cas",
+          "checklist": [
+            {
+              "step": "Test hit-ratio patterns against segment targets",
+              "value": "Segment hit ratios are compared to targets to identify systematic under/over-performance driving non-conversion."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify against hit-ratio targets",
+              "value": "Each flagged segment shows a hit-ratio gap vs its documented target; 0 flags without a target comparison."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppf71o92mbk8voyj74ly",
+          "checklist": [
+            {
+              "step": "Relate pricing signals to loss-ratio targets",
+              "value": "Pricing-competitiveness conclusions are checked against loss-ratio targets so rate is not recommended down below profitability."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check loss-ratio guardrail",
+              "value": "Any 'reduce rate' signal is tested against the LOB loss-ratio target; 0 recommendations that breach target profitability."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Feed patterns back into documented appetite",
+              "value": "Segments with structural non-conversion are mapped to the appetite matrix (grow / hold / exit) for the review."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm appetite linkage",
+              "value": "100% of action recommendations reference a specific appetite-matrix cell; 0 unlinked recommendations."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fk12b16v4kfgzlc0uh676",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": [
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": [],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The finalized non-converted quote files for the period being moved to the records repository (Guidewire PolicyCenter / records archive); scope = all closed non-bound quote files ready for archival."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current archival cycle - files closed in the most recent completed month/quarter, archived within the retention SLA."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each file carries the closed non-converted status, decline/loss reason, final quote documents and a retention class; files missing a status or reason are not archived until completed."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The count of files archived equals the count of files marked closed non-converted for the period; any file left in an open state is a reconciliation exception (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Archived files are written to the records repository under /uw/archive/non-converted/<period>/ with immutable timestamp and retention label; retained per the 7-year file-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A file that cannot be archived (missing document, unresolved status) is logged as an exception with disposition (complete file / hold), owner = Senior Underwriter, cleared before the archival run closes."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Archive a complete underwriting file",
+              "value": "Each archived non-converted file contains the quote, correspondence, reason code and retention class so it is self-contained."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect archived file completeness",
+              "value": "Sampled archived files contain all mandatory documents; 0 incomplete files archived."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppyc1oa4mbk8t9plrx0e",
+          "checklist": [
+            {
+              "step": "Ensure the non-conversion reason is recorded before archival",
+              "value": "Every archived file records the documented loss/decline reason for the non-conversion."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify reason capture",
+              "value": "100% of archived non-converted files have a reason code; 0 archived without a reason."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fjzk216cskfgza3em4y27",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "ERP/General ledger (SAP/Oracle/Workday Financials)"
+      ],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The closed quote together with all supporting documentation (submission, rating, correspondence, decline/loss reason) archived per retention policy in PolicyCenter / the records repository; scope = one closed quote file."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current archival cycle, immediately after quote closure within the retention SLA."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The archived record includes the quote, ACORD/submission docs, rating runs, broker correspondence and reason code; a document checklist confirms each required item is present."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The archived document count equals the retention-policy checklist count for a quote file; any missing item blocks the archive (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The quote and its documents are archived to /uw/archive/quotes/<period>/<submission-id>/ with immutable timestamp and retention label; retained per the 7-year file-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A missing required document is logged as an exception with disposition (retrieve / recreate / waive with approval), owner = Senior Underwriter, cleared before the file is sealed."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "Census - all required documents for the quote file being archived."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = every checklist document present, timestamped and retention-labelled, and the file is sealed; FAIL = any missing document or absent retention label."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "On FAIL the missing document is retrieved or an approved waiver recorded before the file is sealed."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Document-type fields (submission, rating, correspondence, reason code) defined in the records-retention checklist; one row per required document."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = required-document count from the retention checklist; reconciles to documents archived with 0 variance."
+        },
+        {
+          "answerId": "cmr2ocdwf0t8lkaz3xbzg1gng",
+          "value": "Acceptance criteria: complete, retention-labelled quote file with all supporting documents sealed within the retention SLA. Evidence: archived file at /uw/archive/quotes/<period>/<submission-id>/ with the completed document checklist, linked on the PolicyCenter record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Archive the full supporting file",
+              "value": "The archived quote is self-contained with all supporting documentation per the retention checklist."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect archived completeness",
+              "value": "Sampled archived quotes contain all checklist documents; 0 incomplete archives."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail on archival",
+              "value": "Archival is timestamped and retention-labelled so the file's provenance and disposal date are traceable."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit metadata",
+              "value": "100% of archived files carry timestamp and retention label; 0 files without disposal metadata."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "2b610ee4-a7a4-44ec-b001-7dd830198465",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": [
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The non-conversion evidence assessed to determine whether the loss reflects a systematic pricing or appetite competitiveness issue; scope = the segment/LOB pattern behind the non-conversions, not a single quote."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current reporting period (most recent completed quarter) with rolling four-quarter trend for systematic-vs-isolated judgement."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each assessed segment carries hit ratio, average rate position vs competitor benchmarks, decline-reason mix and an appetite classification; a documented threshold separates systematic from isolated causes."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Segment figures used in the assessment reconcile to the non-conversion aggregation; conclusions cite only reconciled segments (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The competitiveness assessment and its conclusion (systematic pricing / appetite / isolated) are saved to /uw/analytics/non-conversion/<period>/ with timestamp and version; retained per the 7-year file-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A conclusion drawn on low-volume or incomplete data is logged as an exception with disposition (gather data / mark provisional), owner = Senior Underwriter, before escalation to pricing/appetite governance."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The assessment uses the current approved competitiveness methodology (hit-ratio and rate-position thresholds) versioned in the model governance repository."
+        },
+        {
+          "templateKeyId": "cmr2oamg4000llasb5mlmokig",
+          "roleId": "cmqsck0rn03rbmbk8nq8b9t10"
+        },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity of the systematic-vs-isolated conclusion to thresholds, period and competitor-data completeness is documented; re-tested when a driver moves >10%."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "A pricing or appetite gap is material when it exceeds the documented rate-position tolerance or the segment's premium-share threshold."
+        },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Pre/post comparison: current-period segment hit ratios and rate positions are compared to the prior period baseline to confirm a genuine shift rather than noise; the comparison table is attached to the assessment."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "Where the assessment recommends a rate or appetite change, it is linked to the resulting filing/appetite-change request id so the action is traceable."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "Census - all segments contributing material non-conversion assessed for pricing vs appetite cause."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = each systematic conclusion is supported by reconciled data crossing the documented threshold; FAIL = a systematic call on unreconciled or below-threshold data."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "On FAIL the conclusion is marked provisional and additional benchmark data gathered before it drives a rate or appetite change."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance: defensible systematic-vs-isolated determination per segment with a clear pricing/appetite recommendation."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Assessment pack at /uw/analytics/non-conversion/<period>/, linked on the pricing/appetite governance agenda."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppf71o92mbk8voyj74ly",
+          "checklist": [
+            {
+              "step": "Guard rate recommendations against loss-ratio targets",
+              "value": "Any 'price is uncompetitive' conclusion is tested against the LOB loss-ratio target before recommending a rate reduction."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check loss-ratio guardrail",
+              "value": "0 rate-reduction recommendations that would breach the LOB loss-ratio target."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpptg1o9umbk80uzl6cas",
+          "checklist": [
+            {
+              "step": "Anchor competitiveness on hit-ratio targets",
+              "value": "Systematic non-conversion is evidenced by hit ratios below documented segment targets over multiple periods."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify hit-ratio evidence",
+              "value": "Each systematic call cites a multi-period hit-ratio gap vs target; 0 calls on a single noisy period."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Distinguish appetite from pricing causes",
+              "value": "Where non-conversion stems from appetite mismatch rather than price, the segment is mapped to the appetite matrix for a hold/exit decision."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm appetite mapping",
+              "value": "100% of appetite-driven conclusions reference an appetite-matrix cell; 0 mislabelled pricing/appetite causes."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fjz7p1692kfgzdpqxxv1u",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "ERP/General ledger (SAP/Oracle/Workday Financials)"
+      ],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The quote being formally closed and marked non-converted in Guidewire PolicyCenter (QT-<submission-id>); scope = one quote file transitioning to a closed non-converted state."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current cycle, at the point the quote validity lapses or the account is confirmed lost, within the active new-business cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Closure records the non-converted status, the documented loss/decline reason code, the final quote revision and the close date; the file cannot be closed without a reason code."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The quote status in PolicyCenter moves from open to closed non-converted exactly once and matches the closure log; no quote left in a stale open state (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The closure entry and final quote are retained in the underwriting file at /uw/<submission-id>/quoting/ with timestamp and status label; retained per the 7-year file-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A quote closed without a reason code, or reopened after close, is logged as an exception with disposition (add reason / justify reopen), owner = Senior Underwriter, cleared within 1 business day."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "Census - the quote record being closed and its closure metadata."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = status = closed non-converted, reason code present, close date and final revision recorded, and sign-off captured; FAIL = missing reason, wrong status, or absent sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "On FAIL closure is blocked until the reason code and status are corrected; any erroneous close is reversed under Senior Underwriter approval."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Closure fields (status, reason code, close date, final revision) defined in the PolicyCenter quote data dictionary."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = 1 closure event per quote; reconciles to the closure log with 0 duplicate or missing closures."
+        },
+        {
+          "answerId": "cmr2ocdwf0t8kkaz3p2sw2ggg",
+          "value": "Acceptance criteria: quote marked closed non-converted with a documented reason code and close date, signed off. Evidence: closure entry on the PolicyCenter quote and closure log at /uw/<submission-id>/quoting/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppyc1oa4mbk8t9plrx0e",
+          "checklist": [
+            {
+              "step": "Record the non-conversion reason at closure",
+              "value": "Closure requires a documented loss/decline reason code selected from the standard reason taxonomy."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify reason at close",
+              "value": "100% of closed non-converted quotes carry a reason code; 0 closures without one."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the closure in the file",
+              "value": "The closure entry, final quote and reason are retained in the underwriting file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect closure documentation",
+              "value": "Sampled closed files show a complete closure entry; 0 undocumented closures."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "a5c4c048-dcea-4d24-b4ca-4c8253779be4",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The broker outreach to confirm the true loss reason (price, coverage terms, competitor, or client decision) for a non-converted quote (QT-<submission-id>), captured in the CRM and PolicyCenter; scope = one lost account's reason confirmation."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current cycle, within a few business days of the quote lapsing/being lost, while the reason is still fresh with the broker."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The confirmed reason is recorded with the reason code, competitor/price detail where given, contact date and broker name; a placeholder 'unknown' reason is not accepted as final."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "One confirmed-reason record exists per non-converted quote and matches the closure log; quotes still marked 'reason pending' are chased (delta to 0 by cycle end)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The broker confirmation (CRM activity/email) and the updated reason code are retained in the underwriting file at /uw/<submission-id>/quoting/ with timestamp; retained per the 7-year file-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A broker who does not respond within the follow-up window is logged as an exception with disposition (second attempt / mark best-estimate reason), owner = Senior Underwriter, before the file is finalized."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "Census - all non-converted quotes for the period requiring a confirmed loss reason from the broker."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = confirmed reason code obtained and recorded for the quote with contact evidence; FAIL = reason left 'unknown/pending' past the follow-up window without a logged best estimate."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "On FAIL a second outreach is made; if still unanswered, a best-estimate reason is recorded with a note and the exception is logged for Senior Underwriter."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "In-scope period/effective dates = the current quoting cycle; contact date recorded on the CRM activity and effective as of the quote-lost date."
+        },
+        {
+          "answerId": "cmr2ocdvw0skfkaz3hw55lcsx",
+          "value": "Acceptance criteria: broker-confirmed loss reason recorded against the quote with contact evidence, within the follow-up window. Evidence: CRM activity/email plus updated reason code at /uw/<submission-id>/quoting/, linked on the PolicyCenter quote."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the confirmed loss reason and contact",
+              "value": "The broker contact and confirmed reason are recorded in the file so the non-conversion reason is evidence-based, not assumed."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect reason evidence",
+              "value": "Sampled lost quotes show broker contact evidence supporting the reason code; 0 assumed reasons without contact."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpptg1o9umbk80uzl6cas",
+          "checklist": [
+            {
+              "step": "Feed confirmed reasons into hit-ratio analysis",
+              "value": "Confirmed price/coverage/competitor reasons are coded consistently so segment hit-ratio analysis reflects real loss drivers."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify reason coding",
+              "value": "Confirmed reasons use the standard taxonomy and flow to the segment analysis; 0 free-text-only reasons."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

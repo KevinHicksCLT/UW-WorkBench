@@ -1,0 +1,1435 @@
+{
+  "tasks": [
+    {
+      "id": "b66a019b-b3d1-4dd9-9aae-2066b330acfd",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Business Analyst"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["Guidewire PolicyCenter; Earnix Rating & Pricing; Broker & Agent Portal"],
+      "addApps": [
+        {
+          "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "usageType": "performed"
+        },
+        { "name": "OpenText Document Mgmt", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Every new-business submission entering triage in Guidewire PolicyCenter; population = the required application form set for the line (ACORD 125/126/140 for commercial P&C, TRIA disclosure, supplemental applications, and any state-mandated forms) plus wet/e-signatures from the applicant and producer of record."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The open triage queue for the current business day; each submission must clear the completeness check within 1 business day of receipt before it is released to underwriting assignment."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Completeness checklist confirms each mandatory form is present, signed, dated, and matches the named insured/effective date on the submission header; missing signatures, wrong form edition, or blank producer license number fail the check and the submission is held as Incomplete."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Form-count reconciles to the product's required-forms manifest in PolicyCenter (e.g. 6 of 6 required forms attached); attached-document count in OpenText matches the manifest with delta = 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Signed forms and the completeness checklist are indexed to OpenText Document Mgmt under /uw/submissions/<SUB-ref>/forms/ with document timestamp and version; the PolicyCenter activity records who verified and when."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Any missing or unsigned form is logged as an Incomplete-Submission exception activity in PolicyCenter with disposition (return-to-producer / waive-with-reason / obtain-signature), assignee = Underwriting Assistant, and a 2-business-day follow-up SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Confirm the submission carries the minimum required application forms for the line",
+              "value": "PolicyCenter required-forms manifest for the product shows all mandatory ACORD/state forms attached before the submission can leave triage."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify no submission advances without complete forms",
+              "value": "Sample 25 triaged submissions per quarter; 0 advanced to assignment with a missing or unsigned mandatory form."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Index signed forms into the underwriting file",
+              "value": "All signed forms and the completeness checklist filed to OpenText /uw/submissions/<SUB-ref>/forms/ with version and timestamp."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm file documentation is retrievable",
+              "value": "For sampled submissions, every required form is present and legible in the OpenText file; 0 files with orphaned or missing signatures."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "2733163f-9dd4-446d-acd6-ac7e371fe4db",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All new-business submissions received from the producing broker/agent/MGA that require a receipt acknowledgment; population = submissions logged in PolicyCenter during the current business day awaiting an outbound acknowledgment to the producer of record."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Same business day of receipt; acknowledgment with the target turnaround commitment must be sent within 4 business hours of the submission being logged."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Acknowledgment contains submission reference number, named insured, line of business, receipt date, assigned turnaround SLA, and the contact for the handling underwriting team; a missing reference number or SLA statement fails the check."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Acknowledgments-sent count reconciles to submissions-logged count for the day (1 acknowledgment per submission); any submission logged without a corresponding sent acknowledgment is flagged for delta = 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The sent acknowledgment (email/portal message) is captured as a PolicyCenter activity and copied to the CRM broker record with timestamp; correspondence retained on the submission file /uw/submissions/<SUB-ref>/correspondence/."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Submissions not acknowledged within the 4-hour SLA raise an aged-acknowledgment exception in PolicyCenter with disposition (send-now / escalate), assignee = Underwriting Assistant, and same-day remediation."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Acknowledgment uses the approved producer-communication template v3.2 held in PolicyCenter; SLA turnaround values are driven by the current service standard matrix by line and premium band."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03y5mbk85lrlrry0" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: acknowledgment SLA tightens to 2 business hours for broker-priority or bind-by-date submissions flagged on intake."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: any submission with premium over the fast-track threshold or a same-week effective date is treated as time-critical and monitored on the aged-acknowledgment report."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All submissions logged in the current month (census) tested for a timely, complete acknowledgment record."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = 100% of submissions acknowledged within 4 business hours with reference number and SLA stated. FAIL = any submission unacknowledged past SLA or acknowledgment missing the reference number/SLA."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, the aged-acknowledgment report routes the item to the Underwriting Assistant to send immediately; repeat breaches escalate to the UW Operations Manager for root-cause review."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance: acknowledgment sent within SLA, addressed to the producer of record, carrying submission reference, receipt date, and turnaround commitment."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence: PolicyCenter acknowledgment activity and CRM broker-record copy under /uw/submissions/<SUB-ref>/correspondence/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppxd1oa2mbk82g6mira7",
+          "checklist": [
+            {
+              "step": "Acknowledge every submission within the service standard",
+              "value": "Producer acknowledgment issued within 4 business hours of receipt using the approved template, stating the assigned turnaround SLA."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Measure acknowledgment timeliness",
+              "value": "Monthly report shows 100% of submissions acknowledged within 4 business hours; 0 aged items past SLA without an escalation note."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Reference the registered submission on the acknowledgment",
+              "value": "Acknowledgment quotes the PolicyCenter submission reference number and named insured so the producer can track it."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify reference linkage",
+              "value": "Sampled acknowledgments each cite a valid submission reference resolving to the correct PolicyCenter record; 0 mismatches."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fjlcm10bxkfgzcwy29k5f",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Every logged new-business submission that must be assigned a unique tracking reference; population = submission records created in PolicyCenter that do not yet carry a system reference number."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At the moment of registration in the current triage cycle; the reference is assigned immediately when the submission record is created, before any further triage step."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Reference follows the format SUB-<YYYY>-<######>, is system-generated, unique, and stamped on the submission header; a duplicate or manually overtyped reference fails validation."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "One and only one reference exists per submission; a nightly PolicyCenter integrity job confirms 0 duplicate and 0 null references across the day's registrations (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The assigned reference and the create event (user, timestamp) are held in the PolicyCenter submission audit trail and echoed onto the OpenText file folder name /uw/submissions/<SUB-ref>/."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A failed or collided reference assignment raises a system exception logged in PolicyCenter with disposition (regenerate / manual-review), assignee = Underwriting Assistant, resolved same day."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Reference-numbering scheme is the approved PolicyCenter sequence configuration; format and check-digit logic are change-controlled at v2.1."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03y5mbk85lrlrry0" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: numbering sequence is monotonic; any gap or reset is investigated as it may indicate a lost or purged submission."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: a duplicated reference on a bound or in-progress submission is treated as a data-integrity defect requiring immediate correction and re-index."
+        },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Pre/post: after the assignment step the submission that had no reference now carries exactly one valid reference; before/after record snapshot attached to the registration activity."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "cmqsck0z103z3mbk8c39oejng"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "No formal change ticket for routine assignment; sequence-configuration changes are governed by a ServiceNow CHG record referenced in the PolicyCenter release notes."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All submissions registered in the current month (census) checked for reference uniqueness and presence."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = every submission has exactly one unique, format-valid reference. FAIL = any null, duplicate, or malformed reference."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, regenerate the reference through the controlled sequence and re-index the file; recurring collisions escalate to the platform team via ServiceNow."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance: unique reference in the SUB-<YYYY>-<######> format attached to the submission and reflected on the OpenText folder."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence: PolicyCenter submission audit trail and the OpenText folder name /uw/submissions/<SUB-ref>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Key the underwriting file to the unique reference",
+              "value": "OpenText file folder is named with the SUB-<YYYY>-<######> reference so all documents index to one submission."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify one file per reference",
+              "value": "Sampled references each resolve to a single OpenText folder; 0 references with split or merged files."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Register the submission with a trackable identifier",
+              "value": "Reference assigned at registration before triage proceeds, satisfying minimum-registration requirements."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm reference uniqueness",
+              "value": "Integrity job reports 0 duplicate/null references for the period."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "1d899b6a-6b92-431c-9b36-c93324c6ef18",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform", "Enterprise data warehouse/lakehouse"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Key metadata fields for each registered submission: line of business, coverage type, requested effective/inception date, named insured, address/state, and producer of record; population = submission headers created in PolicyCenter during the current triage cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At registration in the current business day; metadata is captured before the submission is routed to an underwriting team."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Required fields (LOB, coverage, effective date, named insured, state, producer) are populated and validated against picklists; effective date must be a valid future/current date and LOB must map to an active product; blanks or invalid codes fail the check."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Captured field set reconciles to the submission's required-metadata template (e.g. 6 of 6 header fields populated); PolicyCenter mandatory-field validation returns 0 outstanding required fields."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Metadata is stored on the PolicyCenter submission record with create/modify audit stamps; a snapshot of the header is retained on the file for as-registered evidence with version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Invalid or missing metadata raises a data-quality exception in PolicyCenter with disposition (correct-from-source / query-producer), assignee = Underwriting Assistant, 2-business-day SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Field definitions and validation rules follow the approved submission-header data standard v4.0 configured in PolicyCenter."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03y5mbk85lrlrry0" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: LOB and state drive downstream routing and filed-rate selection, so those two fields are validated most strictly."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: an incorrect effective date or state is material because it changes appetite, form set, and rate; such errors are corrected before routing."
+        },
+        {
+          "templateKeyId": "cmr2oaqcs003flasbzagkqajt",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaqdw003hlasbdzf9bntz",
+          "value": "All submissions registered in the current month (census) checked for complete, valid header metadata."
+        },
+        {
+          "templateKeyId": "cmr2oaqf0003jlasbcce2g3fi",
+          "value": "PASS = 100% of mandatory header fields populated and picklist-valid. FAIL = any submission with a blank or invalid LOB, coverage, effective date, insured, state, or producer."
+        },
+        {
+          "templateKeyId": "cmr2oaqg3003llasbj4ssgkij",
+          "value": "On FAIL, the data-quality exception queue routes the record to the Underwriting Assistant to correct from source documents or query the producer before routing."
+        },
+        {
+          "templateKeyId": "cmr2v8a6b001bxa9irmnikgv0",
+          "value": "Field definitions from the submission-header data dictionary: lob_code, coverage_type, effective_date, named_insured, risk_state, producer_id — one value per submission header."
+        },
+        {
+          "templateKeyId": "cmr2v8a7b001dxa9ilxplwfp2",
+          "value": "Control total = required-field count per product manifest; PolicyCenter mandatory-field engine reports 0 unpopulated required fields at registration close."
+        },
+        {
+          "answerId": "cmr2ocfyu0vlzkaz36opj4nwt",
+          "value": "In-scope effective dates = the requested policy inception/effective date captured on the header for each submission registered in the period; only current/future effective dates are valid and in scope."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Capture the minimum required submission metadata",
+              "value": "LOB, coverage, effective date, insured, state, and producer populated at registration per the minimum-submission standard."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify header completeness",
+              "value": "Sample 25 submissions per quarter; 0 with missing or invalid mandatory header fields."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Retain the as-registered header snapshot",
+              "value": "Header metadata snapshot with audit stamps filed to the submission record for the underwriting file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm audit stamps present",
+              "value": "Sampled records each show create/modify user and timestamp on captured metadata; 0 unattributed edits."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "0c98428a-3198-42c3-8df6-6f80755c6e81",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Sanctions Analyst"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [
+        { "name": "LexisNexis Risk", "usageType": "performed" },
+        { "name": "Archer GRC", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The insured, all named entities, and beneficial owners on each new-business submission; population = parties on submissions in triage requiring OFAC/sanctions clearance before binding."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Pre-bind, within the current triage cycle; screening must clear before any quote is bound, and is re-run at renewal and on ownership changes."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203z7mbk8fhl1p7ep"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each party is screened against the OFAC SDN, consolidated sanctions, and PEP lists via LexisNexis/Actimize; the screening record captures party name, match score, list version, and cleared/flagged status; a party with no screening result fails the check."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Screened-party count reconciles to the parties named on the submission (insured + additional insureds + beneficial owners); 0 parties left unscreened (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Screening results and any hit-disposition memo are retained in Archer GRC and on the file /uw/submissions/<SUB-ref>/sanctions/ with list-version and timestamp; retained per AML recordkeeping requirements."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A potential match is escalated to the Sanctions Analyst as a sanctions-hit exception in Archer with disposition (true-match-block / false-positive-clear), documented rationale, and no bind permitted until cleared or reported."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Screening uses the approved sanctions-screening procedure and match-scoring thresholds (auto-clear below score X, manual review at or above) configured in the screening platform, change-controlled."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03y5mbk85lrlrry0" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: fuzzy-match threshold is tuned so name/DOB near-matches surface for review rather than auto-clearing; threshold changes require compliance sign-off."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: any confirmed sanctions match is material regardless of premium and blocks binding and triggers regulatory reporting."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All parties on all submissions bound in the period (census) tested for a completed pre-bind screening record."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = every party screened pre-bind against current lists with a documented clear/flag disposition; 0 binds without clearance. FAIL = any party unscreened or bound with an open hit."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, block/void the bind, escalate the hit to the Sanctions Analyst and Compliance for disposition, and file a report where a true match is confirmed; item tracked in Archer to closure."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance: all named parties and beneficial owners screened against current OFAC/sanctions/PEP lists pre-bind with a documented disposition."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence: Archer GRC screening case and results retained on /uw/submissions/<SUB-ref>/sanctions/."
+        },
+        {
+          "answerId": "cmr2ocdwc0t50kaz3hdho1flg",
+          "value": "Authorized approver for clearing a potential match = the Sanctions Analyst / Compliance per the AML delegation matrix; underwriters may not self-clear a sanctions hit. A confirmed true match is blocked and escalated to the CUO and Compliance, and no delegated authority permits binding a sanctioned party."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp4u1o8imbk8fwfbmrnd",
+          "checklist": [
+            {
+              "step": "Screen all insureds and related parties before binding",
+              "value": "Insured, additional insureds, and beneficial owners screened against OFAC/sanctions/PEP lists in LexisNexis/Actimize before any bind."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify pre-bind screening coverage",
+              "value": "For 100% of bound submissions, every named party has a pre-bind screening record with a clear/flag disposition; 0 exceptions."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the screening outcome on the file",
+              "value": "Screening results and hit dispositions filed to Archer and the submission file with list version and timestamp."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm screening evidence retained",
+              "value": "Sampled submissions each show a retained screening record; 0 files missing sanctions evidence."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5gbta00trv880e5vjfhl3",
+          "checklist": [
+            {
+              "step": "Screen relationships and transactions against sanctions lists",
+              "value": "All submission parties screened against OFAC SDN and consolidated sanctions lists at current version before binding, with potential matches held for review."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify no unscreened party is bound",
+              "value": "0 bound submissions with an unscreened party or an unresolved sanctions hit; hit dispositions documented and retained."
+            }
+          ]
+        },
+        {
+          "regId": "cmrbfzlpc00f7v8kgfdoiliy1",
+          "checklist": [
+            {
+              "step": "Apply the risk-based AML program controls at intake",
+              "value": "Sanctions screening and beneficial-owner checks run per the AML program; escalations routed to the Sanctions Analyst and Compliance."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify AML control operation",
+              "value": "Sampled submissions show screening performed to procedure with correct escalation of potential matches; 0 skipped controls."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cmr2fjlmd10glkfgz0t49uixr",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Creation of the policy shell record in PolicyCenter for each cleared submission proceeding to underwriting; population = registered submissions that need a shell/skeleton policy record established."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "In the current triage cycle, after registration and clearance and before rating/quoting; the shell is created once the submission is accepted into the underwriting workflow."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Shell carries the submission reference, named insured, LOB, effective date, and producer copied from the submission header; the generated policy number POL-<line>-<########> is present and the shell status = Draft; a shell missing insured or effective date fails validation."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "One shell record per accepted submission; PolicyCenter confirms 0 submissions accepted without a corresponding shell and 0 duplicate shells (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Shell creation event (user, timestamp, source submission reference) recorded in the PolicyCenter audit trail; the draft record is linked to the OpenText file /uw/submissions/<SUB-ref>/."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A failed shell creation or a shell orphaned from its submission raises an exception in PolicyCenter with disposition (recreate / relink), assignee = Underwriting Assistant, same-day SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Shell is created from the approved product template/model configuration in PolicyCenter for the LOB, at the current change-controlled product version."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03y5mbk85lrlrry0" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: the LOB and product-version selected at shell creation determine the available coverages and rating; an incorrect product template is caught before quoting."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: a shell built on the wrong product or effective date is material as it flows into rate and form selection; corrected before the shell advances."
+        },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Pre/post: submission had no policy record before the step; after, exactly one Draft shell exists carrying the header data, verified against the source submission; snapshot attached to the create activity."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "cmqsck0z103z3mbk8c39oejng"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "No per-shell change ticket for routine creation; product-template configuration changes are governed by a ServiceNow CHG referenced in PolicyCenter release notes."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All submissions accepted into underwriting in the current month (census) checked for a correctly built shell."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = one Draft shell per accepted submission, correct product/LOB and header data, valid policy number. FAIL = missing shell, duplicate shell, wrong product template, or missing header data."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, recreate or relink the shell from the correct product template; recurring template errors escalate to the product-configuration team via ServiceNow."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance: Draft policy shell exists with policy number, correct product/LOB, and header data copied from the submission."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence: PolicyCenter shell record and audit trail linked to /uw/submissions/<SUB-ref>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Link the policy shell to the underwriting file",
+              "value": "Draft shell linked to the OpenText submission folder so file and system record stay in sync."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify shell-to-file linkage",
+              "value": "Sampled shells each resolve to the correct submission file; 0 orphaned shells."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Establish the policy record from registered data",
+              "value": "Shell built from the registered submission header on the approved product template before quoting."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm shell data fidelity",
+              "value": "Sampled shells match the source submission on insured, LOB, and effective date; 0 mismatches."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "bd06f72a-24c4-49eb-915f-8298d7f87261",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["UI Developer"],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform", "Enterprise data warehouse/lakehouse"],
+      "addApps": [
+        { "name": "Broker & Agent Portal; Microsoft 365 / SharePoint", "usageType": "performed" },
+        { "name": "OpenText Document Mgmt", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Inbound new-business submissions arriving from brokers, agents, and MGAs via the broker portal and email intake; population = all inbound submissions in the intake queue with producing-broker source details to be captured."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current intake day; a submission is present in intake with source metadata captured within 4 business hours of arrival."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Intake captures producing-broker name and code, agency, submission channel, receipt timestamp, and attached documents; a submission with no producer code or no attachment fails intake validation and is queried."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Documents received reconcile to the broker's submission cover/email manifest; attachment count in OpenText matches the manifest with delta = 0 (missing attachments queried back to the producer)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The inbound package (email/portal payload + attachments) is archived to OpenText /uw/submissions/<SUB-ref>/inbound/ with receipt timestamp and version; source metadata stamped on the PolicyCenter intake record."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Submissions missing producer source details or documents raise an intake exception in PolicyCenter with disposition (query-producer / reject), assignee = Underwriting Assistant, 2-business-day SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Intake follows the approved submission-intake procedure v2.3 with the standard channel and producer-code capture rules configured in PolicyCenter."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03y5mbk85lrlrry0" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: the producer code drives commission, appointment validity, and licensing checks downstream, so it is validated against the producer master at intake."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: an unappointed or mis-keyed producer is material because it affects the ability to bind and pay commission; flagged before the submission advances."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All inbound submissions received in the current month (census) checked for captured source metadata and complete inbound archive."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = every inbound submission present in intake with producer source details and documents archived. FAIL = any submission missing producer code, channel, or attachments."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, the intake exception queue routes the item to the Underwriting Assistant to query the producer for missing details or documents before registration."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance: submission present in intake with producing-broker source metadata captured and inbound documents archived within SLA."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence: PolicyCenter intake record and OpenText archive /uw/submissions/<SUB-ref>/inbound/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Capture minimum intake details on receipt",
+              "value": "Producer code, channel, receipt timestamp, and documents captured at intake per the minimum-submission standard."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify intake completeness",
+              "value": "Sample 25 inbound submissions per quarter; 0 missing producer source metadata or documents."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppxd1oa2mbk82g6mira7",
+          "checklist": [
+            {
+              "step": "Register inbound submissions promptly for acknowledgment",
+              "value": "Submissions logged within 4 business hours of arrival so the downstream acknowledgment SLA can be met."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Measure intake timeliness",
+              "value": "Report shows 100% of inbound submissions logged within 4 business hours; 0 aged in the raw intake queue."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fjl42106xkfgzgf1n9gui",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Entry of each received submission into the underwriting system of record; population = intake submissions that need a PolicyCenter submission record created from the captured intake data."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current intake day; the submission record is created immediately after intake and before reference assignment and routing."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Submission record carries insured, LOB, effective date, producer, and receipt date keyed from intake; mandatory-field validation must pass and the record status = Submitted; missing mandatory data fails record creation."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Submissions-logged count reconciles to intake-received count for the day; 0 intake items left un-logged and 0 duplicate records (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Record creation (user, timestamp, source intake id) is captured in the PolicyCenter audit trail; the record links to the OpenText file /uw/submissions/<SUB-ref>/."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A failed record creation or an intake item with no resulting record raises an exception in PolicyCenter with disposition (re-key / investigate), assignee = Underwriting Assistant, same-day SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Record creation follows the approved PolicyCenter submission-entry configuration and mandatory-field rules at the current change-controlled version."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03y5mbk85lrlrry0" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: automated intake-to-record mapping is validated so channel-specific field mappings do not silently drop data."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: a dropped or mis-mapped insured/effective-date field is material and is caught by mandatory-field validation before the record advances."
+        },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Pre/post: intake item existed only in the queue before the step; after, exactly one Submitted record exists in PolicyCenter carrying the intake data, verified against the intake source; snapshot on the create activity."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "cmqsck0z103z3mbk8c39oejng"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "No per-record change ticket; intake-mapping configuration changes are governed by a ServiceNow CHG referenced in PolicyCenter release notes."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All intake items received in the current month (census) checked for a created, complete submission record."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = one Submitted record per intake item with mandatory fields valid. FAIL = un-logged intake item, duplicate record, or record with invalid mandatory data."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, re-key or investigate the mapping and create the record; recurring mapping failures escalate to the platform team via ServiceNow."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance: submission record created in PolicyCenter with valid mandatory data and linked to the underwriting file."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence: PolicyCenter submission record and audit trail linked to /uw/submissions/<SUB-ref>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Create the file record for the submission",
+              "value": "Submission record linked to the OpenText file so all downstream documentation attaches to one record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify record-to-file linkage",
+              "value": "Sampled records each resolve to the correct file; 0 records without a linked file."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Log the submission with minimum required data",
+              "value": "Insured, LOB, effective date, and producer captured on the record per the minimum-submission standard."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm record completeness",
+              "value": "0 logged submissions with invalid or missing mandatory fields in the period."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "c75fd1db-2ade-47c2-a529-b27e7bf0cf9e",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Clearance Specialist"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "ERP/General ledger (SAP/Oracle/Workday Financials)"
+      ],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Clearance check confirming no conflict of interest or broker conflict with existing accounts; population = registered submissions checked against in-force policies, open submissions, and no-write/conflict lists in PolicyCenter before an underwriter is assigned."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "In the current triage cycle, after registration and before assignment; clearance is confirmed within 1 business day of registration."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Clearance result records the matched/searched insured names, the competing broker (if any), the conflict determination, and the cleared/held status; a submission with no clearance determination fails the check."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every registered submission has exactly one clearance determination; the clearance queue reconciles to registrations with 0 submissions assigned before clearance (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Clearance search results and determination are retained on the PolicyCenter clearance activity and the file /uw/submissions/<SUB-ref>/clearance/ with timestamp and version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A potential conflict (same insured with a different broker, or a no-write-list hit) is logged as a clearance exception with disposition (first-in-clears / refer-to-CUO / decline), assignee = Clearance Specialist, and no assignment until resolved."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Clearance follows the approved broker-clearance and conflict-resolution procedure (first-in / first-cleared rules) configured at the current change-controlled version."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03y5mbk85lrlrry0" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: fuzzy name/address matching surfaces near-duplicate insureds across brokers so a genuine conflict is not missed by exact-match only."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: a broker conflict on a live account is material because binding the second broker breaches clearance rules; such cases are referred before assignment."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All submissions cleared in the current month (census) tested for a completed clearance determination before assignment."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = every submission has a documented clearance determination before assignment and no submission was assigned/bound over an unresolved conflict. FAIL = assignment before clearance or an unresolved no-write/conflict hit."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "On FAIL, hold the submission, apply the first-in-clears rule or refer the conflict to the CUO for a documented decision, and record the outcome before assignment proceeds."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dates in scope = the requested inception dates of submissions cleared in the period; clearance is valid for the submission it was run against and re-run if the broker or insured changes."
+        },
+        {
+          "answerId": "cmr2ocdx00u0jkaz3d4j1wa7t",
+          "value": "Acceptance: a documented clearance determination (cleared or held-with-reason) exists for every submission before assignment, applying the first-in/first-cleared rule and no-write-list check. Evidence: PolicyCenter clearance activity and results retained on /uw/submissions/<SUB-ref>/clearance/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the clearance determination on the file",
+              "value": "Clearance search results and determination filed to the submission file with timestamp before assignment."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify clearance evidence",
+              "value": "Sample 25 submissions per quarter; each has a documented clearance determination before assignment; 0 gaps."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Refer conflicts per defined triggers",
+              "value": "Broker conflicts and no-write hits referred to the Clearance Specialist/CUO per documented referral triggers rather than cleared locally."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm referral of conflicts",
+              "value": "For sampled clearance holds, each conflict shows a referral and documented resolution; 0 self-cleared conflicts."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "16cd5fd9-34da-4ef0-b528-e6cc6f2fa2f6",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform", "Enterprise data warehouse/lakehouse"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Duplicate check of the submission against existing in-force policies and open submissions; population = registered submissions matched by insured name, address, FEIN, and requested effective date in PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "In the current triage cycle at registration, before assignment; duplicate status is determined within 1 business day of registration."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The duplicate-check result records the search keys used, any matched records, and the determination (unique / duplicate-of-<ref> / related); a submission with no duplicate determination fails the check."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every registered submission carries one duplicate determination; the check queue reconciles to registrations with 0 submissions advanced without a determination (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Duplicate-check search and determination are retained on the PolicyCenter activity and the file /uw/submissions/<SUB-ref>/dupe-check/ with timestamp and version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A duplicate hit is logged as an exception with disposition (merge / link-as-related / cancel-duplicate), assignee = Underwriting Assistant, resolved before assignment."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Matching uses the approved duplicate-detection rule set (insured name + address + FEIN + effective-date window) configured at the current change-controlled version."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03y5mbk85lrlrry0" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: fuzzy matching on insured name/address surfaces near-duplicates; the match-score threshold is tuned to avoid both silent duplicates and excessive false positives."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: a true duplicate that advances would create two competing quotes/policies on one risk; such cases are resolved before assignment."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All submissions registered in the current month (census) tested for a completed duplicate determination before assignment."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = every submission has a duplicate determination and no true duplicate advanced unlinked. FAIL = missing determination or a true duplicate progressed to assignment."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "On FAIL, link or merge the duplicate and cancel the redundant record, or mark as related with rationale; recurring false matches trigger a rule-tuning review."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dates in scope = requested inception dates of submissions checked in the period, using the effective-date window in the matching rule to detect overlapping risks."
+        },
+        {
+          "answerId": "cmr2ocfys0vjwkaz31ml9lgar",
+          "value": "Acceptance: a documented duplicate determination (unique / duplicate-of-<ref> / related) exists for every submission before assignment, with duplicates linked or cancelled. Evidence: PolicyCenter duplicate-check activity retained on /uw/submissions/<SUB-ref>/dupe-check/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the duplicate determination on the file",
+              "value": "Search keys and determination filed to the submission file so the decision is auditable."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify duplicate-check evidence",
+              "value": "Sampled submissions each show a documented determination before assignment; 0 gaps."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Screen registered submissions for duplicates",
+              "value": "Every registered submission run through the duplicate rule set before advancing, per registration standards."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm no unresolved duplicates advance",
+              "value": "0 true duplicates advanced to assignment unlinked in the period."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "32b63ea1-3a29-4678-9ecc-c11162559bfa",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform", "PPM tool (Clarity/Planview/Jira Align)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Routing of each cleared submission to the correct underwriting team or product specialist by line of business and geography; population = cleared, non-duplicate submissions awaiting team assignment in PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "In the current triage cycle, after clearance/duplicate checks; routing assignment is made within 2 business days of registration."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Routing record captures the LOB, risk state, and the assigned team/underwriter derived from the routing matrix; a submission with no assigned team or a mismatch to the LOB/geography rule fails the check."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every cleared submission is assigned to exactly one team; the routing queue reconciles to cleared submissions with 0 unassigned and 0 double-assigned (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The routing decision and workflow transfer are recorded in the PolicyCenter workflow history with user and timestamp; assignment reflected on the submission and the file /uw/submissions/<SUB-ref>/."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A mis-route or a submission with no matching team is logged as a routing exception with disposition (re-route / manual-assign), assignee = UW Operations Manager, same-day SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Routing uses the approved assignment matrix v3.1 mapping LOB and geography to underwriting teams, at the current change-controlled version."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03y5mbk85lrlrry0" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: submissions near an authority or specialty boundary (e.g. large limit, surplus lines, specialty program) route to the specialist team rather than the general queue."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: a wrong team assignment delays the SLA and may put a risk with an underwriter lacking authority; such mis-routes are corrected promptly."
+        },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The routing decision (assigned team/underwriter and the matching LOB/geography rule) is documented on the PolicyCenter assignment activity."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Assignment notification recipients = the receiving underwriter/team lead and the Underwriting Assistant, recorded on the workflow activity."
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "All submissions routed in the current month (census) traced through the PolicyCenter workflow history for correct team assignment."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = every submission routed to the team the matrix prescribes for its LOB/geography, with one assignment and a workflow record. FAIL = unassigned, double-assigned, or matrix-mismatched routing."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "On FAIL, the routing exception queue re-routes to the correct team; repeated mis-routes trigger a matrix review by the UW Operations Manager."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "The assignment matrix encodes the delegation of routing authority by LOB/geography; overrides require UW Operations Manager approval recorded on the activity."
+        },
+        {
+          "answerId": "cmr2ocdxk0ur7kaz3pvcsyf3g",
+          "value": "Acceptance: each cleared submission assigned to the correct team/specialist per the LOB/geography routing matrix, with a documented workflow record. Evidence: PolicyCenter workflow history and assignment activity on /uw/submissions/<SUB-ref>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Route by defined referral/assignment triggers",
+              "value": "Submissions routed to specialist teams per documented triggers (limit, specialty line, surplus lines) rather than defaulting to the general queue."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify trigger-based routing",
+              "value": "Sampled specialty submissions each routed to the correct specialist team per the trigger rules; 0 mis-routes."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Assign to an underwriter with correct authority",
+              "value": "Routing matrix maps risk size/LOB to a team whose underwriters hold the required authority level."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm authority-aligned assignment",
+              "value": "For sampled routings, the assigned underwriter's authority covers the risk's premium/limit/LOB; 0 assignments beyond authority."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "e6e44fd3-aff0-4c97-b90f-a58964f68ec9",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Assessment of submission complexity, premium size, and renewal vs new-business status to set triage priority; population = assigned submissions awaiting a priority rating in the underwriting queue."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "In the current triage cycle, at assignment; priority is set within 1 business day so bind-by-date and high-premium risks are worked first."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Priority record captures premium band, complexity indicator, renewal/new flag, and requested effective date, and derives a priority tier (High/Medium/Low); a submission with no priority tier set fails the check."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every assigned submission carries one priority tier; the queue reconciles to assignments with 0 unprioritized submissions (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The priority rating and its inputs are recorded on the PolicyCenter submission with user and timestamp; reflected on the work queue and the file /uw/submissions/<SUB-ref>/."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A submission that cannot be prioritized (missing premium/complexity data) is logged as an exception with disposition (obtain-data / default-medium), assignee = Underwriting Assistant, same-day SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All assigned submissions in the current month (census) checked for a set priority tier consistent with the prioritization rules."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every submission has a priority tier derived from premium band, complexity, and renewal/new status per the rules; high-premium/bind-by-date risks are High. FAIL = unprioritized submission or a tier inconsistent with the inputs."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "On FAIL, obtain the missing premium/complexity data and re-rate, or apply the default Medium tier with a note; disputed priorities are reviewed by the Senior Underwriter."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance: a priority tier is set for every assigned submission using the documented premium/complexity/renewal rules, with high-urgency risks flagged for SLA."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence: PolicyCenter submission priority field and work-queue position, retained on /uw/submissions/<SUB-ref>/."
+        },
+        {
+          "answerId": "cmr2ocdvy0smikaz33vjwzucr",
+          "value": "Source-system field definitions: premium_band, complexity_flag, business_type (new/renewal), effective_date, priority_tier from the PolicyCenter submission record. Control total = assigned-submission count for the period reconciles to prioritized-submission count with 0 unprioritized."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Prioritize against documented appetite and segment",
+              "value": "Priority reflects appetite fit by LOB/geography/industry so in-appetite and strategic risks are worked first."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify appetite-aligned prioritization",
+              "value": "Sampled submissions show priority consistent with appetite and segment rules; 0 in-appetite high-premium risks left Low without reason."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpq051oa8mbk8dk8eyglb",
+          "checklist": [
+            {
+              "step": "Prioritize to meet quote turnaround SLAs",
+              "value": "High-premium and bind-by-date submissions flagged High so a firm quote can be issued within 5 business days."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm SLA-driven priority",
+              "value": "For sampled High-priority submissions, quote turnaround met the 5-business-day standard; 0 SLA breaches from mis-prioritization."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

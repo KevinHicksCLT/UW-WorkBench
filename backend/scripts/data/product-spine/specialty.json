@@ -1,0 +1,1646 @@
+{
+  "segment": {
+    "name": "Specialty",
+    "canonicalName": "Specialty Lines",
+    "systems": "PAS C (DB2) · per-deal Excel raters (actuarial drive) · manuscript wording library (.docx)",
+    "legacyVariants": 9,
+    "operatingPattern": "Deal-by-deal underwritten specialty placements — every account individually priced in an Excel rater, manuscripted from the wording library, and hand-keyed into PAS C on surplus lines paper.",
+    "distribution": "Wholesale brokers, specialty retail brokers, select MGA relationships",
+    "placement": "Individually underwritten account placement on non-admitted (surplus lines) paper",
+    "reinsurance": "Facultative per-risk on large limits + variable quota share on the cyber book",
+    "regulatory": "Surplus lines — state SL premium tax and stamping filings via brokers; no admitted rate/form filings",
+    "behavior": {
+      "Product Taxonomy": "Product codes exist in PAS C but the real granularity lives in per-deal folders on the UW shared drive; hazard class taxonomies sit in rater tabs.",
+      "Coverages": "Base grants come from carrier proprietary forms; per-account broadening and restrictions are manuscript endorsements drafted from the .docx wording library.",
+      "Terms": "Claims-made structures, retro dates, SIRs and defense treatment are negotiated account by account and tracked in claims-made tracking spreadsheets.",
+      "Rating": "Per-deal Excel raters on the actuarial drive; version control is by filename and the rater run is pasted into the pricing memo.",
+      "Pricing": "Rater produces the technical price; the bound price is underwriter judgment documented in a Word pricing memo in the deal file.",
+      "Underwriting Rules": "Referral by email to the product line leader with the deal file attached; authority grids are PDFs, nothing is systematized.",
+      "Forms": "Manuscript wording library (.docx per program/account) plus carrier proprietary forms; form editions tracked manually.",
+      "Filings": "Surplus lines filings log on the compliance drive tracks SL taxes, stamping fees and affidavits per state; no admitted filings exist.",
+      "Lifecycle Behavior": "Submission to quote to bind is email plus Excel plus Word; bind is manually keyed into PAS C; retro dates and ERP elections live in tracking spreadsheets."
+    },
+    "patterns": [
+      {
+        "name": "Claims-made professional lines",
+        "components": ["Coverages", "Terms", "Lifecycle Behavior"]
+      },
+      {
+        "name": "Control-based cyber underwriting",
+        "components": ["Rating", "Underwriting Rules"]
+      },
+      { "name": "Manuscript account placement", "components": ["Forms", "Pricing"] }
+    ]
+  },
+  "lobs": [
+    {
+      "name": "Professional Liability / E&O",
+      "appliesTo": "Technology E&O and miscellaneous professional liability classes",
+      "componentsExtended": "Hazard class taxonomy (tech services); retro dates; ERP elections; per-class rater tabs"
+    },
+    {
+      "name": "D&O / Management Liability",
+      "appliesTo": "Private company directors & officers, EPL and fiduciary modules",
+      "componentsExtended": "ABC side structure; module architecture (D&O/EPL/FID); financial-review artifacts"
+    },
+    {
+      "name": "Cyber",
+      "appliesTo": "First- and third-party cyber for US and EU insureds",
+      "componentsExtended": "Control attestations; external scan scores; ransomware supplemental applications; sublimit/coinsurance grids"
+    },
+    {
+      "name": "Marine Cargo / Hull",
+      "appliesTo": "Ocean cargo and hull accounts written on specialty paper",
+      "componentsExtended": "Voyage/commodity schedules; vessel particulars; Institute clause sets"
+    },
+    {
+      "name": "Aviation",
+      "appliesTo": "General aviation hull & liability and airport premises",
+      "componentsExtended": "Aircraft schedules; pilot warranties; war/hijack sections"
+    },
+    {
+      "name": "Energy",
+      "appliesTo": "Onshore energy property and operators extra expense",
+      "componentsExtended": "Schedule of values per site; control-of-well terms; NatCat sub-schedules"
+    },
+    {
+      "name": "Surety / Bond",
+      "appliesTo": "Contract and commercial surety bonds",
+      "componentsExtended": "Obligee/penal sum data; indemnity agreements; work-on-hand reporting"
+    }
+  ],
+  "products": [
+    {
+      "name": "Tech E&O / MPL ProLine",
+      "lob": "Professional Liability / E&O",
+      "runsIn": "PAS C + Excel rater",
+      "description": "Claims-made technology errors & omissions plus miscellaneous professional liability for tech services firms and professional classes, individually rated per deal and issued on surplus lines paper.",
+      "versions": [
+        {
+          "version": "v5",
+          "jurisdiction": "US multi-state",
+          "effective": "Eff. 02/2026",
+          "status": "Active",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Deal-folder taxonomy over a thin PAS C product code",
+              "items": [
+                {
+                  "name": "PAS C product code PL-TEO",
+                  "description": "The only system-level identity of the product — a single product master code under which every ProLine policy is keyed.",
+                  "livesIn": "PAS C (DB2) — product master table PRODMST"
+                },
+                {
+                  "name": "Tech services hazard class taxonomy",
+                  "description": "Five hazard classes (SaaS, IT consulting/integration, managed service providers, telecom, tech staffing) that drive base rates and referral rules.",
+                  "livesIn": "TEO-Rater-v5.3.xlsx — 'HazardClass' tab, actuarial drive"
+                },
+                {
+                  "name": "Miscellaneous PL class appendix",
+                  "description": "Appendix of 34 eligible MPL classes (consultants, recruiters, associations, media services) mapped to the same rater with class-specific factors.",
+                  "livesIn": "TEO-Rater-v5.3.xlsx — 'MPL-Classes' tab, actuarial drive"
+                },
+                {
+                  "name": "Version lineage v1–v5",
+                  "description": "Form-edition lineage since 2018; v4 (02/24 edition) is renewal-only, v1–v3 fully retired with mapped conversion notes.",
+                  "livesIn": "Product line SharePoint — ProLine version history page"
+                },
+                {
+                  "name": "Surplus lines eligibility map",
+                  "description": "State-by-state export-list eligibility and diligent-search requirements determining where ProLine can be bound non-admitted.",
+                  "livesIn": "Surplus lines filings log — compliance drive, 'Eligibility' sheet"
+                },
+                {
+                  "name": "Deal folder naming convention",
+                  "description": "UW drive convention (ACCOUNT_STATE_EFFDATE) that is the de facto policy index — the deal folder, not PAS C, holds the full account picture.",
+                  "livesIn": "UW shared drive — \\\\specialty\\deals\\TEO"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "Tech E&O + MPL wrongful acts with privacy add-on",
+              "items": [
+                {
+                  "name": "Technology professional services wrongful acts",
+                  "description": "Insuring Agreement A — liability for negligent acts, errors or omissions in the performance of technology services or failure of technology products to perform.",
+                  "livesIn": "Carrier form TEO-1000 (02/26 ed.) — manuscript wording library"
+                },
+                {
+                  "name": "Media liability",
+                  "description": "Insuring Agreement B — personal and advertising injury (defamation, IP infringement excluding patent) arising from content in the insured's media.",
+                  "livesIn": "Carrier form TEO-1000 (02/26 ed.) — manuscript wording library"
+                },
+                {
+                  "name": "Network security & privacy liability add-on",
+                  "description": "Sublimited third-party cover ($1M max) for failure of network security or wrongful disclosure of PII, bolted on by endorsement for accounts without standalone cyber.",
+                  "livesIn": "Endorsement TEO-2110 (.docx) — manuscript wording library"
+                },
+                {
+                  "name": "Subpoena assistance expense",
+                  "description": "Pays legal costs (typically $25k sublimit) to respond to a subpoena arising from professional services when the insured is not a party to the suit.",
+                  "livesIn": "Carrier form TEO-1000 (02/26 ed.) — supplementary payments section"
+                },
+                {
+                  "name": "Disciplinary proceeding expense",
+                  "description": "Defense expense sublimit ($50k) for regulatory or licensing-board proceedings alleging a wrongful act in professional services.",
+                  "livesIn": "Carrier form TEO-1000 (02/26 ed.) — supplementary payments section"
+                },
+                {
+                  "name": "Contractual liability carve-back",
+                  "description": "Exception to the contract exclusion preserving cover for liability the insured would have absent the contract, plus assumed breach-of-warranty in tech services agreements.",
+                  "livesIn": "Carrier form TEO-1000 (02/26 ed.) — exclusions section carve-back"
+                },
+                {
+                  "name": "Retroactive date / prior acts",
+                  "description": "Coverage applies only to wrongful acts on or after the scheduled retro date; full prior acts granted for clean accounts with continuous cover.",
+                  "livesIn": "Declarations item 6, PAS C policy record + claims-made tracking spreadsheet"
+                },
+                {
+                  "name": "Extended reporting period options (1/3/6 yr)",
+                  "description": "Optional ERPs of one, three or six years purchasable at cancellation/non-renewal to report claims from pre-termination wrongful acts.",
+                  "livesIn": "Endorsement TEO-2400 (.docx) — manuscript wording library"
+                },
+                {
+                  "name": "Loss of documents / data re-creation extension",
+                  "description": "First-party expense extension ($100k sublimit) to restore client documents or data damaged or lost while in the insured's care.",
+                  "livesIn": "Manuscript extension endorsement — per-account .docx, wording library"
+                },
+                {
+                  "name": "Innocent insured protection",
+                  "description": "Severability provision preserving cover for insured persons who neither committed nor had knowledge of fraudulent or dishonest acts of another insured.",
+                  "livesIn": "Carrier form TEO-1000 (02/26 ed.) — conditions section"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "Claims-made-and-reported with SIR and defense-inside",
+              "items": [
+                {
+                  "name": "Claims-made-and-reported trigger",
+                  "description": "Claim must be first made against the insured during the policy period and reported to the carrier within 60 days after expiry.",
+                  "livesIn": "Carrier form TEO-1000 (02/26 ed.) — insuring agreement; tracked in claims-made tracking spreadsheet"
+                },
+                {
+                  "name": "Retro date scheduling",
+                  "description": "Per-insured retro date on the declarations; advancement at renewal is prohibited without line-leader referral because it strips prior-acts cover.",
+                  "livesIn": "Claims-made tracking spreadsheet — retro-date column, UW drive"
+                },
+                {
+                  "name": "Defense inside the limit",
+                  "description": "Defense costs erode the limit of liability (cost-inclusive), the standard structure for this product across all hazard classes.",
+                  "livesIn": "Carrier form TEO-1000 (02/26 ed.) — limit of liability section"
+                },
+                {
+                  "name": "Self-insured retention (not deductible)",
+                  "description": "SIR of $10k–$250k that the insured funds first, including defense within the SIR; carrier consent required on counsel selection above the SIR.",
+                  "livesIn": "Declarations item 4; negotiated level recorded in Word pricing memo"
+                },
+                {
+                  "name": "Limit menu $1M–$10M",
+                  "description": "Per-claim and aggregate limits offered from $1M/$1M to $10M/$10M; above $5M requires financial condition review.",
+                  "livesIn": "TEO-Rater-v5.3.xlsx — 'ILF' tab; PAS C limit fields"
+                },
+                {
+                  "name": "ERP premium factors",
+                  "description": "ERP pricing fixed at 100% / 150% / 200% of expiring annual premium for the 1 / 3 / 6 year options, fully earned at election.",
+                  "livesIn": "Endorsement TEO-2400 rate table — manuscript wording library"
+                },
+                {
+                  "name": "Interrelated wrongful acts clause",
+                  "description": "All claims arising from the same or logically connected wrongful acts are deemed a single claim first made when the earliest was made.",
+                  "livesIn": "Carrier form TEO-1000 (02/26 ed.) — definitions"
+                },
+                {
+                  "name": "50/50 hammer clause",
+                  "description": "If the insured refuses a settlement the carrier recommends, further defense and indemnity above that amount is shared 50/50.",
+                  "livesIn": "Carrier form TEO-1000 (02/26 ed.) — consent to settle condition"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "Revenue-band base rates × hazard class × claims load",
+              "items": [
+                {
+                  "name": "Revenue-band base rate table",
+                  "description": "Base rate per $1,000 of professional services revenue in ten revenue bands, the primary exposure base for both tech E&O and MPL.",
+                  "livesIn": "TEO-Rater-v5.3.xlsx — 'BaseRates' tab, actuarial drive"
+                },
+                {
+                  "name": "Hazard class factor",
+                  "description": "Multiplier 0.85–2.10 by tech services taxonomy class; MSPs and telecom carry the highest factors due to systemic downstream exposure.",
+                  "livesIn": "TEO-Rater-v5.3.xlsx — 'HazardClass' tab"
+                },
+                {
+                  "name": "Claims load factor",
+                  "description": "Debit of 1.10–1.75 driven by claim frequency and paid severity over the trailing five years from the supplemental claims application.",
+                  "livesIn": "TEO-Rater-v5.3.xlsx — 'ClaimsLoad' tab; source data in deal file loss runs"
+                },
+                {
+                  "name": "Retro date credit/debit",
+                  "description": "Credit up to 15% for a retro date matching inception (no prior acts); full prior acts is the base rate.",
+                  "livesIn": "TEO-Rater-v5.3.xlsx — 'RetroFactor' cell block"
+                },
+                {
+                  "name": "SIR credit curve",
+                  "description": "Credit curve from the $10k base SIR up to 25% credit at $250k, interpolated in the rater.",
+                  "livesIn": "TEO-Rater-v5.3.xlsx — 'SIRCredit' tab"
+                },
+                {
+                  "name": "Increased limit factors",
+                  "description": "ILFs from the $1M base to $10M, capped per hazard class; the rater blocks ILF above class-specific max lines.",
+                  "livesIn": "TEO-Rater-v5.3.xlsx — 'ILF' tab"
+                },
+                {
+                  "name": "Contract risk management credit",
+                  "description": "Up to 10% credit for consistent use of a standard MSA with limitation-of-liability and mutual indemnification clauses, verified from sample contracts in the deal file.",
+                  "livesIn": "TEO-Rater-v5.3.xlsx — 'RiskMgmt' inputs; evidence in UW deal file"
+                },
+                {
+                  "name": "State factor page",
+                  "description": "State relativities reflecting venue severity (e.g. IL/CA debits) applied to the multi-state exposure split from the application.",
+                  "livesIn": "TEO-Rater-v5.3.xlsx — 'StateFactors' tab"
+                },
+                {
+                  "name": "Rater workbook version control",
+                  "description": "The rater itself — TEO-Rater-v5.3.xlsx — versioned by filename on the actuarial drive; the rater run is pasted into the pricing memo as the technical-price record.",
+                  "livesIn": "Actuarial drive — \\\\actuarial\\raters\\TEO\\TEO-Rater-v5.3.xlsx"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "Technical price + SL taxes, fees and wholesale commission",
+              "items": [
+                {
+                  "name": "Surplus lines premium tax per state",
+                  "description": "Non-admitted premium tax remitted by the broker per home state (e.g. CA 3.00%, TX 4.85%, NY 3.60%), calculated on gross premium.",
+                  "livesIn": "Surplus lines filings log — compliance drive, tax-rate sheet"
+                },
+                {
+                  "name": "CA stamping fee 0.18%",
+                  "description": "Surplus Line Association of California stamping fee of 0.18% on CA-home-state placements, itemized separately on the invoice.",
+                  "livesIn": "Surplus lines filings log — compliance drive; broker invoice in deal file"
+                },
+                {
+                  "name": "Policy fee",
+                  "description": "Fully earned policy fee of $250–$500 per policy, charged where the home state permits fees on surplus lines placements.",
+                  "livesIn": "PAS C billing record — fee code POLFEE; state permissibility sheet in SL log"
+                },
+                {
+                  "name": "Wholesale broker commission",
+                  "description": "15%–17.5% commission to the wholesale broker, negotiated per relationship and netted from gross premium at settlement.",
+                  "livesIn": "PAS C producer record; commission grid PDF on product line SharePoint"
+                },
+                {
+                  "name": "Minimum premium / minimum earned",
+                  "description": "Minimum premium $2,500 and 25% minimum earned premium at inception on all ProLine placements.",
+                  "livesIn": "Quote letter template + Word pricing memo, deal file"
+                },
+                {
+                  "name": "Technical vs walk-away price memo",
+                  "description": "The Word pricing memo records rater technical price, target price, walk-away price and the rationale for any deviation the underwriter binds.",
+                  "livesIn": "UW deal file — pricing memo .docx per account"
+                },
+                {
+                  "name": "ERP premium (fully earned)",
+                  "description": "ERP election premium (100/150/200% of annual) is fully earned at election and invoiced as a one-time endorsement premium.",
+                  "livesIn": "PAS C endorsement premium record; TEO-2400 rate table"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Email referral grid + class and controls gates",
+              "items": [
+                {
+                  "name": "Revenue referral threshold",
+                  "description": "Accounts with professional services revenue above $50M must be referred by email to the professional lines leader before quoting.",
+                  "livesIn": "Authority grid PDF — product line SharePoint; referral emails in deal file"
+                },
+                {
+                  "name": "Prior claims referral",
+                  "description": "Any paid claim above $100k, or more than two claims of any size, in the trailing five years triggers line-leader referral.",
+                  "livesIn": "Authority grid PDF; loss runs in UW deal file"
+                },
+                {
+                  "name": "Prohibited classes",
+                  "description": "Cryptocurrency exchanges, adult content platforms and firms providing gambling software are declines — no referral path.",
+                  "livesIn": "Authority grid PDF — prohibited class list"
+                },
+                {
+                  "name": "Medical-adjacent tech referral",
+                  "description": "Medical billing, EMR/EHR vendors and telehealth platforms must be referred due to bodily-injury adjacency of a tech failure.",
+                  "livesIn": "Authority grid PDF; referral emails in deal file"
+                },
+                {
+                  "name": "Sanctions / OFAC screening at clearance",
+                  "description": "Insured and known principals screened against OFAC SDN and consolidated lists at submission clearance, rescreened at bind.",
+                  "livesIn": "Clearance checklist in UW deal file; screening tool extract attached"
+                },
+                {
+                  "name": "Retro date advancement prohibition",
+                  "description": "Renewal retro dates may never be advanced without line-leader sign-off, since advancement removes prior-acts cover the insured has paid for.",
+                  "livesIn": "Authority grid PDF; claims-made tracking spreadsheet audit column"
+                },
+                {
+                  "name": "Financial review above $5M limits",
+                  "description": "Limits above $5M require a current financial statement review documented in the pricing memo before release of the quote.",
+                  "livesIn": "Word pricing memo — financials section; statements in deal file"
+                },
+                {
+                  "name": "Signed application warranty",
+                  "description": "Signed application and warranty statement required within 30 days of bind; bind is subject-to and flagged for cancellation if not received.",
+                  "livesIn": "Subjectivities tracker sheet in UW deal file"
+                },
+                {
+                  "name": "Healthcare staffing carve-out",
+                  "description": "Staffing firms placing healthcare workers are ineligible under ProLine and are routed to the healthcare MPL product instead.",
+                  "livesIn": "Authority grid PDF — class routing table"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "Carrier proprietary form + per-account manuscript endorsements",
+              "items": [
+                {
+                  "name": "TEO-1000 (02/26 ed.) base policy form",
+                  "description": "Carrier proprietary claims-made tech E&O / MPL policy form, the 2026 edition that defines the v5 product.",
+                  "livesIn": "Manuscript wording library — \\\\wordings\\TEO\\TEO-1000_0226.docx"
+                },
+                {
+                  "name": "Per-account manuscript endorsement set",
+                  "description": "Account-specific broadenings and restrictions drafted as .docx endorsements from library precedents, versioned per deal folder.",
+                  "livesIn": "Manuscript wording library + UW deal file endorsement subfolder"
+                },
+                {
+                  "name": "TEO-2110 network security & privacy endorsement",
+                  "description": "Standard endorsement adding the sublimited security/privacy liability grant with its own retention and definitions.",
+                  "livesIn": "Manuscript wording library — TEO-2110.docx"
+                },
+                {
+                  "name": "TEO-2400 extended reporting period endorsement",
+                  "description": "ERP election endorsement carrying the 1/3/6-year options and fully-earned premium schedule.",
+                  "livesIn": "Manuscript wording library — TEO-2400.docx"
+                },
+                {
+                  "name": "Sanctions limitation clause (LMA3100-style)",
+                  "description": "Carrier sanctions limitation and exclusion clause modeled on LMA3100, attached to every ProLine policy.",
+                  "livesIn": "Manuscript wording library — standard clauses folder"
+                },
+                {
+                  "name": "War & terrorism exclusion",
+                  "description": "Absolute war exclusion with a carve-back for cyber terrorism affecting media content claims, per carrier standard.",
+                  "livesIn": "Manuscript wording library — standard clauses folder"
+                },
+                {
+                  "name": "Prior & pending litigation exclusion",
+                  "description": "Excludes claims arising from litigation or proceedings pending before the P&P date shown on the declarations (usually first inception with carrier).",
+                  "livesIn": "TEO-1000 exclusions + P&P date in PAS C policy record"
+                },
+                {
+                  "name": "Specific matter exclusion (manuscript)",
+                  "description": "Per-account exclusion of a known dispute or client relationship identified at underwriting, drafted as a manuscript .docx.",
+                  "livesIn": "UW deal file — manuscript endorsement per account"
+                },
+                {
+                  "name": "State surplus lines notices & service of suit",
+                  "description": "State-mandated SL disclosure stamps (e.g. CA D-1, NY excess line notice) and service-of-suit clause attached per home state.",
+                  "livesIn": "Manuscript wording library — SL notices folder, indexed by state"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "Non-admitted — SL tax/stamping filings only",
+              "items": [
+                {
+                  "name": "Surplus lines filing per placement",
+                  "description": "Broker files each ProLine placement with the home-state SL stamping office/regulator; compliance logs filing number and date.",
+                  "livesIn": "Surplus lines filings log — compliance drive, per-policy rows"
+                },
+                {
+                  "name": "CA SL-1 / SL-2 diligent search forms",
+                  "description": "California confidential report of placement (SL-1) and diligent search declaration (SL-2) for CA home-state insureds.",
+                  "livesIn": "Surplus lines filings log + scanned forms in compliance drive folder"
+                },
+                {
+                  "name": "NY ELANY excess line affidavit",
+                  "description": "ELANY affidavit (Part A/C) filed for New York home-state placements with the stamped copy retained.",
+                  "livesIn": "Compliance drive — ELANY affidavit folder; log row per policy"
+                },
+                {
+                  "name": "TX SLTX stamping filing",
+                  "description": "Texas Surplus Lines Stamping Office filing and stamping-fee remittance for TX home-state placements.",
+                  "livesIn": "Surplus lines filings log — TX sheet"
+                },
+                {
+                  "name": "Export list eligibility check",
+                  "description": "Pre-bind check whether the class appears on the state export list (no diligent search needed) or requires declinations documentation.",
+                  "livesIn": "Surplus lines filings log — eligibility sheet; declinations in deal file"
+                },
+                {
+                  "name": "No admitted rate/form filings",
+                  "description": "Product intentionally carries no admitted filings — form and rate freedom is the reason ProLine lives on non-admitted paper; noted in the compliance register.",
+                  "livesIn": "Compliance drive — product regulatory register entry"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "Email submission → rater/memo quote → manual PAS C bind",
+              "items": [
+                {
+                  "name": "Submission intake & deal file creation",
+                  "description": "Broker email submission is saved to a new deal folder (application, loss runs, financials) which becomes the account's system of record.",
+                  "livesIn": "UW shared drive — deal folder per account"
+                },
+                {
+                  "name": "Clearance & sanctions screen",
+                  "description": "Account cleared against the in-force and submission log for broker-of-record conflicts, with OFAC screen run at the same step.",
+                  "livesIn": "Clearance log spreadsheet — UW drive; screen extract in deal file"
+                },
+                {
+                  "name": "Rater run & pricing memo",
+                  "description": "Underwriter completes TEO-Rater-v5.3.xlsx, pastes the output into the Word pricing memo, and records technical/target/bound price.",
+                  "livesIn": "UW deal file — rater copy + pricing memo .docx"
+                },
+                {
+                  "name": "Quote letter release",
+                  "description": "Quote letter with terms, subjectivities and SL disclosures generated from the template and emailed to the wholesale broker.",
+                  "livesIn": "Quote letter template — product line SharePoint; sent copy in deal file"
+                },
+                {
+                  "name": "Bind & manual PAS C entry",
+                  "description": "On broker bind order, the underwriting assistant keys the policy into PAS C (DB2) — coverage codes, limits, SIR, retro date, producer and fees.",
+                  "livesIn": "PAS C (DB2) policy record; bind order email in deal file"
+                },
+                {
+                  "name": "Policy issuance by document team",
+                  "description": "Document team assembles the policy from TEO-1000 plus the endorsement set out of the wording library and issues to the broker within 30 days.",
+                  "livesIn": "Manuscript wording library + issued PDF in deal file"
+                },
+                {
+                  "name": "Mid-term endorsements",
+                  "description": "Endorsement requests drafted as manuscript .docx, premium computed in the rater or flat-charged, then re-keyed into PAS C as endorsement transactions.",
+                  "livesIn": "PAS C endorsement records; .docx in deal file"
+                },
+                {
+                  "name": "Renewal re-underwrite",
+                  "description": "Renewal requires an updated application and loss runs; the account is re-rated in the current rater version and re-memoed — no auto-renewal exists.",
+                  "livesIn": "Renewal deal folder; claims-made tracking spreadsheet continuity check"
+                },
+                {
+                  "name": "Cancellation & ERP election window",
+                  "description": "On cancellation/non-renewal the insured has 60 days to elect an ERP; elections and deadlines are tracked manually in the claims-made spreadsheet.",
+                  "livesIn": "Claims-made tracking spreadsheet — ERP columns, UW drive"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "version": "v4",
+          "jurisdiction": "US multi-state",
+          "effective": "Eff. 02/2024",
+          "status": "Renewal only",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Same PAS C code, older class map — renewal book only",
+              "items": [
+                {
+                  "name": "PAS C product code PL-TEO (v4 flag)",
+                  "description": "v4 policies share the PL-TEO product master with a form-edition field distinguishing 02/24-edition renewals from v5 new business.",
+                  "livesIn": "PAS C (DB2) — PRODMST + form edition field"
+                },
+                {
+                  "name": "Legacy 4-class hazard taxonomy",
+                  "description": "v4 rater uses the older four-class tech taxonomy (no separate MSP class) — MSPs sit in IT consulting, understating their systemic exposure.",
+                  "livesIn": "TEO-Rater-v4.7.xlsx — 'HazardClass' tab, actuarial drive"
+                },
+                {
+                  "name": "MPL class appendix (28 classes)",
+                  "description": "v4 eligible MPL class list, six classes shorter than v5; new classes cannot be written on v4 paper.",
+                  "livesIn": "TEO-Rater-v4.7.xlsx — 'MPL-Classes' tab"
+                },
+                {
+                  "name": "Renewal-only status marker",
+                  "description": "v4 is closed to new business as of 02/2026 — renewals migrate to v5 at the first renewal unless the broker negotiates a hold.",
+                  "livesIn": "Product line SharePoint — version history page; migration tracker sheet"
+                },
+                {
+                  "name": "v4→v5 conversion map",
+                  "description": "Clause-by-clause mapping of TEO-1000 02/24 to 02/26 wording used by the document team when migrating renewals.",
+                  "livesIn": "Product line SharePoint — conversion map .xlsx"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "02/24-edition grants — narrower than v5",
+              "items": [
+                {
+                  "name": "Technology professional services wrongful acts",
+                  "description": "Same core Insuring Agreement A as v5 but the 02/24 definition of technology services omits AI model development, added in v5.",
+                  "livesIn": "Carrier form TEO-1000 (02/24 ed.) — manuscript wording library"
+                },
+                {
+                  "name": "Media liability",
+                  "description": "Insuring Agreement B on the 02/24 edition; narrower than v5 — social media takeover claims are not addressed in the wording.",
+                  "livesIn": "Carrier form TEO-1000 (02/24 ed.)"
+                },
+                {
+                  "name": "Network security & privacy add-on (prior edition)",
+                  "description": "TEO-2110 (2023 wording) sublimited privacy grant; lacks the v5 wrongful-collection carve-back for pixel/tracking claims.",
+                  "livesIn": "Endorsement TEO-2110 (2023 .docx) — manuscript wording library"
+                },
+                {
+                  "name": "Subpoena assistance expense",
+                  "description": "Identical $25k subpoena assistance sublimit carried forward unchanged from v4 into v5.",
+                  "livesIn": "Carrier form TEO-1000 (02/24 ed.) — supplementary payments"
+                },
+                {
+                  "name": "Retroactive date / prior acts",
+                  "description": "Retro-date mechanics identical to v5; continuity of retro dates through the v4→v5 migration is the key renewal check.",
+                  "livesIn": "Claims-made tracking spreadsheet — continuity column"
+                },
+                {
+                  "name": "Extended reporting period options (1/3/6 yr)",
+                  "description": "Same 1/3/6-year ERP menu; elections on v4 cancellations continue to run off under the 02/24 wording.",
+                  "livesIn": "Endorsement TEO-2400 (2023 .docx)"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "Same claims-made frame, 90-day reporting window",
+              "items": [
+                {
+                  "name": "Claims-made-and-reported trigger (90-day window)",
+                  "description": "v4 allows 90 days post-expiry reporting versus v5's 60 — a term the document team must not silently shorten at migration.",
+                  "livesIn": "Carrier form TEO-1000 (02/24 ed.); flagged in conversion map"
+                },
+                {
+                  "name": "Defense inside the limit",
+                  "description": "Cost-inclusive limit structure identical to v5.",
+                  "livesIn": "Carrier form TEO-1000 (02/24 ed.) — limit of liability section"
+                },
+                {
+                  "name": "SIR structure",
+                  "description": "Same SIR-not-deductible design; v4 book carries legacy SIRs as low as $5k that v5 no longer offers.",
+                  "livesIn": "Declarations item 4; PAS C policy records"
+                },
+                {
+                  "name": "Limit menu $1M–$5M",
+                  "description": "v4 capped at $5M/$5M — accounts needing $10M were part of the case for the v5 refresh.",
+                  "livesIn": "TEO-Rater-v4.7.xlsx — 'ILF' tab"
+                },
+                {
+                  "name": "ERP premium factors",
+                  "description": "Same 100/150/200% ERP factors as v5, per the 2023 TEO-2400 rate table.",
+                  "livesIn": "Endorsement TEO-2400 (2023) rate table"
+                },
+                {
+                  "name": "Full hammer clause",
+                  "description": "v4 carries a full (100%) hammer clause; softened to 50/50 in v5 — a broker talking point at every migration renewal.",
+                  "livesIn": "Carrier form TEO-1000 (02/24 ed.) — consent to settle condition"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "v4.7 rater — 2023 base rates, frozen for renewals",
+              "items": [
+                {
+                  "name": "Revenue-band base rate table (2023 rates)",
+                  "description": "Frozen 2023 base rates per $1,000 revenue; renewal rate change is applied as an overlay factor rather than re-basing.",
+                  "livesIn": "TEO-Rater-v4.7.xlsx — 'BaseRates' tab, actuarial drive"
+                },
+                {
+                  "name": "Hazard class factor (4-class)",
+                  "description": "Legacy four-class factors 0.90–1.80; the missing MSP class is the main technical gap versus v5 rating.",
+                  "livesIn": "TEO-Rater-v4.7.xlsx — 'HazardClass' tab"
+                },
+                {
+                  "name": "Renewal rate-change overlay",
+                  "description": "Manual renewal uplift factor (target +4% portfolio) entered by the underwriter and justified in the pricing memo.",
+                  "livesIn": "TEO-Rater-v4.7.xlsx — 'RenewalOverlay' cell; pricing memo"
+                },
+                {
+                  "name": "Claims load factor",
+                  "description": "Same trailing-five-year claims debit structure as v5, 1.10–1.75.",
+                  "livesIn": "TEO-Rater-v4.7.xlsx — 'ClaimsLoad' tab"
+                },
+                {
+                  "name": "SIR credit curve",
+                  "description": "v4 credit curve extends down to the legacy $5k SIR; otherwise matches v5.",
+                  "livesIn": "TEO-Rater-v4.7.xlsx — 'SIRCredit' tab"
+                },
+                {
+                  "name": "Rater version freeze",
+                  "description": "TEO-Rater-v4.7.xlsx is frozen — bug fixes only, no factor updates — so renewal pricing drifts from v5 technical levels over time.",
+                  "livesIn": "Actuarial drive — \\\\actuarial\\raters\\TEO\\archive\\TEO-Rater-v4.7.xlsx"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "Same SL tax/fee stack as v5",
+              "items": [
+                {
+                  "name": "Surplus lines premium tax per state",
+                  "description": "Identical broker-remitted SL tax treatment to v5; rates keyed off the current-year tax sheet regardless of form edition.",
+                  "livesIn": "Surplus lines filings log — compliance drive, tax-rate sheet"
+                },
+                {
+                  "name": "CA stamping fee 0.18%",
+                  "description": "SLA California stamping fee applies to v4 renewals exactly as to v5 new business.",
+                  "livesIn": "Surplus lines filings log; broker invoice in deal file"
+                },
+                {
+                  "name": "Policy fee",
+                  "description": "$250–$500 fully earned policy fee where state-permitted, unchanged from v5 practice.",
+                  "livesIn": "PAS C billing record — fee code POLFEE"
+                },
+                {
+                  "name": "Wholesale broker commission",
+                  "description": "15%–17.5% wholesale commission; several v4 legacy accounts carry grandfathered 17.5% deals recorded in the producer file.",
+                  "livesIn": "PAS C producer record; commission grid PDF"
+                },
+                {
+                  "name": "Minimum premium / minimum earned",
+                  "description": "Minimum premium $2,000 on v4 legacy accounts (raised to $2,500 in v5), 25% minimum earned unchanged.",
+                  "livesIn": "Quote letter template (2024) + pricing memo, deal file"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "v5 referral grid applies; migration checks added",
+              "items": [
+                {
+                  "name": "Current authority grid governs renewals",
+                  "description": "v4 renewals are underwritten against the current (v5-era) authority grid — old grid thresholds are void.",
+                  "livesIn": "Authority grid PDF — product line SharePoint"
+                },
+                {
+                  "name": "Migration-hold referral",
+                  "description": "Keeping an account on v4 paper past 02/2026 requires line-leader email approval with the reason recorded in the migration tracker.",
+                  "livesIn": "Migration tracker sheet — product line SharePoint; referral emails in deal file"
+                },
+                {
+                  "name": "Prior claims referral",
+                  "description": "Same referral triggers as v5 — paid claim > $100k or > 2 claims in five years.",
+                  "livesIn": "Authority grid PDF; loss runs in deal file"
+                },
+                {
+                  "name": "Sanctions / OFAC rescreen at renewal",
+                  "description": "Every v4 renewal rescreens the insured and principals against OFAC lists at clearance.",
+                  "livesIn": "Clearance checklist in renewal deal file"
+                },
+                {
+                  "name": "Retro date continuity check",
+                  "description": "Mandatory check that the v4→v5 migration or v4 renewal preserves the original retro date, signed off in the tracking spreadsheet.",
+                  "livesIn": "Claims-made tracking spreadsheet — continuity column"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "02/24 editions, frozen library folder",
+              "items": [
+                {
+                  "name": "TEO-1000 (02/24 ed.) base policy form",
+                  "description": "The 2024-edition proprietary form defining v4; frozen in the archive folder of the wording library for renewal issuance only.",
+                  "livesIn": "Manuscript wording library — \\\\wordings\\TEO\\archive\\TEO-1000_0224.docx"
+                },
+                {
+                  "name": "TEO-2110 (2023) privacy endorsement",
+                  "description": "Prior-edition security & privacy endorsement still attached to in-force v4 policies.",
+                  "livesIn": "Manuscript wording library — archive folder"
+                },
+                {
+                  "name": "TEO-2400 (2023) ERP endorsement",
+                  "description": "Prior-edition ERP endorsement governing tails elected on v4 cancellations.",
+                  "livesIn": "Manuscript wording library — archive folder"
+                },
+                {
+                  "name": "Per-account manuscript endorsement set",
+                  "description": "Legacy account manuscripts remain attached at renewal; document team must re-issue them against the 02/24 base form, not v5.",
+                  "livesIn": "UW deal file endorsement subfolder per account"
+                },
+                {
+                  "name": "Sanctions limitation clause (LMA3100-style)",
+                  "description": "Same carrier sanctions clause attached to all v4 renewals.",
+                  "livesIn": "Manuscript wording library — standard clauses folder"
+                },
+                {
+                  "name": "State SL notices (current-year set)",
+                  "description": "SL disclosure stamps are always issued from the current-year state set regardless of form edition.",
+                  "livesIn": "Manuscript wording library — SL notices folder"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "Same non-admitted filing stack per renewal",
+              "items": [
+                {
+                  "name": "Surplus lines filing per renewal",
+                  "description": "Each v4 renewal is a new SL filing in the home state — filing obligations do not distinguish form editions.",
+                  "livesIn": "Surplus lines filings log — compliance drive"
+                },
+                {
+                  "name": "CA SL-1 / SL-2 forms",
+                  "description": "CA diligent-search paperwork required on CA-home-state v4 renewals identical to v5.",
+                  "livesIn": "Compliance drive — SL forms folder"
+                },
+                {
+                  "name": "NY ELANY affidavit",
+                  "description": "ELANY excess line affidavit per NY renewal.",
+                  "livesIn": "Compliance drive — ELANY folder; log row per policy"
+                },
+                {
+                  "name": "Export list eligibility recheck",
+                  "description": "Eligibility rechecked at renewal because export lists change annually; a class dropping off the list forces declinations documentation.",
+                  "livesIn": "Surplus lines filings log — eligibility sheet"
+                },
+                {
+                  "name": "No admitted filings",
+                  "description": "As with v5, no rate/form filings exist for v4 — noted in the product regulatory register.",
+                  "livesIn": "Compliance drive — product regulatory register entry"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "Renewal-only flow with migration decision gate",
+              "items": [
+                {
+                  "name": "Renewal solicitation & updated application",
+                  "description": "90 days pre-expiry the deal file is reopened, updated application and loss runs requested — same manual flow as v5.",
+                  "livesIn": "Renewal deal folder — UW shared drive"
+                },
+                {
+                  "name": "Migration decision gate",
+                  "description": "First lifecycle step on every v4 renewal: migrate to v5 paper (default) or refer for a v4 hold; decision recorded before rating.",
+                  "livesIn": "Migration tracker sheet — product line SharePoint"
+                },
+                {
+                  "name": "Rater run in frozen v4.7 + overlay",
+                  "description": "Held accounts are re-rated in the frozen v4.7 rater with the renewal overlay; migrating accounts move to the v5.3 rater.",
+                  "livesIn": "UW deal file — rater copy + pricing memo"
+                },
+                {
+                  "name": "Renewal bind & PAS C re-key",
+                  "description": "Renewal keyed into PAS C as a new term under the same policy chain, form edition field set to 02/24 for held accounts.",
+                  "livesIn": "PAS C (DB2) policy record"
+                },
+                {
+                  "name": "ERP runoff administration",
+                  "description": "Tails elected on v4 cancellations are tracked to their 1/3/6-year expiry dates in the claims-made spreadsheet — nothing in PAS C ages them.",
+                  "livesIn": "Claims-made tracking spreadsheet — ERP runoff columns"
+                },
+                {
+                  "name": "Mid-term endorsements on 02/24 paper",
+                  "description": "Endorsements to in-force v4 policies must be drafted against 02/24 defined terms — a recurring source of wording defects noted by claims.",
+                  "livesIn": "UW deal file endorsement subfolder; PAS C endorsement records"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Private Company D&O ManagementOne",
+      "lob": "D&O / Management Liability",
+      "runsIn": "PAS C",
+      "description": "Private company directors & officers liability with ABC side structure and optional EPL and fiduciary modules, financially underwritten per account and issued on surplus lines paper.",
+      "versions": [
+        {
+          "version": "v3",
+          "jurisdiction": "US multi-state",
+          "effective": "Eff. 05/2025",
+          "status": "Active",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Modular management liability package under one PAS C code",
+              "items": [
+                {
+                  "name": "PAS C product code ML-MGT1",
+                  "description": "Single product master code covering the D&O core and the EPL/FID modules, distinguished by coverage-part flags on the policy record.",
+                  "livesIn": "PAS C (DB2) — PRODMST + coverage-part flags"
+                },
+                {
+                  "name": "Coverage-part module architecture",
+                  "description": "Three coverage parts — D&O, EPL, Fiduciary — electable per account, sharing or separating limits per the declarations.",
+                  "livesIn": "Policy form MGT-1000 (05/25 ed.) — coverage part structure; PAS C flags"
+                },
+                {
+                  "name": "Industry class taxonomy",
+                  "description": "Twelve private-company industry classes (manufacturing, healthcare services, real estate, professional services, etc.) driving rate and referral posture.",
+                  "livesIn": "DO-Rater-v3.1.xlsx — 'IndustryClass' tab, actuarial drive"
+                },
+                {
+                  "name": "Version lineage v1–v3",
+                  "description": "Form lineage since 2020; v3 (05/25) added the derivative demand sublimit and Side A DIC companion availability.",
+                  "livesIn": "Product line SharePoint — ManagementOne version history"
+                },
+                {
+                  "name": "Surplus lines availability map",
+                  "description": "State eligibility and diligent-search posture for non-admitted private D&O, maintained alongside the E&O map.",
+                  "livesIn": "Surplus lines filings log — compliance drive, eligibility sheet"
+                },
+                {
+                  "name": "Public-company routing rule",
+                  "description": "Taxonomy boundary: any issuer with public securities or an announced IPO is out of scope and routed to the public D&O facility.",
+                  "livesIn": "Authority grid PDF — class routing table"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "ABC sides + EPL/fiduciary modules",
+              "items": [
+                {
+                  "name": "Side A — non-indemnifiable loss",
+                  "description": "Pays loss of individual directors and officers when the company cannot or does not indemnify (insolvency, legal prohibition); no retention applies.",
+                  "livesIn": "Policy form MGT-1000 (05/25 ed.) — Insuring Agreement A"
+                },
+                {
+                  "name": "Side B — corporate reimbursement",
+                  "description": "Reimburses the company for indemnification it pays on behalf of insured persons, subject to the B/C retention.",
+                  "livesIn": "Policy form MGT-1000 (05/25 ed.) — Insuring Agreement B"
+                },
+                {
+                  "name": "Side C — entity coverage",
+                  "description": "Covers the private company entity itself for claims — broad-form entity cover (not securities-only) as is standard for private D&O.",
+                  "livesIn": "Policy form MGT-1000 (05/25 ed.) — Insuring Agreement C"
+                },
+                {
+                  "name": "Side A DIC excess companion",
+                  "description": "Optional difference-in-conditions excess Side A limit that drops down when the underlying policy wrongfully fails to pay or is rescinded.",
+                  "livesIn": "Side A DIC form MGT-1100 (.docx) — manuscript wording library"
+                },
+                {
+                  "name": "EPL module",
+                  "description": "Employment practices liability coverage part — wrongful termination, discrimination, harassment, retaliation — including third-party EPL for customer claims.",
+                  "livesIn": "EPL coverage part endorsement MGT-2200 — wording library"
+                },
+                {
+                  "name": "Fiduciary module",
+                  "description": "Fiduciary liability coverage part for ERISA breach claims against sponsors and plan fiduciaries, with voluntary settlement (DOL/IRS program) sublimit.",
+                  "livesIn": "Fiduciary coverage part endorsement MGT-2300 — wording library"
+                },
+                {
+                  "name": "Derivative demand investigation sublimit",
+                  "description": "$250k sublimit for the company's costs of investigating a shareholder derivative demand, outside the retention.",
+                  "livesIn": "Policy form MGT-1000 (05/25 ed.) — sublimits schedule"
+                },
+                {
+                  "name": "Crisis / public relations expense",
+                  "description": "$50k sublimit for crisis communications costs after a covered event naming a director or officer.",
+                  "livesIn": "Policy form MGT-1000 (05/25 ed.) — supplementary payments"
+                },
+                {
+                  "name": "Additional Side A limit for independent directors",
+                  "description": "Dedicated $1M excess limit available only to outside/independent directors after all other insurance is exhausted.",
+                  "livesIn": "Endorsement MGT-2150 — wording library"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "ABC tower order, non-rescindable Side A, shared/separate module limits",
+              "items": [
+                {
+                  "name": "Order of payments (priority to Side A)",
+                  "description": "Policy directs loss payment first to non-indemnifiable Side A loss of individuals, then B, then C — protecting individuals if the limit is stressed.",
+                  "livesIn": "Policy form MGT-1000 (05/25 ed.) — order of payments clause"
+                },
+                {
+                  "name": "Shared vs separate module limits",
+                  "description": "EPL and fiduciary modules either share the D&O aggregate or carry separate limits, elected on the declarations and priced accordingly.",
+                  "livesIn": "Declarations items 3–5; DO-Rater-v3.1.xlsx module pricing"
+                },
+                {
+                  "name": "Retentions: $0 Side A / tiered B-C",
+                  "description": "No retention on Side A; Side B/C retention $25k–$250k by size and class; EPL retention set separately (often higher, e.g. $50k CA accounts).",
+                  "livesIn": "Declarations item 6; pricing memo rationale"
+                },
+                {
+                  "name": "Non-rescindable Side A",
+                  "description": "Coverage under Insuring Agreement A cannot be rescinded for application misrepresentation — severability protects innocent insureds.",
+                  "livesIn": "Policy form MGT-1000 (05/25 ed.) — severability & non-rescindability clause"
+                },
+                {
+                  "name": "Claims-made with 90-day reporting",
+                  "description": "Claims-made trigger with 90-day post-expiry reporting window and noticed-circumstance mechanism preserving cover for later related claims.",
+                  "livesIn": "Policy form MGT-1000 (05/25 ed.); claims-made tracking spreadsheet"
+                },
+                {
+                  "name": "ERP options 1/3/6 years",
+                  "description": "Standard ERP menu at 100/150/200% of annualized premium; a separate 6-year run-off tail applies automatically on change in control.",
+                  "livesIn": "Policy form MGT-1000 + ERP endorsement MGT-2400 rate table"
+                },
+                {
+                  "name": "Conduct exclusions — final adjudication",
+                  "description": "Fraud and illegal-profit exclusions apply only after final, non-appealable adjudication in the underlying action, preserving defense until then.",
+                  "livesIn": "Policy form MGT-1000 (05/25 ed.) — exclusions section"
+                },
+                {
+                  "name": "Defense inside the limit, duty to defend EPL only",
+                  "description": "Defense costs erode limits across all parts; the carrier owes a duty to defend on the EPL module but indemnifies defense on D&O/FID.",
+                  "livesIn": "Policy form MGT-1000 (05/25 ed.) — defense provisions"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "Asset-based rating with financial-strength modifier",
+              "items": [
+                {
+                  "name": "Total assets base rate table",
+                  "description": "Base rate keyed to total assets in nine bands — the private-company analogue of market cap — from the latest financial statements.",
+                  "livesIn": "DO-Rater-v3.1.xlsx — 'BaseRates' tab, actuarial drive"
+                },
+                {
+                  "name": "Financial-strength score modifier",
+                  "description": "Credit-model score (bureau data plus statement ratios: leverage, liquidity, cash burn) mapped to a 0.80–1.60 modifier; distressed scores also trigger referral.",
+                  "livesIn": "DO-Rater-v3.1.xlsx — 'FinScore' tab; score source noted in pricing memo"
+                },
+                {
+                  "name": "Industry class factor",
+                  "description": "Class relativities 0.85–1.90; healthcare services and real estate development carry the highest private D&O factors.",
+                  "livesIn": "DO-Rater-v3.1.xlsx — 'IndustryClass' tab"
+                },
+                {
+                  "name": "Employee count factor (EPL module)",
+                  "description": "EPL module premium driven by headcount bands and state mix, with CA headcount separately weighted.",
+                  "livesIn": "DO-Rater-v3.1.xlsx — 'EPL' tab"
+                },
+                {
+                  "name": "Plan assets factor (fiduciary module)",
+                  "description": "Fiduciary module rated on total plan assets and plan type (DB plans loaded over DC).",
+                  "livesIn": "DO-Rater-v3.1.xlsx — 'FID' tab"
+                },
+                {
+                  "name": "Years-in-business / ownership factor",
+                  "description": "Credit for >10 years operating history and stable ownership; debit for PE-sponsored roll-ups and recent leveraged recapitalizations.",
+                  "livesIn": "DO-Rater-v3.1.xlsx — 'Ownership' inputs"
+                },
+                {
+                  "name": "Prior litigation load",
+                  "description": "Debit from prior D&O/EPL claims and pending litigation disclosed on the application, up to 1.75.",
+                  "livesIn": "DO-Rater-v3.1.xlsx — 'ClaimsLoad' tab; loss runs in deal file"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "Module pricing over the D&O core + SL tax stack",
+              "items": [
+                {
+                  "name": "Surplus lines premium tax per state",
+                  "description": "Broker-remitted SL tax on gross premium per home state (CA 3.00% etc.), identical stack to the rest of the specialty book.",
+                  "livesIn": "Surplus lines filings log — compliance drive, tax-rate sheet"
+                },
+                {
+                  "name": "Stamping fees where applicable",
+                  "description": "Stamping-office fees (CA 0.18%, TX 0.04%) itemized on the broker invoice for applicable home states.",
+                  "livesIn": "Surplus lines filings log; broker invoice in deal file"
+                },
+                {
+                  "name": "Module pricing as % of D&O core",
+                  "description": "EPL module typically 35–60% and fiduciary 8–15% of the D&O core premium, from the rater module tabs, before shared-limit credit.",
+                  "livesIn": "DO-Rater-v3.1.xlsx — module summary block; pricing memo"
+                },
+                {
+                  "name": "Shared-limit credit",
+                  "description": "10–20% credit when EPL/FID share the D&O aggregate rather than carrying separate limits.",
+                  "livesIn": "DO-Rater-v3.1.xlsx — shared-limit toggle"
+                },
+                {
+                  "name": "Wholesale broker commission",
+                  "description": "15% standard wholesale commission on ManagementOne, netted at settlement.",
+                  "livesIn": "PAS C producer record; commission grid PDF"
+                },
+                {
+                  "name": "Minimum retained premium",
+                  "description": "Minimum premium $3,500; 25% minimum earned; short-rate cancellation except on flat-cancel within 30 days.",
+                  "livesIn": "Quote letter template + pricing memo, deal file"
+                },
+                {
+                  "name": "Multi-year single-aggregate option pricing",
+                  "description": "Optional 2-year prepaid term with a single aggregate priced at 175% of annual — used for M&A-adjacent accounts wanting certainty.",
+                  "livesIn": "Pricing memo — multi-year option section; PAS C term field"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Financial review is the gate; distressed accounts referred",
+              "items": [
+                {
+                  "name": "Mandatory financial review",
+                  "description": "Two years of financial statements (reviewed or audited preferred) must be analyzed and summarized in the pricing memo before any quote is released.",
+                  "livesIn": "Word pricing memo — financials section; statements in deal file"
+                },
+                {
+                  "name": "Distressed-company referral",
+                  "description": "Negative net worth, going-concern qualification, current-ratio < 1.0 or > 24-month cash burn triggers line-leader referral; default posture is Side-A-only terms.",
+                  "livesIn": "Authority grid PDF; referral emails in deal file"
+                },
+                {
+                  "name": "M&A activity referral",
+                  "description": "Announced or contemplated acquisition, sale or recapitalization must be referred — change-in-control run-off terms priced before bind.",
+                  "livesIn": "Authority grid PDF; application question 14 in deal file"
+                },
+                {
+                  "name": "IPO plans routing rule",
+                  "description": "Any insured with securities registration plans inside 18 months is declined on ManagementOne and routed to the public D&O facility.",
+                  "livesIn": "Authority grid PDF — class routing table"
+                },
+                {
+                  "name": "Excluded / referral industries",
+                  "description": "Crypto-asset firms declined; cannabis, healthcare rollups and litigation-finance-backed companies require referral with enhanced financials.",
+                  "livesIn": "Authority grid PDF — industry appetite list"
+                },
+                {
+                  "name": "EPL claims history gate",
+                  "description": "More than three EPL charges (EEOC or state agency) in five years requires referral and mandatory higher EPL retention.",
+                  "livesIn": "Authority grid PDF; EEOC charge history in deal file"
+                },
+                {
+                  "name": "Sanctions / OFAC screening",
+                  "description": "Entity, principals and >25% owners screened at clearance and rescreened at bind.",
+                  "livesIn": "Clearance checklist in UW deal file"
+                },
+                {
+                  "name": "Major shareholder exclusion rule",
+                  "description": "Any shareholder holding >30% must be disclosed; claims brought by them are excluded via the major shareholder exclusion unless bought back at referral.",
+                  "livesIn": "Authority grid PDF; endorsement MGT-2510 in wording library"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "MGT form family + manuscript investor exclusions",
+              "items": [
+                {
+                  "name": "MGT-1000 (05/25 ed.) policy form",
+                  "description": "Carrier proprietary private-company management liability form with modular coverage parts — the v3 base contract.",
+                  "livesIn": "Manuscript wording library — \\\\wordings\\MGT\\MGT-1000_0525.docx"
+                },
+                {
+                  "name": "MGT-1100 Side A DIC form",
+                  "description": "Standalone difference-in-conditions excess Side A form issued as a companion policy where elected.",
+                  "livesIn": "Manuscript wording library — MGT-1100.docx"
+                },
+                {
+                  "name": "MGT-2200 EPL coverage part",
+                  "description": "EPL module endorsement with third-party EPL extension and wage-and-hour defense sublimit ($100k, CA-sensitive).",
+                  "livesIn": "Manuscript wording library — MGT-2200.docx"
+                },
+                {
+                  "name": "MGT-2300 fiduciary coverage part",
+                  "description": "Fiduciary module endorsement including voluntary compliance program (VFCP/DFVCP) expense sublimit.",
+                  "livesIn": "Manuscript wording library — MGT-2300.docx"
+                },
+                {
+                  "name": "MGT-2510 major shareholder exclusion",
+                  "description": "Excludes claims by or on behalf of shareholders above the scheduled ownership percentage, attached per underwriting rule.",
+                  "livesIn": "Manuscript wording library — MGT-2510.docx"
+                },
+                {
+                  "name": "Specific investor / creditor exclusion (manuscript)",
+                  "description": "Per-account manuscript exclusion of a named investor, lender or dispute identified during financial review.",
+                  "livesIn": "UW deal file — manuscript endorsement per account"
+                },
+                {
+                  "name": "Prior acts / continuity date endorsement",
+                  "description": "Sets the continuity and prior/pending dates carried from the account's first ManagementOne term.",
+                  "livesIn": "Manuscript wording library + claims-made tracking spreadsheet dates"
+                },
+                {
+                  "name": "Sanctions clause + state SL notices",
+                  "description": "LMA3100-style sanctions clause and the home-state surplus lines disclosure stamps attached at issuance.",
+                  "livesIn": "Manuscript wording library — standard clauses + SL notices folders"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "Non-admitted; SL filings and affidavits only",
+              "items": [
+                {
+                  "name": "Surplus lines filing per placement",
+                  "description": "Home-state SL filing by the broker for every ManagementOne bind, logged with filing number by compliance.",
+                  "livesIn": "Surplus lines filings log — compliance drive"
+                },
+                {
+                  "name": "CA SL-1 / SL-2 diligent search",
+                  "description": "CA placement paperwork; private D&O is not on the CA export list so declinations must be documented.",
+                  "livesIn": "Compliance drive — SL forms folder; declinations in deal file"
+                },
+                {
+                  "name": "NY ELANY affidavit",
+                  "description": "Excess line affidavit for NY home-state accounts, stamped copy retained in the compliance folder.",
+                  "livesIn": "Compliance drive — ELANY folder"
+                },
+                {
+                  "name": "Home-state determination worksheet",
+                  "description": "NRRA home-state analysis (principal place of business) resolving which single state's SL rules and tax apply for multi-state insureds.",
+                  "livesIn": "Surplus lines filings log — home-state worksheet per account"
+                },
+                {
+                  "name": "No admitted rate/form filings",
+                  "description": "No filed forms or rates exist for ManagementOne — recorded in the product regulatory register with the non-admitted rationale.",
+                  "livesIn": "Compliance drive — product regulatory register entry"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "Financials-gated quote → PAS C bind → change-in-control runoff",
+              "items": [
+                {
+                  "name": "Submission with financials",
+                  "description": "Broker submission must include two years of statements and the ManagementOne application; deal file opened on receipt.",
+                  "livesIn": "UW shared drive — deal folder per account"
+                },
+                {
+                  "name": "Financial review & score",
+                  "description": "Underwriter runs the financial-strength score, writes the financials section of the pricing memo, and sets referral posture before rating.",
+                  "livesIn": "Word pricing memo; DO-Rater-v3.1.xlsx 'FinScore' tab"
+                },
+                {
+                  "name": "Rater run & quote with subjectivities",
+                  "description": "Quote released with standard subjectivities: signed application, updated interim financials if statements > 9 months old, warranty letter for limit increases.",
+                  "livesIn": "Quote letter in deal file; subjectivities tracker sheet"
+                },
+                {
+                  "name": "Bind & PAS C entry with module flags",
+                  "description": "Policy keyed into PAS C with coverage-part flags, shared/separate limit election, retentions and continuity dates.",
+                  "livesIn": "PAS C (DB2) policy record"
+                },
+                {
+                  "name": "Issuance from MGT form family",
+                  "description": "Document team assembles MGT-1000 plus elected module endorsements and account manuscripts from the wording library.",
+                  "livesIn": "Manuscript wording library; issued PDF in deal file"
+                },
+                {
+                  "name": "Mid-term subsidiary additions",
+                  "description": "New subsidiaries auto-covered under threshold (assets < 25% of consolidated), scheduled by endorsement above it — endorsements re-keyed to PAS C.",
+                  "livesIn": "PAS C endorsement records; endorsement .docx in deal file"
+                },
+                {
+                  "name": "Change-in-control run-off trigger",
+                  "description": "On acquisition of the insured, coverage converts to run-off for the remaining term and the pre-priced 6-year tail is offered — tracked manually.",
+                  "livesIn": "Claims-made tracking spreadsheet — CIC/runoff columns"
+                },
+                {
+                  "name": "Renewal re-underwrite with fresh financials",
+                  "description": "Every renewal repeats the financial review with current statements; deteriorating scores move terms toward higher retention or Side-A-only.",
+                  "livesIn": "Renewal deal folder; pricing memo year-over-year comparison"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CyberEdge Pro",
+      "lob": "Cyber",
+      "runsIn": "PAS C + external scan feed",
+      "description": "First- and third-party cyber insurance for US and EU insureds, control-underwritten off the application plus an external attack-surface scan feed, with ransomware sublimit and coinsurance structure.",
+      "versions": [
+        {
+          "version": "v2",
+          "jurisdiction": "US + EU",
+          "effective": "Eff. 01/2026",
+          "status": "Active",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "One cyber product, two regulatory papers (US SL / EU)",
+              "items": [
+                {
+                  "name": "PAS C product code CY-EDGE",
+                  "description": "Product master code for CyberEdge Pro with a jurisdiction flag splitting US surplus-lines paper from EU-papered risks.",
+                  "livesIn": "PAS C (DB2) — PRODMST + jurisdiction flag"
+                },
+                {
+                  "name": "Industry class taxonomy (cyber)",
+                  "description": "Sixteen cyber industry classes with distinct susceptibility profiles — healthcare, municipalities and MSPs flagged as elevated classes.",
+                  "livesIn": "CYB-Rater-v2.0.xlsx — 'IndustryClass' tab, actuarial drive"
+                },
+                {
+                  "name": "Record-count exposure tiers",
+                  "description": "PII/PHI record-count tiers (under 100k to 10M+) used as a second exposure base alongside revenue.",
+                  "livesIn": "CYB-Rater-v2.0.xlsx — 'Records' tab"
+                },
+                {
+                  "name": "Scan-feed vendor mapping",
+                  "description": "Mapping of the external scan vendor's domain-level findings taxonomy (open ports, exposed services, cert hygiene) to rater modifier inputs.",
+                  "livesIn": "Scan feed portal export + 'ScanMap' tab in CYB-Rater-v2.0.xlsx"
+                },
+                {
+                  "name": "Version lineage v1–v2",
+                  "description": "v2 (01/26) introduced the LMA5564-style war/systemic exclusion, ransomware coinsurance, and the EU jurisdiction split.",
+                  "livesIn": "Product line SharePoint — CyberEdge version history"
+                },
+                {
+                  "name": "EU paper routing",
+                  "description": "EU-domiciled risks issue on EEA fronting paper with CyberEdge wording attached; US risks issue direct on non-admitted paper.",
+                  "livesIn": "Compliance drive — EU paper routing memo; PAS C jurisdiction flag"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "Full first-party + liability cyber grants with systemic-risk carve-outs",
+              "items": [
+                {
+                  "name": "Incident response costs",
+                  "description": "First-party costs of breach counsel, digital forensics, notification, call center and credit monitoring, accessed through the carrier's panel vendors.",
+                  "livesIn": "Policy form CYB-2000 (01/26 ed.) — Insuring Agreement 1; panel list appendix"
+                },
+                {
+                  "name": "Cyber extortion / ransomware",
+                  "description": "Ransom payments and negotiator costs, sublimited to 50% of the aggregate with 20% insured coinsurance; payment subject to OFAC check protocol.",
+                  "livesIn": "Policy form CYB-2000 (01/26 ed.) — Insuring Agreement 2 + sublimit schedule"
+                },
+                {
+                  "name": "Business interruption",
+                  "description": "Loss of net profit and continuing expenses from a network security event, after the waiting period, through the period of restoration.",
+                  "livesIn": "Policy form CYB-2000 (01/26 ed.) — Insuring Agreement 3"
+                },
+                {
+                  "name": "Dependent (contingent) business interruption",
+                  "description": "BI from outage at a scheduled IT provider or cloud dependency, sublimited to 25% of aggregate with named-provider schedule.",
+                  "livesIn": "Policy form CYB-2000 + dependent provider schedule endorsement"
+                },
+                {
+                  "name": "Data restoration",
+                  "description": "Costs to restore or re-create data and reconfigure systems damaged by a covered event, including bricking cover for hardware rendered unusable.",
+                  "livesIn": "Policy form CYB-2000 (01/26 ed.) — Insuring Agreement 4"
+                },
+                {
+                  "name": "PCI fines & assessments",
+                  "description": "Contractual fines, assessments and card reissuance costs under merchant services agreements following a payment card breach, sublimited.",
+                  "livesIn": "Policy form CYB-2000 (01/26 ed.) — Insuring Agreement 5"
+                },
+                {
+                  "name": "Network security & privacy liability",
+                  "description": "Third-party liability for security failure or wrongful disclosure of PII/PHI, including regulatory defense.",
+                  "livesIn": "Policy form CYB-2000 (01/26 ed.) — Insuring Agreement 6"
+                },
+                {
+                  "name": "Regulatory fines & penalties (where insurable)",
+                  "description": "Civil fines including GDPR administrative fines covered to the extent insurable by law in the relevant jurisdiction — insurability matrix maintained by legal.",
+                  "livesIn": "Policy form CYB-2000 + GDPR insurability endorsement; legal matrix on compliance drive"
+                },
+                {
+                  "name": "Media liability",
+                  "description": "Third-party liability for defamation and IP infringement (excluding patent) arising from digital media content.",
+                  "livesIn": "Policy form CYB-2000 (01/26 ed.) — Insuring Agreement 7"
+                },
+                {
+                  "name": "Social engineering / funds transfer fraud",
+                  "description": "Sublimited cover ($250k) for fraudulently induced transfers, conditional on callback verification warranty.",
+                  "livesIn": "Social engineering endorsement CYB-2210 — wording library"
+                },
+                {
+                  "name": "War & systemic event exclusion with carve-backs",
+                  "description": "LMA5564-style state-backed cyber-attack exclusion; carve-backs preserve cover for collateral-damage bystander events not directed at the insured's state.",
+                  "livesIn": "War/systemic exclusion endorsement CYB-2900 — wording library"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "Waiting periods, coinsurance, panel conditions",
+              "items": [
+                {
+                  "name": "BI waiting period 8–12 hours",
+                  "description": "Business interruption attaches only after a waiting period of 8, 10 or 12 hours (elected at bind); the waiting period acts as a time retention.",
+                  "livesIn": "Declarations item 7; CYB-Rater-v2.0.xlsx waiting-period credit"
+                },
+                {
+                  "name": "Period of restoration 120–180 days",
+                  "description": "BI measured until systems are restored plus a 30-day tail, capped at 120 days standard, 180 by endorsement.",
+                  "livesIn": "Policy form CYB-2000 (01/26 ed.) — BI definitions"
+                },
+                {
+                  "name": "Ransomware sublimit + 20% coinsurance",
+                  "description": "Extortion capped at 50% of aggregate and the insured retains 20% of every extortion loss — the v2 structural response to ransomware severity.",
+                  "livesIn": "Sublimit schedule on declarations; pricing memo rationale"
+                },
+                {
+                  "name": "Per-claim retention",
+                  "description": "Monetary retention $25k–$500k by revenue band applying to all insuring agreements except where the waiting period applies instead.",
+                  "livesIn": "Declarations item 6; PAS C policy record"
+                },
+                {
+                  "name": "Panel vendor condition",
+                  "description": "Breach counsel and forensics must be engaged from the carrier panel (or pre-approved) for costs to be covered — the coverage-critical operating rule at incident time.",
+                  "livesIn": "Policy form CYB-2000 — conditions; panel list appendix"
+                },
+                {
+                  "name": "Claims-made liability / discovery first-party split",
+                  "description": "Liability sections are claims-made with 60-day reporting; first-party sections trigger on discovery of the event during the period.",
+                  "livesIn": "Policy form CYB-2000 (01/26 ed.) — trigger provisions; claims-made tracking spreadsheet"
+                },
+                {
+                  "name": "Aggregate limit structure",
+                  "description": "Single policy aggregate $1M–$10M over all insuring agreements, with the sublimit schedule carving extortion, dependent BI, PCI and social engineering.",
+                  "livesIn": "Declarations items 3 + sublimit schedule"
+                },
+                {
+                  "name": "ERP option on liability sections",
+                  "description": "One-year ERP available at 100% of annual premium on the claims-made liability sections at cancellation/non-renewal.",
+                  "livesIn": "ERP endorsement CYB-2400 — wording library"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "Revenue + records base, control modifiers from app + scan",
+              "items": [
+                {
+                  "name": "Revenue base rate table",
+                  "description": "Base rate per revenue band by industry class — the primary exposure input.",
+                  "livesIn": "CYB-Rater-v2.0.xlsx — 'BaseRates' tab, actuarial drive"
+                },
+                {
+                  "name": "Record count factor",
+                  "description": "Multiplier by PII/PHI record tier, loading data-heavy insureds independent of revenue.",
+                  "livesIn": "CYB-Rater-v2.0.xlsx — 'Records' tab"
+                },
+                {
+                  "name": "MFA modifier",
+                  "description": "Credit/debit keyed to MFA coverage of email, remote access and privileged accounts from the application — absence is a decline, partial deployment a debit.",
+                  "livesIn": "CYB-Rater-v2.0.xlsx — 'Controls' tab, MFA rows"
+                },
+                {
+                  "name": "EDR deployment modifier",
+                  "description": "Credit up to 10% for EDR deployed on >90% of endpoints with 24/7 monitoring (in-house or MDR).",
+                  "livesIn": "CYB-Rater-v2.0.xlsx — 'Controls' tab, EDR rows"
+                },
+                {
+                  "name": "Backup posture modifier",
+                  "description": "Credit for offline/immutable backups tested within 6 months; untested backups score as absent.",
+                  "livesIn": "CYB-Rater-v2.0.xlsx — 'Controls' tab, backup rows"
+                },
+                {
+                  "name": "External scan score modifier",
+                  "description": "Modifier 0.90–1.40 from the scan feed's attack-surface grade (exposed services, patching cadence, cert hygiene), refreshed at quote and renewal.",
+                  "livesIn": "Scan feed portal score → 'ScanMap' tab in CYB-Rater-v2.0.xlsx"
+                },
+                {
+                  "name": "Ransomware supplemental application factors",
+                  "description": "Factors from the ransomware supplemental app — RDP exposure, privileged access management, segmentation, backup isolation — feeding the extortion sublimit pricing.",
+                  "livesIn": "Ransomware supplemental app in deal file; 'RansomApp' tab in rater"
+                },
+                {
+                  "name": "EU exposure factor",
+                  "description": "Loading for GDPR-exposed EU revenue share reflecting regulatory severity, applied off the geographic revenue split.",
+                  "livesIn": "CYB-Rater-v2.0.xlsx — 'Geo' tab"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "US SL tax stack + EU IPT per territory",
+              "items": [
+                {
+                  "name": "US surplus lines premium tax",
+                  "description": "Broker-remitted SL tax per home state on US risks (CA 3.00% plus 0.18% stamping, TX 4.85% plus SLTX fee).",
+                  "livesIn": "Surplus lines filings log — compliance drive, tax-rate sheet"
+                },
+                {
+                  "name": "EU insurance premium tax (IPT)",
+                  "description": "IPT applied per risk-location country on EU-papered policies (e.g. DE 19%, NL 21%, FR 9% plus parafiscal charges), computed on the fronting carrier's schedule.",
+                  "livesIn": "EU tax schedule — compliance drive; fronting carrier bordereau"
+                },
+                {
+                  "name": "Fronting fee on EU paper",
+                  "description": "EEA fronting carrier fee (5% of gross premium) loaded into EU risk pricing and disclosed in the pricing memo.",
+                  "livesIn": "Word pricing memo — EU paper section; fronting agreement on compliance drive"
+                },
+                {
+                  "name": "Wholesale broker commission",
+                  "description": "15% standard wholesale commission; direct-retail EU deals occasionally at 12.5% per the producer agreement.",
+                  "livesIn": "PAS C producer record; commission grid PDF"
+                },
+                {
+                  "name": "Policy fee (US only)",
+                  "description": "$350 fully earned policy fee on US placements where state-permitted; no fee on EU paper.",
+                  "livesIn": "PAS C billing record — fee code POLFEE"
+                },
+                {
+                  "name": "Minimum premium",
+                  "description": "Minimum premium $5,000 reflecting the fixed cost of the scan-plus-underwrite process on every account.",
+                  "livesIn": "Quote letter template + pricing memo"
+                },
+                {
+                  "name": "Technical vs bound price memo",
+                  "description": "Rater technical price versus bound price with scan-score justification recorded per account in the Word pricing memo.",
+                  "livesIn": "UW deal file — pricing memo .docx"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Minimum controls are hard gates; scan findings block quotes",
+              "items": [
+                {
+                  "name": "No MFA = decline",
+                  "description": "Absence of MFA on email and remote access is an automatic decline with no referral path — the product's hardest gate.",
+                  "livesIn": "Authority grid PDF — cyber minimum controls section"
+                },
+                {
+                  "name": "Minimum backup standard",
+                  "description": "Offline or immutable backups tested within 6 months are required for extortion cover; failing accounts get extortion excluded or are declined.",
+                  "livesIn": "Authority grid PDF; application controls section in deal file"
+                },
+                {
+                  "name": "Critical scan finding quote block",
+                  "description": "Open RDP, exposed databases or EOL internet-facing systems in the scan report block quote release until remediation is evidenced and rescanned.",
+                  "livesIn": "Scan feed portal report in deal file; subjectivities tracker"
+                },
+                {
+                  "name": "Prior ransomware referral",
+                  "description": "Any ransomware event in the trailing 3 years requires cyber line-leader referral with the forensics report attached.",
+                  "livesIn": "Authority grid PDF; referral emails in deal file"
+                },
+                {
+                  "name": "Revenue referral threshold",
+                  "description": "Accounts above $250M revenue referred to the cyber lead; above $500M co-underwritten with treaty reinsurer consultation per the QS treaty terms.",
+                  "livesIn": "Authority grid PDF; QS treaty special acceptance file"
+                },
+                {
+                  "name": "MSP/MSSP aggregation referral",
+                  "description": "Managed service providers referred due to downstream aggregation; dependent-BI exposure to the same provider is tracked bookwide.",
+                  "livesIn": "Authority grid PDF; aggregation spreadsheet on UW drive"
+                },
+                {
+                  "name": "Sanctions & ransom payment protocol",
+                  "description": "OFAC screen at clearance plus the ransom-payment protocol: any extortion payment requires panel counsel OFAC clearance before reimbursement.",
+                  "livesIn": "Clearance checklist; claims protocol memo — compliance drive"
+                },
+                {
+                  "name": "EOL systems threshold",
+                  "description": "More than 10% of the estate on end-of-life operating systems triggers referral and a mandatory contingent exclusion for the EOL segment.",
+                  "livesIn": "Authority grid PDF; scan report + application in deal file"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "CYB form family with LMA5564-style systemic exclusion",
+              "items": [
+                {
+                  "name": "CYB-2000 (01/26 ed.) policy form",
+                  "description": "Carrier proprietary cyber form with seven insuring agreements — the v2 base contract for US and EU issuance.",
+                  "livesIn": "Manuscript wording library — \\\\wordings\\CYB\\CYB-2000_0126.docx"
+                },
+                {
+                  "name": "CYB-2900 war & systemic event exclusion",
+                  "description": "State-backed cyber-attack exclusion modeled on the LMA5564 family, with the bystander carve-back and impacted-state definitions.",
+                  "livesIn": "Manuscript wording library — CYB-2900.docx"
+                },
+                {
+                  "name": "GDPR insurability endorsement",
+                  "description": "EU endorsement conforming regulatory-fines cover to per-country insurability positions maintained by legal.",
+                  "livesIn": "Manuscript wording library — CYB-2810.docx; legal matrix on compliance drive"
+                },
+                {
+                  "name": "CYB-2210 social engineering endorsement",
+                  "description": "Funds-transfer-fraud grant conditioned on a callback verification warranty for payment instruction changes.",
+                  "livesIn": "Manuscript wording library — CYB-2210.docx"
+                },
+                {
+                  "name": "Dependent provider schedule endorsement",
+                  "description": "Names the cloud/IT providers covered for dependent BI, with per-provider sublimits.",
+                  "livesIn": "Manuscript wording library — CYB-2220.docx; schedule per account"
+                },
+                {
+                  "name": "Panel vendor endorsement",
+                  "description": "Attaches the current breach-response panel (counsel, forensics, notification, PR) and the pre-approval mechanism.",
+                  "livesIn": "Manuscript wording library — CYB-2100.docx + panel appendix"
+                },
+                {
+                  "name": "Sanctions clause (LMA3100-style)",
+                  "description": "Carrier sanctions limitation clause on every policy, both papers.",
+                  "livesIn": "Manuscript wording library — standard clauses folder"
+                },
+                {
+                  "name": "State SL notices / EU policyholder notices",
+                  "description": "US home-state SL stamps and EU statutory policyholder information notices per issuing country.",
+                  "livesIn": "Manuscript wording library — SL notices + EU notices folders"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "US SL filings + EU IPT via fronting paper",
+              "items": [
+                {
+                  "name": "US surplus lines filings",
+                  "description": "Per-placement home-state SL filings by the broker for all US risks, logged in the compliance SL log.",
+                  "livesIn": "Surplus lines filings log — compliance drive"
+                },
+                {
+                  "name": "EU IPT registration & remittance",
+                  "description": "IPT calculated and remitted per risk-location country through the EEA fronting carrier's tax schedule, reconciled quarterly.",
+                  "livesIn": "EU tax schedule + fronting carrier bordereau — compliance drive"
+                },
+                {
+                  "name": "GDPR fines insurability matrix",
+                  "description": "Country-by-country legal positions on insurability of GDPR administrative fines, refreshed annually by external counsel.",
+                  "livesIn": "Compliance drive — legal insurability matrix"
+                },
+                {
+                  "name": "Breach notification law matrix",
+                  "description": "US state and EU member-state notification requirement matrix used by the panel at incident time and referenced in policy servicing.",
+                  "livesIn": "Compliance drive — breach law matrix; panel portal"
+                },
+                {
+                  "name": "CA SL-1/SL-2 and NY ELANY paperwork",
+                  "description": "Standard CA and NY surplus lines paperwork identical to the rest of the specialty book.",
+                  "livesIn": "Compliance drive — SL forms + ELANY folders"
+                },
+                {
+                  "name": "No admitted filings",
+                  "description": "No US admitted rate/form filings; EU compliance rides on the fronting carrier's authorizations — both recorded in the product regulatory register.",
+                  "livesIn": "Compliance drive — product regulatory register entry"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "Scan-gated quote → PAS C bind → panel-driven incident response",
+              "items": [
+                {
+                  "name": "Submission + ransomware supplemental app",
+                  "description": "Submission requires the main application and ransomware supplemental; deal file opened and domains extracted for scanning.",
+                  "livesIn": "UW shared drive — deal folder; applications in deal file"
+                },
+                {
+                  "name": "External scan trigger & score ingest",
+                  "description": "Insured domains submitted to the scan vendor; attack-surface report and score pulled into the rater ScanMap tab before rating.",
+                  "livesIn": "Scan feed portal; CYB-Rater-v2.0.xlsx 'ScanMap' tab"
+                },
+                {
+                  "name": "Quote with remediation subjectivities",
+                  "description": "Quote released subject to remediation of named scan findings; rescan evidence required before bind on critical findings.",
+                  "livesIn": "Quote letter + subjectivities tracker in deal file"
+                },
+                {
+                  "name": "Bind & PAS C entry with jurisdiction flag",
+                  "description": "Policy keyed into PAS C with sublimit schedule, waiting period, retention and US/EU jurisdiction flag driving the paper and tax path.",
+                  "livesIn": "PAS C (DB2) policy record"
+                },
+                {
+                  "name": "Issuance (US direct / EU fronted)",
+                  "description": "US policies issue direct from the CYB form set; EU policies route to the fronting carrier for issuance with CyberEdge wording attached.",
+                  "livesIn": "Manuscript wording library; fronting carrier issuance confirmations on compliance drive"
+                },
+                {
+                  "name": "Mid-term scan alerts & endorsements",
+                  "description": "Material new scan findings mid-term generate an underwriter alert and may drive contingent exclusions or risk-improvement dialogue; endorsements re-keyed to PAS C.",
+                  "livesIn": "Scan feed portal alerts; PAS C endorsement records"
+                },
+                {
+                  "name": "Incident response via panel hotline",
+                  "description": "Claims route through the 24/7 breach hotline to panel counsel; extortion events invoke the OFAC payment protocol before any reimbursement.",
+                  "livesIn": "Panel portal; claims protocol memo — compliance drive"
+                },
+                {
+                  "name": "Renewal re-underwrite with fresh scan",
+                  "description": "Renewal requires a new scan, updated application and supplemental; control regression (e.g. lapsed MFA scope) reprices or non-renews the account.",
+                  "livesIn": "Renewal deal folder; scan feed portal history"
+                },
+                {
+                  "name": "ERP election at cancellation",
+                  "description": "One-year liability-section ERP electable within 60 days of cancellation, tracked in the claims-made spreadsheet.",
+                  "livesIn": "Claims-made tracking spreadsheet — ERP columns"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

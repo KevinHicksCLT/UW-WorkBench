@@ -1,0 +1,1367 @@
+{
+  "tasks": [
+    {
+      "id": "59f82567-b85a-4abc-8c1c-4a3d6ef9e0f4",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["UW Operations Manager"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All new-business submissions cleared through intake and awaiting an underwriter for the assigned book (P&C commercial, personal lines, and life/annuity queues); scope = one working day's cleared-submission queue in the underwriting workstation for the branch/segment."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Current business day; each cleared submission must be assigned within 1 business day of clearance per intake SLA. Submissions cleared before the cutoff but unassigned roll into the next-day exception list."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "027292ea-e459-414f-bdb1-3ab36faf3d33"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Assignment record carries submission ID, line of business, TIV/limit band, effective date, assigned underwriter, and authority tier. Assignment is rejected if the submission's limit/premium band exceeds the assignee's authority under UW Authority Matrix v3.2."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of submissions marked 'assigned' in the workstation reconciles to the count cleared by intake for the day; delta must be 0. Any submission cleared but not assigned is listed on the unassigned-exception report."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Assignment event is written to the underwriting workstation with timestamp and version of the authority matrix applied; the workflow record is retained in the underwriting file within Guidewire PolicyCenter for the policy retention period."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Over-authority or specialty-mismatch assignments are routed to the UW Operations Manager as a referral with reason code (authority / capacity / specialty); disposition (reassign / accept / escalate) recorded on the submission within 4 business hours."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03y0mbk8y3lmtov6" },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Pre/post check: before assignment the submission has no owner; after, exactly one underwriter of adequate authority owns it and the queue's unassigned count is reduced by one with no double-assignment; comparison captured in the daily workstation load report."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "Where a bulk reassignment or rule change drives the assignment, the change is linked to the ITSM change record and to the underwriting operations run-book entry noted on the submission's activity log."
+        },
+        {
+          "templateKeyId": "cmr2oaqo3003rlasb1r26nwor",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaqpd003tlasbyv59t5v5",
+          "value": "Sample of 25 assignments per week drawn from the workstation assignment log across all lines of business."
+        },
+        {
+          "templateKeyId": "cmr2oaqq9003vlasbyjg1pxll",
+          "value": "PASS = 100% of sampled submissions assigned to an underwriter whose authority tier covers the limit/premium band and whose specialty matches the line of business; 0 over-authority assignments. FAIL = any assignment above authority or outside specialty without a documented referral."
+        },
+        {
+          "templateKeyId": "cmr2oaqrf003xlasb2mopahy1",
+          "value": "On a failed assignment, the UW Operations Manager reassigns to a qualified underwriter and logs the correction; recurring mismatch patterns are raised to underwriting management for a routing-rule fix within 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2oaqsp003zlasbtvvkt534",
+          "value": "Effective dating = assignment timestamp; the assignment governs the submission from clearance through quote/decline within the current submission cycle."
+        },
+        {
+          "answerId": "cmr2ocfzt0wwjkaz3nghnbc4b",
+          "value": "Acceptance: every cleared submission has exactly one authorized underwriter assigned within 1 business day, authority band validated against UW Authority Matrix v3.2, and no over-authority routing. Evidence: workstation assignment log and daily unassigned-exception report, retained in the underwriting file in Guidewire PolicyCenter."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Validate the assignee's authority band before confirming assignment",
+              "value": "Workstation blocks assignment where submission limit/premium exceeds the underwriter's tier in UW Authority Matrix v3.2."
+            },
+            {
+              "step": "Record line-of-business and specialty match on the assignment",
+              "value": "Assignment stores LOB and specialty tags so commercial, personal, and life/annuity work routes to the correct desk."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample assignments for authority conformance",
+              "value": "25 assignments/week reviewed; 0 over-authority or specialty-mismatched assignments without a referral."
+            },
+            {
+              "step": "Confirm authority matrix version applied",
+              "value": "Each sampled assignment references the current authority matrix version; no stale-version routing."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Route submissions above authority to the next tier at assignment",
+              "value": "Referral triggers (authority, aggregation, specialty) fire at assignment and route to the UW Operations Manager with reason code."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify referral triggers actioned",
+              "value": "100% of triggered referrals show a disposition within 4 business hours; 0 open beyond SLA."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppxd1oa2mbk82g6mira7",
+          "checklist": [
+            {
+              "step": "Assign within the intake acknowledgement window",
+              "value": "Cleared submissions are assigned within 1 business day so the 4-hour broker acknowledgement can be met by the assigned underwriter."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Measure assignment latency",
+              "value": "≥95% of submissions assigned within 1 business day of clearance; aged unassigned items appear on the exception report."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "af76d2c1-eed8-4179-ac31-d87101c96655",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": [],
+      "addApps": [{ "name": "Enterprise data warehouse/lakehouse", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Open work-in-progress across all underwriters in the branch/segment — assigned submissions, pending referrals, and renewals in progress — measured against each underwriter's target capacity by complexity-weighted count."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Rolling current week; workload is rebalanced daily and formally reviewed at the Monday capacity huddle. Prior-week backlog carried forward is included in the balancing view."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "027292ea-e459-414f-bdb1-3ab36faf3d33"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each underwriter record shows open count, complexity weighting, authority tier, and out-of-office status; balancing is invalid if capacity or availability fields are stale (older than 1 day)."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Sum of assigned submissions across underwriters equals the total open assigned queue in the workstation; no item is unassigned or double-counted after rebalancing (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The balancing snapshot and any reassignments are exported from the enterprise data warehouse to a dated workload-balance report and retained with timestamp in the underwriting operations SharePoint for the quarter."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Overloaded desks (>120% target) or starved desks (<60%) are flagged to the UW Operations Manager; reassignment or overtime disposition is recorded with reason on the capacity-huddle log."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03y0mbk8y3lmtov6" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppxd1oa2mbk82g6mira7",
+          "checklist": [
+            {
+              "step": "Balance queues so acknowledgement SLAs remain achievable",
+              "value": "No underwriter carries a backlog that pushes new submissions past the 4-hour acknowledgement / 1-day assignment window."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check SLA breaches by desk",
+              "value": "0 desks with SLA breaches attributable to overload after the daily rebalance."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Respect authority tiers when redistributing work",
+              "value": "Reassignment only moves a submission to an underwriter whose authority band covers its limit/premium."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify reassignments stay within authority",
+              "value": "Sample 25 reassignments/quarter; 0 moved to an under-authorized underwriter."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "79efe4ed-43f6-4113-87b1-07806f629341",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The market intelligence and broker-relationship notes attached to a specific new-business submission being handed to the assigned underwriter — prior loss experience, broker history, incumbency, and competitive position captured in CRM and the underwriting workstation."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At assignment, before the underwriter begins technical review; briefing must be delivered within 1 business day of assignment so it precedes the first substantive underwriting action."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "027292ea-e459-414f-bdb1-3ab36faf3d33"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Briefing note captures broker name, relationship tier, prior-term outcome, target price signal, and any conduct flags; the note is invalid if broker identity or prior-term disposition is missing."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every assigned submission with market/broker context has exactly one briefing note logged; count of briefings equals count of assignments requiring context for the day (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The briefing note is stored on the submission activity log in the underwriting workstation with timestamp and author, and cross-referenced to the CRM opportunity record; retained in the underwriting file."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Missing or conflicting market intelligence is logged as an open item assigned to the Underwriting Assistant to source from the broker/CRM; disposition recorded before quoting begins."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "Sample of 25 newly assigned submissions per quarter that carried market or broker context."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = briefing note present with broker identity, prior-term outcome, and price/appetite signal, delivered before first underwriting action. FAIL = no note, or note delivered after quoting started."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "If context is unavailable at assignment, the underwriter proceeds on file facts and the gap is flagged to the broker desk; the note is backfilled and the exception closed within 5 business days."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance: assigned underwriter has read and acknowledged the market/broker briefing for the submission before starting technical review, with acknowledgement time-stamped."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence: briefing note and acknowledgement on the submission activity log in the underwriting workstation, linked to the CRM opportunity record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Record the market/broker briefing in the underwriting file",
+              "value": "Briefing note filed on the submission with broker history and prior-term outcome so the rationale is auditable."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect files for briefing documentation",
+              "value": "Sample 25 files/quarter; 100% contain a time-stamped briefing note where market/broker context applied."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Surface referral-relevant intelligence in the briefing",
+              "value": "Any prior declinature, loss trend, or conduct flag that could trigger a referral is called out in the briefing note."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm flags carried into underwriting",
+              "value": "For sampled files with prior flags, the flag appears in the briefing and in the underwriter's referral decision; 0 dropped flags."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "9eba5e47-bbb1-496b-9cb8-0ce6c8d6257c",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "ERP/General ledger (SAP/Oracle/Workday Financials)"
+      ],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The account/agency-of-record and producing-broker alignment for a specific new-business submission — confirming the submission is not a duplicate or broker conflict and that the assigned underwriter owns the account relationship in the policy admin system."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At clearance/assignment, before quoting; ownership must be confirmed within 1 business day of assignment to prevent duplicate submissions and broker-of-record disputes."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Account record shows named insured, producing broker, agency-of-record, and prior-policy link; confirmation is invalid if the broker-of-record or a matching prior submission is unresolved."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Clearance check reconciles the submission against existing accounts by name/FEIN/address; exactly one account owner and one producing broker are confirmed with 0 unresolved duplicates."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Ownership confirmation and clearance result are stamped on the submission in Guidewire PolicyCenter with timestamp and the clearing user; retained in the underwriting file."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Broker-of-record conflicts or duplicate submissions are routed to the UW Operations Manager / Senior Underwriter for resolution; disposition (single-owner confirmed / declined duplicate) recorded before quoting."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "Sample of 25 cleared submissions per quarter across new-business lines."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = single confirmed account owner and producing broker, clearance run and no unresolved duplicate. FAIL = ambiguous broker-of-record, missing clearance, or an open duplicate at quote."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "On a conflict, hold quoting and escalate to the Senior Underwriter / broker desk; resolve broker-of-record per the delegation matrix and record the outcome within 5 business days."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective as of the clearance timestamp; ownership governs the submission for the current term unless a broker-of-record change is separately processed."
+        },
+        {
+          "answerId": "cmr2ocdwr0to6kaz3c6wp5b1o",
+          "value": "Authorized approver = Senior Underwriter for standard accounts and UW Operations Manager for broker-of-record disputes, per the underwriting delegation matrix; approver identity and decision recorded on the submission clearance record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document clearance and ownership on the file",
+              "value": "Clearance result, account owner, and producing broker recorded on the submission before quoting."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect clearance documentation",
+              "value": "Sample 25 files/quarter; 100% show a completed clearance and a single confirmed owner."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Confirm the assigned underwriter has authority for the account",
+              "value": "Ownership is only confirmed to an underwriter whose authority tier covers the account's size and line."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify owner authority",
+              "value": "0 confirmed owners lacking authority for the account band in the sample."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fl5421pz8kfgznzmhqu20",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The electronic underwriting file created in the policy admin system for a single cleared, assigned submission — the container that will hold the application (ACORD), broker submission, screening outputs, and underwriter worksheets."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Immediately after assignment; the file must be created within 1 business day so document population and underwriting can proceed against the target quote date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "File header carries submission ID, named insured, LOB, effective date, assigned underwriter, and target quote date; creation is invalid if the submission is not cleared or the effective date is missing."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "One underwriting file exists per cleared submission; the file count reconciles to the assigned-submission count with 0 orphans and 0 duplicate files."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "File creation event is stamped in Guidewire PolicyCenter with timestamp and creating user; the file follows the standard folder taxonomy (Application / Screening / Pricing / Correspondence) and is retained per the policy retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Duplicate or mis-keyed files are flagged to the Underwriting Assistant for merge/delete; disposition recorded on the submission before documents are populated."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "Sample of 25 newly created underwriting files per quarter across lines."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = file created with required header fields and standard folder structure, one per submission. FAIL = missing header field, wrong taxonomy, or duplicate file."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Files failing structure checks are corrected by the Underwriting Assistant and re-inspected; systemic template gaps raised to underwriting operations within 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Header fields defined by the Guidewire PolicyCenter data dictionary: submission_id, named_insured, line_of_business, effective_date, assigned_underwriter, target_quote_date."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = count of cleared submissions from the intake log; underwriting files created reconcile 1:1 to that total for the day."
+        },
+        {
+          "answerId": "cmr2ocdxt0v3tkaz3ic3k8prg",
+          "value": "Acceptance: exactly one structured underwriting file exists per cleared submission with all header fields populated and standard folders present. Evidence: file-creation record and folder listing in Guidewire PolicyCenter, retained in the underwriting file."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Create the file only for a complete, cleared submission",
+              "value": "File creation requires the minimum submission set (application, effective date, LOB) so incomplete submissions are not opened as live files."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check completeness at file creation",
+              "value": "Sample 25 files/quarter; 100% created from a submission meeting minimum requirements."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Apply the standard file taxonomy",
+              "value": "Each file uses the standard Application/Screening/Pricing/Correspondence folder structure for auditability."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect file structure",
+              "value": "0 sampled files with missing folders or non-standard header fields."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fl5eu1q3lkfgz6u1mn1rz",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All received documents and screening outputs for a single underwriting file — broker submission and ACORD, loss runs, financials, plus MVR/credit/consumer reports and OFAC/sanctions screening results — indexed into the correct folders in the underwriting file."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "After file creation and before underwriting sign-off; population must be complete before the underwriter's technical review begins, within the submission cycle leading to the target quote date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each document is classified (type, source, date) and each screening output (MVR, credit/insurance score, OFAC result) has a disposition; population is invalid if a required screening output or a mandatory document is missing."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Indexed document count reconciles to the submission's document checklist; every ordered screening returns a stored result (ordered = received), with 0 orphaned or unclassified items."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Documents and screening outputs are stored in Guidewire PolicyCenter and memorialized in OpenText Document Mgmt with timestamp and version; consumer reports are retained per FCRA and access-restricted."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Missing documents or screening hits (OFAC/adverse credit) are logged as open items with disposition (follow-up / refer / adverse-action path) assigned to the Underwriter/Underwriting Assistant before quoting."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "Sample of 25 populated underwriting files per quarter, weighted toward files with consumer reports and screening outputs."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = all checklist documents indexed to correct folders and every ordered screening output stored with disposition. FAIL = missing mandatory document, unfiled screening result, or an OFAC hit without a recorded disposition."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Gaps are worked as open file items; unresolved OFAC/sanctions hits block binding and route to the sanctions/compliance desk; document gaps closed within 5 business days or the submission is held."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Document metadata defined by the PolicyCenter/OpenText schema: doc_type, source, received_date, screening_type, screening_result, disposition."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = document checklist count plus ordered-screening count; stored/indexed items reconcile 1:1 to that expected total."
+        },
+        {
+          "answerId": "cmr2ocdxv0v62kaz38r9a9m6o",
+          "value": "Acceptance: underwriting file contains all required documents and screening outputs, each classified with a disposition, and any sanctions/adverse-credit hit is dispositioned before quoting. Evidence: document index and screening-result records in Guidewire PolicyCenter, memorialized in OpenText, retained in the underwriting file."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Index every document and screening output to the file",
+              "value": "All received documents and screening results are classified and filed to the standard folders with source and date."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect file completeness",
+              "value": "Sample 25 files/quarter; 100% have all checklist documents and ordered-screening results filed and classified."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Enforce minimum submission contents before review",
+              "value": "File is not advanced to underwriting until the minimum document set and required screenings are present."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check pre-review completeness",
+              "value": "0 sampled files advanced to underwriting with a missing mandatory document."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp4u1o8imbk8fwfbmrnd",
+          "checklist": [
+            {
+              "step": "File screening outputs so no risk binds unscreened",
+              "value": "OFAC/sanctions and required background screening outputs are stored in the file with disposition prior to binding."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify screening dispositions",
+              "value": "100% of files show completed screening outputs; 0 open sanctions hits at bind."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc4ul3f05qfv8f88jgg0t8m",
+          "checklist": [
+            {
+              "step": "Store OFAC onboarding screening results in the file",
+              "value": "SDN and consolidated-list screening of the named insured and related parties is run at onboarding and the result filed with disposition."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify onboarding screening evidence",
+              "value": "Sample files show a stored OFAC screening result dated before bind; 0 files bound without a screening record."
+            }
+          ]
+        },
+        {
+          "regId": "cmrc5ozpz0bwnv880figjybzk",
+          "checklist": [
+            {
+              "step": "Retain consumer reports only for permissible purpose",
+              "value": "MVR/credit/insurance-score reports are filed under the underwriting permissible purpose and access-restricted to the underwriting team."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm permissible-purpose handling",
+              "value": "Sampled files with consumer reports show a documented underwriting permissible purpose and restricted access; 0 reports used outside purpose."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cmr2fk7no19sjkfgzseuwswyg",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["UW Operations Manager"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Submissions in the assigned queue that have breached or are at risk of breaching the internal service SLA (aged beyond target days-to-quote) and need reassignment to an available underwriter to protect the broker deadline."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Daily; stale items are identified each morning from the aging report and reassigned same day. Aging thresholds: at-risk at 3 days, breached at 5 business days without action."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "027292ea-e459-414f-bdb1-3ab36faf3d33"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each stale item shows age in days, current owner, availability, and SLA status; reassignment is invalid if the new owner lacks authority or is also over-capacity."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of items flagged stale equals count actioned (reassigned or dispositioned) by end of day; no stale item is left without an owner or a documented hold (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Reassignment actions are logged in the underwriting workstation with timestamp, from/to underwriter, and reason; the daily aging-and-reassignment report is exported from the data warehouse and retained with timestamp in the operations SharePoint."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Items that cannot be reassigned (capacity, specialty) are escalated to the UW Operations Manager for overtime or broker deadline extension; disposition recorded on the submission."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03y0mbk8y3lmtov6" },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All submissions aged beyond the 5-business-day SLA in the current queue (census of breached items), plus a sample of at-risk items."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = 100% of breached items reassigned or dispositioned the same day with reason logged. FAIL = any breached item left unowned overnight or reassigned to an over-capacity/under-authorized underwriter."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Where no qualified underwriter is available, the item is escalated to the UW Operations Manager who authorizes overtime or negotiates a broker extension; escalation and outcome recorded within 1 business day."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance: no submission remains stale (breached SLA) without a same-day reassignment or a documented, approved hold."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence: daily aging-and-reassignment report from the enterprise data warehouse plus workstation reassignment log, retained in the operations SharePoint."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppxd1oa2mbk82g6mira7",
+          "checklist": [
+            {
+              "step": "Reassign before acknowledgement/response SLAs breach",
+              "value": "At-risk items are moved to available underwriters so acknowledgement and response commitments hold."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Measure same-day clearance of stale items",
+              "value": "≥95% of breached items reassigned or dispositioned same day."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpq051oa8mbk8dk8eyglb",
+          "checklist": [
+            {
+              "step": "Protect the 5-business-day firm-quote SLA",
+              "value": "Reassignment prioritizes items that would otherwise miss the firm-quote-within-5-days commitment."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Track quote-SLA attainment post-reassignment",
+              "value": "0 reassigned items miss the firm-quote SLA due to queue delay."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "c3dd8d07-1a67-466a-ae3b-bc1f1aca3318",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The target quote date set for a single assigned submission, derived from the broker's stated deadline and the internal firm-quote SLA, and recorded on the submission to drive prioritization."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Set at assignment; the target date must fall within the internal SLA (firm quote within 5 business days) and on or before the broker deadline, for the current submission cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "027292ea-e459-414f-bdb1-3ab36faf3d33"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Submission shows broker deadline, internal SLA date, and the chosen target quote date; the value is invalid if the target exceeds the broker deadline without a documented agreement or breaches the SLA without escalation."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every assigned submission has exactly one target quote date; count of dated submissions reconciles to assigned count with 0 blanks."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The target date and its basis (broker deadline vs SLA) are stamped on the submission in the underwriting workstation and CRM opportunity with timestamp; retained in the underwriting file."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Where the broker deadline is tighter than the SLA can meet, the conflict is escalated to the Senior Underwriter for expedite or renegotiation; disposition recorded on the submission."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "Sample of 25 newly assigned submissions per quarter across lines."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = target quote date set, within SLA, and on/before broker deadline (or with documented agreement). FAIL = missing date, SLA breach without escalation, or a target beyond the broker deadline undocumented."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Unachievable deadlines are escalated for expedite or broker extension; the revised target and agreement are logged within 1 business day."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance: each assigned submission carries a single target quote date consistent with the firm-quote SLA and the broker deadline."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence: target-date field and its basis on the submission in the underwriting workstation and CRM, retained in the underwriting file."
+        },
+        {
+          "answerId": "cmr2ocdxp0uxlkaz3ucs2ypf9",
+          "value": "In scope: the current submission cycle; the target quote date is effective from assignment and governs prioritization until quote issue or decline. Dates outside the SLA window require documented escalation."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpq051oa8mbk8dk8eyglb",
+          "checklist": [
+            {
+              "step": "Set the target within the 5-business-day firm-quote SLA",
+              "value": "Target quote date defaults to the SLA date unless the broker deadline is earlier, in which case the earlier date is used."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check target vs SLA",
+              "value": "Sample 25 submissions/quarter; 0 targets beyond the 5-business-day SLA without escalation."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpq181oaambk8xvkl3nbn",
+          "checklist": [
+            {
+              "step": "Reflect indication timing in the plan",
+              "value": "Where an indication is expected, the target plan accounts for the 48-hour indication commitment ahead of the firm quote."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify indication milestones",
+              "value": "0 sampled submissions missing an indication milestone where one was requested."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fk7b719npkfgz037dqcge",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["UW Operations Manager"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The full open submission queue for the branch/segment, bucketed by age (0-2, 3-5, >5 business days) and by underwriter, reviewed each day to catch aging before SLA breach."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Daily, every business morning; the aging snapshot covers the live queue as of the report run time and is compared to the prior day to spot trends."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Aging report shows submission ID, age, owner, LOB, and SLA status; the report is invalid if age or owner is missing for any open item."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Sum of items across age buckets equals the total open queue count in the workstation; the aging report reconciles to the source queue with 0 variance."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The daily aging dashboard is generated from the enterprise data warehouse (Power BI) and the reviewed snapshot is retained with date stamp in the operations SharePoint for trend analysis."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Items crossing the at-risk (3-day) or breach (5-day) threshold are flagged to the UW Operations Manager for reassignment/expedite; each flag's disposition is recorded on the review log."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03y0mbk8y3lmtov6" },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "The full open queue each day (census); the review is a daily 100% pass over open items, not a sample."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = aging reviewed daily, all at-risk/breached items flagged with disposition, report reconciles to the queue. FAIL = a day missed, or a breached item not flagged."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "If the review is missed (e.g., system outage), it is caught up next business day and any items that breached in the interim are prioritized; gaps noted in the review log."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance: the submission queue aging is reviewed every business day and every at-risk/breached item is flagged with a disposition."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence: dated daily aging dashboard/snapshot from the enterprise data warehouse and the review log, retained in the operations SharePoint."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppxd1oa2mbk82g6mira7",
+          "checklist": [
+            {
+              "step": "Monitor aging against acknowledgement/response SLAs",
+              "value": "Daily aging buckets are checked so no item silently breaches the acknowledgement or response commitment."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm daily review cadence",
+              "value": "Review log shows an aging review every business day; 0 missed days per quarter."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpq051oa8mbk8dk8eyglb",
+          "checklist": [
+            {
+              "step": "Escalate items approaching the firm-quote SLA",
+              "value": "Items in the >3-day bucket are surfaced so the 5-business-day firm-quote SLA is protected."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify escalations from aging",
+              "value": "100% of items breaching 5 days appear on the escalation list with a disposition."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fkip11f37kfgzkvvsgwab",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Portfolio UW Manager"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Retired underwriting guidelines and appetite documents that have been superseded — archived with effective-from/effective-to dates and version so the historical rule set applied to any past decision can be reconstructed for audit."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "On each guideline supersession; the retired version is archived within 5 business days of the replacement going effective, and the effective-date range is stamped for the full period the version was live."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203zjmbk8y2uum9fk"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each archived guideline carries version number, effective-from, effective-to, LOB, and approver; the archive record is invalid if the effective-to date or the superseding version link is missing."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every superseded version has exactly one archive record; the count of archived versions reconciles to the version history in the guideline register with no gaps in the effective-date timeline."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Archived guidelines are stored read-only in OpenText Document Mgmt with immutable timestamp and version label, indexed by LOB and effective-date range, retained per the records-retention schedule (minimum 7 years / policy life)."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Timeline gaps or missing prior versions are logged as records exceptions to the Portfolio UW Manager for backfill from version control; disposition recorded on the guideline register."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "Retention is governed by the enterprise records-retention policy and NAIC/state examination requirements to reproduce the underwriting guidelines in force on any historical date; cited on the archive record."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "Retention requirement met: retired guidelines retained a minimum of 7 years (or policy life plus statutory period, whichever is longer) in read-only archive; disposal only under an approved retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "No external filing deadline applies; the internal deadline is archival within 5 business days of supersession, tracked on the guideline register."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "All guideline supersessions in the period plus a sample of 15 archived versions per year across lines of business."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = every retired version archived read-only with complete effective-date range, version, and approver, and a continuous timeline. FAIL = a superseded version missing from the archive, an editable archive copy, or a gap in the effective-date timeline."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Missing versions are reconstructed from the document-management version history or approval records; unrecoverable gaps are documented as a records exception and reported to compliance within 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Archive metadata fields defined by the guideline register schema: guideline_id, version, effective_from, effective_to, line_of_business, approver, superseded_by."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = number of versions in the guideline version history; archived read-only records reconcile 1:1 to that count with a continuous effective-date timeline."
+        },
+        {
+          "answerId": "cmr2ocdx20u30kaz32189iw3c",
+          "value": "In scope: each retired guideline's full live period (effective-from to effective-to); the archive must let an examiner reconstruct the exact guideline set in force on any past decision date within the retention window."
+        },
+        {
+          "answerId": "cmr2ocdx20u31kaz3t2uzatjq",
+          "value": "Applicable rule: enterprise records-retention policy and NAIC/state market-conduct examination requirements to evidence the underwriting guidelines in force historically; no SERFF filing applies to internal guidelines."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an immutable audit trail of guideline versions",
+              "value": "Retired versions are stored read-only with version and effective dates so the historical rule set is auditable."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit-trail completeness",
+              "value": "Sample 15 versions/year; 0 gaps in the version timeline and 0 editable archive copies."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppwf1oa0mbk82d2m7rv2",
+          "checklist": [
+            {
+              "step": "Archive prior version whenever guidelines are updated",
+              "value": "Each annual/periodic update triggers archival of the superseded version within 5 business days."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm archival on update",
+              "value": "100% of updates in the period have the prior version archived; 0 orphaned supersessions."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Preserve documented appetite history by LOB/geography/industry",
+              "value": "Archived guidelines retain the appetite dimensions so historical appetite by segment can be reconstructed."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check appetite reconstructability",
+              "value": "For sampled past dates, the archive returns the appetite documentation then in force; 0 unreconstructable dates."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "b081b146-dae0-43dc-806c-c894722444cf",
+      "owner": { "action": "replace", "name": "Portfolio UW Manager" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Chief Underwriting Officer", "Actuary"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The current appetite parameters (target classes, limits, geographies, industry segments) assessed against external drivers — new product launches, regulatory/rate-filing changes, and market dislocations (e.g., cat-driven capacity, social inflation) affecting the book."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Triggered by a material external event and at the quarterly appetite review; the assessment covers the affected lines for the current planning cycle and forward view to next renewal season."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "027292ea-e459-414f-bdb1-3ab36faf3d33"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Assessment records the external driver, affected LOB/segment, quantified impact on loss ratio/aggregation, and recommended appetite change; it is invalid if the driver source or the affected appetite dimension is not identified."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Each identified external driver maps to at least one appetite dimension reviewed; the count of drivers assessed reconciles to the watchlist maintained by portfolio management with 0 unassessed material drivers."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The impact assessment and recommendation memo are versioned and retained with timestamp in the portfolio management SharePoint and linked to the appetite change request; actuarial support workpapers attached."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Where impact is uncertain, the item is logged as an open appetite risk with a monitoring trigger and revisit date; disposition (adjust / monitor / no-change) approved by the CUO and recorded."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "Regulatory drivers are cited to the specific rate-filing or bulletin change (e.g., a state rate/rule filing or market-conduct bulletin) that constrains appetite; internal policy is the appetite governance framework."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "The assessment memo and supporting analysis are retained a minimum of 7 years to evidence the basis for appetite changes under market-conduct examination."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "No external filing deadline; internal deadline is completion within the quarterly review cycle or within 10 business days of a material external event."
+        },
+        { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All material external drivers on the appetite watchlist for the quarter (census), with actuarial impact analysis for the top drivers by exposure."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every material driver assessed with quantified impact and a recommendation, reviewed with Actuarial and approved by the CUO. FAIL = a material driver unassessed, no quantified impact, or a recommendation lacking CUO sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Drivers with insufficient data are placed on monitoring with a defined trigger and revisit date; escalated to the CUO/portfolio committee if exposure grows before the next review."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance: each material external driver has a documented, actuarially-supported impact assessment and a CUO-approved appetite recommendation."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence: impact assessment memo, actuarial workpapers, and appetite change request retained in the portfolio management SharePoint."
+        },
+        {
+          "answerId": "cmr2ocfyp0vfwkaz3alz9eytd",
+          "value": "Applicable rule: cited to the specific external rate/rule filing, NAIC/state bulletin, or catastrophe/market event driving the change, plus the internal appetite governance policy; recorded on the assessment memo."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Reassess documented appetite by LOB/geography/industry against external drivers",
+              "value": "Each material driver is mapped to the affected appetite dimension and its documentation updated or flagged."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify appetite documentation reflects drivers",
+              "value": "0 material drivers without a corresponding appetite dimension assessed in the period."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppvi1o9ymbk83x2euqy4",
+          "checklist": [
+            {
+              "step": "Re-evaluate target classes and selection criteria",
+              "value": "External impacts are tested against target-class definitions and selection criteria for continued validity."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check target-class currency",
+              "value": "Sampled target classes show a documented review against current external drivers; 0 stale definitions."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppwf1oa0mbk82d2m7rv2",
+          "checklist": [
+            {
+              "step": "Feed the assessment into the annual appetite refresh",
+              "value": "Material findings are carried into the annual appetite update so parameters stay current."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm findings flow to the refresh",
+              "value": "100% of approved recommendations appear in the next appetite update; 0 lost items."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2f829b01o0bn7il0v0epll",
+      "owner": { "action": "replace", "name": "Portfolio UW Manager" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": ["Chief Underwriting Officer"],
+      "removeAppNames": [],
+      "addApps": [{ "name": "Microsoft 365 / SharePoint", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The configured appetite rules and any changes (target classes, referral triggers, no-write list, authority limits) communicated to all underwriters and, where relevant, to distribution, so the live rule set is understood and applied consistently across lines."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "On each appetite update effective date and at onboarding of new underwriters; communication is issued no later than the rule's effective date so no underwriting occurs against superseded appetite."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The communication states the effective date, affected LOB, the change summary, and links to the current guideline version; it is invalid if the effective date or version reference is missing, or if the recipient list omits an active underwriting desk."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Recipient count reconciles to the active underwriter roster for the affected lines; acknowledgement tracking shows read/ack from each desk, with 0 unacknowledged after the follow-up window."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The communication and acknowledgements are retained with timestamp and version in SharePoint and posted to the underwriting knowledge base, linked to the guideline version it announces."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Non-acknowledgements are followed up by the Portfolio UW Manager; unresolved acknowledgements past 5 business days are escalated to the CUO and the underwriter's manager, with disposition recorded."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppqe1o9ombk8omwdlsrg",
+          "checklist": [
+            {
+              "step": "Communicate appetite to underwriters and distribution",
+              "value": "Each appetite change is issued to the underwriter roster and relevant distribution with effective date and version."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify communication reach and acknowledgement",
+              "value": "100% of active desks receive and acknowledge the appetite communication before or on its effective date."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Reference the documented appetite by LOB/geography/industry",
+              "value": "The communication links to the authoritative appetite documentation so underwriters apply the correct segmented rules."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check version alignment",
+              "value": "Communicated rules match the current guideline version; 0 communications referencing a superseded version."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppuf1o9wmbk8chlv6qe5",
+          "checklist": [
+            {
+              "step": "Distribute and enforce the no-write list",
+              "value": "No-write list updates are included in the communication so prohibited classes are not bound after the effective date."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm no-write awareness",
+              "value": "Sampled underwriters can evidence receipt of the current no-write list; 0 binds against listed classes post-communication."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

@@ -55,6 +55,8 @@ export type ReqRow = {
   regime: string | null;
   requirement?: string;
   citation?: string | null;
+  citationUrl?: string | null;
+  complianceFlagged?: boolean;
   jurisdiction: { id: string; code: string; name: string; regulatorType: string };
   valueStreamLinks: VsLink[];
   owner: { id: string; name: string } | null;
@@ -300,6 +302,7 @@ export function RequirementsTable({
                     {r.title}
                   </Link>
                   <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                    {r.complianceFlagged && <StatusPill tone="green">Compliance</StatusPill>}
                     <Link
                       to={`/regulations/${r.jurisdiction.code}`}
                       title={`${r.jurisdiction.name} — open regulator page`}
@@ -353,7 +356,24 @@ export function RequirementsTable({
                         ))}
                       </span>
                     )}
-                    {r.citation && <span>Citation: {r.citation}</span>}
+                    {r.citation && (
+                      <span>
+                        Citation:{' '}
+                        {r.citationUrl ? (
+                          <a
+                            href={r.citationUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-[#2563eb] hover:underline"
+                          >
+                            {r.citation} ↗
+                          </a>
+                        ) : (
+                          r.citation
+                        )}
+                      </span>
+                    )}
                     {r.frequency && <span>Frequency: {r.frequency}</span>}
                   </div>
                   {editing === r.id && (

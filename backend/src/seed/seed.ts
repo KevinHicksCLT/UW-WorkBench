@@ -31,6 +31,9 @@ import { seedStandards } from './seedStandards.js';
 import { seedPermissions } from './seedPermissions.js';
 import { seedApprovalPolicies } from './seedApprovalPolicies.js';
 import { seedAnatomyCatalog } from './seedAnatomyCatalog.js';
+import { seedWorkspaceVocabulary } from './seedWorkspaceVocabulary.js';
+import { seedProductModelAnatomy } from './seedProductModelAnatomy.js';
+import { seedProductModel } from './productModel.js';
 import { seedRoleProfiles } from './seedRoleProfiles.js';
 import { decomposeSingleChild } from '../../scripts/decompose-single-child.js';
 
@@ -205,6 +208,11 @@ async function main() {
   await run('scenarios', () => seedScenarios(prisma, { ...ctx, refs }));
   await run('rationalization', () => seedRationalization(prisma, { ...ctx, refs }));
   await run('anatomyCatalog', () => seedAnatomyCatalog(prisma, ctx));
+  // Product Model Workspace (PM-02): vocabulary → anatomy → demo workspace
+  // (the demo workspace links findings to anatomy rows by slug, so order matters).
+  await run('workspaceVocabulary', () => seedWorkspaceVocabulary(prisma, ctx));
+  await run('productModelAnatomy', () => seedProductModelAnatomy(prisma, ctx));
+  await run('productModel', () => seedProductModel(prisma, { ...ctx, refs }));
   await run('portfolio', () => seedPortfolio(prisma, { ...ctx, refs }));
   await run('regulations', () => seedRegulations(prisma, { ...ctx, refs }));
   await run('federalRegs', () => seedFederalRegs(prisma, { ...ctx, refs }));
@@ -236,6 +244,13 @@ async function main() {
     rationalizationWorkspace: await prisma.rationalizationWorkspace.count({
       where: { companyId: c },
     }),
+    normalizationEntry: await prisma.normalizationEntry.count({ where: { companyId: c } }),
+    workspaceVocabulary: await prisma.workspaceVocabulary.count({ where: { companyId: c } }),
+    productModelAnatomyCategory: await prisma.productModelAnatomyCategory.count({
+      where: { companyId: c },
+    }),
+    productModelWorkspace: await prisma.productModelWorkspace.count({ where: { companyId: c } }),
+    productModelFinding: await prisma.productModelFinding.count({ where: { companyId: c } }),
     scenario: await prisma.scenario.count({ where: { companyId: c } }),
     telemetrySignal: await prisma.telemetrySignal.count({ where: { companyId: c } }),
     nodeAiAdoption: await prisma.nodeAiAdoption.count({ where: { processNode: { companyId: c } } }),

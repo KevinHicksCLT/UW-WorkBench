@@ -1,0 +1,2322 @@
+[
+  {
+    "id": "cmr2fl3yw1pgckfgzf0xl2xqj",
+    "name": "Calculate return premium on cancellation",
+    "description": "Calculate the return premium due on cancellation. Done when the amount is computed.",
+    "l3": "Renewals & In-Force Underwriting",
+    "l4": "Non-Renewal & Cancellation Management",
+    "roles": [
+      {
+        "nodeRoleId": "cmr2fl40v1ph9kfgz0r7h5l8g",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Owner"
+      },
+      {
+        "nodeRoleId": "cmr2fl40v1phakfgzvfmsevha",
+        "id": "cmqsck0rr03y3mbk80pomhqxg",
+        "name": "Underwriting Assistant",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fl40v1phbkfgzxmbq2t57",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "usageId": "cmr2fl4311phxkfgz74lg7erh",
+        "id": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "cmr2fl4311phykfgz9f850o4h",
+        "id": "027292ea-e459-414f-bdb1-3ab36faf3d33",
+        "name": "underwriting workstation",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "cmr2fl4311phzkfgzpp7f9enk",
+        "id": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "name": "billing/commission platform",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "cmr2fl4311pi0kfgzcppjmwd3",
+        "id": "e4b067cd-f592-4cee-8050-bdedf48363b8",
+        "name": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+        "usageType": "performed"
+      }
+    ],
+    "templates": [
+      {
+        "kind": "CHECKLIST",
+        "name": "Core evidence checklist",
+        "keys": [
+          {
+            "id": "cmr2oalvj0003lasbljnppmvk",
+            "key": "Defined scope/population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87uz0001xa9i94umw6d6",
+            "key": "In-scope period",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87wy0003xa9i8jgziihd",
+            "key": "Named SOR/report/query",
+            "guidance": null,
+            "valueKind": "APPLICATION"
+          },
+          {
+            "id": "cmr2v87y40005xa9ir47s1qg4",
+            "key": "Data owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oalzj0007lasbuo4mf8tq",
+            "key": "Required fields populated and valid",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam0y0009lasbg6ube3og",
+            "key": "Control totals or record counts reconcile",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam2m000blasb6n6f4ewh",
+            "key": "Evidence retained with timestamp/version",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam3s000dlasbu5w0fxn2",
+            "key": "Exceptions logged with disposition",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam5o000flasb2i5ekzh1",
+            "key": "Approver/reviewer sign-off captured",
+            "guidance": null,
+            "valueKind": "ROLE"
+          }
+        ]
+      },
+      {
+        "kind": "CHECKLIST",
+        "name": "Methodology/model validation",
+        "keys": [
+          {
+            "id": "cmr2oamel000jlasblc8uognb",
+            "key": "Methodology/model version approved",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oamg4000llasb5mlmokig",
+            "key": "Independent re-performance or reasonableness check completed",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2v88920007xa9iyuatdfi0",
+            "key": "Sensitivity thresholds documented",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88a40009xa9ieiq8xqa0",
+            "key": "Materiality thresholds documented",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      },
+      {
+        "kind": "CHECKLIST",
+        "name": "Source traceability / workflow status",
+        "keys": [
+          {
+            "id": "cmr2oamrz000rlasbaapuz8dr",
+            "key": "Sample records trace to source screens/documents",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88d6000bxa9ic6k59a4g",
+            "key": "Status fields align to workflow requirements",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88ea000dxa9idkxuxd1u",
+            "key": "Date fields align to workflow requirements",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      },
+      {
+        "kind": "TEST",
+        "name": "Re-perform calculation/model run",
+        "keys": [
+          {
+            "id": "cmr2oaq0p0033lasbv9x9vl3x",
+            "key": "Named process owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oaq1y0035lasbt581hez0",
+            "key": "Test population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oaq320037lasb58si1owg",
+            "key": "Pass/fail thresholds",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oaq4e0039lasb7zs1be9x",
+            "key": "Exception handling path",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v89xj0017xa9ikgynty6d",
+            "key": "Approved methodology/model version",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v89ze0019xa9i4s25sd76",
+            "key": "Parameter source",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      }
+    ],
+    "customKeys": [
+      {
+        "answerId": "cmr2ocdxt0v2xkaz3fox2x1a5",
+        "key": "Source-system field definitions and control totals",
+        "kind": "TEST"
+      }
+    ]
+  },
+  {
+    "id": "cmr2fl47r1pjukfgzacjr0i46",
+    "name": "Close policy record on cancellation",
+    "description": "Close and process the policy record on cancellation. Done when the record is closed.",
+    "l3": "Renewals & In-Force Underwriting",
+    "l4": "Non-Renewal & Cancellation Management",
+    "roles": [
+      {
+        "nodeRoleId": "cmr2fl49n1pkgkfgz0m0zn4n9",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Owner"
+      },
+      {
+        "nodeRoleId": "cmr2fl49n1pkhkfgzc9oz9a64",
+        "id": "cmqsck0rr03y3mbk80pomhqxg",
+        "name": "Underwriting Assistant",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fl49n1pkikfgzz2w3rp7y",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "usageId": "cmr2fl4cn1plhkfgzk3mi9lx3",
+        "id": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "cmr2fl4cn1plikfgz0dz3ravg",
+        "id": "027292ea-e459-414f-bdb1-3ab36faf3d33",
+        "name": "underwriting workstation",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "cmr2fl4cn1pljkfgzw4ujuxt8",
+        "id": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "name": "billing/commission platform",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "cmr2fl4cn1plkkfgztxuhwiu0",
+        "id": "e4b067cd-f592-4cee-8050-bdedf48363b8",
+        "name": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+        "usageType": "performed"
+      }
+    ],
+    "templates": [
+      {
+        "kind": "CHECKLIST",
+        "name": "Core evidence checklist",
+        "keys": [
+          {
+            "id": "cmr2oalvj0003lasbljnppmvk",
+            "key": "Defined scope/population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87uz0001xa9i94umw6d6",
+            "key": "In-scope period",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87wy0003xa9i8jgziihd",
+            "key": "Named SOR/report/query",
+            "guidance": null,
+            "valueKind": "APPLICATION"
+          },
+          {
+            "id": "cmr2v87y40005xa9ir47s1qg4",
+            "key": "Data owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oalzj0007lasbuo4mf8tq",
+            "key": "Required fields populated and valid",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam0y0009lasbg6ube3og",
+            "key": "Control totals or record counts reconcile",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam2m000blasb6n6f4ewh",
+            "key": "Evidence retained with timestamp/version",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam3s000dlasbu5w0fxn2",
+            "key": "Exceptions logged with disposition",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam5o000flasb2i5ekzh1",
+            "key": "Approver/reviewer sign-off captured",
+            "guidance": null,
+            "valueKind": "ROLE"
+          }
+        ]
+      },
+      {
+        "kind": "CHECKLIST",
+        "name": "Methodology/model validation",
+        "keys": [
+          {
+            "id": "cmr2oamel000jlasblc8uognb",
+            "key": "Methodology/model version approved",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oamg4000llasb5mlmokig",
+            "key": "Independent re-performance or reasonableness check completed",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2v88920007xa9iyuatdfi0",
+            "key": "Sensitivity thresholds documented",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88a40009xa9ieiq8xqa0",
+            "key": "Materiality thresholds documented",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      },
+      {
+        "kind": "CHECKLIST",
+        "name": "Source traceability / workflow status",
+        "keys": [
+          {
+            "id": "cmr2oamrz000rlasbaapuz8dr",
+            "key": "Sample records trace to source screens/documents",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88d6000bxa9ic6k59a4g",
+            "key": "Status fields align to workflow requirements",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88ea000dxa9idkxuxd1u",
+            "key": "Date fields align to workflow requirements",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      },
+      {
+        "kind": "TEST",
+        "name": "Re-perform calculation/model run",
+        "keys": [
+          {
+            "id": "cmr2oaq0p0033lasbv9x9vl3x",
+            "key": "Named process owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oaq1y0035lasbt581hez0",
+            "key": "Test population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oaq320037lasb58si1owg",
+            "key": "Pass/fail thresholds",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oaq4e0039lasb7zs1be9x",
+            "key": "Exception handling path",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v89xj0017xa9ikgynty6d",
+            "key": "Approved methodology/model version",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v89ze0019xa9i4s25sd76",
+            "key": "Parameter source",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      }
+    ],
+    "customKeys": [
+      {
+        "answerId": "cmr2ocdxt0v2ykaz375x7sfpx",
+        "key": "Source-system field definitions and control totals",
+        "kind": "TEST"
+      }
+    ]
+  },
+  {
+    "id": "2e37aa9e-4c36-4275-b97f-172d7233a2a3",
+    "name": "Confirm non-renewal grounds and eligibility",
+    "description": "Confirm the grounds and eligibility for non-renewal or cancellation before proceeding.",
+    "l3": "Renewals & In-Force Underwriting",
+    "l4": "Non-Renewal & Cancellation Management",
+    "roles": [
+      {
+        "nodeRoleId": "6ed93a3b-e7d6-4a59-b053-0a35acc6d178",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Owner"
+      },
+      {
+        "nodeRoleId": "f3f0a73b-e52d-4f32-9134-54a7618f8cb9",
+        "id": "cmqsck0rr03y3mbk80pomhqxg",
+        "name": "Underwriting Assistant",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "df7ad900-8bf4-4386-8649-5c785135f3fa",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "usageId": "01e82110-cc9e-4e8b-ad70-202d5b771e90",
+        "id": "8ad32be7-9ee4-44d8-9d7a-a83a120c5ff1",
+        "name": "Guidewire PolicyCenter; Policy Administration Platform",
+        "usageType": "performed"
+      }
+    ],
+    "templates": [
+      {
+        "kind": "CHECKLIST",
+        "name": "Core evidence checklist",
+        "keys": [
+          {
+            "id": "cmr2oalvj0003lasbljnppmvk",
+            "key": "Defined scope/population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87uz0001xa9i94umw6d6",
+            "key": "In-scope period",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87wy0003xa9i8jgziihd",
+            "key": "Named SOR/report/query",
+            "guidance": null,
+            "valueKind": "APPLICATION"
+          },
+          {
+            "id": "cmr2v87y40005xa9ir47s1qg4",
+            "key": "Data owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oalzj0007lasbuo4mf8tq",
+            "key": "Required fields populated and valid",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam0y0009lasbg6ube3og",
+            "key": "Control totals or record counts reconcile",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam2m000blasb6n6f4ewh",
+            "key": "Evidence retained with timestamp/version",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam3s000dlasbu5w0fxn2",
+            "key": "Exceptions logged with disposition",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam5o000flasb2i5ekzh1",
+            "key": "Approver/reviewer sign-off captured",
+            "guidance": null,
+            "valueKind": "ROLE"
+          }
+        ]
+      }
+    ],
+    "customKeys": []
+  },
+  {
+    "id": "cmr2fhu0l06ixkfgzh0s0psbq",
+    "name": "Confirm records retention period is set",
+    "description": "Confirm the records retention period is set on the archived file. Done when retention is confirmed.",
+    "l3": "Renewals & In-Force Underwriting",
+    "l4": "Non-Renewal & Cancellation Management",
+    "roles": [
+      {
+        "nodeRoleId": "cmr2fhu2a06jhkfgzexvly586",
+        "id": "cmqsck0rq03x2mbk8iopsw726",
+        "name": "Risk Engineer",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2a06jikfgzbbyxold0",
+        "id": "cmqscl35c1hjnmbk86xvnu6i5",
+        "name": "Annuity Suitability Analyst",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2a06jjkfgzjyum7h1u",
+        "id": "cmqsck0ro03ssmbk84d7yy0ni",
+        "name": "Clearance Specialist",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2a06jkkfgzpu69e6mx",
+        "id": "cmqsck0ro03sjmbk8hjhb90bw",
+        "name": "Chief Underwriting Officer",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2a06jlkfgz227xdyy2",
+        "id": "cmqsck0ro03swmbk8vtaf1bgu",
+        "name": "Commercial Lines Underwriter",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2a06jmkfgzgjhswva3",
+        "id": "cmqsck0ro03tfmbk8xjef6t8b",
+        "name": "Coverholder Coordinator",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2a06jnkfgzr91thz66",
+        "id": "cmqsck0rp03tvmbk89dtmyg17",
+        "name": "Delegated Authority Analyst",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2a06jokfgzbgw0nhwk",
+        "id": "cmqsck0rp03twmbk8kalntt8w",
+        "name": "Delegated Authority Manager",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2a06jqkfgz6iusuz07",
+        "id": "cmqsck0rq03vtmbk8fx63h17d",
+        "name": "Personal Lines Underwriter",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2a06jrkfgzy4am162m",
+        "id": "cmqsck0rq03w0mbk8toiuql4g",
+        "name": "Portfolio UW Manager",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2a06jskfgz4z6lb2fv",
+        "id": "cmqsck0rq03wxmbk8kddebbie",
+        "name": "Renewal Underwriter",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2a06jukfgzyv95fr4f",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Owner"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2a06jvkfgzzwi6t5qt",
+        "id": "cmqsck0rr03y3mbk80pomhqxg",
+        "name": "Underwriting Assistant",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2a06jwkfgzntva0fkj",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2a06jxkfgz4qdyk0nc",
+        "id": "cmqsck0rp03ubmbk8ik3cfyh4",
+        "name": "Exposure Management Manager",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2a06jykfgzkj0pla3v",
+        "id": "cmqsck0rq03xcmbk82yte24t5",
+        "name": "Senior Underwriter",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2a06jzkfgzdn1h6j4f",
+        "id": "cmqsck0rr03ximbk8iobs63tn",
+        "name": "Submission Intake Specialist",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2a06k0kfgzc9e605k2",
+        "id": "cmqsck0rr03y0mbk8y3lmtov6",
+        "name": "UW Operations Manager",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2b06k1kfgzfvcrovrm",
+        "id": "cmqsck0rr03y4mbk8u38o045d",
+        "name": "Underwriting Director / Manager",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2b06k2kfgz0qnc5wzs",
+        "id": "cmqsck0rr03y5mbk85lrlrry0",
+        "name": "Underwriting Quality / Audit Manager",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2b06k3kfgz0cjpqkoj",
+        "id": "cmqsck0rr03y9mbk8biqljjzq",
+        "name": "Wordings Coverage Specialist",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2b06k4kfgzgxw3vw06",
+        "id": "cmqscl3tu1hktmbk82xth8j1w",
+        "name": "Life Underwriter",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fhu2b06k5kfgzwkn1xdce",
+        "id": "cmqscl3y21hl1mbk8xkofd5sy",
+        "name": "New Business Case Manager",
+        "relation": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "usageId": "cmr2fhu4k06kykfgzilra6uzs",
+        "id": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "cmr2fhu4k06kzkfgztat9z78o",
+        "id": "027292ea-e459-414f-bdb1-3ab36faf3d33",
+        "name": "underwriting workstation",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "cmr2fhu4k06l0kfgzers5wl4g",
+        "id": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "name": "billing/commission platform",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "cmr2fhu4k06l1kfgzi7hjbptj",
+        "id": "bfba64d7-d43a-45d4-aac3-342683c98f2f",
+        "name": "GRC platform (Archer/ServiceNow GRC)",
+        "usageType": "performed"
+      }
+    ],
+    "templates": [
+      {
+        "kind": "CHECKLIST",
+        "name": "Core evidence checklist",
+        "keys": [
+          {
+            "id": "cmr2oalvj0003lasbljnppmvk",
+            "key": "Defined scope/population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87uz0001xa9i94umw6d6",
+            "key": "In-scope period",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87wy0003xa9i8jgziihd",
+            "key": "Named SOR/report/query",
+            "guidance": null,
+            "valueKind": "APPLICATION"
+          },
+          {
+            "id": "cmr2v87y40005xa9ir47s1qg4",
+            "key": "Data owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oalzj0007lasbuo4mf8tq",
+            "key": "Required fields populated and valid",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam0y0009lasbg6ube3og",
+            "key": "Control totals or record counts reconcile",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam2m000blasb6n6f4ewh",
+            "key": "Evidence retained with timestamp/version",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam3s000dlasbu5w0fxn2",
+            "key": "Exceptions logged with disposition",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam5o000flasb2i5ekzh1",
+            "key": "Approver/reviewer sign-off captured",
+            "guidance": null,
+            "valueKind": "ROLE"
+          }
+        ]
+      },
+      {
+        "kind": "CHECKLIST",
+        "name": "Source traceability / workflow status",
+        "keys": [
+          {
+            "id": "cmr2oamrz000rlasbaapuz8dr",
+            "key": "Sample records trace to source screens/documents",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88d6000bxa9ic6k59a4g",
+            "key": "Status fields align to workflow requirements",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88ea000dxa9idkxuxd1u",
+            "key": "Date fields align to workflow requirements",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      },
+      {
+        "kind": "TEST",
+        "name": "Re-perform validation rules",
+        "keys": [
+          {
+            "id": "cmr2oapmt002rlasbojqqymeh",
+            "key": "Named process owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oapo2002tlasbrq6ypsfp",
+            "key": "Test population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oappx002vlasbp983y62z",
+            "key": "Pass/fail thresholds",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oaprq002xlasbn62pym1c",
+            "key": "Exception handling path",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oapt3002zlasbvo2amzzy",
+            "key": "In-scope period/effective dates",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      }
+    ],
+    "customKeys": [
+      {
+        "answerId": "cmr2ocfzi0wgvkaz3rvo556yv",
+        "key": "Source-system field definitions and control totals",
+        "kind": "TEST"
+      }
+    ]
+  },
+  {
+    "id": "ecd9a123-ee14-4710-885e-2829d327d98c",
+    "name": "Confirm statutory notice period",
+    "description": "Confirm the required statutory non-renewal/cancellation notice period by state and line of business.",
+    "l3": "Renewals & In-Force Underwriting",
+    "l4": "Non-Renewal & Cancellation Management",
+    "roles": [
+      {
+        "nodeRoleId": "ed099424-9c7d-45c0-9ae8-6d3dd0c10227",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Owner"
+      },
+      {
+        "nodeRoleId": "60626b4d-55c2-4372-95b4-62129f99b85a",
+        "id": "cmqsck0rr03y3mbk80pomhqxg",
+        "name": "Underwriting Assistant",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "a393600a-1d3c-4105-98c2-ae6e852944b7",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "usageId": "247aaee0-d501-4fc2-8a90-3eafc9f11599",
+        "id": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "670a468b-1d97-4467-86e8-bdc42b609a1c",
+        "id": "027292ea-e459-414f-bdb1-3ab36faf3d33",
+        "name": "underwriting workstation",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "bea4b89f-1059-4e62-8bb2-78f5ba65f5f6",
+        "id": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "name": "billing/commission platform",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "69ba9780-324e-4edb-a5cd-0624820d7ec2",
+        "id": "58db03fe-aafc-4d7d-b89d-4895463475e7",
+        "name": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+        "usageType": "performed"
+      }
+    ],
+    "templates": [
+      {
+        "kind": "CHECKLIST",
+        "name": "Core evidence checklist",
+        "keys": [
+          {
+            "id": "cmr2oalvj0003lasbljnppmvk",
+            "key": "Defined scope/population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87uz0001xa9i94umw6d6",
+            "key": "In-scope period",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87wy0003xa9i8jgziihd",
+            "key": "Named SOR/report/query",
+            "guidance": null,
+            "valueKind": "APPLICATION"
+          },
+          {
+            "id": "cmr2v87y40005xa9ir47s1qg4",
+            "key": "Data owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oalzj0007lasbuo4mf8tq",
+            "key": "Required fields populated and valid",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam0y0009lasbg6ube3og",
+            "key": "Control totals or record counts reconcile",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam2m000blasb6n6f4ewh",
+            "key": "Evidence retained with timestamp/version",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam3s000dlasbu5w0fxn2",
+            "key": "Exceptions logged with disposition",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam5o000flasb2i5ekzh1",
+            "key": "Approver/reviewer sign-off captured",
+            "guidance": null,
+            "valueKind": "ROLE"
+          }
+        ]
+      },
+      {
+        "kind": "CHECKLIST",
+        "name": "Regulatory / retention evidence",
+        "keys": [
+          {
+            "id": "cmr2oan48000xlasba0u1ffd8",
+            "key": "Regulatory/policy citation included",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88hl000fxa9io24wujiz",
+            "key": "Retention requirement met",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88il000hxa9icjpyq8mw",
+            "key": "Filing deadline met",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      },
+      {
+        "kind": "TEST",
+        "name": "Re-perform validation rules",
+        "keys": [
+          {
+            "id": "cmr2oapmt002rlasbojqqymeh",
+            "key": "Named process owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oapo2002tlasbrq6ypsfp",
+            "key": "Test population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oappx002vlasbp983y62z",
+            "key": "Pass/fail thresholds",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oaprq002xlasbn62pym1c",
+            "key": "Exception handling path",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oapt3002zlasbvo2amzzy",
+            "key": "In-scope period/effective dates",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      }
+    ],
+    "customKeys": [
+      {
+        "answerId": "cmr2ocdwb0t3mkaz3gjs2r10d",
+        "key": "Applicable regulatory rule, filing requirement, or policy citation",
+        "kind": "TEST"
+      }
+    ]
+  },
+  {
+    "id": "cmr2fkk111fr8kfgzwyuapbnn",
+    "name": "Dispatch non-renewal notice within timeframe",
+    "description": "Send the non-renewal notice to the insured and producing broker within the required timeframe.",
+    "l3": "Renewals & In-Force Underwriting",
+    "l4": "Non-Renewal & Cancellation Management",
+    "roles": [
+      {
+        "nodeRoleId": "cmr2fkk2s1fs1kfgzpkumqlsl",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fkk2s1fs2kfgzxxwyy1m9",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Owner"
+      },
+      {
+        "nodeRoleId": "cmr2fkk2s1fs3kfgzh1mzx03q",
+        "id": "cmqsck0rr03y3mbk80pomhqxg",
+        "name": "Underwriting Assistant",
+        "relation": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "usageId": "cmr2fkk4n1ftskfgzcfv4vcnh",
+        "id": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "cmr2fkk4n1fttkfgz456wk5b4",
+        "id": "027292ea-e459-414f-bdb1-3ab36faf3d33",
+        "name": "underwriting workstation",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "cmr2fkk4n1ftukfgzv3q6squi",
+        "id": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "name": "billing/commission platform",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "cmr2fkk4n1ftvkfgz96n7rlvf",
+        "id": "bfba64d7-d43a-45d4-aac3-342683c98f2f",
+        "name": "GRC platform (Archer/ServiceNow GRC)",
+        "usageType": "performed"
+      }
+    ],
+    "templates": [
+      {
+        "kind": "CHECKLIST",
+        "name": "Core evidence checklist",
+        "keys": [
+          {
+            "id": "cmr2oalvj0003lasbljnppmvk",
+            "key": "Defined scope/population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87uz0001xa9i94umw6d6",
+            "key": "In-scope period",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87wy0003xa9i8jgziihd",
+            "key": "Named SOR/report/query",
+            "guidance": null,
+            "valueKind": "APPLICATION"
+          },
+          {
+            "id": "cmr2v87y40005xa9ir47s1qg4",
+            "key": "Data owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oalzj0007lasbuo4mf8tq",
+            "key": "Required fields populated and valid",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam0y0009lasbg6ube3og",
+            "key": "Control totals or record counts reconcile",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam2m000blasb6n6f4ewh",
+            "key": "Evidence retained with timestamp/version",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam3s000dlasbu5w0fxn2",
+            "key": "Exceptions logged with disposition",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam5o000flasb2i5ekzh1",
+            "key": "Approver/reviewer sign-off captured",
+            "guidance": null,
+            "valueKind": "ROLE"
+          }
+        ]
+      },
+      {
+        "kind": "CHECKLIST",
+        "name": "Regulatory / retention evidence",
+        "keys": [
+          {
+            "id": "cmr2oan48000xlasba0u1ffd8",
+            "key": "Regulatory/policy citation included",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88hl000fxa9io24wujiz",
+            "key": "Retention requirement met",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88il000hxa9icjpyq8mw",
+            "key": "Filing deadline met",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      },
+      {
+        "kind": "TEST",
+        "name": "Expected evidence + SOR tracing",
+        "keys": [
+          {
+            "id": "cmr2oanxo001flasbfucsrtbm",
+            "key": "Named process owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oanyt001hlasb9c3kzvkq",
+            "key": "Test population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oao03001jlasb1coy37l2",
+            "key": "Pass/fail thresholds",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oao16001llasbnlkf9nbu",
+            "key": "Exception handling path",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88x1000rxa9if2t45ukx",
+            "key": "Documented acceptance criteria",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88xv000txa9ih5f5ph5m",
+            "key": "Evidence location",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      }
+    ],
+    "customKeys": [
+      {
+        "answerId": "cmr2ocdx30u5akaz3o843hq01",
+        "key": "Applicable regulatory rule, filing requirement, or policy citation",
+        "kind": "TEST"
+      }
+    ]
+  },
+  {
+    "id": "9c7afd68-474d-481a-9cf0-69b623315631",
+    "name": "Document non-renewal rationale in underwriting file",
+    "description": "Record the non-renewal rationale in the underwriting file for regulatory inspection and broker communication.",
+    "l3": "Renewals & In-Force Underwriting",
+    "l4": "Non-Renewal & Cancellation Management",
+    "roles": [
+      {
+        "nodeRoleId": "4fb82600-f5e3-4623-bbba-f349d4940f1d",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Owner"
+      },
+      {
+        "nodeRoleId": "de51ecb4-26cb-47bd-a415-b4f24966a12a",
+        "id": "cmqsck0rr03y3mbk80pomhqxg",
+        "name": "Underwriting Assistant",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "fee79086-089c-4225-818f-eb6de83f43bf",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "usageId": "ae44816e-9cea-41ce-9fa2-4eaa30ac1798",
+        "id": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "70c38d33-3f4b-4d5a-998e-232ea7d2e6e8",
+        "id": "027292ea-e459-414f-bdb1-3ab36faf3d33",
+        "name": "underwriting workstation",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "03a88920-3ecd-453b-9c90-46c7f6754c88",
+        "id": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "name": "billing/commission platform",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "ca47e0d6-f90c-4e62-9aa9-909a159f348e",
+        "id": "bfba64d7-d43a-45d4-aac3-342683c98f2f",
+        "name": "GRC platform (Archer/ServiceNow GRC)",
+        "usageType": "performed"
+      }
+    ],
+    "templates": [
+      {
+        "kind": "CHECKLIST",
+        "name": "Core evidence checklist",
+        "keys": [
+          {
+            "id": "cmr2oalvj0003lasbljnppmvk",
+            "key": "Defined scope/population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87uz0001xa9i94umw6d6",
+            "key": "In-scope period",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87wy0003xa9i8jgziihd",
+            "key": "Named SOR/report/query",
+            "guidance": null,
+            "valueKind": "APPLICATION"
+          },
+          {
+            "id": "cmr2v87y40005xa9ir47s1qg4",
+            "key": "Data owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oalzj0007lasbuo4mf8tq",
+            "key": "Required fields populated and valid",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam0y0009lasbg6ube3og",
+            "key": "Control totals or record counts reconcile",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam2m000blasb6n6f4ewh",
+            "key": "Evidence retained with timestamp/version",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam3s000dlasbu5w0fxn2",
+            "key": "Exceptions logged with disposition",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam5o000flasb2i5ekzh1",
+            "key": "Approver/reviewer sign-off captured",
+            "guidance": null,
+            "valueKind": "ROLE"
+          }
+        ]
+      },
+      {
+        "kind": "CHECKLIST",
+        "name": "Methodology/model validation",
+        "keys": [
+          {
+            "id": "cmr2oamel000jlasblc8uognb",
+            "key": "Methodology/model version approved",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oamg4000llasb5mlmokig",
+            "key": "Independent re-performance or reasonableness check completed",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2v88920007xa9iyuatdfi0",
+            "key": "Sensitivity thresholds documented",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88a40009xa9ieiq8xqa0",
+            "key": "Materiality thresholds documented",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      },
+      {
+        "kind": "CHECKLIST",
+        "name": "Regulatory / retention evidence",
+        "keys": [
+          {
+            "id": "cmr2oan48000xlasba0u1ffd8",
+            "key": "Regulatory/policy citation included",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88hl000fxa9io24wujiz",
+            "key": "Retention requirement met",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88il000hxa9icjpyq8mw",
+            "key": "Filing deadline met",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      },
+      {
+        "kind": "TEST",
+        "name": "Artifact inspection",
+        "keys": [
+          {
+            "id": "cmr2oaoph0023lasb0vuzj8ar",
+            "key": "Named process owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oaoqp0025lasbrdxc4ebb",
+            "key": "Test population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oaoru0027lasblf4a3q5g",
+            "key": "Pass/fail thresholds",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oaot40029lasbqt4ono47",
+            "key": "Exception handling path",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v89b6000zxa9ivo819zn7",
+            "key": "Source-system field definitions",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v89c10011xa9ijssevzvo",
+            "key": "Source-system control totals",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      }
+    ],
+    "customKeys": [
+      {
+        "answerId": "cmr2ocdw40su0kaz3njqjvjdv",
+        "key": "Approved methodology/model version and parameter source",
+        "kind": "TEST"
+      },
+      {
+        "answerId": "cmr2ocdw40su1kaz31gtcc5f7",
+        "key": "Applicable regulatory rule, filing requirement, or policy citation",
+        "kind": "TEST"
+      }
+    ]
+  },
+  {
+    "id": "cmr2fkjtz1fnnkfgz5tlr3c3e",
+    "name": "Generate non-renewal notice",
+    "description": "Generate the non-renewal notice for the affected policy with required content.",
+    "l3": "Renewals & In-Force Underwriting",
+    "l4": "Non-Renewal & Cancellation Management",
+    "roles": [
+      {
+        "nodeRoleId": "cmr2fkjvn1fo6kfgzmekbpoxo",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fkjvn1fo7kfgzydaq50nd",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Owner"
+      },
+      {
+        "nodeRoleId": "cmr2fkjvn1fo8kfgz9pd58dc3",
+        "id": "cmqsck0rr03y3mbk80pomhqxg",
+        "name": "Underwriting Assistant",
+        "relation": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "usageId": "cmr2fkjxe1fozkfgzou1ly5nn",
+        "id": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "cmr2fkjxe1fp0kfgzc8gvny7e",
+        "id": "027292ea-e459-414f-bdb1-3ab36faf3d33",
+        "name": "underwriting workstation",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "cmr2fkjxe1fp1kfgz5g3mqi9p",
+        "id": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "name": "billing/commission platform",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "cmr2fkjxe1fp2kfgzj4rq9boc",
+        "id": "bfba64d7-d43a-45d4-aac3-342683c98f2f",
+        "name": "GRC platform (Archer/ServiceNow GRC)",
+        "usageType": "performed"
+      }
+    ],
+    "templates": [
+      {
+        "kind": "CHECKLIST",
+        "name": "Core evidence checklist",
+        "keys": [
+          {
+            "id": "cmr2oalvj0003lasbljnppmvk",
+            "key": "Defined scope/population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87uz0001xa9i94umw6d6",
+            "key": "In-scope period",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87wy0003xa9i8jgziihd",
+            "key": "Named SOR/report/query",
+            "guidance": null,
+            "valueKind": "APPLICATION"
+          },
+          {
+            "id": "cmr2v87y40005xa9ir47s1qg4",
+            "key": "Data owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oalzj0007lasbuo4mf8tq",
+            "key": "Required fields populated and valid",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam0y0009lasbg6ube3og",
+            "key": "Control totals or record counts reconcile",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam2m000blasb6n6f4ewh",
+            "key": "Evidence retained with timestamp/version",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam3s000dlasbu5w0fxn2",
+            "key": "Exceptions logged with disposition",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam5o000flasb2i5ekzh1",
+            "key": "Approver/reviewer sign-off captured",
+            "guidance": null,
+            "valueKind": "ROLE"
+          }
+        ]
+      },
+      {
+        "kind": "CHECKLIST",
+        "name": "Regulatory / retention evidence",
+        "keys": [
+          {
+            "id": "cmr2oan48000xlasba0u1ffd8",
+            "key": "Regulatory/policy citation included",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88hl000fxa9io24wujiz",
+            "key": "Retention requirement met",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88il000hxa9icjpyq8mw",
+            "key": "Filing deadline met",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      },
+      {
+        "kind": "TEST",
+        "name": "Expected evidence + SOR tracing",
+        "keys": [
+          {
+            "id": "cmr2oanxo001flasbfucsrtbm",
+            "key": "Named process owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oanyt001hlasb9c3kzvkq",
+            "key": "Test population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oao03001jlasb1coy37l2",
+            "key": "Pass/fail thresholds",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oao16001llasbnlkf9nbu",
+            "key": "Exception handling path",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88x1000rxa9if2t45ukx",
+            "key": "Documented acceptance criteria",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88xv000txa9ih5f5ph5m",
+            "key": "Evidence location",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      }
+    ],
+    "customKeys": [
+      {
+        "answerId": "cmr2ocdx30u59kaz3pe9piudm",
+        "key": "Applicable regulatory rule, filing requirement, or policy citation",
+        "kind": "TEST"
+      }
+    ]
+  },
+  {
+    "id": "c400e938-f207-4cc6-9424-ced12fb77718",
+    "name": "Identify policies scheduled for non-renewal",
+    "description": "Identify policies for non-renewal based on underwriting performance, appetite change, or risk quality.",
+    "l3": "Renewals & In-Force Underwriting",
+    "l4": "Non-Renewal & Cancellation Management",
+    "roles": [
+      {
+        "nodeRoleId": "2bd90a1f-3aa3-4a81-842f-b3cd420e80eb",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Owner"
+      },
+      {
+        "nodeRoleId": "ff0fa7bc-e664-48f3-923f-bae58a9fabc5",
+        "id": "cmqsck0rr03y3mbk80pomhqxg",
+        "name": "Underwriting Assistant",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "b71450a6-d60c-4158-809b-93f1aff39101",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "usageId": "4e864e1d-e24a-49f4-8a2b-131412c6b014",
+        "id": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "3be0e197-374c-4fec-aa21-249efe09a28d",
+        "id": "027292ea-e459-414f-bdb1-3ab36faf3d33",
+        "name": "underwriting workstation",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "3ee24fa0-6d81-48e5-830f-31f8a5516c93",
+        "id": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "name": "billing/commission platform",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "e9fec2aa-c1a7-4674-8d9e-d6ff48719c65",
+        "id": "bfba64d7-d43a-45d4-aac3-342683c98f2f",
+        "name": "GRC platform (Archer/ServiceNow GRC)",
+        "usageType": "performed"
+      }
+    ],
+    "templates": [
+      {
+        "kind": "CHECKLIST",
+        "name": "Core evidence checklist",
+        "keys": [
+          {
+            "id": "cmr2oalvj0003lasbljnppmvk",
+            "key": "Defined scope/population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87uz0001xa9i94umw6d6",
+            "key": "In-scope period",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87wy0003xa9i8jgziihd",
+            "key": "Named SOR/report/query",
+            "guidance": null,
+            "valueKind": "APPLICATION"
+          },
+          {
+            "id": "cmr2v87y40005xa9ir47s1qg4",
+            "key": "Data owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oalzj0007lasbuo4mf8tq",
+            "key": "Required fields populated and valid",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam0y0009lasbg6ube3og",
+            "key": "Control totals or record counts reconcile",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam2m000blasb6n6f4ewh",
+            "key": "Evidence retained with timestamp/version",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam3s000dlasbu5w0fxn2",
+            "key": "Exceptions logged with disposition",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam5o000flasb2i5ekzh1",
+            "key": "Approver/reviewer sign-off captured",
+            "guidance": null,
+            "valueKind": "ROLE"
+          }
+        ]
+      },
+      {
+        "kind": "TEST",
+        "name": "Analysis population + findings validation",
+        "keys": [
+          {
+            "id": "cmr2oaobk001rlasbp41b8ekd",
+            "key": "Named process owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oaocj001tlasbyf7jjfrj",
+            "key": "Test population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oaodj001vlasbycmyhv72",
+            "key": "Pass/fail thresholds",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oaof2001xlasbgo5bzael",
+            "key": "Exception handling path",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v8940000vxa9iz1ws174c",
+            "key": "Documented acceptance criteria",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v8953000xxa9izs452xrs",
+            "key": "Evidence location",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      }
+    ],
+    "customKeys": []
+  },
+  {
+    "id": "0408fe20-7bd1-43a3-aeb2-039ce3971ad4",
+    "name": "Notify downstream teams of cancellation",
+    "description": "Notify billing, reinsurance accounting, and claims teams of the policy cancellation effective date. Done when notified.",
+    "l3": "Renewals & In-Force Underwriting",
+    "l4": "Non-Renewal & Cancellation Management",
+    "roles": [
+      {
+        "nodeRoleId": "8f575a0b-c48b-43f4-b3e1-f37f1d673220",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Owner"
+      },
+      {
+        "nodeRoleId": "18e3629d-f757-4da1-ab27-c32a7aeb87a1",
+        "id": "cmqsck0rr03y3mbk80pomhqxg",
+        "name": "Underwriting Assistant",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "bd572b90-7d87-463e-834f-1e29f4220dda",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "usageId": "fb69b7f2-b35a-45e3-9862-242f4b37fbe0",
+        "id": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf",
+        "name": "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "96c824b5-9286-4801-b389-27dc629db7dc",
+        "id": "95f469a4-0cfb-437d-931d-65cc430064d8",
+        "name": "claim file/document repository",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "50ee984a-153f-4359-be08-f272b2c2daa0",
+        "id": "8f07bef6-b9fc-485a-bb26-65fd4062b93b",
+        "name": "payment/subrogation system",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "9693535e-427d-4768-98b2-faba374d9e2d",
+        "id": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "usageType": "performed"
+      }
+    ],
+    "templates": [
+      {
+        "kind": "CHECKLIST",
+        "name": "Core evidence checklist",
+        "keys": [
+          {
+            "id": "cmr2oalvj0003lasbljnppmvk",
+            "key": "Defined scope/population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87uz0001xa9i94umw6d6",
+            "key": "In-scope period",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87wy0003xa9i8jgziihd",
+            "key": "Named SOR/report/query",
+            "guidance": null,
+            "valueKind": "APPLICATION"
+          },
+          {
+            "id": "cmr2v87y40005xa9ir47s1qg4",
+            "key": "Data owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oalzj0007lasbuo4mf8tq",
+            "key": "Required fields populated and valid",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam0y0009lasbg6ube3og",
+            "key": "Control totals or record counts reconcile",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam2m000blasb6n6f4ewh",
+            "key": "Evidence retained with timestamp/version",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam3s000dlasbu5w0fxn2",
+            "key": "Exceptions logged with disposition",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam5o000flasb2i5ekzh1",
+            "key": "Approver/reviewer sign-off captured",
+            "guidance": null,
+            "valueKind": "ROLE"
+          }
+        ]
+      },
+      {
+        "kind": "CHECKLIST",
+        "name": "Source traceability / workflow status",
+        "keys": [
+          {
+            "id": "cmr2oamrz000rlasbaapuz8dr",
+            "key": "Sample records trace to source screens/documents",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88d6000bxa9ic6k59a4g",
+            "key": "Status fields align to workflow requirements",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88ea000dxa9idkxuxd1u",
+            "key": "Date fields align to workflow requirements",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      },
+      {
+        "kind": "TEST",
+        "name": "Workflow history tracing",
+        "keys": [
+          {
+            "id": "cmr2oap6g002flasb12gpqsrx",
+            "key": "Named process owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oap7x002hlasb21lclhgc",
+            "key": "Test population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oapa9002jlasbbht6cp5g",
+            "key": "Pass/fail thresholds",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oapbz002llasbwuwwn4mb",
+            "key": "Exception handling path",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v89jj0013xa9iy2urljqv",
+            "key": "Authorized approver",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2v89li0015xa9ia4hiukkb",
+            "key": "Delegation matrix documented",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      }
+    ],
+    "customKeys": [
+      {
+        "answerId": "cmr2ocdxs0v26kaz375w004u2",
+        "key": "In-scope period/effective dates",
+        "kind": "TEST"
+      },
+      {
+        "answerId": "cmr2ocdxs0v27kaz37yg529yi",
+        "key": "Source-system field definitions and control totals",
+        "kind": "TEST"
+      }
+    ]
+  },
+  {
+    "id": "b32ae965-a6e1-4003-8d53-1acb18635636",
+    "name": "Process mid-term cancellation requests",
+    "description": "Process mid-term cancellation requests from insured or broker with required notice documentation. Done when processed.",
+    "l3": "Renewals & In-Force Underwriting",
+    "l4": "Non-Renewal & Cancellation Management",
+    "roles": [
+      {
+        "nodeRoleId": "766968e1-eff2-4c75-b3e4-7bb817a05e87",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Owner"
+      },
+      {
+        "nodeRoleId": "d7a1f3aa-75bd-4793-a893-0ae0d4ca0816",
+        "id": "cmqsck0rr03y3mbk80pomhqxg",
+        "name": "Underwriting Assistant",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "9ebdfcad-c9a3-4139-becf-9e92c90ccf42",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "usageId": "9d855ff2-2495-4154-bc29-4a691c09b199",
+        "id": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "a69a74a3-d31c-4dac-ab6d-5ccc05b34c2e",
+        "id": "027292ea-e459-414f-bdb1-3ab36faf3d33",
+        "name": "underwriting workstation",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "6f52ef4f-5919-4b4a-9ea3-1a60e84b45c7",
+        "id": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "name": "billing/commission platform",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "14e8e91e-0959-4c6f-9cd0-87654fdc4250",
+        "id": "f8536ef3-0c21-4e34-8ed4-d72f0dd61851",
+        "name": "CRM (Salesforce/Dynamics)",
+        "usageType": "performed"
+      }
+    ],
+    "templates": [
+      {
+        "kind": "CHECKLIST",
+        "name": "Core evidence checklist",
+        "keys": [
+          {
+            "id": "cmr2oalvj0003lasbljnppmvk",
+            "key": "Defined scope/population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87uz0001xa9i94umw6d6",
+            "key": "In-scope period",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87wy0003xa9i8jgziihd",
+            "key": "Named SOR/report/query",
+            "guidance": null,
+            "valueKind": "APPLICATION"
+          },
+          {
+            "id": "cmr2v87y40005xa9ir47s1qg4",
+            "key": "Data owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oalzj0007lasbuo4mf8tq",
+            "key": "Required fields populated and valid",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam0y0009lasbg6ube3og",
+            "key": "Control totals or record counts reconcile",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam2m000blasb6n6f4ewh",
+            "key": "Evidence retained with timestamp/version",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam3s000dlasbu5w0fxn2",
+            "key": "Exceptions logged with disposition",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam5o000flasb2i5ekzh1",
+            "key": "Approver/reviewer sign-off captured",
+            "guidance": null,
+            "valueKind": "ROLE"
+          }
+        ]
+      },
+      {
+        "kind": "TEST",
+        "name": "Artifact inspection",
+        "keys": [
+          {
+            "id": "cmr2oaoph0023lasb0vuzj8ar",
+            "key": "Named process owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oaoqp0025lasbrdxc4ebb",
+            "key": "Test population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oaoru0027lasblf4a3q5g",
+            "key": "Pass/fail thresholds",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oaot40029lasbqt4ono47",
+            "key": "Exception handling path",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v89b6000zxa9ivo819zn7",
+            "key": "Source-system field definitions",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v89c10011xa9ijssevzvo",
+            "key": "Source-system control totals",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      }
+    ],
+    "customKeys": [
+      {
+        "answerId": "cmr2ocdxr0v16kaz3w8vy9r1g",
+        "key": "Documented acceptance criteria and evidence location",
+        "kind": "TEST"
+      }
+    ]
+  },
+  {
+    "id": "cmr2fkgnd1e25kfgzbjw6ax5v",
+    "name": "Apply reinstatement terms",
+    "description": "Apply the reinstatement terms to the policy. Done when terms are applied.",
+    "l3": "Renewals & In-Force Underwriting",
+    "l4": "Policy Reinstatement Management",
+    "roles": [
+      {
+        "nodeRoleId": "cmr2fkgp41e3akfgz438zw4wm",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Owner"
+      },
+      {
+        "nodeRoleId": "cmr2fkgp41e3bkfgzht7uv6lo",
+        "id": "cmqsck0rr03y3mbk80pomhqxg",
+        "name": "Underwriting Assistant",
+        "relation": "Participant"
+      },
+      {
+        "nodeRoleId": "cmr2fkgp41e3ckfgz92h6ph9k",
+        "id": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb",
+        "name": "Underwriter",
+        "relation": "Participant"
+      }
+    ],
+    "apps": [
+      {
+        "usageId": "cmr2fkgqu1e41kfgzuqgvr14k",
+        "id": "3ced8688-d223-4c04-8b42-0e2f97012bd9",
+        "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "cmr2fkgqu1e42kfgzc3d3eoqn",
+        "id": "027292ea-e459-414f-bdb1-3ab36faf3d33",
+        "name": "underwriting workstation",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "cmr2fkgqu1e43kfgzlep8awhg",
+        "id": "ab389893-e5d2-41f8-9add-08b96d035875",
+        "name": "billing/commission platform",
+        "usageType": "performed"
+      },
+      {
+        "usageId": "cmr2fkgqu1e44kfgzgilh0cse",
+        "id": "bfba64d7-d43a-45d4-aac3-342683c98f2f",
+        "name": "GRC platform (Archer/ServiceNow GRC)",
+        "usageType": "performed"
+      }
+    ],
+    "templates": [
+      {
+        "kind": "CHECKLIST",
+        "name": "Core evidence checklist",
+        "keys": [
+          {
+            "id": "cmr2oalvj0003lasbljnppmvk",
+            "key": "Defined scope/population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87uz0001xa9i94umw6d6",
+            "key": "In-scope period",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v87wy0003xa9i8jgziihd",
+            "key": "Named SOR/report/query",
+            "guidance": null,
+            "valueKind": "APPLICATION"
+          },
+          {
+            "id": "cmr2v87y40005xa9ir47s1qg4",
+            "key": "Data owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oalzj0007lasbuo4mf8tq",
+            "key": "Required fields populated and valid",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam0y0009lasbg6ube3og",
+            "key": "Control totals or record counts reconcile",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam2m000blasb6n6f4ewh",
+            "key": "Evidence retained with timestamp/version",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam3s000dlasbu5w0fxn2",
+            "key": "Exceptions logged with disposition",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oam5o000flasb2i5ekzh1",
+            "key": "Approver/reviewer sign-off captured",
+            "guidance": null,
+            "valueKind": "ROLE"
+          }
+        ]
+      },
+      {
+        "kind": "CHECKLIST",
+        "name": "Source traceability / workflow status",
+        "keys": [
+          {
+            "id": "cmr2oamrz000rlasbaapuz8dr",
+            "key": "Sample records trace to source screens/documents",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88d6000bxa9ic6k59a4g",
+            "key": "Status fields align to workflow requirements",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88ea000dxa9idkxuxd1u",
+            "key": "Date fields align to workflow requirements",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      },
+      {
+        "kind": "TEST",
+        "name": "Expected evidence + SOR tracing",
+        "keys": [
+          {
+            "id": "cmr2oanxo001flasbfucsrtbm",
+            "key": "Named process owner",
+            "guidance": null,
+            "valueKind": "ROLE"
+          },
+          {
+            "id": "cmr2oanyt001hlasb9c3kzvkq",
+            "key": "Test population",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oao03001jlasb1coy37l2",
+            "key": "Pass/fail thresholds",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2oao16001llasbnlkf9nbu",
+            "key": "Exception handling path",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88x1000rxa9if2t45ukx",
+            "key": "Documented acceptance criteria",
+            "guidance": null,
+            "valueKind": "TEXT"
+          },
+          {
+            "id": "cmr2v88xv000txa9ih5f5ph5m",
+            "key": "Evidence location",
+            "guidance": null,
+            "valueKind": "TEXT"
+          }
+        ]
+      }
+    ],
+    "customKeys": [
+      {
+        "answerId": "cmr2ocdwz0tz0kaz3ux0ccxwd",
+        "key": "Source-system field definitions and control totals",
+        "kind": "TEST"
+      }
+    ]
+  }
+]

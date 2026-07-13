@@ -35,6 +35,7 @@ import { DOMAIN_HEX, type NodeFocusState } from '../model';
 import { useApi } from '../../lib/useApi';
 import { api } from '../../lib/api';
 import { useCompany } from '../../lib/company';
+import { useDialogs } from '../../lib/dialogs';
 import { useOpenRole } from '../../lib/roleDrawer';
 import MetricsSidebar, {
   MetricsDrawer,
@@ -64,10 +65,15 @@ import {
 } from './orgNodes';
 import { useOrgDragDrop } from './useOrgDragDrop';
 import { useOrgCamera } from './useOrgCamera';
-import type { RenameState } from '../map/constants';
+import { PLUS_GAP_SPREAD, type RenameState } from '../map/constants';
 import { DragGhost, RenameEditor, MapEditToolbar, MoveFlashBanner } from '../map/MapChrome';
 
 // ── Inner canvas ─────────────────────────────────────────────────────────────
+
+// Human labels for the org levels (add/remove dialogs). Teams' children are
+// Roles (a separate table), so adds bottom out at level 3.
+const ORG_LEVEL_LABEL: Record<number, string> = { 1: 'segment', 2: 'division', 3: 'team' };
+const ORG_MAX_LEVEL = 3;
 
 type Props = { breadcrumbSlot?: HTMLElement | null };
 
@@ -92,7 +98,12 @@ function OrgMapCanvasInner({
   const [editMode, setEditMode] = useState(false);
   const dragRef = useRef<OrgDragState | null>(null);
   const [drag, setDrag] = useState<OrgDragState | null>(null);
-  const [gap, setGap] = useState<{ parent: string; index: number; type: string } | null>(null);
+  const [gap, setGap] = useState<{
+    parent: string;
+    index: number;
+    type: string;
+    hover?: boolean;
+  } | null>(null);
   const [nestTargetId, setNestTargetId] = useState<string | null>(null);
   const [moveFlash, setMoveFlash] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const flashTimer = useRef<number | null>(null);
@@ -104,9 +115,25 @@ function OrgMapCanvasInner({
   const [pendingMoves, setPendingMoves] = useState<Map<string, MoveRec>>(new Map());
   const [pendingOrder, setPendingOrder] = useState<Map<string, string[]>>(new Map());
   const [pendingRenames, setPendingRenames] = useState<Map<string, string>>(new Map());
+  // Staged ROLE edits — separate from the org-unit spine: a re-home saves via
+  // PATCH /roles/:id { orgUnitId }, an order via PUT /roles/reorder.
+  const [pendingRoleMoves, setPendingRoleMoves] = useState<
+    Map<string, { unitId: string; name: string }>
+  >(new Map());
+  const [pendingRoleOrder, setPendingRoleOrder] = useState<Map<string, string[]>>(new Map());
   const [saving, setSaving] = useState(false);
-  const dirty = pendingMoves.size > 0 || pendingOrder.size > 0 || pendingRenames.size > 0;
-  const pendingCount = pendingMoves.size + pendingOrder.size + pendingRenames.size;
+  const dirty =
+    pendingMoves.size > 0 ||
+    pendingOrder.size > 0 ||
+    pendingRenames.size > 0 ||
+    pendingRoleMoves.size > 0 ||
+    pendingRoleOrder.size > 0;
+  const pendingCount =
+    pendingMoves.size +
+    pendingOrder.size +
+    pendingRenames.size +
+    pendingRoleMoves.size +
+    pendingRoleOrder.size;
   const [rename, setRename] = useState<RenameState | null>(null);
 
   // Right-hand metrics panel.
@@ -235,7 +262,33 @@ function OrgMapCanvasInner({
   const selDivision = selDivId ? (displayDivisions.find((d) => d.id === selDivId) ?? null) : null;
 
   // Teams (departments) of the selected division + the synthetic "Direct to
-  // division" pseudo-team, with staged moves applied.
+  // division" pseudo-team, with staged unit AND role moves applied. A role
+  // staged to another home leaves its row immediately; staged arrivals join
+  // their target; a staged order re-sorts; the pseudo-team hides once empty.
+  const stageRoles = useCallback(
+    (unitId: string, roles: RoleLite[]): RoleLite[] => {
+      let out = roles.filter((r) => {
+        const rec = pendingRoleMoves.get(r.id);
+        return !(rec && rec.unitId !== unitId);
+      });
+      for (const [rid, rec] of pendingRoleMoves) {
+        if (rec.unitId === unitId && !out.some((r) => r.id === rid)) {
+          out = [
+            ...out,
+            { id: rid, name: rec.name, roleLevel: null, roleFamily: null, valueStreamCount: 1 },
+          ];
+        }
+      }
+      const ord = pendingRoleOrder.get(unitId);
+      if (ord) {
+        const pos = new Map(ord.map((id, i) => [id, i]));
+        out = [...out].sort((a, b) => (pos.get(a.id) ?? Infinity) - (pos.get(b.id) ?? Infinity));
+      }
+      return out;
+    },
+    [pendingRoleMoves, pendingRoleOrder],
+  );
+
   const teams = useMemo(() => {
     if (!selDivision) return [] as { id: string; name: string; roles: RoleLite[] }[];
     let list = selDivision.departments
@@ -243,7 +296,7 @@ function OrgMapCanvasInner({
         const r = pendingMoves.get(dp.id);
         return !(r && r.parent !== selDivId);
       })
-      .map((dp) => ({ id: dp.id, name: dp.name, roles: dp.roles }));
+      .map((dp) => ({ id: dp.id, name: dp.name, roles: stageRoles(dp.id, dp.roles) }));
     for (const [id, rec] of pendingMoves) {
       // any box staged to move UNDER this focused division shows as one of its teams
       if (rec.parent === selDivId && !list.some((t) => t.id === id)) {
@@ -251,10 +304,10 @@ function OrgMapCanvasInner({
       }
     }
     if (selDivId) list = applyOrder(selDivId, list, (t) => t.id);
-    if (selDivision.looseRoles.length > 0)
-      list.push({ id: LOOSE, name: 'Direct to division', roles: selDivision.looseRoles });
+    const loose = selDivId ? stageRoles(selDivId, selDivision.looseRoles) : selDivision.looseRoles;
+    if (loose.length > 0) list.push({ id: LOOSE, name: 'Direct to division', roles: loose });
     return list;
-  }, [selDivision, pendingMoves, applyOrder, selDivId]);
+  }, [selDivision, pendingMoves, applyOrder, selDivId, stageRoles]);
 
   const selTeam = selDeptId ? (teams.find((t) => t.id === selDeptId) ?? null) : null;
   const roles = selTeam?.roles ?? [];
@@ -507,6 +560,7 @@ function OrgMapCanvasInner({
     selSegName,
     selSegId,
     selDivId,
+    selDeptId,
     selSegment,
     displayDivisions,
     teams,
@@ -515,6 +569,9 @@ function OrgMapCanvasInner({
     drillByCanvasId,
     setPendingMoves,
     setPendingOrder,
+    setPendingRoleMoves,
+    setPendingRoleOrder,
+    onRoleClick: openRole,
     pendingRenames,
     setRename,
     flash,
@@ -533,10 +590,19 @@ function OrgMapCanvasInner({
     for (const [id, name] of pendingRenames) ops.push({ op: 'rename', id, name });
     setSaving(true);
     try {
-      await api.post(`/builder/nodes/batch?companyId=${encodeURIComponent(companyId)}`, { ops });
+      if (ops.length)
+        await api.post(`/builder/nodes/batch?companyId=${encodeURIComponent(companyId)}`, { ops });
+      // Role edits land on the canonical Role rows (single source of truth for
+      // every org/roles view): re-home via PATCH, display order via reorder.
+      for (const [id, rec] of pendingRoleMoves)
+        await api.patch(`/roles/${encodeURIComponent(id)}`, { orgUnitId: rec.unitId });
+      for (const [, orderedIds] of pendingRoleOrder)
+        await api.put('/roles/reorder', { orderedIds });
       setPendingMoves(new Map());
       setPendingOrder(new Map());
       setPendingRenames(new Map());
+      setPendingRoleMoves(new Map());
+      setPendingRoleOrder(new Map());
       flash('ok', 'Saved.');
       onSaved();
     } catch (e) {
@@ -545,15 +611,217 @@ function OrgMapCanvasInner({
     } finally {
       setSaving(false);
     }
-  }, [companyId, dirty, saving, pendingMoves, pendingOrder, pendingRenames, onSaved, flash]);
+  }, [
+    companyId,
+    dirty,
+    saving,
+    pendingMoves,
+    pendingOrder,
+    pendingRenames,
+    pendingRoleMoves,
+    pendingRoleOrder,
+    onSaved,
+    flash,
+  ]);
 
   const onRevert = useCallback(() => {
     setPendingMoves(new Map());
     setPendingOrder(new Map());
     setPendingRenames(new Map());
+    setPendingRoleMoves(new Map());
+    setPendingRoleOrder(new Map());
     setRename(null);
     flash('ok', 'Reverted.');
   }, [flash]);
+
+  // Hovering "+" opens the insertion slot; CLOSING is delayed so micro pointer
+  // wobbles don't snap the row back and forth, and OPENING is idempotent so a
+  // re-entered gap returns the previous state object and React bails out of
+  // the re-render — otherwise every mouseover re-set the gap → re-render →
+  // hover (and the mouse cursor) oscillated ~40ms (mirrors MapCanvas).
+  const gapCloseTimer = useRef<number | null>(null);
+  const plusHoverGap = useCallback(
+    (g: { parent: string; index: number; type: string; hover?: boolean } | null) => {
+      if (gapCloseTimer.current) {
+        window.clearTimeout(gapCloseTimer.current);
+        gapCloseTimer.current = null;
+      }
+      if (g)
+        setGap((prev) =>
+          prev?.hover && prev.index === g.index && prev.type === g.type ? prev : g,
+        );
+      else
+        gapCloseTimer.current = window.setTimeout(() => {
+          gapCloseTimer.current = null;
+          // Only clear a hover-opened gap — a drag owns its own gap state.
+          setGap((prev) => (prev?.hover ? null : prev));
+        }, 250);
+    },
+    [],
+  );
+
+  // ── Add / Remove (edit mode; applied immediately, not staged) ────────────────
+  // Same model as the Value Streams map: creates/deletes hit /builder/nodes
+  // directly (closure maintained server-side) and the org table refetches.
+  const dialogs = useDialogs();
+
+  const createOrgUnit = useCallback(
+    async (level: number, parentId: string | null, row?: { ids: string[]; afterId: string }) => {
+      if (!companyId) return;
+      const label = ORG_LEVEL_LABEL[level] ?? 'unit';
+      const name = await dialogs.prompt({
+        title: `Add ${label}`,
+        label: 'Name',
+        placeholder: `New ${label}`,
+        confirmLabel: 'Add',
+      });
+      if (!name) return;
+      try {
+        const created = (await api.post(
+          `/builder/nodes?companyId=${encodeURIComponent(companyId)}`,
+          {
+            typeKey: `o${level}`,
+            parentId,
+            name,
+          },
+        )) as { id: string };
+        if (row && parentId) {
+          const ids = row.ids.filter((id) => id !== created.id);
+          const at = ids.indexOf(row.afterId);
+          if (at >= 0) ids.splice(at + 1, 0, created.id);
+          else ids.push(created.id);
+          await api.post(`/builder/nodes/batch?companyId=${encodeURIComponent(companyId)}`, {
+            ops: [{ op: 'reorder', parentId, orderedIds: ids }],
+          });
+        }
+        // Offer the lower-level units in the same flow (connected-additions rule).
+        if (level < ORG_MAX_LEVEL) {
+          const childLabel = ORG_LEVEL_LABEL[level + 1] ?? 'unit';
+          let addMore = await dialogs.confirm({
+            title: `Add ${childLabel}s under “${name}”?`,
+            message: `“${name}” was added. You can capture its ${childLabel}s now, one at a time.`,
+            confirmLabel: `Add ${childLabel}s`,
+            cancelLabel: 'Not now',
+          });
+          while (addMore) {
+            const childName = await dialogs.prompt({
+              title: `Add ${childLabel} under “${name}”`,
+              label: 'Name',
+              message: 'Cancel when you are done.',
+              confirmLabel: 'Add',
+            });
+            if (!childName) {
+              addMore = false;
+            } else {
+              await api.post(`/builder/nodes?companyId=${encodeURIComponent(companyId)}`, {
+                typeKey: `o${level + 1}`,
+                parentId: created.id,
+                name: childName,
+              });
+            }
+          }
+        }
+        flash('ok', 'Added.');
+        onSaved();
+      } catch (e) {
+        const msg = (e as Error)?.message;
+        flash('err', msg && !/HTTP/.test(msg) ? msg : 'Add failed.');
+      }
+    },
+    [companyId, dialogs, flash, onSaved],
+  );
+
+  // Row context for a canvas node — level, effective parent, sibling raw ids.
+  const rowInfoFor = useCallback(
+    (n: Node): { level: number; parent: string | null; rowIds: string[] } | null => {
+      switch (n.type) {
+        case 'orgSegment':
+          return { level: 1, parent: null, rowIds: [] };
+        case 'orgDivision':
+          return { level: 2, parent: selSegId, rowIds: displayDivisions.map((dv) => dv.id) };
+        case 'orgDept':
+          return {
+            level: 3,
+            parent: selDivId,
+            rowIds: teams.filter((t) => t.id !== LOOSE).map((t) => t.id),
+          };
+        default:
+          return null;
+      }
+    },
+    [selSegId, selDivId, displayDivisions, teams],
+  );
+
+  const handleAddAfter = useCallback(
+    (n: Node) => {
+      const info = rowInfoFor(n);
+      if (!info) return;
+      const raw = rawNodeId(n);
+      void createOrgUnit(
+        info.level,
+        info.parent,
+        raw && info.parent ? { ids: info.rowIds, afterId: raw } : undefined,
+      );
+    },
+    [rowInfoFor, rawNodeId, createOrgUnit],
+  );
+
+  const handleRemove = useCallback(
+    async (n: Node, name: string) => {
+      if (!companyId) return;
+      const raw = rawNodeId(n);
+      if (!raw || raw === LOOSE) return;
+      const ok = await dialogs.confirm({
+        title: `Remove “${sentenceCase(name)}”?`,
+        message: 'This permanently deletes this unit and every unit beneath it.',
+        danger: true,
+        confirmLabel: 'Remove',
+      });
+      if (!ok) return;
+      try {
+        await api.delete(
+          `/builder/nodes/${raw}?companyId=${encodeURIComponent(companyId)}&confirm=${encodeURIComponent(name)}`,
+        );
+        // Collapse focus off the deleted branch.
+        if (raw === selDeptId) onDeptClick(raw);
+        else if (raw === selDivId) onDivisionClick(raw);
+        else if (raw === selSegId && selSegName) onSegmentClick(selSegName);
+        // Drop staged edits referencing the deleted unit.
+        setPendingMoves((m) => {
+          if (!m.has(raw)) return m;
+          const next = new Map(m);
+          next.delete(raw);
+          return next;
+        });
+        setPendingRenames((m) => {
+          if (!m.has(raw)) return m;
+          const next = new Map(m);
+          next.delete(raw);
+          return next;
+        });
+        setPendingOrder((m) => {
+          let touched = false;
+          const next = new Map<string, string[]>();
+          for (const [p, ids] of m) {
+            if (p === raw) {
+              touched = true;
+              continue;
+            }
+            const filtered = ids.filter((id) => id !== raw);
+            if (filtered.length !== ids.length) touched = true;
+            next.set(p, filtered);
+          }
+          return touched ? next : m;
+        });
+        flash('ok', 'Removed.');
+        onSaved();
+      } catch (e) {
+        const msg = (e as Error)?.message;
+        flash('err', msg && !/HTTP/.test(msg) ? msg : 'Remove failed.');
+      }
+    },
+    [companyId, rawNodeId, dialogs, selDeptId, selDivId, selSegId, selSegName, flash, onSaved],
+  );
 
   const commitRename = useCallback(() => {
     if (!rename) return;
@@ -593,18 +861,23 @@ function OrgMapCanvasInner({
         .filter((n) => n.type === gap.type)
         .sort((a, b) => a.position.x - b.position.x);
       const shiftIds = new Set(rowNodes.slice(gap.index).map((n) => n.id));
+      // A drag opens a full card-width slot; a "+" hover spreads just enough
+      // to make room for the badge.
+      const spread = gap.hover ? PLUS_GAP_SPREAD : MAP_CARD_W + 12;
       if (shiftIds.size)
         result = result.map((n) =>
           shiftIds.has(n.id)
-            ? { ...n, position: { x: n.position.x + MAP_CARD_W + 12, y: n.position.y } }
+            ? { ...n, position: { x: n.position.x + spread, y: n.position.y } }
             : n,
         );
     }
-    return result.map((n) => {
+    const mapped = result.map((n) => {
       const draggable = DRAGGABLE_TYPES.has(n.type ?? '');
       const raw = rawNodeId(n);
       const renamed = raw != null ? pendingRenames.get(raw) : undefined;
-      const staged = (raw != null && pendingMoves.has(raw)) || renamed !== undefined;
+      const staged =
+        (raw != null && (pendingMoves.has(raw) || pendingRoleMoves.has(raw))) ||
+        renamed !== undefined;
       const nestTarget = n.id === nestTargetId;
       if (!draggable && !staged && !nestTarget) return n;
       const data: Record<string, unknown> = {
@@ -613,9 +886,59 @@ function OrgMapCanvasInner({
         staged,
         dropTarget: nestTarget,
       };
+      // Hover-only +/− badges — real OrgUnits only (the "Direct to division"
+      // pseudo-team and the Unassigned segment aren't rows in the DB; role
+      // cards drag/re-home but add/delete elsewhere). The remove confirm needs
+      // the SERVER name, so capture it pre-rename-overlay.
+      if (draggable && !drag?.started && raw && raw !== LOOSE && n.type !== 'orgRole') {
+        const orig = n.data as { name?: string; pieceIndex?: number };
+        const serverName = orig.name ?? '';
+        data.plusSide = 'right';
+        data.onAddAfter = () => handleAddAfter(n);
+        data.onRemove = () => void handleRemove(n, serverName);
+        // Hovering "+" opens the insertion slot after this card (same gap the
+        // drag gesture uses), previewing where the new unit will land.
+        data.onPlusHover = (h: boolean) =>
+          plusHoverGap(
+            h
+              ? { parent: '', index: (orig.pieceIndex ?? 0) + 1, type: n.type ?? '', hover: true }
+              : null,
+          );
+      }
       if (renamed !== undefined) data.name = renamed;
+      // Descending zIndex along the row: every card paints ABOVE its following
+      // sibling, so the "+" badge hanging into the gutter is always on top and
+      // reachable from any pointer direction (mirrors MapCanvas).
+      if (draggable) {
+        const idx = (n.data as { pieceIndex?: number }).pieceIndex ?? 0;
+        return { ...n, zIndex: 200 - idx, data };
+      }
       return { ...n, data };
     });
+    // "+ Add …" placeholder under a focused unit with no children yet.
+    const placeholders: Node[] = [];
+    const addPlaceholder = (parentCanvasId: string, childLevel: number, parentRaw: string) => {
+      const p = nodes.find((x) => x.id === parentCanvasId);
+      if (!p) return;
+      placeholders.push({
+        id: `add:${parentRaw}`,
+        type: 'addNode',
+        position: { x: p.position.x, y: p.position.y + MAP_CARD_H + ROW_GAP_Y },
+        data: {
+          label: `Add ${ORG_LEVEL_LABEL[childLevel] ?? 'unit'}`,
+          onClick: () => void createOrgUnit(childLevel, parentRaw),
+        },
+        draggable: false,
+        selectable: false,
+      });
+    };
+    if (!drag?.started) {
+      if (selSegment && selSegId && displayDivisions.length === 0)
+        addPlaceholder(`seg:${selSegment.name}`, 2, selSegId);
+      if (selDivision && selDivId && !teams.some((t) => t.id !== LOOSE))
+        addPlaceholder(`div:${selDivId}`, 3, selDivId);
+    }
+    return placeholders.length ? [...mapped, ...placeholders] : mapped;
   }, [
     nodes,
     editMode,
@@ -625,7 +948,17 @@ function OrgMapCanvasInner({
     DRAGGABLE_TYPES,
     rawNodeId,
     pendingMoves,
+    pendingRoleMoves,
     pendingRenames,
+    handleAddAfter,
+    handleRemove,
+    createOrgUnit,
+    selSegment,
+    selSegId,
+    selDivision,
+    selDivId,
+    displayDivisions,
+    teams,
   ]);
 
   const displayEdges = useMemo<Edge[]>(() => {

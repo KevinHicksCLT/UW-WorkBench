@@ -1,0 +1,1317 @@
+{
+  "tasks": [
+    {
+      "id": "2b9cedd1-9725-41c5-8eb1-61deaa4fd5c1",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Business Analyst"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All declined new-business submissions for the current book (all lines) whose outcome must be coded in the PAS; scope = one declination per submission, captured on the Guidewire PolicyCenter declination screen for MI and appetite analytics."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current underwriting month; the reason code is recorded within 24 hours of the declination decision per the 'Decision Documented Within 24 Hours' standard, and declinations dated outside the month are excluded from this batch."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Required fields on the declination record: standardized reason code (from the appetite/declination code list), free-text rationale, line of business, effective date, underwriter ID, and adverse-decision flag. A record with a blank or 'Other' reason code without a rationale note is rejected back to the underwriter."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of declination records coded in PolicyCenter reconciles to the count of declined submissions in the underwriting workstation queue for the month; delta must be 0 and any un-coded declination is listed on the daily open-items report."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The coded declination and its rationale are retained on the submission file under /UW/Declinations/<submission-id>/ in PolicyCenter with system timestamp and record version; retained per the state records-retention schedule (minimum 6 years)."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Miscoded or missing reason codes are logged as an exception on the UW quality open-items list with disposition (correct / re-code / waive) and the correcting underwriter noted; correction SLA 2 business days."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Pre/post check: the declination reason distribution after coding is compared to the prior period to confirm no unexplained spike in a single code and that every declined submission now carries a code; comparison noted on the monthly MI pack."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "The coding action is linked to the originating submission/clearance record ID in PolicyCenter and to the declination letter document; no free-standing coding outside the submission file."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "Sample of 25 declined submissions per quarter drawn from the monthly declination register plus a census of all 'Other'-coded declinations."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = 100% of declined submissions carry a valid standardized reason code with rationale and adverse-decision flag set. FAIL = any declination un-coded, coded 'Other' without rationale, or missing the adverse-decision flag."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "On FAIL, the underwriter re-codes the record within 2 business days; repeat miscoding is escalated to the Underwriting Manager and the code list/guidance is reviewed for ambiguity."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions come from the PolicyCenter declination data dictionary: reason_code, reason_rationale, line_of_business, decision_date, underwriter_id, adverse_action_flag."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = declined-submission count from the underwriting workstation disposition report; must equal the coded-declination count extracted from PolicyCenter for the month, variance 0."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppyc1oa4mbk8t9plrx0e",
+          "checklist": [
+            {
+              "step": "Record a standardized declination reason on every declined submission",
+              "value": "Underwriter selects the reason code and enters a rationale note on the PolicyCenter declination screen at the time of decision."
+            },
+            {
+              "step": "Set the adverse-decision flag for downstream notice generation",
+              "value": "The adverse_action_flag is set so the declination letter and any FCRA/NAIC notices are triggered from the coded record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify reason-code completeness",
+              "value": "0 declined submissions in the monthly register without a valid reason code and rationale."
+            },
+            {
+              "step": "Confirm code maps to a defined appetite/declination reason",
+              "value": "100% of codes resolve to the current declination code list; no free-text-only declinations."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Retain the declination decision and basis on the submission file",
+              "value": "Coded record plus rationale filed under /UW/Declinations/<submission-id>/ in PolicyCenter with version and timestamp."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect file documentation for sampled declinations",
+              "value": "For 25 sampled declinations, the file contains the reason code, rationale, and dated decision; 0 gaps."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrbx94co01erv8ukeer9iypr",
+          "checklist": [
+            {
+              "step": "Capture the specific reason for the adverse underwriting decision",
+              "value": "Coded reason and rationale are recorded so the applicant can be given the specific reason and record-access rights required by NAIC Model #670."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify a stated reason exists for each adverse decision",
+              "value": "100% of declinations carry a specific documented reason available for disclosure on request; 0 blank reasons."
+            }
+          ]
+        },
+        {
+          "regId": "cmrbfze3b004zv8kg01hq58ql",
+          "checklist": [
+            {
+              "step": "Flag declinations driven by a consumer report",
+              "value": "Where the decline used a consumer report, the record is flagged so an FCRA adverse action notice is generated with the CRA identification."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm adverse action notice trigger",
+              "value": "For consumer-report-based declinations, an adverse action notice is issued; 0 missing notices in the sample."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "db3a6e6e-b581-46cf-b1f7-90af09dbe2f5",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Underwriting Assistant",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Broker reconsideration requests on previously declined or restricted submissions; scope = one reconsideration per submission where the broker has supplied new information (revised exposures, additional loss history, risk-improvement evidence) to be reviewed against the original decision."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From receipt of the reconsideration request to the reissued decision, targeted within 5 business days of complete new information; the window is tied to the original declination effective date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Required fields: reconsideration request date, the new information provided, cross-reference to the original declination reason code, the reassessment rationale, and the upheld-or-overturned outcome. A reconsideration without the new-information description or without a link to the original decision is returned as incomplete."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Open reconsideration count in the underwriting workstation reconciles to responses issued; every reconsideration is either upheld or overturned with a dated decision, delta of open-vs-closed = 0 at month end."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The reconsideration analysis, new documents, and reissued decision are retained under /UW/Declinations/<submission-id>/reconsideration/ in PolicyCenter with timestamp and version, referenced from the original declination record."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Overturns of a prior declination are logged as exceptions and routed to Senior Underwriter approval with the rationale; overturns above the underwriter's authority are escalated per the referral matrix, disposition recorded."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The reassessment applies the current filed underwriting guidelines and appetite version in force at the reconsideration date; the guideline/appetite version is noted on the decision so the basis is reproducible."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: a change in the driving exposure (e.g. TIV, protection class, loss frequency) beyond the appetite threshold that flipped the decision is documented so the pivot point is explicit."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: only new information that materially changes the risk (e.g. loss ratio moving across a filed band, a hazard removed) justifies an overturn; immaterial changes uphold the original decline."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "Sample of 20 reconsiderations per quarter, weighted to all overturned declinations plus a selection of upheld ones."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = the reissued decision cites the new information, references the original reason code, applies the current guideline version, and (if overturned) carries Senior Underwriter sign-off. FAIL = any of these missing or an overturn made outside authority."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "On FAIL, the response is re-worked before issue; overturns lacking approval are held and routed to the Senior Underwriter or, above authority, to the referral level for sign-off."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance criteria: a documented reassessment comparing new information to the original basis, a clear upheld/overturned outcome, and required approvals captured before the response is sent to the broker."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence stored on the submission file under /UW/Declinations/<submission-id>/reconsideration/ in PolicyCenter, linked to the outbound response in the broker communication record."
+        },
+        {
+          "answerId": "cmr2ocdxy0v9wkaz3ssc48jnm",
+          "value": "Approved basis = the filed underwriting guideline set and appetite matrix version in force at the reconsideration date; parameter source = the current appetite/authority matrix in PolicyCenter, version-stamped on the decision record so the reassessment is reproducible."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppyc1oa4mbk8t9plrx0e",
+          "checklist": [
+            {
+              "step": "Tie the reconsideration to the original documented declination reason",
+              "value": "The reissued decision references the original reason code and records why it is upheld or overturned."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify documented basis on reconsiderations",
+              "value": "100% of sampled reconsiderations reference the original reason and state a rationale; 0 undocumented outcomes."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Document and issue the reconsideration decision promptly",
+              "value": "The decision is documented within 24 hours of reaching an outcome and the response issued within the 5-business-day SLA."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Measure decision-documentation timeliness",
+              "value": "≥95% of reconsiderations documented within 24 hours of decision; overdue items appear on the aging report."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrbx94co01erv8ukeer9iypr",
+          "checklist": [
+            {
+              "step": "Provide reasons and record access on the reconsidered adverse decision",
+              "value": "If the declination is upheld, the applicant is given the specific reason and access rights per NAIC Model #670."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify reason disclosure on upheld declines",
+              "value": "100% of upheld reconsiderations carry a specific documented reason available on request; 0 exceptions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eb386c95-23d5-4278-811c-ce4eab7fc4c8",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant", "Business Analyst"],
+      "addParticipants": ["Senior Underwriter", "Compliance Analyst"],
+      "removeAppNames": ["billing/commission platform", "IAM platform (SailPoint/Okta/Azure AD)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Declinations of personal or commercial property risks in FAIR-plan / residual-market states; scope = each declined risk that must be checked against fair-access-to-insurance-requirements obligations and anti-redlining rules before the decline is finalized."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At the point of declination, before the decline letter is sent; the review is completed within the same 24-hour declination-decision window and is tied to the risk's state and effective date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Required fields: risk location state, FAIR-plan-eligibility indicator, the underwriting-guideline basis for the decline, confirmation the decline reason is not a prohibited/redlining basis, and the referral-to-FAIR-plan note where applicable. Missing state or guideline-basis fields block finalization."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of declinations in FAIR-plan states reconciles to the count reviewed for fair-access obligations; every such decline carries a completed FAIR-plan review flag, delta = 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The FAIR-plan/fair-access review note and its outcome are retained under /UW/Declinations/<submission-id>/ in PolicyCenter with timestamp and version and cross-referenced to the decline letter."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Declines that fail the fair-access check (prohibited basis or missing FAIR-plan referral) are logged as compliance exceptions, routed to the Compliance Analyst, and held until remediated; disposition recorded."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "Census of all declinations in FAIR-plan / residual-market states for the quarter, plus a 10-file sample from non-FAIR states as a control."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every FAIR-plan-state decline has a completed fair-access review, a permissible guideline basis, and a FAIR-plan referral note where required. FAIL = any decline on a prohibited basis, missing review, or missing required referral."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "On FAIL, the decline is held, the reason re-examined with the Compliance Analyst, and the applicant is referred to the state FAIR plan; systemic issues are escalated to Compliance management."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance criteria: a documented fair-access review confirming the decline rests on a filed, permissible underwriting-guideline basis and that FAIR-plan referral obligations were met before the decline was issued."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence filed under /UW/Declinations/<submission-id>/ in PolicyCenter, linked to the decline letter and the compliance exception log where raised."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppyc1oa4mbk8t9plrx0e",
+          "checklist": [
+            {
+              "step": "Confirm the decline reason is permissible and documented",
+              "value": "The recorded reason code is checked against permissible underwriting bases before the decline is finalized in a FAIR-plan state."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify permissible documented reason on FAIR-plan declines",
+              "value": "100% of FAIR-plan-state declines carry a permissible, documented reason; 0 prohibited-basis declines."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Retain the fair-access review on the file",
+              "value": "The FAIR-plan review note, guideline basis, and any referral are filed under the submission with timestamp and version."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect file for fair-access evidence",
+              "value": "For every sampled FAIR-plan decline, the file shows a completed fair-access review; 0 gaps."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrbx94co01erv8ukeer9iypr",
+          "checklist": [
+            {
+              "step": "State the specific reason and provide access on the adverse decision",
+              "value": "The applicant is given the specific decline reason and record-access rights, and referred to the FAIR plan where eligible, per NAIC Model #670."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify reason and referral disclosure",
+              "value": "100% of FAIR-plan declines disclose a specific reason and a FAIR-plan referral where required; 0 exceptions."
+            }
+          ]
+        },
+        {
+          "regId": "cmrbg12yk02bvv8kglbb3x1wd",
+          "checklist": [
+            {
+              "step": "Base the decline on written underwriting guidelines and issue the required adverse-action notice",
+              "value": "The decline is tied to a filed, written underwriting-guideline basis and an adverse-action notice is issued per applicable state adverse-action rules."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify guideline basis and adverse-action notice",
+              "value": "100% of sampled declines cite a written guideline basis and evidence an adverse-action notice; 0 missing."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "94b3776c-3919-4eb2-b047-7793a821ff7f",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Submissions that remain not-in-good-order after repeated broker chasing; scope = each stalled submission past its follow-up cycle that must be escalated to a Senior Underwriter for a declination or hold decision."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Escalation is raised once a submission has been NIGO beyond the agreed SLA (typically after two diary follow-ups over ~10 business days) with no complete response; measured from first NIGO notice."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Required fields on the escalation: submission ID, outstanding-requirements list, dates and count of prior chases, days-in-NIGO, and the recommended action (decline or hold). An escalation without the outstanding-items list or follow-up history is returned to the underwriter."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of aged NIGO submissions on the queue reconciles to escalations raised; no submission stays NIGO past the SLA without either a completed escalation or a recorded exception, delta = 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The escalation record and Senior Underwriter decision are retained on the submission file under /UW/NewBusiness/<submission-id>/ in PolicyCenter with timestamp and version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Submissions escalated but not actioned within the SLA are logged as exceptions on the UW operations aging report with disposition (decline / hold / extend) and owner; extensions require a documented reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "All submissions in NIGO status beyond the SLA at the weekly aging cut, reviewed as a census."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = every over-SLA NIGO submission has a documented escalation with recommended action and a Senior Underwriter decision. FAIL = any over-SLA submission with no escalation or no recorded decision."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "On FAIL, the underwriter raises the escalation immediately; chronic aging is reviewed with the Underwriting Manager and the referral trigger thresholds are tuned."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions from the submission-workflow dictionary: submission_id, nigo_status, days_in_nigo, chase_count, outstanding_items, recommended_action, escalation_decision."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = over-SLA NIGO count from the underwriting workstation aging report; must equal escalations plus recorded exceptions, variance 0."
+        },
+        {
+          "answerId": "cmr2ocdwf0t8nkaz3ofc1f70n",
+          "value": "Acceptance criteria: escalation raised once the SLA is breached, carrying the outstanding-items list, chase history, and a recommended decline/hold, with the Senior Underwriter decision recorded. Evidence stored under /UW/NewBusiness/<submission-id>/ in PolicyCenter and linked from the weekly aging report."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Apply the documented referral trigger for aged NIGO submissions",
+              "value": "Once the NIGO SLA is breached, the referral trigger routes the submission to a Senior Underwriter with a recommended action."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify referral triggers fired on aged submissions",
+              "value": "100% of over-SLA NIGO submissions were referred per the trigger; 0 aged items without a referral."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Reconcile outstanding items to the minimum submission requirements",
+              "value": "The escalation lists exactly which minimum-requirement items remain missing before decline/hold is recommended."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm missing items map to minimum requirements",
+              "value": "For sampled escalations, every listed gap ties to a defined minimum submission requirement; 0 vague escalations."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "0b3c4bac-5ac2-497f-b846-b16c4bbac0ee",
+      "owner": { "action": "replace", "name": "Underwriting Assistant" },
+      "removeRoleNames": ["Business Analyst"],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Submissions failing the minimum-information completeness check; scope = each incomplete new-business submission for which a not-in-good-order (NIGO) / deficiency notice must be issued to the broker listing outstanding requirements."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The NIGO notice is issued within 2 business days of the completeness review that identified the gaps; the clock runs from the completeness-review date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rr03y3mbk80pomhqxg" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Required fields on the notice: submission ID, itemized outstanding requirements, response due date, and broker contact. A notice missing the itemized requirements list or a due date is not sent."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of NIGO submissions from the completeness review reconciles to notices sent via the broker communication record; every deficient submission has exactly one open NIGO notice, delta = 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The issued notice and its item list are retained under /UW/NewBusiness/<submission-id>/ in PolicyCenter and logged in the CRM/broker communication thread with timestamp and version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Failed or bounced notices, or submissions with no broker contact on file, are logged as exceptions and re-issued; disposition (re-sent / contact-corrected / withdrawn) recorded."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqsck0rr03y3mbk80pomhqxg" },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "Sample of 25 NIGO notices per quarter drawn from the submission workflow log."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = every deficient submission has a NIGO notice issued within 2 business days that itemizes the outstanding requirements and states a due date. FAIL = notice late, missing item list, or not sent."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, the assistant issues or re-issues the notice immediately and the underwriter is alerted; repeated late notices are reviewed with the UW Operations Manager."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance criteria: an itemized deficiency notice issued to the correct broker within 2 business days, listing each outstanding minimum requirement and a response due date, and logged to the submission file."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence in the CRM/broker communication thread and on the submission file under /UW/NewBusiness/<submission-id>/ in PolicyCenter."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "List every unmet minimum submission requirement on the notice",
+              "value": "The NIGO notice itemizes each missing minimum-requirement item so the broker can cure it."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify notice completeness against minimum requirements",
+              "value": "For sampled notices, listed items match the minimum-requirements gaps; 0 notices omitting a known gap."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the issued notice on the submission record",
+              "value": "The notice and item list are retained on the submission file with timestamp and version."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect file for issued NIGO evidence",
+              "value": "100% of sampled deficient submissions show a filed NIGO notice; 0 gaps."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "86008316-2eee-447c-bbca-22f90d5501dd",
+      "owner": { "action": "replace", "name": "Underwriting Assistant" },
+      "removeRoleNames": [],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Supplementary documents and data returned by brokers in response to NIGO notices; scope = each inbound item (loss runs, applications, schedules) to be received and logged against the correct open submission."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "On receipt of the broker response, logged the same business day so the follow-up diary and completeness clock reflect the new material; tied to the open submission's NIGO window."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rr03y3mbk80pomhqxg" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Required fields: submission ID linkage, document type, received date, which outstanding NIGO item it satisfies, and source (broker). An item that cannot be matched to an open submission or NIGO requirement is quarantined for research."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of received documents reconciles to items attached to submissions; every logged item updates the corresponding outstanding-requirement status, no orphaned attachments (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Received documents are stored under /UW/NewBusiness/<submission-id>/inbound/ in PolicyCenter with received-date timestamp and version, and the NIGO checklist line is marked satisfied."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Unmatched or mis-addressed submissions are logged as exceptions and researched or returned to the broker; disposition (matched / returned / duplicate) recorded."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqsck0rr03y3mbk80pomhqxg" },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "Sample of 25 logged inbound items per quarter from the submission inbound log."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = each inbound item is linked to the correct submission, dated, and mapped to the NIGO requirement it satisfies. FAIL = any orphaned attachment or a NIGO line not updated after receipt."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, the assistant researches and re-links the item or returns it to the broker; recurring mis-matching is reviewed with the UW Operations Manager."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance criteria: every broker response is received, dated, filed to the correct submission, and the corresponding outstanding-requirement status updated the same day."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence under /UW/NewBusiness/<submission-id>/inbound/ in PolicyCenter and in the CRM/broker communication thread."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Map each received item to an outstanding minimum requirement",
+              "value": "Logging updates the specific minimum-requirement line the document satisfies."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify requirement status updates on receipt",
+              "value": "For sampled items, the matching minimum-requirement line is marked satisfied; 0 stale statuses."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File received documents on the submission record",
+              "value": "Inbound documents are stored on the submission file with received-date and version."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect file for logged inbound documents",
+              "value": "100% of sampled inbound items are filed and dated on the correct submission; 0 orphans."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cad10d43-0f52-47fe-b9e0-55c6867b2efe",
+      "owner": { "action": "replace", "name": "Underwriting Assistant" },
+      "removeRoleNames": [
+        "Business Analyst",
+        "Coverage Analyst",
+        "Business Systems Analyst",
+        "Competitive Intelligence Analyst",
+        "PMO Manager",
+        "QA Automation Engineer",
+        "Release Train Engineer",
+        "Test Lead",
+        "Resource Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": [],
+      "addApps": [{ "name": "LexisNexis Risk", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Supplemental third-party data and loss history ordered to complete a submission; scope = per-submission pulls of prior loss runs, CLUE/MVR-type reports, credit-based insurance scores, and property/business data from external providers, attached to the submission file."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "During pre-underwriting data enrichment, after clearance and before referral to the underwriter; ordered within 1 business day of identifying the data gap and tied to the submission's effective-date target."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rr03y3mbk80pomhqxg" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Required fields: submission ID, data provider and report type, permissible-purpose code (insurance underwriting), order date, and the returned report reference. A pull without a recorded permissible purpose or without attachment to the submission is not accepted."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of data reports ordered reconciles to reports received and attached; each ordered report is either attached or has a documented no-hit/failure, delta = 0 across the day's pulls."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Retrieved reports are stored under /UW/NewBusiness/<submission-id>/thirdparty/ in PolicyCenter with retrieval timestamp, provider, and version; access is restricted per data-handling policy."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Failed pulls, no-hits, or reports for the wrong entity are logged as exceptions and re-ordered or corrected; disposition (retrieved / no-hit / re-ordered) recorded on the submission."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Order the third-party data required by the minimum submission requirements",
+              "value": "The pull targets the specific loss-history and external-data items the minimum requirements call for on that line of business."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify required third-party data is attached",
+              "value": "For sampled submissions, all required external reports are attached or a documented no-hit exists; 0 missing."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File retrieved reports with provenance",
+              "value": "Each report is filed with provider, order date, and permissible-purpose code on the submission."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect provenance on retrieved data",
+              "value": "100% of sampled pulls show provider, date, and permissible-purpose; 0 undocumented pulls."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrbfzeoh005tv8kg30qi3b63",
+          "checklist": [
+            {
+              "step": "Order consumer reports only for the permissible purpose of insurance underwriting",
+              "value": "Each consumer-report pull records the permissible-purpose code and is tied to an active underwriting submission before ordering."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify permissible purpose on consumer-report pulls",
+              "value": "100% of consumer-report orders carry a permissible-purpose code and a live submission linkage; 0 pulls without permissible purpose."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "f3964eb9-4cda-45c9-b65d-5de42eceb2a9",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Submissions that were NIGO and have now received supplementary documents; scope = re-running the minimum-information completeness check on each such submission to confirm it is now in good order or still deficient."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "On receipt of the broker's supplementary information, re-validated within 1 business day so the submission can advance or a further NIGO issue; tied to the submission's open NIGO window."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Required fields: the completeness checklist re-run result per item, remaining gaps (if any), re-validation date, and the in-good-order / still-NIGO outcome. A re-validation without a per-item result is incomplete."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of submissions with new documents reconciles to re-validations recorded; each re-validation resolves to IGO or a fresh NIGO with named remaining items, delta = 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The re-validation checklist result is retained under /UW/NewBusiness/<submission-id>/ in PolicyCenter with timestamp and version, superseding the prior completeness record but retaining history."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Submissions still deficient after re-validation are logged as exceptions and a follow-up NIGO or escalation is triggered; disposition (IGO / re-NIGO / escalate) recorded."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "Sample of 25 re-validated submissions per quarter, weighted to those marked in-good-order and advanced."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = the completeness checklist is fully re-run, every prior gap is resolved or re-flagged, and the outcome is dated. FAIL = a submission advanced with an unresolved gap or without a re-run result."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "On FAIL, the submission is pulled back from the queue, the missing item re-requested, and the underwriter re-validates before release; systemic misses reviewed with the UW Operations Manager."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dates: re-validation date to the submission's target effective date; only re-runs performed after the supplementary documents were logged are in scope."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Re-run the full minimum submission requirements checklist",
+              "value": "Every minimum-requirement item is re-checked after new documents arrive, not just the previously missing ones."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify complete re-validation",
+              "value": "For sampled re-validations, all checklist items show a result; 0 partial re-runs before advancing."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Record the re-validation outcome on the file",
+              "value": "The re-run result and IGO/NIGO outcome are filed with timestamp and version, retaining prior history."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect file for re-validation evidence",
+              "value": "100% of sampled submissions show a dated re-validation record; 0 gaps."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "61302630-3297-4103-9ae6-fcba5567a6b5",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Submissions confirmed in good order after completeness review; scope = per-submission confirmation and release/advancement into the underwriting work queue for risk assessment and pricing."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Immediately upon in-good-order confirmation; released within 4 hours of completeness sign-off to meet the submission-acknowledgement and turnaround SLAs, tied to the submission receipt date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Required fields before release: completeness-confirmed flag, assigned underwriting queue/team, target effective date, and priority. A submission missing the completeness flag or a queue assignment cannot be advanced."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of IGO submissions reconciles to submissions released into the underwriting queue; no IGO submission is left un-routed, delta = 0 on the daily workflow report."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The release action and queue assignment are recorded on the submission file under /UW/NewBusiness/<submission-id>/ in PolicyCenter with timestamp and version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Submissions released in error (later found NIGO) or mis-routed are logged as exceptions and recalled/re-routed; disposition (recalled / re-routed / proceeded) recorded."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "Sample of 25 released submissions per quarter from the workflow release log."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = every released submission was completeness-confirmed and correctly routed to an underwriting queue within SLA. FAIL = a submission released without the completeness flag, mis-routed, or released outside SLA."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "On FAIL, the submission is recalled or re-routed and the completeness step re-confirmed; recurring premature releases are reviewed with the UW Operations Manager."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dates: release date to the target effective date; only releases after completeness confirmation are in scope."
+        },
+        {
+          "answerId": "cmr2ocdxe0uj6kaz3wjuvwjvn",
+          "value": "Acceptance criteria: release occurs only after the completeness-confirmed flag is set, with the submission routed to the correct underwriting queue within the 4-hour SLA. Evidence stored under /UW/NewBusiness/<submission-id>/ in PolicyCenter and on the workflow release log."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Confirm all minimum requirements are met before release",
+              "value": "Release is gated on the minimum-requirements completeness flag being set true."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify completeness gate on release",
+              "value": "100% of released submissions carried a completeness-confirmed flag; 0 premature releases."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppxd1oa2mbk82g6mira7",
+          "checklist": [
+            {
+              "step": "Advance in good order within the acknowledgement SLA",
+              "value": "IGO submissions are released to the underwriting queue within 4 hours of confirmation to honor the acknowledge/turnaround SLA."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Measure release timeliness",
+              "value": "≥95% of IGO submissions released within 4 hours of completeness sign-off; overdue items on the aging report."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "48d9c981-4afc-451f-92ee-3a2f704d8356",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Business Analyst"],
+      "addParticipants": [],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [{ "name": "underwriting workstation", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "New-business submissions at intake; scope = reviewing each submission against the minimum-information-requirements checklist for its line of business and identifying missing documents before it can be underwritten."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At first touch after clearance; the completeness review is performed within 1 business day of receipt so gaps are identified early and the acknowledgement SLA is met."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Required fields: line of business, applicable minimum-requirements checklist version, per-item present/absent result, and the consolidated gap list. A review without a per-item result or the checklist version is not accepted."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of submissions received reconciles to completeness reviews performed; every submission has one completeness result (IGO or gap list), delta = 0 on the intake report."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The completeness checklist result and gap list are retained under /UW/NewBusiness/<submission-id>/ in PolicyCenter with timestamp and checklist version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Submissions with unclear or line-mismatched requirements are logged as exceptions and referred to the underwriter for a requirements call; disposition (proceed / NIGO / refer) recorded."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "Sample of 30 submissions per quarter across lines of business, drawn from the intake log."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = each submission reviewed against the correct minimum-requirements checklist with a per-item result and a documented gap list. FAIL = wrong checklist applied, missing per-item result, or an undocumented gap later found."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "On FAIL, the review is redone with the correct checklist and the underwriter notified; recurring checklist-version errors trigger a checklist/config review with UW Operations."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "The approved minimum-information-requirements checklist for the line of business, current filed version, is the methodology applied and is version-stamped on the review."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "Parameter source = the minimum-requirements definitions maintained in the underwriting guidelines / PolicyCenter checklist configuration for that line."
+        },
+        {
+          "answerId": "cmr2ocdxt0v3vkaz35x0ewi1a",
+          "value": "Field definitions and control totals come from the PolicyCenter submission/checklist configuration: checklist_version, requirement_item, present_flag, gap_list; control total = intake submission count must equal completeness-review count for the period, variance 0."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Apply the correct minimum submission requirements checklist",
+              "value": "The line-of-business checklist version is selected and every item assessed present/absent."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify checklist application and gap capture",
+              "value": "For sampled submissions, the correct checklist version was applied with a per-item result; 0 wrong-checklist reviews."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the gap list on the submission",
+              "value": "Identified missing documents are recorded as a gap list on the file with the checklist version."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect documented gaps",
+              "value": "100% of sampled incomplete submissions have a documented gap list; 0 undocumented gaps."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "7efc490b-d5ba-4994-aa7f-5f8082bf6775",
+      "owner": { "action": "replace", "name": "Underwriting Assistant" },
+      "removeRoleNames": [],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Open NIGO submissions awaiting broker response; scope = setting a diary follow-up on each to chase outstanding information within the agreed SLA window so nothing ages silently."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "A follow-up is diarised when the NIGO notice is issued, with a chase cadence of roughly every 5 business days until the SLA window closes; measured from the NIGO issue date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rr03y3mbk80pomhqxg" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Required fields on the diary entry: submission ID, outstanding items being chased, follow-up due date, chase cadence, and escalation date if unmet. A diary entry without a due date or outstanding-items reference is invalid."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of open NIGO submissions reconciles to active diary entries; every open NIGO has a live follow-up scheduled, no un-diarised aging item, delta = 0 on the diary report."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The diary entry and each chase action are recorded on the submission file under /UW/NewBusiness/<submission-id>/ in PolicyCenter with timestamp; the follow-up trail is retained with the submission."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Follow-ups that pass their due date without response are logged as exceptions and auto-escalated per the SLA to the underwriter/Senior Underwriter; disposition (chased / responded / escalated) recorded."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqsck0rr03y3mbk80pomhqxg" },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "Sample of 25 NIGO submissions per quarter checked for an active diary follow-up."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = every open NIGO submission has a diary follow-up with a due date and chase cadence within the SLA. FAIL = any open NIGO with no diary entry or a lapsed follow-up not escalated."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, the assistant sets/updates the diary immediately and escalates lapsed items; chronic un-diarised aging is reviewed with the UW Operations Manager."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance criteria: a diary follow-up scheduled for every open NIGO with a due date, chase cadence, and escalation date inside the agreed SLA window, recorded on the submission."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence on the submission file under /UW/NewBusiness/<submission-id>/ in PolicyCenter and in the diary/task list of the underwriting workstation."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Diary the chase against the outstanding minimum requirements",
+              "value": "The follow-up references the specific minimum-requirement items still missing."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify open NIGO items are diarised",
+              "value": "100% of open NIGO submissions have an active follow-up; 0 un-diarised aging items."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppxd1oa2mbk82g6mira7",
+          "checklist": [
+            {
+              "step": "Chase within the agreed SLA cadence",
+              "value": "Follow-ups run on a ~5-business-day cadence so submissions do not breach turnaround SLAs silently."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Measure follow-up cadence adherence",
+              "value": "≥95% of open NIGO submissions chased within the diarised cadence; lapses escalate automatically."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "5f44d34e-0404-4ac8-8e5d-e277d4542ef3",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Business Analyst"],
+      "addParticipants": [],
+      "removeAppNames": [],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Exposure and rating data fields captured on the submission; scope = validating that each rating-driver field (e.g. TIV, construction/protection class, payroll/sales, vehicle/driver schedule, coverage limits) is present and valid before rating in Earnix."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "During submission completeness review, before the risk is rated and quoted; validated within 1 business day of data capture and tied to the submission's target effective date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Required fields: all mandatory rating drivers populated with values inside allowed ranges/domains (e.g. valid protection class, non-negative TIV, coded occupancy). Fields blank, out-of-range, or failing the rating-engine validation rules fail the check."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Field-level validation counts reconcile: mandatory rating fields = populated + flagged-invalid; the submission cannot proceed to rate until flagged-invalid count = 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The validation result (pass/fail per field) is retained under /UW/NewBusiness/<submission-id>/ in PolicyCenter with timestamp and version, and the cleaned rating record is passed to Earnix."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Invalid or missing rating fields are logged as exceptions and returned to intake/broker for correction; disposition (corrected / defaulted-per-guideline / referred) recorded before rating."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Validate the rating drivers required by minimum submission requirements",
+              "value": "Every mandatory exposure/rating field defined in the minimum requirements is checked for presence and validity."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify rating-field completeness and validity",
+              "value": "For sampled submissions, all mandatory rating fields are populated and pass validation; 0 rated with invalid drivers."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Ensure exposure/rating data supports correct application of filed rates",
+              "value": "Validated fields (class, territory, limits) match the rating basis so the filed rate is applied correctly in Earnix."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm rating inputs align to filed rating basis",
+              "value": "For sampled risks, validated rating drivers map to the filed rate structure; 0 mismatches that would misapply the filed rate."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

@@ -1,0 +1,1531 @@
+{
+  "tasks": [
+    {
+      "id": "51daae47-37fc-4c8b-b22f-e328378f2b21",
+      "owner": { "action": "replace", "name": "Portfolio UW Manager" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Chief Underwriting Officer"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "GRC platform (Archer/ServiceNow GRC)", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "In-force and bound exposure across all lines mapped to appetite segments (LOB x geography x industry class) in the Board-approved Underwriting Appetite Statement FY26 v2; scope = every segment whose consumed capacity or share exceeds a monitoring trigger for the reporting month."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Current monitoring month plus rolling 12-month trend (e.g. 2026-06 close, trailing to 2025-07); bound exposure as at month-end plus premium written year-to-date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each flagged segment carries: appetite band, current share/consumed capacity, threshold breached, trend direction, and drift magnitude (percentage points over 3 and 12 months). Any segment missing a mapped appetite band or exposure aggregate is returned to data control as invalid."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Total insured value and premium rolled up from Guidewire PolicyCenter reconcile to the Underwriting Appetite Statement dashboard; segment totals must sum to the portfolio control total with variance <=0.5% or the run is rejected."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The flagged-segment register and supporting exposure extract are saved to SharePoint /Underwriting/Portfolio-Exposure/Appetite-Monitoring/2026-Q2/ with month-end timestamp and version label v<n>; retained 7 years per underwriting file-documentation policy."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Each drift flag is logged in Archer GRC with disposition (accept-within-tolerance / restrict-new-business / refer-to-committee), owner and target date; unresolved flags escalate to the Chief Underwriting Officer after 10 business days."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Appetite bands and concentration thresholds sourced from the Board-approved Underwriting Appetite Statement FY26 v2; exposure aggregation methodology approved by the Portfolio Steering Committee and version-controlled in the appetite governance library."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Drift is flagged at +/-5 percentage points of appetite share month-over-month or a 3-month sustained trend toward a band limit; sensitivity re-run at +/-2pp to confirm the flag is not a data artifact."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Material drift = consumed capacity >=90% of a segment appetite ceiling or share within 10% of the concentration limit; below 80% is informational only."
+        },
+        { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All appetite segments breaching a monitoring trigger in the month (census of triggered segments), plus a 10% random sample of non-triggered segments to confirm no missed drift."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every segment >=90% of its ceiling is flagged with a disposition; 0 breached segments unflagged. FAIL = any segment over its concentration limit with no flag or disposition recorded."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Missed or late flags are logged in Archer GRC as a monitoring exception, root-caused (data lag vs judgement), and the underlying exposure extract re-run; recurring gaps escalate to the CUO."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = flagged register signed by the Chief Underwriting Officer, each drift segment carrying threshold, magnitude and disposition, reconciled to the appetite dashboard control total."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "SharePoint /Underwriting/Portfolio-Exposure/Appetite-Monitoring/2026-Q2/ (flagged register + extract) and the Archer GRC drift log."
+        },
+        {
+          "answerId": "cmr2ocdvi0s1qkaz3szqx84bl",
+          "value": "Appetite bands and concentration thresholds per Underwriting Appetite Statement FY26 v2 (Board-approved 2026-01); exposure aggregation parameters (peril, class and geography roll-up rules) from the Portfolio Steering Committee-approved methodology v4, parameters sourced from Guidewire PolicyCenter month-end extract."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Map every bound segment to a documented appetite band",
+              "value": "Each LOB x geography x industry segment is tagged to a band in the Underwriting Appetite Statement FY26 v2 before drift can be measured."
+            },
+            {
+              "step": "Compare current share against documented appetite",
+              "value": "Consumed capacity and share computed per segment and differenced against the documented ceiling; drift beyond tolerance is flagged."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify appetite coverage",
+              "value": "100% of bound segments carry a mapped appetite band; 0 unmapped segments in the monitoring run."
+            },
+            {
+              "step": "Confirm drift detection against the statement",
+              "value": "Every segment >=90% of its documented ceiling appears on the flagged register with the correct band reference."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Trigger a referral when a segment breaches its threshold",
+              "value": "Drift beyond the documented tolerance raises a referral in Archer GRC to the Portfolio Steering Committee / CUO with recommendation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify referral triggers fired",
+              "value": "For all segments over their concentration limit, a referral record exists with owner and disposition; 0 silent breaches."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp0zg1n0smbk8ky6lt3d3",
+          "checklist": [
+            {
+              "step": "Apply defined escalation triggers to drifting segments",
+              "value": "Escalation thresholds (>=90% ceiling / >=10% over limit) documented and applied automatically to the flagged register."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm escalations routed correctly",
+              "value": "Each triggered flag escalates to the CUO within the 10-business-day SLA; escalation timestamps evidenced in Archer GRC."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "55f096bd-dfb1-433d-8a9f-31efd641bd4e",
+      "owner": { "action": "replace", "name": "Portfolio UW Manager" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Underwriting Assistant",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "Power BI", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Emerging portfolio trends across all lines: loss-ratio movement, hit/retention shifts, concentration build-up and new-business mix change surfaced for the Chief Underwriting Officer's appetite-guideline review; scope = trends with sustained 3-month directional change."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Trailing 12 months with the current quarter highlighted (e.g. 2025-07 to 2026-06), refreshed at each month-end close."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203znmbk8n0lfz54r"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each flagged trend carries: metric, segment, direction, magnitude, 3/6/12-month slope, and hypothesised driver. Trends without a quantified slope or segment reference are not raised to the CUO."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Trend metrics in the Power BI portfolio dashboard reconcile to the source aggregates in Guidewire PolicyCenter and the actuarial loss database; period totals tie to the appetite dashboard control total (variance <=0.5%)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The emerging-trends brief and supporting dashboard snapshot are saved to SharePoint /Underwriting/Portfolio-Exposure/Appetite-Monitoring/Trends/2026-Q2/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Trends the CUO declines to action are logged in Archer GRC with rationale (monitor / no-change / defer); trends accepted for appetite change are converted to a guideline-review action item with owner and date."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Trend detection methodology (rolling regression slopes and control limits) approved by the Portfolio Steering Committee; metric definitions align to the appetite dashboard data dictionary v4."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "A trend is raised when the 3-month slope exceeds +/-2 standard deviations of its 24-month history; sensitivity checked at +/-1.5 SD to avoid over- or under-flagging."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Material trend = projected to breach an appetite tolerance within two quarters or move a segment loss ratio by >=5 points; smaller movements are logged but not escalated."
+        },
+        { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All trends flagged to the CUO in the quarter (census), cross-checked against a 10% sample of non-flagged metrics to confirm no material movement was missed."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = each material trend has a quantified slope, driver hypothesis and CUO disposition; 0 material trends raised without evidence. FAIL = a segment breach later materialises that had a detectable but unflagged trend."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Missed trends are root-caused (data lag vs threshold too loose) and thresholds recalibrated; the miss is logged in Archer GRC and reported at the next Portfolio Steering Committee."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = emerging-trends brief reviewed and dispositioned by the Chief Underwriting Officer, each trend tied to a metric slope and appetite implication."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "SharePoint /Underwriting/Portfolio-Exposure/Appetite-Monitoring/Trends/2026-Q2/ and the Archer GRC trend disposition log."
+        },
+        {
+          "answerId": "cmr2ocdwm0tickaz3uzp2oqqw",
+          "value": "Trend methodology = Portfolio Steering Committee-approved rolling-slope model v4 with 24-month control limits; parameters (window length, SD thresholds, metric definitions) sourced from the Power BI appetite dashboard data dictionary and the actuarial loss database month-end snapshot."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Frame trends against documented appetite",
+              "value": "Each emerging trend is assessed against the relevant band in the Underwriting Appetite Statement FY26 v2 so the CUO sees the appetite implication."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify appetite linkage",
+              "value": "100% of trends raised to the CUO cite the appetite segment they threaten; 0 trends raised without an appetite reference."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp0yg1n0qmbk89eyvmlw7",
+          "checklist": [
+            {
+              "step": "Monitor and surface emerging portfolio risks",
+              "value": "Loss-ratio, concentration and mix trends are tracked monthly and material movements surfaced to the CUO for appetite review."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm emerging risks are captured",
+              "value": "Every material multi-month movement in the period appears in the trend brief; back-test shows no realised appetite breach lacked a prior trend flag."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp0zg1n0smbk8ky6lt3d3",
+          "checklist": [
+            {
+              "step": "Escalate trends breaching defined triggers",
+              "value": "Trends projected to breach appetite within two quarters trigger a documented escalation to the CUO."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify escalation of material trends",
+              "value": "All trend flags meeting the escalation threshold carry a CUO disposition; escalation evidenced in Archer GRC."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "624adc64-fcfb-4950-9e56-2f6e3f647acb",
+      "owner": { "action": "replace", "name": "Portfolio UW Manager" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Chief Underwriting Officer"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "Power BI", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Portfolio share and composition by industry class and geography for all bound business, measured against the appetite parameters in the Underwriting Appetite Statement FY26 v2; scope = every appetite segment and its share of total premium and TIV."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Monthly close snapshot with prior-month and prior-year comparatives (e.g. 2026-06 vs 2026-05 vs 2025-06)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each segment row carries: premium, TIV, policy count, share of portfolio, appetite band and headroom. Rows missing a geography or industry classification are routed to data control before the composition view is published."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Segment premium and TIV summed from Guidewire PolicyCenter reconcile to the ledger written-premium control total and the Power BI composition dashboard; variance must be <=0.5%."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The composition-against-appetite view and extract are saved to SharePoint /Underwriting/Portfolio-Exposure/Appetite-Monitoring/Composition/2026-Q2/ with month-end timestamp and version v<n>; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Segments outside appetite parameters are logged in Archer GRC with disposition (within-tolerance / watch / restrict) and owner; items unresolved beyond 10 business days escalate to the CUO."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Composition and share methodology approved by the Portfolio Steering Committee; classification taxonomy (industry class, cat/geo zone) version-controlled in the appetite governance library."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Share sensitivity assessed against a +/-2pp reclassification of ambiguous risks to confirm segment shares are robust to coding choices."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Material composition deviation = segment share >=90% of its appetite ceiling or beyond the documented tolerance band; deviations below 80% are informational."
+        },
+        { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All appetite segments in the monthly composition view (census), with a 10% sample of underlying policies re-checked for correct geography/industry coding."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every segment share reconciles to source within 0.5% and each out-of-appetite segment is dispositioned; FAIL = unreconciled share or an out-of-appetite segment with no disposition."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Mis-coded or unreconciled segments are corrected at source in Guidewire PolicyCenter, the composition view re-run, and the exception logged in Archer GRC with root cause."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = composition-against-appetite view signed by the CUO, reconciled to the ledger control total, with every out-of-appetite segment dispositioned."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "SharePoint /Underwriting/Portfolio-Exposure/Appetite-Monitoring/Composition/2026-Q2/ and the Archer GRC composition exception log."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Measure composition against documented appetite",
+              "value": "Segment shares are compared to the ceilings in the Underwriting Appetite Statement FY26 v2 every month-end."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify all segments assessed",
+              "value": "100% of appetite segments have a measured share and headroom; 0 unassessed segments."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp15a1n12mbk8gt7e7ev4",
+          "checklist": [
+            {
+              "step": "Apply quantitative concentration limits",
+              "value": "Quantitative share/TIV limits per segment are the pass/fail basis for the composition monitor."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm limit adherence tested",
+              "value": "Every segment breaching a quantitative limit is flagged and dispositioned; 0 unflagged limit breaches."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscoxdc1mtymbk8j5mbv05a",
+          "checklist": [
+            {
+              "step": "Track composition against concentration limits",
+              "value": "Industry-class and geographic concentration measured against documented concentration limits alongside appetite share."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify concentration reconciliation",
+              "value": "Concentration totals reconcile to source exposure with variance <=0.5%; breaches escalated."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "a7169183-c468-439a-9750-1b34ef3c70c1",
+      "owner": { "action": "replace", "name": "Portfolio UW Manager" },
+      "removeRoleNames": [
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Underwriter",
+        "Underwriting Assistant",
+        "Exposure Management Manager",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "Power BI", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Appetite utilization report showing headroom and consumed capacity by risk category (LOB, cat/geo zone, industry class) for all bound business against the FY26 appetite ceilings; scope = every risk category with a defined capacity limit."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Monthly reporting period at close (e.g. 2026-06), with consumed capacity as at month-end and headroom to fiscal-year-end ceilings."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203znmbk8n0lfz54r"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each risk-category row carries: appetite ceiling, consumed capacity, headroom (absolute and %), utilization RAG status and trend. Rows without a defined ceiling are excluded and listed as an appetite-gap for governance."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Consumed capacity aggregated from Guidewire PolicyCenter reconciles to the ledger and the Power BI utilization report; utilization percentages recompute to consumed/ceiling with 0 rounding breaks."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The appetite utilization report is published to SharePoint /Underwriting/Portfolio-Exposure/Appetite-Monitoring/Utilization/2026-Q2/ with timestamp and version v<n>; retained 7 years and linked from the Portfolio Steering Committee pack."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Categories over their utilization amber/red thresholds are logged in Archer GRC with disposition (monitor / restrict / seek reinsurance) and owner; red categories escalate to the CUO immediately."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Utilization calculation methodology (consumed vs ceiling, RAG bands at 80%/90%) approved by the Portfolio Steering Committee; ceilings drawn from the Underwriting Appetite Statement FY26 v2."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Headroom sensitivity shown under a bound-plus-pipeline scenario (adding quoted-not-bound business) to test whether categories would breach if the pipeline converts."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Material utilization = >=90% of ceiling (red) requiring action; 80-90% (amber) requiring monitoring; below 80% (green) informational."
+        },
+        { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "All risk categories in the utilization report (census), with a 10% sample re-derived by hand to confirm consumed/ceiling math and RAG assignment."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = every category utilization ties to source consumed capacity and ceiling with correct RAG; report totals reconcile to the ledger. FAIL = any utilization figure that cannot be traced to consumed capacity and a documented ceiling."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Traceability breaks are corrected by re-extracting from Guidewire PolicyCenter and re-mapping ceilings; the defect is logged in Archer GRC and the report re-issued before committee."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions from the appetite dashboard data dictionary v4: risk_category, appetite_ceiling, consumed_capacity, headroom, utilization_pct, rag_status."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Source control total = written premium and TIV per Guidewire PolicyCenter month-end extract, reconciled to the ledger written-premium figure with variance <=0.5%."
+        },
+        {
+          "answerId": "cmr2ocdxj0upxkaz3lqj3fxry",
+          "value": "Acceptance criteria: report reconciles to the ledger control total, every category shows ceiling/consumed/headroom/RAG, and all red categories are dispositioned; signed off by the CUO. Evidence location: SharePoint /Underwriting/Portfolio-Exposure/Appetite-Monitoring/Utilization/2026-Q2/ plus the Archer GRC utilization exception log."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Report headroom against documented appetite",
+              "value": "Consumed capacity is reported against the documented FY26 appetite ceilings for every risk category."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify appetite ceilings applied",
+              "value": "100% of categories reference a documented ceiling; categories lacking a ceiling are listed as appetite gaps, not omitted."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp15a1n12mbk8gt7e7ev4",
+          "checklist": [
+            {
+              "step": "Express appetite as quantitative limits",
+              "value": "Utilization is computed against quantitative capacity limits per category with amber/red thresholds."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm limit utilization accurate",
+              "value": "Sampled utilization percentages recompute to consumed/limit with 0 error; RAG assignment matches thresholds."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp13v1n10mbk8w8figrrv",
+          "checklist": [
+            {
+              "step": "Publish a monthly utilization dashboard",
+              "value": "The appetite utilization report is refreshed and published monthly to the governance SharePoint and committee pack."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify dashboard currency",
+              "value": "Report timestamp is within the current close cycle; prior-period versions retained and diffable."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "0d6c2d1c-c000-4d9f-85fb-e5d2b83253d4",
+      "owner": { "action": "replace", "name": "Portfolio UW Manager" },
+      "removeRoleNames": [
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Underwriter",
+        "Underwriting Assistant",
+        "Exposure Management Manager",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [
+        { "name": "Power BI", "usageType": "performed" },
+        { "name": "Microsoft 365 / SharePoint", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Quarterly portfolio composition and appetite status pack for the Underwriting Governance Committee: share and utilization by risk category, drift/breach summary, emerging trends and recommended appetite actions across all lines."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The reporting quarter just closed (e.g. Q2 2026, Apr-Jun) presented at the committee meeting in the following month; comparatives to prior quarter and prior year."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203znmbk8n0lfz54r"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The committee pack must contain: composition-vs-appetite view, utilization RAG summary, open drift/breach items with dispositions, and a recommendations slide. A pack missing the breach log or recommendations is not tabled."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Figures in the pack reconcile to the monthly appetite dashboards and the ledger; quarter totals equal the sum of the three monthly closes with variance <=0.5%."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The final pack and approved minutes are saved to SharePoint /Underwriting/Governance-Committee/2026-Q2/ with version v<n> and meeting date; retained 7 years as the governance record."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Committee decisions deferring or rejecting a recommendation are logged in Archer GRC with rationale and follow-up owner; accepted appetite changes become tracked action items with due dates."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Reporting pack template and metric definitions approved by the Underwriting Governance Committee charter; figures derived from the Portfolio Steering Committee-approved dashboards v4."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity of appetite status shown under a stress scenario (e.g. +10% cat load / -3pt rate) so the committee sees status robustness, not just the point estimate."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Items rise to committee attention when a category is red (>=90% utilization) or an appetite change is recommended; green/amber items are summarised, not itemised."
+        },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "Each committee decision (approve / amend / defer appetite guideline) is captured in the minutes with vote, rationale and effective date, and mirrored into Archer GRC."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Recipients: Underwriting Governance Committee members (CUO, CRO delegate, Chief Actuary delegate, line UW heads); minutes and pack distributed to committee members and the ERM function within 5 business days."
+        },
+        { "templateKeyId": "cmr2oap6g002flasb12gpqsrx", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "The quarter's committee cycle: the tabled pack, minutes and resulting action items; census of all decisions recorded at the meeting."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = pack reconciled and tabled on schedule, every decision minuted with an accountable owner and effective date; FAIL = a decision with no minute, or an action item with no owner/date."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "If a scheduled report is missed or a decision is not minuted, an Archer GRC governance exception is raised, the record reconstructed from the meeting recording, and the gap reported to the committee chair."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "Appetite-change authority follows the Underwriting Authority Matrix v3.2: guideline changes require Underwriting Governance Committee approval chaired by the CUO; delegation and quorum rules documented in the committee charter."
+        },
+        {
+          "answerId": "cmr2ocdwz0tzvkaz367u1g3hl",
+          "value": "In-scope period = the closed reporting quarter (e.g. 2026-04-01 to 2026-06-30) with effective dates for any approved appetite guideline change recorded in the minutes and Archer GRC; comparatives to prior quarter and prior year."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp16a1n14mbk82qvcxpe3",
+          "checklist": [
+            {
+              "step": "Produce a quarterly governance report",
+              "value": "A standardized portfolio and appetite pack is produced each quarter and tabled at the Underwriting Governance Committee."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify quarterly cadence and completeness",
+              "value": "4 packs per year on schedule; each contains composition, utilization, breach log and recommendations."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp0w71n0mmbk8fazjg31m",
+          "checklist": [
+            {
+              "step": "Report status against Board-approved appetite",
+              "value": "Appetite status is framed against the Board-approved risk appetite so the committee governs within mandate."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm appetite alignment",
+              "value": "Every reported category ties to a Board-approved appetite limit; breaches and recommended changes explicitly reference the appetite statement."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Present composition against documented appetite",
+              "value": "Committee pack shows share and utilization by segment against the documented appetite bands."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify documented appetite is the benchmark",
+              "value": "100% of committee metrics reference documented appetite; 0 unbenchmarked figures."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "bc8bedba-8f60-42dc-9a41-ed56313cd477",
+      "owner": { "action": "replace", "name": "Portfolio UW Manager" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Chief Underwriting Officer", "Reinsurance Analyst"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "Sapiens ReinsurancePro", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Appetite utilization tracked against reinsurance treaty capacity and aggregate retention thresholds: ceded capacity by treaty (quota-share, surplus, cat XoL) versus consumed, plus net retained aggregate versus retention limits, across all treaty-protected lines."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Current treaty year to date (e.g. 2026-01-01 to 2026-06-30) with consumed capacity as at month-end and remaining capacity to treaty expiry."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203zvmbk8xsekvu5e"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each treaty row carries: treaty ID, layer, contractual capacity, ceded to date, remaining capacity, and net retained aggregate versus retention. Rows without a linked treaty in Sapiens ReinsurancePro are flagged as unmatched cessions."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Ceded premium and sums insured reconcile between Guidewire PolicyCenter cessions and Sapiens ReinsurancePro; ceded + retained = gross for every treaty-protected policy (variance <=0.5%)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The treaty-capacity utilization tracker and reconciliation are saved to SharePoint /Underwriting/Portfolio-Exposure/Treaty-Capacity/2026-Q2/ with timestamp and version; retained 7 years alongside the treaty slips."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Treaties nearing capacity or aggregates nearing retention are logged in Archer GRC with disposition (monitor / arrange facultative / restrict new cessions); breaches escalate to the CUO and Head of Reinsurance immediately."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Capacity and retention parameters taken from the executed reinsurance treaty slips for the current program; aggregation methodology approved by the Reinsurance Committee and version-controlled in Sapiens ReinsurancePro."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Remaining-capacity sensitivity shown under a bound-plus-pipeline and a single-large-loss scenario to test whether a treaty or retention would exhaust before renewal."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Material = treaty consumed >=85% of contractual capacity or net aggregate >=90% of a retention threshold; below these levels is monitored but not escalated."
+        },
+        { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All active treaties and retention layers in the program (census), with a 10% sample of ceded policies traced from Guidewire PolicyCenter to Sapiens ReinsurancePro."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = every treaty's consumed and remaining capacity reconciles to the slip and cessions with 0 unmatched cessions; FAIL = an unmatched cession, or consumed capacity exceeding contractual capacity without an approved facultative top-up."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Unmatched cessions or over-capacity conditions are corrected in Sapiens ReinsurancePro, the tracker re-run, and the exception logged in Archer GRC with root cause; over-capacity triggers a facultative placement request."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = tracker signed by the CUO with the Head of Reinsurance, ceded/retained reconciled to source, every treaty within capacity or with a documented remediation."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "SharePoint /Underwriting/Portfolio-Exposure/Treaty-Capacity/2026-Q2/ (tracker + reconciliation) and the Archer GRC capacity exception log."
+        },
+        {
+          "answerId": "cmr2ocfzs0wv6kaz3bhnuefqz",
+          "value": "Materiality/tolerance thresholds: treaty capacity amber at 85% and red at 95% of contractual limit; net retained aggregate amber at 80% and red at 90% of the retention threshold; thresholds set by the Reinsurance Committee and recorded in Sapiens ReinsurancePro."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscox9e1mtqmbk8fy73p2yh",
+          "checklist": [
+            {
+              "step": "Aggregate exposure against treaty capacity",
+              "value": "Ceded and retained aggregates are tracked by treaty and layer so consumed capacity is visible against contractual limits."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify aggregate tracking accuracy",
+              "value": "Consumed capacity per treaty reconciles to cessions in Sapiens ReinsurancePro with variance <=0.5%; 0 unmatched cessions."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp15a1n12mbk8gt7e7ev4",
+          "checklist": [
+            {
+              "step": "Enforce quantitative retention/capacity limits",
+              "value": "Treaty capacity and aggregate retention thresholds are the quantitative limits monitored each month-end."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm limits not breached",
+              "value": "0 treaties over contractual capacity and 0 aggregates over retention without a documented facultative or committee-approved exception."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Tie appetite utilization to reinsurance protection",
+              "value": "Appetite consumed is assessed net of treaty protection so utilization reflects retained, not gross, exposure."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify net utilization basis",
+              "value": "Utilization figures use net retained aggregates consistent with the appetite statement; sampled figures recompute correctly."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "6c0ad36c-bb82-4eb4-81f0-c32bdfc7eaa3",
+      "owner": { "action": "replace", "name": "Portfolio UW Manager" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Chief Underwriting Officer"],
+      "removeAppNames": [],
+      "addApps": [
+        { "name": "underwriting workstation", "usageType": "performed" },
+        { "name": "Power BI", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Effectiveness of appetite restrictions (no-write lists, class exclusions, capacity caps, referral triggers) measured on subsequent new business: submissions, quotes and bindings in restricted segments after the restriction effective date, across affected lines."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From each restriction's effective date through the current month (e.g. restriction effective 2026-04-01, tracked to 2026-06-30), with pre-restriction baseline for comparison."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each restriction row carries: restriction ID and type, effective date, pre/post new-business volume in scope, leakage count (bindings that should have been blocked), and effectiveness %. Rows without an effective date or defined scope are excluded and flagged."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Post-restriction bound counts in restricted segments from Guidewire PolicyCenter reconcile to the Power BI effectiveness view; leakage = policies bound in a restricted class that lack a documented exception, reconciled against the exception log with 0 unexplained."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The restriction-effectiveness analysis is saved to SharePoint /Underwriting/Portfolio-Exposure/Restrictions/2026-Q2/ with timestamp and version; retained 7 years to evidence appetite enforcement."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Leakage (non-compliant bindings) is logged in Archer GRC with disposition (approved exception / remediate / non-renew), the responsible underwriter identified, and repeat leakage escalated to the CUO."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppuf1o9wmbk8chlv6qe5",
+          "checklist": [
+            {
+              "step": "Confirm no-write and restriction lists are enforced at point of sale",
+              "value": "Restricted classes and no-write entries are configured in Guidewire PolicyCenter to block or refer new business; effectiveness measures the block rate."
+            },
+            {
+              "step": "Measure post-restriction leakage",
+              "value": "New bindings in restricted segments are counted and compared to documented exceptions to quantify enforcement effectiveness."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify enforcement effectiveness",
+              "value": "Sampled restricted-segment submissions show the block/refer control fired; leakage rate <=2% and every leaked binding has a documented exception."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Link restrictions back to documented appetite",
+              "value": "Each restriction traces to an appetite decision in the Underwriting Appetite Statement FY26 v2, and effectiveness is reported against the intended appetite outcome."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm appetite alignment",
+              "value": "100% of tracked restrictions reference an appetite rationale; measured new-business reduction is compared to the appetite target."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "72000fff-9518-4a05-80a2-ceea5b811127",
+      "owner": { "action": "replace", "name": "Portfolio UW Manager" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Chief Underwriting Officer", "Actuary"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        {
+          "name": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "usageType": "performed"
+        },
+        { "name": "underwriting workstation", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Portfolio profitability assumptions (expected loss ratio, frequency/severity trend, expense and cat load) validated with Actuarial against developing loss experience by LOB and accident year for the appetite-managed book."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Latest closed accident quarter with development to date (e.g. AY2024-2026 as at 2026-06 valuation); assumptions compared to plan and to prior valuation."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "e4b067cd-f592-4cee-8050-bdedf48363b8"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each LOB row carries: planned vs emerging loss ratio, actual-vs-expected ratio, trend assumption, and variance driver. Rows without a matched actuarial development factor or exposure base are returned to Actuarial before sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Earned premium and incurred losses in the actuarial model reconcile to Guidewire PolicyCenter and the ledger; A-vs-E ratios recompute to actual/expected with the reserving triangle totals tying to source (variance <=0.5%)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The validation memo and A-vs-E exhibits are saved to SharePoint /Underwriting/Portfolio-Exposure/Profitability-Validation/2026-Q2/ with version and valuation date; retained 7 years for actuarial and audit review."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "LOBs where emerging experience deviates materially from assumption are logged in Archer GRC with disposition (re-price / tighten appetite / hold-and-monitor) and owner; adverse deviations escalate to the CUO and Chief Actuary."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Assumption set and A-vs-E methodology per the current Pricing/Reserving basis approved by the Chief Actuary; model version and development factors version-controlled in the actuarial modeling platform."
+        },
+        {
+          "templateKeyId": "cmr2oamg4000llasb5mlmokig",
+          "roleId": "e349767d-1974-469f-8504-6d858abe670d"
+        },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Profitability sensitivity shown to +/-5 point loss-ratio and +/-2% trend moves so the committee sees how assumption error flows to expected margin."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Material deviation = emerging loss ratio outside +/-5 points of assumption or A-vs-E outside 90-110% sustained over two quarters; within that band is treated as expected noise."
+        },
+        { "templateKeyId": "cmr2oapmt002rlasbojqqymeh", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All LOBs in the appetite-managed portfolio (census), with a sample of accident-year cells re-derived from the reserving triangles to confirm the A-vs-E computation."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = every LOB's emerging experience reconciled to source and A-vs-E within the 90-110% band or explained; FAIL = an assumption unsupported by developing data or an unreconciled triangle."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Assumptions failing validation are re-derived with Actuarial, the profitability view re-run, and the change logged in Archer GRC; material adverse findings trigger a re-pricing or appetite action item."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dates = accident years AY2024 to AY2026 valued as at 2026-06-30; assumption changes carry a forward effective date for the next renewal/pricing cycle."
+        },
+        {
+          "answerId": "cmr2ocdwr0tp2kaz35ing52qk",
+          "value": "Approved methodology = current actuarial A-vs-E and loss-development basis signed by the Chief Actuary; model version and development factors sourced from the actuarial modeling platform (Prophet/Igloo) 2026-06 valuation run, parameters from the reserving database."
+        },
+        {
+          "answerId": "cmr2ocdwr0tp3kaz34zj7nml2",
+          "value": "Source-system field definitions from the actuarial data dictionary (earned_premium, incurred_loss, paid_loss, ldf, expected_lr); control totals = earned premium and incurred losses reconciled to Guidewire PolicyCenter and the ledger with variance <=0.5%."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscoxvj1muumbk8b1ofgbyk",
+          "checklist": [
+            {
+              "step": "Compare actual to expected experience",
+              "value": "Emerging loss ratios are compared to the pricing assumption by LOB and accident year to validate profitability."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify A-vs-E computation",
+              "value": "Sampled A-vs-E ratios recompute to actual/expected using source incurred and earned figures; 0 computation errors."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscox641mtkmbk82c164857",
+          "checklist": [
+            {
+              "step": "Benchmark loss ratios against plan and prior",
+              "value": "Portfolio loss ratios benchmarked to plan, prior valuation and industry to contextualise assumption validity."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm benchmarking evidenced",
+              "value": "Every LOB shows plan/prior comparatives; material variances carry a documented driver."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppf71o92mbk8voyj74ly",
+          "checklist": [
+            {
+              "step": "Assess experience against LOB loss-ratio targets",
+              "value": "Validated profitability is measured against the documented loss-ratio targets by line of business."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify target adherence flagged",
+              "value": "LOBs outside their loss-ratio target are flagged with a re-price or appetite disposition; 0 off-target LOBs left unactioned."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "c8db5d48-91b9-4f55-a46f-ce95f78e9e62",
+      "owner": { "action": "replace", "name": "Exposure Management Manager" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Chief Underwriting Officer", "Actuary"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "Moody's RMS (Cat Model); Catastrophe Data Provider", "usageType": "performed" },
+        { "name": "underwriting workstation", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "CAT underwriting guidelines (per-risk cat load, deductible/sublimit rules, exclusion zones, capacity caps) for property lines in peril zones where modelled accumulations approach internal PML or reinsurance treaty thresholds; scope = affected peril zones and classes."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Effective from the guideline update date forward (e.g. adjustments effective 2026-07-01), triggered by the latest quarterly accumulation run (2026-06 valuation)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "651d362a-de3b-4e34-89e5-504085d85d0d"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each adjusted guideline carries: peril zone, current modelled accumulation, threshold approached (internal PML or treaty), the specific guideline change, and effective date. Adjustments without a supporting accumulation figure are not published."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Modelled TIV and accumulations from Moody's RMS reconcile to bound exposure in Guidewire PolicyCenter (variance <=0.5%); post-adjustment projected accumulation recomputes below the threshold that triggered the change."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Updated CAT guidelines and the supporting accumulation analysis are versioned in SharePoint /Underwriting/Portfolio-Exposure/CAT-Guidelines/2026-Q3/ with effective date and approver; superseded versions retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "In-flight submissions affected by a mid-cycle guideline change are logged in Archer GRC with disposition (re-underwrite / honour with sublimit / refer); zones still over threshold after adjustment escalate to the CUO for capacity action."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All peril zones flagged over an internal PML or treaty threshold in the quarterly accumulation run (census), plus a sample of newly bound risks in those zones to confirm the updated guideline is applied."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = every over-threshold zone has a documented guideline adjustment that brings projected accumulation below the threshold and is live in the workbench; FAIL = an over-threshold zone with no adjustment or a rule not deployed to underwriters."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Zones that cannot be brought within threshold by guideline change alone are escalated for reinsurance (facultative/treaty) or capacity reduction; the residual breach is logged in Archer GRC with owner and target date."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = adjusted CAT guidelines approved by the CUO with Actuarial concurrence on the model basis, effective-dated, and deployed to the underwriting workstation rules."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "SharePoint /Underwriting/Portfolio-Exposure/CAT-Guidelines/2026-Q3/ (guidelines + accumulation analysis) and the Archer GRC threshold-breach log."
+        },
+        {
+          "answerId": "cmr2ocdxy0v9skaz3tejh7k4i",
+          "value": "Materiality/tolerance thresholds: internal PML amber at 90% and red at 100% of the zonal capacity budget; reinsurance trigger when modelled 1-in-250 accumulation reaches 90% of treaty retention; thresholds approved by the Exposure Management / Reinsurance Committee and held in Moody's RMS."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscoxdc1mtymbk8j5mbv05a",
+          "checklist": [
+            {
+              "step": "Enforce concentration limits per peril zone",
+              "value": "CAT guidelines encode zonal concentration limits; adjustments are triggered when modelled accumulation approaches a limit."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify limits re-established",
+              "value": "Post-adjustment projected accumulation is below the concentration limit for every affected zone; 0 zones left over limit without escalation."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscox9e1mtqmbk8fy73p2yh",
+          "checklist": [
+            {
+              "step": "Base adjustments on aggregate tracking",
+              "value": "Guideline changes are driven by the quarterly aggregate accumulation run reconciled to bound exposure."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm accumulation basis",
+              "value": "Modelled accumulations reconcile to Guidewire PolicyCenter within 0.5%; adjustments trace to a specific over-threshold figure."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Set referral triggers at threshold approach",
+              "value": "Updated guidelines add referral triggers so new business in stressed zones routes to exposure management before binding."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify triggers deployed",
+              "value": "Sampled submissions in adjusted zones fire the referral/sublimit rule in the underwriting workstation; 0 rules undeployed."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "1abb7dd3-b805-439e-bdba-e2620906451e",
+      "owner": { "action": "replace", "name": "Exposure Management Manager" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Chief Underwriting Officer"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [
+        { "name": "Moody's RMS (Cat Model); Catastrophe Data Provider", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Total insured value and accumulation aggregated by catastrophe peril zone (hurricane, earthquake, wildfire, SCS, flood) for all in-force property exposure geocoded to CRESTA/peril zones; scope = every peril zone with bound exposure."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Refreshed at month-end against in-force as at close (e.g. 2026-06-30), with the full quarterly rebuild feeding the cat model run."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "651d362a-de3b-4e34-89e5-504085d85d0d"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each exposure record carries geocode quality, peril zone, TIV, occupancy/construction, and policy key. Records that fail geocoding or lack TIV are quarantined and worked before the zonal roll-up is certified."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Sum of zonal TIV equals total in-force TIV in Guidewire PolicyCenter (variance <=0.5%); geocode match rate >=98%, with unmatched TIV allocated to a residual bucket and disclosed."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The zonal TIV roll-up and geocode exception report are saved to SharePoint /Underwriting/Portfolio-Exposure/Accumulation/2026-Q2/ with timestamp and version; retained 7 years and fed to the cat model run of record."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Geocode failures and unmatched exposure are logged in Archer GRC with disposition (re-geocode / manual zone assign / residual), owner and clear-by date; persistent data-quality gaps escalate to the Exposure Management Manager."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All in-force property exposure records geocoded for the run (census), with a 5% sample of high-TIV locations re-geocoded independently to confirm zone assignment."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = zonal TIV reconciles to in-force within 0.5% and geocode match rate >=98%; FAIL = reconciliation break >0.5% or match rate <98% without a disclosed residual."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Reconciliation breaks are traced to missing or mis-geocoded policies, corrected at source, and the roll-up re-run; the exception and root cause are logged in Archer GRC before the accumulation is certified current."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = zonal TIV roll-up reconciled to in-force, geocode match >=98%, certified current by the Exposure Management Manager and available to the cat model run."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "SharePoint /Underwriting/Portfolio-Exposure/Accumulation/2026-Q2/ (roll-up + geocode exception report) and the Moody's RMS exposure import log."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscox9e1mtqmbk8fy73p2yh",
+          "checklist": [
+            {
+              "step": "Aggregate TIV by peril zone",
+              "value": "In-force TIV is rolled up by CRESTA/peril zone every month-end to maintain current accumulation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify aggregate completeness",
+              "value": "Zonal TIV reconciles to in-force within 0.5%; geocode match rate >=98% with residual disclosed."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscoxj21mu8mbk8r1h79bwr",
+          "checklist": [
+            {
+              "step": "Produce zonal accumulation reporting",
+              "value": "TIV and accumulation are reported by zone in a consistent format feeding the cat model and reinsurance program."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm zonal report integrity",
+              "value": "Each zone total ties to its constituent policies; sampled high-TIV locations re-geocode to the same zone."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscoxdc1mtymbk8j5mbv05a",
+          "checklist": [
+            {
+              "step": "Compare zonal TIV to concentration limits",
+              "value": "Zonal accumulation is measured against documented concentration limits to surface build-up."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify limit comparison",
+              "value": "Every zone shows TIV against its limit; zones approaching a limit are flagged to exposure management."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "da9a046c-a0da-4ef7-96ab-699a359c979a",
+      "owner": { "action": "replace", "name": "Exposure Management Manager" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant", "Data Scientist"],
+      "addParticipants": ["Chief Underwriting Officer"],
+      "removeAppNames": [],
+      "addApps": [
+        { "name": "Moody's RMS (Cat Model); Catastrophe Data Provider", "usageType": "performed" },
+        { "name": "underwriting workstation", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The revised zonal capacity allocation: proposed per-zone capacity budgets (TIV/PML caps) across catastrophe peril zones, reallocated to keep modelled accumulations within internal PML appetite and treaty retention; scope = all peril zones in the reallocation proposal."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Allocation effective for the forward period (e.g. effective 2026-07-01 through the treaty year), based on the 2026-06 accumulation and cat model run."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "651d362a-de3b-4e34-89e5-504085d85d0d"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The allocation proposal must show, per zone: current accumulation, proposed capacity budget, headroom created, PML impact and treaty-retention impact. A proposal missing PML/treaty impact for any zone is not put forward for sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Sum of proposed zonal capacities reconciles to the total portfolio capacity budget and net treaty retention; aggregate modelled PML under the new allocation recomputes within internal appetite (0 unreconciled zones)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The approved allocation and decision record are saved to SharePoint /Underwriting/Portfolio-Exposure/Capacity-Allocation/2026-Q3/ with effective date, approver and version; the superseded allocation is retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Zones where the requested capacity exceeds appetite are logged in Archer GRC with disposition (approve with condition / reduce / require reinsurance); conditional approvals carry a documented condition and review date."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscoxdc1mtymbk8j5mbv05a",
+          "checklist": [
+            {
+              "step": "Set zonal capacity within concentration limits",
+              "value": "The revised allocation assigns per-zone capacity so modelled accumulation stays within documented concentration limits."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify allocation respects limits",
+              "value": "Under the approved allocation, every zone's projected accumulation is within its concentration limit; 0 zones over limit without a documented condition."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscoxj21mu8mbk8r1h79bwr",
+          "checklist": [
+            {
+              "step": "Support the decision with zonal reporting",
+              "value": "The allocation decision is backed by zonal accumulation and PML reporting reconciled to in-force exposure."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm reporting basis",
+              "value": "Allocation figures trace to the certified zonal roll-up and cat model run; sampled zones reconcile within 0.5%."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Sign off within documented authority",
+              "value": "Capacity reallocation is approved by the role with the correct authority per the Underwriting Authority Matrix v3.2 (CUO for portfolio-level capacity)."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify approval authority",
+              "value": "The recorded approver holds the required authority level; 0 allocations live without an in-authority sign-off."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "81da793f-be89-479b-8cde-1e8dd6837a3c",
+      "owner": { "action": "replace", "name": "Exposure Management Manager" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Underwriting Assistant",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": ["Actuary"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [
+        { "name": "Moody's RMS (Cat Model); Catastrophe Data Provider", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Post-event exposure assessment following a named storm, earthquake or wildfire: in-force TIV, policy count and modelled/estimated loss within the event footprint, plus reinsurance recovery position; scope = all policies intersecting the event geography."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From the event date through the assessment cutoff (e.g. event 2026-06-14, assessment as at 2026-06-21), refreshed as footprint data matures."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "651d362a-de3b-4e34-89e5-504085d85d0d"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each in-footprint record carries: policy key, geocode, TIV, coverage, modelled/estimated loss and treaty attachment. Records without a geocode or coverage detail are worked before the exposed-loss estimate is issued."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "In-footprint TIV and policy counts reconcile to Guidewire PolicyCenter in-force; gross modelled loss plus expected reinsurance recovery equals net retained estimate, tying to the treaty terms in Sapiens ReinsurancePro (variance <=1%)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The post-event assessment and footprint exposure extract are saved to SharePoint /Underwriting/Portfolio-Exposure/Post-Event/2026-Storm-Name/ with timestamp and version; retained 7 years for reserving and reinsurance recovery."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Data gaps (ungeocoded exposure, coverage ambiguity) are logged in Archer GRC with disposition and clear-by date; material adverse deviation from the pre-event PML estimate escalates to the CUO, Chief Actuary and Head of Reinsurance."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Pre/post comparison: the pre-event modelled PML for the affected zone is compared to the post-event exposed-loss estimate; the delta and its drivers (footprint vs modelled, demand surge) are documented and reconciled."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "The assessment is linked to the event/CAT response record and to the reinsurance recovery notification; cross-referenced to the claims event code in Guidewire and the Sapiens ReinsurancePro cession."
+        },
+        { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All in-force policies intersecting the event footprint (census), with a sample of high-TIV exposed locations validated against the hazard footprint and claims first-notice data."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = exposed TIV reconciles to in-force, gross-to-net ties to treaty terms, and the estimate is within a defensible range of early claims signal; FAIL = unreconciled exposure or a net estimate inconsistent with treaty attachment."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Where the estimate diverges materially from early claims experience, the footprint and loss factors are re-run with Actuarial, the assessment re-issued, and the revision logged in Archer GRC with rationale."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = post-event assessment reviewed by the CUO with Actuarial concurrence, exposed TIV reconciled, gross/net consistent with treaties, pre/post PML delta explained."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "SharePoint /Underwriting/Portfolio-Exposure/Post-Event/2026-Storm-Name/ (assessment + footprint extract) and the Archer GRC post-event exception log."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscoxf61mu2mbk8o9n9wv6c",
+          "checklist": [
+            {
+              "step": "Estimate exposed loss against PML basis",
+              "value": "Post-event exposed loss is estimated using the cat model footprint and compared to the pre-event PML for the affected zone."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify PML comparison",
+              "value": "The pre-event PML and post-event estimate are documented with a reconciled delta and drivers; 0 unexplained material variance."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscox9e1mtqmbk8fy73p2yh",
+          "checklist": [
+            {
+              "step": "Aggregate exposed TIV in the footprint",
+              "value": "In-force TIV intersecting the event footprint is aggregated and reconciled to bound exposure."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm footprint aggregation",
+              "value": "Exposed TIV reconciles to in-force within 1%; sampled locations validate against the hazard footprint."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscoxcd1mtwmbk87y6lv2jr",
+          "checklist": [
+            {
+              "step": "Back-test model output against the actual event",
+              "value": "Modelled loss is compared to developing claims experience to calibrate future cat guideline and capacity decisions."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify back-test captured",
+              "value": "Modelled vs actual variance is recorded and fed to model validation; lessons logged for the next accumulation cycle."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

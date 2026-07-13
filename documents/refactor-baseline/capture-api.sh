@@ -34,6 +34,9 @@ ENDPOINTS=(
   "/portfolio/initiatives"
   "/portfolio/risk-bands"
   "/rationalization"
+  "/rationalization/vocabulary?domain=APPLICATION"
+  "/rationalization/vocabulary?domain=PRODUCT_MODEL"
+  "/product-models"
   "/regulations/overview"
   "/regulations/jurisdictions"
   "/regulations/federal"
@@ -55,4 +58,14 @@ for EP in "${ENDPOINTS[@]}"; do
   echo "$EP,$STATUS,$MS,$BYTES" >> "$OUT/_timings.csv"
   echo "$EP -> $STATUS ${MS}ms ${BYTES}b"
 done
+
+# Board detail bodies (id-dependent, so resolved at capture time): the first
+# workspace of each domain, via the same detail endpoint the board loads.
+WS_ID=$(curl -s -H "Authorization: Bearer $TOKEN" "$BASE/rationalization" \
+  | python -c "import sys,json;d=json.load(sys.stdin);w=d if isinstance(d,list) else [];print(w[0]['id'] if w else '')" 2>/dev/null)
+if [ -n "$WS_ID" ]; then
+  curl -s -o "$OUT/rationalization_detail_first.json" \
+    -H "Authorization: Bearer $TOKEN" "$BASE/rationalization/$WS_ID"
+  echo "/rationalization/$WS_ID -> captured (rationalization_detail_first.json)"
+fi
 echo "done."
