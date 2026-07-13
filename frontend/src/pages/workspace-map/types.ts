@@ -59,6 +59,7 @@ export interface BoardComponent {
   destination: string | null;
   microserviceId: string | null;
   migrationStatus: string;
+  targetDate: string | null;
 }
 
 export interface BoardMicroservice {
@@ -68,6 +69,7 @@ export interface BoardMicroservice {
   status: string; // Planned | Building | Live
   techStack: string | null;
   ownerRole: string | null;
+  targetDate: string | null;
 }
 
 export interface BoardScreen {
@@ -145,6 +147,21 @@ export interface BoardDetail {
   microservices: BoardMicroservice[];
   screens: BoardScreen[];
   findings: Finding[];
+}
+
+/** Short, locale-stable date label for a target date (e.g. "Jul 1, 2026"). */
+export function formatTargetDate(iso: string | null): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  // Format in UTC so a date-only target (stored at UTC midnight) never shifts a
+  // day backward for viewers west of UTC.
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
 }
 
 /** A CAPDAN capdan is "correct/stays" only when it's Common and not dead code. */

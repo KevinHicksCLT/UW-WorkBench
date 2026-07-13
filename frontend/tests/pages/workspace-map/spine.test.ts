@@ -36,6 +36,9 @@ function version(
     name,
     status: 'Active',
     productName,
+    lobId: 'lob-1',
+    lobName: 'Test LOB',
+    segmentName: 'Test Segment',
     components: new Map(
       Object.entries(components).map(([comp, elements], i) => [
         comp,

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { LoadingState, ErrorMessage, EmptyState } from '../../components/ui';
 import { useBoardList, useBoardDetail, type Lens } from './useBoard';
 import { FlowEdges, useEdges, type EdgeSpec } from './FlowEdges';
-import LensBar, { LegendItem, type WorkspaceLens } from './LensBar';
+import LensBar, { type WorkspaceLens } from './LensBar';
 import BrownfieldPanel from './BrownfieldPanel';
 import NormalizeColumn from './NormalizeColumn';
 import GreenfieldColumn from './GreenfieldColumn';
@@ -112,7 +112,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
   const [zoom, setZoom] = useState(1);
 
   const { data: boards, loading: listLoading, error: listError } = useBoardList({ lens });
-  const { data: board, loading, error } = useBoardDetail(boardId);
+  const { data: board, loading, error, refetch } = useBoardDetail(boardId);
 
   // Default the selected board to the first in the list for the active lens.
   useEffect(() => {
@@ -268,12 +268,6 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
           setBoardId(id);
           setSelected(null);
         }}
-        legend={
-          <>
-            <LegendItem color={GREEN} label="correct — stays" />
-            <LegendItem color={RED} label="needs to move" />
-          </>
-        }
       />
       {selected && <TraceBreadcrumb finding={selected} destination={destination} />}
 
@@ -317,11 +311,17 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
               selectedFindingId={selected?.id ?? null}
               onSelectFinding={setSelected}
             />
-            <NormalizeColumn board={board} activeLayer={activeLayer} findings={scoped} />
+            <NormalizeColumn
+              board={board}
+              activeLayer={activeLayer}
+              findings={scoped}
+              onResolved={refetch}
+            />
             <GreenfieldColumn
               microservices={board.microservices}
               components={board.components}
               findings={appScoped}
+              normalizationEntries={board.normalizationEntries}
             />
           </div>
         </div>

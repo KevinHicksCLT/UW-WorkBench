@@ -1,14 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { LoadingState, ErrorMessage, EmptyState } from '../../../components/ui';
+import { LoadingState, ErrorMessage, EmptyState, Select } from '../../../components/ui';
 import { useApi } from '../../../lib/useApi';
-import LensBar, { LegendItem, type WorkspaceLens } from '../LensBar';
+import LensBar, { type WorkspaceLens } from '../LensBar';
 import { FlowEdges, useEdges, type EdgeSpec } from '../FlowEdges';
 import { GREEN, AMBER, READABLE_FIT_MIN } from '../types';
 import ProductComparePanel from './ProductComparePanel';
 import ProductNormalizeColumn from './ProductNormalizeColumn';
 import ProductGreenfieldColumn from './ProductGreenfieldColumn';
-import { MATCH_META, buildComparison, lobOptions } from './spine';
-import type { ElementGroup, LobOption, MatchStatus, SpineTable, VersionColumn } from './spine';
+import { MATCH_META, buildComparison, lobOptions, allVersions } from './spine';
+import type {
+  ElementGroup,
+  LobOption,
+  MatchStatus,
+  ProductDecision,
+  ProductDecisionStatus,
+  SpineTable,
+  VersionColumn,
+} from './spine';
 
 // The Products lens of the Workspace — comparison over the REAL product spine:
 // pick an LOB (L2), pick which of its versions (L4) to compare, and the board
@@ -83,21 +91,49 @@ function TraceBreadcrumb({
   );
 }
 
-/** Which versions of the LOB sit on the board — 1..N, last chip can't drop. */
+/** Pool versions grouped by LOB for a <select>'s optgroups. */
+function poolByLob(pool: VersionColumn[]): { label: string; versions: VersionColumn[] }[] {
+  const byLob = new Map<string, { label: string; versions: VersionColumn[] }>();
+  for (const v of pool) {
+    const g = byLob.get(v.lobId) ?? { label: `${v.segmentName} · ${v.lobName}`, versions: [] };
+    g.versions.push(v);
+    byLob.set(v.lobId, g);
+  }
+  return [...byLob.values()];
+}
+
+const VERSION_SELECT_STYLE: React.CSSProperties = {
+  width: 'auto',
+  minWidth: 150,
+  maxWidth: 260,
+  height: 26,
+  padding: '0 24px 0 9px',
+  fontSize: 11.5,
+};
+
+/** Compare picker as compact dropdowns — one per version slot (grouped by LOB),
+ *  plus an add-dropdown. Small and clear, and versions from any LOB are one
+ *  option list apart (compare a Home policy against an Auto policy). */
 function VersionPicker({
-  versions,
+  pool,
   versionLevelName,
-  selectedIds,
-  onToggle,
-  onAll,
+  selected,
+  onReplace,
+  onAdd,
+  onRemove,
 }: {
-  versions: VersionColumn[];
+  pool: VersionColumn[];
   versionLevelName: string;
-  selectedIds: Set<string>;
-  onToggle: (id: string) => void;
-  onAll: () => void;
+  selected: VersionColumn[];
+  onReplace: (oldId: string, newId: string) => void;
+  onAdd: (id: string) => void;
+  onRemove: (id: string) => void;
 }) {
-  const allOn = selectedIds.size === versions.length;
+  const selectedIds = new Set(selected.map((v) => v.id));
+  const addable = pool.filter((v) => !selectedIds.has(v.id));
+  const groups = poolByLob(pool);
+  const addGroups = poolByLob(addable);
+
   return (
     <div
       style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}
@@ -105,73 +141,71 @@ function VersionPicker({
       <span style={{ fontSize: 11.5, fontWeight: 600, color: '#525252', marginRight: 2 }}>
         Compare
       </span>
-      {versions.map((v) => {
-        const on = selectedIds.has(v.id);
-        return (
-          <button
-            key={v.id}
-            type="button"
-            onClick={() => onToggle(v.id)}
-            title={`${v.productName} — ${v.name}${v.status ? ` · ${v.status}` : ''}`}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              height: 26,
-              padding: '0 11px',
-              borderRadius: 999,
-              border: `1px solid ${on ? '#171717' : '#e5e5e5'}`,
-              background: on ? '#171717' : '#fff',
-              color: on ? '#fff' : '#525252',
-              fontSize: 11.5,
-              fontWeight: 500,
-              cursor: 'pointer',
-              font: 'inherit',
-              whiteSpace: 'nowrap',
-            }}
+      {selected.map((v, i) => (
+        <span key={v.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+          {i > 0 && <span style={{ fontSize: 11, color: '#a3a3a3', marginRight: 2 }}>vs</span>}
+          <Select
+            aria-label={`Version ${i + 1}`}
+            value={v.id}
+            onChange={(e) => e.target.value && onReplace(v.id, e.target.value)}
+            style={VERSION_SELECT_STYLE}
           >
-            <span
+            {groups.map((g) => (
+              <optgroup key={g.label} label={g.label}>
+                {g.versions.map((o) => (
+                  // Keep this slot's own value plus versions not on another slot.
+                  <option key={o.id} value={o.id} disabled={o.id !== v.id && selectedIds.has(o.id)}>
+                    {o.lobName} › {o.productName} · {o.name}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </Select>
+          {selected.length > 1 && (
+            <button
+              type="button"
+              aria-label="Remove version"
+              title="Remove"
+              onClick={() => onRemove(v.id)}
               style={{
-                width: 13,
-                height: 13,
-                borderRadius: 4,
-                border: `1px solid ${on ? '#fff' : '#d4d4d4'}`,
-                background: on ? '#fff' : 'transparent',
-                color: '#171717',
-                fontSize: 9,
-                fontWeight: 800,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                border: 'none',
+                background: 'none',
+                color: '#a3a3a3',
+                fontSize: 14,
+                lineHeight: 1,
+                cursor: 'pointer',
+                padding: '0 2px',
+                font: 'inherit',
               }}
             >
-              {on ? '✓' : ''}
-            </span>
-            {v.productName} · {v.name}
-          </button>
-        );
-      })}
-      {!allOn && (
-        <button
-          type="button"
-          onClick={onAll}
-          style={{
-            border: 'none',
-            background: 'none',
-            color: '#525252',
-            fontSize: 11.5,
-            cursor: 'pointer',
-            textDecoration: 'underline',
-            font: 'inherit',
-          }}
+              ×
+            </button>
+          )}
+        </span>
+      ))}
+      {addable.length > 0 && (
+        <Select
+          aria-label="Add a version to compare"
+          value=""
+          onChange={(e) => e.target.value && onAdd(e.target.value)}
+          style={VERSION_SELECT_STYLE}
         >
-          compare all
-        </button>
+          <option value="">＋ Add version…</option>
+          {addGroups.map((g) => (
+            <optgroup key={g.label} label={g.label}>
+              {g.versions.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.lobName} › {o.productName} · {o.name}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </Select>
       )}
       <span style={{ fontSize: 11, color: '#a3a3a3', marginLeft: 4 }}>
-        {selectedIds.size === 1
+        {selected.length === 1
           ? `one ${versionLevelName.toLowerCase()} — its own decomposition`
-          : `${selectedIds.size} side by side`}
+          : `${selected.length} side by side`}
       </span>
     </div>
   );
@@ -211,24 +245,52 @@ export default function ProductBoard({
     table?.levels.find((l) => l.levelNumber === 4)?.name ?? 'Version / Jurisdiction';
   const lobLevelName = table?.levels.find((l) => l.levelNumber === 2)?.name ?? 'LOB';
 
+  // The full cross-LOB version pool — a comparison can pull versions from any
+  // LOB (Home vs Auto), not just the home LOB. The home LOB seeds the default.
+  const pool = useMemo(() => allVersions(lobs), [lobs]);
+
   const selectedVersionIds = useMemo(
     () => pickedVersionIds ?? new Set((lob?.versions ?? []).map((v) => v.id)),
     [pickedVersionIds, lob],
   );
+  // Keep spine order (segment → LOB → product → version), so cross-LOB picks
+  // stay grouped by their line on the board.
   const versions = useMemo(
-    () => (lob?.versions ?? []).filter((v) => selectedVersionIds.has(v.id)),
-    [lob, selectedVersionIds],
+    () => pool.filter((v) => selectedVersionIds.has(v.id)),
+    [pool, selectedVersionIds],
   );
+  const crossLob = useMemo(() => new Set(versions.map((v) => v.lobId)).size > 1, [versions]);
   const comparison = useMemo(() => buildComparison(versions), [versions]);
 
-  const toggleVersion = (id: string) => {
+  // Reviewer sign-off for this LOB's varies/unique groups (spine-derived groups
+  // have no persisted row, so the decision is stored + fetched by group key).
+  const { data: decisionRows, refetch: refetchDecisions } = useApi<ProductDecision[]>(
+    lob ? `/product-spine/decisions?lobId=${lob.id}` : null,
+  );
+  const decisions = useMemo(() => {
+    const m: Record<string, ProductDecisionStatus> = {};
+    for (const d of decisionRows ?? []) m[d.groupKey] = d.status;
+    return m;
+  }, [decisionRows]);
+
+  const addVersion = (id: string) => {
     const next = new Set(selectedVersionIds);
-    if (next.has(id)) {
-      if (next.size === 1) return; // at least one version stays on the board
-      next.delete(id);
-    } else {
-      next.add(id);
-    }
+    next.add(id);
+    setPickedVersionIds(next);
+    setSelected(null);
+  };
+  const removeVersion = (id: string) => {
+    if (selectedVersionIds.size === 1) return; // at least one version stays
+    const next = new Set(selectedVersionIds);
+    next.delete(id);
+    setPickedVersionIds(next);
+    setSelected(null);
+  };
+  const replaceVersion = (oldId: string, newId: string) => {
+    if (oldId === newId) return;
+    const next = new Set(selectedVersionIds);
+    next.delete(oldId);
+    next.add(newId);
     setPickedVersionIds(next);
     setSelected(null);
   };
@@ -312,14 +374,6 @@ export default function ProductBoard({
   if (loading) return <LoadingState message="Loading the product spine…" />;
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
 
-  const legend = (
-    <>
-      <LegendItem color={MATCH_META.COMMON.fg} label="common — every version" />
-      <LegendItem color={MATCH_META.PARTIAL.fg} label="varies — review" />
-      <LegendItem color={MATCH_META.UNIQUE.fg} label="unique — one version" />
-    </>
-  );
-
   const lensBar = (
     <LensBar
       lens={lens}
@@ -327,7 +381,6 @@ export default function ProductBoard({
       boards={lobs.map((l) => ({ id: l.id, name: `${l.segmentName} — ${l.name}` }))}
       boardId={lobId}
       onBoard={(id) => setLobId(id)}
-      legend={legend}
     />
   );
 
@@ -352,14 +405,12 @@ export default function ProductBoard({
     >
       {lensBar}
       <VersionPicker
-        versions={lob.versions}
+        pool={pool}
         versionLevelName={versionLevelName}
-        selectedIds={selectedVersionIds}
-        onToggle={toggleVersion}
-        onAll={() => {
-          setPickedVersionIds(null);
-          setSelected(null);
-        }}
+        selected={versions}
+        onReplace={replaceVersion}
+        onAdd={addVersion}
+        onRemove={removeVersion}
       />
       {selected && (
         <TraceBreadcrumb group={selected} versionCount={versions.length} lobName={lob.name} />
@@ -392,7 +443,7 @@ export default function ProductBoard({
           >
             <FlowEdges edges={edges} />
             <ProductComparePanel
-              title={lob.name}
+              title={crossLob ? `${lob.name} + other lines` : lob.name}
               versionLevelName={versionLevelName}
               versions={versions}
               comparison={comparison}
@@ -409,12 +460,16 @@ export default function ProductBoard({
               comparison={comparison}
               matchFilter={matchFilter}
               activeComponent={activeComponent}
+              lobId={lob.id}
+              decisions={decisions}
+              onResolved={refetchDecisions}
             />
             <ProductGreenfieldColumn
               lobName={lob.name}
               versions={versions}
               comparison={comparison}
               matchFilter={matchFilter}
+              decisions={decisions}
             />
           </div>
         </div>

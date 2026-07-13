@@ -1,18 +1,27 @@
-import { LAYERS, GREEN, STATUS_WEIGHT } from './types';
-import type { BoardComponent, BoardMicroservice, Finding, Layer } from './types';
+import { useState } from 'react';
+import { LAYERS, GREEN, STATUS_WEIGHT, formatTargetDate } from './types';
+import type {
+  BoardComponent,
+  BoardMicroservice,
+  Finding,
+  Layer,
+  NormalizationEntry,
+} from './types';
 
 // Right column — the green-field target rendered as an architecture cutaway:
 // ONE micro-site card per target service, opened up into its five layer slots
 // (UI → Integration → Business → Data → Infrastructure). Each slot is what
 // lands on that "floor" of the new build — the normalized component, how many
-// capabilities flow into it, and its migration status — and each slot is a
-// connector anchor, so the Normalize column's layers wire into the exact floor
-// they land on. A progress bar rolls the component statuses up to one number.
+// capabilities flow into it, its migration status, per-slot % complete and
+// target date — and each slot expands to list the normalized items that now
+// live there. Each slot is also a connector anchor, so the Normalize column's
+// layers wire into the exact floor they land on.
 
 interface Props {
   microservices: BoardMicroservice[];
   components: BoardComponent[];
   findings: Finding[];
+  normalizationEntries: NormalizationEntry[];
 }
 
 function statusTone(status: string): { border: string; shadow: string; label: string } {
@@ -43,24 +52,198 @@ function slotStatusChip(status: string) {
   );
 }
 
+/** One expandable layer slot — the floor of the new build. */
+function LayerSlot({
+  layer,
+  comp,
+  lives,
+  landed,
+  anchor,
+}: {
+  layer: Layer;
+  comp: BoardComponent;
+  /** Authored normalization entries landing on this floor (multi-source boards). */
+  lives: NormalizationEntry[];
+  /** The findings that carry into this floor (pass-through boards list these). */
+  landed: Finding[];
+  anchor: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const pct = Math.round((STATUS_WEIGHT[comp.migrationStatus] ?? 0) * 100);
+  const targetLabel = formatTargetDate(comp.targetDate);
+  // What actually landed here: authored entries if the board has them, else the
+  // pass-through findings (each carries 1→1 into the normalized model).
+  const inCount = lives.length > 0 ? lives.length : landed.length;
+  return (
+    <div
+      data-anchor={anchor}
+      style={{
+        border: '1px solid #d1fae5',
+        borderRadius: 8,
+        background: '#f8fffb',
+        overflow: 'hidden',
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          width: '100%',
+          padding: '6px 10px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          font: 'inherit',
+          textAlign: 'left',
+        }}
+      >
+        <span
+          style={{
+            color: '#059669',
+            fontSize: 9,
+            display: 'inline-block',
+            transform: open ? 'none' : 'rotate(-90deg)',
+            flexShrink: 0,
+          }}
+        >
+          ▾
+        </span>
+        <span
+          style={{ width: 8, height: 8, borderRadius: 999, background: GREEN, flexShrink: 0 }}
+        />
+        <span style={{ minWidth: 0, flex: 1 }}>
+          <span style={{ display: 'block', fontSize: 11, fontWeight: 700 }}>{layer}</span>
+          <span style={{ display: 'block', fontSize: 10.5, color: '#525252' }}>{comp.name}</span>
+        </span>
+        <span
+          style={{
+            fontSize: 10.5,
+            color: '#047857',
+            fontVariantNumeric: 'tabular-nums',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          }}
+        >
+          {inCount} in
+        </span>
+        {slotStatusChip(comp.migrationStatus)}
+      </button>
+
+      {/* per-slot progress + target date, always visible */}
+      <div style={{ padding: '0 10px 7px 26px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div
+            style={{
+              flex: 1,
+              height: 4,
+              borderRadius: 999,
+              background: '#d1fae5',
+              overflow: 'hidden',
+            }}
+          >
+            <div style={{ width: `${pct}%`, height: '100%', background: GREEN }} />
+          </div>
+          <span
+            style={{
+              fontSize: 9.5,
+              color: '#047857',
+              fontVariantNumeric: 'tabular-nums',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {pct}%
+          </span>
+        </div>
+        {targetLabel && (
+          <div style={{ fontSize: 9.5, color: '#6b7280', marginTop: 3 }}>
+            Target · {targetLabel}
+          </div>
+        )}
+      </div>
+
+      {open && (
+        <div
+          style={{
+            borderTop: '1px solid #d1fae5',
+            background: '#fff',
+            padding: '6px 10px 8px 26px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 5,
+          }}
+        >
+          {lives.length > 0 ? (
+            lives.map((e) => (
+              <div key={e.id} style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                {e.notation && (
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 800,
+                      color: '#4f46e5',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {e.notation}
+                  </span>
+                )}
+                <span style={{ fontSize: 11, color: '#1e1b4b', fontWeight: 600 }}>{e.name}</span>
+                <span style={{ fontSize: 10, color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                  {e.findingIds.length}→1
+                </span>
+              </div>
+            ))
+          ) : landed.length > 0 ? (
+            // Pass-through board: every finding on this floor carries 1→1 into the
+            // normalized model — list them all so the greenfield is comprehensive.
+            landed.map((f) => (
+              <div key={f.id} style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: '#166534', fontWeight: 700 }}>{f.name}</span>
+                  <span style={{ fontSize: 9.5, color: '#94a3b8', whiteSpace: 'nowrap' }}>1→1</span>
+                </div>
+                {f.plainSummary && (
+                  <span style={{ fontSize: 10, color: '#525252', lineHeight: 1.35 }}>
+                    {f.plainSummary}
+                  </span>
+                )}
+              </div>
+            ))
+          ) : (
+            <span style={{ fontSize: 10.5, color: '#a3a3a3' }}>Nothing lands on this floor.</span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function MicrositeCard({
   ms,
   components,
   findings,
+  normalizationEntries,
 }: {
   ms: BoardMicroservice;
   components: BoardComponent[];
   findings: Finding[];
+  normalizationEntries: NormalizationEntry[];
 }) {
   const tone = statusTone(ms.status);
   const mine = components.filter((c) => c.microserviceId === ms.id);
   const byLayer = new Map<Layer, BoardComponent>(mine.map((c) => [c.layer, c]));
-  const landing = (layer: Layer) =>
-    findings.filter((f) => f.layer === layer && !f.deadCode && f.capdan !== 'Eliminate').length;
+  // The findings that carry into a floor (not dead, not eliminated) — the
+  // pass-through normalized items listed when the board has no authored entries.
+  const landingFindings = (layer: Layer) =>
+    findings.filter((f) => f.layer === layer && !f.deadCode && f.capdan !== 'Eliminate');
   const progress =
     mine.length === 0
       ? 0
       : mine.reduce((a, c) => a + (STATUS_WEIGHT[c.migrationStatus] ?? 0), 0) / mine.length;
+  const msTarget = formatTargetDate(ms.targetDate);
 
   return (
     <div
@@ -95,11 +278,26 @@ function MicrositeCard({
         {ms.techStack && (
           <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{ms.techStack}</div>
         )}
-        {ms.ownerRole && (
-          <div style={{ fontSize: 11.5, color: GREEN, marginTop: 3, fontWeight: 600 }}>
-            Owner · {ms.ownerRole}
-          </div>
-        )}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '2px 12px',
+            marginTop: 3,
+          }}
+        >
+          {ms.ownerRole && (
+            <span style={{ fontSize: 11.5, color: GREEN, fontWeight: 600 }}>
+              Owner · {ms.ownerRole}
+            </span>
+          )}
+          {msTarget && (
+            <span style={{ fontSize: 11.5, color: '#6b7280', fontWeight: 600 }}>
+              Target · {msTarget}
+            </span>
+          )}
+        </div>
         {/* progress bar */}
         <div
           style={{
@@ -135,7 +333,6 @@ function MicrositeCard({
       >
         {LAYERS.map((layer) => {
           const comp = byLayer.get(layer);
-          const inCount = comp ? landing(layer) : 0;
           if (!comp) {
             return (
               <div
@@ -157,50 +354,16 @@ function MicrositeCard({
               </div>
             );
           }
+          const lives = normalizationEntries.filter((e) => e.componentId === comp.id);
           return (
-            <div
+            <LayerSlot
               key={layer}
-              data-anchor={`gf:${ms.id}:${layer}`}
-              style={{
-                border: '1px solid #d1fae5',
-                borderRadius: 8,
-                background: '#f8fffb',
-                padding: '6px 10px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-              }}
-            >
-              <span
-                style={{ width: 8, height: 8, borderRadius: 999, background: GREEN, flexShrink: 0 }}
-              />
-              <span style={{ minWidth: 0, flex: 1 }}>
-                <span style={{ display: 'block', fontSize: 11, fontWeight: 700 }}>{layer}</span>
-                <span
-                  style={{
-                    display: 'block',
-                    fontSize: 10.5,
-                    color: '#525252',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {comp.name}
-                </span>
-              </span>
-              <span
-                style={{
-                  fontSize: 10.5,
-                  color: '#047857',
-                  fontVariantNumeric: 'tabular-nums',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {inCount} in ›
-              </span>
-              {slotStatusChip(comp.migrationStatus)}
-            </div>
+              layer={layer}
+              comp={comp}
+              lives={lives}
+              landed={landingFindings(layer)}
+              anchor={`gf:${ms.id}:${layer}`}
+            />
           );
         })}
       </div>
@@ -208,7 +371,12 @@ function MicrositeCard({
   );
 }
 
-export default function GreenfieldColumn({ microservices, components, findings }: Props) {
+export default function GreenfieldColumn({
+  microservices,
+  components,
+  findings,
+  normalizationEntries,
+}: Props) {
   return (
     <div style={{ width: 340, flexShrink: 0, alignSelf: 'flex-start' }}>
       <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>
@@ -216,7 +384,13 @@ export default function GreenfieldColumn({ microservices, components, findings }
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {microservices.map((ms) => (
-          <MicrositeCard key={ms.id} ms={ms} components={components} findings={findings} />
+          <MicrositeCard
+            key={ms.id}
+            ms={ms}
+            components={components}
+            findings={findings}
+            normalizationEntries={normalizationEntries}
+          />
         ))}
         {microservices.length === 0 && (
           <div style={{ fontSize: 12, color: '#a3a3a3', textAlign: 'center', padding: 20 }}>

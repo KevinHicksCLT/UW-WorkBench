@@ -425,9 +425,7 @@ export default function ScreenView(props: Props) {
                                 fontSize: 12.5,
                                 fontWeight: moved ? 700 : 600,
                                 color: moved ? '#991b1b' : '#171717',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
+                                minWidth: 0,
                               }}
                             >
                               {f.name}
@@ -470,9 +468,7 @@ export default function ScreenView(props: Props) {
                                 color: '#94a3b8',
                                 fontFamily: 'ui-monospace, monospace',
                                 marginTop: 2,
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
+                                wordBreak: 'break-all',
                               }}
                             >
                               {f.codeRef}
