@@ -101,6 +101,51 @@ export function activeGroup(groups: NavGroup[], pathname: string): NavGroup | nu
   return groups.find((g) => g.children.some((c) => c.key === key)) ?? null;
 }
 
+// ── Static grouping (permission-agnostic) ────────────────────────────────────
+// The full group→pages map with no permission filter — the breadcrumb roots
+// every trail at the owning group from this single source (labels/order stay in
+// lock-step with the nav). Authz is a nav-render concern, not a breadcrumb one.
+export const NAV_GROUPS: readonly NavGroup[] = GROUP_SPECS.map((spec) => {
+  const children = spec.children.flatMap((c) => {
+    const node = NODE_BY_KEY.get(c.key);
+    return node?.path ? [{ key: c.key, label: c.label ?? node.label, path: node.path }] : [];
+  });
+  return { id: spec.id, label: spec.label, path: children[0]?.path ?? '/', children };
+});
+
+const STATIC_CHILDREN = NAV_GROUPS.flatMap((g) =>
+  g.children.map((c) => ({ group: g, child: c })),
+).sort((a, b) => b.child.path.length - a.child.path.length);
+
+/** The group + sub-tab owning a route, permission-agnostic — for the breadcrumb
+ *  root. Drill-down prefixes first, then longest child-path prefix. */
+export function groupCrumbFor(pathname: string): { group: NavGroup; child: NavItem } | null {
+  for (const { prefix, groupId } of GROUP_PATH_PREFIXES) {
+    if (pathname.startsWith(prefix)) {
+      const group = NAV_GROUPS.find((g) => g.id === groupId);
+      if (group) return { group, child: group.children[0] };
+    }
+  }
+  for (const { group, child } of STATIC_CHILDREN) {
+    if (child.path === '/') {
+      if (pathname === '/') return { group, child };
+      continue;
+    }
+    if (pathname === child.path || pathname.startsWith(`${child.path}/`)) return { group, child };
+  }
+  return null;
+}
+
+/** The sub-tab whose base path the route sits exactly on (not a drill route),
+ *  or null. `/` (the Home landing) is excluded — it is the trail root. */
+export function baseTabChild(pathname: string): NavItem | null {
+  if (pathname === '/') return null;
+  for (const { child } of STATIC_CHILDREN) {
+    if (child.path !== '/' && pathname === child.path) return child;
+  }
+  return null;
+}
+
 // Tab → the page's primary list endpoint, warmed on hover/focus so the page
 // paints instantly on click (api.get dedups, so the warm + the page's own fetch
 // share one round-trip). Company-scoped endpoints must match the page's exact
