@@ -16,6 +16,7 @@ import { requirePermission } from '../../middleware/permissions.js';
 import { registerTemplateRoutes } from './templates.js';
 import { registerPlanRoutes } from './plan.js';
 import { registerOptionRoutes } from './options.js';
+import { registerSkillRoutes } from './skill.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -24,5 +25,6 @@ router.use(requirePermission('work-library'));
 registerTemplateRoutes(router);
 registerPlanRoutes(router);
 registerOptionRoutes(router);
+registerSkillRoutes(router);
 
 export default router;

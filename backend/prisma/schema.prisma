@@ -540,6 +540,8 @@ model ProcessNode {
   description        String? // atomic task: what is done / definition of done
   isTask             Boolean          @default(false)
   automatability     String? // manual | augmented | automated
+  agentSkill            String?   // slug → generated agent-skill pack in SkillFile (task-scoped, e.g. "task-<id>")
+  agentSkillGeneratedAt DateTime? // when the task's agent-skill pack was last (re)generated
   sortOrder          Int              @default(0)
   code               String?
   attributes         Json?
@@ -1396,11 +1398,12 @@ model AgentSkill {
   @@index([taskNodeId])
 }
 
-// Hand-authored compliance skill-pack files (SKILL.md + references/data/etc.),
-// served from the DB so prod/serverless doesn't depend on the repo filesystem.
-// Generated (per-category) packs are NOT stored here — they're built on demand
-// from Standard rows (see lib/skillPacks.ts). Only the hand-authored KEEP packs
-// (ccpa/gdpr/nydfs/sox/acord) live here.
+// Persisted skill-pack files (SKILL.md + references/data/etc.), served from the
+// DB so prod/serverless doesn't depend on the repo filesystem. Standards' hand-
+// authored KEEP packs (ccpa/gdpr/nydfs/sox/acord) live here; per-category packs
+// are built on demand instead (see lib/skillPacks.ts). Task agent-skill packs
+// (skill = "task-<nodeId>") are also stored here — generated once from a task's
+// plan (lib/taskSkillPack.ts), then editable and preserved.
 model SkillFile {
   id        String   @id @default(cuid())
   companyId String
