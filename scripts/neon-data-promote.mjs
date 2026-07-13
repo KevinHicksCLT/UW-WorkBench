@@ -121,20 +121,50 @@ console.log(`Snapshot backup created: "${backupName}" (child of ${targetName}).`
 const run = (cmd, args, opts = {}) =>
   execFileSync(cmd, args, { stdio: ['ignore', 'inherit', 'inherit'], ...opts });
 
+// ── Platform-managed schemas are NEVER part of a promotion. Neon features
+// (Neon Auth → `auth`/`neon_auth`, Data API → `pgrst`, …) install schemas the
+// connected role does not own — DROP fails with "must be owner of schema" and
+// they hold platform state, not app data. The app's dataset is exactly the
+// schemas owned by the connected role; everything else is preserved on the
+// target and excluded from the dump so the restore never collides with it.
+const capture = (cmd, args) =>
+  execFileSync(cmd, args, { stdio: ['ignore', 'pipe', 'inherit'] }).toString();
+const UNOWNED_SQL = `
+  SELECT n.nspname FROM pg_catalog.pg_namespace n
+   WHERE pg_catalog.pg_get_userbyid(n.nspowner) <> current_user
+     AND n.nspname <> 'information_schema' AND n.nspname NOT LIKE 'pg\\_%'`;
+const unownedSchemas = (url) =>
+  capture('psql', [url, '-t', '-A', '-v', 'ON_ERROR_STOP=1', '-c', UNOWNED_SQL])
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean);
+const preserved = [...new Set([...unownedSchemas(sourceUrl), ...unownedSchemas(targetUrl)])];
+if (preserved.length)
+  console.log(`Platform-managed schemas preserved (not dumped, not dropped): ${preserved.join(', ')}`);
+
 console.log('Dumping source…');
-run('pg_dump', ['--format=custom', '--no-owner', '--no-privileges', '--file=promote.dump', sourceUrl]);
+run('pg_dump', [
+  '--format=custom',
+  '--no-owner',
+  '--no-privileges',
+  ...preserved.flatMap((s) => ['--exclude-schema', s]),
+  '--file=promote.dump',
+  sourceUrl,
+]);
 
 console.log('Resetting target schemas…');
-// Drop EVERY user schema (public + legacy operating_model + any future ones)
-// so the restore lands on an empty database — a partial reset collides with
-// objects the dump also carries ("already exists", pg_restore exit 1).
+// Drop every schema the connected role OWNS (public + legacy operating_model +
+// any future app schemas) so the restore lands on an empty dataset — a partial
+// reset collides with objects the dump also carries ("already exists",
+// pg_restore exit 1). Unowned (platform) schemas are left in place.
 const RESET_SQL = `
   DO $$ DECLARE s text; BEGIN
-    FOR s IN SELECT schema_name FROM information_schema.schemata
-             WHERE schema_name NOT IN ('information_schema') AND schema_name NOT LIKE 'pg\\_%'
+    FOR s IN SELECT n.nspname FROM pg_catalog.pg_namespace n
+             WHERE pg_catalog.pg_get_userbyid(n.nspowner) = current_user
+               AND n.nspname <> 'information_schema' AND n.nspname NOT LIKE 'pg\\_%'
     LOOP EXECUTE format('DROP SCHEMA %I CASCADE', s); END LOOP;
   END $$;
-  CREATE SCHEMA public;`;
+  CREATE SCHEMA IF NOT EXISTS public;`;
 run('psql', [targetUrl, '-v', 'ON_ERROR_STOP=1', '-c', RESET_SQL]);
 
 console.log('Restoring into target…');
