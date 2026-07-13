@@ -34,30 +34,8 @@ function VersionHead({ version, comparison }: { version: VersionColumn; comparis
   }
   return (
     <div style={{ padding: '8px 10px', borderRight: '1px solid #f1f1f1', minWidth: 0 }}>
-      <div
-        style={{
-          fontSize: 12.5,
-          fontWeight: 700,
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-        }}
-        title={`${version.productName} — ${version.name}`}
-      >
-        {version.name}
-      </div>
-      <div
-        style={{
-          fontSize: 10.5,
-          color: '#a3a3a3',
-          marginTop: 1,
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-        }}
-      >
-        {version.productName}
-      </div>
+      <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.3 }}>{version.name}</div>
+      <div style={{ fontSize: 10.5, color: '#a3a3a3', marginTop: 1 }}>{version.productName}</div>
       <div style={{ display: 'flex', gap: 4, marginTop: 5, flexWrap: 'wrap' }}>
         {version.status && (
           <span
@@ -142,22 +120,20 @@ function ElementCard({
         {el.element}
       </div>
       {el.description && (
-        <div
-          style={{
-            fontSize: 10,
-            color: '#525252',
-            lineHeight: 1.35,
-            marginTop: 2,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}
-        >
+        <div style={{ fontSize: 10, color: '#525252', lineHeight: 1.35, marginTop: 2 }}>
           {el.description}
         </div>
       )}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4, minWidth: 0 }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          gap: 5,
+          marginTop: 4,
+          minWidth: 0,
+          flexWrap: 'wrap',
+        }}
+      >
         {group.status !== 'SINGLE' && (
           <span
             style={{
@@ -168,6 +144,7 @@ function ElementCard({
               color: '#fff',
               background: meta.fg,
               whiteSpace: 'nowrap',
+              flexShrink: 0,
             }}
           >
             {meta.label}
@@ -179,11 +156,9 @@ function ElementCard({
               fontSize: 9,
               color: '#a3a3a3',
               fontFamily: 'ui-monospace, monospace',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              wordBreak: 'break-all',
+              minWidth: 0,
             }}
-            title={el.livesIn}
           >
             {el.livesIn}
           </span>
@@ -226,27 +201,22 @@ export default function ProductComparePanel(props: Props) {
         alignSelf: 'flex-start',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 26 }}>
-        <span
-          style={{
-            fontSize: 17,
-            fontWeight: 700,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          {title}
-        </span>
-        <span style={{ fontSize: 11, color: '#a3a3a3', whiteSpace: 'nowrap' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, minHeight: 26 }}>
+        <span style={{ fontSize: 17, fontWeight: 700 }}>{title}</span>
+        <span style={{ fontSize: 11, color: '#a3a3a3' }}>
           {versions.length} {versionLevelName.toLowerCase()}
-          {versions.length === 1 ? '' : 's'} · {comparison.rawCount} elements
+          {versions.length === 1 ? '' : 's'} · {comparison.rawCount} elements →{' '}
+          {comparison.normalizedCount} distinct concepts
         </span>
       </div>
 
-      {/* Match counters double as filters (multi-version comparisons only). */}
+      {/* Match counters double as filters (multi-version comparisons only). Each
+          says how many of the distinct concepts fall in that match class. */}
       {!single && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 11, color: '#525252', marginRight: 2 }}>
+            Of {comparison.normalizedCount} concepts:
+          </span>
           {filterable.map((s) => {
             const meta = MATCH_META[s];
             const active = matchFilter === s;
@@ -405,20 +375,11 @@ export default function ProductComparePanel(props: Props) {
         })}
       </div>
 
-      <div style={{ fontSize: 11.5, color: '#a3a3a3', lineHeight: 1.5 }}>
-        {single ? (
-          <>One version — its own decomposition. Add versions to compare.</>
-        ) : (
-          <>
-            Rows align the same model component across versions —{' '}
-            <span style={{ color: MATCH_META.COMMON.fg, fontWeight: 600 }}>Common</span> carries
-            into the greenfield model as one element,{' '}
-            <span style={{ color: MATCH_META.PARTIAL.fg, fontWeight: 600 }}>Varies</span> /{' '}
-            <span style={{ color: MATCH_META.UNIQUE.fg, fontWeight: 600 }}>Unique</span> need a
-            normalize decision. Click an element for its trace.
-          </>
-        )}
-      </div>
+      {single && (
+        <div style={{ fontSize: 11.5, color: '#a3a3a3', lineHeight: 1.5 }}>
+          One version — its own decomposition. Add versions to compare.
+        </div>
+      )}
     </div>
   );
 }

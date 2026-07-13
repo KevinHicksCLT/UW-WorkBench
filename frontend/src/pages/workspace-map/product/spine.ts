@@ -43,6 +43,11 @@ export interface VersionColumn {
   name: string;
   status: string | null;
   productName: string;
+  /** The owning LOB (L2) and segment (L1) — so versions can be compared across
+   *  LOBs (e.g. a Home policy vs an Auto policy) and still show their origin. */
+  lobId: string;
+  lobName: string;
+  segmentName: string;
   /** component name → that component node (with its parsed elements). */
   components: Map<string, { node: SpineNode; elements: ComponentElement[] }>;
 }
@@ -55,6 +60,14 @@ export interface LobOption {
 }
 
 export type MatchStatus = 'COMMON' | 'PARTIAL' | 'UNIQUE' | 'SINGLE';
+
+/** Reviewer sign-off for a varies/unique element group (GET /product-spine/decisions). */
+export type ProductDecisionStatus = 'APPROVED' | 'HELD';
+export interface ProductDecision {
+  groupKey: string;
+  component: string;
+  status: ProductDecisionStatus;
+}
 
 /** One normalized element — the same concern matched across versions. */
 export interface ElementGroup {
@@ -151,6 +164,9 @@ export function lobOptions(table: SpineTable): LobOption[] {
             name: version.name,
             status: version.status,
             productName: product.name,
+            lobId: lob.id,
+            lobName: lob.name,
+            segmentName: segment.name,
             components,
           });
         }
@@ -161,6 +177,11 @@ export function lobOptions(table: SpineTable): LobOption[] {
     }
   }
   return out;
+}
+
+/** Every comparable version across every LOB, spine order preserved. */
+export function allVersions(lobs: LobOption[]): VersionColumn[] {
+  return lobs.flatMap((l) => l.versions);
 }
 
 /**

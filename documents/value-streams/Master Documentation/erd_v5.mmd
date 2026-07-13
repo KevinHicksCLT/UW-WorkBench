@@ -84,6 +84,8 @@ erDiagram
     string displayValue "EDITABLE label"
     bool isTask
     string automatability "manual|augmented|automated"
+    string agentSkill "slug -> generated pack in SkillFile (task-scoped)"
+    datetime agentSkillGeneratedAt "when task agent-skill pack last (re)generated"
     int sortOrder "<- Seq"
     string code
     json attributes "Verified/Issues"
@@ -780,6 +782,7 @@ erDiagram
     string name
     string microserviceId FK "nullable"
     string migrationStatus
+    datetime targetDate "nullable — per-layer migration target"
   }
   RationalizationCapability {
     string status "decomposed capability; keep vs anti-pattern"
@@ -829,6 +832,7 @@ erDiagram
     string name
     string kind "Microservice|Application"
     string ownerRoleId FK "-> Role (nullable; was ownerRole)"
+    datetime targetDate "nullable — go-live target"
   }
   RationalizationPlanStep {
     string status "migration plan wave/step"
@@ -854,6 +858,16 @@ erDiagram
     string differenceNote "nullable"
     string proposedResolution "HELD cards (nullable)"
     json sourceCards "v3 side-by-side source cards (nullable)"
+  }
+  ProductNormalizationDecision {
+    string status "products-lens review sign-off for a spine-derived element group"
+    string id PK
+    string companyId FK
+    string lobNodeId "-> ProductNode (L2 LOB compared)"
+    string component "L5 model-component row token"
+    string groupKey "ElementGroup.key (component::signature), unique per LOB"
+    string status_ "APPROVED|HELD"
+    string decidedBy "nullable"
   }
   WorkspaceVocabulary {
     string status "DB-driven board vocabulary (replaces hardcoded FE constants)"

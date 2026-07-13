@@ -21,6 +21,7 @@ import type { Plan, SubjectType, Template } from './shared';
 import { PatternDropdown } from './controls';
 import { PlanBlock } from './PlanBlock';
 import { TiedBlock } from './TiedBlock';
+import { TaskSkillBlock } from './TaskSkillBlock';
 import { TemplatesEditor } from './TemplatesEditor';
 import { SubjectPicker } from './SubjectPicker';
 
@@ -210,6 +211,7 @@ export default function WorkLibrary() {
                         taskId={plan.subject.id}
                         refetch={refetchPlan}
                       />
+                      <TaskSkillBlock taskId={plan.subject.id} taskName={plan.subject.name} />
                     </>
                   )}
                 </>

@@ -91,12 +91,6 @@ export default function BrownfieldPanel(props: Props) {
         selectedFindingId={selectedFindingId}
         onSelectFinding={onSelectFinding}
       />
-
-      <div style={{ marginTop: 'auto', fontSize: 11.5, color: '#a3a3a3', lineHeight: 1.5 }}>
-        <span style={{ color: GREEN, fontWeight: 600 }}>Green</span> = right layer.{' '}
-        <span style={{ color: RED, fontWeight: 600 }}>Red</span> = misplaced, shows where it goes.
-        Click a step for detail.
-      </div>
     </div>
   );
 }
