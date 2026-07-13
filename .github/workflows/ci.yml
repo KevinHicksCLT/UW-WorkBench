@@ -111,12 +111,27 @@ jobs:
           VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
         run: |
           npx vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
-          # URL arrives on stdout; CLI hints go to stderr — don't merge them.
           # The preview runs against the feature's own Neon branch (forked from
           # develop) — deployment-scoped env, no project-level settings touched.
-          url=$(npx vercel deploy --token="$VERCEL_TOKEN" \
+          # Vercel CANCELS builds its Ignored Build Step deems skippable (e.g.
+          # a scripts/docs-only branch touches nothing deployable) and the CLI
+          # exits 1 for them — that is a skip, not a failure. Real build
+          # errors still fail the job.
+          set +e
+          out=$(npx vercel deploy --token="$VERCEL_TOKEN" \
             --env DATABASE_URL="${{ steps.db.outputs.POOLED_URL }}" \
-            --env DIRECT_URL="${{ steps.db.outputs.DIRECT_URL }}")
+            --env DIRECT_URL="${{ steps.db.outputs.DIRECT_URL }}" 2>&1)
+          code=$?
+          set -e
+          echo "$out"
+          if [ $code -ne 0 ]; then
+            if echo "$out" | grep -q "The deployment has been canceled"; then
+              echo "Preview skipped: Vercel canceled the build (no deployable changes on this branch)." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            exit $code
+          fi
+          url=$(echo "$out" | grep -oE 'https://[^ ]+\.vercel\.app' | tail -1)
           echo "Preview deployed after green gates: $url"
           echo "$url" >> "$GITHUB_STEP_SUMMARY"
 
