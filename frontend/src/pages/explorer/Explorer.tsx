@@ -6,7 +6,13 @@ import MapCanvas from '../../viz/map/MapCanvas';
 import ListExplorer from '../../components/ListExplorer';
 import { TocBack, TocView, ViewPills, type TocRow } from '../../components/TocView';
 import type { DivisionSummary } from '../../viz/model';
-import { ErrorMessage, LoadingState } from '../../components/ui';
+import { Chip, ErrorMessage, LoadingState } from '../../components/ui';
+import {
+  LENS_GENERIC,
+  VariantLensBar,
+  lensFromParams,
+  type LensDimension,
+} from '../../viz/map/VariantLensBar';
 
 type View = 'toc' | 'map' | 'list';
 
@@ -65,21 +71,25 @@ function ValueStreamToc({
         onClick: () => onPick(s.id),
       }));
     return (
-      <TocView
-        rows={rows}
-        nameLabel="Value stream"
-        countLabel="Processes"
-        extraLabel="Process areas"
-        unit="value streams"
-        searchPlaceholder="Search value stream…"
-        leading={
-          <>
-            {leading}
-            <TocBack label="All domains" onClick={() => setDomain(null)} />
-          </>
-        }
-        totals={`${domain} · ${rows.length} value streams · ${rows.reduce((a, r) => a + r.count, 0)} processes`}
-      />
+      <>
+        <TocTotals
+          text={`${domain} · ${rows.length} value streams · ${rows.reduce((a, r) => a + r.count, 0)} processes`}
+        />
+        <TocView
+          rows={rows}
+          nameLabel="Value stream"
+          countLabel="Processes"
+          extraLabel="Process areas"
+          unit="value streams"
+          searchPlaceholder="Search value stream…"
+          leading={
+            <>
+              {leading}
+              <TocBack label="All domains" onClick={() => setDomain(null)} />
+            </>
+          }
+        />
+      </>
     );
   }
 
@@ -102,17 +112,28 @@ function ValueStreamToc({
       onClick: () => setDomain(name),
     }));
   return (
-    <TocView
-      rows={rows}
-      nameLabel="Domain"
-      countLabel="Processes"
-      extraLabel="Value streams"
-      unit="domains"
-      searchPlaceholder="Search domain…"
-      leading={leading}
-      totals={`${rows.length} domains · ${streams.length} value streams · ${rows.reduce((a, r) => a + r.count, 0)} processes`}
-    />
+    <>
+      <TocTotals
+        text={`${rows.length} domains · ${streams.length} value streams · ${rows.reduce((a, r) => a + r.count, 0)} processes`}
+      />
+      <TocView
+        rows={rows}
+        nameLabel="Domain"
+        countLabel="Processes"
+        extraLabel="Value streams"
+        unit="domains"
+        searchPlaceholder="Search domain…"
+        leading={leading}
+      />
+    </>
   );
+}
+
+// Module totals on their own line ABOVE the pills/lens strip — the strip is
+// too crowded to also hold the totals without wrapping (they used to sit
+// inline via TocView's `totals` prop).
+function TocTotals({ text }: { text: string }) {
+  return <div className="pb-2 text-[11px] text-[#737373] tnum">{text}</div>;
 }
 
 export default function Explorer() {
@@ -223,19 +244,64 @@ export default function Explorer() {
   // BreadcrumbBar) and MapCanvas portals into it — no in-page header strip.
   const crumbSlot = useHeaderBreadcrumbSlot(view === 'map');
 
+  // Variant lens (map view) — Market › Segment › LOB › Cross-cutting, every
+  // axis defaulting to the generic model. Picks live in the URL like the rest
+  // of the view state; generic picks are simply absent params.
+  const lens = lensFromParams(searchParams);
+  const lensActive = Object.values(lens).some((v) => v !== LENS_GENERIC);
+  const setLens = useCallback(
+    (dimension: LensDimension['key'], value: string) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (value === LENS_GENERIC) next.delete(dimension);
+          else next.set(dimension, value);
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
+
   const pillOptions = [
     { key: 'toc' as const, label: 'TOC' },
     { key: 'map' as const, label: 'Map' },
     { key: 'list' as const, label: 'List' },
   ];
 
+  // One lens bar instance shared by all three views (TOC header strip, list
+  // header strip, floating row on the map). All axes start Generic; until the
+  // variant tables land a non-generic pick is annotational only.
+  const lensBar = (
+    <VariantLensBar
+      lens={lens}
+      onChange={setLens}
+      trailing={
+        lensActive ? (
+          <Chip
+            variant="soft"
+            title="Variant deltas are not seeded yet; the generic model is shown."
+          >
+            Generic shown
+          </Chip>
+        ) : undefined
+      }
+    />
+  );
+
   return (
     <div className="flex flex-col h-full min-h-0">
       <div className="relative flex-1 min-h-0 overflow-hidden">
         {/* TOC hosts the pills inline in its header strip; the full-bleed
             surfaces (map/list) get the hovering toggle. */}
-        {view !== 'toc' && (
-          <ViewPills floating options={pillOptions} view={view} onChange={setView} />
+        {/* Map is the only full-bleed surface that needs the hovering controls;
+            TOC and List host the pills + lens inline in their header strips. */}
+        {view === 'map' && (
+          <div className="map-float-controls absolute top-3 left-4 z-20 flex items-center gap-3">
+            <ViewPills options={pillOptions} view={view} onChange={setView} />
+            {lensBar}
+          </div>
         )}
 
         {view === 'toc' ? (
@@ -243,7 +309,12 @@ export default function Explorer() {
             <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-6">
               <ValueStreamToc
                 onPick={pickFromToc}
-                leading={<ViewPills options={pillOptions} view={view} onChange={setView} />}
+                leading={
+                  <>
+                    <ViewPills options={pillOptions} view={view} onChange={setView} />
+                    {lensBar}
+                  </>
+                }
               />
             </div>
           </div>
@@ -254,6 +325,8 @@ export default function Explorer() {
             streams={streams}
             focusVsId={focusVsId}
             focusVsName={focusVsName}
+            leading={<ViewPills options={pillOptions} view={view} onChange={setView} />}
+            lensBar={lensBar}
           />
         ) : loading ? (
           <div className="h-full grid place-items-center">

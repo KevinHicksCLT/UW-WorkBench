@@ -1,0 +1,1877 @@
+{
+  "tasks": [
+    {
+      "id": "cmr2fksvf1k53kfgzgiux14w8",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "Earnix Rating & Pricing", "usageType": "performed" },
+        { "name": "underwriting workstation", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The single account being priced; scope = the derived premium for one commercial account (ACCT-####) in the current pricing worksheet, comparing the technical/target premium against the filed minimum premium for that class and state."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The account's current new-business or renewal pricing cycle, from rating start to quote release (typically a 5-business-day window); only the rate filing in effect on the policy effective date is used."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z103ywmbk8rqplgsa0"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Exposure base, class code, state, filed minimum-premium factor and any short-rate/expense constants are populated in Earnix; a blank class code, state or minimum-premium factor halts the calculation until corrected."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The minimum premium computed in Earnix reconciles to the filed rate manual value for the class/state to the cent (delta = 0); the greater of technical premium and filed minimum is carried forward and the tie-break rule is logged."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The Earnix pricing worksheet and minimum-premium derivation are saved to OpenText under /UW/<policy-no>/pricing/ with timestamp and version v-n; rating audit record retained 7 years per the file-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Any account where technical premium falls below the filed minimum is logged as an exception in the underwriting workstation with disposition (apply filed minimum / refer for deviation on Senior Underwriter approval) and reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Rating performed on the currently approved rate/rule version in Earnix (filing SERFF-tracking #, effective this policy period); superseded rate versions are locked and cannot be selected."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03w2mbk84o4w6iug" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity checked by re-running the minimum-premium calc at +/-10% exposure; a swing greater than the class expected band is flagged for review before the figure is accepted."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality threshold = any minimum-premium variance over $250 or 5% of technical premium (whichever is lower) must be explained in the file before the price is locked."
+        },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Pre/post: the Earnix minimum-premium output for this account is compared against the prior rate version and the rate-manual worked example; the two agree within rounding before the new figure is committed."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "Any rate-table change underlying the minimum premium is tied to the ServiceNow CHG record for the Earnix rate deployment and the SERFF filing reference; recorded on the pricing worksheet."
+        },
+        {
+          "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "Re-perform the minimum-premium calculation for 25 priced accounts per quarter, spread across personal, commercial and specialty lines and across states."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = re-performed minimum premium equals the system value to the cent and the greater-of rule was applied for 100% of sampled accounts; FAIL = any account quoted below the filed minimum without an approved deviation."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "On FAIL the account is returned to the Underwriter for re-rating, the quote is withheld, and a deviation referral to a Senior Underwriter is opened with a 3-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "Approved Earnix rate/rule version for the effective period (SERFF-tracking #); the minimum-premium algorithm version is recorded on the worksheet."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "Parameters (minimum-premium factors, expense constants, class relativities) sourced from the filed rate manual loaded into Earnix; no manually keyed factors outside the filing."
+        },
+        {
+          "answerId": "cmr2ocdxf0ukokaz3ub4sowjo",
+          "value": "Source-system field definitions taken from the Earnix rate-manual data dictionary (class_code, state, exposure_base, min_premium_factor, expense_constant); control total = filed minimum-premium value per class/state, which must reconcile to the rate manual with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpph41o96mbk860mhz8r7",
+          "checklist": [
+            {
+              "step": "Enforce the filed minimum premium on every account",
+              "value": "Earnix carries the greater of technical premium and the filed class/state minimum; the quote cannot release below the filed minimum without an approved deviation."
+            },
+            {
+              "step": "Document the minimum-premium basis in the file",
+              "value": "The filed minimum-premium factor and its rate-manual reference are recorded on the pricing worksheet in /UW/<policy-no>/pricing/."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample quotes for minimum-premium compliance",
+              "value": "For 25 quoted accounts per quarter, 100% are at or above the filed minimum or carry an approved deviation."
+            },
+            {
+              "step": "Re-derive the minimum on sampled files",
+              "value": "Re-performed minimum equals the filed rate-manual value for the class/state; 0 unexplained variances."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppg71o94mbk8gdzbxh5q",
+          "checklist": [
+            {
+              "step": "Perform the calculation in the mandated rating tool",
+              "value": "Minimum premium is computed in Earnix using the loaded filing; spreadsheet side-calcs are not used to set price."
+            },
+            {
+              "step": "Lock the rating version used",
+              "value": "Only the approved Earnix rate version for the effective period is selectable; superseded versions are disabled."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm tool usage on sampled accounts",
+              "value": "For sampled accounts, the premium of record originates from an Earnix run (rating session ID present); 0 off-system prices."
+            },
+            {
+              "step": "Confirm rate version currency",
+              "value": "Every sampled run used the approved rate version effective on the policy date."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Retain the full rating audit trail",
+              "value": "Earnix rating session, inputs and minimum-premium output are archived to OpenText /UW/<policy-no>/pricing/ with version and timestamp."
+            },
+            {
+              "step": "Link the derivation to its rate filing",
+              "value": "The worksheet cites the SERFF filing/tracking number for the minimum-premium factors used."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect audit-trail completeness",
+              "value": "For 25 sampled accounts, 100% have a retrievable rating session and stored worksheet."
+            },
+            {
+              "step": "Trace factors to the filing",
+              "value": "Sampled minimum-premium factors trace to the cited filed rate manual; 0 orphan factors."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "5d3e7e56-f306-4766-bdad-6dd02a55176c",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "Earnix Rating & Pricing", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The single account under negotiation; scope = the acceptable price floor for one account (ACCT-####), set as the lowest premium that still meets the portfolio loss-ratio and profitability target for that segment."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The account's current pricing/negotiation cycle; the floor is set against the profitability targets in force for the current underwriting-year plan."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z103ywmbk8rqplgsa0"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Target loss ratio, expense ratio, permissible loss ratio and technical premium for the segment are populated from the plan; a missing target ratio blocks the floor from being set."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The derived floor reconciles to technical premium x (permissible loss ratio / target loss ratio); the resulting combined-ratio at the floor is confirmed to sit at or below the segment target (delta from target <= 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The price-floor rationale and the target-ratio inputs are saved to OpenText /UW/<policy-no>/pricing/ with timestamp and version v-n; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "If the market/broker target is below the computed floor, an exception is logged in the underwriting workstation with disposition (hold floor / decline / refer for portfolio exception to Senior Underwriter) and reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Floor derived using the approved pricing methodology and the current plan permissible-loss-ratio version; superseded plan targets are not used."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03w2mbk84o4w6iug" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Floor is stress-tested against +5 loss-ratio points; if the account no longer clears the target under stress, the floor is raised or the account is referred."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality threshold = any negotiated price within 3% of the floor triggers documented Senior Underwriter review before a binding quote is issued."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "25 accounts per quarter where a documented price floor was set, sampled across segments and lines."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = the documented floor meets or exceeds the technical/target-profitability floor and is present in the file for 100% of sampled accounts; FAIL = any bound account priced below the documented floor without an approved exception."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Accounts priced below floor are routed to a Senior Underwriter for portfolio-exception approval or repricing; logged with a 3-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = a documented price floor exists, is tied to the segment profitability target, and any price at/below it carries approver sign-off."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence stored in OpenText /UW/<policy-no>/pricing/ (floor rationale + target inputs), cross-linked from the Earnix pricing session and the underwriting workstation."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppf71o92mbk8voyj74ly",
+          "checklist": [
+            {
+              "step": "Tie the floor to the line-of-business loss-ratio target",
+              "value": "The price floor is set so the account's expected loss ratio does not exceed the segment target in the underwriting-year plan."
+            },
+            {
+              "step": "Record the target basis",
+              "value": "Target and permissible loss ratios used are recorded on the floor worksheet in /UW/<policy-no>/pricing/."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify floors respect loss-ratio targets",
+              "value": "For 25 sampled accounts, the documented floor yields an expected loss ratio at or below target for 100%."
+            },
+            {
+              "step": "Check below-floor bindings",
+              "value": "0 sampled accounts bound below floor without an approved portfolio exception."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppa51o8smbk82mw0frsj",
+          "checklist": [
+            {
+              "step": "Obtain actuarial input on large-account floors",
+              "value": "For accounts above the large-account premium threshold, a Pricing Actuary reviews the profitability basis before the floor is finalised."
+            },
+            {
+              "step": "Document the actuarial reasonableness check",
+              "value": "Actuarial sign-off note is stored with the floor rationale for large accounts."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm actuarial review on large accounts",
+              "value": "100% of sampled large accounts show a documented Pricing Actuary review of the floor."
+            },
+            {
+              "step": "Confirm threshold application",
+              "value": "Every account over the large-account threshold in the sample was routed for actuarial review."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppd31o8ymbk8q4zpd8lh",
+          "checklist": [
+            {
+              "step": "Document the pricing rationale",
+              "value": "The reasoning behind the floor (targets, stress result, competitive context) is written to the file, not held informally."
+            },
+            {
+              "step": "Capture approver context",
+              "value": "Where the negotiated price nears the floor, the Senior Underwriter review and decision are documented."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect documentation completeness",
+              "value": "For 25 sampled accounts, 100% have a written floor rationale in the file."
+            },
+            {
+              "step": "Verify near-floor approvals",
+              "value": "Every sampled price within 3% of floor shows a documented approver decision."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "9931c935-8a93-45e8-a914-20e59739e2f5",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [],
+      "addApps": [
+        { "name": "Earnix Rating & Pricing", "usageType": "performed" },
+        { "name": "underwriting workstation", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The single account being bound; scope = committing the final agreed premium for one account (ACCT-####) as the price of record on the policy transaction in Guidewire PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At bind, within the current pricing cycle; the price is entered before issuance and matches the approved quote for the policy effective date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z103z3mbk8c39oejng"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Final premium, limits, deductibles, taxes/fees and effective date are populated on the PolicyCenter transaction and match the approved quote and Earnix rating output; any mismatch blocks issuance."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The premium committed in PolicyCenter reconciles to the Earnix quoted premium to the cent (delta = 0); component premiums by coverage sum to the account total."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The bound policy transaction is the system-of-record; the rating snapshot and quote PDF are saved to OpenText /UW/<policy-no>/pricing/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Any variance between the entered price and the approved quote is logged as an exception in the underwriting workstation with disposition (correct entry / re-quote / endorse) and reason before issuance proceeds."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Commit only the filed-rate-derived premium",
+              "value": "The price entered in PolicyCenter equals the Earnix output built on the approved filing; no manual override without an approved deviation."
+            },
+            {
+              "step": "Match the price of record to the approved quote",
+              "value": "Premium, limits and effective date on the bound transaction match the approved quote before issuance."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile bound price to rating output",
+              "value": "For 25 bound accounts per quarter, PolicyCenter premium equals the Earnix quoted premium to the cent for 100%."
+            },
+            {
+              "step": "Check for unfiled overrides",
+              "value": "0 sampled policies bound with a manual premium override lacking an approved deviation."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Preserve the rating snapshot at bind",
+              "value": "The Earnix rating session behind the bound price is archived and linked from the PolicyCenter transaction."
+            },
+            {
+              "step": "Retain the committed-price evidence",
+              "value": "Quote PDF and rating snapshot stored in OpenText /UW/<policy-no>/pricing/ with version and timestamp."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect price-of-record traceability",
+              "value": "For sampled policies, 100% link to a retrievable rating snapshot supporting the bound premium."
+            },
+            {
+              "step": "Verify retention",
+              "value": "Sampled pricing evidence is retained per the 7-year schedule; 0 missing artifacts."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "d4dfe0c7-382b-4a84-88de-a8e03184c12e",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [
+        { "name": "Earnix Rating & Pricing", "usageType": "performed" },
+        { "name": "OpenText Document Mgmt", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The single account priced; scope = capturing the full rate-application derivation (base rate, factors, modifiers, final premium) for one account (ACCT-####) into the pricing tool and underwriting file for audit."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The account's current pricing cycle; the derivation is recorded at the point the price is finalised, referencing the rate filing effective on the policy date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z103ywmbk8rqplgsa0"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Base rate, exposure, class/territory factors, experience and schedule modifiers, and final premium are all captured with their source references; any undocumented modifier blocks completion of the audit record."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The step-by-step derivation recomputes to the committed premium to the cent (delta = 0); the sum of applied modifiers matches the Earnix rating factor chain."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The derivation worksheet is stored in OpenText /UW/<policy-no>/pricing/ and linked from the Earnix session, with timestamp and version v-n; retained 7 years per the audit-trail requirement."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Any modifier applied outside the filed range (e.g. schedule credit beyond filed limits) is logged as an exception in the underwriting workstation with disposition (correct / approved deviation) and reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Derivation is captured against the approved Earnix rate/rule version (SERFF-tracking #) effective for the policy period."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Schedule and experience modifiers are checked against filed caps; a modifier at the filed limit is flagged for justification in the derivation note."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality threshold = any single modifier moving premium by more than 10% must carry a written justification in the audit record."
+        },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "Derivation cites the applicable filed rate manual / SERFF filing and the schedule-rating rule that authorises each modifier applied."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "Rate-derivation records are retained for 7 years per the underwriting file-retention schedule and remain retrievable for market-conduct examination."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "Not a filing task; no external filing deadline applies. The derivation must be recorded in the file before the policy is issued (internal completeness gate)."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "25 priced accounts per quarter, sampled across lines/states, whose rate-application derivation record is inspected."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = derivation present, recomputes to the bound premium, and every modifier is sourced to a filed rule for 100% of sampled files; FAIL = any missing derivation or unsupported modifier."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Files failing inspection are returned to the Underwriter to complete or correct the derivation within 3 business days; repeat gaps escalate to a Senior Underwriter."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions from the Earnix rate-manual data dictionary: base_rate, class_factor, territory_factor, experience_mod, schedule_mod, final_premium."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = recomputed premium from base rate x factors x modifiers, which must equal the committed premium of record to the cent."
+        },
+        {
+          "answerId": "cmr2ocdxf0ukmkaz3gj03ffqk",
+          "value": "Approved methodology = the Earnix rate/rule version (SERFF-tracking #) effective for the period; parameters (base rates, factors, modifier caps) are sourced from the filed rate manual loaded into Earnix, recorded on the derivation worksheet."
+        },
+        {
+          "answerId": "cmr2ocdxf0uknkaz3iz5r5hf6",
+          "value": "Applicable rule = the filed rate manual and schedule-rating plan for the class/state; each modifier applied cites the filed rule that authorises it, satisfying the rate-application documentation requirement."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Record the full derivation chain",
+              "value": "Every step from base rate to final premium, with modifiers, is captured in the Earnix session and the OpenText worksheet."
+            },
+            {
+              "step": "Make the record auditable",
+              "value": "The derivation is versioned and timestamped and links back to the committed price of record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Recompute from the audit record",
+              "value": "For 25 sampled files, the stored derivation recomputes to the bound premium for 100%."
+            },
+            {
+              "step": "Confirm retrievability",
+              "value": "Sampled derivations are retrievable within the retention window; 0 missing."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppd31o8ymbk8q4zpd8lh",
+          "checklist": [
+            {
+              "step": "Document every applied modifier",
+              "value": "Each experience/schedule modifier has a written justification and a filed-rule reference in the record."
+            },
+            {
+              "step": "Store the documentation in the file",
+              "value": "Derivation documentation resides in /UW/<policy-no>/pricing/, not informally."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect modifier documentation",
+              "value": "For sampled files, 100% of applied modifiers carry a justification and filed-rule citation."
+            },
+            {
+              "step": "Flag undocumented modifiers",
+              "value": "0 sampled modifiers lacking documentation."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppi41o98mbk8paxpr0pf",
+          "checklist": [
+            {
+              "step": "Document schedule-rating credits/debits",
+              "value": "Schedule-rating modifiers are itemised with the risk characteristics justifying each and kept within filed limits."
+            },
+            {
+              "step": "Keep schedule rating within the filing",
+              "value": "Applied schedule modifiers do not exceed the filed maximum credit/debit."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify schedule-rating support",
+              "value": "For sampled files with schedule rating, 100% have documented justification per characteristic."
+            },
+            {
+              "step": "Check filed limits",
+              "value": "0 sampled files with schedule modifiers exceeding filed caps."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fi3320amqkfgz244efl14",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [
+        { "name": "Earnix Rating & Pricing", "usageType": "performed" },
+        { "name": "Regulatory Filing Portal (SERFF)", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The account being rated; scope = pulling the actuarially approved base rates for the account's class/territory/state (ACCT-####) from the current filed rate manual loaded in Earnix."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The account's current pricing cycle; only the rate filing approved and effective on the policy effective date is used."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203zpmbk8ity27cv5"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Class code, territory, state and effective date resolve to a single approved base-rate row; a lookup returning no row or a superseded row halts rating until the correct filing is confirmed."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The base rate returned by Earnix matches the value in the SERFF-approved rate manual for that class/territory/state to the cent (delta = 0); effective/expiry dates of the rate row bracket the policy date."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The base-rate lookup result and the cited filing reference are saved to OpenText /UW/<policy-no>/pricing/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "If the required rate is not yet loaded or the filing is pending, an exception is logged in the underwriting workstation with disposition (hold quote / use approved prior filing / escalate to Product/Filing Actuary) and reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Base rates come from the approved and effective Earnix rate version (SERFF-tracking #); pending or superseded filings cannot be selected."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03w2mbk84o4w6iug" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "A spot-check compares the pulled base rate against the rate-manual PDF for the same class/state; any discrepancy stops use of the rate."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality threshold = any base-rate discrepancy over $0/1 cent is treated as material for filed-rate compliance and must be resolved before quoting."
+        },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "The base-rate pull cites the SERFF filing/tracking number and rate-manual page/section that the rate was taken from."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "Rate-source evidence is retained 7 years per the file-retention schedule and remains available for filed-rate examination."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "No outbound filing deadline for this task; the constraint is that only rates already approved and effective (past the state's effective date) may be used."
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "25 quoted accounts per quarter, sampled across states/lines, whose base-rate source is traced through the Earnix rating history."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = pulled base rate matches the SERFF-approved manual and the filing was effective on the policy date for 100% of sampled accounts; FAIL = any use of a superseded, pending or mis-keyed rate."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "Accounts rated on an incorrect filing are re-rated on the approved version; the quote is withheld and a correction is logged with a 2-business-day SLA and escalation to a Product/Filing Actuary if systemic."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "Authority to approve use of an alternate/prior filing sits with the Senior Underwriter per the underwriting authority matrix v3.2; the delegation and its limits are documented in the file."
+        },
+        {
+          "answerId": "cmr2ocfzu0wwqkaz3tk1axbp1",
+          "value": "Approved methodology = the Earnix rate version (SERFF-tracking #) approved and effective for the state/period; parameters = base rates read directly from the filed rate manual, recorded with the filing reference on the pricing worksheet."
+        },
+        {
+          "answerId": "cmr2ocfzu0wwrkaz3cv1fdjcw",
+          "value": "Applicable rule = state rate-filing law requiring use of filed, approved rates; the base-rate pull cites the SERFF filing/tracking number and manual section relied upon."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp851o8ombk8flf05lqe",
+          "checklist": [
+            {
+              "step": "Use only approved, effective filings",
+              "value": "Base rates are drawn from a SERFF-approved filing whose effective date is on/before the policy date; pending filings are blocked in Earnix."
+            },
+            {
+              "step": "Cite the filing used",
+              "value": "The rate pull records the SERFF tracking number and effective date on the pricing worksheet."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify filing status on sampled rates",
+              "value": "For 25 sampled accounts, 100% used an approved, effective filing."
+            },
+            {
+              "step": "Detect pre-effective use",
+              "value": "0 sampled accounts rated on a filing before its state effective date."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Pull the correct base rate for the risk",
+              "value": "Class/territory/state/effective-date resolve to the single correct filed base-rate row in Earnix."
+            },
+            {
+              "step": "Confirm against the manual",
+              "value": "The pulled rate is spot-checked to the SERFF rate-manual value before use."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile pulled rate to filing",
+              "value": "For sampled accounts, the base rate equals the filed manual value for 100%."
+            },
+            {
+              "step": "Flag mismatches",
+              "value": "0 sampled accounts with a base rate differing from the filed manual."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppg71o94mbk8gdzbxh5q",
+          "checklist": [
+            {
+              "step": "Source rates through the rating tool",
+              "value": "Base rates are read from the filing loaded in Earnix, not re-keyed from ad-hoc copies."
+            },
+            {
+              "step": "Lock superseded versions",
+              "value": "Old rate versions are disabled so only the current filing can be selected."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm tool sourcing",
+              "value": "For sampled accounts, the base rate has an Earnix lookup reference for 100%."
+            },
+            {
+              "step": "Confirm version control",
+              "value": "0 sampled accounts sourced from a disabled/superseded rate version."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fi2tm0ahvkfgzb2rs9nzv",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "Earnix Rating & Pricing", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The account being rated; scope = selecting the applicable filed rating plan/program for one account (ACCT-####) based on line of business, class, state and program eligibility in Earnix."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The account's current pricing cycle; the plan selected is the one filed and effective for the state on the policy effective date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z103ywmbk8rqplgsa0"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Line of business, class code, state and program-eligibility attributes are populated; the selected plan's eligibility rules are all satisfied, or the account is routed to the correct alternate plan."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Exactly one applicable rating plan is selected for the risk (count = 1); the plan's eligibility criteria reconcile against the account attributes with no unmet criterion."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The plan-selection decision and eligibility evidence are saved to OpenText /UW/<policy-no>/pricing/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "An account meeting no filed plan (or straddling programs) is logged as an exception in the underwriting workstation with disposition (assign closest filed plan / refer to Product/Filing Actuary / decline) and reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Plan selection uses the approved Earnix program/rule version (SERFF-tracking #) effective for the state/period; retired programs are not selectable."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Where two plans could apply, the difference in indicated premium is computed; a swing beyond the class band triggers documented review of the selection rationale."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality threshold = a plan choice that changes premium by more than 10% versus the alternate must carry a documented eligibility justification."
+        },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "The selection cites the filed program/rate rule and the eligibility provision that qualifies the account for that plan."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "Plan-selection evidence is retained 7 years per the file-retention schedule for filed-rate examination."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "No outbound filing deadline; only currently filed and effective programs may be selected for the risk."
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "25 quoted accounts per quarter, sampled across programs/states, whose plan selection is traced through the Earnix rating history."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = the selected plan is filed, effective and eligibility-supported for 100% of sampled accounts; FAIL = any account rated on an ineligible, retired or misapplied plan."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "Misassigned plans are re-rated on the correct filed program; the quote is corrected and logged with a 2-business-day SLA, escalating to a Product/Filing Actuary for recurring eligibility ambiguity."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "Authority to override a system-suggested plan or approve a borderline eligibility call sits with the Senior Underwriter per authority matrix v3.2; the delegation is documented in the file."
+        },
+        {
+          "answerId": "cmr2ocfzu0wwokaz3f34q8rgt",
+          "value": "Approved methodology = the Earnix program/rule version (SERFF-tracking #) filed and effective for the state; parameters = program eligibility rules and rate structures from the filed manual, recorded with the plan-selection rationale."
+        },
+        {
+          "answerId": "cmr2ocfzu0wwpkaz3id8l2bqm",
+          "value": "Applicable rule = state rate-filing law requiring use of the filed program applicable to the risk; the selection cites the filed program and eligibility provision relied upon."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Select the plan filed for the risk",
+              "value": "The chosen rating plan is the one filed for the account's line/class/state and its eligibility rules are met."
+            },
+            {
+              "step": "Record the eligibility basis",
+              "value": "The account attributes satisfying the plan's eligibility are documented on the selection worksheet."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify plan applicability",
+              "value": "For 25 sampled accounts, the selected plan is filed and eligibility-supported for 100%."
+            },
+            {
+              "step": "Flag ineligible selections",
+              "value": "0 sampled accounts on a plan whose eligibility criteria are unmet."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppg71o94mbk8gdzbxh5q",
+          "checklist": [
+            {
+              "step": "Drive selection through the rating tool",
+              "value": "Plan eligibility and rating flow through Earnix using the loaded filings, not manual program picks."
+            },
+            {
+              "step": "Disable retired programs",
+              "value": "Only currently filed programs are selectable for new rating."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm system-driven selection",
+              "value": "For sampled accounts, the plan has an Earnix eligibility/rating reference for 100%."
+            },
+            {
+              "step": "Confirm no retired programs",
+              "value": "0 sampled accounts rated on a retired program."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppi41o98mbk8paxpr0pf",
+          "checklist": [
+            {
+              "step": "Document program-specific rating choices",
+              "value": "Where the plan permits schedule/tier options, the chosen option and its justification are recorded."
+            },
+            {
+              "step": "Keep within filed program rules",
+              "value": "Selected options remain within the filed program's permitted structure."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect option documentation",
+              "value": "For sampled accounts using plan options, 100% have documented justification."
+            },
+            {
+              "step": "Check filed-rule adherence",
+              "value": "0 sampled selections outside the filed program structure."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "e300d40c-d575-4f46-a3b2-542e259845df",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [],
+      "addApps": [
+        { "name": "Earnix Rating & Pricing", "usageType": "performed" },
+        { "name": "Regulatory Filing Portal (SERFF)", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The account just rated; scope = validating the derived rate for one account (ACCT-####) against the filed rates and the filed minimum-premium rules before the quote is released."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The account's current pricing cycle, immediately after rating and before quote release; validation is against the filing effective on the policy date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z103z3mbk8c39oejng"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Derived premium, base rate, applied modifiers and computed minimum premium are all present for comparison; a missing modifier trail or minimum-premium value blocks validation."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The quoted premium reconciles to the filed-rate recomputation and is at or above the filed minimum (delta from recompute = 0; premium >= minimum); any negative gap flags an exception."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The validation result (compliant / exception) and supporting comparison are saved to OpenText /UW/<policy-no>/pricing/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A rate below filed or below minimum is logged as an exception in the underwriting workstation with disposition (correct to filed / apply minimum / approved deviation via Senior Underwriter) and reason before any quote goes out."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Validate the quote against filed rates",
+              "value": "The quoted premium is recomputed from the filed rate manual and confirmed to match before release."
+            },
+            {
+              "step": "Block unfiled pricing",
+              "value": "Any premium that cannot be reconciled to the filing is held until corrected or an approved deviation exists."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile quoted to filed",
+              "value": "For 25 sampled quotes, the premium reconciles to the filed recomputation for 100%."
+            },
+            {
+              "step": "Detect off-filing quotes",
+              "value": "0 sampled quotes released off the filed rate without an approved deviation."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpph41o96mbk860mhz8r7",
+          "checklist": [
+            {
+              "step": "Confirm premium meets the filed minimum",
+              "value": "Validation checks the quoted premium against the filed class/state minimum and enforces the greater-of."
+            },
+            {
+              "step": "Flag sub-minimum quotes",
+              "value": "Quotes below the filed minimum are stopped and either raised to minimum or referred for deviation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check minimum-premium compliance",
+              "value": "For sampled quotes, 100% are at or above the filed minimum or carry an approved deviation."
+            },
+            {
+              "step": "Verify enforcement",
+              "value": "0 sampled quotes released below the filed minimum unapproved."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppc31o8wmbk8i3ty2jne",
+          "checklist": [
+            {
+              "step": "Route any filed-rate deviation through the authority matrix",
+              "value": "Deviations from filed rates or minimums require sign-off at the level set in authority matrix v3.2 before release."
+            },
+            {
+              "step": "Document the deviation",
+              "value": "The deviation amount, reason and approver are recorded in the file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify deviation approvals",
+              "value": "For sampled deviations, 100% carry the authority-matrix-required sign-off."
+            },
+            {
+              "step": "Detect unauthorised deviations",
+              "value": "0 sampled deviations released without the required approval."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "fc16f859-6352-477d-a514-1e6c24eddeda",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Underwriting Assistant",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": [],
+      "addApps": [
+        { "name": "LexisNexis Risk", "usageType": "performed" },
+        { "name": "OpenText Document Mgmt", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The proposed insured on a life case; scope = compiling the insured's total in-force and pending life coverage across all carriers for one application (APP-####) to test for over-insurance and anti-selection."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current new-business underwriting cycle for the case; in-force/pending amounts are as-of the application date, refreshed from MIB/industry sources before a decision."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203z7mbk8fhl1p7ep"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each coverage line captures carrier, face amount, product type, status (in-force/pending/applied) and source; a coverage line missing face amount or status is queried before aggregation completes."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Aggregate total = sum of in-force + pending + this application's requested amount; the total reconciles to the MIB/industry inquiry results and the application's disclosed coverage (unexplained gaps investigated)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The aggregation worksheet and the MIB/LexisNexis inquiry results are saved to OpenText /UW/<case-no>/financial/ with timestamp and version; consumer-report data handled per permissible-purpose and retention rules."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Aggregate coverage exceeding the financial-underwriting maximum for the insured's profile is logged as an exception in the underwriting workstation with disposition (request justification / reduce amount / refer to Senior Underwriter) and reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the full coverage picture in the file",
+              "value": "The aggregation worksheet listing every carrier, amount and status is filed to /UW/<case-no>/financial/."
+            },
+            {
+              "step": "Record the sources relied upon",
+              "value": "MIB/LexisNexis inquiry references and application disclosures are cited in the file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect file completeness",
+              "value": "For 25 sampled financial-UW cases per quarter, 100% contain a documented cross-carrier aggregation."
+            },
+            {
+              "step": "Trace amounts to sources",
+              "value": "Sampled coverage lines trace to an MIB/industry or disclosed source; 0 unsourced amounts."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp4u1o8imbk8fwfbmrnd",
+          "checklist": [
+            {
+              "step": "Screen coverage against anti-selection limits before offer",
+              "value": "Total aggregated coverage is compared to financial-UW maximums before any offer, catching over-insurance."
+            },
+            {
+              "step": "Refer over-limit cases",
+              "value": "Cases over the aggregate limit are held for justification or referral before binding."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify pre-bind screening",
+              "value": "For sampled cases, 100% show an aggregation/anti-selection screen completed before offer."
+            },
+            {
+              "step": "Check over-limit handling",
+              "value": "0 sampled cases bound over the aggregate limit without documented justification."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Apply documented referral triggers on aggregate exposure",
+              "value": "Aggregated coverage above the trigger threshold routes to a Senior Underwriter per the referral schedule."
+            },
+            {
+              "step": "Record the trigger evaluation",
+              "value": "Whether the case met a referral trigger is recorded on the worksheet."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify trigger application",
+              "value": "For sampled cases over threshold, 100% show a referral was raised."
+            },
+            {
+              "step": "Detect missed referrals",
+              "value": "0 sampled over-threshold cases without a referral."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5ozpz0bwnv880figjybzk",
+          "checklist": [
+            {
+              "step": "Obtain MIB/consumer-report data only for the insurance underwriting permissible purpose",
+              "value": "The MIB/LexisNexis inquiry for cross-carrier coverage is run under the FCRA insurance-underwriting permissible purpose tied to this application."
+            },
+            {
+              "step": "Limit access and retention",
+              "value": "Consumer-report coverage data is accessed only by underwriting staff on the case and retained/disposed per policy."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify permissible purpose logging",
+              "value": "For sampled cases, 100% of MIB/consumer-report inquiries are tied to an active application with a permissible purpose recorded."
+            },
+            {
+              "step": "Check access controls",
+              "value": "0 sampled inquiries run without an associated underwriting purpose."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "396fe83f-6956-4b4d-b952-894f001efd5f",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "A single life case with complex ownership; scope = documenting a financial-underwriting specialist consultation for one case (CASE-####) involving unusual ownership or beneficiary structures (trusts, business ownership, third-party ownership)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current underwriting cycle for the case; the consultation occurs before a final offer and is dated within the case timeline."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203zjmbk8y2uum9fk"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The consult record captures the question posed, ownership/beneficiary structure, specialist identity, guidance given and the resulting underwriting action; a consult with no documented outcome is treated as incomplete."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Each identified complex-ownership case has exactly one documented consultation before decision (count reconciles: referred = consulted); open referrals without a consult record are flagged."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The consultation note is saved to OpenText /UW/<case-no>/financial/ with timestamp and version and linked to the underwriting decision; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "If specialist guidance conflicts with the underwriter's proposed action, the disagreement and its resolution are logged as an exception with disposition (adopt guidance / escalate to Senior Underwriter) and reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Consultation follows the financial-underwriting guidelines version in force; the guideline reference is cited in the note."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Where the structure could shift insurable interest or beneficiary risk, alternative treatments are noted with their impact so the chosen path is defensible."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality threshold = any ownership/beneficiary structure affecting insurable interest or exceeding the retention limit mandates documented specialist consultation."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All complex-ownership cases referred for specialist consultation in the quarter (census of referrals), reviewed for a complete consult record."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = a dated consultation note with guidance and outcome is present for 100% of referred cases; FAIL = any complex-ownership case decided without a documented consultation."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Cases decided without the required consult are returned for retrospective documentation and, where the decision may be affected, re-reviewed by a Senior Underwriter within 5 business days."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = the consult identifies the specialist, the guidance, and the underwriting action taken, and is linked to the case decision."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence stored in OpenText /UW/<case-no>/financial/ (consultation note), cross-linked from the underwriting workstation case record."
+        },
+        {
+          "answerId": "cmr2ocdxu0v50kaz3xwv6yvdz",
+          "value": "Authorized approver = the Senior Underwriter for complex-ownership decisions per authority matrix v3.2; the delegation matrix (which structures require specialist consult and which require Senior Underwriter/CUO sign-off) is documented and cited in the case file."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Trigger specialist consultation on defined structures",
+              "value": "Trusts, business/third-party ownership and other listed structures automatically trigger a documented specialist consult."
+            },
+            {
+              "step": "Record trigger evaluation",
+              "value": "Whether a referral trigger applied is recorded on the case."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify trigger coverage",
+              "value": "For all referred cases in the quarter, 100% met a documented trigger or were justified."
+            },
+            {
+              "step": "Detect missed triggers",
+              "value": "0 sampled complex-ownership cases that bypassed a required consult."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Refer with a clear recommendation",
+              "value": "The referral to the specialist/Senior Underwriter carries the underwriter's recommendation and the specific ownership concern."
+            },
+            {
+              "step": "Capture the disposition",
+              "value": "The specialist's response and the final action are recorded against the referral."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify referral quality",
+              "value": "For sampled referrals, 100% include a recommendation and a documented response."
+            },
+            {
+              "step": "Check closure",
+              "value": "0 sampled referrals left open at decision without a disposition."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the consultation record",
+              "value": "The consult note and guidance are stored in the case file in /UW/<case-no>/financial/."
+            },
+            {
+              "step": "Link to the decision",
+              "value": "The consultation is linked to the underwriting action it informed."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect documentation",
+              "value": "For sampled cases, 100% have a retrievable, linked consult note."
+            },
+            {
+              "step": "Confirm retention",
+              "value": "Sampled consult records are retained per schedule; 0 missing."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "5a0d51df-85ec-46a2-b513-5e8466b21037",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "A single life case; scope = determining the maximum insurable amount for one proposed insured (CASE-####) by applying income-multiple and net-worth financial-underwriting guidelines."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current underwriting cycle for the case; income/net-worth inputs are as-of the application, from documents dated within the acceptable financial-evidence window."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Age, earned income, net worth and purpose of coverage are populated from verified financial evidence; the applicable income multiple for the age band is selected. Missing income or age band halts the calculation."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Maximum insurable amount = income x age-band multiple (plus net-worth allowance where applicable); the result reconciles to the financial-UW guideline table for the age band (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The maximum-amount worksheet and the income/net-worth evidence references are saved to OpenText /UW/<case-no>/financial/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A requested face amount exceeding the computed maximum is logged as an exception in the underwriting workstation with disposition (reduce amount / justify with additional financials / refer to Senior Underwriter) and reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Calculation uses the current financial-underwriting guideline version (income-multiple/net-worth table); superseded multiple tables are not used and the version is cited on the worksheet."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "The maximum is re-run using the adjacent age-band multiple to confirm the applicant sits in the correct band; a boundary case is documented and reviewed."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality threshold = a requested amount within 10% of the computed maximum, or any use of a net-worth allowance, requires documented supporting financials."
+        },
+        {
+          "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "25 financially-underwritten cases per quarter, sampled across age bands and amount tiers, whose maximum-amount calculation is re-performed."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = the maximum insurable amount re-computes to the guideline value and the offered amount is within it for 100% of sampled cases; FAIL = any offer exceeding the guideline maximum without documented justification."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "Cases offered above the guideline maximum are re-reviewed; the offer is reduced or supported with additional financials, logged with a 5-business-day SLA and Senior Underwriter sign-off."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "Approved methodology = the current financial-underwriting guideline (income-multiple and net-worth table version) cited on the worksheet."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "Parameters (age-band multiples, net-worth allowance %) sourced from the approved financial-UW guideline table; income/net-worth values from verified applicant financial evidence."
+        },
+        {
+          "answerId": "cmr2ocdw80sz8kaz3bzr86kf1",
+          "value": "Acceptance criteria = maximum computed from verified income/net worth using the current guideline multiples, and offered amount within it. Evidence = maximum-amount worksheet plus financial-evidence references in OpenText /UW/<case-no>/financial/, linked from the case record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the maximum-amount basis",
+              "value": "Income, net worth, age band, multiple and computed maximum are recorded on the worksheet in /UW/<case-no>/financial/."
+            },
+            {
+              "step": "Reference the financial evidence",
+              "value": "The income/net-worth documents relied upon are cited in the file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect worksheet completeness",
+              "value": "For 25 sampled cases, 100% have a documented maximum-amount calculation with evidence references."
+            },
+            {
+              "step": "Trace inputs to evidence",
+              "value": "Sampled income/net-worth inputs trace to verified financial documents; 0 unsupported inputs."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppd31o8ymbk8q4zpd8lh",
+          "checklist": [
+            {
+              "step": "Document the guideline applied",
+              "value": "The financial-UW guideline version and multiple used are documented on the case."
+            },
+            {
+              "step": "Justify amounts near the cap",
+              "value": "Requests near or above the maximum carry documented supporting financials."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify guideline documentation",
+              "value": "For sampled cases, 100% cite the guideline/multiple used."
+            },
+            {
+              "step": "Check near-cap justification",
+              "value": "Every sampled near-cap request shows supporting financials."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Refer amounts over the maximum",
+              "value": "Requested amounts above the computed maximum trigger a documented referral per the schedule."
+            },
+            {
+              "step": "Record the trigger",
+              "value": "Whether the case exceeded the maximum-amount trigger is recorded."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify referral on over-max cases",
+              "value": "For sampled over-maximum cases, 100% show a referral."
+            },
+            {
+              "step": "Detect missed referrals",
+              "value": "0 sampled over-maximum cases decided without referral."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "6f8622d4-dff1-4495-bb66-e192e24aacac",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "A single case with identified anti-selection risk; scope = deciding the policy structure (amount limit, benefit design, exclusion/rider, ownership condition) that mitigates the anti-selection risk for one case (CASE-####)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current underwriting cycle for the case; the structure decision precedes the final offer and reflects the risk factors documented at that point."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The identified anti-selection risk, the candidate structures considered and the chosen structure with its rationale are all populated; a chosen structure with no linked risk driver is treated as incomplete."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Each identified anti-selection risk maps to at least one mitigating structural control in the decision (coverage of drivers reconciles: risks addressed = risks identified); unaddressed drivers are flagged."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The structure decision and rationale are saved to OpenText /UW/<case-no>/financial/ with timestamp and version and linked to the offer terms; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Where the applicant declines a required structural condition, the case is logged as an exception in the underwriting workstation with disposition (revise terms / refer to Senior Underwriter / decline) and reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Structure options follow the current financial-underwriting guideline for anti-selection controls; the guideline version is cited in the decision note."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "The chosen structure is tested against a worse-case scenario for the identified risk; if the control does not hold under stress, a stronger structure is selected."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality threshold = any residual anti-selection exposure above the retention/appetite limit requires escalation before the structure is finalised."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Each structural control traces to its risk driver and to the source screen/document (application, financials, MIB result) that evidenced the risk in the case file."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "The case status advances to 'Structured / Ready to Offer' only once every identified risk driver has a linked mitigating control recorded."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Decision date and the effective date of the structural conditions are recorded and consistent with the case timeline and offer validity window."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "25 cases per quarter flagged with anti-selection risk, sampled across products, whose structure decision and rationale are inspected."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = every identified anti-selection driver has a documented mitigating structural control and a rationale for 100% of sampled cases; FAIL = any flagged risk left without a structural control."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Cases with unaddressed drivers are returned for restructure or referred to a Senior Underwriter within 5 business days before any offer is issued."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = the chosen structure demonstrably mitigates each identified anti-selection risk and its rationale is documented and linked to the offer."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence stored in OpenText /UW/<case-no>/financial/ (structure decision + rationale), cross-linked from the PolicyCenter offer terms and underwriting workstation."
+        },
+        {
+          "answerId": "cmr2ocdwp0tlbkaz3olyphw21",
+          "value": "Source-system field definitions from the underwriting case data dictionary (risk_driver, control_type, amount_limit, rider/exclusion_code, rationale); control total = count of identified risk drivers, which must equal the count of linked mitigating controls (0 unaddressed)."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the structure decision and rationale",
+              "value": "The chosen policy structure and why it mitigates the anti-selection risk are recorded in /UW/<case-no>/financial/."
+            },
+            {
+              "step": "Link controls to risk drivers",
+              "value": "Each structural control is linked to the specific risk it addresses."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect decision documentation",
+              "value": "For 25 sampled cases, 100% have a documented structure decision with rationale."
+            },
+            {
+              "step": "Verify driver coverage",
+              "value": "Every identified driver in sampled cases maps to a control; 0 unaddressed."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowqe1mswmbk8wnjoqs6v",
+          "checklist": [
+            {
+              "step": "Peer-review non-standard structures",
+              "value": "Structures using exclusions, riders or ownership conditions are peer-reviewed before the offer."
+            },
+            {
+              "step": "Record the peer-review outcome",
+              "value": "The reviewer and concurrence/changes are recorded on the case."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify peer review occurred",
+              "value": "For sampled non-standard structures, 100% show a documented peer review."
+            },
+            {
+              "step": "Check outcome capture",
+              "value": "0 sampled peer reviews without a recorded outcome."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Refer residual exposure above appetite",
+              "value": "Residual anti-selection exposure over the appetite/retention limit triggers a documented referral."
+            },
+            {
+              "step": "Record the trigger evaluation",
+              "value": "Whether the case met a referral trigger is recorded on the worksheet."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify referrals on over-appetite cases",
+              "value": "For sampled over-appetite cases, 100% show a referral."
+            },
+            {
+              "step": "Detect missed referrals",
+              "value": "0 sampled over-appetite cases finalised without referral."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "ff99c5e7-b7da-4e7c-9e9b-6851805a1f25",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "A single case's decision record; scope = documenting the financial-underwriting rationale and the sources relied upon for one case (CASE-####) in the underwriting case record."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current underwriting cycle for the case; the rationale is recorded at the decision point, referencing evidence dated within the case timeline."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203zjmbk8y2uum9fk"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The rationale states the financial need/justification, the amount decision, the anti-selection assessment and every source relied upon (income docs, net-worth statements, MIB, coverage aggregation); a decision with no stated basis is incomplete."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Each source cited in the rationale exists in the case file and each material figure (income, net worth, aggregate coverage, maximum amount) reconciles to its source document (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The rationale narrative is stored in OpenText /UW/<case-no>/financial/ with timestamp and version and linked to the final decision; retained 7 years for market-conduct review."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "If a cited source is missing or inconsistent, an exception is logged in the underwriting workstation with disposition (obtain document / correct figure / re-review) and reason before the decision is finalised."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The rationale references the financial-underwriting guideline version applied to the amount and structure decisions."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Where the decision hinged on a judgement call (e.g. estimated income), the rationale documents the range considered and why the chosen figure is reasonable."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality threshold = any figure driving the amount decision by more than 10% must have its source explicitly cited and reconciled in the rationale."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "25 financially-underwritten cases per quarter, sampled across amount tiers, whose rationale record is inspected for completeness and source support."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = a rationale stating the basis and citing sources that reconcile is present for 100% of sampled cases; FAIL = any decision lacking a rationale or citing an unsupported/unreconciled figure."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Files failing inspection are returned to the Underwriter to complete the rationale or attach missing sources within 5 business days; repeat gaps escalate to a Senior Underwriter for quality review."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions from the underwriting case data dictionary: financial_justification, amount_decision, anti_selection_assessment, sources_relied_upon, guideline_version."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = each material figure in the rationale (income, net worth, aggregate coverage, maximum amount) reconciles to its cited source document to the dollar."
+        },
+        {
+          "answerId": "cmr2ocdxs0v2jkaz3e3xutx07",
+          "value": "Approved methodology = the financial-underwriting guideline version applied to the amount/structure decisions; parameter source = the verified financial evidence and data sources (income documents, net-worth statements, MIB/coverage aggregation) cited in the rationale and held in the case file."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document a complete decision rationale",
+              "value": "The rationale states the financial basis, amount decision and anti-selection assessment in /UW/<case-no>/financial/."
+            },
+            {
+              "step": "Cite every source relied upon",
+              "value": "Each figure and conclusion cites the source document held in the file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect rationale completeness",
+              "value": "For 25 sampled cases, 100% contain a documented rationale citing sources."
+            },
+            {
+              "step": "Reconcile figures to sources",
+              "value": "Sampled material figures reconcile to their cited documents; 0 unsupported figures."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppd31o8ymbk8q4zpd8lh",
+          "checklist": [
+            {
+              "step": "Record the guideline and inputs used",
+              "value": "The financial-UW guideline version and key inputs behind the decision are documented."
+            },
+            {
+              "step": "Keep documentation in the file",
+              "value": "The rationale resides in the case record, not informally."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify guideline citation",
+              "value": "For sampled cases, 100% cite the guideline version applied."
+            },
+            {
+              "step": "Check input documentation",
+              "value": "0 sampled decisions with undocumented material inputs."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowqe1mswmbk8wnjoqs6v",
+          "checklist": [
+            {
+              "step": "Peer/quality review of large-amount rationales",
+              "value": "Rationales on large-amount cases are peer- or QA-reviewed for completeness and source support."
+            },
+            {
+              "step": "Record review outcome",
+              "value": "The reviewer and any required corrections are recorded on the case."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify review coverage",
+              "value": "For sampled large-amount cases, 100% show a documented rationale review."
+            },
+            {
+              "step": "Confirm corrections closed",
+              "value": "0 sampled reviews with open corrections at decision."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

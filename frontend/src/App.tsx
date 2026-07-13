@@ -39,12 +39,15 @@ const WorkLibrary = lazy(() => import('./pages/work-library/WorkLibrary'));
 const Approvals = lazy(() => import('./pages/approvals/Approvals'));
 const Applications = lazy(() => import('./pages/applications/Applications'));
 const ApplicationKind = lazy(() => import('./pages/applications/ApplicationKind'));
+const ProductModelHierarchy = lazy(() => import('./pages/product-models/ProductModelHierarchy'));
+const ProductNodeDetail = lazy(() => import('./pages/product-models/ProductNodeDetail'));
 const External = lazy(() => import('./pages/external/External'));
 const Regulations = lazy(() => import('./pages/regulations/Regulations'));
 const RegulationDetail = lazy(() => import('./pages/regulation-detail/RegulationDetail'));
 const RequirementDetail = lazy(() => import('./pages/regulations/RequirementDetail'));
 const RegimeDetail = lazy(() => import('./pages/regulations/RegimeDetail'));
 const RegulationsInsight = lazy(() => import('./pages/regulations/RegulationsInsight'));
+const Compliance = lazy(() => import('./pages/regulations/Compliance'));
 const Settings = lazy(() => import('./pages/settings/Settings'));
 // The role profile page — revived /roles/:id (description, org, value streams,
 // deliverable drill-downs, task summary). Cross-app role links land here.
@@ -353,6 +356,14 @@ export default function App() {
                       </G>
                     }
                   />
+                  <Route
+                    path="/regulations/compliance"
+                    element={
+                      <G k="regulations">
+                        <Compliance />
+                      </G>
+                    }
+                  />
                   {(['jurisdictions', 'catalog', 'rules', 'sources'] as const).map((kind) => (
                     <Route
                       key={kind}
@@ -386,6 +397,27 @@ export default function App() {
                     element={
                       <G k="applications">
                         <ApplicationKind />
+                      </G>
+                    }
+                  />
+                  {/* Product Models — the product hierarchy spine (segment →
+            LOB / product family → product → version → model component) with
+            TOC / Map / List views, mirroring Organization / Value Streams. */}
+                  <Route
+                    path="/product-models"
+                    element={
+                      <G k="product-models">
+                        <ProductModelHierarchy />
+                      </G>
+                    }
+                  />
+                  {/* Dedicated drill page for one product node (any level; a model
+            component lays out its elements + source locations). */}
+                  <Route
+                    path="/product-models/nodes/:id"
+                    element={
+                      <G k="product-models">
+                        <ProductNodeDetail />
                       </G>
                     }
                   />

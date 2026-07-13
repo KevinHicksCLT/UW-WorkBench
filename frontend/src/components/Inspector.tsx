@@ -63,7 +63,6 @@ export default function Inspector({
         if (!cancelled) {
           setData(d);
           setLoading(false);
-          if (!d.detail) setEdit(false);
         }
       })
       .catch(() => {
@@ -101,12 +100,13 @@ export default function Inspector({
   };
 
   const detail = !!data?.detail;
-  // At the L5 task level the Tasks tab has no children to drill and Testing
-  // belongs to the deliverable/plan layer — both are hidden (meeting decision:
-  // "that needs to be removed — we're at the task level").
-  const visibleTabs = detail ? TABS.filter((t) => t !== 'Tasks' && t !== 'Testing') : TABS;
+  // At the L5 task level the Tasks tab has no children to drill — hidden.
+  // (Testing is back at the task level: it now surfaces the Work Library TEST
+  // plan and, in edit mode, assigns a testing pattern from the template
+  // catalog — the association the task level was missing.)
+  const visibleTabs = detail ? TABS.filter((t) => t !== 'Tasks') : TABS;
   useEffect(() => {
-    if (detail && (tab === 'Tasks' || tab === 'Testing')) setTab('Overview');
+    if (detail && tab === 'Tasks') setTab('Overview');
   }, [detail, tab]);
   // Top-accent bar carries the node's domain color (overridable by the host).
   accent = accent ?? (data?.domain ? DOMAIN_HEX[data.domain] : undefined);
@@ -115,7 +115,7 @@ export default function Inspector({
   if (collapsed) {
     return (
       <aside
-        className="hidden md:flex flex-col items-center bg-[#eaf1ff] border-l border-[#cdddff] flex-shrink-0"
+        className="hidden md:flex flex-col items-center bg-[#eaf1ff] border-l border-[#cdddff] flex-shrink-0 relative z-30"
         style={{
           width: 44,
           ...(accent ? { background: `${accent}14`, borderColor: `${accent}45` } : {}),
@@ -154,7 +154,7 @@ export default function Inspector({
 
   return (
     <aside
-      className="hidden md:flex flex-col bg-white border-l border-[#eaeaea] flex-shrink-0 relative overflow-hidden"
+      className="hidden md:flex flex-col bg-white border-l border-[#eaeaea] flex-shrink-0 relative z-30 overflow-hidden"
       style={{ width: 560, minWidth: 480, ...(accent ? { borderTop: `3px solid ${accent}` } : {}) }}
     >
       {/* Edit-mode banner — saved to the single source of truth. */}
@@ -257,22 +257,23 @@ export default function Inspector({
           </div>
         </div>
 
-        {/* Identity & status chips + level badge */}
+        {/* Identity & status chips + level badge. Edit is available at EVERY
+            level: containers (e.g. an L4 sub-process) associate deliverables/
+            roles/applications directly on themselves; tasks additionally edit
+            relations, plans and patterns. */}
         {data && !loading && (
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            {detail && (
-              <button
-                onClick={() => setEdit((e) => !e)}
-                className={
-                  'ml-auto rounded-md px-2.5 py-1 text-[11px] font-semibold ' +
-                  (edit
-                    ? 'bg-[#eaeaea] text-[#525252]'
-                    : 'bg-[#2563eb] text-white hover:bg-[#1d4ed8]')
-                }
-              >
-                {edit ? 'Done' : '✎ Edit'}
-              </button>
-            )}
+            <button
+              onClick={() => setEdit((e) => !e)}
+              className={
+                'ml-auto rounded-md px-2.5 py-1 text-[11px] font-semibold ' +
+                (edit
+                  ? 'bg-[#eaeaea] text-[#525252]'
+                  : 'bg-[#2563eb] text-white hover:bg-[#1d4ed8]')
+              }
+            >
+              {edit ? 'Done' : '✎ Edit'}
+            </button>
           </div>
         )}
       </div>
@@ -331,8 +332,12 @@ export default function Inspector({
             {tab === 'Deliverables' && (
               <DeliverablesTab data={data} edit={edit} onNav={navigate} after={after} />
             )}
-            {tab === 'Checklist' && <ChecklistTab data={data} onNav={navigate} />}
-            {tab === 'Testing' && <TestingTab data={data} onNav={navigate} />}
+            {tab === 'Checklist' && (
+              <ChecklistTab data={data} onNav={navigate} edit={edit} after={after} />
+            )}
+            {tab === 'Testing' && (
+              <TestingTab data={data} onNav={navigate} edit={edit} after={after} />
+            )}
             {tab === 'Governance' && <GovernancePanel data={data} />}
 
             {/* Auto-association reminder (no manual node ops) — scrolls with content. */}

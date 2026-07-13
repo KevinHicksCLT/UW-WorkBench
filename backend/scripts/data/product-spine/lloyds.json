@@ -1,0 +1,1548 @@
+{
+  "segment": {
+    "name": "Lloyd's",
+    "canonicalName": "Lloyd's / Delegated Authority",
+    "systems": "Binder admin system · MRC slip library (SharePoint) · bordereaux spreadsheets · Crystal + CDR · ATLAS · Xchanging/DXC bureau messaging",
+    "legacyVariants": 5,
+    "operatingPattern": "Syndicate underwriting through delegated authority binders, broker lineslips and open-market MRC slips — subscription placement at the box, bureau back office, monthly bordereaux from coverholders.",
+    "distribution": "Lloyd's brokers, approved coverholders, service companies",
+    "placement": "Subscription market — leader plus following market on the MRC slip; binding authorities for DA business",
+    "reinsurance": "Syndicate-level outwards programme; per-YOA cat aggregate management by cat zone",
+    "regulatory": "Lloyd's minimum standards and oversight — Crystal territory requirements, Core Data Record, ATLAS coverholder approvals, bordereaux and trust fund obligations",
+    "behavior": {
+      "Product Taxonomy": "No product master exists — identity is the Lloyd's risk code, YOA and UMR on the slip or binder; class granularity lives in binder schedules.",
+      "Coverages": "Cover is whatever the MRC wording plus LMA/NMA clauses say; DA cover is defined class-by-class in the binder schedule, not in any system.",
+      "Terms": "Slip terms — line size, order %, written vs signed lines — plus binder limits and YOA aggregates; signed lines only final after bureau signing.",
+      "Rating": "Coverholder rate matrices bound into the binder schedule; open-market rating is underwriter judgment benchmarked against PMD premium/exposure packs.",
+      "Pricing": "Brokerage on the slip, coverholder and profit commissions in the binder, taxes resolved per territory via Crystal and shown in the Fiscal & Regulatory section.",
+      "Underwriting Rules": "Binder authority defines eligible classes/limits/territories with everything else referred; aggregate exposure monitored per cat zone and YOA from bordereaux.",
+      "Forms": "MRC slip sections (Risk Details, Information, Security Details) plus the LMA clause library and model binder wordings with schedules.",
+      "Filings": "CDR submissions at placement, Crystal checks per territory, bordereaux deadlines, ATLAS coverholder audits and US situs trust fund arrangements.",
+      "Lifecycle Behavior": "Slip preparation, leader quote, subscription, bureau signing; binder risks-written records and monthly bordereaux; YOA renewal creates a new binder period."
+    },
+    "patterns": [
+      {
+        "name": "Delegated authority binder",
+        "components": ["Underwriting Rules", "Filings", "Lifecycle Behavior"]
+      },
+      { "name": "Broker lineslip", "components": ["Terms", "Pricing"] },
+      { "name": "Open-market subscription", "components": ["Forms", "Lifecycle Behavior"] }
+    ]
+  },
+  "lobs": [
+    {
+      "name": "Property Binder",
+      "appliesTo": "Open market and delegated authority property, worldwide ex-US focus",
+      "componentsExtended": "Binder schedules per class/territory; cat zone aggregates per YOA; coverholder rate matrices"
+    },
+    {
+      "name": "Cyber",
+      "appliesTo": "SME cyber via lineslip and open-market declarations",
+      "componentsExtended": "Declaration schedules; leader-agreed rate tables; LMA cyber war clause set"
+    },
+    {
+      "name": "Marine Cargo / Hull",
+      "appliesTo": "Open-market cargo open covers and hull placements",
+      "componentsExtended": "Institute clause sets; voyage/commodity schedules; per-bottom accumulations"
+    },
+    {
+      "name": "Professional Lines",
+      "appliesTo": "Open-market PI/D&O written at the box on MRC slips",
+      "componentsExtended": "Claims-made slip terms; PMD benchmark packs; LMA professional lines clauses"
+    }
+  ],
+  "products": [
+    {
+      "name": "Property Binder (DA)",
+      "lob": "Property Binder",
+      "runsIn": "Binder admin system",
+      "description": "Delegated authority binding authority for residential and commercial property worldwide excluding US, coverholder-rated per the binder schedule with monthly risk, premium and claims bordereaux.",
+      "versions": [
+        {
+          "version": "2026 YOA",
+          "jurisdiction": "Worldwide ex-US",
+          "effective": "Inception 01/2026",
+          "status": "Bound",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Risk code + UMR + YOA is the whole product identity",
+              "items": [
+                {
+                  "name": "Lloyd's risk code B2 (property binder)",
+                  "description": "The binder's business is coded B2 property binder for Lloyd's reporting — the risk code, not a product master, is what Lloyd's sees.",
+                  "livesIn": "MRC slip Risk Details — risk code field; CDR submission"
+                },
+                {
+                  "name": "UMR B0507PB2600126",
+                  "description": "Unique Market Reference in B0-broker-number format identifying this binding authority across bureau, Crystal and bordereaux for its life.",
+                  "livesIn": "MRC slip header; binder admin system contract record"
+                },
+                {
+                  "name": "2026 YOA structure",
+                  "description": "Risks attaching 01/01/2026–31/12/2026 allocate to the 2026 year of account; premium and claims follow the YOA through the 3-year accounting cycle.",
+                  "livesIn": "Binder admin system — YOA field on risks written records"
+                },
+                {
+                  "name": "Coverholder ATLAS PIN",
+                  "description": "The coverholder's Lloyd's approval record (PIN) in ATLAS, referenced on the slip and checked at binder registration and renewal.",
+                  "livesIn": "ATLAS — coverholder record; PIN quoted in MRC Risk Details"
+                },
+                {
+                  "name": "Binder sections per class",
+                  "description": "Two binder sections — Section 1 residential property, Section 2 commercial property — each with its own schedule of limits, rates and territories.",
+                  "livesIn": "Binder schedule appended to the MRC — slip library (SharePoint)"
+                },
+                {
+                  "name": "Territory schedule",
+                  "description": "Authorized territories: UK, Ireland, EU (via Lloyd's Europe), Australia, New Zealand, Caribbean ex-US — US-situs risks expressly excluded.",
+                  "livesIn": "Binder schedule — territory section; Crystal check record"
+                },
+                {
+                  "name": "YOA lineage 2024→2026",
+                  "description": "Continuous binder relationship renewed each YOA; 2025 YOA in runoff, 2024 closed via RITC — lineage tracked by UMR suffix per year.",
+                  "livesIn": "Binder admin system — contract lineage; renewal pack in slip library"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "Class covers defined by the binder schedule, per territory",
+              "items": [
+                {
+                  "name": "Residential buildings & contents all risks",
+                  "description": "Section 1 all-risks cover on homeowner buildings and contents per the schedule wording, written by the coverholder within schedule limits.",
+                  "livesIn": "Binder schedule Section 1 + territory wording — slip library"
+                },
+                {
+                  "name": "Commercial property all risks (FLEXA base)",
+                  "description": "Section 2 cover on commercial buildings, contents and stock — fire, lightning, explosion, aircraft base extended to all risks per schedule occupancy list.",
+                  "livesIn": "Binder schedule Section 2 — slip library"
+                },
+                {
+                  "name": "Caribbean windstorm (named peril, per territory)",
+                  "description": "Windstorm cover in Caribbean territories subject to per-risk wind deductibles and the binder's Caribbean wind aggregate.",
+                  "livesIn": "Binder schedule — Caribbean territory annex; aggregate tracked in bordereaux spreadsheet"
+                },
+                {
+                  "name": "Earthquake (NZ / selected territories)",
+                  "description": "EQ cover only in scheduled territories (NZ, selected EU zones) with its own deductible scale and zonal aggregate cap.",
+                  "livesIn": "Binder schedule — EQ annex; cat zone aggregate sheet"
+                },
+                {
+                  "name": "Flood (territory-restricted with aggregates)",
+                  "description": "Flood cover available per territory annex, excluded in named flood zones, with a binder-level flood aggregate per YOA.",
+                  "livesIn": "Binder schedule — flood annex; bordereaux aggregate columns"
+                },
+                {
+                  "name": "UK subsidence",
+                  "description": "Subsidence, heave and landslip on UK residential risks per standard UK market practice, £1,000 subsidence excess.",
+                  "livesIn": "Binder schedule Section 1 — UK annex"
+                },
+                {
+                  "name": "Loss of rent / alternative accommodation",
+                  "description": "Consequential cover at 20% of buildings sum insured on residential; loss of rent receivable on commercial per schedule.",
+                  "livesIn": "Binder schedule — consequential loss items"
+                },
+                {
+                  "name": "Theft and escape of water",
+                  "description": "Standard theft (forcible entry definition) and escape-of-water perils within the all-risks grants, with unoccupancy restrictions.",
+                  "livesIn": "Binder schedule wording — perils and restrictions section"
+                },
+                {
+                  "name": "Property owners' liability (optional section)",
+                  "description": "Optional £2M POL cover attachable to commercial risks where the schedule permits, coded to the binder's liability sub-section.",
+                  "livesIn": "Binder schedule Section 2 — optional POL annex"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "Line, order, and YOA aggregate discipline",
+              "items": [
+                {
+                  "name": "Maximum limit any one risk GBP 2.5M",
+                  "description": "Coverholder may bind up to £2.5M sum insured any one risk (£1M Caribbean); larger risks must be referred to the box.",
+                  "livesIn": "Binder schedule — limits section; MRC Risk Details"
+                },
+                {
+                  "name": "Binder premium income limit GBP 25M",
+                  "description": "Estimated/maximum gross premium income for the 2026 YOA; writing beyond the income limit requires an addendum.",
+                  "livesIn": "MRC Risk Details — premium income limit; monitored via premium bordereaux"
+                },
+                {
+                  "name": "Syndicate written line 60% / order 100%",
+                  "description": "Lead syndicate wrote 60%, two followers complete the 100% order; signed lines fixed at written lines (no signing down) per the slip.",
+                  "livesIn": "MRC Security Details — written/signed lines; DXC signing message"
+                },
+                {
+                  "name": "Cat zone aggregate limits",
+                  "description": "Caribbean wind aggregate £8M, NZ EQ aggregate £5M, flood aggregate £4M per YOA — breach stops binding in that zone.",
+                  "livesIn": "Binder schedule — aggregates; tracked monthly in bordereaux spreadsheet"
+                },
+                {
+                  "name": "Peril deductibles",
+                  "description": "Wind 2% of sum insured (min £5k) Caribbean, EQ 5% NZ, standard £250–£1,000 attritional excesses per schedule.",
+                  "livesIn": "Binder schedule — deductibles table"
+                },
+                {
+                  "name": "Binder period & cancellation",
+                  "description": "12 months at 01/01/2026 with 30-day notice of cancellation either side; risks bound before cancellation run to natural expiry.",
+                  "livesIn": "MRC Risk Details — period and cancellation provisions"
+                },
+                {
+                  "name": "Premium payment / settlement terms",
+                  "description": "Bordereaux premium settled to the bureau within 45 days of month end; late settlement is a binder event of default.",
+                  "livesIn": "MRC — settlement due date clause; DXC settlement records"
+                },
+                {
+                  "name": "Claims handling authority GBP 25k",
+                  "description": "Coverholder handles and settles claims up to £25k per the claims agreement annex; above that, claims route to the syndicate via ECF.",
+                  "livesIn": "Binder claims annex — slip library; ECF claim files"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "Coverholder rate matrix, PMD-benchmarked",
+              "items": [
+                {
+                  "name": "Coverholder rate matrix per class/territory",
+                  "description": "The binder schedule's rate tables — rate per mille by construction, occupancy and territory — are the only rating engine; the coverholder applies them at point of sale.",
+                  "livesIn": "Binder schedule — rate matrix annex; slip library (SharePoint)"
+                },
+                {
+                  "name": "Construction/occupancy relativities",
+                  "description": "Rate relativities for construction class (standard/non-standard, timber-frame loading) and occupancy (owner-occupied vs let, trade classes on commercial).",
+                  "livesIn": "Binder schedule — rate matrix rows"
+                },
+                {
+                  "name": "Cat loadings per zone",
+                  "description": "Wind and EQ loadings by cat zone added to base rates in exposed territories, aligned to the aggregate caps.",
+                  "livesIn": "Binder schedule — cat loading table"
+                },
+                {
+                  "name": "Minimum rates & discount cap",
+                  "description": "Schedule minimum rates per class; coverholder discretionary discount capped at 10% — beyond that the risk is a referral.",
+                  "livesIn": "Binder schedule — rating rules; referral email trail"
+                },
+                {
+                  "name": "PMD premium/exposure benchmarks",
+                  "description": "Quarterly comparison of binder rate adequacy against the syndicate's PMD (performance management data) benchmarks for B2 property.",
+                  "livesIn": "Syndicate PMD pack — underwriting performance folder"
+                },
+                {
+                  "name": "YOA-on-YOA rate change tracking",
+                  "description": "Renewal pack quantifies 2026 vs 2025 rate movement per section (target +7.5% Caribbean, flat UK) as the basis of the leader's renewal quote.",
+                  "livesIn": "Binder renewal pack — slip library"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "Commission stack + Crystal tax schedules",
+              "items": [
+                {
+                  "name": "Coverholder commission 22.5%",
+                  "description": "Coverholder retains 22.5% of gross premium as commission, deducted before bordereaux settlement.",
+                  "livesIn": "MRC Risk Details — coverholder commission; premium bordereaux net columns"
+                },
+                {
+                  "name": "Profit commission 15% over 50% loss ratio",
+                  "description": "Coverholder earns 15% profit commission on the YOA underwriting profit subject to a 50% loss ratio threshold, calculated at 24 and 36 months.",
+                  "livesIn": "MRC — profit commission clause; PC calculation spreadsheet, underwriting folder"
+                },
+                {
+                  "name": "Lloyd's brokerage 10%",
+                  "description": "Placing broker's brokerage of 10% on the slip, deducted at bureau signing.",
+                  "livesIn": "MRC Security Details — brokerage; DXC signing/LPAN records"
+                },
+                {
+                  "name": "UK IPT 12%",
+                  "description": "Insurance premium tax at 12% on UK-located risks, charged to the insured by the coverholder and shown in the premium bordereaux tax columns.",
+                  "livesIn": "Crystal — UK requirements; bordereaux tax columns"
+                },
+                {
+                  "name": "Territory tax schedules via Crystal",
+                  "description": "Per-territory premium taxes and parafiscal charges (Australia stamp duty by state, EU IPT via Lloyd's Europe) resolved from Crystal and encoded in the Fiscal & Regulatory section.",
+                  "livesIn": "Crystal territory records; MRC Fiscal & Regulatory section"
+                },
+                {
+                  "name": "Policy/administration fees disclosure",
+                  "description": "Coverholder policy fees permitted only where the schedule allows and must be disclosed separately from premium in the bordereaux.",
+                  "livesIn": "Binder schedule — fees rule; premium bordereaux fee column"
+                },
+                {
+                  "name": "Net-to-syndicate walk",
+                  "description": "Standard walk from gross premium through commission, brokerage and taxes to net premium signed to the syndicate — reconciled monthly against DXC signings.",
+                  "livesIn": "Bordereaux reconciliation spreadsheet — underwriting operations folder"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Authority is the binder schedule; everything else referred",
+              "items": [
+                {
+                  "name": "Eligible classes only",
+                  "description": "Coverholder may bind only the scheduled classes (residential, listed commercial occupancies); unlisted occupancies are automatic referrals to the box.",
+                  "livesIn": "Binder schedule — eligible classes; referral email trail"
+                },
+                {
+                  "name": "Territory authority",
+                  "description": "Binding restricted to scheduled territories; US-situs risks prohibited outright, sanctioned territories excluded per LMA3100.",
+                  "livesIn": "Binder schedule — territory annex; Crystal checks"
+                },
+                {
+                  "name": "Limit referrals above schedule caps",
+                  "description": "Any risk above £2.5M (£1M Caribbean) or TIV above £5M must be referred and, if agreed, bound as an open-market risk not under the binder.",
+                  "livesIn": "Binder schedule — limits; box referral log"
+                },
+                {
+                  "name": "Cat aggregate monitoring per zone/YOA",
+                  "description": "Monthly aggregate roll-up per cat zone from the risk bordereaux; binding in a zone suspends automatically at 90% of the zonal aggregate.",
+                  "livesIn": "Bordereaux spreadsheet — aggregate tab; monthly DA oversight pack"
+                },
+                {
+                  "name": "No sub-delegation",
+                  "description": "Coverholder may not sub-delegate binding authority; any introducer arrangement must be disclosed and approved via ATLAS.",
+                  "livesIn": "MRC binding authority conditions; ATLAS coverholder record"
+                },
+                {
+                  "name": "Sanctions screening (LMA3100)",
+                  "description": "Sanctions limitation clause applies to every risk bound; coverholder warrants screening against UK/EU/OFAC lists at point of sale.",
+                  "livesIn": "LMA3100 in binder wording; coverholder compliance annex"
+                },
+                {
+                  "name": "Unoccupancy & high-hazard restrictions",
+                  "description": "Unoccupied properties >30 days, thatch, and heritage-listed buildings are outside authority and referred.",
+                  "livesIn": "Binder schedule — restrictions list"
+                },
+                {
+                  "name": "Claims authority cap & reporting",
+                  "description": "Claims above £25k, all liability claims, and any claim with coverage doubt must be reported to the syndicate within 48 hours.",
+                  "livesIn": "Binder claims annex; ECF claim records"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "Model binder wording + LMA clause set + MRC sections",
+              "items": [
+                {
+                  "name": "LMA3113 model binding authority agreement",
+                  "description": "The binder contract itself, on the Lloyd's model binding authority wording with schedule-driven variables.",
+                  "livesIn": "LMA clause library + executed copy in slip library (SharePoint)"
+                },
+                {
+                  "name": "MRC slip — Risk Details / Information / Security Details",
+                  "description": "The Market Reform Contract placing the binder, with Risk Details (period, limits, commissions), Information, and Security Details (stamps and lines) sections.",
+                  "livesIn": "MRC slip library (SharePoint) — UMR B0507PB2600126 folder"
+                },
+                {
+                  "name": "Binder schedule & annexes",
+                  "description": "The operative schedules — classes, limits, rates, territories, deductibles, aggregates, claims authority — that define what the coverholder can actually sell.",
+                  "livesIn": "Slip library — schedule annexes to the MRC"
+                },
+                {
+                  "name": "LMA3100 sanctions limitation clause",
+                  "description": "Standard market sanctions limitation and exclusion clause incorporated into the binder and all certificates.",
+                  "livesIn": "LMA clause library; referenced in binder wording"
+                },
+                {
+                  "name": "LMA5401 property cyber endorsement",
+                  "description": "Property cyber write-back endorsement (data/cyber loss clarification) applied to property covers per Lloyd's cyber-clarity mandate.",
+                  "livesIn": "LMA clause library; binder wording endorsement list"
+                },
+                {
+                  "name": "NMA2918 war & terrorism exclusion",
+                  "description": "Standard war and terrorism exclusion on all property certificates, with terrorism buy-back unavailable under this binder.",
+                  "livesIn": "LMA/NMA clause library; certificate wording"
+                },
+                {
+                  "name": "LMA5393 communicable disease exclusion",
+                  "description": "Property communicable disease exclusion applied market-wide since 2020, attached to all certificates.",
+                  "livesIn": "LMA clause library; certificate wording"
+                },
+                {
+                  "name": "Certificate of insurance template",
+                  "description": "The coverholder-issued certificate template evidencing each risk bound, referencing the UMR and binder terms.",
+                  "livesIn": "Binder admin system — certificate template; specimen in slip library"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "CDR, Crystal, bordereaux deadlines, ATLAS audits",
+              "items": [
+                {
+                  "name": "CDR submission at binder registration",
+                  "description": "Core Data Record fields (UMR, risk code, YOA, territories, coverholder PIN) submitted at placement for Lloyd's digital processing.",
+                  "livesIn": "CDR submission record; binder admin system contract data"
+                },
+                {
+                  "name": "Binding authority registration (DCOM)",
+                  "description": "Binder registered in Lloyd's delegated contract oversight platform before any risk may attach.",
+                  "livesIn": "DCOM registration record; copy in slip library folder"
+                },
+                {
+                  "name": "Crystal territory requirement checks",
+                  "description": "Per-territory licensing and documentation requirements (Lloyd's licensed vs accredited status, local policy wording rules) verified in Crystal for every scheduled territory.",
+                  "livesIn": "Crystal — territory check extracts, compliance folder"
+                },
+                {
+                  "name": "Monthly risk bordereaux deadline",
+                  "description": "Risks-written bordereaux due within 15 days of month end in the agreed spreadsheet format; late bordereaux escalate to the DA oversight meeting.",
+                  "livesIn": "Bordereaux spreadsheets — monthly risk files; submission log"
+                },
+                {
+                  "name": "Monthly premium & paid claims bordereaux",
+                  "description": "Premium bordereaux (with tax and commission columns) and claims bordereaux due on the same 15-day cycle, reconciled to DXC signings.",
+                  "livesIn": "Bordereaux spreadsheets — premium/claims files; reconciliation tab"
+                },
+                {
+                  "name": "ATLAS coverholder annual audit",
+                  "description": "Coverholder audit scheduled through ATLAS covering underwriting-within-authority, claims handling, CBS/client money — findings tracked to closure.",
+                  "livesIn": "ATLAS — audit file; audit report in compliance folder"
+                },
+                {
+                  "name": "US situs check (trust funds not applicable)",
+                  "description": "Ex-US binder carries a situs check at risk entry confirming no US trust fund (CRTF/SLTF) obligations arise; any US-situs risk found is voided and referred.",
+                  "livesIn": "Binder admin system — situs validation; compliance memo"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "Slip → subscription → coverholder binds → bordereaux → YOA renewal",
+              "items": [
+                {
+                  "name": "Binder renewal pack & slip preparation",
+                  "description": "Broker assembles the renewal pack (YOA performance, rate change, aggregate usage) and prepares the 2026 MRC for the leader.",
+                  "livesIn": "Slip library — renewal pack + draft MRC"
+                },
+                {
+                  "name": "Leader quote & terms",
+                  "description": "Lead underwriter quotes line and terms on the slip — rate uplift, aggregate changes, schedule amendments — stamped in Security Details.",
+                  "livesIn": "MRC Security Details — leader stamp; box records"
+                },
+                {
+                  "name": "Following market subscription",
+                  "description": "Broker completes the 100% order with following syndicates subscribing to the leader's terms under the GUA.",
+                  "livesIn": "MRC Security Details — following stamps and written lines"
+                },
+                {
+                  "name": "Bureau signing (Xchanging/DXC)",
+                  "description": "Slip submitted for signing; premium processed via LPANs and signed lines confirmed back through bureau messaging.",
+                  "livesIn": "DXC bureau messaging — signing & LPAN records"
+                },
+                {
+                  "name": "Registration & coverholder go-live",
+                  "description": "Binder registered (DCOM), ATLAS status confirmed, and the coverholder authorized to bind from 01/01 — certificates issue from the binder admin system.",
+                  "livesIn": "DCOM + ATLAS records; binder admin system activation"
+                },
+                {
+                  "name": "Risks written records (per certificate, YOA-tagged)",
+                  "description": "Every risk bound is recorded in the binder admin system with certificate number, sum insured, territory, cat zone and 2026 YOA tag.",
+                  "livesIn": "Binder admin system — risks written records"
+                },
+                {
+                  "name": "Monthly bordereaux cycle & reconciliation",
+                  "description": "Risk/premium/claims bordereaux uploaded monthly, reconciled to the binder admin system and DXC settlements; queries bounce back to the coverholder.",
+                  "livesIn": "Bordereaux spreadsheets + reconciliation tab; DXC settlement records"
+                },
+                {
+                  "name": "Addenda (MRC endorsements)",
+                  "description": "Mid-term binder changes — aggregate top-ups, schedule amendments, territory additions — agreed as slip addenda stamped by agreement parties.",
+                  "livesIn": "Slip library — addenda folder under the UMR"
+                },
+                {
+                  "name": "Claims flow via bureau messaging",
+                  "description": "Coverholder-handled claims report through claims bordereaux; above-authority claims open on ECF for syndicate agreement and bureau settlement.",
+                  "livesIn": "ECF claim files; claims bordereaux spreadsheets"
+                },
+                {
+                  "name": "YOA renewal (new binder period)",
+                  "description": "The 2027 renewal creates a new binder period and UMR-year: 2026 risks run to natural expiry under 2026 YOA while new risks attach to 2027.",
+                  "livesIn": "Binder admin system — YOA rollover; renewal pack in slip library"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "version": "2025 YOA",
+          "jurisdiction": "Worldwide ex-US",
+          "effective": "Expired 12/2025",
+          "status": "Runoff",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Expired YOA — identity frozen, running to natural expiry",
+              "items": [
+                {
+                  "name": "Lloyd's risk code B2 (2025 YOA)",
+                  "description": "Same B2 property binder coding; 2025-attached risks continue to report under the 2025 year of account until closure.",
+                  "livesIn": "CDR record; binder admin system YOA field"
+                },
+                {
+                  "name": "UMR B0507PB2500125",
+                  "description": "The 2025 binder-year UMR — still the reference for all runoff premium, claims and profit-commission transactions.",
+                  "livesIn": "MRC slip header (2025); binder admin system contract record"
+                },
+                {
+                  "name": "2025 YOA in runoff",
+                  "description": "Binder expired 31/12/2025; no new risks attach, but risks bound in 2025 remain on cover to natural expiry (up to 31/12/2026).",
+                  "livesIn": "Binder admin system — contract status; risks written records"
+                },
+                {
+                  "name": "3-year accounting position",
+                  "description": "2025 YOA remains open in the syndicate's 3-year accounting until closure at 36 months (expected RITC into 2026 at YE2027).",
+                  "livesIn": "Syndicate accounts — YOA schedule; underwriting performance folder"
+                },
+                {
+                  "name": "Schedule differences vs 2026",
+                  "description": "2025 schedule had a higher Caribbean wind aggregate (£10M) and included two commercial occupancies removed at the 2026 renewal.",
+                  "livesIn": "2025 binder schedule — slip library archive"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "2025 schedule covers, frozen for in-force certificates",
+              "items": [
+                {
+                  "name": "Residential buildings & contents all risks (2025 terms)",
+                  "description": "Section 1 cover as scheduled for 2025 — certificates in force keep 2025 terms even after binder expiry.",
+                  "livesIn": "2025 binder schedule Section 1 — slip library archive"
+                },
+                {
+                  "name": "Commercial property all risks (broader 2025 occupancy list)",
+                  "description": "Section 2 with the pre-cull occupancy list including waste-adjacent and food-processing risks later removed for 2026.",
+                  "livesIn": "2025 binder schedule Section 2 — archive"
+                },
+                {
+                  "name": "Caribbean windstorm (2025 aggregate)",
+                  "description": "Wind cover on 2025 certificates counted against the 2025 £10M wind aggregate; runoff exposure decays as certificates expire monthly.",
+                  "livesIn": "2025 schedule Caribbean annex; runoff aggregate tab in bordereaux spreadsheet"
+                },
+                {
+                  "name": "Flood and EQ per 2025 annexes",
+                  "description": "Flood and NZ EQ covers per the 2025 annexes, continuing on in-force certificates through their natural expiry.",
+                  "livesIn": "2025 binder schedule annexes — archive"
+                },
+                {
+                  "name": "Loss of rent / alternative accommodation",
+                  "description": "Consequential covers on 2025 certificates unchanged; claims continue to emerge during runoff.",
+                  "livesIn": "2025 binder schedule — consequential loss items"
+                },
+                {
+                  "name": "Property owners' liability (2025 optional section)",
+                  "description": "POL sections bound during 2025 remain live; liability claims have the longest runoff tail on this YOA.",
+                  "livesIn": "2025 binder schedule — POL annex; ECF liability claim files"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "No new attachments; in-force terms run off",
+              "items": [
+                {
+                  "name": "No new risks after 31/12/2025",
+                  "description": "Binding authority ceased at expiry — any certificate dated after 31/12/2025 is outside authority and repudiated back to the coverholder.",
+                  "livesIn": "MRC (2025) period clause; binder admin system attachment validation"
+                },
+                {
+                  "name": "Natural expiry of in-force certificates",
+                  "description": "2025-attached 12-month certificates expire progressively through 2026; the runoff report tracks the declining in-force count monthly.",
+                  "livesIn": "Binder admin system — in-force runoff report"
+                },
+                {
+                  "name": "2025 line structure (55%/order 100%)",
+                  "description": "Lead wrote 55% in 2025 with three followers; the different panel from 2026 matters for claim agreement on runoff claims.",
+                  "livesIn": "MRC (2025) Security Details; DXC signing records"
+                },
+                {
+                  "name": "Runoff settlement terms",
+                  "description": "Premium adjustments and return premiums on cancelled certificates continue through bordereaux settlement on the 45-day cycle.",
+                  "livesIn": "Premium bordereaux (runoff months); DXC settlement records"
+                },
+                {
+                  "name": "Claims handling authority continues",
+                  "description": "Coverholder retains £25k claims authority for 2025-YOA claims until the last certificate expires and the claims bordereaux closes.",
+                  "livesIn": "2025 binder claims annex; claims bordereaux"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "2025 matrices closed; used only for return-premium math",
+              "items": [
+                {
+                  "name": "2025 rate matrix (frozen)",
+                  "description": "The 2025 schedule rate tables are closed to new use but remain the basis for computing return premiums and mid-term adjustments on in-force certificates.",
+                  "livesIn": "2025 binder schedule rate matrix — slip library archive"
+                },
+                {
+                  "name": "Pro-rata / short-rate return premium scale",
+                  "description": "Cancellation return premiums on 2025 certificates computed per the schedule's return scale and reported in the premium bordereaux.",
+                  "livesIn": "2025 binder schedule — cancellation scale; bordereaux return columns"
+                },
+                {
+                  "name": "2025 rate adequacy reforecast",
+                  "description": "Actual 2025 YOA loss ratio versus plan tracked quarterly during runoff — the key input to the 2026 renewal pricing already applied.",
+                  "livesIn": "Syndicate PMD pack — 2025 YOA performance pages"
+                },
+                {
+                  "name": "Cat loading experience review",
+                  "description": "Post-season review of Caribbean wind loadings against 2025 hurricane activity feeding the 2026 +7.5% uplift decision.",
+                  "livesIn": "Underwriting performance folder — 2025 cat review memo"
+                },
+                {
+                  "name": "Discount-cap breach findings",
+                  "description": "2025 audit found discounting beyond the 10% cap on 14 certificates — remediation tracked and rate rules tightened in the 2026 schedule.",
+                  "livesIn": "ATLAS audit report 2025 — findings log"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "Runoff economics: PC true-up and tax finalization",
+              "items": [
+                {
+                  "name": "Coverholder commission 22.5% (2025 terms)",
+                  "description": "Commission on runoff premium adjustments continues at the 2025 contractual rate.",
+                  "livesIn": "MRC (2025) — commission clause; bordereaux net columns"
+                },
+                {
+                  "name": "Profit commission true-up at 24/36 months",
+                  "description": "2025 YOA profit commission provisionally calculated at 24 months (12/2026) and finalized at 36 months with claims development — the main open money item on this YOA.",
+                  "livesIn": "PC calculation spreadsheet — 2025 YOA tab; MRC PC clause"
+                },
+                {
+                  "name": "Brokerage 10% on runoff transactions",
+                  "description": "Brokerage continues to apply to additional/return premiums processed through the bureau during runoff.",
+                  "livesIn": "DXC LPAN records (2025 UMR)"
+                },
+                {
+                  "name": "Tax finalization per territory",
+                  "description": "IPT and territory taxes on 2025 premium finalized through the last bordereaux; corrections flow as tax-only bordereaux lines.",
+                  "livesIn": "Crystal schedules + bordereaux tax columns (runoff months)"
+                },
+                {
+                  "name": "Net runoff premium reporting",
+                  "description": "Monthly net premium movement (adjustments minus returns) reported to the syndicate until the YOA closes.",
+                  "livesIn": "Bordereaux reconciliation spreadsheet — 2025 runoff tab"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Authority lapsed; oversight rules continue",
+              "items": [
+                {
+                  "name": "Binding authority lapsed",
+                  "description": "All underwriting authority ceased at expiry; only mid-term administration of in-force certificates (cancellation, sum-insured reductions) is permitted.",
+                  "livesIn": "MRC (2025) — expiry provisions; binder admin system controls"
+                },
+                {
+                  "name": "Out-of-authority certificate checks",
+                  "description": "Runoff oversight re-checks late-reported certificates for attachment dates within the 2025 period — a standing audit item.",
+                  "livesIn": "Bordereaux review checklist; DA oversight pack"
+                },
+                {
+                  "name": "Aggregate runoff monitoring",
+                  "description": "Cat zone aggregates continue to be tracked on the declining in-force book through the 2026 hurricane season.",
+                  "livesIn": "Bordereaux spreadsheet — runoff aggregate tab"
+                },
+                {
+                  "name": "Sanctions screening on claims payments",
+                  "description": "LMA3100 screening applies to every runoff claim payment and return premium payee.",
+                  "livesIn": "Claims annex; coverholder compliance annex"
+                },
+                {
+                  "name": "2025 audit remediation tracking",
+                  "description": "Open ATLAS audit findings (discount-cap breaches, late bordereaux) tracked to closure as a condition of the already-bound 2026 renewal.",
+                  "livesIn": "ATLAS — audit findings log; DA oversight minutes"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "2025 wording set frozen for in-force certificates",
+              "items": [
+                {
+                  "name": "LMA3113 binding authority agreement (2025 execution)",
+                  "description": "The executed 2025 binder contract — the governing document for all runoff rights and obligations including PC and audit access.",
+                  "livesIn": "Slip library archive — 2025 UMR folder"
+                },
+                {
+                  "name": "MRC slip (2025) with addenda",
+                  "description": "The 2025 placing slip plus its three mid-term addenda (aggregate top-up, occupancy addition, claims-annex amendment).",
+                  "livesIn": "MRC slip library (SharePoint) — 2025 UMR folder"
+                },
+                {
+                  "name": "2025 certificate wording set",
+                  "description": "Certificates in force retain the 2025 wording set — including the pre-2026 version of the escape-of-water restriction — until expiry.",
+                  "livesIn": "Binder admin system — 2025 certificate template archive"
+                },
+                {
+                  "name": "LMA3100 / NMA2918 / LMA5393 clause set",
+                  "description": "Sanctions, war & terrorism and communicable disease clauses as attached to 2025 certificates, identical editions to 2026.",
+                  "livesIn": "LMA clause library; 2025 certificate wording"
+                },
+                {
+                  "name": "LMA5400 absolute cyber exclusion (2025 difference)",
+                  "description": "2025 certificates carry the absolute property cyber exclusion LMA5400; the 2026 renewal moved to the LMA5401 write-back — a live difference on runoff claims.",
+                  "livesIn": "LMA clause library; 2025 certificate wording archive"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "Runoff reporting continues until YOA closure",
+              "items": [
+                {
+                  "name": "Runoff bordereaux continue monthly",
+                  "description": "Risk (nil-new), premium-adjustment and claims bordereaux continue on the 15-day cycle until every 2025 certificate has expired and claims settled.",
+                  "livesIn": "Bordereaux spreadsheets — 2025 runoff series"
+                },
+                {
+                  "name": "CDR record maintenance",
+                  "description": "The 2025 CDR record remains open for claims and premium movements until YOA closure.",
+                  "livesIn": "CDR record (2025 UMR)"
+                },
+                {
+                  "name": "Final ATLAS audit for 2025 underwriting year",
+                  "description": "Closing audit of 2025-bound business scheduled mid-2026, focused on the discount-cap findings and claims files.",
+                  "livesIn": "ATLAS — audit schedule; compliance folder"
+                },
+                {
+                  "name": "Crystal requirement changes during runoff",
+                  "description": "Territory requirement changes (e.g. Australian stamp duty rate change) applied to runoff adjustments per Crystal effective-dating.",
+                  "livesIn": "Crystal — territory records; bordereaux tax corrections"
+                },
+                {
+                  "name": "DCOM status update to expired/runoff",
+                  "description": "Binder status flipped to expired in the delegated oversight platform with runoff contact points recorded.",
+                  "livesIn": "DCOM record (2025 UMR)"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "Decay curve: expiries, claims tail, PC true-up, YOA closure",
+              "items": [
+                {
+                  "name": "Monthly in-force decay tracking",
+                  "description": "In-force certificate count and exposure decline tracked monthly; last 2025-attached certificate expires 31/12/2026.",
+                  "livesIn": "Binder admin system — in-force runoff report"
+                },
+                {
+                  "name": "Runoff premium adjustments via bordereaux",
+                  "description": "Cancellations, sum-insured changes and audit adjustments flow as bordereaux lines and bureau settlements against the 2025 UMR.",
+                  "livesIn": "Premium bordereaux; DXC settlement records"
+                },
+                {
+                  "name": "Claims tail management via ECF",
+                  "description": "Above-authority and liability claims on 2025 certificates continue on ECF; wind claims from the 2025 season dominate the open count.",
+                  "livesIn": "ECF claim files (2025 UMR); claims bordereaux"
+                },
+                {
+                  "name": "Profit commission provisional and final calculations",
+                  "description": "PC computed provisionally at 24 months and finally at 36 months from YOA inception; disputed development handled per the MRC PC clause.",
+                  "livesIn": "PC calculation spreadsheet — 2025 YOA tab"
+                },
+                {
+                  "name": "YOA closure via RITC",
+                  "description": "At 36 months the 2025 YOA closes by reinsurance to close into the 2026 YOA, transferring remaining liabilities — the formal end of this binder year.",
+                  "livesIn": "Syndicate accounts — RITC schedule; underwriting performance folder"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cyber Lineslip",
+      "lob": "Cyber",
+      "runsIn": "Binder admin system",
+      "description": "Broker lineslip for UK and EU SME cyber — leader-stamped declarations against a pre-agreed rate schedule and wording, following market bound under the GUA, processed per declaration through the bureau.",
+      "versions": [
+        {
+          "version": "2026",
+          "jurisdiction": "UK / EU",
+          "effective": "Inception 01/2026",
+          "status": "Bound",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Lineslip UMR + CY risk code + declaration numbering",
+              "items": [
+                {
+                  "name": "Lloyd's risk code CY (cyber security data & privacy)",
+                  "description": "Declarations coded CY for Lloyd's reporting, splitting first-party-led SME cyber from other syndicate cyber writings.",
+                  "livesIn": "MRC slip Risk Details — risk code; CDR per declaration"
+                },
+                {
+                  "name": "UMR B0713CYL2600126",
+                  "description": "The lineslip's unique market reference; every declaration references the UMR plus its declaration number.",
+                  "livesIn": "MRC slip header; binder admin system lineslip record"
+                },
+                {
+                  "name": "Declaration numbering scheme",
+                  "description": "Sequential declaration numbers (DEC-2026-0001…) issued by the broker and recorded against the lineslip for bureau processing and aggregation.",
+                  "livesIn": "Binder admin system — declaration register; broker declaration schedule"
+                },
+                {
+                  "name": "2026 YOA allocation",
+                  "description": "Declarations attaching during the 2026 lineslip period allocate to the 2026 year of account.",
+                  "livesIn": "Binder admin system — YOA field per declaration"
+                },
+                {
+                  "name": "Eligible insured profile",
+                  "description": "UK/EU-domiciled SMEs under £100M revenue in scheduled trade sectors — the taxonomy boundary of what may be declared without referral.",
+                  "livesIn": "MRC Risk Details — eligibility criteria; leader rate schedule"
+                },
+                {
+                  "name": "EU paper via Lloyd's Europe",
+                  "description": "EEA-domiciled declarations issue through Lloyd's Insurance Company SA (Lloyd's Brussels); UK declarations on syndicate paper — flagged per declaration.",
+                  "livesIn": "Binder admin system — paper flag; Crystal EEA records"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "SME cyber wording, declaration-level grants",
+              "items": [
+                {
+                  "name": "Incident response costs",
+                  "description": "First-party breach response — IR counsel, forensics, notification, credit monitoring — through the slip's named response panel.",
+                  "livesIn": "Lineslip cyber wording — Section 1; panel annex in slip library"
+                },
+                {
+                  "name": "Cyber extortion",
+                  "description": "Ransom and negotiator costs sublimited at 50% of the declaration limit, subject to sanctions checks before any payment.",
+                  "livesIn": "Lineslip cyber wording — Section 2 + sublimit table"
+                },
+                {
+                  "name": "Business interruption",
+                  "description": "Loss of profits and increased cost of working from a network security event after the waiting period.",
+                  "livesIn": "Lineslip cyber wording — Section 3"
+                },
+                {
+                  "name": "Data restoration",
+                  "description": "Costs to restore data and reconfigure systems following a covered event, including externally hosted data per the wording.",
+                  "livesIn": "Lineslip cyber wording — Section 4"
+                },
+                {
+                  "name": "Network security & privacy liability",
+                  "description": "Third-party liability including regulatory defense costs and, where insurable, GDPR administrative fines.",
+                  "livesIn": "Lineslip cyber wording — Section 5; GDPR carve-out clause"
+                },
+                {
+                  "name": "Media liability (digital)",
+                  "description": "Defamation and IP infringement (ex-patent) from the insured's website and digital content.",
+                  "livesIn": "Lineslip cyber wording — Section 6"
+                },
+                {
+                  "name": "PCI fines & assessments",
+                  "description": "Sublimited cover for PCI-DSS contractual fines for card-handling SMEs, per declaration where the trade sector applies.",
+                  "livesIn": "Lineslip cyber wording — Section 7 + sublimit table"
+                },
+                {
+                  "name": "State-backed cyber attack exclusion (LMA5564A)",
+                  "description": "Lloyd's-mandated war/state-backed cyber exclusion applied to every declaration, with the wording's bystander carve-back.",
+                  "livesIn": "LMA clause library — LMA5564A; lineslip wording endorsement list"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "Leader-stamped declarations within pre-agreed bands",
+              "items": [
+                {
+                  "name": "Maximum declaration limit GBP 5M",
+                  "description": "Declarations up to £5M aggregate each; anything larger leaves the lineslip and goes open market.",
+                  "livesIn": "MRC Risk Details — declaration limit; leader rate schedule"
+                },
+                {
+                  "name": "Lineslip order 100% (leader 35% + 4 followers)",
+                  "description": "Leader writes 35% with four following syndicates completing the order; all declarations bind the whole panel automatically within the agreed criteria.",
+                  "livesIn": "MRC Security Details — written/signed lines"
+                },
+                {
+                  "name": "Leader-only agreement under GUA",
+                  "description": "Declarations within criteria are agreed by the leader alone under the General Underwriters Agreement; off-criteria risks need leader plus agreement parties.",
+                  "livesIn": "MRC — GUA / agreement parties section"
+                },
+                {
+                  "name": "BI waiting period 10 hours",
+                  "description": "Standard 10-hour waiting period on business interruption across all declarations, non-negotiable at declaration level.",
+                  "livesIn": "Lineslip cyber wording — BI section"
+                },
+                {
+                  "name": "Retention bands GBP 5k–50k",
+                  "description": "Retentions banded by insured revenue per the rate schedule; retentions below band require leader referral.",
+                  "livesIn": "Leader rate schedule — retention bands"
+                },
+                {
+                  "name": "Lineslip period & declaration attachment",
+                  "description": "Lineslip runs 12 months at 01/01/2026; declarations attach for 12 months from their own inception, so cover tails into 2027.",
+                  "livesIn": "MRC Risk Details — period clause; declaration register"
+                },
+                {
+                  "name": "Aggregate monitoring across declarations",
+                  "description": "Panel monitors total declared limit and sector concentrations per YOA; leader may suspend declarations at agreed thresholds.",
+                  "livesIn": "Declaration register aggregation tab; leader box records"
+                },
+                {
+                  "name": "Premium payment terms per declaration",
+                  "description": "Premium settled per declaration through the bureau within 60 days of declaration inception (LSW3000-style terms of credit).",
+                  "livesIn": "MRC — premium payment clause; DXC LPAN records"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "Leader-agreed rate schedule; off-schedule = referral",
+              "items": [
+                {
+                  "name": "Leader-agreed rate table by revenue band",
+                  "description": "Pre-agreed base rates per revenue band and trade sector — the broker prices in-criteria declarations directly off this table.",
+                  "livesIn": "Leader rate schedule annex to the MRC — slip library"
+                },
+                {
+                  "name": "Trade sector relativities",
+                  "description": "Sector factors across the scheduled SME trades; professional services base 1.00, e-commerce 1.25, healthcare adjacent 1.40.",
+                  "livesIn": "Leader rate schedule — sector table"
+                },
+                {
+                  "name": "Control-based modifiers (attested)",
+                  "description": "Credits for MFA, tested backups and EDR attested on the declaration proposal form; absence of MFA makes the risk undeclarable.",
+                  "livesIn": "Leader rate schedule — controls grid; proposal form per declaration"
+                },
+                {
+                  "name": "Limit and retention factors",
+                  "description": "ILF-style factors for limits above the £1M base and credits for retentions above band minimum.",
+                  "livesIn": "Leader rate schedule — limit/retention factor table"
+                },
+                {
+                  "name": "Off-schedule referral pricing",
+                  "description": "Risks outside the rate schedule (sector, size, controls) are individually priced by the leader at the box and noted as referred declarations.",
+                  "livesIn": "Referral email trail + leader stamp on declaration schedule"
+                },
+                {
+                  "name": "PMD benchmark review",
+                  "description": "Quarterly comparison of lineslip rate adequacy versus the syndicate's CY-class PMD benchmarks, feeding the annual rate-table renegotiation.",
+                  "livesIn": "Syndicate PMD pack — cyber pages"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "Slip brokerage + territory taxes, no coverholder chain",
+              "items": [
+                {
+                  "name": "Brokerage 20% on slip",
+                  "description": "Placing broker's brokerage of 20% deducted at bureau signing per declaration — there is no coverholder commission on a lineslip.",
+                  "livesIn": "MRC Security Details — brokerage; DXC LPAN records"
+                },
+                {
+                  "name": "UK IPT 12%",
+                  "description": "Insurance premium tax on UK-domiciled declarations, shown per declaration and remitted through the bureau chain.",
+                  "livesIn": "Crystal — UK record; declaration premium schedule"
+                },
+                {
+                  "name": "EU IPT per member state",
+                  "description": "IPT for EEA declarations per risk-location country (DE 19%, NL 21%, FR 9% plus contributions) via the Lloyd's Europe tax engine, per Crystal.",
+                  "livesIn": "Crystal — EEA territory records; Lloyd's Europe tax reporting"
+                },
+                {
+                  "name": "Minimum premium per declaration GBP 1,500",
+                  "description": "Floor premium on any declaration regardless of rate-table output.",
+                  "livesIn": "Leader rate schedule — minimum premium rule"
+                },
+                {
+                  "name": "No profit commission",
+                  "description": "Broker lineslip carries no profit commission — the economics are brokerage-only, unlike the DA binder book.",
+                  "livesIn": "MRC Risk Details — remuneration section"
+                },
+                {
+                  "name": "Fees disclosure rule",
+                  "description": "Any broker admin fee to the insured must be disclosed and sits outside premium — never netted in the declaration schedule.",
+                  "livesIn": "MRC — fees clause; declaration premium schedule"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Declaration criteria are the authority boundary",
+              "items": [
+                {
+                  "name": "Eligibility criteria (domicile, revenue, sector)",
+                  "description": "UK/EU domicile, revenue under £100M and a scheduled trade sector are the hard criteria for declaring without referral.",
+                  "livesIn": "MRC Risk Details — eligibility criteria"
+                },
+                {
+                  "name": "No MFA = undeclarable",
+                  "description": "MFA on email and remote access attested on the proposal form is a condition of declaration — its absence bars the risk from the slip entirely.",
+                  "livesIn": "Leader rate schedule — controls grid; proposal form"
+                },
+                {
+                  "name": "Excluded / referred sectors",
+                  "description": "Crypto-asset firms and gambling operators are excluded; payment processors and MSPs are leader referrals with individual terms.",
+                  "livesIn": "MRC Risk Details — exclusions list; referral trail"
+                },
+                {
+                  "name": "Prior incident referral",
+                  "description": "Any cyber incident with loss over £25k in the past 3 years takes the risk off-criteria to the leader.",
+                  "livesIn": "Proposal form — incident history; referral emails"
+                },
+                {
+                  "name": "Sanctions screening (LMA3100)",
+                  "description": "Broker warrants sanctions screening on every declaration; the sanctions clause is incorporated in the wording.",
+                  "livesIn": "LMA3100 in lineslip wording; broker compliance warranty"
+                },
+                {
+                  "name": "Sector aggregation caps",
+                  "description": "Leader-set caps on declared limit per trade sector and per EU member state, monitored on the declaration register.",
+                  "livesIn": "Declaration register — aggregation tab; leader box records"
+                },
+                {
+                  "name": "Quarterly declaration listing review",
+                  "description": "Broker supplies quarterly declaration listings for leader and followers to verify in-criteria compliance — the lineslip's oversight mechanism.",
+                  "livesIn": "Declaration listings — slip library; review notes in box records"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "MRC lineslip + cyber wording + LMA clause set",
+              "items": [
+                {
+                  "name": "MRC lineslip — Risk Details / Information / Security Details",
+                  "description": "The Market Reform Contract establishing the lineslip: criteria, rate schedule reference, order, GUA basis and declaration mechanics.",
+                  "livesIn": "MRC slip library (SharePoint) — UMR B0713CYL2600126 folder"
+                },
+                {
+                  "name": "SME cyber wording (slip-scheduled)",
+                  "description": "The single agreed cyber wording attached to all declarations — seven sections plus schedules, LMA-style drafting.",
+                  "livesIn": "Slip library — wording annex to the MRC"
+                },
+                {
+                  "name": "LMA5564A state-backed cyber attack exclusion",
+                  "description": "The Lloyd's-mandated war/state-backed cyber exclusion attached to every declaration per market bulletin requirements.",
+                  "livesIn": "LMA clause library; lineslip wording endorsement list"
+                },
+                {
+                  "name": "LMA3100 sanctions limitation clause",
+                  "description": "Standard sanctions clause incorporated into the lineslip wording and each declaration certificate.",
+                  "livesIn": "LMA clause library"
+                },
+                {
+                  "name": "GDPR fines carve-out clause",
+                  "description": "Clause conforming regulatory-fine cover to insurability by member state for EEA declarations.",
+                  "livesIn": "Slip library — wording annex; legal position note in compliance folder"
+                },
+                {
+                  "name": "Declaration certificate template",
+                  "description": "Per-declaration evidence of cover referencing UMR, declaration number, limit, retention and the scheduled wording.",
+                  "livesIn": "Binder admin system — declaration certificate template"
+                },
+                {
+                  "name": "Proposal form with controls attestation",
+                  "description": "The declaration proposal form capturing revenue, sector, incident history and the MFA/backup/EDR attestations that gate eligibility.",
+                  "livesIn": "Slip library — proposal form template; completed forms per declaration"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "CDR per declaration; EEA compliance via Lloyd's Europe",
+              "items": [
+                {
+                  "name": "CDR submission per declaration",
+                  "description": "Core Data Record fields submitted for each declaration (UMR + declaration number, risk code CY, insured domicile, premium, taxes) for digital processing.",
+                  "livesIn": "CDR submissions; binder admin system declaration records"
+                },
+                {
+                  "name": "Crystal checks for UK and EEA territories",
+                  "description": "Territory requirements verified in Crystal — UK direct; EEA via Lloyd's Insurance Company authorization and local conduct rules.",
+                  "livesIn": "Crystal — territory extracts, compliance folder"
+                },
+                {
+                  "name": "Lloyd's Europe reporting for EEA declarations",
+                  "description": "EEA declarations reported through Lloyd's Brussels for local regulatory and tax reporting, reconciled to the declaration register quarterly.",
+                  "livesIn": "Lloyd's Europe reporting extracts; declaration register"
+                },
+                {
+                  "name": "Quarterly declaration listings to the market",
+                  "description": "Broker's quarterly listing of all declarations (the lineslip equivalent of bordereaux) filed to leader and followers.",
+                  "livesIn": "Declaration listings — slip library"
+                },
+                {
+                  "name": "IPT remittance evidence",
+                  "description": "UK and member-state IPT remittance evidence retained per declaration for tax audit.",
+                  "livesIn": "Compliance folder — IPT evidence; Crystal schedules"
+                },
+                {
+                  "name": "No coverholder filings (broker facility)",
+                  "description": "As a broker lineslip there is no ATLAS approval or coverholder audit — oversight is via declaration listings and GUA terms, noted in the compliance register.",
+                  "livesIn": "Compliance register — facility classification note"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "Slip once, declarations continuously, bureau per declaration",
+              "items": [
+                {
+                  "name": "Slip preparation & leader negotiation",
+                  "description": "Broker drafts the lineslip MRC with proposed criteria, rate schedule and wording; leader negotiates terms and stamps 35%.",
+                  "livesIn": "Slip library — draft and final MRC; leader stamp in Security Details"
+                },
+                {
+                  "name": "Following market subscription",
+                  "description": "Four followers subscribe to complete the order under the GUA, accepting leader-only agreement for in-criteria declarations.",
+                  "livesIn": "MRC Security Details — following stamps"
+                },
+                {
+                  "name": "Declaration flow (proposal → leader stamp → certificate)",
+                  "description": "Broker submits each risk's proposal form; in-criteria risks are declared and certificated immediately, off-criteria risks routed to the leader's box.",
+                  "livesIn": "Declaration register; proposal forms; certificates from binder admin system"
+                },
+                {
+                  "name": "Bureau signing per declaration (LPAN via DXC)",
+                  "description": "Each declaration's premium is processed as its own bureau signing with LPANs, taxes and brokerage resolved per declaration.",
+                  "livesIn": "DXC bureau messaging — LPAN records per declaration"
+                },
+                {
+                  "name": "Mid-term endorsements as MRC addenda",
+                  "description": "Changes to declarations (limit increases, address changes) processed as endorsements; changes to the lineslip itself as slip addenda stamped by agreement parties.",
+                  "livesIn": "Slip library — addenda folder; declaration endorsement records"
+                },
+                {
+                  "name": "Claims via ECF and panel response",
+                  "description": "Incidents route to the response panel; claims open on ECF with the leader agreeing on behalf of the following market per the claims agreement terms.",
+                  "livesIn": "ECF claim files (lineslip UMR); panel engagement records"
+                },
+                {
+                  "name": "YOA renewal of the lineslip",
+                  "description": "The lineslip renews annually — rate table, criteria and panel renegotiated for 2027; 2026 declarations run to their own expiry under 2026 YOA.",
+                  "livesIn": "Renewal pack — slip library; binder admin system YOA rollover"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Marine Cargo Open Market",
+      "lob": "Marine Cargo / Hull",
+      "runsIn": "MRC slip library + DXC bureau",
+      "description": "Open-market marine cargo annual open cover placed by subscription on an MRC slip — ICC(A) all-risks with war and strikes, declaration-based, signed and settled through the bureau.",
+      "versions": [
+        {
+          "version": "2026",
+          "jurisdiction": "Worldwide",
+          "effective": "Inception 01/2026",
+          "status": "Bound",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Open cover under a cargo risk code and slip UMR",
+              "items": [
+                {
+                  "name": "Lloyd's risk code T (cargo)",
+                  "description": "The open cover reports under the cargo risk code, separating it from hull and specie writings in syndicate returns.",
+                  "livesIn": "MRC Risk Details — risk code field; CDR submission"
+                },
+                {
+                  "name": "UMR B0621MCG2600126",
+                  "description": "Unique market reference for the annual open cover; all declarations, endorsements and claims transact against it.",
+                  "livesIn": "MRC slip header — slip library (SharePoint)"
+                },
+                {
+                  "name": "Annual open cover structure",
+                  "description": "12-month open cover from 01/01/2026 under which all the assured's shipments in scheduled commodities are automatically held covered and declared.",
+                  "livesIn": "MRC Risk Details — open cover clause"
+                },
+                {
+                  "name": "2026 YOA allocation",
+                  "description": "Declared shipments allocate premium to the 2026 year of account regardless of voyage completion date.",
+                  "livesIn": "Syndicate accounts — YOA allocation; DXC signing records"
+                },
+                {
+                  "name": "Commodity schedule",
+                  "description": "Scheduled interests: consumer electronics, machinery, apparel and refrigerated foodstuffs — each with its own rating line and valuation basis.",
+                  "livesIn": "MRC Risk Details — interest/commodity schedule"
+                },
+                {
+                  "name": "Worldwide voyage scope with excluded areas",
+                  "description": "Worldwide-to-worldwide voyages excluding sanctioned territories and subject to JWC listed areas provisions for war risks.",
+                  "livesIn": "MRC Risk Details — voyage clause; JWC listed areas circular in slip file"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "ICC(A) + war/strikes + trade extensions",
+              "items": [
+                {
+                  "name": "Institute Cargo Clauses (A) — CL382 1/1/09",
+                  "description": "All-risks marine cargo cover on the standard Institute A clauses, the base grant for all scheduled commodities.",
+                  "livesIn": "MRC — conditions section citing CL382; LMA clause library"
+                },
+                {
+                  "name": "Institute War Clauses (Cargo) — CL385",
+                  "description": "War risks cover on cargo afloat, subject to the waterborne warranty and 7-day termination provisions of the clause.",
+                  "livesIn": "MRC — conditions section; LMA clause library"
+                },
+                {
+                  "name": "Institute Strikes Clauses (Cargo) — CL386",
+                  "description": "Strikes, riots and civil commotions cover companion to the war clauses.",
+                  "livesIn": "MRC — conditions section; LMA clause library"
+                },
+                {
+                  "name": "Temperature variation clause (reefer cargo)",
+                  "description": "Deterioration cover for refrigerated foodstuffs from machinery breakdown or temperature variation exceeding the clause's hour threshold (24h).",
+                  "livesIn": "MRC — reefer annex; declaration records for reefer shipments"
+                },
+                {
+                  "name": "Exhibition extension",
+                  "description": "Cover for scheduled goods at exhibitions including transit to/from, sublimited per event and location.",
+                  "livesIn": "MRC — extensions section"
+                },
+                {
+                  "name": "Storage extension (60 days beyond ordinary course)",
+                  "description": "Extension beyond the ICC duration-of-transit termination for storage up to 60 days at named locations, subject to the per-location limit.",
+                  "livesIn": "MRC — extensions section; storage declarations"
+                },
+                {
+                  "name": "Concealed damage clause (30 days)",
+                  "description": "Losses discovered on unpacking within 30 days of delivery deemed to have occurred during transit.",
+                  "livesIn": "MRC — claims conditions section"
+                },
+                {
+                  "name": "General average & salvage",
+                  "description": "GA and salvage contributions per York-Antwerp Rules regardless of physical loss to the insured interest.",
+                  "livesIn": "ICC(A) clause 2; average adjusters' files on claims"
+                },
+                {
+                  "name": "Debris removal & duty/increased value",
+                  "description": "Debris removal sublimit (10%/£250k) and duty or increased-value cover on landed goods where declared.",
+                  "livesIn": "MRC — extensions section; declaration records"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "Per-bottom and per-location limits, CIF+10 valuation",
+              "items": [
+                {
+                  "name": "Per-bottom limit USD 10M",
+                  "description": "Maximum insured value on any one vessel — the fundamental accumulation control on the open cover.",
+                  "livesIn": "MRC Risk Details — limits section"
+                },
+                {
+                  "name": "Per-location limit USD 5M",
+                  "description": "Storage/accumulation limit at any one location outside ordinary course of transit.",
+                  "livesIn": "MRC Risk Details — limits section"
+                },
+                {
+                  "name": "Conveyance sub-limits (air / road-rail)",
+                  "description": "USD 5M any one aircraft, USD 2.5M any one road or rail conveyance.",
+                  "livesIn": "MRC Risk Details — limits section"
+                },
+                {
+                  "name": "Basis of valuation CIF + 10%",
+                  "description": "Agreed valuation of cost, insurance and freight plus 10% anticipated profit; duty and increased value declared separately.",
+                  "livesIn": "MRC Risk Details — valuation clause"
+                },
+                {
+                  "name": "Deductibles per commodity",
+                  "description": "Nil deductible on general cargo, USD 5k on machinery, USD 10k plus 24-hour threshold on reefer interests.",
+                  "livesIn": "MRC Risk Details — deductibles table"
+                },
+                {
+                  "name": "Subscription: leader 30%, order 100% across 5 syndicates",
+                  "description": "Leader wrote 30% with four followers; written lines signed down pro-rata to a 100% signed order at close.",
+                  "livesIn": "MRC Security Details — written/signed lines; DXC signing messages"
+                },
+                {
+                  "name": "War cover 7-day notice of cancellation",
+                  "description": "War and strikes sections cancellable on 7 days' notice per the Institute clauses — rates reviewable on JWC listed-area changes mid-term.",
+                  "livesIn": "CL385/CL386 termination provisions; JWC circulars in slip file"
+                },
+                {
+                  "name": "Premium payment warranty 60 days",
+                  "description": "Declared premium payable within 60 days of declaration month-end, on LSW-style premium payment terms.",
+                  "livesIn": "MRC — premium payment clause; DXC settlement records"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "Commodity/voyage/vessel-age rating lines",
+              "items": [
+                {
+                  "name": "Commodity rating schedule",
+                  "description": "Rates per cent of insured value by commodity line — electronics 0.045, machinery 0.035, apparel 0.030, reefer foodstuffs 0.085.",
+                  "livesIn": "MRC Risk Details — rating schedule"
+                },
+                {
+                  "name": "Voyage/route factors",
+                  "description": "Route relativities by trade lane; transshipment and high-risk-area routings load the base commodity rate.",
+                  "livesIn": "MRC rating schedule — voyage factors; underwriter's box notes"
+                },
+                {
+                  "name": "War rates per JWC listed areas",
+                  "description": "Additional war premium for transits through Joint War Committee listed areas (e.g. Gulf of Aden, Black Sea), quoted per transit at prevailing market scales.",
+                  "livesIn": "JWC listed areas circular; war AP declarations via broker"
+                },
+                {
+                  "name": "Vessel age & classification factors",
+                  "description": "Over-age additional premium for vessels above 15 years per the Institute Classification Clause scale; unclassed vessels held covered only at terms to be agreed.",
+                  "livesIn": "Institute Classification Clause CL354 — MRC conditions; declaration vessel data"
+                },
+                {
+                  "name": "Packing & container factors",
+                  "description": "Rate adjustments for FCL vs LCL, open-top or break-bulk shipments per the rating schedule notes.",
+                  "livesIn": "MRC rating schedule — packing notes"
+                },
+                {
+                  "name": "Reefer machinery breakdown loading",
+                  "description": "The 0.085 reefer rate embeds the temperature-variation exposure; declared reefer volumes are tracked as a separate rating line.",
+                  "livesIn": "MRC rating schedule — reefer line; declaration records"
+                },
+                {
+                  "name": "PMD benchmark comparison",
+                  "description": "Open-cover rate adequacy reviewed against syndicate cargo-class PMD benchmarks at each renewal.",
+                  "livesIn": "Syndicate PMD pack — cargo pages"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "Brokerage on slip, war APs separate, taxes per Crystal",
+              "items": [
+                {
+                  "name": "Brokerage 22.5% on slip",
+                  "description": "Placing brokerage deducted at bureau signing on all declared premium including adjustments.",
+                  "livesIn": "MRC Security Details — brokerage; DXC LPAN records"
+                },
+                {
+                  "name": "Declared premium in USD",
+                  "description": "Open cover transacts in USD; declarations converted at the slip's rate-of-exchange clause where invoiced otherwise.",
+                  "livesIn": "MRC — currency clause; declaration premium schedule"
+                },
+                {
+                  "name": "War additional premiums identified separately",
+                  "description": "War APs for listed-area transits are quoted, declared and signed as separate premium entries from the marine rate.",
+                  "livesIn": "War AP declarations; DXC signing records"
+                },
+                {
+                  "name": "Minimum & deposit premium with adjustment",
+                  "description": "Annual M&D premium of USD 150k paid quarterly, adjustable at expiry against declared values at the schedule rates.",
+                  "livesIn": "MRC Risk Details — M&D and adjustment clause"
+                },
+                {
+                  "name": "Taxes per Crystal by risk location",
+                  "description": "Premium taxes resolved via Crystal by cargo interest location — EU IPT where risks locate in member states, marine exemptions applied where available.",
+                  "livesIn": "Crystal — territory records; MRC Fiscal & Regulatory section"
+                },
+                {
+                  "name": "US-connected shipments — tax treatment note",
+                  "description": "US-destined shipments rely on marine premium tax exemptions where applicable; the Fiscal & Regulatory section records the position per the broker's tax schedule.",
+                  "livesIn": "MRC Fiscal & Regulatory section; broker tax schedule in slip file"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Held-covered boundaries and referral triggers",
+              "items": [
+                {
+                  "name": "Scheduled commodities only held covered",
+                  "description": "Automatic cover applies only to scheduled interests; new commodity types require leader agreement before shipment.",
+                  "livesIn": "MRC Risk Details — interest schedule; leader referral trail"
+                },
+                {
+                  "name": "Specie & bullion excluded",
+                  "description": "Cash, bullion, precious stones and fine art are excluded — such interests route to the specie market, not this cover.",
+                  "livesIn": "MRC Risk Details — exclusions"
+                },
+                {
+                  "name": "Arms & ammunition declined",
+                  "description": "Munitions and dual-use military goods are outside appetite entirely under this open cover.",
+                  "livesIn": "MRC Risk Details — exclusions; box appetite note"
+                },
+                {
+                  "name": "HRA voyage referral",
+                  "description": "Transits through JWC listed areas must be declared before sailing for war AP quotation — held covered only upon leader agreement.",
+                  "livesIn": "CL385 held-covered provisions; war AP referral trail"
+                },
+                {
+                  "name": "Vessel over-age referral (>20 years)",
+                  "description": "Shipments on vessels over 20 years or outside the Institute Classification Clause require prior leader approval and OAP terms.",
+                  "livesIn": "CL354 conditions; declaration vessel data; referral emails"
+                },
+                {
+                  "name": "Accumulation monitoring per port/vessel",
+                  "description": "Assured warrants notification when accumulations approach the per-bottom or per-location limits; underwriter tracks declared accumulations by port.",
+                  "livesIn": "Declaration records; accumulation notes in box file"
+                },
+                {
+                  "name": "Sanctions compliance (LMA3100 + trade sanctions)",
+                  "description": "No cover for shipments involving sanctioned parties, vessels or territories under UK/EU/OFAC regimes; vessel screening on declarations.",
+                  "livesIn": "LMA3100 in MRC conditions; sanctions screening records"
+                },
+                {
+                  "name": "Storage beyond 60 days referred",
+                  "description": "Storage exceeding the extension period requires specific agreement and repricing as a static risk.",
+                  "livesIn": "MRC extensions section; referral trail"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "MRC slip + Institute clause set",
+              "items": [
+                {
+                  "name": "MRC slip — full section set",
+                  "description": "Market Reform Contract with Risk Details, Information, Security Details, Subscription Agreement and Fiscal & Regulatory sections — the entire contract of the open cover.",
+                  "livesIn": "MRC slip library (SharePoint) — UMR B0621MCG2600126 folder"
+                },
+                {
+                  "name": "Institute Cargo Clauses (A) CL382 1/1/09",
+                  "description": "The base all-risks cargo wording incorporated by reference in the slip conditions.",
+                  "livesIn": "LMA clause library — Institute clauses set"
+                },
+                {
+                  "name": "Institute War Clauses (Cargo) CL385 + Strikes CL386",
+                  "description": "War and strikes wordings incorporated alongside ICC(A) with their termination and held-covered mechanics.",
+                  "livesIn": "LMA clause library — Institute clauses set"
+                },
+                {
+                  "name": "Institute Classification Clause CL354",
+                  "description": "Vessel classification and age conditions governing which carrying vessels are held covered at schedule rates.",
+                  "livesIn": "LMA clause library; MRC conditions section"
+                },
+                {
+                  "name": "LMA3100 sanctions limitation clause",
+                  "description": "Sanctions limitation and exclusion clause in the slip conditions, applied to all declarations.",
+                  "livesIn": "LMA clause library"
+                },
+                {
+                  "name": "Termination of Transit Clause (Terrorism) JC2009/056",
+                  "description": "Joint Cargo Committee clause governing cover termination for terrorism exposure during transit interruptions.",
+                  "livesIn": "LMA clause library — JCC clauses; MRC conditions"
+                },
+                {
+                  "name": "Cargo ISM Endorsement JC98/019",
+                  "description": "Endorsement voiding cover for shipments on non-ISM-compliant vessels, per the slip conditions.",
+                  "livesIn": "LMA clause library — JCC clauses"
+                },
+                {
+                  "name": "Certificate of insurance (per shipment)",
+                  "description": "Negotiable certificates issued per declared shipment for banking/letter-of-credit purposes, referencing the open cover UMR.",
+                  "livesIn": "Broker certificate issuance system; specimens in slip file"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "CDR + Crystal per destination; declaration reporting",
+              "items": [
+                {
+                  "name": "CDR submission at placement",
+                  "description": "Core Data Record for the open cover filed at signing with risk code, UMR, assured domicile and premium structure.",
+                  "livesIn": "CDR submission record"
+                },
+                {
+                  "name": "Crystal checks per destination territory",
+                  "description": "Territory requirements verified for recurring destination countries — local certificate wording rules, compulsory local insurance laws (e.g. cargo import rules in Brazil/India noted as excluded destinations).",
+                  "livesIn": "Crystal — territory extracts; compliance folder"
+                },
+                {
+                  "name": "Quarterly declaration bordereau to the leader",
+                  "description": "Assured's shipment declarations summarized quarterly to leader and followers for premium adjustment and aggregation review.",
+                  "livesIn": "Declaration bordereau spreadsheets — slip file"
+                },
+                {
+                  "name": "War AP declarations per listed-area transit",
+                  "description": "Each JWC listed-area transit declared and filed with its war AP quotation before sailing.",
+                  "livesIn": "War AP declaration records — slip file; DXC signings"
+                },
+                {
+                  "name": "US situs / trust fund position",
+                  "description": "US-connected business recorded for Lloyd's US reporting; cargo written as exempt commercial marine where state law allows, logged in the compliance schedule.",
+                  "livesIn": "Compliance schedule — US situs log"
+                },
+                {
+                  "name": "Annual adjustment filing",
+                  "description": "Expiry adjustment of declared values against the M&D premium filed through the bureau as the closing premium transaction.",
+                  "livesIn": "DXC bureau messaging — adjustment signing"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "Slip → subscription → declarations → adjustment → re-slip",
+              "items": [
+                {
+                  "name": "Slip preparation by the broker",
+                  "description": "Broker drafts the MRC from the expiring cover — commodity schedule, limits, rating lines — and presents to the leader at the box.",
+                  "livesIn": "Slip library — draft MRC; broker placing file"
+                },
+                {
+                  "name": "Leader quote (line and terms)",
+                  "description": "Leader prices the schedule, sets war AP terms and stamps a 30% written line in Security Details.",
+                  "livesIn": "MRC Security Details — leader stamp; box records"
+                },
+                {
+                  "name": "Following market subscription & signing down",
+                  "description": "Followers subscribe past 100% written; lines sign down pro-rata to the 100% signed order at closing.",
+                  "livesIn": "MRC Security Details — written vs signed lines"
+                },
+                {
+                  "name": "Bureau signing (DXC)",
+                  "description": "Slip signed through the bureau; M&D installments and subsequent declarations processed as LPANs against the UMR.",
+                  "livesIn": "DXC bureau messaging — signing & LPAN records"
+                },
+                {
+                  "name": "Shipment declarations under the open cover",
+                  "description": "Assured declares shipments (interest, value, vessel, voyage) via the broker; in-schedule shipments are automatically held covered from attachment.",
+                  "livesIn": "Declaration records — broker system + quarterly bordereau"
+                },
+                {
+                  "name": "Certificates issued per shipment",
+                  "description": "Negotiable insurance certificates issued against declarations for banks and consignees.",
+                  "livesIn": "Broker certificate issuance system"
+                },
+                {
+                  "name": "Mid-term endorsements as slip addenda (AP/RP)",
+                  "description": "Schedule changes, limit amendments and war-rate revisions processed as addenda with additional or return premium signed via the bureau.",
+                  "livesIn": "Slip library — addenda folder; DXC AP/RP signings"
+                },
+                {
+                  "name": "Claims via ECF and average adjusters",
+                  "description": "Cargo claims open on ECF with survey reports; GA cases route to average adjusters with the leader agreeing security and settlements for the following market.",
+                  "livesIn": "ECF claim files; average adjusters' correspondence"
+                },
+                {
+                  "name": "Expiry adjustment & 2027 re-slip",
+                  "description": "At expiry, declared values adjust the M&D premium, and the 2027 cover is re-slipped and re-subscribed as a new placement for the new YOA.",
+                  "livesIn": "DXC adjustment signing; renewal MRC in slip library"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

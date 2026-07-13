@@ -1,0 +1,1608 @@
+{
+  "tasks": [
+    {
+      "id": "0db8c284-4f14-4189-b90b-a812e0d44f50",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "underwriting workstation", "usageType": "performed" },
+        { "name": "Power BI", "usageType": "performed" },
+        { "name": "OpenText Document Mgmt", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All commercial-lines accounts due to renew in the current renewal quarter within the underwriter's assigned book; each account's expiring policy, prior-year premium, incurred losses and loss development are assessed one account at a time."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Prior-three-policy-terms plus the current in-force term (e.g. 2023-2025 policy years) evaluated 90 days ahead of each account's effective date, consistent with the Renewal Review 90 Days Out standard."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each account record carries expiring premium, incurred + paid losses, IBNR/case reserves, claim count and large-loss flags; a record missing a valued loss run within 60 days of the review date is returned to the Underwriting Assistant for a refreshed extract before assessment."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Account count on the assessment worksheet reconciles to the renewal book listing from PolicyCenter (delta = 0); summed expiring premium ties to the in-force premium bordereau within a 1% tolerance, breaks investigated."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The prior-year performance summary is saved to the underwriting file in OpenText under /UW/Renewals/<policy-number>/ with the loss-valuation date and version label, retained per the record-retention schedule (7 years)."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Accounts with adverse development or a loss ratio above the line-of-business target are logged on the referral tracker with disposition (re-rate / restructure / refer to Senior Underwriter) and the reason recorded."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Loss-development factors and trend selections follow the approved renewal-analysis methodology v3 issued by Pricing/Actuarial; the LDF pattern version is recorded on the worksheet."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity checked by re-running loss development at the low/central/high LDF selection; a swing greater than 5 points in the projected loss ratio triggers a note and Senior Underwriter review."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Accounts with expiring premium over $250k, or projected loss ratio over the LOB target, are treated as material and individually documented rather than assessed on a portfolio basis."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "A 5% monthly sample of assessed renewal accounts, plus 100% of accounts with expiring premium over $250k, pulled for the Underwriting Quality review."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = loss data valued within 60 days, loss ratio computed against the correct LOB target, and adverse accounts flagged for action; FAIL = stale loss data, wrong target applied, or an adverse account not flagged."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Failed samples are returned to the underwriter for re-work within 5 business days; repeat findings are escalated to the Underwriting Director / Manager and captured in the QA log."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = every in-scope renewal account has a documented prior-year performance summary with a valued loss ratio and a retain/re-rate/exit recommendation before the strategy is set."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence located in OpenText /UW/Renewals/<policy-number>/ and summarised in the renewal book workbook stored in the underwriting workstation."
+        },
+        {
+          "answerId": "cmr2ocg0a0xiikaz37wb2e2mj",
+          "value": "Field definitions come from the PolicyCenter renewal-data dictionary (expiring_premium, incurred_loss, paid_loss, case_reserve, claim_count); control total = book count and expiring premium reconciled to the in-force bordereau at extract time."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppng1o9imbk8cvhchwo7",
+          "checklist": [
+            {
+              "step": "Start the prior-year assessment at least 90 days before the renewal effective date",
+              "value": "Renewal review is triggered from the PolicyCenter renewal diary 90 days out; the assessment date is stamped on the account worksheet."
+            },
+            {
+              "step": "Pull a valued loss run for each account under review",
+              "value": "Loss runs valued within 60 days of the review date are attached to every account before performance is judged."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify review timing across the book",
+              "value": "For a sample of renewed accounts, the documented assessment date is >=90 days before effective date; 0 late starts without a logged exception."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppf71o92mbk8voyj74ly",
+          "checklist": [
+            {
+              "step": "Compare each account's loss ratio to the line-of-business target",
+              "value": "Projected loss ratio computed and compared to the current LOB loss-ratio target on the worksheet; variance highlighted."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm correct target applied",
+              "value": "Sampled accounts use the target for the correct LOB and term; 0 mismatches between account LOB and applied target."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Record the performance conclusion in the underwriting file",
+              "value": "Prior-year performance summary and retain/re-rate/exit recommendation filed to OpenText /UW/Renewals/<policy-number>/."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect file completeness",
+              "value": "100% of assessed accounts have a filed performance summary with a valued loss ratio; missing files reopened."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fka0t1axqkfgzy4z7v381",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "Power BI", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Every account in the underwriter's renewal book for the quarter, each assigned exactly one tier: retain (on-strategy, profitable), re-rate (needs rate/terms correction) or exit (outside appetite or unprofitable)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current renewal quarter, tiered 90 days ahead of each account's effective date so exit and re-rate decisions leave time for state-required non-renewal notice."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each account carries prior-year loss ratio, appetite fit, rate-adequacy indication and retention priority; an account cannot be tiered until the prior-year performance assessment is complete and the appetite/no-write check is run."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Sum of retain + re-rate + exit counts equals total book count (delta = 0); every account has exactly one tier, and tiered premium reconciles to the in-force premium listing within 1%."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The tiered book listing is saved as a versioned workbook in the underwriting workstation and the tier plus rationale is written to each account's file in OpenText, dated and version-labelled."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Exit-tier accounts are logged with the no-write / appetite reason and routed for non-renewal handling; borderline accounts are logged for Senior Underwriter adjudication with disposition recorded."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Tiering rules follow the approved renewal-segmentation methodology v3 (loss-ratio bands, appetite matrix, rate-need thresholds); the ruleset version is recorded on the listing."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Boundary sensitivity documented: accounts within 5 points of a tier threshold are re-checked and, if still borderline, escalated rather than auto-tiered."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Accounts with expiring premium over $250k or in the exit tier are treated as material and individually justified in the file."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "5% monthly sample of tiered accounts plus 100% of exit-tier and over-$250k accounts, traced back to the PolicyCenter source data."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = tier matches the documented rule given the account's loss ratio and appetite fit, with a rationale on file; FAIL = tier inconsistent with the rule, missing rationale, or exit account with no non-renewal action."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Mis-tiered accounts are corrected and re-filed within 5 business days; systemic mis-tiering is escalated to the Underwriting Director / Manager."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = 100% of book accounts carry exactly one tier with a documented rationale, and exit accounts have a non-renewal path opened in time for state notice periods."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence located in the tiered book workbook in the underwriting workstation and each account's OpenText renewal folder."
+        },
+        {
+          "answerId": "cmr2ocdwp0tmkkaz3igd7y769",
+          "value": "Approved methodology = renewal-segmentation ruleset v3; parameters (loss-ratio bands, appetite matrix, rate-need thresholds) sourced from the current Pricing/Underwriting appetite guide and recorded on the listing header."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppoe1o9kmbk8sofla2a9",
+          "checklist": [
+            {
+              "step": "Tier accounts against segment retention targets",
+              "value": "Retain/re-rate/exit tiers are set so the retained book supports the retention-rate target for each segment; segment target shown on the listing."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify tiering supports retention targets",
+              "value": "Projected retained premium by segment reconciles to the retention plan; deviations over 5 points flagged to Senior Underwriter."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Screen each account against documented appetite",
+              "value": "Every account checked against the appetite matrix (LOB, geography, industry); out-of-appetite accounts routed to the exit tier."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm appetite screening",
+              "value": "0 accounts tiered retain that fall outside documented appetite without a documented CUO exception."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppuf1o9wmbk8chlv6qe5",
+          "checklist": [
+            {
+              "step": "Run the no-write list against the book",
+              "value": "Book cross-checked to the enforced no-write list; any match is tiered exit and flagged for non-renewal."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify no-write enforcement",
+              "value": "0 no-write accounts tiered retain or re-rate; matches evidenced on the tiering worksheet."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "22f10876-6db4-4e4a-ab3e-ed2a9324efc4",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [
+        { "name": "Broker & Agent Portal; Microsoft 365 / SharePoint", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The producing broker or agent for each renewing account, with early engagement for strategic accounts (expiring premium over $250k or key-relationship flag); communication covers the intended rate action, terms changes and any non-renewal."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Renewal strategy conveyed no later than 60 days before effective date (Quote to Broker 60 Days Out), with strategic-account outreach beginning at the 90-day review."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each renewal communication records the account, producer, intended rate/terms, message date and channel; a communication cannot be marked sent without a linked account tier and an approved strategy."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of communications logged reconciles to the count of renewing accounts requiring producer contact (delta = 0); strategic accounts show an outreach date on or before the 90-day mark."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The renewal-strategy note and outbound message are saved to the account file in OpenText and the broker portal thread, dated and version-labelled; email confirmations attached."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Accounts where the broker disputes the strategy are logged with disposition (negotiate / hold / escalate to Senior Underwriter); non-renewals are logged to ensure no silent non-renewal occurs."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Messaging follows the approved renewal-communication playbook v3 and the account's approved renewal strategy; the strategy version referenced is noted on the communication record."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "For strategic accounts a talking-point pack covering best/expected/worst renewal outcomes is prepared so the underwriter can hold the rate position under pushback."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Strategic accounts (over $250k or key relationship) require documented Senior Underwriter sign-off on the message before it is sent; routine accounts follow the standard template."
+        },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rr03y4mbk8u38o045d" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The renewal decision and rate/terms position communicated are documented in the account file with date and author, and cross-linked to the approved strategy."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Recipients recorded: producing broker/agent name and agency code, plus internal cc (Senior Underwriter for strategic accounts); captured in the broker portal thread."
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "5% monthly sample of renewal communications plus 100% of strategic accounts, traced through the PolicyCenter/portal workflow history."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = communication sent at least 60 days out, matches the approved strategy, and (for strategic accounts) carries Senior Underwriter approval; FAIL = late, off-strategy, missing approval, or a silent non-renewal."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "Late or missing communications are escalated to the Underwriting Director / Manager and remediated within 5 business days; silent non-renewals are treated as a compliance breach and logged."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "The delegation matrix in the authority guide governs who may commit a renewal position by premium band and LOB; strategic-account messaging requires Senior Underwriter authority per that matrix."
+        },
+        {
+          "answerId": "cmr2ocdxx0v88kaz3m5fk5dnc",
+          "value": "Approved methodology = renewal-communication playbook v3; parameters (timing thresholds, strategic-account definition, approval bands) sourced from the underwriting authority guide and recorded on the communication log."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppmg1o9gmbk892isfh9g",
+          "checklist": [
+            {
+              "step": "Deliver the renewal quote/strategy to the broker 60 days out",
+              "value": "Producer contacted with the renewal position at least 60 days before effective date; contact date logged on the account."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify 60-day timing",
+              "value": "Sampled renewals show a producer communication date >=60 days before effective date; 0 late without a logged exception."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpq251oacmbk80nlgajf6",
+          "checklist": [
+            {
+              "step": "Ensure no account is non-renewed silently",
+              "value": "Every exit-tier account has a communicated non-renewal decision on file before the notice deadline."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm non-renewal communication",
+              "value": "0 exit accounts lapse without a documented non-renewal communication to the producer/insured."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppqe1o9ombk8omwdlsrg",
+          "checklist": [
+            {
+              "step": "Communicate the renewal appetite/strategy to distribution",
+              "value": "Segment renewal strategy and appetite shifts are conveyed to producers so submissions align with intended direction."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify distribution was informed",
+              "value": "Communication records show producers received the current renewal strategy for their accounts; gaps flagged."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fk9t31atjkfgzfs8np8jm",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter", "Pricing Actuary"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "Earnix Rating & Pricing", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The renewal pricing strategy for the underwriter's book: segment-level rate direction and guardrails (target rate change by segment, minimum-premium floors, deviation limits) applied across all renewing accounts in the plan year."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The upcoming plan/renewal year, set before the renewal cycle opens and refreshed at mid-year against emerging loss and rate-adequacy indications."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Strategy inputs include actuarial rate indications, prior-year loss ratios by segment, filed-rate levels and retention targets; a strategy cannot be finalised until actuarial indications and the current filed rates are attached."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Target rate changes by segment reconcile to the actuarial indication file and to the portfolio premium base; the weighted average target ties to the plan rate-change assumption within 1 point."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The approved renewal pricing strategy is stored as a versioned document in SharePoint/underwriting workstation and referenced in Earnix pricing configuration, dated and version-labelled."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Segments where the strategy departs from the actuarial indication are logged with rationale and require Pricing Actuary and Senior Underwriter concurrence before adoption."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Pricing strategy uses the approved rate-indication methodology and current filed rate manuals; the actuarial indication version and manual effective date are recorded."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03w2mbk84o4w6iug" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Strategy stress-tested at indicated, plan and conservative rate scenarios; a projected loss-ratio swing over 3 points across scenarios is documented and reviewed with the Pricing Actuary."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Segments contributing over 10% of book premium, or where the target deviates from the indication by more than 5 points, are treated as material and individually justified."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All defined pricing segments in the strategy (census), plus a trace of each segment target back to its actuarial indication source."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = every segment target is within filed-rate authority and supported by an actuarial indication with documented rationale for any deviation; FAIL = target outside filed rates, no indication support, or missing sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Segments failing review are re-set with the Pricing Actuary before the strategy is published; unresolved items escalate to the Head of Pricing."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = a signed-off renewal pricing strategy exists for every segment, tied to actuarial indications and within filed-rate authority, before renewals are re-rated."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence located in the renewal pricing strategy document (SharePoint/underwriting workstation) and the Earnix pricing configuration change record."
+        },
+        {
+          "answerId": "cmr2ocdwp0tltkaz3q8c5gphb",
+          "value": "Approved methodology = current rate-indication methodology; parameters (segment indications, filed-rate levels, retention/loss-ratio targets) sourced from the Pricing/Actuarial indication file and filed rate manuals, versions recorded on the strategy header."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Anchor segment targets to filed rates",
+              "value": "Every segment rate target sits within the filed rate level or an approved deviation band; filed-rate reference recorded."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify filed-rate alignment",
+              "value": "0 segment targets exceed filed-rate authority without a documented, approved deviation."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppg71o94mbk8gdzbxh5q",
+          "checklist": [
+            {
+              "step": "Configure the strategy in the mandated pricing tool",
+              "value": "Segment targets and guardrails are implemented in Earnix so renewals rate through the approved tool, not offline spreadsheets."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm pricing-tool usage",
+              "value": "Renewals price through Earnix using the strategy configuration; 0 material accounts priced outside the tool."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppf71o92mbk8voyj74ly",
+          "checklist": [
+            {
+              "step": "Set targets to meet LOB loss-ratio goals",
+              "value": "Segment rate direction is chosen so the projected book loss ratio meets the LOB target; projection attached to the strategy."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify loss-ratio alignment",
+              "value": "Projected loss ratio under the strategy meets or beats the LOB target, or the gap is documented and approved."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "f6c4ef98-424c-418c-8b1d-9fdce3470abb",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "Power BI", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The full renewal book for the cycle, extracted from PolicyCenter and segmented by expiry month, premium size band and strategic priority so work can be planned and staged 90 days ahead."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "All policies with effective dates in the forward 4-month window (current renewal quarter plus the next month for lead time); regenerated at the start of each cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each listing row carries policy number, insured, LOB, expiring premium, effective date and assigned underwriter; rows missing effective date or expiring premium are rejected and the extract re-run."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Row count and total expiring premium on the listing reconcile to the PolicyCenter in-force report for the same window (delta = 0 on count, within 1% on premium); breaks investigated before release."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The segmented listing is saved as a dated, versioned workbook in the underwriting workstation and published to the renewal Power BI workspace with the extract timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Policies that fail to segment (missing size band or priority flag) are logged with disposition and corrected by the Underwriting Assistant; unresolved rows are excluded and flagged."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Segmentation logic follows the approved renewal-book segmentation definition v3 (premium bands, priority tiers, expiry-month grouping); the definition version is recorded on the listing."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Premium-band boundaries are documented; accounts within 5% of a band boundary are checked so they are not mis-banded."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "The over-$250k and strategic-priority segments are treated as material and reconciled individually to the in-force report."
+        },
+        {
+          "templateKeyId": "cmr2oaqcs003flasbzagkqajt",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaqdw003hlasbdzf9bntz",
+          "value": "100% of policies in the extract window (census); the automated extract is validated end to end against the SOR."
+        },
+        {
+          "templateKeyId": "cmr2oaqf0003jlasbcce2g3fi",
+          "value": "PASS = listing count and premium reconcile to PolicyCenter with 0 count delta, every row segmented, and no policy in the window omitted; FAIL = any reconciliation break, unsegmented row, or missing policy."
+        },
+        {
+          "templateKeyId": "cmr2oaqg3003llasbj4ssgkij",
+          "value": "Reconciliation breaks stop release of the listing; the extract is corrected and re-run, and repeat failures are logged as a data issue for the Underwriting Assistant / data team within 5 business days."
+        },
+        {
+          "templateKeyId": "cmr2v8a6b001bxa9irmnikgv0",
+          "value": "Field definitions from the PolicyCenter renewal-extract dictionary: policy_number, insured_name, lob, expiring_premium, effective_date, assigned_uw, premium_band, priority_tier."
+        },
+        {
+          "templateKeyId": "cmr2v8a7b001dxa9ilxplwfp2",
+          "value": "Control totals = record count and summed expiring premium captured at extract time and reconciled to the PolicyCenter in-force report before the listing is published."
+        },
+        {
+          "answerId": "cmr2ocdva0rrtkaz3l4dbrq1j",
+          "value": "Approved methodology = renewal-book segmentation definition v3; parameters (premium bands, priority tiers, expiry-month grouping) sourced from the underwriting planning standard and stamped on the listing header."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppng1o9imbk8cvhchwo7",
+          "checklist": [
+            {
+              "step": "Produce the listing to support the 90-day renewal review",
+              "value": "Book listing is generated so every account surfaces at least 90 days before effective date for review."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify lead-time coverage",
+              "value": "Every in-window policy appears on the listing with >=90 days to effective date; 0 late-surfacing accounts."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Retain the extract and reconciliation as an audit trail",
+              "value": "Listing, extract parameters and reconciliation to the SOR are stored with timestamps for audit."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect the audit trail",
+              "value": "Each published listing has a retained reconciliation showing 0 count delta to PolicyCenter."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "5fdd642a-713c-4c9a-a4bf-a09af72a011d",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "Power BI", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Renewal accounts whose strategy exceeds the underwriter's authority and require Senior Underwriter or Underwriting Director/Manager approval: those breaching premium/limit authority, exceeding the deviation band, or in the exit tier."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current renewal quarter, flagged at the 90-day review so approvals are secured before quotes are released to producers."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each flagged account records the triggering condition (premium band, limit, deviation %, exit decision), the required approval level and the referral recommendation; a flag is invalid without a stated trigger and recommendation."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Flagged-account count reconciles to the referral triggers applied against the book (delta = 0); every account over the authority thresholds appears on the approval list."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The approval-required list is saved to the underwriting workstation and each account file in OpenText records the referral with date and version; the referral queue is tracked in Power BI."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Accounts pending approval are logged with disposition (approved / declined / conditions); accounts released without approval are treated as authority breaches and escalated."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Referral triggers follow the approved underwriting authority matrix v3.2 (premium, limit, LOB, deviation thresholds); the matrix version is recorded on the flagging worksheet."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Accounts within 10% of an authority threshold are re-checked so borderline cases are referred rather than retained in-authority."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "All exit-tier accounts and accounts over $250k are treated as material and individually confirmed against the authority matrix."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "5% monthly sample of renewal accounts plus 100% of accounts over authority thresholds, checked for correct flagging and referral."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every account exceeding authority is flagged with the correct approval level and a recommendation; FAIL = an over-authority account not flagged, wrong level assigned, or no recommendation."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Missed referrals are corrected before quote release; an account bound over authority without approval is escalated to the Underwriting Director / Manager and logged as an authority breach."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = 100% of over-authority and exit-tier accounts appear on the approval list with the correct approval level before any quote is issued."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence located in the approval-required worksheet in the underwriting workstation and the referral note in each OpenText account file."
+        },
+        {
+          "answerId": "cmr2ocg0c0xlikaz3z0y3sm95",
+          "value": "Approved methodology = underwriting authority matrix v3.2 referral rules; parameters (premium/limit/LOB/deviation thresholds) sourced from the current authority guide and stamped on the flagging worksheet."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Apply documented referral triggers to each account",
+              "value": "Book screened against the documented referral triggers; every triggered account is added to the approval list."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify trigger application",
+              "value": "0 accounts meeting a referral trigger left off the approval list."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Check accounts against authority levels by premium, limit and LOB",
+              "value": "Each account's premium, limit and LOB are compared to the authority matrix to determine the required approver."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm authority mapping",
+              "value": "Sampled flagged accounts map to the correct approval level per the matrix; 0 mis-levelled referrals."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Route referrals with a recommendation",
+              "value": "Each referred account carries the underwriter's recommendation to the next authority level, not just a flag."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify recommendation present",
+              "value": "100% of referrals include a documented recommendation; blank recommendations returned."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "096cf68c-9601-4e0a-8594-c38d82b80432",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "Power BI", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The underwriter's renewal book tracked through the cycle for retention rate and premium change (rate + exposure) against the renewal plan, monitored at book and segment level."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The full renewal cycle to date (cycle inception through current), refreshed at least weekly and reviewed monthly against plan."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Tracking captures policies offered, renewed, lost and pending, plus renewal premium vs expiring; a period is invalid until offered/renewed/lost counts reconcile to PolicyCenter transaction status."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Renewed + lost + pending equals total policies up for renewal in the period (delta = 0); renewal premium change ties to the billed premium movement in PolicyCenter within 1%."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Each monitoring snapshot is retained in the renewal Power BI dashboard and exported to the underwriting workstation with the as-of date and version for the monthly review pack."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Segments tracking below retention target or off the rate-change plan are logged with disposition (corrective action / accept / escalate) and reviewed with the Senior Underwriter."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Retention and rate-change metrics use the approved renewal-KPI definition v3 (retention = renewed premium / available premium; rate change per the pricing methodology); definition version recorded on the dashboard."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Retention measured on both policy-count and premium bases; a divergence over 5 points between the two prompts investigation of large-account movement."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Segments over 10% of book premium, and any single account over $250k lost, are treated as material and called out individually in the monitoring pack."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All renewal transactions in the cycle-to-date (census for the KPI), with a 5% sample re-computed by hand to validate the dashboard."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = dashboard retention and rate-change figures reconcile to PolicyCenter and match the KPI definition; FAIL = reconciliation break, wrong KPI formula, or stale (>7 days) data."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Data or formula errors are corrected and the dashboard re-published; segments off-plan are escalated to the Senior Underwriter / Portfolio UW Manager for corrective action."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = retention and premium-change are tracked and reconciled at least weekly, with segments off target flagged and a monthly review pack produced."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence located in the renewal Power BI workspace and the monthly monitoring pack in the underwriting workstation."
+        },
+        {
+          "answerId": "cmr2ocdwy0ty6kaz3psu8cc3z",
+          "value": "In-scope period = cycle inception to current as-of date; effective dates covered are the renewals falling in the current cycle, refreshed weekly."
+        },
+        {
+          "answerId": "cmr2ocdwy0ty7kaz3c0z8652v",
+          "value": "Approved methodology = renewal-KPI definition v3; parameters (retention formula, rate-change basis, segment targets) sourced from the renewal plan and stamped on the dashboard."
+        },
+        {
+          "answerId": "cmr2ocdwy0ty8kaz3b4zwxjlu",
+          "value": "Field definitions from the PolicyCenter renewal-transaction dictionary (policy status, renewed_premium, expiring_premium, rate_change); control total = transaction counts and premium reconciled to the in-force/billed reports at each refresh."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppoe1o9kmbk8sofla2a9",
+          "checklist": [
+            {
+              "step": "Track retention against segment targets",
+              "value": "Actual retention by segment is compared to the segment retention target on each refresh."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify target comparison",
+              "value": "Dashboard shows actual vs target retention by segment; segments below target are flagged with 0 omissions."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp6s1o8mmbk897wnw3vj",
+          "checklist": [
+            {
+              "step": "Maintain ongoing monitoring through the renewal cycle",
+              "value": "Retention and premium-change are monitored on a recurring (>=weekly) cadence, not just at cycle end."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm monitoring cadence",
+              "value": "Snapshot history shows refreshes at least weekly with no gap >7 days."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppf71o92mbk8voyj74ly",
+          "checklist": [
+            {
+              "step": "Watch premium change against loss-ratio goals",
+              "value": "Rate/premium change is monitored so the book stays on track to the LOB loss-ratio target."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify rate adequacy tracking",
+              "value": "Projected loss ratio under achieved rate change is tracked vs target; shortfalls escalated."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "02300c96-adec-4285-b676-07d505893094",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter", "Pricing Actuary"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "Earnix Rating & Pricing", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Individual-account and segment-level renewal rate-change targets across the underwriter's book, set consistent with the actuarial rate indications and the approved renewal pricing strategy."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The upcoming renewal cycle, set before quoting opens and reconciled to the mid-year actuarial indication refresh."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each target records segment/account, current rate level, indicated rate, target rate change and rationale; a target is invalid without a linked actuarial indication and filed-rate reference."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Premium-weighted average of account/segment targets reconciles to the plan rate-change assumption within 1 point; the sum of exposure by segment ties to the in-force base."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The target schedule is stored as a versioned workbook in the underwriting workstation and encoded in Earnix; each version is dated and labelled and cross-referenced to the pricing strategy."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Targets deviating from the actuarial indication beyond the deviation band are logged with rationale and require Pricing Actuary and Senior Underwriter concurrence before use."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Targets derive from the approved rate-indication methodology and the filed rate manuals; indication version and manual effective date are recorded on the schedule."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03w2mbk84o4w6iug" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Targets tested at indicated vs plan scenarios; a projected loss-ratio impact swing over 3 points is documented and reviewed with the Pricing Actuary."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Accounts over $250k and segments over 10% of book premium are treated as material; their targets are individually justified against the indication."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All segment targets plus a 10% sample of account-level targets, each traced back to its actuarial indication and filed-rate reference."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = target consistent with the actuarial indication (or within the approved deviation band with rationale) and within filed-rate authority; FAIL = target unsupported by indication, outside filed rates, or missing sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Non-conforming targets are re-set with the Pricing Actuary before quoting; unresolved deviations escalate to the Head of Pricing."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = every segment (and material account) has a rate-change target tied to an actuarial indication and within filed-rate authority before renewals are re-rated."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence located in the rate-target schedule (underwriting workstation) and the Earnix configuration change record, cross-linked to the actuarial indication file."
+        },
+        {
+          "answerId": "cmr2ocg0a0xizkaz3ifts1al4",
+          "value": "Approved methodology = current rate-indication methodology; parameters (segment/account indications, filed-rate levels, deviation band) sourced from the Pricing/Actuarial indication file and filed manuals, versions recorded on the schedule header."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Set targets within filed-rate authority",
+              "value": "Each rate-change target sits within the filed rate level or an approved deviation; filed-rate reference recorded."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify filed-rate compliance",
+              "value": "0 targets exceed filed-rate authority without a documented approved deviation."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppa51o8smbk82mw0frsj",
+          "checklist": [
+            {
+              "step": "Obtain actuarial review for large-account targets",
+              "value": "Targets for large accounts (over $250k) are set with Pricing Actuary review of the indication."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm actuarial review",
+              "value": "100% of large-account targets show Pricing Actuary concurrence on file."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppf71o92mbk8voyj74ly",
+          "checklist": [
+            {
+              "step": "Align targets to LOB loss-ratio goals",
+              "value": "Segment targets are set so achieved rate change moves the book toward the LOB loss-ratio target."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify loss-ratio alignment",
+              "value": "Projected loss ratio under the targets meets the LOB goal or the gap is documented and approved."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fkj9z1fd6kfgz46fii8qp",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "Earnix Rating & Pricing", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Each renewing account being re-rated: the current filed rate level is applied to the account's renewal exposure base (updated payroll/sales/units/values) to calculate the rated renewal premium."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The renewal term being priced, re-rated as part of the 60-day-out quote preparation for each account in the cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Exposure fields (class codes, exposure basis, limits, deductibles, territory) are updated for the renewal term; rating cannot proceed until exposures are refreshed and the current rate manual effective date is confirmed."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Rated premium from Earnix/PolicyCenter is reconciled component-by-component (base rate x exposure x factors) and the total ties to the rating engine output with 0 variance; manual overrides logged."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The rating worksheet and rate manual version are attached to the account file in OpenText with the rating date and premium; the PolicyCenter rating record is the system of record."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Accounts hitting minimum premium, or where the rating engine errors/overrides are needed, are logged with disposition and referred to the Senior Underwriter where authority requires."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Rating uses the currently approved and filed rate manual/version loaded in Earnix; the manual version and effective date are recorded on the rating worksheet."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity of the rated premium to exposure updates is checked; a swing over 15% versus expiring on unchanged exposure flags a rating error for re-check."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Accounts over $250k and any account with a manual rate override are treated as material and their rating is independently re-performed."
+        },
+        {
+          "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "5% monthly sample of re-rated accounts plus 100% of manual-override and over-$250k accounts, re-rated independently and compared to the system output."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = independent re-rate matches the system premium to the cent using the current filed manual and refreshed exposures; FAIL = premium mismatch, stale exposures, or wrong/expired rate manual applied."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "Rating discrepancies are corrected in PolicyCenter/Earnix before the quote is released; systemic rating-table errors are logged for the pricing/IT team and escalated within 5 business days."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "Approved model/version = the current filed rate manual version loaded in Earnix (e.g. manual 2026.1), recorded on the rating worksheet."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "Parameters (base rates, rating factors, exposure bases) sourced from the filed rate manual in Earnix and the account's refreshed exposure data in PolicyCenter."
+        },
+        {
+          "answerId": "cmr2ocdx20u3rkaz3pugp95l5",
+          "value": "Field definitions from the PolicyCenter/Earnix rating dictionary (class_code, exposure_basis, base_rate, factor, limit, deductible); control total = re-rated premium reconciled component-by-component to the rating engine output with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Apply the current filed rates to the renewal",
+              "value": "Rating uses the current approved/filed rate manual version; expired or draft manuals are not used."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify correct manual applied",
+              "value": "Sampled re-rates use the filed manual in force at the effective date; 0 uses of expired rates."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppg71o94mbk8gdzbxh5q",
+          "checklist": [
+            {
+              "step": "Rate through the mandated pricing tool",
+              "value": "Renewal premium is calculated in Earnix/PolicyCenter rating, not offline, so the filed algorithm is enforced."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm tool usage",
+              "value": "0 material accounts rated outside the approved rating engine without a logged exception."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpph41o96mbk860mhz8r7",
+          "checklist": [
+            {
+              "step": "Enforce minimum premium",
+              "value": "Rated premium is checked against the filed minimum premium; accounts below it are raised to the minimum and flagged."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify minimum premium enforcement",
+              "value": "0 renewals rated below the applicable minimum premium."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fkjje1fjdkfgzoqhexqva",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "Power BI", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Each re-rated renewal account: the rated renewal premium is compared to the expiring premium to quantify the total premium change and decompose it into rate, exposure and terms components."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The renewal term versus the expiring term, computed during quote preparation (60 days out) for every account in the cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Both expiring and rated renewal premium, plus exposure change, must be populated from PolicyCenter; a comparison is invalid if the expiring premium or renewal exposure basis is missing."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Rate change + exposure change + terms change reconcile to the total premium change (delta = 0); the total premium delta ties to the difference between the PolicyCenter rated and expiring premiums."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The premium comparison worksheet is saved to the account file in OpenText with the rating date and version; the variance decomposition is captured in the renewal Power BI view."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Accounts where the premium change deviates from the target rate change beyond the deviation band are logged with disposition and referred to the Senior Underwriter per the authority matrix."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The rate/exposure/terms decomposition uses the approved premium-variance methodology v3; the methodology version is recorded on the comparison worksheet."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity check: a computed rate change differing from the target by more than 5 points triggers a review of exposure and factor changes before the quote proceeds."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Accounts over $250k, or with a premium change over +/-25%, are treated as material and the variance is individually explained in the file."
+        },
+        {
+          "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "5% monthly sample of compared accounts plus 100% of accounts over $250k or with premium change over 25%, re-computed independently."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = variance components sum to the total premium change and the total ties to the PolicyCenter premiums; FAIL = components do not reconcile, wrong expiring premium used, or unexplained large variance."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "Reconciliation breaks are corrected before quote release; recurring decomposition errors are logged for the pricing team and escalated within 5 business days."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "Approved model/version = premium-variance methodology v3 used with the current filed rate manual; recorded on the comparison worksheet."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "Parameters (expiring premium, rated renewal premium, exposure basis) sourced from PolicyCenter and the Earnix rating output for the account."
+        },
+        {
+          "answerId": "cmr2ocdx20u3skaz31trswv4s",
+          "value": "Field definitions from the PolicyCenter dictionary (expiring_premium, rated_premium, exposure_basis, rate_change, exposure_change); control total = variance components reconciled to the total premium delta with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppc31o8wmbk8i3ty2jne",
+          "checklist": [
+            {
+              "step": "Flag premium changes that imply a deviation from filed rates",
+              "value": "Where the rate component departs from filed rates beyond the authority matrix band, the account is flagged for approval."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify deviation control",
+              "value": "0 accounts with an off-authority rate deviation released without approval per the authority matrix."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Retain the premium comparison as an audit trail",
+              "value": "Comparison worksheet with rate/exposure/terms decomposition is filed with timestamp and version."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect audit trail",
+              "value": "100% of compared accounts have a retained, reconciled comparison worksheet on file."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppi41o98mbk8paxpr0pf",
+          "checklist": [
+            {
+              "step": "Document schedule/terms credits driving the change",
+              "value": "Any schedule-rating or terms change contributing to the premium movement is documented with justification."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify schedule-rating documentation",
+              "value": "100% of accounts with a terms/schedule-driven variance have documented justification on file."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "1fd0df09-621e-4110-a9ee-c33cfbb13fd8",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter", "Wordings Coverage Specialist"],
+      "removeAppNames": ["billing/commission platform", "GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Renewal accounts where risk-quality changes since binding warrant coverage modifications, added exclusions or deductible changes; each account's exposure and loss changes are evaluated against current appetite and filed forms."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The renewal term under review, assessed at the 90-day review so any required form/endorsement changes are filed and communicated before the effective date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Risk-quality indicators (loss experience, exposure change, inspection/COPE updates) and current coverage terms must be populated; a coverage decision cannot be made without an updated risk picture and the filed form library reference."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The set of coverage changes decided reconciles to the endorsements/forms subsequently issued in PolicyCenter (delta = 0); no decided change is left unissued and no unapproved change appears on the policy."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The coverage-change decision and rationale are recorded in the account file in OpenText and reflected in the PolicyCenter policy transaction, dated and version-labelled."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Accounts needing non-filed or manuscript wording, or a coverage restriction, are logged with disposition and referred to the Wordings Coverage Specialist and Senior Underwriter for approval."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "5% monthly sample of renewal accounts with coverage changes plus 100% of accounts adding exclusions or restricting coverage, traced to the issued forms in PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = each coverage change is supported by a documented risk-quality driver, uses a current filed form, and is issued as decided; FAIL = change without a documented driver, non-filed form used without approval, or a decided change not issued."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Discrepancies between decided and issued coverage are corrected before renewal issuance; manuscript-wording needs are escalated to the Wordings Coverage Specialist and, if outside filed forms, to Compliance."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = every coverage/exclusion/deductible change is documented with its risk driver, uses filed forms (or approved manuscript wording), and matches the issued endorsements."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence located in the coverage-decision note in OpenText and the endorsement/forms record in the PolicyCenter policy transaction."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp5u1o8kmbk8z2uf21t9",
+          "checklist": [
+            {
+              "step": "Use current filed forms for coverage changes",
+              "value": "Any coverage modification, exclusion or deductible change uses the current filed form/endorsement version from the approved form library."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify filed forms used",
+              "value": "0 renewal endorsements issued on non-filed or superseded forms without documented approval."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the coverage-change rationale in the file",
+              "value": "The risk-quality driver and decision for each coverage change are recorded in the underwriting file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect file documentation",
+              "value": "100% of coverage changes have a documented risk driver and decision on file."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowqe1mswmbk8wnjoqs6v",
+          "checklist": [
+            {
+              "step": "Peer-review restrictive coverage changes",
+              "value": "Added exclusions or coverage restrictions are peer-reviewed by the Senior Underwriter / Wordings Coverage Specialist before issuance."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify peer review",
+              "value": "100% of coverage-restricting changes show a documented peer review before the renewal is issued."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "15c510ec-b70b-4444-b0e4-ba00d37f9cd4",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Each renewed or re-rated account: the renewal analysis rationale and rate-change justification are documented in the underwriting file, covering loss performance, exposure changes, rate action and any deviations."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The renewal term, documented at the point of quote/bind decision and finalised before the effective date for each account in the cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The file note must state loss ratio, rate change, exposure change, deviations and approvals; a renewal cannot be marked complete until the rationale note and required sign-offs are present."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of bound renewals reconciles to the count of filed rationale notes (delta = 0); every deviation flagged during rating has a matching justification in the file."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The rationale note is stored in the account file in OpenText under /UW/Renewals/<policy-number>/ with author, date and version, and linked from the PolicyCenter policy record; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Files missing a rationale or a required approval are logged as documentation exceptions with disposition and remediated; repeat gaps are escalated to the Underwriting Director / Manager."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Documentation follows the approved renewal file-documentation standard v3 (required elements checklist); the standard version is referenced in the file template."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Not a modelled calculation; documentation depth scales with account size — files over $250k require a fuller rationale and, where deviations exist, the supporting analysis is attached."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Accounts over $250k and any account with a rate deviation are treated as material and require a complete, individually reviewed rationale on file."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "Monthly 5% sample of bound renewals plus 100% of over-$250k and deviation accounts, inspected for a complete rationale note."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = file contains a rationale covering loss ratio, rate change, exposure and deviations, with required approvals; FAIL = missing rationale element, no deviation justification, or missing approval."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Incomplete files are returned to the underwriter for completion within 5 business days; systemic documentation gaps are escalated to the Underwriting Director / Manager and captured in the QA log."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field/element definitions from the renewal file-documentation standard (loss_ratio, rate_change, exposure_change, deviation_reason, approver) captured on the file template."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = bound-renewal count reconciled to filed-rationale count with 0 delta, verified in the monthly QA review."
+        },
+        {
+          "answerId": "cmr2ocfzh0wfhkaz3tw9w3k1y",
+          "value": "Approved methodology = renewal file-documentation standard v3; parameters (required rationale elements, sign-off thresholds) sourced from the underwriting quality standard and referenced in the file template header."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Complete the required file-documentation elements",
+              "value": "Rationale note covers loss ratio, rate change, exposure change and deviations per the file-documentation standard."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect file completeness",
+              "value": "100% of sampled renewals have all required rationale elements documented; incomplete files reopened."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppd31o8ymbk8q4zpd8lh",
+          "checklist": [
+            {
+              "step": "Document the rate-change justification",
+              "value": "The pricing rationale and any deviation from filed/indicated rates are justified in the file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify pricing documentation",
+              "value": "100% of accounts with a rate deviation have a documented justification on file."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain the audit trail for the renewal decision",
+              "value": "Rationale note is retained with author, timestamp and version and linked to the policy record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm audit trail retention",
+              "value": "Sampled files show a versioned, timestamped rationale linked to the PolicyCenter record; 0 missing."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

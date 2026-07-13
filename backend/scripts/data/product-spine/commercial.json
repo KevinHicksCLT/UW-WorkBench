@@ -1,0 +1,1451 @@
+{
+  "segment": {
+    "name": "Commercial",
+    "canonicalName": "Large Commercial",
+    "systems": "PAS C (DB2: PROD_DEF / PROD_JURIS / PROD_VER) · Corporate rating engine · Per-program Excel raters (actuarial drive) · SOV & schedule workbooks · Forms library (ISO + manuscripts) · UW workbench",
+    "legacyVariants": 11,
+    "operatingPattern": "Account-underwritten package and monoline programs driven by SOV and unit-schedule workbooks, rated in the corporate engine with per-program Excel rater overrides, issued and endorsed in PAS C with release-note versioning.",
+    "distribution": "National and regional retail brokers; wholesale brokers for excess and non-admitted layers",
+    "placement": "Account-based: package policies plus monoline lines and layered towers sharing one underlying schedule",
+    "reinsurance": "Property per-risk XoL and casualty treaty; facultative on high-TIV locations and lead umbrellas",
+    "regulatory": "Admitted form/rate filings per state via SERFF; surplus lines placement and stamping-office compliance where layers are non-admitted",
+    "behavior": {
+      "Product Taxonomy": "Package structure (coverage parts under common declarations) defined in PAS C PROD_DEF; state availability rows in PROD_JURIS; each version cut as a PROD_VER row with release notes",
+      "Coverages": "ISO CP/CG/CA/CU coverage parts plus company manuscript endorsements; grants attach per coverage part on the PAS C policy record",
+      "Terms": "Limits and deductibles are driven off the SOV and unit schedules — blanket vs specific limits, cat percentage deductibles by peril and zone, per-unit-class fleet deductibles",
+      "Rating": "Corporate rating engine holds class rates, loss costs and factors; large loss-rated accounts are overridden by per-program Excel raters on the actuarial shared drive",
+      "Pricing": "TRIA/TRIPRA charges, state taxes and surcharges, and negotiated account deviations applied at bind; surplus lines tax and stamping fees on non-admitted layers",
+      "Underwriting Rules": "Authority grids and referral rules live in the UW workbench; engineering-survey, cat-aggregation and underlying-schedule requirements are enforced pre-bind",
+      "Forms": "ISO editions pulled from the electronic forms library plus company manuscript endorsements; attachment logic keyed by coverage part and state",
+      "Filings": "Admitted forms and rates filed per state through SERFF with objection tracking; surplus lines layers are excluded from filing scope but tracked for stamping and diligent-search affidavits",
+      "Lifecycle Behavior": "PAS C transactions end to end: mid-term SOV and schedule change endorsements, pro-rata unit adds/deletes, exposure audits at expiry, structured renewal cycles"
+    },
+    "patterns": [
+      {
+        "name": "SOV schedule-driven program",
+        "components": ["Terms", "Rating", "Lifecycle Behavior"]
+      },
+      {
+        "name": "Loss-rated national account",
+        "components": ["Rating", "Pricing", "Underwriting Rules"]
+      },
+      { "name": "Layered tower", "components": ["Coverages", "Underwriting Rules", "Filings"] }
+    ]
+  },
+  "lobs": [
+    {
+      "name": "Commercial Property",
+      "appliesTo": "Owned and leased buildings, business personal property and business income for mid-market and national accounts",
+      "componentsExtended": "SOV locations; COPE data; cat zones; blanket vs specific limits"
+    },
+    {
+      "name": "General Liability",
+      "appliesTo": "Premises/operations and products-completed operations liability",
+      "componentsExtended": "Exposure bases (payroll/receipts); ISO class codes; per-location aggregates"
+    },
+    {
+      "name": "Auto / Motor",
+      "appliesTo": "Commercial fleets — power units, private passenger, trailers",
+      "componentsExtended": "Vehicle schedules; driver schedules; radius classes; FMCSA filings"
+    },
+    {
+      "name": "Workers' Compensation",
+      "appliesTo": "Statutory workers' compensation and employers liability",
+      "componentsExtended": "NCCI class codes; experience mods; monopolistic-state carve-outs"
+    },
+    {
+      "name": "Umbrella / Excess",
+      "appliesTo": "Lead umbrella and excess layers over a scheduled underlying program",
+      "componentsExtended": "Underlying schedules; attachment points; layer structure; drop-down"
+    },
+    {
+      "name": "Construction / Builder's Risk",
+      "appliesTo": "Course-of-construction property and project wrap-ups",
+      "componentsExtended": "Project schedules; completed value; soft costs; delay in start-up"
+    }
+  ],
+  "products": [
+    {
+      "name": "Commercial Package Policy",
+      "lob": "Commercial Property",
+      "runsIn": "PAS C",
+      "description": "Property + GL package for mid-market and national accounts: CP and CG coverage parts under common declarations, SOV-driven property limits and class/specific rating.",
+      "versions": [
+        {
+          "version": "v8",
+          "jurisdiction": "US multi-state",
+          "effective": "Eff. 01/2026",
+          "status": "Active",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Package = CP + CG coverage parts under common declarations",
+              "items": [
+                {
+                  "name": "Package structure definition",
+                  "description": "CPP is defined as Commercial Property (CP) and General Liability (CG) coverage parts issued under common policy declarations and IL common conditions.",
+                  "livesIn": "PAS C — DB2 PROD_DEF row CPP; coverage-part child rows"
+                },
+                {
+                  "name": "State availability grid",
+                  "description": "v8 is admitted in 42 states; FL and LA carry wind-restricted appetite flags and TX runs on exception forms.",
+                  "livesIn": "PAS C — DB2 PROD_JURIS keyed by PROD_ID + state"
+                },
+                {
+                  "name": "Version lineage v7 → v8",
+                  "description": "v8 adds Equipment Breakdown, the CP 12 32 margin clause on blanket accounts, and 09/17 CP form editions; v7 remains open for renewal-only.",
+                  "livesIn": "PAS C — DB2 PROD_VER release notes RN-CPP-2026-01"
+                },
+                {
+                  "name": "Coverage-part eligibility matrix",
+                  "description": "Which optional parts (Equipment Breakdown, Ordinance or Law, per-location aggregates) can attach by occupancy class and state.",
+                  "livesIn": "PAS C — PROD_DEF option flags; UW workbench eligibility page"
+                },
+                {
+                  "name": "ISO CSP class taxonomy",
+                  "description": "Property class codes follow the ISO Commercial Statistical Plan; GL classes follow the ISO CGL classification table keyed to exposure base.",
+                  "livesIn": "Corporate rating engine — class-code reference tables"
+                },
+                {
+                  "name": "Annual policy dating",
+                  "description": "Twelve-month term with common inception across coverage parts; anniversary rating date governs which rate revision applies.",
+                  "livesIn": "PAS C — policy term rules on PROD_VER"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "ISO CP/CG coverage parts, SOV-driven",
+              "items": [
+                {
+                  "name": "Building and Business Personal Property (CP 00 10)",
+                  "description": "Direct physical loss to scheduled buildings and BPP at SOV locations, Special Form perils via CP 10 30.",
+                  "livesIn": "PAS C — coverage master CVG-CP; limits fed from SOV workbook"
+                },
+                {
+                  "name": "Business Income with Extra Expense (CP 00 30)",
+                  "description": "Loss of net income and continuing expenses plus extra expense during restoration, per-location BI values from the SOV.",
+                  "livesIn": "PAS C — coverage master CVG-CP; BI worksheet tab in SOV workbook"
+                },
+                {
+                  "name": "Ordinance or Law (CP 04 05)",
+                  "description": "Coverage A/B/C for loss to the undamaged portion, demolition cost and increased cost of construction triggered by building codes.",
+                  "livesIn": "PAS C — optional coverage flag; forms library CP 04 05"
+                },
+                {
+                  "name": "Equipment Breakdown",
+                  "description": "Mechanical/electrical breakdown and pressure-system coverage added in v8, written on the company EB endorsement over the CP part.",
+                  "livesIn": "PAS C — coverage master CVG-EB (new in PROD_VER v8)"
+                },
+                {
+                  "name": "Premises/Operations liability (CG 00 01 Coverage A)",
+                  "description": "Occurrence-form bodily injury and property damage arising from premises and ongoing operations.",
+                  "livesIn": "PAS C — coverage master CVG-GL, code PREMOPS"
+                },
+                {
+                  "name": "Products-Completed Operations (CG 00 01)",
+                  "description": "BI/PD after work is completed or products leave the insured's hands, with its own aggregate limit.",
+                  "livesIn": "PAS C — coverage master CVG-GL, code PRODCOMP"
+                },
+                {
+                  "name": "Damage to Premises Rented to You",
+                  "description": "Fire legal liability for premises rented to or temporarily occupied by the insured, $1M default limit in v8.",
+                  "livesIn": "PAS C — CVG-GL sublimit table LMT-DPRT"
+                },
+                {
+                  "name": "Medical Payments (CG 00 01 Coverage C)",
+                  "description": "No-fault medical expense for third parties injured on premises, $10K per person default.",
+                  "livesIn": "PAS C — CVG-GL, code MEDPAY"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "SOV-driven limits; cat % deductibles",
+              "items": [
+                {
+                  "name": "Blanket vs specific limit election",
+                  "description": "Property limits written blanket across SOV locations or specific per location; blanket requires a signed current SOV.",
+                  "livesIn": "SOV workbook — limit-basis column; PAS C limit records"
+                },
+                {
+                  "name": "Margin clause 110% (CP 12 32)",
+                  "description": "On blanket accounts, recovery per location is capped at 110% of the value shown for that location on the filed SOV.",
+                  "livesIn": "Forms library — CP 12 32; SOV workbook stated values"
+                },
+                {
+                  "name": "Named-storm percentage deductible",
+                  "description": "5% of location TIV (minimum $250K) for named storm at Tier 1 wind counties (TX/LA/FL/coastal Southeast); 2% Tier 2.",
+                  "livesIn": "PAS C — deductible table DED-CAT by county tier"
+                },
+                {
+                  "name": "Earthquake percentage deductible",
+                  "description": "5% of TIV per unit in California and PNW EQ zones where EQ is bought back; excluded elsewhere by default.",
+                  "livesIn": "PAS C — DED-CAT EQ zone rows; UW workbench cat zone map"
+                },
+                {
+                  "name": "Business income 72-hour waiting period",
+                  "description": "BI recovery begins 72 hours after direct physical loss; buy-down to 24 hours available with referral.",
+                  "livesIn": "PAS C — BI time deductible field; forms library manuscript buy-down"
+                },
+                {
+                  "name": "All-other-perils deductible $25K",
+                  "description": "Standard AOP property deductible for national accounts, negotiable to $100K with premium credit.",
+                  "livesIn": "PAS C — DED-AOP; account deviation sheet in Excel rater"
+                },
+                {
+                  "name": "Coinsurance 90% / Agreed Value",
+                  "description": "90% coinsurance applies unless the Agreed Value option is activated off a signed SOV, suspending coinsurance for the term.",
+                  "livesIn": "SOV workbook sign-off tab; PAS C coinsurance flag"
+                },
+                {
+                  "name": "GL per-location aggregate (CG 25 04)",
+                  "description": "General aggregate applies separately to each SOV location rather than policy-wide.",
+                  "livesIn": "Forms library — CG 25 04; PAS C aggregate structure flag"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "Class + specific rating from SOV COPE",
+              "items": [
+                {
+                  "name": "ISO CSP class rates",
+                  "description": "Group I/II class rates applied to non-specifically-rated locations by occupancy class, construction and protection class.",
+                  "livesIn": "Corporate rating engine — CP class-rate tables by state"
+                },
+                {
+                  "name": "Specific rating from SOV COPE data",
+                  "description": "Locations above $5M TIV are specifically rated using construction, occupancy, protection and exposure fields captured on the SOV.",
+                  "livesIn": "SOV workbook COPE columns; CPP Excel rater v8.2 — actuarial drive"
+                },
+                {
+                  "name": "State loss cost multipliers",
+                  "description": "Company LCMs applied to ISO advisory loss costs, filed per state and revision-dated.",
+                  "livesIn": "Corporate rating engine — LCM table; SERFF rate filings"
+                },
+                {
+                  "name": "GL exposure-base rating",
+                  "description": "GL premium developed on payroll for contracting classes and gross receipts for mercantile/products classes at ISO class rates.",
+                  "livesIn": "Corporate rating engine — CGL class table; exposure entry in PAS C"
+                },
+                {
+                  "name": "Experience and schedule modifications",
+                  "description": "GL experience mod from three-year loss history plus schedule mod within the filed ±25% range for account characteristics.",
+                  "livesIn": "CPP Excel rater v8.2 — mods tab; UW workbench mod approval log"
+                },
+                {
+                  "name": "Package modification factor",
+                  "description": "Filed package credit applied when both CP and CG parts are written, varying by state and coverage-part mix.",
+                  "livesIn": "Corporate rating engine — package factor table"
+                },
+                {
+                  "name": "Cat load from modeled AAL",
+                  "description": "Location-level modeled average annual loss for wind/EQ loaded into technical premium for cat-exposed SOVs.",
+                  "livesIn": "Cat modeling output feed; CPP Excel rater v8.2 cat tab"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "TRIA + taxes + account deviations",
+              "items": [
+                {
+                  "name": "TRIA/TRIPRA certified-acts charge",
+                  "description": "Terrorism premium quoted as a separate line per TRIPRA, typically 1–3% of property premium, with mandatory offer and signed rejection tracking.",
+                  "livesIn": "PAS C — TRIA premium line; forms library IL 09 85 disclosure"
+                },
+                {
+                  "name": "State taxes and surcharges",
+                  "description": "State-specific charges collected at bind — FL FIGA and Citizens assessments, KY local government premium tax, NJ PLIGA.",
+                  "livesIn": "PAS C — tax/surcharge table by state"
+                },
+                {
+                  "name": "Minimum premium per coverage part",
+                  "description": "$5K property / $2.5K GL minimum retained premiums regardless of exposure, applied at issuance and short-rate events.",
+                  "livesIn": "Corporate rating engine — minimum premium rules"
+                },
+                {
+                  "name": "IRPM / negotiated account deviation",
+                  "description": "Individual risk premium modification within filed ranges documented per account with underwriter justification.",
+                  "livesIn": "CPP Excel rater v8.2 — deviation tab; UW workbench approval record"
+                },
+                {
+                  "name": "Commission schedule",
+                  "description": "Standard 15% retail broker commission on package business with negotiated national-account overrides.",
+                  "livesIn": "PAS C — commission table by producer code"
+                },
+                {
+                  "name": "Premium audit provision (GL)",
+                  "description": "GL premium is deposit-based on estimated payroll/receipts, adjusted by physical or voluntary audit at expiry.",
+                  "livesIn": "PAS C — audit flag; audit vendor work order feed"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "UW workbench authority + referral rules",
+              "items": [
+                {
+                  "name": "Engineering survey above $25M TIV",
+                  "description": "Any single SOV location over $25M TIV requires a loss-control engineering survey within 12 months of binding.",
+                  "livesIn": "UW workbench — referral rule ENG-01; loss control work queue"
+                },
+                {
+                  "name": "Cat zone aggregation limits",
+                  "description": "Bound TIV per named-storm county tier and EQ zone is capped against portfolio aggregate budgets; over-budget binds refer to cat management.",
+                  "livesIn": "UW workbench — cat aggregation dashboard; cat budget workbook"
+                },
+                {
+                  "name": "Protection class eligibility",
+                  "description": "PC 1–8 locations bind at line authority; PC 9–10 (unprotected) require regional property referral and specific rating.",
+                  "livesIn": "UW workbench — eligibility rule PC-01"
+                },
+                {
+                  "name": "Sprinkler requirement for warehouse occupancies",
+                  "description": "Warehouse/distribution locations over 50,000 sq ft must carry NFPA 13-compliant automatic sprinklers or be declined for property.",
+                  "livesIn": "UW workbench — occupancy rule SPRK-01; engineering survey reports"
+                },
+                {
+                  "name": "Vacancy restriction",
+                  "description": "Locations vacant more than 60 consecutive days lose vandalism/water damage per CP conditions and trigger a mid-term underwriting review.",
+                  "livesIn": "PAS C — vacancy endorsement tracking; UW workbench diary"
+                },
+                {
+                  "name": "Loss-ratio referral threshold",
+                  "description": "Accounts with a 3-year loss ratio above 60% refer one authority level up with a corrective-action plan.",
+                  "livesIn": "UW workbench — referral rule LR-60; account loss runs"
+                },
+                {
+                  "name": "Authority grid",
+                  "description": "Bind authority tiered by TIV, GL exposure and cat zone — line underwriter to $50M TIV, regional to $150M, home office above.",
+                  "livesIn": "UW workbench — authority grid v2026.1"
+                },
+                {
+                  "name": "Prohibited classes list",
+                  "description": "No ammunition manufacturing, fireworks, cannabis cultivation or EPS-panel cold storage on the CPP program.",
+                  "livesIn": "UW workbench — appetite guide appendix A"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "ISO 09/17 CP + 04/13 CG editions + manuscripts",
+              "items": [
+                {
+                  "name": "CP 00 10 09 17 — Building and Personal Property Coverage Form",
+                  "description": "Base property coverage form, 09/17 ISO edition adopted in v8.",
+                  "livesIn": "Forms library — ISO electronic library, CPP attach set"
+                },
+                {
+                  "name": "CP 00 30 09 17 — Business Income (and Extra Expense)",
+                  "description": "BI coverage form paired with per-location BI values from the SOV.",
+                  "livesIn": "Forms library — ISO electronic library, CPP attach set"
+                },
+                {
+                  "name": "CP 10 30 09 17 — Causes of Loss — Special Form",
+                  "description": "Open-perils causes of loss attaching to all CP coverage parts.",
+                  "livesIn": "Forms library — ISO electronic library"
+                },
+                {
+                  "name": "CP 04 05 — Ordinance or Law Coverage",
+                  "description": "Optional endorsement carrying Coverages A/B/C limits per location.",
+                  "livesIn": "Forms library — ISO electronic library; PAS C option flag"
+                },
+                {
+                  "name": "CP 12 32 — Limitation on Loss Settlement (Margin Clause)",
+                  "description": "Blanket-limit margin clause endorsement new to v8, set at 110%.",
+                  "livesIn": "Forms library — ISO electronic library; RN-CPP-2026-01"
+                },
+                {
+                  "name": "CG 00 01 04 13 — Commercial General Liability Coverage Form",
+                  "description": "Occurrence-form CGL, 04/13 edition, base of the GL coverage part.",
+                  "livesIn": "Forms library — ISO electronic library"
+                },
+                {
+                  "name": "CG 20 10 / CG 20 37 — Additional Insured (Ongoing / Completed Ops)",
+                  "description": "Blanket additional-insured endorsements issued where required by written contract.",
+                  "livesIn": "Forms library — ISO electronic library; certificate workflow"
+                },
+                {
+                  "name": "IL 00 17 / IL 09 85",
+                  "description": "Common policy conditions and the TRIPRA disclosure/rejection notice pack.",
+                  "livesIn": "Forms library — ISO electronic library"
+                },
+                {
+                  "name": "MSC-PSW-04 — Protective Safeguards manuscript",
+                  "description": "Company manuscript conditioning coverage on maintenance of sprinklers/alarms scheduled per location.",
+                  "livesIn": "Forms library — company manuscript repository"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "Admitted SERFF filings, all writing states",
+              "items": [
+                {
+                  "name": "Multi-state form filing for v8",
+                  "description": "SERFF filing adopting 09/17 CP editions, CP 12 32 and the EB endorsement across 42 admitted states.",
+                  "livesIn": "SERFF — filing CPP-F-2025-09; compliance filing tracker"
+                },
+                {
+                  "name": "ISO loss cost adoption filings",
+                  "description": "Per-state adoption of ISO CP/CGL advisory loss cost revisions with company LCMs.",
+                  "livesIn": "SERFF — rate filings; corporate rating engine LCM table"
+                },
+                {
+                  "name": "Rule filing — package factor and IRPM ranges",
+                  "description": "Filed rating rules for the package modification factor and the ±25% IRPM/schedule-mod range.",
+                  "livesIn": "SERFF — rule filing CPP-R-2025-11"
+                },
+                {
+                  "name": "FL OIR wind filing",
+                  "description": "Florida-specific wind deductible and hurricane-mitigation credit filing with OIR-required actuarial support.",
+                  "livesIn": "SERFF — FL filing; FL exception pages in forms library"
+                },
+                {
+                  "name": "TX exception forms",
+                  "description": "Texas non-standard CP exception editions maintained where TDI has not adopted ISO revisions.",
+                  "livesIn": "Forms library — TX exception set; SERFF TX filing"
+                },
+                {
+                  "name": "Objection and disposition log",
+                  "description": "State objection letters, responses and approval dates tracked to gate the PAS C release per state.",
+                  "livesIn": "Compliance filing tracker workbook; PROD_JURIS effective dates"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "PAS C transactions; SOV changes; audits",
+              "items": [
+                {
+                  "name": "New business issuance",
+                  "description": "Bound package issued in PAS C as coordinated CP + CG coverage-part transactions under one policy number.",
+                  "livesIn": "PAS C — transaction NB; policy print stream"
+                },
+                {
+                  "name": "Mid-term SOV change endorsement",
+                  "description": "Location adds/deletes and value changes processed from a revised SOV workbook, premium pro-rated from change date.",
+                  "livesIn": "PAS C — transaction EN-SOV; SOV workbook version history"
+                },
+                {
+                  "name": "Renewal cycle at 90 days",
+                  "description": "Renewal SOV and exposure request to broker at 120 days, updated rating at 90, quote release at 60.",
+                  "livesIn": "PAS C — renewal diary; UW workbench renewal checklist"
+                },
+                {
+                  "name": "GL premium audit at expiry",
+                  "description": "Final payroll/receipts audited post-expiry; audit endorsement bills or returns the difference from deposit premium.",
+                  "livesIn": "PAS C — transaction AUD; audit vendor results feed"
+                },
+                {
+                  "name": "State-compliant cancellation/non-renewal",
+                  "description": "Cancellation and non-renewal notices generated with state-specific notice periods and reasons.",
+                  "livesIn": "PAS C — compliance notice engine by state"
+                },
+                {
+                  "name": "Certificate of insurance issuance",
+                  "description": "Broker-requested ACORD 25 certificates with AI/waiver status validated against attached endorsements.",
+                  "livesIn": "Certificate portal; PAS C endorsement inquiry"
+                },
+                {
+                  "name": "Rate release management",
+                  "description": "Rating-engine and Excel-rater version changes tied to PROD_VER release notes and state approval dates before activation.",
+                  "livesIn": "PAS C — PROD_VER release notes; rating engine deployment log"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "version": "v7",
+          "jurisdiction": "US multi-state",
+          "effective": "Eff. 01/2024",
+          "status": "Renewal only",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Prior package generation, renewal book only",
+              "items": [
+                {
+                  "name": "Package structure definition",
+                  "description": "CP + CG coverage parts under common declarations, identical spine to v8 but without the Equipment Breakdown part.",
+                  "livesIn": "PAS C — DB2 PROD_DEF row CPP; PROD_VER v7"
+                },
+                {
+                  "name": "State availability grid",
+                  "description": "Admitted in 44 states at launch; two states closed to v7 new business in 2025 ahead of the v8 cutover.",
+                  "livesIn": "PAS C — DB2 PROD_JURIS v7 rows with closure dates"
+                },
+                {
+                  "name": "Renewal-only status flag",
+                  "description": "PROD_VER v7 flagged renewal-only 01/2026; in-force policies migrate to v8 at anniversary where state approval exists.",
+                  "livesIn": "PAS C — PROD_VER status column; RN-CPP-2026-01 migration note"
+                },
+                {
+                  "name": "Version lineage v6 → v7",
+                  "description": "v7 introduced blanket BI values and the per-location GL aggregate option over v6.",
+                  "livesIn": "PAS C — PROD_VER release notes RN-CPP-2024-01"
+                },
+                {
+                  "name": "ISO CSP class taxonomy",
+                  "description": "Same ISO CSP property and CGL class structure as v8; class table frozen at the 2023 revision.",
+                  "livesIn": "Corporate rating engine — class tables, v7 revision lock"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "ISO CP/CG parts, 10/12 CP editions",
+              "items": [
+                {
+                  "name": "Building and Business Personal Property (CP 00 10)",
+                  "description": "Direct physical loss to scheduled buildings and BPP; v7 runs the 10/12 edition.",
+                  "livesIn": "PAS C — coverage master CVG-CP; SOV workbook"
+                },
+                {
+                  "name": "Business Income with Extra Expense (CP 00 30)",
+                  "description": "BI and extra expense on the 10/12 edition with per-location BI values.",
+                  "livesIn": "PAS C — coverage master CVG-CP; SOV BI worksheet"
+                },
+                {
+                  "name": "Ordinance or Law (CP 04 05)",
+                  "description": "Optional demolition and increased-cost-of-construction coverage, same structure as v8.",
+                  "livesIn": "PAS C — optional coverage flag; forms library CP 04 05"
+                },
+                {
+                  "name": "Premises/Operations liability (CG 00 01 Coverage A)",
+                  "description": "Occurrence-form BI/PD from premises and ongoing operations.",
+                  "livesIn": "PAS C — coverage master CVG-GL, code PREMOPS"
+                },
+                {
+                  "name": "Products-Completed Operations (CG 00 01)",
+                  "description": "Completed-operations BI/PD with separate aggregate.",
+                  "livesIn": "PAS C — coverage master CVG-GL, code PRODCOMP"
+                },
+                {
+                  "name": "Damage to Premises Rented to You",
+                  "description": "Fire legal liability at the older $300K default limit (raised to $1M in v8).",
+                  "livesIn": "PAS C — CVG-GL sublimit table LMT-DPRT (v7 default)"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "SOV limits without margin clause",
+              "items": [
+                {
+                  "name": "Blanket vs specific limit election",
+                  "description": "Blanket or specific property limits from the SOV; v7 blanket carries no margin clause — a driver of the v8 change.",
+                  "livesIn": "SOV workbook — limit-basis column; PAS C limit records"
+                },
+                {
+                  "name": "Named-storm percentage deductible",
+                  "description": "5% Tier 1 / 2% Tier 2 named-storm deductibles, same county tiers as v8.",
+                  "livesIn": "PAS C — deductible table DED-CAT"
+                },
+                {
+                  "name": "Business income 72-hour waiting period",
+                  "description": "Standard 72-hour BI waiting period; no filed 24-hour buy-down in v7.",
+                  "livesIn": "PAS C — BI time deductible field"
+                },
+                {
+                  "name": "All-other-perils deductible $10K",
+                  "description": "v7 standard AOP deductible of $10K, lifted to $25K in v8 on loss experience.",
+                  "livesIn": "PAS C — DED-AOP (v7 default)"
+                },
+                {
+                  "name": "Coinsurance 90%",
+                  "description": "90% coinsurance without a filed Agreed Value option; agreed value handled by manuscript exception only.",
+                  "livesIn": "PAS C — coinsurance flag; manuscript exception log"
+                },
+                {
+                  "name": "GL per-location aggregate (CG 25 04)",
+                  "description": "Optional per-location general aggregate, introduced in this version.",
+                  "livesIn": "Forms library — CG 25 04; PAS C aggregate flag"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "2023-lock class rates + Excel rater v7",
+              "items": [
+                {
+                  "name": "ISO CSP class rates (2023 revision lock)",
+                  "description": "Class rates frozen at the 2023 loss-cost revision for the renewal book; no new revisions adopted into v7.",
+                  "livesIn": "Corporate rating engine — v7 rate-lock tables"
+                },
+                {
+                  "name": "Specific rating from SOV COPE data",
+                  "description": "Same $5M TIV specific-rating threshold as v8, run through the v7 Excel rater.",
+                  "livesIn": "SOV workbook COPE columns; CPP Excel rater v7.4 — actuarial drive"
+                },
+                {
+                  "name": "GL exposure-base rating",
+                  "description": "Payroll/receipts exposure rating at ISO class rates on the 2023 table.",
+                  "livesIn": "Corporate rating engine — CGL class table (v7 lock)"
+                },
+                {
+                  "name": "Experience and schedule modifications",
+                  "description": "±25% filed mod range identical to v8; mods re-justified at each renewal.",
+                  "livesIn": "CPP Excel rater v7.4 — mods tab; UW workbench approval log"
+                },
+                {
+                  "name": "Package modification factor",
+                  "description": "Filed package credit table, one revision older than the v8 factors.",
+                  "livesIn": "Corporate rating engine — package factor table (v7)"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "Renewal pricing with rate-adequacy uplift",
+              "items": [
+                {
+                  "name": "TRIA/TRIPRA certified-acts charge",
+                  "description": "Separate terrorism premium line with mandatory offer, same TRIPRA mechanics as v8.",
+                  "livesIn": "PAS C — TRIA premium line; IL 09 85 disclosure"
+                },
+                {
+                  "name": "Renewal rate-adequacy uplift",
+                  "description": "Renewal book carries a monitored uplift program (+4% property target 2026) to close the gap to v8 technical rates.",
+                  "livesIn": "CPP Excel rater v7.4 — renewal uplift tab; portfolio monitoring workbook"
+                },
+                {
+                  "name": "State taxes and surcharges",
+                  "description": "Same state tax and guaranty-assessment table as v8, applied at renewal issuance.",
+                  "livesIn": "PAS C — tax/surcharge table by state"
+                },
+                {
+                  "name": "Minimum premium per coverage part",
+                  "description": "$5K property / $2.5K GL retained minimums, unchanged from original v7 filing.",
+                  "livesIn": "Corporate rating engine — minimum premium rules"
+                },
+                {
+                  "name": "Premium audit provision (GL)",
+                  "description": "Deposit premium adjusted by audit at expiry, identical process to v8.",
+                  "livesIn": "PAS C — audit flag; audit vendor feed"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Renewal-book governance rules",
+              "items": [
+                {
+                  "name": "Renewal migration review",
+                  "description": "Every v7 renewal is assessed for v8 migration; retention on v7 past 01/2027 requires regional sign-off.",
+                  "livesIn": "UW workbench — migration rule MIG-V8; renewal checklist"
+                },
+                {
+                  "name": "Engineering survey above $25M TIV",
+                  "description": "Same survey threshold as v8, enforced at renewal for locations without a survey in 36 months.",
+                  "livesIn": "UW workbench — referral rule ENG-01"
+                },
+                {
+                  "name": "Cat zone aggregation limits",
+                  "description": "v7 renewals draw from the same portfolio cat aggregate budgets as v8 binds.",
+                  "livesIn": "UW workbench — cat aggregation dashboard"
+                },
+                {
+                  "name": "Loss-ratio referral threshold",
+                  "description": "3-year loss ratio above 60% refers up with a re-rate or non-renew recommendation.",
+                  "livesIn": "UW workbench — referral rule LR-60"
+                },
+                {
+                  "name": "Blanket-limit valuation review",
+                  "description": "Because v7 has no margin clause, blanket renewals require an ITV (insurance-to-value) check against the refreshed SOV.",
+                  "livesIn": "UW workbench — valuation rule ITV-01; SOV workbook"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "10/12 CP editions + 04/13 CG",
+              "items": [
+                {
+                  "name": "CP 00 10 10 12 — Building and Personal Property Coverage Form",
+                  "description": "Base property form on the 10/12 ISO edition retained for the renewal book.",
+                  "livesIn": "Forms library — ISO electronic library, v7 attach set"
+                },
+                {
+                  "name": "CP 00 30 10 12 — Business Income (and Extra Expense)",
+                  "description": "BI form, 10/12 edition.",
+                  "livesIn": "Forms library — ISO electronic library, v7 attach set"
+                },
+                {
+                  "name": "CP 10 30 10 12 — Causes of Loss — Special Form",
+                  "description": "Open-perils form, 10/12 edition.",
+                  "livesIn": "Forms library — ISO electronic library"
+                },
+                {
+                  "name": "CG 00 01 04 13 — Commercial General Liability Coverage Form",
+                  "description": "Occurrence CGL, same 04/13 edition carried into v8.",
+                  "livesIn": "Forms library — ISO electronic library"
+                },
+                {
+                  "name": "CG 20 10 / CG 20 37 — Additional Insured endorsements",
+                  "description": "Blanket AI for ongoing and completed operations where contractually required.",
+                  "livesIn": "Forms library — ISO electronic library"
+                },
+                {
+                  "name": "IL 00 17 / IL 09 85",
+                  "description": "Common policy conditions and TRIPRA disclosure pack.",
+                  "livesIn": "Forms library — ISO electronic library"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "2023 filings; closure amendments",
+              "items": [
+                {
+                  "name": "Original v7 multi-state form filing",
+                  "description": "SERFF filing that introduced v7 forms and the CG 25 04 option across 44 states, approved through 2023.",
+                  "livesIn": "SERFF — filing CPP-F-2023-06; compliance filing tracker"
+                },
+                {
+                  "name": "Rate filings at 2023 loss costs",
+                  "description": "Per-state LCM filings against the 2023 ISO loss-cost revision, now frozen for the renewal book.",
+                  "livesIn": "SERFF — rate filings; rating engine v7 lock"
+                },
+                {
+                  "name": "New-business closure notifications",
+                  "description": "State notifications and PROD_JURIS closures where v7 new business was withdrawn ahead of v8.",
+                  "livesIn": "SERFF — withdrawal amendments; PROD_JURIS closure dates"
+                },
+                {
+                  "name": "Renewal uplift rate filings",
+                  "description": "Filed renewal rate-level changes supporting the adequacy uplift program in states requiring re-filing.",
+                  "livesIn": "SERFF — rate amendment filings CPP-R-2025"
+                },
+                {
+                  "name": "Objection and disposition log",
+                  "description": "Historic objection responses retained for the life of in-force v7 policies.",
+                  "livesIn": "Compliance filing tracker workbook"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "Renewal-only servicing + v8 migration",
+              "items": [
+                {
+                  "name": "Renewal-only gating",
+                  "description": "PAS C blocks v7 new-business transactions; only renewal, endorsement and audit transactions remain enabled.",
+                  "livesIn": "PAS C — transaction gating on PROD_VER status"
+                },
+                {
+                  "name": "Anniversary migration to v8",
+                  "description": "Renewals convert to v8 where the state is approved, mapping coverages and re-papering forms; conversion letter issued 60 days out.",
+                  "livesIn": "PAS C — conversion transaction CNV-V8; migration mapping sheet"
+                },
+                {
+                  "name": "Mid-term SOV change endorsement",
+                  "description": "Location and value changes processed from revised SOVs exactly as on v8.",
+                  "livesIn": "PAS C — transaction EN-SOV; SOV workbook history"
+                },
+                {
+                  "name": "GL premium audit at expiry",
+                  "description": "Deposit-vs-final audit at expiry, feeding the renewal exposure basis for the v8 quote.",
+                  "livesIn": "PAS C — transaction AUD; audit vendor feed"
+                },
+                {
+                  "name": "Runoff reporting",
+                  "description": "Monthly v7 in-force and premium runoff report tracks the wind-down of the version.",
+                  "livesIn": "PAS C — PROD_VER in-force extract; portfolio monitoring workbook"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "National Accounts Auto Fleet",
+      "lob": "Auto / Motor",
+      "runsIn": "PAS C + fleet Excel rater",
+      "description": "Large-fleet commercial auto for national accounts: composite-rated schedules of power units and trailers, loss-rated pricing, FMCSA filings including MCS-90.",
+      "versions": [
+        {
+          "version": "v3",
+          "jurisdiction": "US multi-state",
+          "effective": "Eff. 09/2025",
+          "status": "Active",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Fleet program on scheduled units",
+              "items": [
+                {
+                  "name": "Fleet program definition",
+                  "description": "Monoline commercial auto for fleets of 100+ power units, written on the Business Auto Coverage Form with schedule-driven unit records.",
+                  "livesIn": "PAS C — DB2 PROD_DEF row FLEET; PROD_VER v3"
+                },
+                {
+                  "name": "State availability and UM/UIM variants",
+                  "description": "Admitted in 48 states; PROD_JURIS carries state UM/UIM offer, rejection and stacking variants per state law.",
+                  "livesIn": "PAS C — DB2 PROD_JURIS UM/UIM variant flags"
+                },
+                {
+                  "name": "Unit class taxonomy",
+                  "description": "Units classified light/medium/heavy/extra-heavy truck, tractor, trailer and private passenger, driving rate class and deductible class.",
+                  "livesIn": "Vehicle schedule workbook — class column; rating engine class map"
+                },
+                {
+                  "name": "Radius and use classes",
+                  "description": "Local (≤50mi), intermediate (51–200mi) and long-haul radius classes per unit, from the vehicle schedule garaging and route data.",
+                  "livesIn": "Vehicle schedule workbook — radius column"
+                },
+                {
+                  "name": "Version lineage v2 → v3",
+                  "description": "v3 added the telematics requirement, CAB review gate and revised composite-rate bands.",
+                  "livesIn": "PAS C — PROD_VER release notes RN-FLEET-2025-09"
+                },
+                {
+                  "name": "Annual policy dating with monthly unit reporting",
+                  "description": "Twelve-month term; unit schedule trued monthly via reporting endorsement.",
+                  "livesIn": "PAS C — reporting-form term rules"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "BACF liability + scheduled physical damage",
+              "items": [
+                {
+                  "name": "Auto Liability — $1M CSL",
+                  "description": "Covered-autos liability at $1M combined single limit minimum (higher where contracts or FMCSA require), symbol 1 (any auto).",
+                  "livesIn": "PAS C — coverage master CVG-CA, code LIAB; limits table LMT-CSL"
+                },
+                {
+                  "name": "Physical Damage — Comprehensive",
+                  "description": "Comprehensive (other-than-collision) on scheduled units electing phys dam, stated values from the vehicle schedule.",
+                  "livesIn": "PAS C — CVG-CA code COMP; vehicle schedule workbook values"
+                },
+                {
+                  "name": "Physical Damage — Collision",
+                  "description": "Collision coverage per scheduled unit with deductibles by unit class.",
+                  "livesIn": "PAS C — CVG-CA code COLL; vehicle schedule workbook"
+                },
+                {
+                  "name": "Hired Auto Liability and Physical Damage",
+                  "description": "Liability (symbol 8) plus hired-auto physical damage at $100K any-one-vehicle for short-term rentals and leased units.",
+                  "livesIn": "PAS C — CVG-CA codes HIRED-L / HIRED-PD"
+                },
+                {
+                  "name": "Non-Owned Auto Liability",
+                  "description": "Symbol 9 coverage for employee-owned vehicles used on company business.",
+                  "livesIn": "PAS C — CVG-CA code NONOWN"
+                },
+                {
+                  "name": "Trailer Interchange",
+                  "description": "Legal-liability physical damage for non-owned trailers in the insured's possession under interchange agreements, $75K limit.",
+                  "livesIn": "PAS C — CVG-CA code TRLINT; interchange agreement register"
+                },
+                {
+                  "name": "UM/UIM per state elections",
+                  "description": "Uninsured/underinsured motorist coverage at state-mandated offer levels with signed selection/rejection per state.",
+                  "livesIn": "PAS C — UM/UIM election records; state selection forms"
+                },
+                {
+                  "name": "Auto Medical Payments",
+                  "description": "$5K medical payments where purchased; PIP substituted in no-fault states.",
+                  "livesIn": "PAS C — CVG-CA code MEDPAY/PIP by state"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "Per-unit-class deductibles; schedule-driven values",
+              "items": [
+                {
+                  "name": "Comp/collision deductibles by unit class",
+                  "description": "Deductible grid: $2.5K private passenger and light, $5K medium/heavy, $10K tractors and extra-heavy units.",
+                  "livesIn": "PAS C — DED-PD grid by unit class; fleet rater deductible tab"
+                },
+                {
+                  "name": "Stated amount valuation per unit",
+                  "description": "Physical damage settles at the lesser of ACV, repair cost or stated amount on the vehicle schedule.",
+                  "livesIn": "Vehicle schedule workbook — stated amount column; CA 99 28 attach"
+                },
+                {
+                  "name": "Liability deductible $250K (large accounts)",
+                  "description": "Optional liability deductible with insurer defense inside, collateralized under the deductible agreement.",
+                  "livesIn": "Deductible/collateral agreement — national accounts folder; PAS C deductible flag"
+                },
+                {
+                  "name": "Monthly reporting true-up terms",
+                  "description": "Unit additions and deletions billed pro-rata off the monthly schedule report; 30-day automatic cover for newly acquired autos.",
+                  "livesIn": "PAS C — reporting endorsement terms; monthly schedule submissions"
+                },
+                {
+                  "name": "Trailer interchange limit and receipt terms",
+                  "description": "$75K any-one-trailer with coverage contingent on a written interchange agreement.",
+                  "livesIn": "PAS C — TRLINT terms; interchange agreement register"
+                },
+                {
+                  "name": "Hired auto physical damage limit",
+                  "description": "$100K any one vehicle, $500K any one loss, ACV settlement.",
+                  "livesIn": "PAS C — HIRED-PD limit records"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "Composite per power unit; loss-rated",
+              "items": [
+                {
+                  "name": "Composite rate per power unit",
+                  "description": "Single blended liability rate per power unit by class/radius mix, recalculated at renewal from the unit schedule census.",
+                  "livesIn": "Fleet Excel rater v3.1 — composite tab; actuarial shared drive"
+                },
+                {
+                  "name": "Loss-rating from 5-year loss runs",
+                  "description": "Accounts over 250 units priced primarily from their own developed, trended losses with credibility weighting to manual.",
+                  "livesIn": "Fleet Excel rater v3.1 — loss-rating tab; carrier loss runs"
+                },
+                {
+                  "name": "Experience modification factor",
+                  "description": "Fleet experience mod computed on 3-year losses capped per claim at $250K for mod purposes.",
+                  "livesIn": "Fleet Excel rater v3.1 — mod tab"
+                },
+                {
+                  "name": "Physical damage rating on stated values",
+                  "description": "Comp/coll rates applied per $100 of scheduled stated amount, by unit class and deductible.",
+                  "livesIn": "Corporate rating engine — phys dam rate tables; vehicle schedule values"
+                },
+                {
+                  "name": "Telematics credit",
+                  "description": "Up to 8% liability credit for fleets with qualifying telematics deployed on 90%+ of power units, verified quarterly.",
+                  "livesIn": "Fleet Excel rater v3.1 — telematics credit cell; telematics vendor reports"
+                },
+                {
+                  "name": "State rate pages for UM/UIM and PIP",
+                  "description": "Statutory coverage rating from filed state rate pages layered onto the composite.",
+                  "livesIn": "Corporate rating engine — state statutory tables"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "Loss-sensitive options + statutory charges",
+              "items": [
+                {
+                  "name": "TRIA/TRIPRA charge",
+                  "description": "Terrorism premium line with disclosure, typically under 1% on auto liability.",
+                  "livesIn": "PAS C — TRIA premium line; IL 09 85 pack"
+                },
+                {
+                  "name": "Deductible program credit",
+                  "description": "Premium credit reflecting the $250K liability deductible, offset by collateral and claim-handling fees.",
+                  "livesIn": "Fleet Excel rater v3.1 — deductible credit tab; collateral schedule"
+                },
+                {
+                  "name": "Minimum and deposit premium",
+                  "description": "Annual deposit at 90% of estimated premium with monthly reporting adjustments; 75% minimum retained.",
+                  "livesIn": "PAS C — deposit/minimum fields; reporting endorsement"
+                },
+                {
+                  "name": "State assessments and surcharges",
+                  "description": "Second-injury-fund style auto assessments, MI CAT fund charges and NY MVAIC loadings by state.",
+                  "livesIn": "PAS C — tax/surcharge table by state"
+                },
+                {
+                  "name": "Commission — net-of-commission national accounts",
+                  "description": "National accounts frequently written net with a broker fee agreement in lieu of commission.",
+                  "livesIn": "PAS C — commission override; broker fee agreement file"
+                },
+                {
+                  "name": "Claim-handling fee schedule",
+                  "description": "Per-claim TPA/ALAE handling fees for deductible-program claims billed alongside premium.",
+                  "livesIn": "Deductible/collateral agreement — fee exhibit"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Driver, CAB and telematics gates",
+              "items": [
+                {
+                  "name": "Driver MVR pull at onboarding and renewal",
+                  "description": "Motor vehicle records ordered for every scheduled driver; disqualifying violations (DUI ≤5yr, 3+ moving violations) bar the driver.",
+                  "livesIn": "UW workbench — driver rule MVR-01; driver schedule workbook"
+                },
+                {
+                  "name": "CAB report review",
+                  "description": "Central Analysis Bureau review of FMCSA authority, inspection and OOS history required before quoting any trucking fleet.",
+                  "livesIn": "UW workbench — rule CAB-01; CAB report archive"
+                },
+                {
+                  "name": "SMS BASIC score thresholds",
+                  "description": "FMCSA SMS BASICs above intervention thresholds in Unsafe Driving or HOS Compliance trigger home-office referral.",
+                  "livesIn": "UW workbench — rule SMS-01; CAB/SAFER extracts"
+                },
+                {
+                  "name": "Telematics requirement",
+                  "description": "v3 requires ELD/telematics data-sharing on fleets over 100 power units as a condition of quoting.",
+                  "livesIn": "UW workbench — rule TEL-01; telematics data-sharing agreement"
+                },
+                {
+                  "name": "Driver age and experience standards",
+                  "description": "CDL drivers minimum age 23 with 2 years verifiable experience for units over 26,000 GVW.",
+                  "livesIn": "UW workbench — driver rule AGE-01; driver schedule workbook"
+                },
+                {
+                  "name": "Prohibited operations",
+                  "description": "No hazmat placarded loads above 20% of mileage, no household-goods movers, no passenger-for-hire.",
+                  "livesIn": "UW workbench — appetite guide, fleet appendix"
+                },
+                {
+                  "name": "Loss-run requirement",
+                  "description": "Five years of currently-valued carrier loss runs (within 90 days) required to release a quote.",
+                  "livesIn": "UW workbench — submission checklist; loss run folder"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "ISO CA forms + FMCSA endorsements",
+              "items": [
+                {
+                  "name": "CA 00 01 11 20 — Business Auto Coverage Form",
+                  "description": "Base covered-autos liability and physical damage form for the fleet program.",
+                  "livesIn": "Forms library — ISO electronic library, fleet attach set"
+                },
+                {
+                  "name": "MCS-90 — Endorsement for Motor Carrier Policies of Insurance",
+                  "description": "FMCSA public-liability surety endorsement required for for-hire interstate motor carriers; company reimbursement rights preserved.",
+                  "livesIn": "Forms library — federal endorsement set; FMCSA filing record"
+                },
+                {
+                  "name": "CA 99 33 — Employees as Insureds",
+                  "description": "Extends insured status to employees using non-owned autos on company business.",
+                  "livesIn": "Forms library — ISO electronic library"
+                },
+                {
+                  "name": "CA 20 48 — Designated Insured for Covered Autos Liability",
+                  "description": "Grants designated entities insured status where required by contract.",
+                  "livesIn": "Forms library — ISO electronic library; certificate workflow"
+                },
+                {
+                  "name": "CA 04 44 — Waiver of Transfer of Rights (Waiver of Subrogation)",
+                  "description": "Blanket waiver of subrogation where required by written contract.",
+                  "livesIn": "Forms library — ISO electronic library"
+                },
+                {
+                  "name": "CA 99 28 — Stated Amount Insurance",
+                  "description": "Applies stated-amount valuation to scheduled units for physical damage.",
+                  "livesIn": "Forms library — ISO electronic library; vehicle schedule values"
+                },
+                {
+                  "name": "State UM/UIM selection forms",
+                  "description": "State-prescribed uninsured/underinsured motorist selection and rejection forms retained per policy.",
+                  "livesIn": "Forms library — state forms set; signed elections in policy file"
+                },
+                {
+                  "name": "MSC-TRL-02 — Trailer Interchange manuscript",
+                  "description": "Company manuscript aligning trailer interchange terms with customer interchange agreements.",
+                  "livesIn": "Forms library — company manuscript repository"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "Admitted state filings + federal/state authority filings",
+              "items": [
+                {
+                  "name": "Multi-state form and rate filing",
+                  "description": "SERFF filing for the v3 program — composite rating rule, telematics credit and deductible-program rules across 48 states.",
+                  "livesIn": "SERFF — filing FLEET-FR-2025-05; compliance tracker"
+                },
+                {
+                  "name": "FMCSA BMC-91/91X filings",
+                  "description": "Federal proof-of-financial-responsibility filings for interstate for-hire authority tied to the MCS-90.",
+                  "livesIn": "FMCSA URS portal — carrier filing records; PAS C filing flags"
+                },
+                {
+                  "name": "State intrastate authority filings (Form E/H)",
+                  "description": "Uniform Form E (and Form H for cargo where written) filed with state PUCs for intrastate operating authority.",
+                  "livesIn": "State PUC portals — filing log; compliance tracker"
+                },
+                {
+                  "name": "UM/UIM rule and form approvals",
+                  "description": "State-specific UM/UIM selection forms and stacking rules approved and version-tracked per state.",
+                  "livesIn": "SERFF — state form filings; forms library state set"
+                },
+                {
+                  "name": "Loss-sensitive rating plan filing",
+                  "description": "Large-risk rating option / retro-style deductible plan filings where states require them for accounts above eligibility thresholds.",
+                  "livesIn": "SERFF — rule filings; national accounts pricing file"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "Monthly schedule true-ups; pro-rata unit moves",
+              "items": [
+                {
+                  "name": "Unit add/delete with pro-rata premium",
+                  "description": "Monthly vehicle schedule report drives add/delete endorsements billed pro-rata from each unit's change date.",
+                  "livesIn": "PAS C — transaction EN-UNIT; monthly schedule report feed"
+                },
+                {
+                  "name": "Automatic coverage for newly acquired autos",
+                  "description": "Newly acquired units covered automatically for 30 days pending schedule reporting.",
+                  "livesIn": "PAS C — BACF newly-acquired provision; reporting endorsement"
+                },
+                {
+                  "name": "Driver schedule maintenance",
+                  "description": "Driver adds trigger MVR pulls and eligibility checks before the driver is accepted onto the schedule.",
+                  "livesIn": "Driver schedule workbook; UW workbench MVR queue"
+                },
+                {
+                  "name": "Quarterly telematics review",
+                  "description": "Telematics compliance and harsh-event trends reviewed quarterly; credit adjusted or removed at renewal.",
+                  "livesIn": "Telematics vendor reports; fleet rater credit log"
+                },
+                {
+                  "name": "Renewal census and re-rate",
+                  "description": "Full unit and driver census refresh at 120 days, composite rate rebuilt from the updated class/radius mix and loss runs.",
+                  "livesIn": "Fleet Excel rater v3.1 — renewal tabs; PAS C renewal diary"
+                },
+                {
+                  "name": "Deposit premium adjustment",
+                  "description": "Reported-unit exposure reconciled against deposit at expiry; adjustment endorsement issued subject to 75% minimum.",
+                  "livesIn": "PAS C — transaction ADJ; reporting reconciliation workbook"
+                },
+                {
+                  "name": "FMCSA filing maintenance",
+                  "description": "BMC-91X and state Form E filings issued, amended and cancelled in lockstep with policy lifecycle events.",
+                  "livesIn": "FMCSA URS portal; PAS C filing status flags"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Excess Liability Tower",
+      "lob": "Umbrella / Excess",
+      "runsIn": "PAS C",
+      "description": "Lead umbrella plus follow-form excess layers over a scheduled underlying casualty program; admitted lead with surplus lines excess where non-admitted.",
+      "versions": [
+        {
+          "version": "v2",
+          "jurisdiction": "US multi-state",
+          "effective": "Eff. 07/2025",
+          "status": "Active",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Tower = lead umbrella + excess layers",
+              "items": [
+                {
+                  "name": "Tower structure definition",
+                  "description": "Program written as a $25M lead umbrella plus follow-form excess layers ($25M xs $25M, $50M xs $50M) each issued as its own policy.",
+                  "livesIn": "PAS C — DB2 PROD_DEF row XSTWR; layer child records"
+                },
+                {
+                  "name": "Layer lineage and participation record",
+                  "description": "Each layer records attachment, limit, participation share and admitted/non-admitted paper per placement.",
+                  "livesIn": "PAS C — PROD_VER layer schedule; placement slip in account file"
+                },
+                {
+                  "name": "Admitted vs non-admitted paper map",
+                  "description": "Lead umbrella on admitted paper in filed states; upper excess layers on the surplus lines company where capacity or terms require.",
+                  "livesIn": "PAS C — PROD_JURIS paper flags; surplus lines placement log"
+                },
+                {
+                  "name": "Underlying schedule taxonomy",
+                  "description": "Scheduled underlying policies (GL, auto, employers liability) with carriers, limits and terms captured as structured records.",
+                  "livesIn": "PAS C — underlying schedule table; UW workbench schedule page"
+                },
+                {
+                  "name": "Version lineage v1 → v2",
+                  "description": "v2 tightened the drop-down aggregate conditions and added the wildfire and PFAS exclusions to the attach set.",
+                  "livesIn": "PAS C — PROD_VER release notes RN-XSTWR-2025-07"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "Lead umbrella + follow-form layers",
+              "items": [
+                {
+                  "name": "Lead umbrella liability (CU 00 01)",
+                  "description": "Excess BI/PD/personal-and-advertising-injury over scheduled underlying limits, with broader-than-underlying grants subject to the SIR.",
+                  "livesIn": "PAS C — coverage master CVG-CU; forms library CU 00 01"
+                },
+                {
+                  "name": "Drop-down over exhausted aggregates",
+                  "description": "Umbrella drops down to pay as primary when a scheduled underlying aggregate is exhausted by covered claims.",
+                  "livesIn": "PAS C — CVG-CU drop-down condition; CU 00 01 insuring agreement"
+                },
+                {
+                  "name": "Coverage where underlying is uncovered (SIR)",
+                  "description": "For occurrences covered by the umbrella but not any underlying, coverage applies excess of the $25K self-insured retention.",
+                  "livesIn": "PAS C — SIR terms; CU 00 01 retained limit provision"
+                },
+                {
+                  "name": "First excess layer — follow form ($25M xs $25M)",
+                  "description": "Follows the lead umbrella's terms, conditions and exclusions; no broader coverage than the controlling layer.",
+                  "livesIn": "PAS C — layer policy record; manuscript XS-FF-01 wording"
+                },
+                {
+                  "name": "Second excess layer — follow form ($50M xs $50M)",
+                  "description": "Top layer following form over the first excess, quota-shared across two markets.",
+                  "livesIn": "PAS C — layer policy record; co-participation schedule"
+                },
+                {
+                  "name": "Defense in addition and duty provisions",
+                  "description": "Defense costs outside the limit on the lead when it drops down; excess layers indemnity-only until attachment.",
+                  "livesIn": "PAS C — defense provision flags; CU 00 01 / XS-FF-01"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "Attachments, aggregates, maintenance of underlying",
+              "items": [
+                {
+                  "name": "Per-occurrence and aggregate limits per layer",
+                  "description": "Lead $25M occ/$25M agg; excess layers each carry occurrence and aggregate limits mirroring their tranche.",
+                  "livesIn": "PAS C — layer limit records LMT-XS"
+                },
+                {
+                  "name": "Attachment points over scheduled underlying",
+                  "description": "Umbrella attaches over $1M CSL auto, $1M/$2M/$2M GL and $1M employers liability per the underlying schedule.",
+                  "livesIn": "PAS C — underlying schedule table; placement slip"
+                },
+                {
+                  "name": "Self-insured retention $25K",
+                  "description": "SIR applies only where the umbrella responds and no underlying policy does.",
+                  "livesIn": "PAS C — SIR field; CU 00 01 retained limit"
+                },
+                {
+                  "name": "Maintenance of underlying condition",
+                  "description": "Insured must maintain scheduled underlying limits; failure makes the tower respond as if they were maintained.",
+                  "livesIn": "CU 00 01 conditions; UW workbench renewal verification"
+                },
+                {
+                  "name": "Aggregate reinstatement — not provided",
+                  "description": "No reinstatement of eroded aggregates mid-term; erosion notices flow up the tower.",
+                  "livesIn": "PAS C — aggregate tracking; erosion notice log"
+                },
+                {
+                  "name": "Layer cancellation co-terms",
+                  "description": "All layers share common effective dates and cancellation terms so the tower cannot become discontinuous.",
+                  "livesIn": "PAS C — tower co-term flag; placement slip conditions"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "ILFs off primary + layer relativities",
+              "items": [
+                {
+                  "name": "Increased limits factors off primary GL premium",
+                  "description": "Lead umbrella priced from underlying GL/auto premium using filed ILF curves for the first $25M.",
+                  "livesIn": "Corporate rating engine — ILF tables; excess rater workbook"
+                },
+                {
+                  "name": "Attachment credit",
+                  "description": "Credit reflecting attachment above minimum underlying limits when the insured buys higher primary limits.",
+                  "livesIn": "Excess rater workbook — attachment credit tab; actuarial drive"
+                },
+                {
+                  "name": "Layer relativity pricing",
+                  "description": "Each excess layer priced as a percentage of the layer below (typically 55–70%), floored by minimum premium.",
+                  "livesIn": "Excess rater workbook — relativity tab"
+                },
+                {
+                  "name": "Exposure-driven debits",
+                  "description": "Debits for fleet size, products exposure and NY labor-law construction exposure applied to the technical rate.",
+                  "livesIn": "Excess rater workbook — debit/credit tab; UW workbench rationale"
+                },
+                {
+                  "name": "Minimum premium per layer",
+                  "description": "$50K minimum for the lead, $25K per excess layer regardless of relativity output.",
+                  "livesIn": "Excess rater workbook — minimum premium cells"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "Admitted lead + surplus lines excess economics",
+              "items": [
+                {
+                  "name": "TRIA/TRIPRA charge on the lead",
+                  "description": "Terrorism premium offered and charged on the lead umbrella with TRIPRA disclosure.",
+                  "livesIn": "PAS C — TRIA premium line; IL 09 85 pack"
+                },
+                {
+                  "name": "Surplus lines tax on non-admitted layers",
+                  "description": "Home-state surplus lines tax (e.g. TX 4.85%, CA 3% + 0.18% stamping) collected on excess-layer premium placed non-admitted.",
+                  "livesIn": "Surplus lines tax calculator workbook; stamping office filings"
+                },
+                {
+                  "name": "Stamping office fees",
+                  "description": "SLA of California / SLTX stamping fees itemized per non-admitted layer invoice.",
+                  "livesIn": "Surplus lines placement log; broker invoice reconciliation"
+                },
+                {
+                  "name": "Wholesale vs retail commission split",
+                  "description": "Excess layers placed through wholesalers carry split commissions documented per layer.",
+                  "livesIn": "PAS C — commission records per layer policy"
+                },
+                {
+                  "name": "Quota-share layer premium allocation",
+                  "description": "Top-layer premium allocated across co-participants pro-rata to signed shares.",
+                  "livesIn": "Placement slip — participation schedule; PAS C layer premium split"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Underlying schedule + attachment discipline",
+              "items": [
+                {
+                  "name": "Underlying schedule requirements",
+                  "description": "Minimum scheduled underlying of $1M CSL auto, $1M/$2M/$2M GL and $1M EL from carriers rated A- VII or better.",
+                  "livesIn": "UW workbench — rule UND-01; underlying schedule verification"
+                },
+                {
+                  "name": "No unsupported umbrellas",
+                  "description": "Lead not written unless the company or an approved market writes the supporting primary casualty lines.",
+                  "livesIn": "UW workbench — appetite rule XS-02"
+                },
+                {
+                  "name": "Five-year loss run and large-loss narrative",
+                  "description": "Currently-valued loss runs plus narratives on losses over $250K required before quoting any layer.",
+                  "livesIn": "UW workbench — submission checklist; account loss file"
+                },
+                {
+                  "name": "Fleet and products exposure referral",
+                  "description": "Fleets over 500 power units or products classes with recall history refer to home-office excess casualty.",
+                  "livesIn": "UW workbench — referral rule XS-REF; CAB / product recall data"
+                },
+                {
+                  "name": "Capacity deployment limit",
+                  "description": "Maximum $50M net line any one tower; larger participations require reinsurance sign-off and facultative support.",
+                  "livesIn": "UW workbench — capacity grid; facultative placement record"
+                },
+                {
+                  "name": "NY labor law restriction",
+                  "description": "New York construction accounts with gravity-exposure (Labor Law 240/241) capped at $10M lead attachment participation.",
+                  "livesIn": "UW workbench — rule NYLL-01"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "CU 00 01 lead + manuscript follow-form",
+              "items": [
+                {
+                  "name": "CU 00 01 04 13 — Commercial Liability Umbrella Coverage Form",
+                  "description": "ISO umbrella form for the admitted lead layer.",
+                  "livesIn": "Forms library — ISO electronic library, tower attach set"
+                },
+                {
+                  "name": "XS-FF-01 — Follow Form Excess Liability manuscript",
+                  "description": "Company manuscript excess wording following the controlling underlying policy with limited carve-backs.",
+                  "livesIn": "Forms library — company manuscript repository"
+                },
+                {
+                  "name": "Underlying Schedule endorsement",
+                  "description": "Schedule of underlying insurance listing carriers, policy numbers, limits and terms; controls attachment.",
+                  "livesIn": "PAS C — schedule print; forms library manuscript SCH-UND"
+                },
+                {
+                  "name": "PFAS exclusion",
+                  "description": "Per- and polyfluoroalkyl substances exclusion added tower-wide in v2.",
+                  "livesIn": "Forms library — manuscript exclusion set (v2 attach rules)"
+                },
+                {
+                  "name": "Wildfire exclusion (Western states)",
+                  "description": "Wildfire liability exclusion attaching in CA/OR/WA for accounts with utility or vegetation-management exposure.",
+                  "livesIn": "Forms library — manuscript exclusion set; state attach logic"
+                },
+                {
+                  "name": "CU 21 27 — Fungi or Bacteria Exclusion",
+                  "description": "ISO umbrella mold/bacteria exclusion carried on the lead.",
+                  "livesIn": "Forms library — ISO electronic library"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "Admitted lead filed; excess via surplus lines",
+              "items": [
+                {
+                  "name": "Lead umbrella form and rate filing",
+                  "description": "SERFF filing of CU 00 01 attach set, ILFs and rating rules for the admitted lead in writing states.",
+                  "livesIn": "SERFF — filing XSTWR-FR-2025-03; compliance tracker"
+                },
+                {
+                  "name": "Surplus lines eligibility maintenance",
+                  "description": "Surplus lines insurer maintained on state eligibility lists (or NAIC IID for alien paper) for non-admitted layers.",
+                  "livesIn": "Surplus lines compliance file; state eligibility list checks"
+                },
+                {
+                  "name": "Diligent search / export affidavits",
+                  "description": "Producing-broker diligent-search affidavits (where still required) filed per non-admitted placement.",
+                  "livesIn": "Surplus lines placement log — affidavit records"
+                },
+                {
+                  "name": "Surplus lines premium tax remittance",
+                  "description": "Home-state tax remitted by the surplus lines broker per NRRA home-state rules; carrier reconciles quarterly.",
+                  "livesIn": "Surplus lines tax calculator workbook; broker tax filings"
+                },
+                {
+                  "name": "Stamping office policy filings",
+                  "description": "Non-admitted layer policies stamped and filed with SLA CA / SLTX / other stamping offices within statutory windows.",
+                  "livesIn": "Stamping office portals — filing confirmations"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "Tower-coordinated binds, erosion and renewal",
+              "items": [
+                {
+                  "name": "Layer-by-layer bind orders",
+                  "description": "Each layer bound on its own order with the tower incomplete-placement rule blocking issuance until all layers confirm.",
+                  "livesIn": "PAS C — layer bind status; placement slip confirmations"
+                },
+                {
+                  "name": "Underlying erosion monitoring",
+                  "description": "Paid/incurred erosion of underlying aggregates tracked; 50% erosion triggers notice to all tower markets.",
+                  "livesIn": "PAS C — aggregate tracking; erosion notice log"
+                },
+                {
+                  "name": "Mid-term underlying change notifications",
+                  "description": "Carrier, limit or term changes in scheduled underlying policies require notice and schedule re-issuance up the tower.",
+                  "livesIn": "PAS C — transaction EN-SCH; UW workbench diary"
+                },
+                {
+                  "name": "Renewal with refreshed underlying schedule",
+                  "description": "Renewal quotes released only after the renewal underlying schedule and carriers are verified.",
+                  "livesIn": "UW workbench — renewal checklist; underlying schedule verification"
+                },
+                {
+                  "name": "Claims reporting up the tower",
+                  "description": "Occurrences reasonably likely to exceed 50% of attachment reported to each affected layer per the wording's notice condition.",
+                  "livesIn": "Claims system — tower notice records; XS-FF-01 notice clause"
+                },
+                {
+                  "name": "Cancellation co-processing",
+                  "description": "Cancellation of any supporting layer triggers coordinated review and co-cancellation rights across the tower.",
+                  "livesIn": "PAS C — tower co-term processing; placement slip conditions"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

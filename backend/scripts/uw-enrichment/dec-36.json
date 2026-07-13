@@ -1,0 +1,1503 @@
+{
+  "tasks": [
+    {
+      "id": "3cdf2819-01b0-4540-967e-14e2019bac3e",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Business Analyst"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [],
+      "addApps": [
+        { "name": "OpenText Document Mgmt", "usageType": "memorialized" },
+        { "name": "LexisNexis Risk", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All ordered underwriting evidence for one life/annuity case — the attending physician statement (APS) from each treating provider named on the application plus the applicant's prescription-drug history — scoped to a single case (application APP-#### in the ALIP policy admin system)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From case triage to file completeness: APS and Rx orders are placed at case open and the task closes when records are received and loaded, typically within the 10-business-day evidence-service window."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z103z3mbk8c39oejng"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each ordered item shows provider name, order date, vendor (ExamOne/MIB for APS, Milliman IntelliScript for Rx), receipt date and a legible document; an APS with missing pages or an Rx report lacking an NDC-coded medication list is treated as not-received."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of received evidence items equals the count of orders on the requirements grid in ALIP (delta = 0); each provider named on the HIPAA authorization has a matching APS or a documented no-records response."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "APS PDFs and the Rx history report are filed to OpenText under /UW/Life/<policy-no>/evidence/ with receipt timestamp and version; retained per the record-retention schedule (minimum 7 years post-decision)."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Overdue or unreadable records are logged in the ALIP requirements register as an exception with disposition (re-order / call provider / applicant follow-up) and a 5-business-day chase SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File each APS and Rx report to the case file",
+              "value": "Every ordered APS and the Rx history report is attached to the ALIP case and mirrored to OpenText /UW/Life/<policy-no>/evidence/ with source vendor and date."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample cases for evidence completeness",
+              "value": "For 25 life cases per quarter, 100% of items on the requirements grid are present in the file or carry a documented no-records response."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Order the evidence mandated by the age-and-amount grid",
+              "value": "APS and Rx orders are raised for every requirement the age/amount grid triggers for the applied face amount and insured age."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify required evidence was ordered",
+              "value": "0 sampled cases advanced to assessment with a grid-required APS or Rx order missing."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5ozpz0bwnv880figjybzk",
+          "checklist": [
+            {
+              "step": "Confirm a permissible purpose and applicant authorization before ordering",
+              "value": "Rx history and MIB/consumer-report orders are placed only under the signed HIPAA/consumer-report authorization on the application, evidencing the insurance-underwriting permissible purpose."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify authorization precedes every order",
+              "value": "For sampled cases, each Rx/consumer-report order date is on/after a valid signed authorization; 0 orders without authorization."
+            }
+          ]
+        },
+        {
+          "regId": "cmrc4tmp004a1v8f8uh5n2nf0",
+          "checklist": [
+            {
+              "step": "Include the GINA safe-harbor warning on medical/APS requests",
+              "value": "APS request letters to providers carry the GINA safe-harbor 'do not provide genetic information' warning so genetic test results are not solicited."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify the warning is present and no genetic data was collected",
+              "value": "Sampled APS requests contain the GINA warning; 0 received files contain solicited genetic test results."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1c1afec5-205e-4205-8b6e-db34a47552d9",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Business Analyst"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [
+        { "name": "OpenText Document Mgmt", "usageType": "memorialized" },
+        { "name": "LexisNexis Risk", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "One life/annuity case with conflicting or incomplete evidence — e.g. an application answer that conflicts with the APS, Rx or MVR — worked until the discrepancy is cleared (case APP-#### in ALIP)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From identification of the discrepancy to resolution within the case's evidence window; reopened only if new evidence introduces a further conflict."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The discrepancy note records the conflicting sources, the clarification requested, any additional requirement ordered and the applicant/producer response; unresolved notes cannot be closed."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every open discrepancy on the case has a disposition; count of resolved equals count of raised (delta = 0) before the file is passed to risk classification."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Clarification correspondence and any newly ordered evidence are filed to OpenText /UW/Life/<policy-no>/evidence/ with timestamp and version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Discrepancies that cannot be cleared are logged with disposition (order additional requirement / applicant statement / refer to Senior Underwriter) and reason in ALIP."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Discrepancies are adjudicated against the Life Underwriting Manual (2026 ed.) evidence-hierarchy rules — APS/lab results override self-reported application answers where they conflict."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "A discrepancy that could move the case across a risk-class boundary (non-smoker vs smoker, or a table-rating change) is treated as material and must be resolved with objective evidence, not narrative alone."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Immaterial clerical mismatches (name spelling, address) are corrected and noted; anything affecting mortality assessment or face amount is escalated for evidence."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "25 life cases per quarter that carried at least one logged discrepancy."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = every discrepancy resolved with a documented source and disposition before decision for 100% of sampled cases; FAIL = any case decisioned with an open material discrepancy."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Fails are returned to the underwriter, the decision is reopened, and the case is re-evidenced under a 5-business-day SLA; repeat patterns are reported to UW quality."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = each conflicting data point reconciled to a single authoritative source recorded in the case note."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Discrepancy notes in the ALIP case log; supporting correspondence in OpenText /UW/Life/<policy-no>/evidence/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Record each discrepancy and its resolution in the case file",
+              "value": "Conflicting sources, the clarification sought and the final reconciled value are captured in the ALIP case note and OpenText."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample cases for documented resolution",
+              "value": "For 25 cases, 100% of logged discrepancies show a source-backed resolution; 0 blank dispositions."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Refer per manual when a discrepancy exceeds underwriter authority",
+              "value": "Discrepancies implying material misrepresentation or a rating beyond the underwriter's authority are referred to a Senior Underwriter per the manual's referral triggers."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify referral triggers were honored",
+              "value": "0 sampled cases retained an above-authority discrepancy without the required referral record."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "bbae793c-0e97-4712-aa84-7a42129c6b56",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Business Analyst"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [],
+      "addApps": [
+        { "name": "OpenText Document Mgmt", "usageType": "memorialized" },
+        { "name": "LexisNexis Risk", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All open underwriting requirements for in-flight life/annuity cases — outstanding APS, labs, MVR, Rx, MIB and applicant/producer items — tracked until each case is in good order (the underwriter's ALIP requirements queue)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From requirement order to satisfaction; follow-ups run on a defined cadence (initial chase at day 5, escalation at day 10) until the file is complete."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z103z3mbk8c39oejng"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each open item shows requirement type, provider/source, order date, last-chase date and status; items with no chase in 5 business days are flagged."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Open-requirement count in the ALIP register reconciles to the age/amount grid for the case; the count trends to zero as items are received (delta = 0 at good-order)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Follow-up correspondence and receipt confirmations are filed to OpenText /UW/Life/<policy-no>/evidence/ with timestamps; the aging report is retained per schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Requirements past SLA are logged with disposition (re-order / escalate to Senior Underwriter / applicant outreach) and reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Log every outstanding requirement and each follow-up",
+              "value": "The requirement register in ALIP shows order, chase and receipt events with dates and channel."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample cases for aging discipline",
+              "value": "For 25 in-flight cases, 0 requirements are >10 business days old without a documented chase or escalation."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Track exactly the requirements the grid mandates",
+              "value": "Register lines match the age/amount grid for the case; no grid-required item is left untracked."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify completeness before good-order",
+              "value": "0 cases marked good-order with a grid-required item still open."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "11c9bce5-3212-4876-8460-c11baad25f0a",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [
+        { "name": "OpenText Document Mgmt", "usageType": "memorialized" },
+        { "name": "LexisNexis Risk", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Newly received life/annuity applications requiring an evidence-path decision — accelerated/fluidless vs full underwriting — for one case (APP-#### in ALIP) based on age, face amount and disclosed history."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Performed at case intake; the path is set the same day the application is data-entered and re-triaged only if new information changes the risk tier."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Insured age, applied face amount, product and knockout answers are populated; the age/amount grid cell and resulting requirement set are recorded on the case."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The requirement set generated equals the grid's mandated items for the triaged cell (delta = 0); accelerated-eligible cases are checked against exclusion rules."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The triage decision and selected evidence path are stamped on the ALIP case with timestamp and rule version; the worksheet is filed to OpenText /UW/Life/<policy-no>/triage/."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Cases that fail accelerated eligibility are routed to full underwriting with the reason logged; borderline cells are referred per triggers."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Path is set from the age-and-amount requirements grid and accelerated-underwriting eligibility rules in the Life Underwriting Manual (2026 ed.), which are version-controlled."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Cases near a grid boundary (age or face-amount break) or with any accelerated-underwriting exclusion flag are defaulted to the fuller evidence path."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Face amounts above the fluidless ceiling always require full labs/APS regardless of other factors."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "25 newly triaged life cases per quarter across accelerated and full paths."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = triaged evidence path matches the grid/eligibility rules for 100% of sampled cases; FAIL = any case on a lighter path than the rules require."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Mis-triaged cases are re-pathed, additional evidence ordered, and the miss logged to UW quality with a 5-business-day correction SLA."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = documented grid cell + eligibility outcome + resulting requirement list on the case."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Triage worksheet in ALIP; copy in OpenText /UW/Life/<policy-no>/triage/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Derive the requirement set from the grid at triage",
+              "value": "The evidence path and ordered items come directly from the age/amount grid cell for the case."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify path matches the grid",
+              "value": "0 sampled cases pathed below the grid-mandated evidence level."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Refer borderline or excluded cases at triage",
+              "value": "Accelerated-ineligible or boundary cases are referred/escalated per documented triggers rather than force-fit."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify triggers applied",
+              "value": "0 sampled cases bypassed a referral trigger that applied at triage."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "a595885d-ccdd-4e87-8fee-06367a01d782",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Business Analyst"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [],
+      "addApps": [
+        { "name": "OpenText Document Mgmt", "usageType": "memorialized" },
+        { "name": "LexisNexis Risk", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The assembled evidence file for one life/annuity case, confirmed complete before it is assigned to an underwriter for risk assessment (case APP-#### in ALIP)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At the hand-off gate between evidence acquisition and risk classification; performed once the last outstanding requirement is received."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z103z3mbk8c39oejng"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Every grid-required item is present and legible — application, APS(es), labs, Rx, MVR/MIB as applicable — with source and date; a missing or illegible item keeps the file incomplete."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The checklist of grid-required items reconciles to received items (delta = 0); each provider/source expected has a matching document or no-records note."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The signed completeness checklist is filed to OpenText /UW/Life/<policy-no>/evidence/ with timestamp and version; the case is advanced in ALIP only after sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Incomplete files are returned to the requirements queue with the gap and disposition logged; they are not advanced until closed."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Confirm every evidence item is filed before assignment",
+              "value": "The completeness checklist maps each grid item to a stored, legible document in the case file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample assigned files for completeness",
+              "value": "For 25 cases, 100% assigned to an underwriter had a complete, signed-off evidence checklist."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowqe1mswmbk8wnjoqs6v",
+          "checklist": [
+            {
+              "step": "Have completeness independently confirmed",
+              "value": "A second reviewer (Senior Underwriter or lead UW assistant) confirms the checklist before the case is released."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify independent confirmation",
+              "value": "0 sampled cases advanced without a reviewer other than the assembler confirming completeness."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Validate against the grid-mandated set",
+              "value": "Completeness is judged against the age/amount grid, not a generic list."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify no grid item missing at gate",
+              "value": "0 sampled cases advanced with a grid-required item absent and undocumented."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "68a9d383-2507-4e9f-99be-182eb695a661",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter", "Actuary"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The flat extra premium (per $1,000 of face) applied for a temporary or permanent extra-mortality factor on one rated life case (policy APP-#### in ALIP)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Applied at the pricing/decision step once the risk class and any debits are set; temporary flats carry a stated duration recorded on the policy."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The flat-extra rate per $1,000, basis (impairment/avocation), temporary vs permanent, duration (if temporary) and effective date are populated; the extra recomputes premium in the rating engine."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Extra premium in ALIP equals face-amount/1,000 x flat-extra rate to the cent, matching the actuarial flat-extra schedule; recomputed premium reconciles to the rating-engine output."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The rating worksheet showing the flat-extra derivation is filed to OpenText /UW/Life/<policy-no>/pricing/ with timestamp and manual version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A flat extra exceeding the underwriter's authority is referred to a Senior Underwriter/Actuary; overrides are logged with reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Flat-extra factors are taken from the current actuarial extra-mortality schedule referenced by the Life Underwriting Manual (2026 ed.); the schedule version is recorded on the case."
+        },
+        {
+          "templateKeyId": "cmr2oamg4000llasb5mlmokig",
+          "roleId": "e349767d-1974-469f-8504-6d858abe670d"
+        },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "A change of one flat-extra band that moves premium materially (>5%) is re-checked before issue."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Flat extras above the delegated per-$1,000 authority threshold require actuarial/senior sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "25 flat-rated life policies per quarter."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = independently recomputed flat-extra premium equals the system value within $0.01 for 100% of sampled policies; FAIL = any mismatch."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "Mismatches are corrected by endorsement, root-caused (rate table vs keying) and logged; a 5-business-day correction SLA applies."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "Actuarial flat-extra schedule v2026 and rating-engine build recorded with the calculation."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "Face amount and risk class from ALIP; flat-extra rate from the actuarial extra-mortality schedule."
+        },
+        {
+          "answerId": "cmr2ocg0z0yg6kaz3r27dw0r3",
+          "value": "Field definitions: face_amount, flat_extra_rate_per_1000, duration_years, effective_date from the ALIP policy record; control total = SUM(face/1000 x rate) reconciles to system extra premium with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Apply the filed/manual flat-extra rate for the impairment",
+              "value": "The per-$1,000 flat extra matches the filed extra-mortality schedule for the impairment class."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Recompute against the schedule",
+              "value": "For 25 policies, the applied flat-extra rate equals the scheduled rate; 0 off-schedule rates."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppd31o8ymbk8q4zpd8lh",
+          "checklist": [
+            {
+              "step": "Document the basis for the flat extra",
+              "value": "The impairment/avocation basis and schedule reference are recorded on the rating worksheet."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify documented basis",
+              "value": "100% of sampled flat extras cite a documented impairment basis; 0 undocumented."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Preserve a rating audit trail",
+              "value": "ALIP retains who applied the extra, when, and the prior/after premium."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect audit trail",
+              "value": "Sampled policies show a complete rating-change audit record; 0 gaps."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "c82aa0a9-06a9-4581-91ed-4df9106901ea",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Underwriting Assistant",
+        "Business Analyst",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": ["Actuary"],
+      "removeAppNames": [],
+      "addApps": [
+        { "name": "underwriting workstation", "usageType": "performed" },
+        {
+          "name": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "usageType": "performed"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The manual debits and credits applied to one life case per the underwriting manual's rating table — impairment debits, favorable-history credits — netted to a table rating (policy APP-####)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At the risk-classification/pricing step, before the offer is finalized; re-applied only if new evidence changes the debit/credit set."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each debit and credit lists its reason code, points and manual reference; the net rating and resulting table/class are recorded."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Sum of debits minus credits equals the net rating recorded (delta = 0); the net rating maps to the correct table/multiple in the rating engine."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The debit/credit worksheet is filed to OpenText /UW/Life/<policy-no>/pricing/ with manual version and timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Net ratings beyond the underwriter's authority are referred to a Senior Underwriter; any deviation from manual points is logged with justification."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppi41o98mbk8paxpr0pf",
+          "checklist": [
+            {
+              "step": "Document each debit and credit with its reason",
+              "value": "Every point applied cites an impairment/credit reason and manual section on the worksheet."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify documented rationale",
+              "value": "For 25 rated cases, 100% of debits/credits carry a reason and manual reference; 0 unexplained points."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppd31o8ymbk8q4zpd8lh",
+          "checklist": [
+            {
+              "step": "Record the net-rating derivation",
+              "value": "The worksheet shows the debit/credit build-up to the final table rating."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Recompute the net rating",
+              "value": "Recomputed net equals the recorded rating for 100% of sampled cases."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppc31o8wmbk8i3ty2jne",
+          "checklist": [
+            {
+              "step": "Keep deviations within the authority matrix",
+              "value": "Any credit/debit deviation from manual is within the Life UW Authority Matrix v4.1 or referred up."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify authority compliance",
+              "value": "0 sampled cases applied an out-of-authority deviation without documented approval."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "f5df9c04-04d5-4097-83c8-f8cfa6a98c0f",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter", "Actuary"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The mortality risk class and table rating assigned to one life applicant using the underwriting manual and actuarial guidelines (case APP-#### in ALIP)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At risk classification once all evidence is in good order; the class is locked when the decision is recorded."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Build, blood pressure, cholesterol, nicotine status, impairments and the net debit/credit rating are populated; the assigned class (e.g. Preferred Plus ... Table D) is recorded with supporting evidence links."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The assigned class matches the net rating from debits/credits and the manual's class thresholds (delta = 0 between computed and recorded class)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The classification worksheet and manual references are filed to OpenText /UW/Life/<policy-no>/decision/ with timestamp and manual version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Classes worse than the underwriter's authority or requiring reinsurance referral are escalated; deviations from manual thresholds are logged with reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Classification follows the Life Underwriting Manual (2026 ed.) preferred-criteria and debit/credit tables plus actuarial mortality guidelines; versions are recorded."
+        },
+        {
+          "templateKeyId": "cmr2oamg4000llasb5mlmokig",
+          "roleId": "e349767d-1974-469f-8504-6d858abe670d"
+        },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "A single criterion near a class boundary (BP or build at the preferred cut-off) is re-checked; boundary calls are documented."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Any factor that moves the class one tier or triggers a table rating is treated as material and evidenced."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "25 newly classified life cases per quarter across preferred and rated classes."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = assigned class matches manual criteria and evidence for 100% of sampled cases; FAIL = any class not supported by the evidence/criteria."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Mis-classifications are corrected, re-offered if needed, and logged to UW quality; systemic misreads feed manual/training updates."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = documented criteria met for the assigned class with each driver traceable to an evidence item."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Classification worksheet in ALIP; evidence in OpenText /UW/Life/<policy-no>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Map the class to the filed/manual rate basis",
+              "value": "The assigned class corresponds to the filed rate/table for the mortality assessment."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify class-to-rate mapping",
+              "value": "0 sampled cases priced on a class inconsistent with the manual criteria."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppd31o8ymbk8q4zpd8lh",
+          "checklist": [
+            {
+              "step": "Document the drivers of the class",
+              "value": "Each preferred-criteria pass/fail and impairment is recorded on the worksheet."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify documented drivers",
+              "value": "100% of sampled classes cite their qualifying/disqualifying factors."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowqe1mswmbk8wnjoqs6v",
+          "checklist": [
+            {
+              "step": "Peer-review boundary and rated cases",
+              "value": "Table-rated and preferred-boundary cases get a second-underwriter review before offer."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify peer review occurred",
+              "value": "0 sampled rated/boundary cases issued without a documented peer review."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc4tmh8049nv8f845aahliw",
+          "checklist": [
+            {
+              "step": "Exclude genetic information from classification",
+              "value": "The risk class is derived only from permitted medical/behavioral evidence; genetic test results are not requested or used."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify no genetic data influenced the class",
+              "value": "Sampled decisions show 0 use of genetic test results as a rating basis."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8a958d61-8b9a-4795-9446-0018a43c01d2",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant", "Business Analyst"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The finalized underwriting offer for one case communicated to the writing producer — class, modal premium, any flat extras/table rating and conditional requirements — with an acceptance deadline (case APP-####)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Sent within 24 hours of the decision; the offer states its validity window (typically 30-60 days) for placement."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The offer letter carries class/table, premium, flat extras, effective-date basis, conditions and acceptance deadline; producer contact and channel are recorded."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Offer figures reconcile to the rating engine and the recorded decision (delta = 0); one offer record per decision."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The offer letter and transmission record are filed to OpenText /UW/Life/<policy-no>/offer/ with timestamp and version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Undeliverable offers or producer disputes are logged with disposition (re-send / renegotiate / escalate to Senior Underwriter)."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Offer terms are generated from the recorded class/rating per the Life Underwriting Manual (2026 ed.); premium comes from the current rating-engine build."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Any manual adjustment to system-generated premium >5% is re-verified before the offer is sent."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Conditional offers with a material requirement (e.g. exclusion rider) require senior review before communication."
+        },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The underwriting decision and offer terms are recorded in the ALIP case before the offer is transmitted."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "The recipient producer (name, agency, licence) and delivery channel/date are logged on the offer record; the applicant is not contacted directly."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        { "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb", "value": "25 issued offers per quarter." },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = offer matches the recorded decision and includes deadline and conditions for 100% of sampled offers; FAIL = any offer mismatching the decision or missing a deadline."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Defective offers are corrected and re-issued; the error is logged with a 2-business-day correction SLA."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "offer_class, modal_premium, flat_extra, effective_date, acceptance_deadline, conditions from the ALIP offer record."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Premium and rating fields on the offer reconcile to the rating-engine output with 0 variance."
+        },
+        {
+          "answerId": "cmr2ocdxj0uqekaz3vyn9qxaf",
+          "value": "The offer's effective-date basis and acceptance deadline are stated on the offer; it is valid only within its 30-60 day window and is re-underwritten if it lapses."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Record and communicate the decision within 24 hours",
+              "value": "The offer is documented in ALIP and sent to the producer within one business day of the decision."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify turnaround",
+              "value": "For 25 offers, decision-to-communication is <=24 hours for >=95%."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the offer and its transmission",
+              "value": "The offer letter and send record are stored in the case file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample offers for filing",
+              "value": "100% of sampled offers have a stored letter and transmission record."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2flf5m1uyykfgzo2fnttj2",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The written rationale for one underwriting decision — the evidence relied on, criteria applied, debits/credits and final class/offer — recorded on the case (APP-####)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Captured at the time of decision, before the offer is released; updated only if the decision is revised on new evidence."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The rationale note cites each material evidence item, the manual criteria met/failed, the net rating build-up and the final decision; an incomplete rationale blocks release."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every rating factor in the decision appears in the rationale (delta = 0 between applied factors and documented factors)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The rationale is filed to OpenText /UW/Life/<policy-no>/decision/ with timestamp and manual version; it is immutable once the case closes."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Decisions lacking a complete rationale are returned to the underwriter; overrides of manual outcomes are logged with justification."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The rationale references the Life Underwriting Manual (2026 ed.) criteria and actuarial guidelines used; versions are recorded."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Where a single factor determined the class, the rationale explains the boundary call."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Only decision-relevant (material) factors need narrative; immaterial items are listed but not argued."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "25 decisioned life cases per quarter."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = rationale traces every rating factor to evidence and criteria for 100% of sampled cases; FAIL = any decision with an undocumented driver."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Deficient rationales are completed before the file is audited-closed; repeat gaps feed coaching."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = each factor in the decision has a matching, sourced statement in the rationale."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Rationale note in the ALIP case; copy in OpenText /UW/Life/<policy-no>/decision/."
+        },
+        {
+          "answerId": "cmr2ocg100ygtkaz38eovhbnm",
+          "value": "Methodology = Life Underwriting Manual (2026 ed.) + actuarial mortality guidelines v2026; parameters (build, labs, impairments) sourced from the APS/lab/Rx evidence in the case file."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Store a complete decision rationale in the file",
+              "value": "A rationale citing evidence and criteria is filed to the case."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample for rationale completeness",
+              "value": "100% of sampled decisions have a stored rationale tracing all factors."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Record the rationale at decision time",
+              "value": "The rationale is entered within 24 hours of the decision."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify timeliness",
+              "value": ">=95% of sampled rationales recorded within one business day of decision."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppd31o8ymbk8q4zpd8lh",
+          "checklist": [
+            {
+              "step": "Require documented basis for every rating action",
+              "value": "Each debit/credit/class driver is explained in the rationale."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify documented basis",
+              "value": "0 sampled decisions with an unexplained rating action."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "831b1800-434b-4c19-94d2-e676554fd43a",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The final, closed-case rationale plus applicable regulatory reporting for one underwriting decision, memorialized in the case file (APP-####)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At case closure/issue; the final record is retained for the statutory period after the decision."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The final decision, class/rating, evidence relied on, and any adverse-action/regulatory notices issued are recorded; the record is complete and locked at close."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "All decision factors and any required notices are present (delta = 0 vs the decision); one final rationale per case."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The final rationale and notice copies are filed to OpenText /UW/Life/<policy-no>/decision/ with timestamp, version and retention tag."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Missing notices or incomplete final records are flagged and remediated before close; exceptions are logged with disposition."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The final rationale cites the Life Underwriting Manual (2026 ed.) and actuarial guideline versions applied."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Boundary and adverse decisions carry an explicit explanation in the final record."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Material factors and any consumer-report-based reasons are documented to support adverse action."
+        },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "Where the decision declines or rates up based on a consumer report, the final record cites the FCRA adverse-action basis and references the notice issued."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "The final case record is retained a minimum of 7 years post-decision (and per state life-insurance record-retention rules) in OpenText with a retention tag."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "Any required adverse-action notice is issued within the FCRA timeframe and its issue date is recorded on the case."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "25 closed life cases per quarter, including adverse decisions."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = final record complete with rationale, notices and retention tag for 100% of sampled cases; FAIL = any closed case missing a required notice or rationale."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Deficient closed files are reopened for correction and logged to UW quality; notice gaps are escalated to compliance."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "final_decision, class, adverse_action_flag, notice_date, retention_tag from the ALIP case record."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Count of adverse decisions equals count of adverse-action notices issued (delta = 0)."
+        },
+        {
+          "answerId": "cmr2ocdwr0toykaz33lfdq154",
+          "value": "Methodology = Life Underwriting Manual (2026 ed.) + actuarial mortality guidelines v2026; parameters sourced from the case evidence (APS/labs/Rx/MVR)."
+        },
+        {
+          "answerId": "cmr2ocdwr0tozkaz3532b23hk",
+          "value": "FCRA adverse-action requirements where a consumer report drove a decline or rate-up; state life-insurance record-retention rules for the case file."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Memorialize a complete final record",
+              "value": "The final rationale, decision and any notices are stored and locked in the case file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample closed files",
+              "value": "100% of sampled closed cases have a complete, locked final record."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Finalize the record promptly at close",
+              "value": "The final rationale is completed within 24 hours of the decision/close."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify timeliness",
+              "value": ">=95% of sampled final records completed within one business day of decision."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5p05x0bxbv880erz54d5g",
+          "checklist": [
+            {
+              "step": "Document the adverse-action basis in the final record",
+              "value": "When a consumer report causes a decline/rate-up, the final record captures the reasons and the notice reference."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify adverse-action documentation",
+              "value": "0 sampled adverse decisions closed without a documented FCRA notice reference."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cmr2flc4c1tfekfgz42ou6oja",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The adverse-action and rating notice sent to the applicant when a life case is declined, rated or modified based on a consumer report or other information (case APP-####)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Issued within the FCRA timeframe after an adverse decision; a copy is retained on the case."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The notice states the adverse action, principal reasons, the CRA name/address where a report was used, and the applicant's free-report and dispute rights; recipient and mail date are recorded."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "One notice per adverse decision; count of adverse decisions equals count of notices issued (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The notice copy and mail/transmission record are filed to OpenText /UW/Life/<policy-no>/notices/ with timestamp and version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Returned or undeliverable notices are logged with disposition (re-mail / trace address); missed timeframes are escalated to compliance."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Notice content follows the FCRA adverse-action template maintained by compliance (current version), populated from the recorded decision."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Any decision based even in part on a consumer report triggers the notice; borderline 'information' sources default to issuing a notice."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "A rate-up or modified offer, not only a decline, is an adverse action requiring the notice."
+        },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "The notice cites FCRA section 615 adverse-action requirements and, where a credit-based score was used, the score disclosure."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "The notice copy is retained a minimum of 7 years (and per state rules) in OpenText with a retention tag."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "The notice is issued within the FCRA timeframe after the adverse decision; the issue date is recorded and monitored against SLA."
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "25 adverse-action notices per quarter across declines and rate-ups."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = notice issued within the FCRA timeframe with reasons, CRA identification and consumer rights for 100% of sampled adverse decisions; FAIL = any missing/late/incomplete notice."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "Late or deficient notices are re-issued, root-caused and reported to compliance; a corrective-action item is opened."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "Authority to issue and approve adverse-action notices follows the Life UW Authority Matrix v4.1; delegations are recorded."
+        },
+        {
+          "answerId": "cmr2ocfza0w6zkaz3e24dopqw",
+          "value": "Any adverse action — decline, rate-up, flat extra, exclusion rider or modified offer — is in scope; no de-minimis exception for consumer-report-based changes."
+        },
+        {
+          "answerId": "cmr2ocfza0w70kaz3w74olmen",
+          "value": "FCRA section 615 adverse-action notice (reasons, CRA identity, free-report and dispute rights) and, where used, the credit-based insurance score disclosure; state adverse-underwriting-decision notice rules."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppyc1oa4mbk8t9plrx0e",
+          "checklist": [
+            {
+              "step": "State the principal reasons for the adverse action",
+              "value": "The notice lists the specific reasons for decline/rating drawn from the recorded decision."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify reasons are present and accurate",
+              "value": "For 25 notices, 100% state principal reasons matching the case decision; 0 generic-only reasons."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the notice and proof of issuance",
+              "value": "The notice copy and mail/send record are stored in the case file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample for filed notices",
+              "value": "100% of sampled adverse decisions have a stored notice and issuance record."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5p05x0bxbv880erz54d5g",
+          "checklist": [
+            {
+              "step": "Issue an adverse-action notice for consumer-report-based decisions",
+              "value": "When a consumer report contributes to a decline/rate-up, an FCRA notice is issued to the applicant."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify issuance and timeliness",
+              "value": "0 sampled adverse decisions without a timely FCRA notice."
+            }
+          ]
+        },
+        {
+          "regId": "cmrc5p0mb0bxzv880tuglb1o8",
+          "checklist": [
+            {
+              "step": "Disclose free-report and dispute rights",
+              "value": "The notice tells the applicant of the right to a free CRA report within 60 days and to dispute accuracy."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify rights disclosure",
+              "value": "100% of sampled notices include the free-report and dispute-rights language."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -154,11 +154,24 @@ export function registerDetailRoutes(router: Router): void {
                 : 1,
           );
       } else {
+        // Container level: links attached DIRECTLY to this node stay editable
+        // (junction id present → the UI offers relation/RACI edit + detach);
+        // everything inherited from the subtree aggregates into rollup rows.
+        const own = nodeRoles.filter((r) => r.processNodeId === node.id);
+        const inherited = nodeRoles.filter((r) => r.processNodeId !== node.id);
+        const ownRows: RoleRow[] = own.map((r) => ({
+          nodeRoleId: r.id,
+          roleId: r.role.id,
+          name: r.role.displayValue,
+          relation: r.role_,
+          raci: r.ownerLevel ?? null,
+          validationStatus: r.validationStatus,
+        }));
         const byRole = new Map<
           string,
           { roleId: string; name: string; owner: boolean; tasks: number }
         >();
-        for (const r of nodeRoles) {
+        for (const r of inherited) {
           let e = byRole.get(r.role.id);
           if (!e) {
             e = { roleId: r.role.id, name: r.role.displayValue, owner: false, tasks: 0 };
@@ -167,14 +180,17 @@ export function registerDetailRoutes(router: Router): void {
           e.tasks += 1;
           if (r.role_ === 'Owner') e.owner = true;
         }
-        roles = [...byRole.values()]
-          .sort((a, b) => b.tasks - a.tasks || a.name.localeCompare(b.name))
-          .map((e) => ({
-            roleId: e.roleId,
-            name: e.name,
-            relation: e.owner ? 'Owner' : 'Participant',
-            tasks: e.tasks,
-          }));
+        roles = [
+          ...ownRows,
+          ...[...byRole.values()]
+            .sort((a, b) => b.tasks - a.tasks || a.name.localeCompare(b.name))
+            .map((e) => ({
+              roleId: e.roleId,
+              name: e.name,
+              relation: e.owner ? ('Owner' as const) : ('Participant' as const),
+              tasks: e.tasks,
+            })),
+        ];
       }
 
       // Applications: detail = node rows (usageId editable); rollup = one per app.
@@ -196,11 +212,23 @@ export function registerDetailRoutes(router: Router): void {
           }))
           .sort((a, b) => a.name.localeCompare(b.name));
       } else {
+        // Container level: this node's own usages stay editable; inherited
+        // subtree usages aggregate (mirrors the roles handling above).
+        const ownUsages = appUsages.filter((a) => a.processNodeId === node.id);
+        const inheritedUsages = appUsages.filter((a) => a.processNodeId !== node.id);
+        const ownAppRows: AppRow[] = ownUsages
+          .map((a) => ({
+            usageId: a.id,
+            appId: a.application.id,
+            name: a.application.name,
+            usageType: a.usageType,
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name));
         const byApp = new Map<
           string,
           { appId: string; name: string; types: Set<string>; tasks: number }
         >();
-        for (const a of appUsages) {
+        for (const a of inheritedUsages) {
           let e = byApp.get(a.application.id);
           if (!e) {
             e = { appId: a.application.id, name: a.application.name, types: new Set(), tasks: 0 };
@@ -209,14 +237,17 @@ export function registerDetailRoutes(router: Router): void {
           e.types.add(a.usageType);
           e.tasks += 1;
         }
-        applications = [...byApp.values()]
-          .sort((a, b) => b.tasks - a.tasks || a.name.localeCompare(b.name))
-          .map((e) => ({
-            appId: e.appId,
-            name: e.name,
-            usageType: [...e.types].join(' · '),
-            tasks: e.tasks,
-          }));
+        applications = [
+          ...ownAppRows,
+          ...[...byApp.values()]
+            .sort((a, b) => b.tasks - a.tasks || a.name.localeCompare(b.name))
+            .map((e) => ({
+              appId: e.appId,
+              name: e.name,
+              usageType: [...e.types].join(' · '),
+              tasks: e.tasks,
+            })),
+        ];
       }
 
       // Deliverables: detail = node links (linkId editable); rollup = distinct list.
@@ -228,10 +259,25 @@ export function registerDetailRoutes(router: Router): void {
           title: d.deliverable.title,
         }));
       } else {
+        // Container level: the node's OWN deliverable links stay editable —
+        // this is where "a deliverable is defined at the sub-process (L4)
+        // level" lands; the tasks beneath inherit/produce it. Inherited
+        // subtree links list read-only.
+        const ownLinks = delivLinks.filter((d) => d.processNodeId === node.id);
+        const ownRows = ownLinks.map((d) => ({
+          linkId: d.id,
+          deliverableId: d.deliverable.id,
+          title: d.deliverable.title,
+        }));
+        const ownIds = new Set(ownRows.map((r) => r.deliverableId));
         const seen = new Map<string, string>();
         for (const d of delivLinks)
-          if (!seen.has(d.deliverable.id)) seen.set(d.deliverable.id, d.deliverable.title);
-        deliverables = [...seen.entries()].map(([id, title]) => ({ deliverableId: id, title }));
+          if (!ownIds.has(d.deliverable.id) && !seen.has(d.deliverable.id))
+            seen.set(d.deliverable.id, d.deliverable.title);
+        deliverables = [
+          ...ownRows,
+          ...[...seen.entries()].map(([id, title]) => ({ deliverableId: id, title })),
+        ];
       }
 
       // Checklist: detail = node items (editable); rollup = distinct texts + count.
@@ -535,7 +581,9 @@ export function registerDetailRoutes(router: Router): void {
           e = { title: l.deliverable.title, linkId: null, taskIds: [] };
           byDeliv.set(l.deliverable.id, e);
         }
-        if (detail && l.processNodeId === node.id) e.linkId = l.id;
+        // A link on the inspected node itself is detachable at ANY level — this
+        // is how a deliverable defined at the sub-process (L4) heads its chain.
+        if (l.processNodeId === node.id) e.linkId = l.id;
         if (isTaskSet.has(l.processNodeId) || (detail && l.processNodeId === node.id))
           e.taskIds.push({ nodeId: l.processNodeId, linkId: l.id });
       }

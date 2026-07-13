@@ -7,7 +7,9 @@
 import { memo, type CSSProperties } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 
-import { MAP_CARD_W, MAP_CARD_H, sentenceCase } from '../nodes/MapNode';
+import { MAP_CARD_W, MAP_CARD_H, sentenceCase, type EditAffordance } from '../nodes/MapNode';
+import { EditBadges } from '../nodes/mapNodeShared';
+import { AddNodeCard } from '../nodes/mapNodeCards';
 import { DOMAIN_HEX, DOMAIN_BG, DOMAIN_BORDER, DOMAIN_TEXT, type NodeFocusState } from '../model';
 
 // ── Org-table payload (same shapes as pages/OrgTable.tsx) ────────────────────
@@ -78,9 +80,9 @@ function focusClass(s: NodeFocusState | undefined): string {
   }
 }
 
-// Edit-mode affordance (mirrors MapNode.tsx): grab cursor + dashed outline when
-// draggable; teal ring when it's the hovered nest target; amber dot when staged.
-type EditAffordance = { editable?: boolean; dropTarget?: boolean; staged?: boolean };
+// Edit-mode affordance (shared with MapNode.tsx): grab cursor + dashed outline
+// when draggable; teal ring when it's the hovered nest target; amber dot when
+// staged; hover-only +/− badges when add/remove callbacks are attached.
 function editStyle(d: EditAffordance): CSSProperties {
   if (d.dropTarget)
     return {
@@ -137,7 +139,7 @@ const cardBase: CSSProperties = {
   width: MAP_CARD_W,
   height: MAP_CARD_H,
   boxSizing: 'border-box',
-  overflow: 'hidden',
+  overflow: 'visible', // edit badges straddle the edges; labels clamp themselves
   padding: '8px 10px',
   borderRadius: 10,
   background: '#ffffff',
@@ -179,12 +181,14 @@ export type OrgDeptData = {
 } & EditAffordance;
 // orgOnly (derived from NodeRole): no value-stream tasks — org structure only
 // (why e.g. Executive Office roles never appear on the Value Streams map).
+// Roles carry the edit affordance too: in edit mode they drag to re-home
+// (Role.orgUnitId) or reorder (Role.sortOrder) — no +/× badges though.
 export type OrgRoleData = {
   name: string;
   focusState?: NodeFocusState;
   pieceIndex?: number;
   orgOnly?: boolean;
-};
+} & EditAffordance;
 
 const delayStyle = (i?: number) => (i != null ? { animationDelay: `${i * 40}ms` } : undefined);
 
@@ -242,6 +246,7 @@ const OrgSegmentNode = memo(function OrgSegmentNode({ data }: NodeProps) {
         {sentenceCase(d.name)}
       </div>
       {d.staged && <StagedDot />}
+      <EditBadges d={d} />
       <VHandles />
     </div>
   );
@@ -275,6 +280,7 @@ const OrgDivisionNode = memo(function OrgDivisionNode({ data }: NodeProps) {
         {sentenceCase(d.name)}
       </div>
       {d.staged && <StagedDot />}
+      <EditBadges d={d} />
       <VHandles />
     </div>
   );
@@ -307,6 +313,7 @@ const OrgDeptNode = memo(function OrgDeptNode({ data }: NodeProps) {
         {sentenceCase(d.name)}
       </div>
       {d.staged && <StagedDot />}
+      <EditBadges d={d} />
       <VHandles />
     </div>
   );
@@ -322,6 +329,7 @@ const OrgRoleNode = memo(function OrgRoleNode({ data }: NodeProps) {
         border: '1px solid #eaeaea',
         borderLeft: '3px solid #94a3b8',
         ...delayStyle(d.pieceIndex),
+        ...editStyle(d),
       }}
     >
       <div
@@ -351,6 +359,7 @@ const OrgRoleNode = memo(function OrgRoleNode({ data }: NodeProps) {
           Org-only
         </div>
       )}
+      {d.staged && <StagedDot />}
       <VHandles />
     </div>
   );
@@ -362,6 +371,7 @@ export const orgNodeTypes = {
   orgDivision: OrgDivisionNode,
   orgDept: OrgDeptNode,
   orgRole: OrgRoleNode,
+  addNode: AddNodeCard,
 };
 
 // ── Row layout helpers ───────────────────────────────────────────────────────

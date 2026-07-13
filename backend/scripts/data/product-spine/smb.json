@@ -1,0 +1,1584 @@
+{
+  "segment": {
+    "name": "SMB",
+    "canonicalName": "SMB Commercial",
+    "systems": "Duck Creek (partial rollout) · PAS B · Rater_BOP.xlsm (VBA) · Appetite_Matrix_SMB.xlsx · ISO + amendatory forms · state portals / SERFF",
+    "legacyVariants": 12,
+    "operatingPattern": "Small-commercial package business mid-migration to Duck Creek: BOP runs on the new product model where rolled out, while commercial auto and contractors still quote on PAS B with a VBA rater and spreadsheet appetite guide on the side.",
+    "distribution": "Independent agents via agent portal, select wholesale brokers, direct digital for micro-BOP",
+    "placement": "Single admitted package or monoline policy per insured; multi-line accounts stitched manually",
+    "reinsurance": "Casualty per-risk XoL and property cat treaty; facultative on TIV over $10M — back-end only",
+    "regulatory": "Admitted in all live states; ISO loss costs with filed loss-cost multipliers and company exceptions via SERFF and state portals",
+    "behavior": {
+      "Product Taxonomy": "Duck Creek carries a real product model (XML) for migrated products; PAS B products are config rows, and the master product list is a slide deck nobody trusts.",
+      "Coverages": "Migrated coverages live in Duck Creek coverage config; PAS B coverages are coverage-master rows, and rater-only options exist solely inside Rater_BOP.xlsm tabs.",
+      "Terms": "Limit/deductible options are Duck Creek picklist config for BOP and hard-coded dropdowns in the VBA rater for contractors — the two disagree on deductible ladders.",
+      "Rating": "ISO loss costs plus filed LCMs; Duck Creek rating worksheets for BOP, VBA rater formulas for contractors, PAS B rating service for commercial auto — three engines, one actuarial team.",
+      "Pricing": "IRPM/schedule credits are underwriter-entered within filed ±25% bounds; fees, TRIA charges and surcharges differ by engine and are reconciled monthly in a spreadsheet.",
+      "Underwriting Rules": "Appetite lives in Appetite_Matrix_SMB.xlsx by class code; Duck Creek referral rules automate part of it for BOP, while PAS B relies on the matrix plus underwriter memory.",
+      "Forms": "ISO commercial forms plus state amendatories; attachment rules are Duck Creek config for BOP and a FORMS tab in the rater for contractors, with PDFs in the shared forms library.",
+      "Filings": "ISO adoptions, LCM and exception filings per state through SERFF and state portals; the Duck Creek config version implementing each approved filing is tracked by hand.",
+      "Lifecycle Behavior": "BOP quotes straight-through in Duck Creek when no referral fires; PAS B lines quote in the portal with rater uploads, and premium audit closes the loop on auditable casualty lines."
+    },
+    "patterns": [
+      {
+        "name": "Package policy with shared property/liability chassis",
+        "components": ["Coverages", "Terms", "Forms"]
+      },
+      {
+        "name": "ISO loss cost + filed LCM rating",
+        "components": ["Rating", "Pricing", "Filings"]
+      },
+      {
+        "name": "Appetite-gated straight-through processing",
+        "components": ["Underwriting Rules", "Lifecycle Behavior", "Product Taxonomy"]
+      }
+    ]
+  },
+  "lobs": [
+    {
+      "name": "Commercial Property",
+      "appliesTo": "BOP property section and monoline small property on Duck Creek where rolled out",
+      "componentsExtended": "Buildings; business personal property; business income; protective safeguards"
+    },
+    {
+      "name": "Auto / Motor",
+      "appliesTo": "Small-fleet commercial auto (2–20 power units) on PAS B",
+      "componentsExtended": "Vehicle schedules; driver rosters; radius classes; FMCSA filings"
+    },
+    {
+      "name": "General Liability",
+      "appliesTo": "GL within BOP and the contractors package; no standalone monoline GL product",
+      "componentsExtended": "Class codes; exposure bases (payroll/receipts/area); additional insureds"
+    },
+    {
+      "name": "Workers' Compensation",
+      "appliesTo": "Placed through a partner carrier; appears in the segment only as a cross-sell flag",
+      "componentsExtended": "NCCI class codes; experience mods (partner-side)"
+    },
+    {
+      "name": "Construction / Builder's Risk",
+      "appliesTo": "Contractors package (GL + inland marine + builder's risk) on PAS B with the VBA rater",
+      "componentsExtended": "Jobsites; subcontractor cost; installation floaters; course-of-construction terms"
+    },
+    {
+      "name": "Embedded / Affinity",
+      "appliesTo": "Micro-BOP distributed through a payroll-platform partnership; pilot, rides the BOP product model",
+      "componentsExtended": "Partner API; simplified question set; auto-declined classes"
+    }
+  ],
+  "products": [
+    {
+      "name": "BOP Select",
+      "lob": "Commercial Property",
+      "runsIn": "Duck Creek",
+      "description": "Businessowners package on the ISO BP 00 03 chassis for main-street risks — property, business income and liability in one policy; v6 is the first version administered in the Duck Creek product model, while NY renewals remain on PAS B pending rollout.",
+      "versions": [
+        {
+          "version": "v6",
+          "jurisdiction": "US multi-state",
+          "effective": "Eff. 01/2026",
+          "status": "Active",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Duck Creek product model BOP_Select v6, 38 states",
+              "items": [
+                {
+                  "name": "Product model BOP_Select v6",
+                  "description": "The Duck Creek product model XML defining coverages, terms and rating for BOP Select — the segment's first true modeled product.",
+                  "livesIn": "Duck Creek — product model BOP_Select_v6.xml in the config repository"
+                },
+                {
+                  "name": "LOB mapping — commercial multiple peril",
+                  "description": "Premium splits to statutory lines 5.1 (CMP non-liability) and 5.2 (CMP liability) for annual-statement reporting.",
+                  "livesIn": "Duck Creek — stat-line mapping config; finance extract to stat system"
+                },
+                {
+                  "name": "Availability: 38 states live",
+                  "description": "Live in 38 states on Duck Creek; NY remains on PAS B (v5 renewal-only), FL and LA excluded for wind capacity.",
+                  "livesIn": "Duck Creek — jurisdiction config; state list also in Appetite_Matrix_SMB.xlsx tab States"
+                },
+                {
+                  "name": "Effective dating NB 01/01/2026, RB 03/01/2026",
+                  "description": "v6 applies to new business from January and renewals from March per state approvals.",
+                  "livesIn": "Duck Creek — product version effective dates; Filings_Log tracking per state"
+                },
+                {
+                  "name": "Lineage v6 vs v5",
+                  "description": "v6 migrates the product from PAS B into Duck Creek, adds the cyber and equipment breakdown endorsements, and re-bases rating on current ISO loss costs.",
+                  "livesIn": "Duck Creek — release notes in config repo; migration mapping workbook"
+                },
+                {
+                  "name": "Micro-BOP embedded variant flag",
+                  "description": "The payroll-platform embedded pilot rides this product model with a reduced question set and tighter class list.",
+                  "livesIn": "Duck Creek — variant flag MICRO on BOP_Select_v6; partner API contract doc"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "BP 00 03 package — property + BI + liability with endorsement stack",
+              "items": [
+                {
+                  "name": "Building",
+                  "description": "Covered building(s) at replacement cost including permanently installed fixtures and machinery, per location schedule.",
+                  "livesIn": "Duck Creek — coverage config BLDG on BOP_Select_v6; location schedule entity"
+                },
+                {
+                  "name": "Business Personal Property",
+                  "description": "Contents, stock and tenant improvements at each location, with automatic 25% seasonal increase.",
+                  "livesIn": "Duck Creek — coverage config BPP; seasonal-increase rule in product model"
+                },
+                {
+                  "name": "Business Income and Extra Expense (12-month ALS)",
+                  "description": "Actual loss sustained for up to 12 months with no dollar limit, built into the BP form rather than scheduled.",
+                  "livesIn": "Duck Creek — coverage config BI-EE, ALS term; BP 00 03 section reference"
+                },
+                {
+                  "name": "Business Liability and Medical Expenses",
+                  "description": "Occurrence-based liability for BI/PD/personal-and-advertising injury with $5k/$10k medical expenses per person.",
+                  "livesIn": "Duck Creek — coverage config LIAB; limit options in product model"
+                },
+                {
+                  "name": "Equipment Breakdown Protection",
+                  "description": "Mechanical/electrical breakdown and pressure-system coverage added by endorsement, reinsured to an equipment-breakdown carrier.",
+                  "livesIn": "Duck Creek — endorsement config EQBK; cession feed to EB reinsurer"
+                },
+                {
+                  "name": "Data breach / cyber endorsement",
+                  "description": "First-party breach response ($50k/$100k options) plus defense sub-limit, new at v6 for all eligible classes.",
+                  "livesIn": "Duck Creek — endorsement config CYBER, carrier form SMB-CY 01"
+                },
+                {
+                  "name": "Hired and Non-Owned Auto Liability",
+                  "description": "Contingent auto liability for businesses without owned autos, attached via BP 04 04.",
+                  "livesIn": "Duck Creek — endorsement config HNOA; form BP 04 04 attach rule"
+                },
+                {
+                  "name": "Outdoor Signs",
+                  "description": "Scheduled outdoor sign coverage at replacement cost, a common main-street add.",
+                  "livesIn": "Duck Creek — endorsement config SIGNS with schedule"
+                },
+                {
+                  "name": "Spoilage",
+                  "description": "Perishable stock spoilage from breakdown or power outage for restaurants and grocers, $10k–$50k options.",
+                  "livesIn": "Duck Creek — endorsement config SPOIL; class-eligibility rule"
+                },
+                {
+                  "name": "Employee Dishonesty",
+                  "description": "Employee theft of money and property, $25k/$50k/$100k options.",
+                  "livesIn": "Duck Creek — endorsement config EMPDIS"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "Occurrence/aggregate liability + property deductible ladder",
+              "items": [
+                {
+                  "name": "Liability limit options 300k / 500k / 1M / 2M",
+                  "description": "Per-occurrence liability options with aggregate at 2x occurrence (products-completed ops aggregate separate).",
+                  "livesIn": "Duck Creek — LIAB limit picklist; aggregate rule in product model"
+                },
+                {
+                  "name": "Property deductible options $500–$10,000",
+                  "description": "Per-occurrence property deductibles $500 / $1,000 / $2,500 / $5,000 / $10,000 applied to building and BPP.",
+                  "livesIn": "Duck Creek — property deductible picklist"
+                },
+                {
+                  "name": "Wind/hail percentage deductible (scheduled states)",
+                  "description": "1%/2%/5% wind-hail deductibles required in designated cat counties (TX, OK, coastal Gulf/Atlantic states).",
+                  "livesIn": "Duck Creek — cat-deductible rule keyed to county tier table"
+                },
+                {
+                  "name": "Business income ALS 12 months, no waiting period buy-down",
+                  "description": "BI pays actual loss sustained for 12 months after a 72-hour waiting period, buy-down to 24 hours available.",
+                  "livesIn": "Duck Creek — BI-EE term config; waiting-period option"
+                },
+                {
+                  "name": "Building valuation — RC with agreed value option",
+                  "description": "Replacement cost standard; agreed-value option removes coinsurance when a current statement of values is on file.",
+                  "livesIn": "Duck Creek — valuation term; SOV document requirement rule"
+                },
+                {
+                  "name": "Seasonal BPP increase 25%",
+                  "description": "Automatic 25% BPP increase for seasonal peaks, embedded in the BP form terms.",
+                  "livesIn": "Duck Creek — BPP term config (form-native)"
+                },
+                {
+                  "name": "Medical expenses limit $5k/$10k",
+                  "description": "Per-person medical expenses option within the liability coverage part.",
+                  "livesIn": "Duck Creek — MEDEX limit picklist"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "ISO BOP loss costs x filed LCM, class-group driven",
+              "items": [
+                {
+                  "name": "ISO class group assignment",
+                  "description": "Each risk maps to an ISO BOP class group by occupancy classification, the primary property/liability rate driver.",
+                  "livesIn": "Duck Creek — class table from ISO circulars; class picker in quote flow"
+                },
+                {
+                  "name": "Loss cost multiplier (filed per state)",
+                  "description": "Company LCM applied to ISO loss costs, filed by state; v6 LCMs range 1.42–1.68.",
+                  "livesIn": "Duck Creek — LCM table per jurisdiction; filing references in Filings_Log"
+                },
+                {
+                  "name": "Territory factor",
+                  "description": "ISO territory definitions with company exceptions in three states.",
+                  "livesIn": "Duck Creek — territory table; exception filings in SERFF"
+                },
+                {
+                  "name": "Construction and protection class",
+                  "description": "ISO construction classes 1–6 and PPC 1–10 relativities on the property rate.",
+                  "livesIn": "Duck Creek — rating worksheet RW_BOP_Prop"
+                },
+                {
+                  "name": "Sprinkler credit",
+                  "description": "Credit up to 15% for fully sprinklered buildings with central-station supervision.",
+                  "livesIn": "Duck Creek — protective-devices credit table"
+                },
+                {
+                  "name": "IRPM / schedule rating ±25%",
+                  "description": "Underwriter-applied individual risk premium modification within the filed ±25% bounds, reason-coded per factor.",
+                  "livesIn": "Duck Creek — IRPM worksheet with reason codes; audit report to product ops"
+                },
+                {
+                  "name": "Liability exposure base by class",
+                  "description": "Liability rated on gross sales, payroll or area per the class's designated exposure base.",
+                  "livesIn": "Duck Creek — exposure-base mapping in class table"
+                },
+                {
+                  "name": "Year built / roof age property factors",
+                  "description": "Building-age and roof-age relativities, with updates-to-roof recognition.",
+                  "livesIn": "Duck Creek — rating worksheet RW_BOP_Prop age factors"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "Package pricing with TRIA charge and state surcharge lines",
+              "items": [
+                {
+                  "name": "Minimum premium $500",
+                  "description": "Filed minimum annual premium for the package.",
+                  "livesIn": "Duck Creek — minimum-premium rule BOP_Select_v6"
+                },
+                {
+                  "name": "Terrorism (TRIA) charge",
+                  "description": "Certified-acts terrorism charge at 1% of property premium unless rejected via the disclosure form.",
+                  "livesIn": "Duck Creek — TRIA charge rule; IL 09 85 disclosure workflow"
+                },
+                {
+                  "name": "Policy fee — none (package expense in rate)",
+                  "description": "No separate policy fee on the multi-state program; expense loads are in the LCM.",
+                  "livesIn": "Duck Creek — fee config (empty) on BOP_Select_v6"
+                },
+                {
+                  "name": "Installment fees $8 / EFT waived",
+                  "description": "Per-installment fee on direct-bill plans, waived for EFT autopay.",
+                  "livesIn": "Duck Creek — billing plan config"
+                },
+                {
+                  "name": "State surcharge lines (FIGA-type guaranty, fire marshal taxes)",
+                  "description": "Per-state surcharge and fire-marshal-tax lines applied per TAX config, itemized on the invoice not the dec.",
+                  "livesIn": "Duck Creek — jurisdiction tax config; monthly reconciliation spreadsheet in finance"
+                },
+                {
+                  "name": "Whole-dollar rounding at coverage part",
+                  "description": "Property and liability parts round separately to whole dollars, then sum to the policy premium.",
+                  "livesIn": "Duck Creek — rounding rule in rating worksheet"
+                },
+                {
+                  "name": "Non-auditable package premium",
+                  "description": "BOP Select premium is flat (non-auditable) except when HNOA or high-payroll liability classes trigger a premium audit flag.",
+                  "livesIn": "Duck Creek — audit-flag rule; audit vendor feed for flagged policies"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Appetite matrix + Duck Creek referral rules",
+              "items": [
+                {
+                  "name": "Eligible class code list",
+                  "description": "Only classes marked green in the SMB appetite matrix quote; yellow classes refer, red auto-decline.",
+                  "livesIn": "Appetite_Matrix_SMB.xlsx tab BOP; synced into Duck Creek class-eligibility table quarterly"
+                },
+                {
+                  "name": "Mercantile size caps — 25,000 sq ft / $3M sales",
+                  "description": "Per-location caps of 25,000 sq ft and $3M annual sales for mercantile classes, tighter than ISO BOP eligibility.",
+                  "livesIn": "Duck Creek — referral rule UW-BOP-004; caps documented in Appetite_Matrix_SMB.xlsx"
+                },
+                {
+                  "name": "Restaurant limitations",
+                  "description": "Limited cooking classes only — no deep-fat frying without UL-300 suppression, no establishments over 30% alcohol receipts.",
+                  "livesIn": "Duck Creek — referral rules UW-BOP-011/012; suppression cert requirement"
+                },
+                {
+                  "name": "TIV over $2.5M per location — refer",
+                  "description": "Total insured value above $2.5M at any location routes to a property underwriter.",
+                  "livesIn": "Duck Creek — referral rule UW-BOP-020"
+                },
+                {
+                  "name": "Prohibited classes",
+                  "description": "Nightclubs, cannabis-related operations, firearms dealers and vacant buildings are hard declines.",
+                  "livesIn": "Duck Creek — decline rule UW-BOP-001; red list in Appetite_Matrix_SMB.xlsx"
+                },
+                {
+                  "name": "Protective safeguards required for target classes",
+                  "description": "Restaurants and dry cleaners bind only with the protective-safeguards endorsement (automatic sprinkler / suppression) attached.",
+                  "livesIn": "Duck Creek — bind-blocking rule UW-BOP-015; BP 04 30 attach"
+                },
+                {
+                  "name": "Loss history — 2+ property claims in 3 years refer",
+                  "description": "Two or more non-weather property claims in 3 years refer with loss-run requirement.",
+                  "livesIn": "Duck Creek — referral rule UW-BOP-030; loss-run upload requirement"
+                },
+                {
+                  "name": "Coastal county wind capacity check",
+                  "description": "Tier 1/2 coastal counties check accumulation against the cat capacity budget before bind.",
+                  "livesIn": "Duck Creek — referral rule UW-BOP-025; accumulation service query"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "ISO BP program + common commercial forms, config-attached",
+              "items": [
+                {
+                  "name": "BP 00 03 (07/13) — Businessowners Coverage Form",
+                  "description": "The combined property/liability businessowners coverage form at the heart of the package.",
+                  "livesIn": "Forms library ISO PDF; Duck Creek forms-attachment rule BP0003 ALL"
+                },
+                {
+                  "name": "BP 04 04 — Hired Auto and Non-Owned Auto Liability",
+                  "description": "HNOA endorsement attached when the option is selected.",
+                  "livesIn": "Forms library; Duck Creek attach rule conditional on HNOA"
+                },
+                {
+                  "name": "BP 04 30 — Protective Safeguards",
+                  "description": "Conditions coverage on maintenance of scheduled protective systems (sprinklers, suppression).",
+                  "livesIn": "Forms library; Duck Creek attach rule from UW-BOP-015"
+                },
+                {
+                  "name": "IL 00 17 — Common Policy Conditions",
+                  "description": "Common conditions form attached to every commercial policy.",
+                  "livesIn": "Forms library; Duck Creek attach rule IL0017 ALL"
+                },
+                {
+                  "name": "IL 09 85 — Disclosure Pursuant to Terrorism Risk Insurance Act",
+                  "description": "TRIA disclosure and election form driving the terrorism charge.",
+                  "livesIn": "Forms library; Duck Creek attach rule + election workflow"
+                },
+                {
+                  "name": "SMB-CY 01 — Data Breach Response endorsement",
+                  "description": "Carrier proprietary cyber endorsement introduced at v6.",
+                  "livesIn": "Forms library carrier form; Duck Creek attach rule conditional on CYBER"
+                },
+                {
+                  "name": "Equipment Breakdown Protection endorsement",
+                  "description": "EB endorsement form per the reinsurer's filed program.",
+                  "livesIn": "Forms library; Duck Creek attach rule conditional on EQBK"
+                },
+                {
+                  "name": "State amendatory endorsements (38 states)",
+                  "description": "Per-state BP amendatories attached by jurisdiction, including cancellation/nonrenewal statutory text.",
+                  "livesIn": "Forms library state set; Duck Creek jurisdiction attach rules"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "ISO adoption + LCM filings across 38 states",
+              "items": [
+                {
+                  "name": "ISO loss cost adoption filings",
+                  "description": "Adoption of current ISO BOP loss costs by reference in each live state, the base of the v6 re-rate.",
+                  "livesIn": "SERFF CARR-BOP-xx-2025 adoption series; Filings_Log rows per state"
+                },
+                {
+                  "name": "LCM filings (1.42–1.68 by state)",
+                  "description": "Company loss-cost multiplier filings with expense and profit exhibits per state.",
+                  "livesIn": "SERFF LCM filings; LCM table mirrored in Duck Creek config"
+                },
+                {
+                  "name": "Company exception pages",
+                  "description": "Filed deviations from ISO rules (territory exceptions, class caps) in three states.",
+                  "livesIn": "SERFF exception filings; exception log in Filings_Log"
+                },
+                {
+                  "name": "Form filing — SMB-CY 01 cyber endorsement",
+                  "description": "Multi-state form filing for the new proprietary cyber endorsement.",
+                  "livesIn": "SERFF CARR-BOP-MS-2025-CY01"
+                },
+                {
+                  "name": "Duck Creek config-to-filing traceability",
+                  "description": "Each approved filing maps to a Duck Creek config release; the mapping is maintained manually and is a known audit gap.",
+                  "livesIn": "Config repo release notes + Filings_Log cross-reference column"
+                },
+                {
+                  "name": "State portal filings (non-SERFF states)",
+                  "description": "A minority of states require direct portal submission; tracked in the same log with portal confirmation numbers.",
+                  "livesIn": "State portal confirmations filed in filings folder; Filings_Log rows"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "Duck Creek straight-through flow with referral interrupts",
+              "items": [
+                {
+                  "name": "Quote — agent portal into Duck Creek",
+                  "description": "Agents quote through the portal against the Duck Creek product model; class, caps and appetite checks run inline.",
+                  "livesIn": "Duck Creek — quote flow BOP_Select; agent portal integration"
+                },
+                {
+                  "name": "Straight-through bind",
+                  "description": "Quotes with no referral rule fired bind without underwriter touch — about 60% of volume.",
+                  "livesIn": "Duck Creek — bind flow with STP gate; STP-rate dashboard"
+                },
+                {
+                  "name": "Referral workbench",
+                  "description": "Fired referral rules queue the submission to an underwriter workbench with rule reasons attached.",
+                  "livesIn": "Duck Creek — underwriter workbench queue"
+                },
+                {
+                  "name": "Issuance — same-day document generation",
+                  "description": "Policy documents generate on bind and deliver electronically; no overnight batch on Duck Creek products.",
+                  "livesIn": "Duck Creek — document generation pipeline"
+                },
+                {
+                  "name": "Endorsement transactions",
+                  "description": "Mid-term changes as Duck Creek transactions — add location, change limits, add additional insured — with pro-rata premium and re-fired referral rules.",
+                  "livesIn": "Duck Creek — endorsement transaction types on BOP_Select"
+                },
+                {
+                  "name": "Renewal cycle at -60 days",
+                  "description": "Renewal prep starts 60 days out with refreshed class/appetite check; conditional renewals route through the workbench.",
+                  "livesIn": "Duck Creek — renewal workflow, offset -60d"
+                },
+                {
+                  "name": "Cancellation — pro-rata company / 90% short-rate insured request",
+                  "description": "Company cancellations pro-rata with state notice days from jurisdiction config; insured requests apply the 90% short-rate factor.",
+                  "livesIn": "Duck Creek — cancellation transaction; jurisdiction notice-day config"
+                },
+                {
+                  "name": "Out-of-sequence endorsement handling",
+                  "description": "Duck Creek re-rates and replays subsequent transactions automatically on OOS changes.",
+                  "livesIn": "Duck Creek — OOS processing in policy transaction engine"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "version": "v5",
+          "jurisdiction": "US-NY",
+          "effective": "Eff. 06/2024",
+          "status": "Renewal only",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Legacy PAS B build, NY renewal book pending Duck Creek rollout",
+              "items": [
+                {
+                  "name": "Product code BOPSEL-NY (PAS B)",
+                  "description": "The NY book still runs on the PAS B product row; Duck Creek NY rollout is deferred, so v5 renews in place.",
+                  "livesIn": "PAS B — product table row BOPSEL-NY"
+                },
+                {
+                  "name": "LOB mapping — CMP 5.1/5.2 with NY fire allocation",
+                  "description": "Statutory CMP split plus the fire-premium allocation NY requires for fire-tax purposes.",
+                  "livesIn": "PAS B — stat mapping config; fire-allocation table for NY tax"
+                },
+                {
+                  "name": "Availability: NY renewal-only",
+                  "description": "No NY new business until the Duck Creek jurisdiction build ships; renewals continue on v5 rates.",
+                  "livesIn": "PAS B — NB block flag BOPSEL-NY; rollout plan in config repo"
+                },
+                {
+                  "name": "Effective dating RB 06/01/2024",
+                  "description": "v5 rates apply to NY renewals from June 2024 under the last approved NY filing.",
+                  "livesIn": "PAS B — rate-set effective config; Filings_Log row BOP-NY-2024-05"
+                },
+                {
+                  "name": "Lineage v5 vs v4",
+                  "description": "v5 added the employee-dishonesty option and raised the mercantile sales cap; it is the terminal PAS B version of the product.",
+                  "livesIn": "PAS B — release notes; migration mapping workbook (v5 → v6 field map)"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "BP package as built on PAS B — no cyber/EB (v6 features)",
+              "items": [
+                {
+                  "name": "Building",
+                  "description": "Building coverage at replacement cost per location schedule.",
+                  "livesIn": "PAS B — coverage master CVG-BOP code BLDG; location schedule table"
+                },
+                {
+                  "name": "Business Personal Property",
+                  "description": "Contents and stock per location with the form-native 25% seasonal increase.",
+                  "livesIn": "PAS B — CVG-BOP code BPP"
+                },
+                {
+                  "name": "Business Income and Extra Expense (12-month ALS)",
+                  "description": "Actual loss sustained up to 12 months, 72-hour waiting period.",
+                  "livesIn": "PAS B — CVG-BOP code BIEE"
+                },
+                {
+                  "name": "Business Liability and Medical Expenses",
+                  "description": "Occurrence liability with $5k medical expenses; NY book capped at $1M occurrence on v5.",
+                  "livesIn": "PAS B — CVG-BOP code LIAB; NY limit cap config"
+                },
+                {
+                  "name": "Hired and Non-Owned Auto Liability",
+                  "description": "HNOA endorsement option via BP 04 04.",
+                  "livesIn": "PAS B — CVG-BOP code HNOA; form attach config"
+                },
+                {
+                  "name": "Outdoor Signs",
+                  "description": "Scheduled sign coverage at replacement cost.",
+                  "livesIn": "PAS B — CVG-BOP code SIGNS"
+                },
+                {
+                  "name": "Employee Dishonesty",
+                  "description": "Employee theft option added at v5, $25k/$50k limits.",
+                  "livesIn": "PAS B — CVG-BOP code EMPDIS"
+                },
+                {
+                  "name": "Spoilage",
+                  "description": "Perishable stock option for food classes, $10k/$25k in NY.",
+                  "livesIn": "PAS B — CVG-BOP code SPOIL"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "PAS B picklists — narrower than the v6 Duck Creek ladder",
+              "items": [
+                {
+                  "name": "Liability limits 300k / 500k / 1M",
+                  "description": "Occurrence options capped at $1M on the NY v5 build; $2M requires the v6 migration.",
+                  "livesIn": "PAS B — LMT-LIAB picklist BOPSEL-NY"
+                },
+                {
+                  "name": "Property deductibles $500–$5,000",
+                  "description": "Deductible ladder tops out at $5,000 on PAS B — one of the v5/v6 ladder mismatches.",
+                  "livesIn": "PAS B — DED-PROP picklist"
+                },
+                {
+                  "name": "Windstorm/hail deductible — Long Island coastal schedule",
+                  "description": "Percentage wind deductibles (1%/2%) apply in Nassau/Suffolk coastal bands per the filed NY schedule.",
+                  "livesIn": "PAS B — cat deductible table NY-COASTAL"
+                },
+                {
+                  "name": "BI ALS 12 months",
+                  "description": "Actual-loss-sustained business income for 12 months, no buy-down options on v5.",
+                  "livesIn": "PAS B — BIEE term config"
+                },
+                {
+                  "name": "Building valuation RC with 80% coinsurance fallback",
+                  "description": "Replacement cost with coinsurance fallback when ITV documentation is stale; no agreed-value option on v5.",
+                  "livesIn": "PAS B — valuation config BOPSEL-NY"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "Frozen NY plan — last ISO adoption 2023",
+              "items": [
+                {
+                  "name": "ISO class group rating (2023 loss costs)",
+                  "description": "NY renewals rate on the 2023 ISO loss-cost adoption; the v6 re-base does not apply until migration.",
+                  "livesIn": "PAS B — class rate tables BOPSEL-NY; adoption reference in Filings_Log"
+                },
+                {
+                  "name": "NY LCM 1.55",
+                  "description": "The filed NY loss-cost multiplier in force for the renewal book.",
+                  "livesIn": "PAS B — LCM constant NY; SERFF filing reference"
+                },
+                {
+                  "name": "Territory factors (NY ISO territories)",
+                  "description": "ISO NY territory definitions including the NYC borough splits.",
+                  "livesIn": "PAS B — TERR-NY table"
+                },
+                {
+                  "name": "Construction / protection class factors",
+                  "description": "ISO construction 1–6 and PPC relativities on property.",
+                  "livesIn": "PAS B — property factor tables"
+                },
+                {
+                  "name": "IRPM ±25% with NY documentation rule",
+                  "description": "Schedule rating within ±25%; NY requires documented, reason-coded support retained for examination.",
+                  "livesIn": "PAS B — IRPM entry screen; documentation PDF per policy in doc store"
+                },
+                {
+                  "name": "Sprinkler credit",
+                  "description": "Protective-device credit up to 15% for supervised sprinklered buildings.",
+                  "livesIn": "PAS B — protective credit table"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "NY tax/surcharge stack on the legacy engine",
+              "items": [
+                {
+                  "name": "NY fire fee (2% on fire premium)",
+                  "description": "The NY fire-department tax applies to the fire portion of property premium, driving the fire-allocation split PAS B maintains.",
+                  "livesIn": "PAS B — TAX config NY FIREFEE 2% on fire-allocated premium; remittance report"
+                },
+                {
+                  "name": "TRIA charge",
+                  "description": "Certified-acts terrorism charge with the IL 09 85 election, 1% of property premium.",
+                  "livesIn": "PAS B — TRIA charge config; election flag"
+                },
+                {
+                  "name": "Minimum premium $500",
+                  "description": "Filed NY minimum annual premium.",
+                  "livesIn": "PAS B — MIN-PREM BOPSEL-NY"
+                },
+                {
+                  "name": "Installment fees $8",
+                  "description": "Direct-bill installment fee; NY caps and disclosures applied in billing.",
+                  "livesIn": "PAS B — billing config NY"
+                },
+                {
+                  "name": "Whole-dollar rounding",
+                  "description": "Coverage-part rounding to whole dollars as on the national program.",
+                  "livesIn": "PAS B — rating service rounding step"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Renewal-book gates with NY 3426 constraints",
+              "items": [
+                {
+                  "name": "NY new business hard stop",
+                  "description": "NY quoting is blocked pending the Duck Creek jurisdiction build.",
+                  "livesIn": "PAS B — NB block flag; portal message NY-HOLD"
+                },
+                {
+                  "name": "Renewal appetite check (matrix red-list)",
+                  "description": "Renewals in classes moved to red on the appetite matrix route to conditional renewal or nonrenewal within NY 3426 limits.",
+                  "livesIn": "Appetite_Matrix_SMB.xlsx tab BOP; PAS B renewal review queue"
+                },
+                {
+                  "name": "Coastal wind accumulation review",
+                  "description": "Nassau/Suffolk renewals over $1M TIV re-check cat accumulation before offer.",
+                  "livesIn": "PAS B — renewal rule NY-COASTAL; accumulation spreadsheet"
+                },
+                {
+                  "name": "Loss ratio over 60% at renewal — refer",
+                  "description": "Three-year loss ratio above 60% queues the renewal to an underwriter for IRPM or terms action.",
+                  "livesIn": "PAS B — renewal referral rule; loss-run extract"
+                },
+                {
+                  "name": "Protective safeguards compliance re-verification",
+                  "description": "Restaurant renewals re-verify suppression service contracts annually before offer release.",
+                  "livesIn": "PAS B — renewal subjectivity NY-PS; cert uploads in doc store"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "ISO BP set + NY amendatories on PAS B attach config",
+              "items": [
+                {
+                  "name": "BP 00 03 (07/13) — Businessowners Coverage Form",
+                  "description": "Base businessowners form on the NY book.",
+                  "livesIn": "Forms library; PAS B attach config BP0003 ALL"
+                },
+                {
+                  "name": "NY changes / amendatory endorsement",
+                  "description": "NY amendatory carrying Insurance Law 3426 cancellation and conditional-renewal provisions.",
+                  "livesIn": "Forms library NY amendatory; PAS B attach STATE=NY mandatory"
+                },
+                {
+                  "name": "BP 04 04 — Hired Auto and Non-Owned Auto Liability",
+                  "description": "HNOA endorsement when selected.",
+                  "livesIn": "Forms library; PAS B attach conditional"
+                },
+                {
+                  "name": "IL 00 17 — Common Policy Conditions",
+                  "description": "Common conditions form on every policy.",
+                  "livesIn": "Forms library; PAS B attach IL0017 ALL"
+                },
+                {
+                  "name": "IL 09 85 — TRIA Disclosure",
+                  "description": "Terrorism disclosure/election form.",
+                  "livesIn": "Forms library; PAS B attach + election workflow"
+                },
+                {
+                  "name": "Windstorm deductible endorsement (NY coastal)",
+                  "description": "Percentage wind deductible form for Nassau/Suffolk coastal bands.",
+                  "livesIn": "Forms library carrier form BOP-WD-NY 01; PAS B attach conditional on coastal band"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "Last approved NY filing set, frozen pending migration",
+              "items": [
+                {
+                  "name": "NY rate filing BOP-NY-2024-05",
+                  "description": "The 2024 NY rate revision (+8.2%) under which the renewal book runs; filed via SERFF to NYDFS.",
+                  "livesIn": "SERFF CARR-BOP-NY-2024-0031; Filings_Log row BOP-NY-2024-05"
+                },
+                {
+                  "name": "NYDFS prior-review posture",
+                  "description": "NY commercial property/casualty filings face detailed NYDFS review; the v6 migration filing is being pre-drafted against this standard.",
+                  "livesIn": "Filings_Log notes; draft v6 NY filing in filings folder"
+                },
+                {
+                  "name": "ISO 2023 adoption (NY)",
+                  "description": "The loss-cost adoption the frozen book rates on.",
+                  "livesIn": "SERFF adoption filing reference; PAS B rate table version stamp"
+                },
+                {
+                  "name": "Coastal wind deductible schedule filing",
+                  "description": "Filed NY windstorm deductible schedule for the Long Island coastal bands.",
+                  "livesIn": "SERFF CARR-BOP-NY-2023-0044"
+                },
+                {
+                  "name": "Fire-allocation methodology on file",
+                  "description": "The fire-premium allocation basis supporting the 2% fire-fee remittance, retained for NYDFS examination.",
+                  "livesIn": "Finance methodology memo; PAS B fire-allocation table"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "PAS B renewal machinery under NY 3426 notice rules",
+              "items": [
+                {
+                  "name": "Renewal cycle at -75 days for NY",
+                  "description": "NY renewals extract earlier than the national -60d to meet conditional-renewal notice timing.",
+                  "livesIn": "PAS B — renewal job offset override NY -75d"
+                },
+                {
+                  "name": "Conditional renewal notice (60 days)",
+                  "description": "Material changes in terms or rates over the threshold require a conditional renewal notice at least 60 days before expiration under NY 3426.",
+                  "livesIn": "PAS B — conditional-renewal document trigger; notice templates"
+                },
+                {
+                  "name": "Nonrenewal — 60 days notice with specific reason",
+                  "description": "NY commercial nonrenewal requires 60 days notice stating the specific ground.",
+                  "livesIn": "PAS B — nonrenewal path; ST-NOTICE row NY NONREN 60"
+                },
+                {
+                  "name": "Cancellation — 15 days nonpay / 30 days other (after 60 days in force)",
+                  "description": "NY 3426 restricts mid-term cancellation grounds after 60 days and sets 15/30-day notice periods by reason.",
+                  "livesIn": "PAS B — cancellation service NY guard; ST-NOTICE row NY"
+                },
+                {
+                  "name": "Endorsement transactions",
+                  "description": "PAS B mid-term endorsements (limits, locations, AI) with pro-rata premium; changes large enough to be material trigger the conditional-renewal check at next term.",
+                  "livesIn": "PAS B — transaction catalog TXN-BOP"
+                },
+                {
+                  "name": "Migration cutover plan (v5 → v6)",
+                  "description": "At Duck Creek NY go-live, renewals will map to the v6 product model at term boundary via the field-mapping workbook.",
+                  "livesIn": "Config repo migration plan; v5-to-v6 mapping workbook"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Small Fleet Commercial Auto",
+      "lob": "Auto / Motor",
+      "runsIn": "PAS B",
+      "description": "Monoline commercial auto for small fleets (2–20 power units, local/intermediate radius) on the ISO CA 00 01 chassis, quoted in the PAS B portal with MVRs at quote and MCS-90 support for the minority of for-hire interstate risks.",
+      "versions": [
+        {
+          "version": "v4",
+          "jurisdiction": "US multi-state",
+          "effective": "Eff. 10/2025",
+          "status": "Active",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Monoline commercial auto, 31 states on PAS B",
+              "items": [
+                {
+                  "name": "Product code SFCA-ML",
+                  "description": "PAS B product key for the small-fleet commercial auto program, statutory line 19.4/21.1 commercial auto.",
+                  "livesIn": "PAS B — product table row SFCA-ML"
+                },
+                {
+                  "name": "Program: small fleet 2–20 power units",
+                  "description": "Local and intermediate-radius fleets of light/medium trucks and private passenger types; single-unit risks go to a partner market.",
+                  "livesIn": "PAS B — program config; unit-count edit in quote service"
+                },
+                {
+                  "name": "Availability: 31 states live",
+                  "description": "Live in 31 states; excluded states reflect assigned-risk depopulation exposure and no-fault complexity (MI excluded).",
+                  "livesIn": "PAS B — availability config SFCA-ML; state list in Appetite_Matrix_SMB.xlsx tab CA"
+                },
+                {
+                  "name": "Effective dating NB 10/01/2025, RB 12/01/2025",
+                  "description": "v4 rates for new business from October and renewals from December per state filings.",
+                  "livesIn": "PAS B — rate-set effective config; Filings_Log rows SFCA-2025-04"
+                },
+                {
+                  "name": "Lineage v4 vs v3",
+                  "description": "v4 adds telematics-consent discount, tightens the radius classification audit and re-rates light-truck symbols on current ISO tables.",
+                  "livesIn": "PAS B — release notes RN-SFCA-04"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "CA 00 01 liability + scheduled physical damage",
+              "items": [
+                {
+                  "name": "Covered Autos Liability (CSL)",
+                  "description": "BI/PD liability at a combined single limit, written on covered-auto symbols 7/8/9 (specifically described, hired, non-owned).",
+                  "livesIn": "PAS B — CVG-CAUTO code LIAB; symbol config per policy"
+                },
+                {
+                  "name": "Collision (per scheduled unit)",
+                  "description": "Collision physical damage per vehicle on the schedule, ACV settlement, unit-level deductible.",
+                  "livesIn": "PAS B — CVG-CAUTO code COLL; vehicle schedule table"
+                },
+                {
+                  "name": "Comprehensive (per scheduled unit)",
+                  "description": "Comprehensive physical damage per scheduled unit including glass and theft, ACV settlement.",
+                  "livesIn": "PAS B — CVG-CAUTO code COMP"
+                },
+                {
+                  "name": "Hired Auto Liability",
+                  "description": "Liability for autos hired or borrowed by the named insured, symbol 8.",
+                  "livesIn": "PAS B — CVG-CAUTO code HIRED; if-any exposure basis"
+                },
+                {
+                  "name": "Non-Owned Auto Liability",
+                  "description": "Liability for employee-owned autos used in the business, symbol 9.",
+                  "livesIn": "PAS B — CVG-CAUTO code NONOWN"
+                },
+                {
+                  "name": "UM/UIM (state-mandated variants)",
+                  "description": "Uninsured/underinsured motorist coverage per each state's commercial requirements and rejection mechanics.",
+                  "livesIn": "PAS B — CVG-CAUTO codes UM/UIM; state mandate matrix"
+                },
+                {
+                  "name": "Medical Payments / PIP (state-driven)",
+                  "description": "Auto medical payments or statutory PIP attached by state via CA 99-series/state PIP endorsements.",
+                  "livesIn": "PAS B — CVG-CAUTO codes MEDPAY/PIP; state config"
+                },
+                {
+                  "name": "Towing and Roadside (light trucks)",
+                  "description": "Optional towing/roadside for units under 26,000 lbs GVW.",
+                  "livesIn": "PAS B — CVG-CAUTO code TOW; GVW eligibility edit"
+                },
+                {
+                  "name": "MCS-90 endorsement (where required)",
+                  "description": "Federal public-liability endorsement for the minority of for-hire interstate motor carriers in the book.",
+                  "livesIn": "PAS B — MCS90 flag per policy; FMCSA filing service"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "CSL ladder, unit-level deductibles, fleet bounds",
+              "items": [
+                {
+                  "name": "CSL options $500k / $750k / $1M",
+                  "description": "Combined single limit ladder; $1M standard where certificates demand it.",
+                  "livesIn": "PAS B — LMT-CSL picklist SFCA"
+                },
+                {
+                  "name": "Physical damage deductibles $500 / $1,000 / $2,500",
+                  "description": "Comp/collision deductibles selected per scheduled unit.",
+                  "livesIn": "PAS B — DED-PD picklist, vehicle level"
+                },
+                {
+                  "name": "Fleet bounds 2–20 power units",
+                  "description": "Program floor and ceiling on power units; growth past 20 mid-term triggers re-marketing at renewal.",
+                  "livesIn": "PAS B — unit-count edit; renewal re-market flag"
+                },
+                {
+                  "name": "Radius classes — local (≤50mi) / intermediate (51–200mi)",
+                  "description": "Radius classification per unit; long-haul (>200mi) is outside program terms.",
+                  "livesIn": "PAS B — radius field per unit; classification audit rule"
+                },
+                {
+                  "name": "Hired auto $1M / non-owned included",
+                  "description": "Hired auto liability at policy CSL with if-any cost-of-hire basis; non-owned included at policy limit.",
+                  "livesIn": "PAS B — HIRED/NONOWN term config"
+                },
+                {
+                  "name": "Stated amount option for specialty units",
+                  "description": "Stated-amount physical damage available for upfitted/service-body units in lieu of ACV.",
+                  "livesIn": "PAS B — valuation option per unit; appraisal upload requirement"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "ISO commercial auto primary/secondary factors x LCM",
+              "items": [
+                {
+                  "name": "Primary classification factor (use / size / radius)",
+                  "description": "ISO primary factor from business use, vehicle size class (light/medium/heavy) and radius per unit.",
+                  "livesIn": "PAS B — class factor tables from ISO; unit classification fields"
+                },
+                {
+                  "name": "Secondary classification factor",
+                  "description": "Secondary factor for special industry classes (contractors, food delivery, waste) per ISO tables.",
+                  "livesIn": "PAS B — secondary class tables"
+                },
+                {
+                  "name": "Territory by principal garaging",
+                  "description": "ISO territory of each unit's garaging address; multi-territory fleets rate per unit.",
+                  "livesIn": "PAS B — TERR tables per state; garaging ZIP per unit"
+                },
+                {
+                  "name": "Driver MVR points",
+                  "description": "Fleet-level factor from aggregated driver MVR points across the roster, refreshed at renewal.",
+                  "livesIn": "PAS B — driver roster table + MVR feed; fleet point factor"
+                },
+                {
+                  "name": "Fleet size factor",
+                  "description": "Unit-count relativity recognizing spread of risk from 2 up to 20 units.",
+                  "livesIn": "PAS B — fleet factor table"
+                },
+                {
+                  "name": "Loss experience / schedule modification ±25%",
+                  "description": "Experience-informed schedule mod within filed bounds, reason-coded by the underwriter.",
+                  "livesIn": "PAS B — schedule mod entry with reason codes"
+                },
+                {
+                  "name": "Telematics consent discount 5%",
+                  "description": "New v4 discount for fleets enrolling units in the telematics program at bind.",
+                  "livesIn": "PAS B — discount config TELEM; enrollment feed from vendor"
+                },
+                {
+                  "name": "Physical damage symbol / age factors",
+                  "description": "ISO symbol (original cost new) and model-year factors per unit for comp/collision.",
+                  "livesIn": "PAS B — symbol tables from ISO feed"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "Per-unit minimums, state fee stack, audit on hired exposure",
+              "items": [
+                {
+                  "name": "Minimum premium $350 per power unit",
+                  "description": "Filed per-unit minimum keeps micro-fleets economically rated.",
+                  "livesIn": "PAS B — MIN-PREM rule SFCA per unit"
+                },
+                {
+                  "name": "Policy fee $35 (where permitted)",
+                  "description": "Flat policy fee in states permitting separate commercial fees.",
+                  "livesIn": "PAS B — fee config SFCA by state"
+                },
+                {
+                  "name": "NY MVLE fee (per vehicle, NY-garaged units)",
+                  "description": "New York Motor Vehicle Law Enforcement fee collected per NY-registered unit and remitted.",
+                  "livesIn": "PAS B — fee config NY-MVLE per unit; remittance report"
+                },
+                {
+                  "name": "SR-22 / state filing fees $25",
+                  "description": "Per-filing fee for state financial-responsibility filings on individual drivers where required.",
+                  "livesIn": "PAS B — fee config FR-FILING"
+                },
+                {
+                  "name": "MCS-90 — no separate charge",
+                  "description": "The federal endorsement carries no premium of its own; exposure is reflected in for-hire class rating.",
+                  "livesIn": "PAS B — MCS90 flag (non-premium-bearing); rating via class factor"
+                },
+                {
+                  "name": "Hired auto premium audit",
+                  "description": "If-any hired-auto exposures with cost-of-hire over $25k are auditable at expiration.",
+                  "livesIn": "PAS B — audit flag on HIRED; audit vendor worksheet"
+                },
+                {
+                  "name": "Whole-dollar rounding per unit",
+                  "description": "Premium rounds per unit then sums to policy total.",
+                  "livesIn": "PAS B — rating service rounding step"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Driver, unit and operation gates from the appetite matrix",
+              "items": [
+                {
+                  "name": "Driver criteria — no driver over 6 MVR points",
+                  "description": "Any roster driver exceeding 6 points must be removed or formally excluded before bind.",
+                  "livesIn": "UW rules engine — CAUTO rule C-101; MVR feed per driver"
+                },
+                {
+                  "name": "Major violations — DUI/reckless within 5 years decline (driver)",
+                  "description": "Drivers with major violations inside 5 years are ineligible for the roster.",
+                  "livesIn": "UW rules engine — rule C-102"
+                },
+                {
+                  "name": "GVW over 26,000 lbs — decline",
+                  "description": "Heavy trucks requiring CDL operation are outside program appetite.",
+                  "livesIn": "UW rules engine — rule C-110; GVW per unit"
+                },
+                {
+                  "name": "Radius over 200 miles — refer / decline",
+                  "description": "Long-haul operations decline; intermediate radius over 50% of units refers to a commercial auto underwriter.",
+                  "livesIn": "UW rules engine — rule C-115; radius audit"
+                },
+                {
+                  "name": "Hazmat / passenger-for-hire — decline",
+                  "description": "Hazardous materials hauling and taxi/livery/NEMT operations are prohibited classes.",
+                  "livesIn": "UW rules engine — rule C-120; red list in Appetite_Matrix_SMB.xlsx tab CA"
+                },
+                {
+                  "name": "New venture (under 2 years) — refer",
+                  "description": "Businesses under 2 years old refer with owner MVRs and business plan questions.",
+                  "livesIn": "UW rules engine — rule C-130"
+                },
+                {
+                  "name": "For-hire interstate — MCS-90 + authority check",
+                  "description": "For-hire interstate operations require active FMCSA authority verification and the MCS-90 filing before bind.",
+                  "livesIn": "UW rules engine — rule C-140; FMCSA SAFER lookup"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "ISO CA program + federal and state endorsements",
+              "items": [
+                {
+                  "name": "CA 00 01 (11/20) — Business Auto Coverage Form",
+                  "description": "Base commercial auto coverage form.",
+                  "livesIn": "Forms library ISO PDF; PAS B attach rule CA0001 ALL"
+                },
+                {
+                  "name": "IL 00 17 — Common Policy Conditions",
+                  "description": "Common conditions form attached to every policy.",
+                  "livesIn": "Forms library; PAS B attach IL0017 ALL"
+                },
+                {
+                  "name": "CA 99 03 — Auto Medical Payments Coverage",
+                  "description": "Med pay endorsement attached where the option or state requires.",
+                  "livesIn": "Forms library; PAS B attach conditional MEDPAY"
+                },
+                {
+                  "name": "CA 20 48 — Designated Insured for Covered Autos Liability",
+                  "description": "Designated-insured endorsement issued against certificate-holder requirements.",
+                  "livesIn": "Forms library; PAS B attach on request, tracked per certificate"
+                },
+                {
+                  "name": "MCS-90 — Endorsement for Motor Carrier Policies of Insurance",
+                  "description": "Federal public-liability endorsement filed with FMCSA for for-hire interstate carriers.",
+                  "livesIn": "Forms library federal form; FMCSA e-filing record per policy"
+                },
+                {
+                  "name": "State UM/UIM selection-rejection forms",
+                  "description": "State-prescribed UM/UIM offer and rejection forms retained as signed policy documents.",
+                  "livesIn": "PAS B — e-sign doc types per state; forms library state set"
+                },
+                {
+                  "name": "State amendatory endorsements (31 states)",
+                  "description": "Per-state commercial auto amendatories with cancellation/nonrenewal text.",
+                  "livesIn": "Forms library state set; PAS B attach STATE=xx mandatory"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "ISO adoption + LCM per state, UM/PIP mandate matrix",
+              "items": [
+                {
+                  "name": "ISO commercial auto loss cost adoptions",
+                  "description": "Adoption filings referencing current ISO commercial auto loss costs in each live state.",
+                  "livesIn": "SERFF CARR-SFCA-xx-2025 adoption series; Filings_Log rows"
+                },
+                {
+                  "name": "LCM filings by state (1.38–1.61)",
+                  "description": "Company multiplier filings supporting the v4 rate level.",
+                  "livesIn": "SERFF LCM filings; LCM table in PAS B config"
+                },
+                {
+                  "name": "UM/PIP mandate compliance matrix",
+                  "description": "Per-state matrix of UM/UIM offer, rejection and PIP requirements driving coverage and form config.",
+                  "livesIn": "Compliance matrix spreadsheet in filings folder; PAS B state config derived from it"
+                },
+                {
+                  "name": "Telematics discount rule filing",
+                  "description": "Rule filings for the 5% telematics consent discount in each state requiring one.",
+                  "livesIn": "SERFF CARR-SFCA-xx-2025-TD series"
+                },
+                {
+                  "name": "State portal submissions (non-SERFF)",
+                  "description": "Direct portal filings in the minority of states outside SERFF, logged with confirmation numbers.",
+                  "livesIn": "State portal confirmations; Filings_Log rows"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "Portal quote with MVR/authority checks, -45d renewals, audit close-out",
+              "items": [
+                {
+                  "name": "Quote — portal with roster and schedule upload",
+                  "description": "Agents upload driver roster and vehicle schedule; MVRs order per driver at final quote.",
+                  "livesIn": "PAS B — quote service SFCA; roster/schedule import templates"
+                },
+                {
+                  "name": "Bind with certificate issuance",
+                  "description": "Bind generates the policy, ID cards per unit and first certificates of insurance; AI/designated-insured endorsements issue on request.",
+                  "livesIn": "PAS B — bind service; certificate module"
+                },
+                {
+                  "name": "FMCSA / state filings at issuance",
+                  "description": "MCS-90 and state FR filings transmit electronically after issuance for applicable risks.",
+                  "livesIn": "PAS B — filing service to FMCSA / state systems"
+                },
+                {
+                  "name": "Endorsement transactions — ADD-UNIT / DEL-UNIT / ADD-DRV / AMD-CVG",
+                  "description": "Unit and driver changes pro-rate premium from the change date; unit adds re-fire UW rules.",
+                  "livesIn": "PAS B — transaction catalog TXN-SFCA"
+                },
+                {
+                  "name": "Renewal cycle at -45 days with MVR refresh",
+                  "description": "Renewals extract 45 days out with full-roster MVR refresh and radius re-audit.",
+                  "livesIn": "PAS B — renewal job RNWL-045 for SFCA"
+                },
+                {
+                  "name": "Cancellation — pro-rata, state commercial notice days",
+                  "description": "Company cancellations follow each state's commercial notice requirements from the notice table; insured requests short-rate where permitted.",
+                  "livesIn": "PAS B — cancellation service; ST-NOTICE commercial rows"
+                },
+                {
+                  "name": "Hired-auto audit at expiration",
+                  "description": "Flagged policies get a cost-of-hire audit; audit premium bills as an AP transaction.",
+                  "livesIn": "PAS B — audit workflow; AP transaction type"
+                },
+                {
+                  "name": "OOS auto-replay",
+                  "description": "Out-of-sequence changes re-rate and replay subsequent transactions automatically.",
+                  "livesIn": "PAS B — OOS engine"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Contractors Package",
+      "lob": "Construction / Builder's Risk",
+      "runsIn": "PAS B + rater",
+      "description": "Artisan/general contractor package combining CGL, installation floater, tools inland marine and course-of-construction builder's risk; quoted in PAS B with premium computed in the Rater_BOP.xlsm CPKG tabs (VBA), live in 12 states.",
+      "versions": [
+        {
+          "version": "v3",
+          "jurisdiction": "US-12 states",
+          "effective": "Eff. 04/2025",
+          "status": "Active",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Contractor package, 12-state footprint, rater-driven",
+              "items": [
+                {
+                  "name": "Product code CPKG-12",
+                  "description": "PAS B product key for the contractors package; statutory premium splits to GL (line 17) and inland marine (line 9).",
+                  "livesIn": "PAS B — product table row CPKG-12; stat split config"
+                },
+                {
+                  "name": "Program: artisan + small GC package",
+                  "description": "Artisan trades and small general contractors up to $1.5M payroll; GL plus inland marine sections in one policy.",
+                  "livesIn": "PAS B — program config; eligibility tab in Appetite_Matrix_SMB.xlsx"
+                },
+                {
+                  "name": "Availability: 12 states live",
+                  "description": "Live in 12 lower-litigation states; NY excluded (labor-law exposure), FL excluded (construction-defect and roofing mix).",
+                  "livesIn": "PAS B — availability config CPKG-12; exclusion rationale in appetite matrix notes"
+                },
+                {
+                  "name": "Effective dating NB 04/01/2025, RB 06/01/2025",
+                  "description": "v3 rates for new business from April and renewals from June per state filings.",
+                  "livesIn": "PAS B — rate-set effective config; Filings_Log rows CPKG-2025-03"
+                },
+                {
+                  "name": "Lineage v3 vs v2",
+                  "description": "v3 adds the per-project aggregate option, blanket additional-insured endorsements and the builder's risk reporting form; rater rebuilt with locked formula cells.",
+                  "livesIn": "PAS B — release notes; Rater_BOP.xlsm CPKG ChangeLog tab"
+                },
+                {
+                  "name": "Rater version control",
+                  "description": "The authoritative premium calculation is Rater_BOP.xlsm v3.2 (CPKG tabs); portal premium must match the uploaded rater output.",
+                  "livesIn": "Rater_BOP.xlsm version cell CPKG!B2; upload validation in PAS B quote service"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "CGL + inland marine package for contracting operations",
+              "items": [
+                {
+                  "name": "Premises and Operations Liability",
+                  "description": "CGL Coverage A for ongoing operations BI/PD at jobsites and premises, occurrence form.",
+                  "livesIn": "PAS B — CVG-CPKG code GL-PO; CG 00 01 section reference"
+                },
+                {
+                  "name": "Products-Completed Operations Liability",
+                  "description": "Coverage for BI/PD arising after work is completed — the critical construction-defect exposure — with its own aggregate.",
+                  "livesIn": "PAS B — CVG-CPKG code GL-PCO; separate aggregate tracking"
+                },
+                {
+                  "name": "Personal and Advertising Injury",
+                  "description": "CGL Coverage B at policy limit.",
+                  "livesIn": "PAS B — CVG-CPKG code GL-PAI"
+                },
+                {
+                  "name": "Medical Payments",
+                  "description": "CGL Coverage C, $5,000 per person.",
+                  "livesIn": "PAS B — CVG-CPKG code GL-MED"
+                },
+                {
+                  "name": "Installation Floater",
+                  "description": "Materials and property to be installed, in transit or at the jobsite until accepted, $100k per-jobsite standard.",
+                  "livesIn": "PAS B — CVG-CPKG code IM-INST; limits in Rater CPKG-IM tab"
+                },
+                {
+                  "name": "Contractors Tools and Equipment (blanket small tools)",
+                  "description": "Blanket coverage $25k for unscheduled tools under $1,000 per item.",
+                  "livesIn": "PAS B — CVG-CPKG code IM-TOOLS-BL"
+                },
+                {
+                  "name": "Scheduled Equipment",
+                  "description": "Itemized coverage for owned equipment over $1,000 per item (compressors, lifts), agreed schedule.",
+                  "livesIn": "PAS B — CVG-CPKG code IM-TOOLS-SCH; equipment schedule table"
+                },
+                {
+                  "name": "Rented / Leased Equipment",
+                  "description": "Damage to equipment rented from others, $50k standard limit.",
+                  "livesIn": "PAS B — CVG-CPKG code IM-RENT"
+                },
+                {
+                  "name": "Builder's Risk — Course of Construction",
+                  "description": "New residential/light-commercial structures during construction on a completed-value or monthly reporting basis.",
+                  "livesIn": "PAS B — CVG-CPKG code BR-COC; project schedule + reporting form config"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "GL occurrence/aggregate + per-jobsite inland marine limits",
+              "items": [
+                {
+                  "name": "GL limits 1M occurrence / 2M general aggregate",
+                  "description": "Standard CGL limit structure with 2M products-completed ops aggregate.",
+                  "livesIn": "PAS B — LMT-GL config; Rater CPKG-GL tab limit cells"
+                },
+                {
+                  "name": "Per-project general aggregate option",
+                  "description": "CG 25 03 applies the general aggregate separately to each construction project, new at v3.",
+                  "livesIn": "PAS B — option flag PER-PROJ; CG 25 03 attach rule"
+                },
+                {
+                  "name": "Installation floater per-jobsite / per-occurrence limits",
+                  "description": "$100k per jobsite standard, up to $250k with referral; transit sub-limit 25%.",
+                  "livesIn": "PAS B — IM-INST limit config; referral threshold"
+                },
+                {
+                  "name": "Inland marine deductibles $500–$2,500",
+                  "description": "Deductible ladder across the IM coverages, selected once for the section.",
+                  "livesIn": "PAS B — DED-IM picklist; Rater CPKG-IM tab"
+                },
+                {
+                  "name": "Builder's risk completed value / monthly reporting",
+                  "description": "Projects insured at completed value per structure, or on a monthly reporting form for volume builders; hard costs only.",
+                  "livesIn": "PAS B — BR-COC basis flag; reporting form workflow"
+                },
+                {
+                  "name": "Completed ops tail through statute of repose",
+                  "description": "Products-completed ops coverage continues on the occurrence form for work performed during the policy period, per state repose horizon notes.",
+                  "livesIn": "Underwriting guide section 4; repose table in appetite matrix notes"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "GL class-code payroll rating in the VBA rater x filed LCM",
+              "items": [
+                {
+                  "name": "GL class codes (91340 carpentry-interior, 92478 electrical, 98483 plumbing…)",
+                  "description": "ISO GL class codes per trade with payroll exposure base per $1,000.",
+                  "livesIn": "Rater_BOP.xlsm CPKG-GL tab class table; codes mirrored in PAS B for stat coding"
+                },
+                {
+                  "name": "Payroll exposure base",
+                  "description": "Estimated annual payroll per class drives GL premium, subject to audit at expiration.",
+                  "livesIn": "Rater CPKG-GL payroll cells; audit basis in PAS B"
+                },
+                {
+                  "name": "Subcontract cost base (GC classes)",
+                  "description": "General contractor classes rate on subcontracted cost per $1,000 alongside direct payroll.",
+                  "livesIn": "Rater CPKG-GL subcost cells"
+                },
+                {
+                  "name": "Loss cost multiplier by state",
+                  "description": "Filed LCMs applied to ISO GL loss costs in each of the 12 states.",
+                  "livesIn": "Rater CPKG-GL LCM lookup; filings in SERFF"
+                },
+                {
+                  "name": "Territory factor",
+                  "description": "ISO GL territories by primary business location.",
+                  "livesIn": "Rater CPKG-GL territory lookup"
+                },
+                {
+                  "name": "IRPM ±25%",
+                  "description": "Schedule credit/debit within filed bounds, entered in the rater with reason codes.",
+                  "livesIn": "Rater CPKG-GL IRPM cell with dropdown reasons; audit copy retained"
+                },
+                {
+                  "name": "Experience credit (3-year loss-free)",
+                  "description": "Loss-free credit up to 10% based on verified loss runs.",
+                  "livesIn": "Rater CPKG-GL credit cell; loss runs in doc store"
+                },
+                {
+                  "name": "Inland marine rates per $100",
+                  "description": "IM section rates per $100 of limit by coverage, from the company IM rate pages.",
+                  "livesIn": "Rater CPKG-IM rate table; IM rate pages in filings folder"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "Deposit + audit structure with per-line minimums",
+              "items": [
+                {
+                  "name": "GL deposit premium with annual payroll audit",
+                  "description": "GL premium is a deposit against estimated payroll, trued up by audit at expiration.",
+                  "livesIn": "PAS B — audit flag GL; audit vendor workflow"
+                },
+                {
+                  "name": "Minimum premiums — GL $750, IM $250, BR $500/project",
+                  "description": "Per-section filed minimums to keep small accounts rated adequately.",
+                  "livesIn": "Rater CPKG tabs minimum cells; PAS B MIN-PREM validation"
+                },
+                {
+                  "name": "Minimum earned premium 25% on GL",
+                  "description": "25% of GL deposit is earned at inception to deter short-term certificate buying.",
+                  "livesIn": "PAS B — MEP rule CPKG-GL; disclosure on quote letter"
+                },
+                {
+                  "name": "Policy fee $50 (where permitted)",
+                  "description": "Flat package policy fee in permitting states.",
+                  "livesIn": "PAS B — fee config CPKG by state"
+                },
+                {
+                  "name": "Installment plan 25% down / 9 pay",
+                  "description": "Standard contractor billing plan with $7 installment fee.",
+                  "livesIn": "PAS B — billing plan config CPKG"
+                },
+                {
+                  "name": "TRIA charge on property sections",
+                  "description": "Certified-acts terrorism charge on IM/BR premium with IL 09 85 election.",
+                  "livesIn": "PAS B — TRIA config; rater surfaces the charge line"
+                },
+                {
+                  "name": "Whole-dollar rounding per section",
+                  "description": "GL, IM and BR sections round separately then sum.",
+                  "livesIn": "Rater CPKG summary tab rounding cells"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Trade, height, sub-cost and defect-exposure gates",
+              "items": [
+                {
+                  "name": "Eligible trades list",
+                  "description": "Green-list artisan trades and small GCs per the appetite matrix; unlisted trades decline.",
+                  "livesIn": "Appetite_Matrix_SMB.xlsx tab CPKG; PAS B eligibility edit"
+                },
+                {
+                  "name": "No work over 3 stories",
+                  "description": "Exterior work above 3 stories is a hard decline for the program.",
+                  "livesIn": "UW rules engine — rule K-101; application question mapping"
+                },
+                {
+                  "name": "Roofing — sub-only, no direct roofing operations",
+                  "description": "Direct roofing operations decline; incidental roofing subcontracted to insured subs is acceptable to 10% of receipts.",
+                  "livesIn": "UW rules engine — rule K-105"
+                },
+                {
+                  "name": "Payroll cap $1.5M / subcontract cost cap 50%",
+                  "description": "Annual payroll above $1.5M or subcontract cost above 50% of receipts exits program appetite.",
+                  "livesIn": "UW rules engine — rules K-110/K-111; rater warning cells"
+                },
+                {
+                  "name": "Subcontractor certificate requirements",
+                  "description": "Subs must carry equal GL limits with additional-insured and waiver-of-subrogation wording; certificates collected at bind and audit.",
+                  "livesIn": "PAS B — bind subjectivity SUB-CERTS; cert uploads in doc store"
+                },
+                {
+                  "name": "New residential condo / tract work — decline",
+                  "description": "Ground-up condominium and large tract-home projects decline for construction-defect exposure.",
+                  "livesIn": "UW rules engine — rule K-120"
+                },
+                {
+                  "name": "EIFS, blasting, demolition — decline",
+                  "description": "Exterior insulation finishing systems, blasting and structural demolition are prohibited operations.",
+                  "livesIn": "UW rules engine — rule K-125"
+                },
+                {
+                  "name": "Builder's risk project referral over $750k",
+                  "description": "Individual projects above $750k completed value refer to the property underwriter.",
+                  "livesIn": "UW rules engine — rule K-130; project schedule check"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "CG program + AI stack + proprietary IM/BR forms",
+              "items": [
+                {
+                  "name": "CG 00 01 (04/13) — Commercial General Liability Coverage Form (occurrence)",
+                  "description": "Base occurrence CGL form for the package's liability section.",
+                  "livesIn": "Forms library ISO PDF; PAS B attach CG0001 ALL"
+                },
+                {
+                  "name": "CG 20 10 — Additional Insured, Owners/Lessees/Contractors (ongoing operations)",
+                  "description": "Scheduled AI endorsement for ongoing operations, issued per certificate request.",
+                  "livesIn": "Forms library; PAS B attach per AI schedule; certificate module link"
+                },
+                {
+                  "name": "CG 20 37 — Additional Insured (completed operations)",
+                  "description": "Completed-ops AI endorsement paired with CG 20 10 on contract requirements.",
+                  "livesIn": "Forms library; PAS B attach per AI schedule"
+                },
+                {
+                  "name": "CG 25 03 — Designated Construction Project(s) General Aggregate Limit",
+                  "description": "Per-project aggregate endorsement, new option at v3.",
+                  "livesIn": "Forms library; PAS B attach conditional on PER-PROJ flag"
+                },
+                {
+                  "name": "Blanket AI / waiver endorsements (carrier)",
+                  "description": "Blanket additional-insured-when-required-by-contract and blanket waiver forms replacing one-off scheduling.",
+                  "livesIn": "Forms library carrier forms CPKG-AI 01 / CPKG-WV 01; PAS B attach option"
+                },
+                {
+                  "name": "IL 00 17 — Common Policy Conditions",
+                  "description": "Common conditions on every policy.",
+                  "livesIn": "Forms library; PAS B attach IL0017 ALL"
+                },
+                {
+                  "name": "Installation floater / tools form (carrier IM)",
+                  "description": "Proprietary inland marine form covering installation, blanket and scheduled tools sections.",
+                  "livesIn": "Forms library carrier form CPKG-IM 02; PAS B attach with IM coverages"
+                },
+                {
+                  "name": "Builder's risk course-of-construction form (carrier)",
+                  "description": "Proprietary completed-value/reporting builder's risk form for residential and light commercial projects.",
+                  "livesIn": "Forms library carrier form CPKG-BR 01; PAS B attach with BR-COC"
+                },
+                {
+                  "name": "State amendatory endorsements (12 states)",
+                  "description": "Per-state GL/IM amendatories with statutory cancellation text.",
+                  "livesIn": "Forms library state set; PAS B attach STATE=xx mandatory"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "12-state ISO adoption + company IM/BR independent filings",
+              "items": [
+                {
+                  "name": "ISO GL loss cost adoptions (12 states)",
+                  "description": "Adoption filings for current ISO GL loss costs in each live state.",
+                  "livesIn": "SERFF CARR-CPKG-xx-2025 adoption series; Filings_Log rows"
+                },
+                {
+                  "name": "GL LCM filings (1.45–1.72)",
+                  "description": "Company multiplier filings per state supporting v3 GL rate level.",
+                  "livesIn": "SERFF LCM filings; rater LCM lookup mirrors approved values"
+                },
+                {
+                  "name": "Independent IM rate pages",
+                  "description": "Company-developed inland marine rates filed independently (IM largely non-ISO), including installation and tools rates.",
+                  "livesIn": "SERFF IM filings; rate pages in filings folder + Rater CPKG-IM tab"
+                },
+                {
+                  "name": "Builder's risk program filing",
+                  "description": "Filed BR program (completed value and reporting form rules and rates) in the 11 states requiring it.",
+                  "livesIn": "SERFF CARR-CPKG-xx-2025-BR series"
+                },
+                {
+                  "name": "Form filings — v3 endorsement set",
+                  "description": "Filings for the blanket AI/waiver forms and per-project aggregate adoption.",
+                  "livesIn": "SERFF form filings; Filings_Log rows"
+                },
+                {
+                  "name": "Rater-to-filing conformance checks",
+                  "description": "Quarterly reconciliation that Rater_BOP.xlsm CPKG formulas match filed rates — a manual control after a 2024 mismatch incident.",
+                  "livesIn": "Product ops conformance checklist; reconciliation workbook in filings folder"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "Portal + rater quote, subjectivity-gated bind, audit close-out",
+              "items": [
+                {
+                  "name": "Quote — portal application + rater upload",
+                  "description": "Agent completes the application in the portal and uploads the CPKG rater output; PAS B validates version and premium match.",
+                  "livesIn": "PAS B — quote service CPKG; rater upload validator"
+                },
+                {
+                  "name": "Bind with subjectivities",
+                  "description": "Bind is conditional on subcontractor certificates and signed TRIA election within 30 days, tracked as subjectivities.",
+                  "livesIn": "PAS B — subjectivity tracker; diary escalation to underwriter"
+                },
+                {
+                  "name": "Certificate and AI issuance",
+                  "description": "Certificates with CG 20 10 / CG 20 37 or blanket AI wording issue from the certificate module against contract requirements.",
+                  "livesIn": "PAS B — certificate module; AI schedule table"
+                },
+                {
+                  "name": "Project endorsements — add jobsite / add BR project",
+                  "description": "Mid-term project adds endorse the installation floater schedule and BR project list with pro-rata or reporting-basis premium.",
+                  "livesIn": "PAS B — transaction catalog TXN-CPKG; BR reporting form intake"
+                },
+                {
+                  "name": "Monthly BR reporting cycle",
+                  "description": "Reporting-basis builders submit monthly project value reports; missed reports revert projects to completed-value billing.",
+                  "livesIn": "PAS B — reporting workflow; delinquency rule"
+                },
+                {
+                  "name": "Renewal cycle at -60 days",
+                  "description": "Renewal prep 60 days out with refreshed payroll estimate, loss runs and appetite re-check.",
+                  "livesIn": "PAS B — renewal job RNWL-060 for CPKG"
+                },
+                {
+                  "name": "Premium audit at expiration",
+                  "description": "Payroll/subcost audit within 90 days of expiration; audit premium bills or refunds as an AP transaction, disputes route to product ops.",
+                  "livesIn": "PAS B — audit workflow; audit vendor integration"
+                },
+                {
+                  "name": "Cancellation — pro-rata company / short-rate insured, audit still runs",
+                  "description": "Mid-term cancellation triggers an interim audit on the GL section; state commercial notice days apply from the notice table.",
+                  "livesIn": "PAS B — cancellation service; interim audit trigger"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

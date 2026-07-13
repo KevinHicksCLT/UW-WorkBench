@@ -1,0 +1,2202 @@
+{
+  "segment": {
+    "name": "Personal Lines",
+    "canonicalName": "Personal Lines",
+    "systems": "PAS A (mainframe COBOL/VSAM) · PAS B · Rate_Manual_HO.xlsx · ISO forms library (PDF) · UW rules engine · Filings_Log.xlsx",
+    "legacyVariants": 14,
+    "operatingPattern": "High-volume admitted personal lines split across a 1980s mainframe (homeowners/dwelling on PAS A) and a newer policy admin (auto on PAS B), with rate manuals and filing history living in spreadsheets beside the systems.",
+    "distribution": "Direct-to-consumer, captive agents, aggregators / comparative raters",
+    "placement": "Single admitted policy per risk, one state per policy",
+    "reinsurance": "Property cat XoL treaty plus coastal quota share; back-end only, invisible to the product model",
+    "regulatory": "State-by-state rate/rule/form filings — CA DOI prior approval (Prop 103), TX TDI and OH file & use, FL OIR; all tracked via SERFF and Filings_Log.xlsx",
+    "behavior": {
+      "Product Taxonomy": "Product codes live in the PAS A PRODMSTR VSAM master and the PAS B product table; state availability is implicit in which rate/rule set is loaded, not modeled explicitly.",
+      "Coverages": "Coverage catalogs are COBOL copybooks (CVG-HO, CVG-DF) on PAS A and coverage-master tables on PAS B; endorsement coverages exist only as premium-bearing form attachments.",
+      "Terms": "Limit/deductible ladders are hard-coded picklists in CICS screens and PAS B config; percentage relationships (Cov B/C/D off Cov A) are computed in rating code, not declared.",
+      "Rating": "Rating is nine chained COBOL modules (RTG01–RTG09) on PAS A and a rating service on PAS B; the actuarial source of truth is Rate_Manual_HO.xlsx, re-keyed by IT each rate change.",
+      "Pricing": "Fees, taxes and surcharges come from FEE-TBL / TAX-TBL lookups applied after rating; minimum premium and rounding rules are buried in RTG09.",
+      "Underwriting Rules": "New-business eligibility and referral rules run in the UW rules engine for auto; homeowners rules are a mix of engine rules and CICS screen edits nobody has fully inventoried.",
+      "Forms": "ISO editions live as PDFs in the forms library; attachment logic is the FRM-ATTACH table on PAS A and form-attach config on PAS B, keyed by coverage + state + effective date.",
+      "Filings": "Every rate/rule/form change is filed through SERFF and logged manually in Filings_Log.xlsx; approved-version-to-system-version mapping is tribal knowledge.",
+      "Lifecycle Behavior": "Quote/bind is CICS screens (PAS A) or portal/API (PAS B); issuance, renewal extract and cancellation are nightly batch jobs with per-state notice-day parameters."
+    },
+    "patterns": [
+      { "name": "Personal packaged policy", "components": ["Coverages", "Terms", "Forms"] },
+      { "name": "State-versioned rate manual", "components": ["Rating", "Pricing", "Filings"] },
+      {
+        "name": "Mainframe batch lifecycle",
+        "components": ["Lifecycle Behavior", "Underwriting Rules", "Product Taxonomy"]
+      }
+    ]
+  },
+  "lobs": [
+    {
+      "name": "Auto / Motor",
+      "appliesTo": "Personal auto — private passenger vehicles, 6-month terms on PAS B",
+      "componentsExtended": "Vehicles; drivers; garaging territories; state financial-responsibility minimums"
+    },
+    {
+      "name": "Homeowners / Property",
+      "appliesTo": "Owner-occupied homeowners (HO-3) and landlord dwelling fire (DP-3) on PAS A",
+      "componentsExtended": "Dwellings; protection class; wind/hurricane deductibles; mitigation credits"
+    },
+    {
+      "name": "Accident & Health Affinity",
+      "appliesTo": "Small A&H riders sold through affinity groups; no standalone products currently modeled",
+      "componentsExtended": "Group sponsors; enrollment files"
+    },
+    {
+      "name": "Embedded / Affinity",
+      "appliesTo": "Point-of-sale embedded covers via partner APIs; pilot stage, no filed products yet",
+      "componentsExtended": "Partner channels; micro-terms; per-transaction attachment"
+    }
+  ],
+  "products": [
+    {
+      "name": "HO-3 Homeowners",
+      "lob": "Homeowners / Property",
+      "runsIn": "PAS A",
+      "description": "Owner-occupied homeowners special form (ISO HO 00 03 chassis): open-perils dwelling, named-perils contents, packaged liability; administered on the PAS A mainframe with state rate sets keyed from Rate_Manual_HO.xlsx.",
+      "versions": [
+        {
+          "version": "v14",
+          "jurisdiction": "US-CA",
+          "effective": "Eff. 01/2026",
+          "status": "Active",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Admitted HO-3, California rate set 14",
+              "items": [
+                {
+                  "name": "Product code HO3-CA",
+                  "description": "PRODMSTR product key for the California HO-3 program, statutory line 04 (Homeowners multiple peril).",
+                  "livesIn": "PAS A — PRODMSTR VSAM record HO3-CA, LOB-CODE 04"
+                },
+                {
+                  "name": "Program: HO-3 Special Form",
+                  "description": "Open-perils dwelling / named-perils contents package program for owner-occupied 1-4 family dwellings.",
+                  "livesIn": "PAS A — PRODMSTR PROGRAM-ID HO3; program sheet in Rate_Manual_HO.xlsx tab Index"
+                },
+                {
+                  "name": "Availability: CA live, FAIR Plan companion",
+                  "description": "New business open statewide except brush-zone declines, where risks are steered to the CA FAIR Plan with a DIC companion quote.",
+                  "livesIn": "UW rules engine — ruleset HO_NB_ELIG_CA; FAIR Plan steering memo in forms library"
+                },
+                {
+                  "name": "Effective dating NB 01/01/2026, RB 03/01/2026",
+                  "description": "Version 14 rates apply to new business effective on/after 01/01/2026 and renewals on/after 03/01/2026 per the approved CDI filing.",
+                  "livesIn": "PAS A — RTG01 rate-set selector by EFF-DATE; Filings_Log.xlsx row HO-CA-2025-14"
+                },
+                {
+                  "name": "Lineage v14 vs v13",
+                  "description": "v14 adds Safer-from-Wildfires mitigation credits, re-keys territory definitions to wildfire risk bands, and retires the age-of-home surcharge.",
+                  "livesIn": "Rate_Manual_HO.xlsx tab ChangeLog; CDI filing exhibit in Filings_Log.xlsx"
+                },
+                {
+                  "name": "Companion earthquake offer (CEA)",
+                  "description": "Every CA HO-3 policy triggers the mandatory California Earthquake Authority companion offer; the EQ policy itself is a separate CEA product.",
+                  "livesIn": "PAS A — nightly batch HOCEA210 offer extract to CEA; offer letter in forms library"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "Special form package — Coverages A–F plus premium-bearing endorsements",
+              "items": [
+                {
+                  "name": "Coverage A — Dwelling",
+                  "description": "Open-perils coverage on the dwelling and attached structures at replacement cost, the limit that anchors the whole policy.",
+                  "livesIn": "PAS A — copybook CVG-HO field CVG-A; base rates in RTG01"
+                },
+                {
+                  "name": "Coverage B — Other Structures",
+                  "description": "Detached structures (garage, fence, shed) at 10% of Coverage A, increasable by endorsement.",
+                  "livesIn": "PAS A — CVG-HO field CVG-B, default PCT-OF-A 10"
+                },
+                {
+                  "name": "Coverage C — Personal Property",
+                  "description": "Named-perils contents coverage at 50% of Coverage A (75% with replacement-cost contents), with special sub-limits for jewelry, guns and silverware.",
+                  "livesIn": "PAS A — CVG-HO field CVG-C plus SUBLIM table"
+                },
+                {
+                  "name": "Coverage D — Loss of Use",
+                  "description": "Additional living expense and fair rental value at 30% of Coverage A; CA wildfire emergencies extend ALE to 24 months by statute.",
+                  "livesIn": "PAS A — CVG-HO field CVG-D; CA ALE extension logic in claims, noted in HO 01 04"
+                },
+                {
+                  "name": "Coverage E — Personal Liability",
+                  "description": "Personal liability for bodily injury and property damage, options 100/300/500 thousand per occurrence.",
+                  "livesIn": "PAS A — CVG-HO field CVG-E; limit picklist on CICS screen QTE01"
+                },
+                {
+                  "name": "Coverage F — Medical Payments to Others",
+                  "description": "No-fault guest medical payments, $1,000 default with $5,000 option.",
+                  "livesIn": "PAS A — CVG-HO field CVG-F"
+                },
+                {
+                  "name": "Water Back-Up and Sump Discharge",
+                  "description": "Buys back sewer/drain backup and sump overflow losses, $5k/$10k/$25k options via HO 04 95.",
+                  "livesIn": "PAS A — FRM-ATTACH entry HO0495; endorsement premium in RTG08"
+                },
+                {
+                  "name": "Service Line Coverage",
+                  "description": "Covers failure of buried water, sewer and power service lines on the residence premises, $10k limit with $500 deductible.",
+                  "livesIn": "PAS A — FRM-ATTACH carrier form HO-SL 01; flat premium in RTG08"
+                },
+                {
+                  "name": "Ordinance or Law — Increased Amount",
+                  "description": "Raises the built-in 10% ordinance-or-law allowance to 25% or 50% of Coverage A via HO 04 77.",
+                  "livesIn": "PAS A — FRM-ATTACH entry HO0477; factor in RTG08"
+                },
+                {
+                  "name": "Extended Replacement Cost — Dwelling",
+                  "description": "Extends dwelling loss settlement to 125% or 150% of Coverage A when insured-to-value rules are met.",
+                  "livesIn": "PAS A — FRM-ATTACH carrier form HO-ERC 01; ITV edit on CICS screen QTE02"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "Coverage A drives the ladder; flat AOP deductibles in CA",
+              "items": [
+                {
+                  "name": "Coverage A limit anchoring",
+                  "description": "Coverage A is set from the replacement-cost estimator and drives B (10%), C (50%) and D (30%) automatically at issuance.",
+                  "livesIn": "PAS A — derivation in RTG01 working storage; RCE feed from vendor batch HORCE110"
+                },
+                {
+                  "name": "All-peril deductible options",
+                  "description": "Flat AOP deductibles of $1,000 / $2,500 / $5,000 / $10,000; CA has no wind/hail percentage deductible.",
+                  "livesIn": "PAS A — deductible picklist on QTE01; factor curve in RTG04"
+                },
+                {
+                  "name": "Insured-to-value floor 100%",
+                  "description": "Coverage A must equal at least 100% of the RCE replacement cost or the bind is blocked.",
+                  "livesIn": "PAS A — CICS screen edit on QTE02, error HO-214"
+                },
+                {
+                  "name": "Liability limit ladder",
+                  "description": "Coverage E options $100k / $300k / $500k with matching umbrella attachment note at $300k+.",
+                  "livesIn": "PAS A — CVG-HO limit table LMT-E"
+                },
+                {
+                  "name": "Contents replacement cost trigger",
+                  "description": "Attaching HO 04 90 lifts Coverage C from ACV to replacement cost and raises the C percentage to 75% of A.",
+                  "livesIn": "PAS A — FRM-ATTACH HO0490 sets CVG-C-PCT 75"
+                },
+                {
+                  "name": "Inflation guard 4%",
+                  "description": "Coverage A is indexed 4% at each renewal before rating, per the filed rule.",
+                  "livesIn": "PAS A — renewal batch HORNW045 applies INFL-FCT from RTG05"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "RTG01–RTG09 chain keyed from Rate_Manual_HO.xlsx CA tabs",
+              "items": [
+                {
+                  "name": "Base rate per $1,000 Coverage A",
+                  "description": "CA base rates by policy form and territory, the entry point of the rating chain.",
+                  "livesIn": "PAS A — RTG01; source tab BaseRates-CA in Rate_Manual_HO.xlsx"
+                },
+                {
+                  "name": "Territory factor (wildfire risk bands)",
+                  "description": "v14 territories are re-drawn around wildfire risk bands rather than county groups, per the approved class plan.",
+                  "livesIn": "PAS A — RTG02 territory table TERR-CA-14"
+                },
+                {
+                  "name": "Protection class (ISO PPC 1–10)",
+                  "description": "ISO Public Protection Classification of the responding fire district; PPC 9/10 also trips a UW referral.",
+                  "livesIn": "PAS A — RTG03; PPC feed from ISO Location batch"
+                },
+                {
+                  "name": "Construction type factor",
+                  "description": "Frame / masonry veneer / masonry / superior construction relativities applied to the base rate.",
+                  "livesIn": "PAS A — RTG03 CONSTR-FCT table"
+                },
+                {
+                  "name": "Age of roof factor",
+                  "description": "Roof-age curve with composition/tile/metal splits; roofs over 20 years also refer to UW.",
+                  "livesIn": "PAS A — RTG05; curve in Rate_Manual_HO.xlsx tab RoofAge"
+                },
+                {
+                  "name": "Safer-from-Wildfires mitigation credits",
+                  "description": "Stacked credits for Class A roof, ember-resistant vents, 5-ft defensible space and Firewise community, mandated for recognition in CA wildfire rating.",
+                  "livesIn": "PAS A — RTG05 credit table WF-MIT-CA; attestation captured on QTE02"
+                },
+                {
+                  "name": "Claim-free credit",
+                  "description": "Credit for zero non-CAT claims in the prior 5 years, verified against CLUE.",
+                  "livesIn": "PAS A — RTG05; CLUE order in NB batch HOCLU120"
+                },
+                {
+                  "name": "No insurance-score factor in CA",
+                  "description": "Credit-based insurance score is not part of the approved CA class plan and is bypassed in the rating chain for HO3-CA.",
+                  "livesIn": "PAS A — RTG07 tier module, CA branch skips SCORE-FCT"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "FEE-TBL / TAX-TBL lookups after RTG09 rounding",
+              "items": [
+                {
+                  "name": "Policy fee — none in CA",
+                  "description": "No separate policy fee on HO3-CA; expense loads are built into the filed rates per the CDI prior-approval application.",
+                  "livesIn": "PAS A — FEE-TBL row HO3-CA POLFEE 0.00"
+                },
+                {
+                  "name": "Installment fee $5",
+                  "description": "Per-installment fee on 4-pay and monthly plans, waived for EFT.",
+                  "livesIn": "PAS A — FEE-TBL row HO3-CA INSTFEE 5.00; billing plan table BILPLN"
+                },
+                {
+                  "name": "Minimum premium $350",
+                  "description": "Filed minimum annual premium; RTG09 floors the final premium at $350.",
+                  "livesIn": "PAS A — RTG09 MIN-PREM constant, HO3-CA"
+                },
+                {
+                  "name": "Whole-dollar rounding",
+                  "description": "Final premium rounds to the nearest whole dollar after all factors; intermediate factors carry 3 decimals.",
+                  "livesIn": "PAS A — RTG09 rounding routine RND-FINAL"
+                },
+                {
+                  "name": "CIGA recoupment line (currently 0%)",
+                  "description": "Placeholder surcharge line for California Insurance Guarantee Association recoupments, presently set to zero.",
+                  "livesIn": "PAS A — TAX-TBL row CA CIGA 0.000"
+                },
+                {
+                  "name": "Wildfire mitigation credit disclosure",
+                  "description": "Premium-bearing credits must itemize on the dec page per CDI regulation, driving a dedicated pricing display line.",
+                  "livesIn": "PAS A — dec print extract HODEC190, line WF-CRED"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Engine ruleset HO_NB_ELIG_CA plus CICS screen edits",
+              "items": [
+                {
+                  "name": "Roof age over 20 years — refer",
+                  "description": "Roofs older than 20 years (15 for composition shingle) route to an underwriter with photo requirement before bind.",
+                  "livesIn": "UW rules engine — HO_NB_ELIG_CA rule R-104; block on CICS BND01"
+                },
+                {
+                  "name": "Brush / wildfire zone — decline to FAIR Plan",
+                  "description": "Fireline-style wildfire score at or above threshold in designated brush zones declines new business and generates the FAIR Plan steer letter.",
+                  "livesIn": "UW rules engine — rule R-101 using WF-SCORE feed; letter in forms library"
+                },
+                {
+                  "name": "Wildfire moratorium ZIP check",
+                  "description": "Non-renewals are blocked for one year in ZIP codes under an active CDI wildfire moratorium bulletin.",
+                  "livesIn": "PAS A — renewal batch HORNW045 checks MORAT-ZIP table loaded monthly from CDI bulletins"
+                },
+                {
+                  "name": "Wood stove — inspection required",
+                  "description": "Any solid-fuel heating device requires a completed inspection checklist before issuance.",
+                  "livesIn": "UW rules engine — rule R-118; checklist PDF in forms library"
+                },
+                {
+                  "name": "Protection class 9/10 — refer",
+                  "description": "PPC 9 or 10 risks (no hydrant within 1,000 ft or fire station beyond 5 road miles) require underwriter approval.",
+                  "livesIn": "UW rules engine — rule R-109"
+                },
+                {
+                  "name": "Vacant or under-renovation dwelling — decline",
+                  "description": "Dwellings vacant over 60 days or under structural renovation are ineligible for HO-3 and steered to DP-3 with a vacancy endorsement.",
+                  "livesIn": "UW rules engine — rule R-120"
+                },
+                {
+                  "name": "Unfenced pool / diving board — refer",
+                  "description": "Swimming pool without a self-latching fence, or any diving board or slide, refers for liability review.",
+                  "livesIn": "UW rules engine — rule R-131"
+                },
+                {
+                  "name": "Prior liability loss — refer",
+                  "description": "Any liability claim in the past 5 years on CLUE refers to senior underwriting.",
+                  "livesIn": "UW rules engine — rule R-140; CLUE feed HOCLU120"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "ISO 2022 HO program editions + CA amendatories via FRM-ATTACH",
+              "items": [
+                {
+                  "name": "HO 00 03 (03/22) — Homeowners 3 Special Form",
+                  "description": "The base coverage form; attaches to every HO3-CA policy.",
+                  "livesIn": "ISO forms library PDF; attach rule FRM-ATTACH key HO0003 ALL"
+                },
+                {
+                  "name": "HO 01 04 — Special Provisions, California",
+                  "description": "CA amendatory endorsement aligning cancellation, nonrenewal and ALE provisions with the Insurance Code.",
+                  "livesIn": "ISO forms library; FRM-ATTACH key HO0104 STATE=CA mandatory"
+                },
+                {
+                  "name": "HO 04 90 — Personal Property Replacement Cost",
+                  "description": "Contents replacement-cost loss settlement, attached when the RCC option is selected.",
+                  "livesIn": "ISO forms library; FRM-ATTACH conditional on CVG-C-RC flag"
+                },
+                {
+                  "name": "HO 04 95 — Water Back-Up and Sump Discharge or Overflow",
+                  "description": "Endorsement form for the water backup coverage buy-back.",
+                  "livesIn": "ISO forms library; FRM-ATTACH conditional on coverage WB"
+                },
+                {
+                  "name": "HO 04 77 — Ordinance or Law Increased Amount of Coverage",
+                  "description": "Raises the ordinance-or-law percentage; attaches with the increased-amount option.",
+                  "livesIn": "ISO forms library; FRM-ATTACH conditional on OL-PCT > 10"
+                },
+                {
+                  "name": "HO 24 90 — Workers Compensation Residence Employees, California",
+                  "description": "Mandatory CA endorsement providing incidental workers compensation for occasional residence employees.",
+                  "livesIn": "ISO forms library; FRM-ATTACH key HO2490 STATE=CA mandatory"
+                },
+                {
+                  "name": "CA wildfire mitigation disclosure notice",
+                  "description": "CDI-required notice describing the mitigation actions that earn premium credits and how to appeal the wildfire risk score.",
+                  "livesIn": "Forms library carrier notice CA-WF-NTC 01; print trigger in HODEC190"
+                },
+                {
+                  "name": "Declarations page HO3-CA",
+                  "description": "Dec page layout itemizing Coverages A–F, endorsements and wildfire credits per CDI display rules.",
+                  "livesIn": "PAS A — print extract HODEC190 to print vendor; template in forms library"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "CDI prior approval under Prop 103, tracked in SERFF + Filings_Log.xlsx",
+              "items": [
+                {
+                  "name": "SERFF rate filing CARR-HO-CA-2025-0141",
+                  "description": "The v14 rate application: +6.9% overall, new wildfire territory definitions and Safer-from-Wildfires credits.",
+                  "livesIn": "SERFF tracking CARR-HO-CA-2025-0141; Filings_Log.xlsx row 214"
+                },
+                {
+                  "name": "Prop 103 prior approval",
+                  "description": "CA rates cannot be used until CDI approves; the v14 application sat 11 months including one intervenor round.",
+                  "livesIn": "Filings_Log.xlsx status column; CDI correspondence PDFs in filings folder"
+                },
+                {
+                  "name": "Intervenor proceeding (Consumer Watchdog)",
+                  "description": "Public intervenor challenged the trend selection; settled with a stipulated 6.9% versus the requested 9.2%.",
+                  "livesIn": "Filings_Log.xlsx notes; stipulation letter in filings folder"
+                },
+                {
+                  "name": "Class plan filing — wildfire territories",
+                  "description": "Separate class-plan filing re-defining rating territories around wildfire risk bands, approved with the rate filing.",
+                  "livesIn": "SERFF CARR-HO-CA-2025-0142; Rate_Manual_HO.xlsx tab Territory-CA"
+                },
+                {
+                  "name": "Forms filing — v14 endorsement set",
+                  "description": "Form filing adding the service line and extended replacement cost carrier forms; CA forms also require approval before use.",
+                  "livesIn": "SERFF CARR-HO-CA-2025-0155; forms library version stamps"
+                },
+                {
+                  "name": "Rule manual deposit",
+                  "description": "Filed rule manual covering ITV floor, inflation guard and mitigation-credit eligibility rules.",
+                  "livesIn": "SERFF rule schedule on CARR-HO-CA-2025-0141; working copy is Rate_Manual_HO.xlsx tab Rules-CA"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "CICS quote/bind, nightly batch issuance, -45d renewals",
+              "items": [
+                {
+                  "name": "Quote via CICS QTE01/QTE02",
+                  "description": "Green-screen quote flow: risk entry on QTE01, ITV and mitigation attestations on QTE02, premium returned from the RTG chain in real time.",
+                  "livesIn": "PAS A — CICS transactions QTE1/QTE2"
+                },
+                {
+                  "name": "Bind via CICS BND01",
+                  "description": "Bind locks the quote, runs final UW edits and writes the pending-issue record; blocked while any referral rule is open.",
+                  "livesIn": "PAS A — CICS transaction BND1, pending file HOPEND"
+                },
+                {
+                  "name": "Nightly issuance batch HOISS190",
+                  "description": "Issues bound policies, assigns policy numbers, builds the dec extract and feeds the print vendor.",
+                  "livesIn": "PAS A — JCL job HOISS190, runs 21:30 PT"
+                },
+                {
+                  "name": "Endorsement transactions EN-04 / EN-11 / EN-17",
+                  "description": "Mid-term changes keyed on CICS ENDR screens — EN-04 scheduled jewelry add, EN-11 mortgagee change, EN-17 coverage limit change — pro-rated by RTG09.",
+                  "livesIn": "PAS A — CICS ENDR screens; txn codes in TXN-TBL"
+                },
+                {
+                  "name": "Renewal cycle at -45 days",
+                  "description": "HORNW045 extracts renewals 45 days before expiration, applies inflation guard, re-rates on the renewal rate set and releases offers.",
+                  "livesIn": "PAS A — JCL job HORNW045"
+                },
+                {
+                  "name": "Cancellation — pro-rata, CA 20/10 notice",
+                  "description": "Company cancellations return pro-rata premium with 20 days notice (10 days for nonpayment or fraud) per the CA Insurance Code.",
+                  "livesIn": "PAS A — batch HOCANC170; notice-day parameters in ST-NOTICE table row CA"
+                },
+                {
+                  "name": "Reinstatement with lapse",
+                  "description": "Nonpay cancellations may reinstate within 30 days with a signed no-loss statement; the lapse gap is excluded from coverage.",
+                  "livesIn": "PAS A — CICS transaction REIN; no-loss form in forms library"
+                },
+                {
+                  "name": "Out-of-sequence endorsement handling",
+                  "description": "OOS changes reverse and replay all later transactions in effective-date order — a manual, error-prone rekey on PAS A.",
+                  "livesIn": "PAS A — OOS procedure doc; replay via ENDR with TXN-REVERSE"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "version": "v13",
+          "jurisdiction": "US-TX",
+          "effective": "Eff. 07/2025",
+          "status": "Active",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Admitted HO-3, Texas rate set 13",
+              "items": [
+                {
+                  "name": "Product code HO3-TX",
+                  "description": "PRODMSTR product key for the Texas HO-3 program, statutory line 04.",
+                  "livesIn": "PAS A — PRODMSTR VSAM record HO3-TX, LOB-CODE 04"
+                },
+                {
+                  "name": "Program: HO-3 Special Form (national ISO program in TX)",
+                  "description": "Carrier writes the national ISO HO program in Texas rather than the legacy TDI promulgated forms, as permitted since 2003.",
+                  "livesIn": "PAS A — PRODMSTR PROGRAM-ID HO3; TDI form adoption note in Filings_Log.xlsx"
+                },
+                {
+                  "name": "Availability: TX live, Tier 1 coastal restricted",
+                  "description": "New business open statewide except designated Tier 1 catastrophe-area counties, where wind must be excluded and placed with TWIA.",
+                  "livesIn": "UW rules engine — ruleset HO_NB_ELIG_TX; TWIA county list in Rate_Manual_HO.xlsx tab Coastal-TX"
+                },
+                {
+                  "name": "Effective dating NB 07/01/2025, RB 09/01/2025",
+                  "description": "Version 13 rates apply to new business from 07/01/2025 and renewals from 09/01/2025 under TDI file-and-use.",
+                  "livesIn": "PAS A — RTG01 rate-set selector; Filings_Log.xlsx row HO-TX-2025-13"
+                },
+                {
+                  "name": "Lineage v13 vs v12",
+                  "description": "v13 introduces the roof surfacing ACV schedule option, re-rates hail territories and adds the insurance-score tier plan.",
+                  "livesIn": "Rate_Manual_HO.xlsx tab ChangeLog"
+                },
+                {
+                  "name": "Consumer Bill of Rights delivery",
+                  "description": "TDI-prescribed Homeowners Consumer Bill of Rights must accompany every new policy and renewal.",
+                  "livesIn": "PAS A — print trigger in HODEC190; TDI form in forms library"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "Coverages A–F plus hail-driven endorsement set",
+              "items": [
+                {
+                  "name": "Coverage A — Dwelling",
+                  "description": "Open-perils dwelling coverage at replacement cost, anchor limit for the policy.",
+                  "livesIn": "PAS A — copybook CVG-HO field CVG-A; base rates RTG01"
+                },
+                {
+                  "name": "Coverage B — Other Structures (10% of A)",
+                  "description": "Detached structures at 10% of Coverage A; common TX increase for barns and outbuildings via endorsement.",
+                  "livesIn": "PAS A — CVG-HO field CVG-B"
+                },
+                {
+                  "name": "Coverage C — Personal Property (50% of A)",
+                  "description": "Named-perils contents with jewelry/firearms sub-limits; RCC option lifts to 75%.",
+                  "livesIn": "PAS A — CVG-HO field CVG-C plus SUBLIM table"
+                },
+                {
+                  "name": "Coverage D — Loss of Use (30% of A)",
+                  "description": "ALE and fair rental value at 30% of Coverage A.",
+                  "livesIn": "PAS A — CVG-HO field CVG-D"
+                },
+                {
+                  "name": "Coverage E / F — Liability and Med Pay",
+                  "description": "Personal liability $100k/$300k/$500k and guest medical $1k/$5k, packaged as in the national program.",
+                  "livesIn": "PAS A — CVG-HO fields CVG-E / CVG-F"
+                },
+                {
+                  "name": "Water Back-Up and Sump Discharge (HO 04 95)",
+                  "description": "Sewer/drain backup buy-back, $5k/$10k/$25k options.",
+                  "livesIn": "PAS A — FRM-ATTACH HO0495; premium RTG08"
+                },
+                {
+                  "name": "Foundation / slab water damage endorsement",
+                  "description": "TX-specific buy-back for plumbing-leak damage to slabs and foundations, a top TX loss driver, 15% of Coverage A sub-limit.",
+                  "livesIn": "PAS A — FRM-ATTACH carrier form HO-FND-TX 01; premium RTG08"
+                },
+                {
+                  "name": "Roof surfacing ACV loss settlement (optional credit)",
+                  "description": "Optional schedule settling wind/hail roof losses at ACV by roof age in exchange for a premium credit.",
+                  "livesIn": "PAS A — FRM-ATTACH carrier form HO-RFS-TX 01; credit in RTG05"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "Percentage wind/hail deductible on top of flat AOP",
+              "items": [
+                {
+                  "name": "Wind/hail percentage deductible 1% / 2%",
+                  "description": "Separate wind/hail deductible expressed as a percentage of Coverage A, mandatory statewide on v13; 2% default in hail territories.",
+                  "livesIn": "PAS A — RTG04 W-H-DED table; dec display line in HODEC190"
+                },
+                {
+                  "name": "AOP deductible options",
+                  "description": "All-other-perils flat deductibles $1,000 / $2,500 / $5,000 alongside the percentage wind/hail deductible.",
+                  "livesIn": "PAS A — deductible picklist QTE01; factors RTG04"
+                },
+                {
+                  "name": "Coverage ladder off Coverage A",
+                  "description": "B/C/D default to 10%/50%/30% of Coverage A, computed at rating time.",
+                  "livesIn": "PAS A — RTG01 derivation"
+                },
+                {
+                  "name": "Insured-to-value floor 100%",
+                  "description": "Coverage A must be at least 100% of the replacement-cost estimate to bind.",
+                  "livesIn": "PAS A — CICS edit QTE02 error HO-214"
+                },
+                {
+                  "name": "Inflation guard 6% (TX)",
+                  "description": "TX renewals index Coverage A by 6%, reflecting construction-cost trend filed with TDI.",
+                  "livesIn": "PAS A — HORNW045 INFL-FCT row TX"
+                },
+                {
+                  "name": "Liability limits ladder",
+                  "description": "Coverage E $100k/$300k/$500k, Coverage F $1k/$5k as in the national program.",
+                  "livesIn": "PAS A — LMT-E / LMT-F tables"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "Hail-territory-driven plan with insurance-score tiers",
+              "items": [
+                {
+                  "name": "Base rate per $1,000 Coverage A",
+                  "description": "TX base rates by territory and form, keyed from the TX rate tabs.",
+                  "livesIn": "PAS A — RTG01; Rate_Manual_HO.xlsx tab BaseRates-TX"
+                },
+                {
+                  "name": "Territory factor (hail zones)",
+                  "description": "Territories grouped by hail frequency bands (DFW corridor highest), re-keyed in v13.",
+                  "livesIn": "PAS A — RTG02 table TERR-TX-13"
+                },
+                {
+                  "name": "Protection class (ISO PPC)",
+                  "description": "ISO PPC 1–10 of the responding fire department.",
+                  "livesIn": "PAS A — RTG03"
+                },
+                {
+                  "name": "Construction type and roof material",
+                  "description": "Frame/masonry relativities plus impact-resistant (Class 4) shingle credit per the TDI-recognized schedule.",
+                  "livesIn": "PAS A — RTG03 CONSTR-FCT; Class 4 credit in RTG05"
+                },
+                {
+                  "name": "Age of roof factor",
+                  "description": "Roof-age curve with steeper hail-driven slope than other states; >20 years refers to UW.",
+                  "livesIn": "PAS A — RTG05; Rate_Manual_HO.xlsx tab RoofAge"
+                },
+                {
+                  "name": "Credit-based insurance score tiers",
+                  "description": "Nine-tier insurance-score plan, permitted in TX with adverse-action notice; extraordinary-life-event exceptions honored on request.",
+                  "livesIn": "PAS A — RTG07 SCORE-FCT table; score feed from LexisNexis batch"
+                },
+                {
+                  "name": "Claim-free / companion-policy credits",
+                  "description": "5-year claim-free credit and auto-companion credit, both filed under TDI file-and-use.",
+                  "livesIn": "PAS A — RTG05 credit table"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "Policy fee + TX statutory assessments from TAX-TBL",
+              "items": [
+                {
+                  "name": "Policy fee $50 (fully earned)",
+                  "description": "Flat policy fee permitted in TX, fully earned at issuance and shown separately on the dec.",
+                  "livesIn": "PAS A — FEE-TBL row HO3-TX POLFEE 50.00"
+                },
+                {
+                  "name": "Installment fee $6",
+                  "description": "Per-installment charge on payment plans, waived for EFT.",
+                  "livesIn": "PAS A — FEE-TBL row HO3-TX INSTFEE 6.00"
+                },
+                {
+                  "name": "Minimum premium $400",
+                  "description": "Filed minimum annual premium for the TX program.",
+                  "livesIn": "PAS A — RTG09 MIN-PREM constant HO3-TX"
+                },
+                {
+                  "name": "TWIA assessment recoupment line",
+                  "description": "Surcharge line for Texas Windstorm Insurance Association assessment recoupment when levied; currently 0%.",
+                  "livesIn": "PAS A — TAX-TBL row TX TWIA 0.000"
+                },
+                {
+                  "name": "TX FAIR Plan assessment placeholder",
+                  "description": "Assessment pass-through line for the Texas FAIR Plan Association, applied only when an assessment year is declared.",
+                  "livesIn": "PAS A — TAX-TBL row TX FAIRPL 0.000"
+                },
+                {
+                  "name": "Whole-dollar rounding",
+                  "description": "Final premium rounds to whole dollars in RTG09 after fees.",
+                  "livesIn": "PAS A — RTG09 RND-FINAL"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Ruleset HO_NB_ELIG_TX — hail, coastal and foundation exposures",
+              "items": [
+                {
+                  "name": "Roof age over 20 years — refer with photos",
+                  "description": "Aerial-imagery roof condition plus age over 20 years routes to UW; wood shake roofs over 15 years decline.",
+                  "livesIn": "UW rules engine — HO_NB_ELIG_TX rule R-204; imagery feed vendor batch"
+                },
+                {
+                  "name": "Tier 1 coastal county — wind exclusion required",
+                  "description": "In the 14 Tier 1 counties, new business binds only with wind excluded and evidence of TWIA placement.",
+                  "livesIn": "UW rules engine — rule R-201; county list Rate_Manual_HO.xlsx Coastal-TX"
+                },
+                {
+                  "name": "Prior foundation / slab claim — refer",
+                  "description": "Any prior foundation movement or slab-leak claim on CLUE refers with a plumber hydrostatic test requirement.",
+                  "livesIn": "UW rules engine — rule R-212"
+                },
+                {
+                  "name": "Wood stove / solid fuel — inspection",
+                  "description": "Solid-fuel devices require the inspection checklist before issuance, as in the national program.",
+                  "livesIn": "UW rules engine — rule R-118 (shared)"
+                },
+                {
+                  "name": "More than 2 non-CAT claims in 3 years — decline",
+                  "description": "Frequency rule counting non-catastrophe claims; CAT wind/hail claims are excluded from the count per TX practice.",
+                  "livesIn": "UW rules engine — rule R-215; CLUE feed"
+                },
+                {
+                  "name": "Trampolines / unfenced pools — refer",
+                  "description": "Attractive-nuisance exposures refer for liability review or exclusion endorsement.",
+                  "livesIn": "UW rules engine — rule R-131 (shared)"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "National ISO program + TX amendatories",
+              "items": [
+                {
+                  "name": "HO 00 03 (03/22) — Homeowners 3 Special Form",
+                  "description": "Base special form for the TX program.",
+                  "livesIn": "ISO forms library; FRM-ATTACH key HO0003 ALL"
+                },
+                {
+                  "name": "HO 01 42 — Special Provisions, Texas",
+                  "description": "TX amendatory aligning the ISO form with the Texas Insurance Code, including the 60-day cancellation restriction.",
+                  "livesIn": "ISO forms library; FRM-ATTACH key HO0142 STATE=TX mandatory"
+                },
+                {
+                  "name": "HO 04 90 — Personal Property Replacement Cost",
+                  "description": "Contents RCC endorsement, attached when selected.",
+                  "livesIn": "ISO forms library; FRM-ATTACH conditional"
+                },
+                {
+                  "name": "HO 04 95 — Water Back-Up and Sump Discharge or Overflow",
+                  "description": "Water backup endorsement form.",
+                  "livesIn": "ISO forms library; FRM-ATTACH conditional"
+                },
+                {
+                  "name": "Windstorm/hail percentage deductible endorsement",
+                  "description": "Carrier form stating the wind/hail deductible as a percentage of Coverage A with dollar translation on the dec.",
+                  "livesIn": "Forms library carrier form HO-WH-TX 02; FRM-ATTACH STATE=TX mandatory"
+                },
+                {
+                  "name": "TDI Consumer Bill of Rights (HO)",
+                  "description": "TDI-prescribed notice delivered with every new policy and renewal.",
+                  "livesIn": "Forms library TDI notice; print trigger HODEC190"
+                },
+                {
+                  "name": "Roof surfacing ACV schedule endorsement",
+                  "description": "Optional endorsement applying the ACV-by-roof-age settlement schedule for wind/hail roof losses.",
+                  "livesIn": "Forms library carrier form HO-RFS-TX 01; FRM-ATTACH conditional on credit flag"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "TDI file-and-use, SERFF-tracked",
+              "items": [
+                {
+                  "name": "SERFF rate filing CARR-HO-TX-2025-0090",
+                  "description": "v13 file-and-use rate filing: +11.4% overall driven by hail severity trend; usable on filing, subject to later TDI disapproval.",
+                  "livesIn": "SERFF tracking CARR-HO-TX-2025-0090; Filings_Log.xlsx row 198"
+                },
+                {
+                  "name": "File-and-use effective mechanics",
+                  "description": "Rates were used the day of filing per TX file-and-use; TDI issued no objection within the review window.",
+                  "livesIn": "Filings_Log.xlsx status column; TDI acknowledgment PDF"
+                },
+                {
+                  "name": "Form filing — TX endorsement set",
+                  "description": "Filing covering the foundation buy-back and roof ACV schedule carrier forms.",
+                  "livesIn": "SERFF CARR-HO-TX-2025-0104"
+                },
+                {
+                  "name": "Rule filing — insurance score model",
+                  "description": "TDI filing of the credit model and tier plan per TX Insurance Code chapter 559 requirements.",
+                  "livesIn": "SERFF CARR-HO-TX-2025-0091; model documentation appendix"
+                },
+                {
+                  "name": "TWIA / coastal underwriting rule deposit",
+                  "description": "Filed underwriting guideline noting Tier 1 wind exclusion practice, deposited with TDI as required for guideline changes.",
+                  "livesIn": "Filings_Log.xlsx row 201; guideline PDF in filings folder"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "Same CICS/batch spine, TX notice parameters",
+              "items": [
+                {
+                  "name": "Quote/bind via CICS QTE01–BND01",
+                  "description": "Identical green-screen flow to CA; TX-specific edits fire from the state code on the risk record.",
+                  "livesIn": "PAS A — CICS transactions QTE1/BND1"
+                },
+                {
+                  "name": "Nightly issuance batch HOISS190",
+                  "description": "Shared nightly issuance job; TX policies pick up the Bill of Rights insert flag.",
+                  "livesIn": "PAS A — JCL HOISS190"
+                },
+                {
+                  "name": "Renewal cycle at -45 days",
+                  "description": "HORNW045 renewal extract at 45 days with 6% inflation guard and re-rate on the current TX set.",
+                  "livesIn": "PAS A — JCL HORNW045"
+                },
+                {
+                  "name": "Cancellation — 60-day rule, 10-day notice",
+                  "description": "After 60 days in force, cancellation only for nonpayment, fraud or material risk change; 10 days written notice applies.",
+                  "livesIn": "PAS A — HOCANC170; ST-NOTICE table row TX; rule text in HO 01 42"
+                },
+                {
+                  "name": "Nonrenewal — 30-day notice, no hail-claim nonrenewal",
+                  "description": "30 days notice for nonrenewal; TX bars nonrenewal solely for claims resulting from natural causes including hail.",
+                  "livesIn": "PAS A — HORNW045 nonrenew gate; UW rules engine R-290"
+                },
+                {
+                  "name": "Endorsement transactions (EN-04/EN-11/EN-17)",
+                  "description": "Shared mid-term endorsement codes with pro-rata premium via RTG09.",
+                  "livesIn": "PAS A — CICS ENDR screens; TXN-TBL"
+                },
+                {
+                  "name": "Reinstatement and OOS handling",
+                  "description": "30-day reinstatement window with no-loss statement; OOS changes replay transactions manually as on all PAS A products.",
+                  "livesIn": "PAS A — REIN transaction; OOS procedure doc"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "version": "v12",
+          "jurisdiction": "US-FL",
+          "effective": "Eff. 01/2024",
+          "status": "Renewal only",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Florida book closed to NB, renewal-only rate set 12",
+              "items": [
+                {
+                  "name": "Product code HO3-FL",
+                  "description": "PRODMSTR product key for the Florida HO-3 program, statutory line 04; NB flag set to closed 06/2024.",
+                  "livesIn": "PAS A — PRODMSTR VSAM record HO3-FL, NB-STATUS C"
+                },
+                {
+                  "name": "Availability: renewal-only statewide",
+                  "description": "New business suspended after the 2023 reinsurance renewal; in-force policies renew subject to wind-exposure re-inspection.",
+                  "livesIn": "UW rules engine — HO_NB_ELIG_FL gate rule R-300 (hard stop); board memo in filings folder"
+                },
+                {
+                  "name": "Effective dating RB 01/01/2024",
+                  "description": "v12 renewal rates apply to renewals effective on/after 01/01/2024; no NB dating applies while the book is closed.",
+                  "livesIn": "PAS A — RTG01 rate-set selector; Filings_Log.xlsx row HO-FL-2023-12"
+                },
+                {
+                  "name": "Lineage v12 vs v11",
+                  "description": "v12 adds the OIR-mandated hurricane mitigation discount refresh, roof-age renewal gates and Citizens depopulation takeout tagging.",
+                  "livesIn": "Rate_Manual_HO.xlsx tab ChangeLog"
+                },
+                {
+                  "name": "Citizens takeout tagging",
+                  "description": "Policies assumed from Citizens in prior takeout rounds carry an assumption marker driving separate renewal rules.",
+                  "livesIn": "PAS A — POL-MSTR flag CIT-TAKEOUT; assumption files in filings folder"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "Coverages A–F plus FL statutory coverage set",
+              "items": [
+                {
+                  "name": "Coverage A — Dwelling",
+                  "description": "Open-perils dwelling at replacement cost; FL law requires offer of replacement-cost settlement without holdback options disclosed.",
+                  "livesIn": "PAS A — CVG-HO field CVG-A"
+                },
+                {
+                  "name": "Coverage B / C / D ladder",
+                  "description": "Other structures 10%, contents 50%, loss of use 30% of Coverage A per the national program.",
+                  "livesIn": "PAS A — CVG-HO fields CVG-B/C/D"
+                },
+                {
+                  "name": "Coverage E / F — Liability and Med Pay",
+                  "description": "Personal liability $100k/$300k and guest medical $1k/$5k.",
+                  "livesIn": "PAS A — CVG-HO fields CVG-E/CVG-F"
+                },
+                {
+                  "name": "Catastrophic Ground Cover Collapse",
+                  "description": "FL statutory peril included in every property policy; distinct from optional sinkhole coverage.",
+                  "livesIn": "PAS A — CVG-HO flag CGCC-INCL; FL statute reference in HO FL amendatory"
+                },
+                {
+                  "name": "Sinkhole Loss Coverage (optional endorsement)",
+                  "description": "Optional full sinkhole coverage FL insurers must make available, subject to inspection and a separate deductible.",
+                  "livesIn": "PAS A — FRM-ATTACH carrier form HO-SNK-FL 01; premium RTG08"
+                },
+                {
+                  "name": "Water Back-Up and Sump Discharge (HO 04 95)",
+                  "description": "Sewer/drain backup buy-back, $5k/$10k options in FL.",
+                  "livesIn": "PAS A — FRM-ATTACH HO0495"
+                },
+                {
+                  "name": "Screened enclosure / carport coverage",
+                  "description": "Buy-back limit for hurricane damage to screened pool enclosures, otherwise restricted under the FL program, $10k/$25k options.",
+                  "livesIn": "PAS A — FRM-ATTACH carrier form HO-SCR-FL 01; premium RTG08"
+                },
+                {
+                  "name": "Ordinance or Law 25% / 50%",
+                  "description": "FL requires offer of 25% ordinance-or-law with 50% option, priced via HO 04 77.",
+                  "livesIn": "PAS A — FRM-ATTACH HO0477; mandatory-offer edit QTE02"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "Hurricane deductible regime layered on AOP",
+              "items": [
+                {
+                  "name": "Hurricane deductible options $500 / 2% / 5% / 10%",
+                  "description": "FL statutory hurricane deductible options as a percentage of Coverage A, applying per calendar year rather than per event.",
+                  "livesIn": "PAS A — RTG04 HUR-DED table; calendar-year tracking flag in claims interface"
+                },
+                {
+                  "name": "Calendar-year hurricane deductible application",
+                  "description": "Once the hurricane deductible is met in a calendar year, later hurricane losses that year apply the AOP deductible.",
+                  "livesIn": "PAS A — POL-MSTR HUR-DED-MET indicator maintained by claims feed"
+                },
+                {
+                  "name": "AOP deductible options",
+                  "description": "All-other-perils flat deductibles $1,000 / $2,500 / $5,000.",
+                  "livesIn": "PAS A — RTG04; picklist QTE01"
+                },
+                {
+                  "name": "Sinkhole deductible 10%",
+                  "description": "Separate 10%-of-Coverage-A deductible on optional sinkhole loss coverage per FL statute.",
+                  "livesIn": "PAS A — RTG04 SNK-DED row FL"
+                },
+                {
+                  "name": "Coverage ladder off Coverage A",
+                  "description": "B/C/D at 10%/50%/30% of A, computed at rating.",
+                  "livesIn": "PAS A — RTG01 derivation"
+                },
+                {
+                  "name": "Insured-to-value floor with annual RCE refresh",
+                  "description": "FL renewals re-run the replacement-cost estimator annually given construction-cost inflation, adjusting Coverage A before rating.",
+                  "livesIn": "PAS A — HORNW045 calls RCE batch HORCE110"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "Wind-mitigation-credit-driven plan, renewal set 12",
+              "items": [
+                {
+                  "name": "Base rate per $1,000 Coverage A",
+                  "description": "FL base rates split into hurricane and non-hurricane premium components as OIR requires.",
+                  "livesIn": "PAS A — RTG01; Rate_Manual_HO.xlsx tab BaseRates-FL (HUR / NON-HUR columns)"
+                },
+                {
+                  "name": "Territory factor (coastal distance bands)",
+                  "description": "Territories keyed to distance-to-coast bands and county, dominating the hurricane component.",
+                  "livesIn": "PAS A — RTG02 TERR-FL-12"
+                },
+                {
+                  "name": "Wind mitigation credits (OIR-B1-1802)",
+                  "description": "Statutory discounts for roof shape (hip), roof-deck attachment, secondary water resistance and opening protection, evidenced by the uniform mitigation inspection form.",
+                  "livesIn": "PAS A — RTG05 WM-CRED-FL table; inspection PDFs indexed to policy in doc repository"
+                },
+                {
+                  "name": "Age of roof / roof condition factor",
+                  "description": "Roof-age curve with shingle/tile/metal splits; drives both rating and the renewal roof gate.",
+                  "livesIn": "PAS A — RTG05; Rate_Manual_HO.xlsx tab RoofAge"
+                },
+                {
+                  "name": "Protection class and construction",
+                  "description": "ISO PPC and masonry/frame relativities on the non-hurricane component.",
+                  "livesIn": "PAS A — RTG03"
+                },
+                {
+                  "name": "Building code effectiveness grade",
+                  "description": "BCEGS community grading factor applied to the hurricane component per the filed plan.",
+                  "livesIn": "PAS A — RTG03 BCEGS table"
+                },
+                {
+                  "name": "No insurance-score usage on FL renewal book",
+                  "description": "Score tiering was dropped from the FL plan at v11 to simplify the OIR filing; tier factors frozen at renewal.",
+                  "livesIn": "PAS A — RTG07 FL branch bypass"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "FL assessment stack from TAX-TBL",
+              "items": [
+                {
+                  "name": "FHCF cash build-up factor",
+                  "description": "Florida Hurricane Catastrophe Fund reimbursement premium loaded into the hurricane rate component per the filed derivation.",
+                  "livesIn": "PAS A — rate derivation exhibit, Rate_Manual_HO.xlsx tab FHCF; loaded via RTG01"
+                },
+                {
+                  "name": "Citizens policyholder surcharge line",
+                  "description": "Pass-through line for Citizens assessments when levied on the private market; currently 0%.",
+                  "livesIn": "PAS A — TAX-TBL row FL CITIZENS 0.000"
+                },
+                {
+                  "name": "FIGA assessment",
+                  "description": "Florida Insurance Guaranty Association assessment surcharge, applied at the levied percentage on covered lines.",
+                  "livesIn": "PAS A — TAX-TBL row FL FIGA (rate maintained per FIGA order)"
+                },
+                {
+                  "name": "EMPA surcharge $2",
+                  "description": "Emergency Management Preparedness and Assistance Trust Fund surcharge, flat $2 per residential policy.",
+                  "livesIn": "PAS A — FEE-TBL row FL EMPA 2.00"
+                },
+                {
+                  "name": "Policy fee $25",
+                  "description": "Flat policy fee on the FL program, disclosed on the dec.",
+                  "livesIn": "PAS A — FEE-TBL row HO3-FL POLFEE 25.00"
+                },
+                {
+                  "name": "Minimum premium $500 and rounding",
+                  "description": "Filed FL minimum annual premium; whole-dollar rounding in RTG09.",
+                  "livesIn": "PAS A — RTG09 MIN-PREM HO3-FL; RND-FINAL"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Renewal-book gates — roof, wind exposure, inspections",
+              "items": [
+                {
+                  "name": "New business hard stop",
+                  "description": "All FL new-business quotes are blocked at the eligibility gate while the book is closed.",
+                  "livesIn": "UW rules engine — rule R-300 hard stop; CICS QTE01 error HO-301"
+                },
+                {
+                  "name": "Coastal proximity — no wind within 1 mile of coast",
+                  "description": "Legacy NB rule retained for takeout endorsements: risks within 1 mile of the coast require wind exclusion or decline.",
+                  "livesIn": "UW rules engine — rule R-302; distance-to-coast feed"
+                },
+                {
+                  "name": "Roof age renewal gate — shingle over 15 years",
+                  "description": "Renewals with shingle roofs over 15 years require proof of 5 years remaining useful life per FL statute before nonrenewal is allowed to be rescinded.",
+                  "livesIn": "UW rules engine — rule R-311; inspection uploads in doc repository"
+                },
+                {
+                  "name": "Four-point inspection for homes 40+ years",
+                  "description": "Renewal retention requires a current four-point inspection (roof, electrical, plumbing, HVAC) on dwellings 40 years or older.",
+                  "livesIn": "UW rules engine — rule R-315"
+                },
+                {
+                  "name": "Open sinkhole activity — refer",
+                  "description": "Any prior sinkhole claim or nearby confirmed activity refers before the sinkhole endorsement can be added.",
+                  "livesIn": "UW rules engine — rule R-320"
+                },
+                {
+                  "name": "Polybutylene plumbing / FPE panel — decline retention exception",
+                  "description": "Known-defect systems require remediation evidence at renewal or the policy nonrenews.",
+                  "livesIn": "UW rules engine — rule R-318"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "ISO chassis + dense FL statutory notice set",
+              "items": [
+                {
+                  "name": "HO 00 03 (03/22) — Homeowners 3 Special Form",
+                  "description": "Base special form for the FL program.",
+                  "livesIn": "ISO forms library; FRM-ATTACH key HO0003 ALL"
+                },
+                {
+                  "name": "Special Provisions — Florida amendatory",
+                  "description": "FL amendatory endorsement carrying hurricane deductible mechanics, CGCC and statutory cancellation text.",
+                  "livesIn": "ISO forms library FL amendatory; FRM-ATTACH STATE=FL mandatory"
+                },
+                {
+                  "name": "Hurricane deductible notice",
+                  "description": "Statutory bold-type notice of the hurricane deductible percentage and dollar amount, required on the dec and at each renewal.",
+                  "livesIn": "PAS A — HODEC190 print line HUR-NTC; template in forms library"
+                },
+                {
+                  "name": "OIR-B1-1802 — Uniform Mitigation Verification Inspection",
+                  "description": "The uniform wind-mitigation inspection form whose findings drive statutory discounts.",
+                  "livesIn": "Forms library OIR form; completed inspections in doc repository indexed by policy"
+                },
+                {
+                  "name": "Notice of Premium Discounts for Hurricane Loss Mitigation",
+                  "description": "OIR-prescribed notice of available mitigation discounts delivered with the policy.",
+                  "livesIn": "Forms library OIR notice; print trigger HODEC190"
+                },
+                {
+                  "name": "Checklist of Coverage (OIR)",
+                  "description": "OIR standardized coverage checklist summarizing what the policy does and does not cover.",
+                  "livesIn": "Forms library OIR checklist; print trigger HODEC190"
+                },
+                {
+                  "name": "HO 04 77 / HO 04 95 endorsement forms",
+                  "description": "Ordinance-or-law increase and water backup endorsement forms attached per selection.",
+                  "livesIn": "ISO forms library; FRM-ATTACH conditional"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "FL OIR rate and form regime",
+              "items": [
+                {
+                  "name": "OIR rate filing (file-and-use) HO-FL-2023-12",
+                  "description": "v12 renewal rate filing submitted file-and-use through OIR I-File: +14.8% driven by reinsurance cost.",
+                  "livesIn": "OIR I-File reference in Filings_Log.xlsx row 183; SERFF cross-reference CARR-HO-FL-2023-0183"
+                },
+                {
+                  "name": "Actuarial certification and reinsurance exhibit",
+                  "description": "FL filings carry the signed actuarial certification and the private-reinsurance cost exhibit OIR scrutinizes.",
+                  "livesIn": "Filings folder exhibits; summarized in Rate_Manual_HO.xlsx tab FHCF"
+                },
+                {
+                  "name": "Form filing — FL notice set refresh",
+                  "description": "Form filing updating the hurricane deductible notice and coverage checklist to current OIR templates.",
+                  "livesIn": "SERFF CARR-HO-FL-2023-0190"
+                },
+                {
+                  "name": "Book-closure notification to OIR",
+                  "description": "Market-conduct notification of the NB suspension and renewal plan, as OIR expects for material capacity changes.",
+                  "livesIn": "Filings_Log.xlsx row 186; OIR correspondence PDF"
+                },
+                {
+                  "name": "Citizens takeout assumption filings",
+                  "description": "Historic assumption agreements for policies taken out of Citizens, governing their renewal offer obligations.",
+                  "livesIn": "Filings folder assumption agreements; POL-MSTR CIT-TAKEOUT flag"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "Renewal-only batch flow with FL statutory notice periods",
+              "items": [
+                {
+                  "name": "Renewal cycle at -45 days with early FL notice",
+                  "description": "HORNW045 extracts FL renewals at -45 days, but renewal premium notices are released earlier to meet FL advance-notice expectations.",
+                  "livesIn": "PAS A — JCL HORNW045; FL notice lead-time parameter ST-NOTICE row FL"
+                },
+                {
+                  "name": "Nonrenewal — 120 days notice",
+                  "description": "FL personal residential nonrenewal requires 120 days advance written notice.",
+                  "livesIn": "PAS A — HORNW045 nonrenew scheduler; ST-NOTICE row FL NONREN 120"
+                },
+                {
+                  "name": "Hurricane-season nonrenewal timing rule",
+                  "description": "Nonrenewals effective during hurricane season follow the statutory timing rule (notice at least 100 days ahead or by June 1, whichever is earlier).",
+                  "livesIn": "PAS A — HORNW045 FL season-gate logic; procedure doc"
+                },
+                {
+                  "name": "No cancellation during open hurricane claim repair",
+                  "description": "FL bars cancellation/nonrenewal of a policy with an open hurricane claim until 90 days after the dwelling is repaired.",
+                  "livesIn": "PAS A — HOCANC170 claim-hold check against claims feed"
+                },
+                {
+                  "name": "Cancellation — pro-rata, statutory notice",
+                  "description": "Company cancellations are pro-rata with statutory FL notice (10 days nonpayment; 45 days most other grounds after 90 days in force).",
+                  "livesIn": "PAS A — HOCANC170; ST-NOTICE row FL"
+                },
+                {
+                  "name": "Endorsement and OOS handling",
+                  "description": "Shared EN-xx endorsement codes; OOS replay is manual, and hurricane-deductible-met indicators must be preserved through replay.",
+                  "livesIn": "PAS A — CICS ENDR; OOS procedure doc FL addendum"
+                },
+                {
+                  "name": "Print and delivery via vendor batch",
+                  "description": "FL notice set (hurricane notice, checklist, mitigation notice) assembles in the nightly print extract with certified-mail flags for nonrenewals.",
+                  "livesIn": "PAS A — HODEC190 / HONOTC195 print extracts"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PA Personal Auto 6-mo",
+      "lob": "Auto / Motor",
+      "runsIn": "PAS B",
+      "description": "Six-month private-passenger auto policy on the ISO PP 00 01 chassis, administered on PAS B with portal/API quoting; state class plans differ sharply (CA Prop 103 sequential rating vs OH credit-tiered file-and-use).",
+      "versions": [
+        {
+          "version": "v9",
+          "jurisdiction": "US-CA",
+          "effective": "Eff. 03/2026",
+          "status": "Active",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Admitted PPA, CA class plan v9",
+              "items": [
+                {
+                  "name": "Product code PPA6-CA",
+                  "description": "PAS B product key for the California 6-month personal auto program, statutory line 19 (private passenger auto).",
+                  "livesIn": "PAS B — product table PRODUCT row PPA6-CA, LOB 19"
+                },
+                {
+                  "name": "Program: Good Driver-compliant PPA",
+                  "description": "Program is structured around the statutory Good Driver contract offer required by CIC 1861.02 — good drivers cannot be refused.",
+                  "livesIn": "PAS B — eligibility service GD-OFFER flag; class plan doc in filings folder"
+                },
+                {
+                  "name": "Availability: CA statewide",
+                  "description": "All CA counties live; rideshare use requires the TNC endorsement or is ineligible.",
+                  "livesIn": "PAS B — availability config PPA6-CA; UW rules engine AUTO_NB_ELIG_CA"
+                },
+                {
+                  "name": "Effective dating NB 03/01/2026, RB 04/15/2026",
+                  "description": "v9 rates apply per the CDI-approved implementation dates for new business and renewals.",
+                  "livesIn": "PAS B — rate-set effective config; Filings_Log.xlsx row PA-CA-2025-09"
+                },
+                {
+                  "name": "Lineage v9 vs v8",
+                  "description": "v9 refreshes the sequential-analysis factor order, adds distance-based annual-mileage verification and retires the paper mileage self-certification.",
+                  "livesIn": "PAS B — release notes RN-PPA6-CA-09; class plan filing exhibit"
+                },
+                {
+                  "name": "6-month term structure",
+                  "description": "Semi-annual policy term with two terms per rate revision cycle, enabling faster rate reflection than annual HO.",
+                  "livesIn": "PAS B — term config TERM-6M on PPA6-CA"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "Split-limit liability package with CA statutory minimums",
+              "items": [
+                {
+                  "name": "Bodily Injury Liability",
+                  "description": "Third-party BI liability; CA financial-responsibility minimum 15/30 ($15k per person / $30k per accident).",
+                  "livesIn": "PAS B — coverage master CVG-AUTO code BI; limits table LMT-BI"
+                },
+                {
+                  "name": "Property Damage Liability",
+                  "description": "Third-party PD liability; CA minimum $5,000 per accident.",
+                  "livesIn": "PAS B — CVG-AUTO code PD; LMT-PD"
+                },
+                {
+                  "name": "Uninsured Motorist Bodily Injury",
+                  "description": "UM BI at 15/30 minimum, mandatory in CA unless waived in writing under CIC 11580.2.",
+                  "livesIn": "PAS B — CVG-AUTO code UMBI; waiver flag UM-WAIVED with e-sign record"
+                },
+                {
+                  "name": "Uninsured Motorist Property Damage",
+                  "description": "UMPD with the CA statutory $3,500 limit, available when the vehicle carries no collision coverage.",
+                  "livesIn": "PAS B — CVG-AUTO code UMPD, fixed limit 3500"
+                },
+                {
+                  "name": "Medical Payments",
+                  "description": "Optional med pay $1,000–$10,000 per person regardless of fault.",
+                  "livesIn": "PAS B — CVG-AUTO code MEDPAY; LMT-MP"
+                },
+                {
+                  "name": "Collision",
+                  "description": "Damage to the insured auto from collision or upset, subject to the per-vehicle deductible.",
+                  "livesIn": "PAS B — CVG-AUTO code COLL; vehicle-level deductible field"
+                },
+                {
+                  "name": "Other Than Collision (Comprehensive)",
+                  "description": "OTC physical damage — theft, glass, fire, animal strike — per vehicle with its own deductible.",
+                  "livesIn": "PAS B — CVG-AUTO code OTC"
+                },
+                {
+                  "name": "Rental Reimbursement (Transportation Expenses)",
+                  "description": "Rental car reimbursement at $30/day, $900 max, requiring OTC on the vehicle.",
+                  "livesIn": "PAS B — CVG-AUTO code RENTAL; PP 03 02 attach rule"
+                },
+                {
+                  "name": "Roadside / Towing and Labor",
+                  "description": "Towing and labor at disablement, $75/$100/$150 per disablement options.",
+                  "livesIn": "PAS B — CVG-AUTO code TOWING; PP 03 03 attach rule"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "Split limits vs CSL, per-vehicle deductibles, UM waiver mechanics",
+              "items": [
+                {
+                  "name": "Split-limit ladder 15/30/5 to 250/500/100",
+                  "description": "BI/PD split limits from the CA statutory floor to 250/500/100; UM/UIM cannot exceed the BI limits selected.",
+                  "livesIn": "PAS B — LMT-BI / LMT-PD ladders; UM cap edit in quote service"
+                },
+                {
+                  "name": "Combined single limit option $300k / $500k",
+                  "description": "CSL alternative to split limits for umbrella-alignment, mapped to equivalent split limits for rating.",
+                  "livesIn": "PAS B — LMT-CSL table with SPLIT-EQUIV mapping"
+                },
+                {
+                  "name": "Collision deductible options $250–$1,000",
+                  "description": "Per-vehicle collision deductibles $250 / $500 / $750 / $1,000.",
+                  "livesIn": "PAS B — DED-COLL picklist, vehicle level"
+                },
+                {
+                  "name": "OTC deductible options $100–$1,000",
+                  "description": "Per-vehicle OTC deductibles with full-glass $0 option where selected.",
+                  "livesIn": "PAS B — DED-OTC picklist; glass flag"
+                },
+                {
+                  "name": "UM waiver — signed writing required",
+                  "description": "UM BI reduction or deletion below 15/30 requires the insured's signed waiver retained with the policy record.",
+                  "livesIn": "PAS B — UM-WAIVED flag + e-signature document id in doc store"
+                },
+                {
+                  "name": "Newly acquired auto grace",
+                  "description": "Replacement autos carry broadest existing coverage automatically for 14 days pending endorsement per PP 00 01 provisions.",
+                  "livesIn": "PAS B — policy provision reference; endorsement txn ADD-VEH backdating rule"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "Prop 103 sequential analysis — mandatory factors first",
+              "items": [
+                {
+                  "name": "Mandatory factor 1 — driving safety record",
+                  "description": "Prop 103 requires driving record as the first and most heavily weighted rating factor, from DMV points and at-fault accidents.",
+                  "livesIn": "PAS B — rating service DRV-RATE step 1; MVR feed at quote"
+                },
+                {
+                  "name": "Mandatory factor 2 — annual miles driven",
+                  "description": "Second sequential factor; v9 verifies via odometer/telematics-derived distance bands instead of self-certification.",
+                  "livesIn": "PAS B — DRV-RATE step 2; mileage verification service"
+                },
+                {
+                  "name": "Mandatory factor 3 — years of driving experience",
+                  "description": "Third sequential factor, replacing raw driver age which cannot lead in CA.",
+                  "livesIn": "PAS B — DRV-RATE step 3"
+                },
+                {
+                  "name": "Optional factors (sequentially constrained)",
+                  "description": "CDI-approved optional factors (vehicle characteristics, multi-car, academic standing) whose combined weight cannot exceed the mandatory factors under sequential analysis.",
+                  "livesIn": "PAS B — DRV-RATE optional factor block; sequential-analysis exhibit in class plan filing"
+                },
+                {
+                  "name": "Good Driver discount 20%",
+                  "description": "Statutory 20% discount for qualifying good drivers (licensed 3+ years, at most 1 point), applied after all other factors.",
+                  "livesIn": "PAS B — DRV-RATE GD-DISC 0.80 multiplier; eligibility from MVR"
+                },
+                {
+                  "name": "No credit, gender, ZIP-led or occupation rating",
+                  "description": "Insurance score, gender and occupation/education are excluded from the CA plan; territory operates only as a constrained optional factor.",
+                  "livesIn": "PAS B — DRV-RATE CA plan config (factors disabled); class plan doc"
+                },
+                {
+                  "name": "Vehicle symbol and model-year factors",
+                  "description": "Physical damage rated by ISO vehicle symbol and model year per vehicle.",
+                  "livesIn": "PAS B — VEH-SYMBOL table from ISO feed"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "Fee-light CA structure — loads live in the approved rate",
+              "items": [
+                {
+                  "name": "No carrier policy fee",
+                  "description": "CA prior approval prices expenses inside the rate; the carrier charges no separate policy fee on PPA6-CA.",
+                  "livesIn": "PAS B — fee config PPA6-CA POLFEE 0.00"
+                },
+                {
+                  "name": "Installment fee $5 / EFT $2",
+                  "description": "Per-installment fees on the 5-pay plan, reduced for EFT enrollment.",
+                  "livesIn": "PAS B — billing config INSTFEE rows"
+                },
+                {
+                  "name": "CA fraud assessment fee (per vehicle)",
+                  "description": "Statutory auto fraud and analysis fees collected per insured vehicle and remitted to the state.",
+                  "livesIn": "PAS B — fee config CA-FRAUD-FEE per-vehicle line; remittance report to finance"
+                },
+                {
+                  "name": "CIGA recoupment line (currently 0%)",
+                  "description": "California Insurance Guarantee Association recoupment surcharge placeholder on auto lines.",
+                  "livesIn": "PAS B — tax config CA CIGA 0.000"
+                },
+                {
+                  "name": "Minimum premium $75 per term",
+                  "description": "Filed minimum premium per 6-month term after all discounts.",
+                  "livesIn": "PAS B — rating service MIN-PREM PPA6-CA"
+                },
+                {
+                  "name": "Whole-dollar rounding at term level",
+                  "description": "Premium rounds to whole dollars per coverage then re-balances at term total.",
+                  "livesIn": "PAS B — rating service rounding step"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Good-Driver mandatory offer bounded by hard declines",
+              "items": [
+                {
+                  "name": "Good Driver mandatory acceptance",
+                  "description": "Applicants meeting the statutory Good Driver definition cannot be declined for the good-driver contract, overriding most soft rules.",
+                  "livesIn": "UW rules engine — AUTO_NB_ELIG_CA rule A-001 (override tier); GD check via MVR"
+                },
+                {
+                  "name": "More than 2 at-fault accidents in 36 months — decline (non-GD)",
+                  "description": "Frequency decline for non-good-driver applicants with 3+ chargeable accidents in 3 years.",
+                  "livesIn": "UW rules engine — rule A-014; MVR + CLUE-Auto feeds"
+                },
+                {
+                  "name": "SR-22 filing — accept with filing fee, surcharge via points",
+                  "description": "SR-22 requests are accepted; the filing is issued electronically to CA DMV and the underlying violation rates through the point system.",
+                  "livesIn": "PAS B — SR22-FILING service to DMV; fee config SR22 $25"
+                },
+                {
+                  "name": "DUI within 10 years — refer (non-GD ineligible for GD rate)",
+                  "description": "DUI convictions disqualify Good Driver status per statute and refer to underwriting on the standard tier.",
+                  "livesIn": "UW rules engine — rule A-020; MVR violation codes"
+                },
+                {
+                  "name": "TNC / rideshare use — endorsement required",
+                  "description": "Rideshare drivers must attach the TNC-gap endorsement; undisclosed TNC use found at claim triggers rescission review.",
+                  "livesIn": "UW rules engine — rule A-032; endorsement form in PAS B forms config"
+                },
+                {
+                  "name": "Salvage / branded title — physical damage refer",
+                  "description": "Branded-title vehicles are eligible for liability only unless underwriting approves physical damage with photos.",
+                  "livesIn": "UW rules engine — rule A-041; VIN brand check via vendor"
+                },
+                {
+                  "name": "Unlisted household drivers — exclude or rate",
+                  "description": "All licensed household members must be listed, rated or formally excluded by named-driver exclusion.",
+                  "livesIn": "UW rules engine — rule A-050; household discovery report at NB and renewal"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "PP program forms + CA statutory endorsements",
+              "items": [
+                {
+                  "name": "PP 00 01 (09/18) — Personal Auto Policy",
+                  "description": "Base ISO personal auto policy form.",
+                  "livesIn": "ISO forms library; PAS B form-attach rule PP0001 ALL"
+                },
+                {
+                  "name": "Amendment of Policy Provisions — California",
+                  "description": "CA amendatory endorsement (PP 01-series state amendment) aligning cancellation, nonrenewal and UM provisions with the Insurance Code.",
+                  "livesIn": "ISO forms library CA amendatory; form-attach STATE=CA mandatory"
+                },
+                {
+                  "name": "California UM/UIM coverage endorsement",
+                  "description": "State-specific UM BI/UMPD endorsement implementing CIC 11580.2 terms.",
+                  "livesIn": "ISO forms library CA UM form; attach with UMBI/UMPD coverage"
+                },
+                {
+                  "name": "UM waiver form (CIC 11580.2(a))",
+                  "description": "Statutory waiver signed to delete or reduce UM below default limits, retained as a policy document.",
+                  "livesIn": "PAS B — e-sign document type UM-WVR in doc store"
+                },
+                {
+                  "name": "PP 03 02 — Increased Limits Transportation Expenses",
+                  "description": "Rental reimbursement limit endorsement.",
+                  "livesIn": "ISO forms library; attach with RENTAL coverage"
+                },
+                {
+                  "name": "PP 03 03 — Towing and Labor Costs Coverage",
+                  "description": "Roadside/towing endorsement form.",
+                  "livesIn": "ISO forms library; attach with TOWING coverage"
+                },
+                {
+                  "name": "TNC coverage endorsement (period 1 gap)",
+                  "description": "Carrier endorsement covering the app-on/no-passenger gap for rideshare drivers.",
+                  "livesIn": "PAS B forms config carrier form PA-TNC-CA 02"
+                },
+                {
+                  "name": "CA Low Cost Auto program notice",
+                  "description": "Required consumer notice about the California Low Cost Automobile program for income-eligible drivers.",
+                  "livesIn": "Forms library CA notice; print trigger in PAS B document pipeline"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "CDI prior approval with class plan + rate application",
+              "items": [
+                {
+                  "name": "SERFF rate application CARR-PA-CA-2025-0072",
+                  "description": "v9 prior-approval rate application: +5.4% overall, with the ratemaking template exhibits CDI requires.",
+                  "livesIn": "SERFF tracking CARR-PA-CA-2025-0072; Filings_Log.xlsx row 220"
+                },
+                {
+                  "name": "Class plan filing — sequential analysis",
+                  "description": "Class plan demonstrating mandatory-factor ordering and optional-factor weight compliance per CCR 2632.5/2632.7.",
+                  "livesIn": "SERFF CARR-PA-CA-2025-0073; sequential-analysis workbook in filings folder"
+                },
+                {
+                  "name": "Good Driver rate relationship exhibit",
+                  "description": "Exhibit proving the good-driver rate is at least 20% below the comparable non-good-driver rate.",
+                  "livesIn": "Filings folder exhibit; referenced in Filings_Log.xlsx"
+                },
+                {
+                  "name": "Intervenor exposure note",
+                  "description": "Application flagged for potential intervenor challenge; 60-day public notice period tracked before deemer.",
+                  "livesIn": "Filings_Log.xlsx notes column; CDI public notice record"
+                },
+                {
+                  "name": "Mileage verification methodology filing",
+                  "description": "Supplemental filing describing the odometer/telematics distance-band verification replacing self-certification.",
+                  "livesIn": "SERFF CARR-PA-CA-2025-0074"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "API quote/bind on PAS B, -30d renewals, CA notice rules",
+              "items": [
+                {
+                  "name": "Quote via portal/API with MVR at quote",
+                  "description": "Agent portal and aggregator API quoting; MVR and household discovery ordered at final quote before bind.",
+                  "livesIn": "PAS B — quote service QTE-API; MVR vendor integration"
+                },
+                {
+                  "name": "Bind with e-signature package",
+                  "description": "Bind collects e-signatures (application, UM selection/waiver) and activates coverage same-day with ID cards issued digitally.",
+                  "livesIn": "PAS B — bind service + e-sign integration; ID card generator"
+                },
+                {
+                  "name": "Renewal cycle at -30 days",
+                  "description": "Renewal batch prepares 6-month renewal offers 30 days before expiration with refreshed MVR on a sampled basis.",
+                  "livesIn": "PAS B — renewal job RNWL-030 nightly"
+                },
+                {
+                  "name": "Endorsement transactions — ADD-VEH / REPL-VEH / ADD-DRV / AMD-CVG",
+                  "description": "Mid-term changes as discrete transaction types with pro-rata premium effect from the change date.",
+                  "livesIn": "PAS B — transaction catalog TXN-PPA6; pro-rata engine"
+                },
+                {
+                  "name": "Cancellation — CA 20/10 notice, pro-rata",
+                  "description": "Mid-term cancellation only for statutory grounds after 60 days; 20 days notice (10 for nonpayment), pro-rata return premium.",
+                  "livesIn": "PAS B — cancellation service; state notice table row CA 20/10"
+                },
+                {
+                  "name": "Nonrenewal — 30 days notice with reason",
+                  "description": "CA auto nonrenewal requires 30 days advance notice stating the specific reason.",
+                  "livesIn": "PAS B — renewal job nonrenew path; notice template in doc pipeline"
+                },
+                {
+                  "name": "Reinstatement without lapse (payment received in grace)",
+                  "description": "Payments posted within the statutory grace window void the pending cancellation without a coverage gap.",
+                  "livesIn": "PAS B — billing service cancel-rescind logic"
+                },
+                {
+                  "name": "Out-of-sequence endorsement auto-replay",
+                  "description": "PAS B replays affected transactions automatically in effective-date order — a key improvement over PAS A's manual OOS handling.",
+                  "livesIn": "PAS B — OOS engine in policy service"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "version": "v8",
+          "jurisdiction": "US-OH",
+          "effective": "Eff. 09/2025",
+          "status": "Active",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Admitted PPA, Ohio file-and-use plan v8",
+              "items": [
+                {
+                  "name": "Product code PPA6-OH",
+                  "description": "PAS B product key for the Ohio 6-month personal auto program, statutory line 19.",
+                  "livesIn": "PAS B — product table PRODUCT row PPA6-OH"
+                },
+                {
+                  "name": "Availability: OH statewide",
+                  "description": "All Ohio counties live with no coastal or cat-zone restrictions; deer-strike frequency shapes OTC territories.",
+                  "livesIn": "PAS B — availability config PPA6-OH"
+                },
+                {
+                  "name": "Effective dating NB 09/01/2025, RB 10/15/2025",
+                  "description": "v8 rates in use from filing under Ohio file-and-use for both new business and renewals.",
+                  "livesIn": "PAS B — rate-set effective config; Filings_Log.xlsx row PA-OH-2025-08"
+                },
+                {
+                  "name": "Lineage v8 vs v7",
+                  "description": "v8 refreshes the credit-tier model to the latest vendor score version, adds violation-free renewal credit and re-draws two Cleveland-metro territories.",
+                  "livesIn": "PAS B — release notes RN-PPA6-OH-08"
+                },
+                {
+                  "name": "6-month term structure",
+                  "description": "Semi-annual term matching the CA program, enabling common renewal machinery.",
+                  "livesIn": "PAS B — term config TERM-6M"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "Split-limit package with OH 25/50/25 minimums",
+              "items": [
+                {
+                  "name": "Bodily Injury Liability",
+                  "description": "Third-party BI liability; Ohio financial-responsibility minimum 25/50 ($25k per person / $50k per accident).",
+                  "livesIn": "PAS B — CVG-AUTO code BI; LMT-BI OH ladder"
+                },
+                {
+                  "name": "Property Damage Liability",
+                  "description": "Third-party PD liability; Ohio minimum $25,000 per accident.",
+                  "livesIn": "PAS B — CVG-AUTO code PD; LMT-PD"
+                },
+                {
+                  "name": "UM/UIM Bodily Injury (optional in OH)",
+                  "description": "Uninsured/underinsured motorist BI is optional in Ohio — no mandatory offer since 2001 — sold at limits up to the BI selection.",
+                  "livesIn": "PAS B — CVG-AUTO codes UMBI/UIMBI, optional flag OH"
+                },
+                {
+                  "name": "Medical Payments",
+                  "description": "Optional med pay $1,000–$10,000 per person.",
+                  "livesIn": "PAS B — CVG-AUTO code MEDPAY"
+                },
+                {
+                  "name": "Collision",
+                  "description": "Collision physical damage per vehicle with selected deductible.",
+                  "livesIn": "PAS B — CVG-AUTO code COLL"
+                },
+                {
+                  "name": "Other Than Collision (Comprehensive)",
+                  "description": "OTC physical damage including animal collision — a leading OH peril in deer season.",
+                  "livesIn": "PAS B — CVG-AUTO code OTC"
+                },
+                {
+                  "name": "Rental Reimbursement",
+                  "description": "Rental at $30/day, $900 maximum, requires OTC.",
+                  "livesIn": "PAS B — CVG-AUTO code RENTAL; PP 03 02"
+                },
+                {
+                  "name": "Roadside / Towing and Labor",
+                  "description": "Towing and labor per disablement, $75/$100/$150 options.",
+                  "livesIn": "PAS B — CVG-AUTO code TOWING; PP 03 03"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "Split limits vs CSL, per-vehicle deductibles",
+              "items": [
+                {
+                  "name": "Split-limit ladder 25/50/25 to 250/500/100",
+                  "description": "BI/PD ladders starting at the Ohio statutory floor.",
+                  "livesIn": "PAS B — LMT-BI / LMT-PD OH ladders"
+                },
+                {
+                  "name": "CSL option $300k / $500k",
+                  "description": "Combined single limit alternative for umbrella alignment.",
+                  "livesIn": "PAS B — LMT-CSL table"
+                },
+                {
+                  "name": "Collision deductibles $250–$1,000",
+                  "description": "Per-vehicle collision deductible picklist.",
+                  "livesIn": "PAS B — DED-COLL"
+                },
+                {
+                  "name": "OTC deductibles $100–$1,000 with glass option",
+                  "description": "Per-vehicle OTC deductibles; $0 full-glass buy-up available in OH.",
+                  "livesIn": "PAS B — DED-OTC; glass flag"
+                },
+                {
+                  "name": "UM/UIM selection recorded (no statutory form)",
+                  "description": "UM/UIM election or rejection is captured in the application since Ohio no longer prescribes an offer form.",
+                  "livesIn": "PAS B — application data UM-ELECT field"
+                },
+                {
+                  "name": "Newly acquired auto grace",
+                  "description": "14-day automatic coverage for replacement autos per PP 00 01 provisions.",
+                  "livesIn": "PAS B — ADD-VEH backdating rule"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "Credit-tiered multiplicative plan (no Prop 103 constraints)",
+              "items": [
+                {
+                  "name": "Driver age / experience factors",
+                  "description": "Driver age and licensed-years curves applied per rated driver — permissible as primary factors in Ohio.",
+                  "livesIn": "PAS B — DRV-RATE OH plan, driver factor block"
+                },
+                {
+                  "name": "Credit-based insurance score tiers",
+                  "description": "Vendor insurance score mapped to 12 rating tiers, allowed in OH with FCRA adverse-action notice on rate-ups.",
+                  "livesIn": "PAS B — SCORE-TIER table; adverse-action letter trigger in doc pipeline"
+                },
+                {
+                  "name": "Violation points (OH BMV)",
+                  "description": "Point factors from BMV-coded violations and at-fault accidents over 35 months.",
+                  "livesIn": "PAS B — DRV-RATE point schedule; MVR feed"
+                },
+                {
+                  "name": "Annual mileage bands",
+                  "description": "Self-reported mileage bands with vendor odometer check at renewal.",
+                  "livesIn": "PAS B — mileage band factor table"
+                },
+                {
+                  "name": "Territory factor",
+                  "description": "Garaging-ZIP territories including the v8 Cleveland-metro redraw; unconstrained territory rating is permitted in OH.",
+                  "livesIn": "PAS B — TERR-OH-08 table"
+                },
+                {
+                  "name": "Vehicle symbol / model year",
+                  "description": "ISO symbol and model-year physical damage factors per vehicle.",
+                  "livesIn": "PAS B — VEH-SYMBOL table"
+                },
+                {
+                  "name": "Multi-car and companion-policy discounts",
+                  "description": "Multi-vehicle and HO-companion discounts stack multiplicatively per the filed rule.",
+                  "livesIn": "PAS B — discount config PPA6-OH"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "Modest fee schedule under OH file-and-use",
+              "items": [
+                {
+                  "name": "Policy fee $15 per term",
+                  "description": "Flat per-term policy fee, permitted in Ohio and disclosed on the dec.",
+                  "livesIn": "PAS B — fee config PPA6-OH POLFEE 15.00"
+                },
+                {
+                  "name": "Installment fee $4 / EFT $1",
+                  "description": "Per-installment fee reduced for EFT autopay.",
+                  "livesIn": "PAS B — billing config"
+                },
+                {
+                  "name": "Late fee $10",
+                  "description": "Flat late fee after the due-date grace window.",
+                  "livesIn": "PAS B — billing config LATE-FEE"
+                },
+                {
+                  "name": "SR-22 / financial responsibility filing fee $20",
+                  "description": "Fee per SR-22 electronic filing with Ohio BMV.",
+                  "livesIn": "PAS B — fee config SR22-OH"
+                },
+                {
+                  "name": "Minimum premium $60 per term",
+                  "description": "Filed minimum 6-month premium after discounts.",
+                  "livesIn": "PAS B — rating service MIN-PREM PPA6-OH"
+                },
+                {
+                  "name": "Whole-dollar rounding",
+                  "description": "Coverage-level whole-dollar rounding with term-total rebalance.",
+                  "livesIn": "PAS B — rating service rounding step"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Conventional tiered acceptance without CA-style overrides",
+              "items": [
+                {
+                  "name": "More than 2 at-fault accidents in 36 months — decline",
+                  "description": "Frequency decline applies to all applicants; no statutory acceptance override exists in Ohio.",
+                  "livesIn": "UW rules engine — AUTO_NB_ELIG_OH rule A-114"
+                },
+                {
+                  "name": "DUI/OVI within 5 years — decline; 5–10 years refer",
+                  "description": "Ohio OVI convictions decline inside 5 years and refer with SR-22 handling to 10 years.",
+                  "livesIn": "UW rules engine — rule A-120; BMV violation codes"
+                },
+                {
+                  "name": "SR-22 / bond filings — accept with fee",
+                  "description": "Ohio financial-responsibility filings are issued electronically to BMV for eligible referred risks.",
+                  "livesIn": "PAS B — SR22 filing service (BMV); fee config"
+                },
+                {
+                  "name": "Branded-title vehicles — liability only",
+                  "description": "Salvage/rebuilt titles are ineligible for physical damage without underwriter photo review.",
+                  "livesIn": "UW rules engine — rule A-141"
+                },
+                {
+                  "name": "Undisclosed household drivers — rate or exclude",
+                  "description": "Household discovery at NB and renewal; unlisted licensed members must be added or excluded by endorsement.",
+                  "livesIn": "UW rules engine — rule A-150"
+                },
+                {
+                  "name": "Adverse-action notice on credit-driven rate-ups",
+                  "description": "FCRA adverse-action letters are generated automatically when the credit tier worsens the premium.",
+                  "livesIn": "PAS B — doc pipeline trigger ADV-ACT; SCORE-TIER comparison"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "PP program forms + OH amendatory set",
+              "items": [
+                {
+                  "name": "PP 00 01 (09/18) — Personal Auto Policy",
+                  "description": "Base ISO personal auto policy form.",
+                  "livesIn": "ISO forms library; form-attach PP0001 ALL"
+                },
+                {
+                  "name": "Amendment of Policy Provisions — Ohio",
+                  "description": "OH amendatory endorsement carrying state cancellation/nonrenewal and financial-responsibility text.",
+                  "livesIn": "ISO forms library OH amendatory; form-attach STATE=OH mandatory"
+                },
+                {
+                  "name": "Ohio UM/UIM coverage endorsement",
+                  "description": "State UM/UIM endorsement attached when the optional coverage is purchased.",
+                  "livesIn": "ISO forms library OH UM form; attach with UMBI/UIMBI"
+                },
+                {
+                  "name": "PP 03 02 — Increased Limits Transportation Expenses",
+                  "description": "Rental reimbursement endorsement.",
+                  "livesIn": "ISO forms library; attach with RENTAL"
+                },
+                {
+                  "name": "PP 03 03 — Towing and Labor Costs Coverage",
+                  "description": "Roadside/towing endorsement.",
+                  "livesIn": "ISO forms library; attach with TOWING"
+                },
+                {
+                  "name": "Ohio ID card (BMV-compliant)",
+                  "description": "Insurance identification card meeting Ohio proof-of-financial-responsibility format, issued digitally at bind.",
+                  "livesIn": "PAS B — ID card generator template OH"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "OH file-and-use through SERFF",
+              "items": [
+                {
+                  "name": "SERFF rate filing CARR-PA-OH-2025-0055",
+                  "description": "v8 file-and-use rate revision: +7.9% overall, effective on filing date per Ohio law.",
+                  "livesIn": "SERFF tracking CARR-PA-OH-2025-0055; Filings_Log.xlsx row 217"
+                },
+                {
+                  "name": "Credit model rule filing",
+                  "description": "Filing of the updated vendor score version and tier mapping with the required model documentation.",
+                  "livesIn": "SERFF CARR-PA-OH-2025-0056"
+                },
+                {
+                  "name": "Form filing — OH endorsement refresh",
+                  "description": "Form filing for the updated OH amendatory edition.",
+                  "livesIn": "SERFF CARR-PA-OH-2025-0060"
+                },
+                {
+                  "name": "ODI objection-window tracking",
+                  "description": "Ohio DOI may disapprove within the review window after use begins; the log tracks the window close date per filing.",
+                  "livesIn": "Filings_Log.xlsx columns Status / WindowClose"
+                },
+                {
+                  "name": "Territory redraw supporting exhibit",
+                  "description": "Actuarial support for the Cleveland-metro territory changes included with the rate filing.",
+                  "livesIn": "Filings folder exhibit; referenced in SERFF filing"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "Shared PAS B machinery, OH notice parameters and 2-year rule",
+              "items": [
+                {
+                  "name": "Quote via portal/API with MVR at quote",
+                  "description": "Same PAS B quote flow as CA with the OH plan config; BMV MVR ordered at final quote.",
+                  "livesIn": "PAS B — quote service QTE-API, plan OH"
+                },
+                {
+                  "name": "Bind with digital ID cards",
+                  "description": "Bind issues OH-format ID cards immediately and reports to the state verification system.",
+                  "livesIn": "PAS B — bind service; OH insurance verification feed"
+                },
+                {
+                  "name": "Renewal cycle at -30 days",
+                  "description": "Renewal offers generated 30 days ahead; credit re-order only at 24-month intervals per program rule.",
+                  "livesIn": "PAS B — renewal job RNWL-030"
+                },
+                {
+                  "name": "Ohio 2-year guarantee period",
+                  "description": "After 90 days, cancellation/nonrenewal is restricted to statutory grounds until the biennial anniversary under Ohio's two-year rule.",
+                  "livesIn": "PAS B — cancellation service OH guard; biennial anniversary tracker"
+                },
+                {
+                  "name": "Cancellation notice — 10 days nonpay / 30 days other",
+                  "description": "Statutory Ohio notice periods applied by reason code, pro-rata return premium.",
+                  "livesIn": "PAS B — state notice table row OH"
+                },
+                {
+                  "name": "Endorsement transactions (ADD-VEH / REPL-VEH / ADD-DRV / AMD-CVG)",
+                  "description": "Shared PAS B transaction catalog with pro-rata premium effect.",
+                  "livesIn": "PAS B — transaction catalog TXN-PPA6"
+                },
+                {
+                  "name": "OOS auto-replay",
+                  "description": "Out-of-sequence changes replay automatically in effective-date order on PAS B.",
+                  "livesIn": "PAS B — OOS engine"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Dwelling Fire DP-3",
+      "lob": "Homeowners / Property",
+      "runsIn": "PAS A",
+      "description": "Landlord/tenant-occupied dwelling program on the ISO DP 00 03 special form, in runoff since 2023; multi-state book administered on PAS A with a single national rate set and per-state deductible schedules.",
+      "versions": [
+        {
+          "version": "v5",
+          "jurisdiction": "US multi-state",
+          "effective": "Eff. 01/2023",
+          "status": "Runoff",
+          "components": [
+            {
+              "name": "Product Taxonomy",
+              "expression": "Runoff dwelling-fire program, national rate set 5",
+              "items": [
+                {
+                  "name": "Product code DP3-ML",
+                  "description": "PRODMSTR product key for the multi-state DP-3 program, statutory line 01 (fire) / 02.1 (allied lines) split.",
+                  "livesIn": "PAS A — PRODMSTR VSAM record DP3-ML, NB-STATUS C"
+                },
+                {
+                  "name": "Program: DP-3 Special Form, landlord occupancy",
+                  "description": "Open-perils dwelling program for tenant-occupied 1-4 family dwellings; owner-occupied risks were steered to HO-3.",
+                  "livesIn": "PAS A — PRODMSTR PROGRAM-ID DP3; occupancy edit on QTE01"
+                },
+                {
+                  "name": "Availability: runoff in 22 states",
+                  "description": "New business closed 03/2023; in-force policies renew until nonrenewal programs complete state by state.",
+                  "livesIn": "PAS A — state status table ST-STATUS DP3 rows; runoff plan memo in filings folder"
+                },
+                {
+                  "name": "Effective dating RB 01/01/2023 (final rate set)",
+                  "description": "v5 is the terminal rate set; renewals re-rate on it until each state's book is exhausted.",
+                  "livesIn": "PAS A — RTG01 rate-set selector DP3"
+                },
+                {
+                  "name": "Lineage v5 vs v4",
+                  "description": "v5 froze territory definitions, added the vacancy-permit endorsement rules and marked the program for runoff.",
+                  "livesIn": "Rate_Manual_HO.xlsx tab ChangeLog-DP"
+                }
+              ]
+            },
+            {
+              "name": "Coverages",
+              "expression": "DP special form — no liability or theft unless endorsed",
+              "items": [
+                {
+                  "name": "Coverage A — Dwelling",
+                  "description": "Open-perils dwelling coverage at replacement cost for tenant-occupied dwellings.",
+                  "livesIn": "PAS A — copybook CVG-DF field CVG-A"
+                },
+                {
+                  "name": "Coverage B — Other Structures (10% of A)",
+                  "description": "Detached structures on the described location.",
+                  "livesIn": "PAS A — CVG-DF field CVG-B"
+                },
+                {
+                  "name": "Coverage C — Personal Property (landlord's)",
+                  "description": "Named-perils coverage on landlord-owned contents (appliances, maintenance equipment), optional dollar limit rather than a percentage.",
+                  "livesIn": "PAS A — CVG-DF field CVG-C, optional limit entry on QTE01"
+                },
+                {
+                  "name": "Coverage D — Fair Rental Value (10% of A)",
+                  "description": "Lost rents while the dwelling is uninhabitable from a covered loss.",
+                  "livesIn": "PAS A — CVG-DF field CVG-D"
+                },
+                {
+                  "name": "Coverage E — Additional Living Expense",
+                  "description": "ALE applies only when the described dwelling is owner-occupied in part; rarely used on this landlord book.",
+                  "livesIn": "PAS A — CVG-DF field CVG-E"
+                },
+                {
+                  "name": "Personal Liability supplement (DL 24 01)",
+                  "description": "Premises liability for the landlord added by the ISO personal liability supplement, $100k/$300k options.",
+                  "livesIn": "PAS A — FRM-ATTACH DL2401; premium RTG08"
+                },
+                {
+                  "name": "Broad Theft Coverage (DP 04 72)",
+                  "description": "Optional theft coverage for landlord property at the described location — DP forms exclude theft by default.",
+                  "livesIn": "PAS A — FRM-ATTACH DP0472"
+                },
+                {
+                  "name": "Ordinance or Law increase",
+                  "description": "Raises the ordinance-or-law allowance above the built-in 10%, commonly required by lenders on older rentals.",
+                  "livesIn": "PAS A — FRM-ATTACH DP endorsement; factor RTG08"
+                }
+              ]
+            },
+            {
+              "name": "Terms",
+              "expression": "Dollar-entry limits, per-state deductible schedules",
+              "items": [
+                {
+                  "name": "Coverage A dollar entry with ITV check",
+                  "description": "Coverage A entered directly against the RCE estimate; B and D default as percentages of A.",
+                  "livesIn": "PAS A — QTE01 entry; RTG01 derivation"
+                },
+                {
+                  "name": "Per-state deductible schedule",
+                  "description": "AOP deductibles $1,000–$5,000 nationally, with wind/hail percentage deductibles layered in scheduled states (TX/OK 1-2%).",
+                  "livesIn": "PAS A — RTG04 DED-SCHED-DP by state"
+                },
+                {
+                  "name": "Loss settlement — RCV dwelling, ACV contents",
+                  "description": "Dwelling settles at replacement cost when insured to 80%; landlord contents settle at ACV.",
+                  "livesIn": "PAS A — DP 00 03 conditions; ITV edit QTE02"
+                },
+                {
+                  "name": "Vacancy permit terms",
+                  "description": "Vacancy endorsement keeps coverage in force (excluding vandalism and glass) for declared vacancy periods up to 6 months.",
+                  "livesIn": "PAS A — FRM-ATTACH vacancy permit; date-bounded VAC-PERIOD fields"
+                },
+                {
+                  "name": "Liability supplement limits ladder",
+                  "description": "DL 24 01 liability at $100k/$300k with $1k medical payments to others.",
+                  "livesIn": "PAS A — LMT-DL table"
+                }
+              ]
+            },
+            {
+              "name": "Rating",
+              "expression": "Frozen national plan — territory, PPC, occupancy",
+              "items": [
+                {
+                  "name": "Base rate per $1,000 Coverage A (fire / EC split)",
+                  "description": "DP rating splits fire and extended-coverage perils, a legacy of the line 01/02.1 statutory split.",
+                  "livesIn": "PAS A — RTG01 DP tables; Rate_Manual_HO.xlsx tab BaseRates-DP"
+                },
+                {
+                  "name": "Territory factor (frozen at v5)",
+                  "description": "State/territory relativities frozen when the program entered runoff.",
+                  "livesIn": "PAS A — RTG02 TERR-DP-05"
+                },
+                {
+                  "name": "Protection class factor",
+                  "description": "ISO PPC 1–10 factor; PPC 10 rentals carried a steep surcharge.",
+                  "livesIn": "PAS A — RTG03"
+                },
+                {
+                  "name": "Occupancy factor (tenant / short-term / vacant-permit)",
+                  "description": "Occupancy relativities including a short-term-rental surcharge added at v4.",
+                  "livesIn": "PAS A — RTG05 OCC-FCT table"
+                },
+                {
+                  "name": "Age of dwelling / roof factors",
+                  "description": "Dwelling-age and roof-age curves shared with the HO plan mechanics.",
+                  "livesIn": "PAS A — RTG05; Rate_Manual_HO.xlsx tab RoofAge"
+                },
+                {
+                  "name": "Multi-unit schedule factor",
+                  "description": "2–4 family relativities applied per dwelling unit count.",
+                  "livesIn": "PAS A — RTG05 UNIT-FCT"
+                }
+              ]
+            },
+            {
+              "name": "Pricing",
+              "expression": "Legacy fee schedule, per-state tax lines",
+              "items": [
+                {
+                  "name": "Policy fee $35 (where permitted)",
+                  "description": "Flat policy fee applied except in states barring separate fees on the dwelling program.",
+                  "livesIn": "PAS A — FEE-TBL rows DP3 by state"
+                },
+                {
+                  "name": "Installment fee $6",
+                  "description": "Per-installment charge on payment plans.",
+                  "livesIn": "PAS A — FEE-TBL DP3 INSTFEE"
+                },
+                {
+                  "name": "Minimum premium $300",
+                  "description": "National minimum annual premium on the runoff book.",
+                  "livesIn": "PAS A — RTG09 MIN-PREM DP3"
+                },
+                {
+                  "name": "State FAIR-plan / guaranty assessment lines",
+                  "description": "Per-state assessment pass-through lines maintained even in runoff (TX FAIR Plan, state guaranty funds).",
+                  "livesIn": "PAS A — TAX-TBL DP3 state rows"
+                },
+                {
+                  "name": "Whole-dollar rounding",
+                  "description": "Final premium rounds to whole dollars in RTG09.",
+                  "livesIn": "PAS A — RTG09 RND-FINAL"
+                }
+              ]
+            },
+            {
+              "name": "Underwriting Rules",
+              "expression": "Runoff retention gates only — no NB rules active",
+              "items": [
+                {
+                  "name": "New business hard stop (all states)",
+                  "description": "DP-3 quoting is blocked at the eligibility gate across the runoff book.",
+                  "livesIn": "UW rules engine — DP_NB_ELIG gate rule D-300; CICS QTE01 error DP-301"
+                },
+                {
+                  "name": "Vacancy over 60 days without permit — nonrenew",
+                  "description": "Renewals verify occupancy; extended vacancy without the permit endorsement routes to nonrenewal.",
+                  "livesIn": "UW rules engine — rule D-311; occupancy verification vendor feed"
+                },
+                {
+                  "name": "Short-term rental conversion — refer",
+                  "description": "Conversion to nightly rental use refers for the STR surcharge or nonrenewal per state plan.",
+                  "livesIn": "UW rules engine — rule D-315"
+                },
+                {
+                  "name": "More than 2 losses in 3 years — nonrenew where permitted",
+                  "description": "Frequency-based nonrenewal applied subject to each state's claim-based nonrenewal restrictions.",
+                  "livesIn": "UW rules engine — rule D-320 with ST-RESTRICT overlay"
+                },
+                {
+                  "name": "Uncorrected inspection deficiency — nonrenew",
+                  "description": "Open exterior-inspection deficiencies (roof, steps, railings) unresolved after 60 days route to nonrenewal.",
+                  "livesIn": "UW rules engine — rule D-322; inspection vendor results in doc repository"
+                }
+              ]
+            },
+            {
+              "name": "Forms",
+              "expression": "ISO DP program + liability supplement",
+              "items": [
+                {
+                  "name": "DP 00 03 (12/02) — Dwelling Property 3 Special Form",
+                  "description": "Base open-perils dwelling form for the program.",
+                  "livesIn": "ISO forms library; FRM-ATTACH key DP0003 ALL"
+                },
+                {
+                  "name": "DL 24 01 — Personal Liability (supplement)",
+                  "description": "Landlord premises-liability supplement attached when liability is purchased.",
+                  "livesIn": "ISO forms library; FRM-ATTACH conditional on DL coverage"
+                },
+                {
+                  "name": "DP 04 72 — Broad Theft Coverage",
+                  "description": "Optional theft endorsement for landlord property.",
+                  "livesIn": "ISO forms library; FRM-ATTACH conditional"
+                },
+                {
+                  "name": "Vacancy permit endorsement",
+                  "description": "Carrier endorsement granting time-bounded vacancy permission with vandalism/glass exclusions.",
+                  "livesIn": "Forms library carrier form DP-VAC 02; FRM-ATTACH conditional"
+                },
+                {
+                  "name": "State amendatory endorsements (22 states)",
+                  "description": "Per-state DP amendatories carrying cancellation/nonrenewal statutory text, attached by state code.",
+                  "livesIn": "ISO forms library state set; FRM-ATTACH STATE=xx mandatory rows"
+                },
+                {
+                  "name": "Windstorm/hail deductible endorsements (scheduled states)",
+                  "description": "Percentage wind/hail deductible forms in TX/OK and coastal states.",
+                  "livesIn": "Forms library; FRM-ATTACH conditional on DED-SCHED-DP"
+                }
+              ]
+            },
+            {
+              "name": "Filings",
+              "expression": "Terminal filings + runoff notifications",
+              "items": [
+                {
+                  "name": "Final rate filings (per state, 2022)",
+                  "description": "The v5 terminal rate filings across 22 states, a mix of file-and-use and prior-approval jurisdictions.",
+                  "livesIn": "SERFF filings CARR-DP-xx-2022 series; Filings_Log.xlsx rows 150-171"
+                },
+                {
+                  "name": "Withdrawal / discontinuation notifications",
+                  "description": "State-required notifications of the program withdrawal and nonrenewal plan, with per-state minimum runoff timelines.",
+                  "livesIn": "Filings_Log.xlsx runoff section; state correspondence PDFs"
+                },
+                {
+                  "name": "Frozen rule manual",
+                  "description": "The DP rule manual is frozen at v5; only compliance-driven changes may be filed during runoff.",
+                  "livesIn": "Rate_Manual_HO.xlsx tab Rules-DP (frozen banner)"
+                },
+                {
+                  "name": "Claim-based nonrenewal restriction matrix",
+                  "description": "Per-state matrix of what claim histories may lawfully drive nonrenewal, governing the runoff pace.",
+                  "livesIn": "Filings folder matrix spreadsheet; UW rules ST-RESTRICT overlay"
+                },
+                {
+                  "name": "SERFF form withdrawal filings",
+                  "description": "Withdrawal of NB application forms while retaining renewal forms in each state.",
+                  "livesIn": "SERFF CARR-DP-xx-2023 withdrawal series"
+                }
+              ]
+            },
+            {
+              "name": "Lifecycle Behavior",
+              "expression": "Renewal/nonrenewal batch runoff on the PAS A spine",
+              "items": [
+                {
+                  "name": "Renewal cycle at -45 days with state gates",
+                  "description": "HORNW045 processes DP renewals, checking each state's runoff schedule before offering or nonrenewing.",
+                  "livesIn": "PAS A — JCL HORNW045 with DP runoff parameter table"
+                },
+                {
+                  "name": "Structured nonrenewal program",
+                  "description": "Nonrenewals released in state-sequenced waves respecting each state's notice period (30–120 days).",
+                  "livesIn": "PAS A — nonrenewal scheduler HONREN050; ST-NOTICE table"
+                },
+                {
+                  "name": "Endorsement transactions (restricted set)",
+                  "description": "Only conservation endorsements (mortgagee change, deductible increase, vacancy permit) are allowed in runoff.",
+                  "livesIn": "PAS A — TXN-TBL DP3 restricted list; CICS ENDR edit"
+                },
+                {
+                  "name": "Cancellation — pro-rata company / short-rate insured request",
+                  "description": "Company cancellations return pro-rata; insured-requested cancellations apply the short-rate table where state law permits.",
+                  "livesIn": "PAS A — HOCANC170; short-rate table SRT-TBL"
+                },
+                {
+                  "name": "Reinstatement window 30 days",
+                  "description": "Nonpay cancellations reinstate within 30 days with a no-loss statement, preserving the runoff renewal chain.",
+                  "livesIn": "PAS A — CICS REIN transaction"
+                },
+                {
+                  "name": "Book-transfer extract",
+                  "description": "Monthly extract of in-force DP policies offered to an assuming carrier as part of the runoff exit strategy.",
+                  "livesIn": "PAS A — extract job DPXFR200 to secure transfer folder"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

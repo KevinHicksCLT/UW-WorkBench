@@ -203,6 +203,83 @@ export function registerTemplateRoutes(router: Router): void {
 
   // ── Subject search (left picker) ─────────────────────────────────────────
 
+  // Filter option lists for the picker — value streams for tasks, area/category
+  // for standards, regime/jurisdiction for regulations.
+  router.get('/subject-facets', async (req, res, next) => {
+    try {
+      const companyId = await activeCompanyId(req, res);
+      if (!companyId) return;
+      const type = parseType(String(req.query.type ?? 'task'), res);
+      if (!type) return;
+      const dedupe = (xs: (string | null)[]) =>
+        [...new Set(xs.filter((x): x is string => Boolean(x)))].sort();
+
+      if (type === 'task') {
+        // Cascading process filters: value streams always; L3 areas when a
+        // stream is picked; L4 sub-processes when an area is picked.
+        const vs = typeof req.query.vs === 'string' ? req.query.vs : '';
+        const l3 = typeof req.query.l3 === 'string' ? req.query.l3 : '';
+        const pick = { id: true, displayValue: true } as const;
+        const [streams, areas, subs] = await Promise.all([
+          prisma.processNode.findMany({
+            where: { companyId, processLevelType: { levelNumber: 2 } },
+            orderBy: { displayValue: 'asc' },
+            select: pick,
+          }),
+          vs
+            ? prisma.processNode.findMany({
+                where: { companyId, parentId: vs },
+                orderBy: { displayValue: 'asc' },
+                select: pick,
+              })
+            : Promise.resolve([]),
+          l3
+            ? prisma.processNode.findMany({
+                where: { companyId, parentId: l3 },
+                orderBy: { displayValue: 'asc' },
+                select: pick,
+              })
+            : Promise.resolve([]),
+        ]);
+        const opt = (n: { id: string; displayValue: string }) => ({
+          id: n.id,
+          name: n.displayValue,
+        });
+        return res.json({
+          facets: {
+            valueStreams: streams.map(opt),
+            l3Areas: areas.map(opt),
+            l4Subs: subs.map(opt),
+          },
+        });
+      }
+      if (type === 'standard') {
+        const rows = await prisma.standard.findMany({
+          where: { companyId, isArea: false, children: { none: {} } },
+          select: { department: true, category: true },
+        });
+        return res.json({
+          facets: {
+            departments: dedupe(rows.map((r) => r.department)),
+            categories: dedupe(rows.map((r) => r.category)),
+          },
+        });
+      }
+      const rows = await prisma.regulatoryRequirement.findMany({
+        where: { companyId, status: 'ACTIVE' },
+        select: { regime: true, jurisdiction: { select: { id: true, name: true } } },
+      });
+      const jurisdictions = [
+        ...new Map(rows.map((r) => [r.jurisdiction.id, r.jurisdiction])).values(),
+      ].sort((a, b) => a.name.localeCompare(b.name));
+      res.json({
+        facets: { regimes: dedupe(rows.map((r) => r.regime)), jurisdictions },
+      });
+    } catch (e) {
+      next(e);
+    }
+  });
+
   router.get('/subjects', async (req, res, next) => {
     try {
       const companyId = await activeCompanyId(req, res);
@@ -211,23 +288,30 @@ export function registerTemplateRoutes(router: Router): void {
       if (!type) return;
       const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
       const take = Math.min(Number(req.query.take) || 50, 200);
+      const str = (k: string) => (typeof req.query[k] === 'string' ? String(req.query[k]) : '');
 
       if (type === 'task') {
         // ?missing=test → only tasks with no TEST template assigned yet.
+        // ?vs/l3/l4=<nodeId> → only tasks under that ancestor (closure walk);
+        // the deepest selected level wins.
         const noTest = { NOT: { nodeWorkTemplates: { some: { template: { kind: 'TEST' } } } } };
         const missing = req.query.missing === 'test';
+        const ancestor = str('l4') || str('l3') || str('vs');
         const baseWhere = { companyId, isTask: true as const };
-        const [nodes, total, missingTest] = await Promise.all([
+        const filteredWhere = {
+          ...baseWhere,
+          ...(missing ? noTest : {}),
+          ...(ancestor ? { descendantEdges: { some: { ancestorId: ancestor } } } : {}),
+          ...(q ? { displayValue: { contains: q, mode: 'insensitive' as const } } : {}),
+        };
+        const [nodes, matching, total, missingTest] = await Promise.all([
           prisma.processNode.findMany({
-            where: {
-              ...baseWhere,
-              ...(missing ? noTest : {}),
-              ...(q ? { displayValue: { contains: q, mode: 'insensitive' } } : {}),
-            },
+            where: filteredWhere,
             orderBy: { displayValue: 'asc' },
             take,
             select: { id: true, displayValue: true },
           }),
+          prisma.processNode.count({ where: filteredWhere }),
           prisma.processNode.count({ where: baseWhere }),
           prisma.processNode.count({ where: { ...baseWhere, ...noTest } }),
         ]);
@@ -241,45 +325,65 @@ export function registerTemplateRoutes(router: Router): void {
               path: [a?.valueStreamName, a?.l3, a?.l4].filter(Boolean).join(' › '),
             };
           }),
-          meta: { total, missingTest },
+          meta: { total, missingTest, matching },
         });
       }
       if (type === 'standard') {
-        const standards = await prisma.standard.findMany({
-          where: {
-            companyId,
-            isArea: false,
-            children: { none: {} },
-            ...(q ? { name: { contains: q, mode: 'insensitive' } } : {}),
-          },
-          orderBy: { name: 'asc' },
-          take,
-          select: { id: true, name: true, department: true, category: true },
-        });
+        const department = str('department');
+        const category = str('category');
+        const where = {
+          companyId,
+          isArea: false,
+          children: { none: {} },
+          ...(department ? { department } : {}),
+          ...(category ? { category } : {}),
+          ...(q ? { name: { contains: q, mode: 'insensitive' as const } } : {}),
+        };
+        const [standards, matching, total] = await Promise.all([
+          prisma.standard.findMany({
+            where,
+            orderBy: { name: 'asc' },
+            take,
+            select: { id: true, name: true, department: true, category: true },
+          }),
+          prisma.standard.count({ where }),
+          prisma.standard.count({ where: { companyId, isArea: false, children: { none: {} } } }),
+        ]);
         return res.json({
           subjects: standards.map((s) => ({
             id: s.id,
             name: s.name,
             path: [s.department, s.category].filter(Boolean).join(' › '),
           })),
+          meta: { total, matching },
         });
       }
-      const regs = await prisma.regulatoryRequirement.findMany({
-        where: {
-          companyId,
-          status: 'ACTIVE',
-          ...(q ? { title: { contains: q, mode: 'insensitive' } } : {}),
-        },
-        orderBy: { title: 'asc' },
-        take,
-        select: { id: true, title: true, regime: true, jurisdiction: { select: { name: true } } },
-      });
+      const regime = str('regime');
+      const jurisdictionId = str('jurisdictionId');
+      const where = {
+        companyId,
+        status: 'ACTIVE',
+        ...(regime ? { regime } : {}),
+        ...(jurisdictionId ? { jurisdictionId } : {}),
+        ...(q ? { title: { contains: q, mode: 'insensitive' as const } } : {}),
+      };
+      const [regs, matching, total] = await Promise.all([
+        prisma.regulatoryRequirement.findMany({
+          where,
+          orderBy: { title: 'asc' },
+          take,
+          select: { id: true, title: true, regime: true, jurisdiction: { select: { name: true } } },
+        }),
+        prisma.regulatoryRequirement.count({ where }),
+        prisma.regulatoryRequirement.count({ where: { companyId, status: 'ACTIVE' } }),
+      ]);
       res.json({
         subjects: regs.map((r) => ({
           id: r.id,
           name: r.title,
           path: [r.regime, r.jurisdiction?.name].filter(Boolean).join(' › '),
         })),
+        meta: { total, matching },
       });
     } catch (e) {
       next(e);

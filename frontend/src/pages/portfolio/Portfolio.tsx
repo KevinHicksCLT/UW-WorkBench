@@ -1,16 +1,19 @@
-import { Card } from '../../components/ui';
-import ApplicationRationalization from '../greenfield-migration/GreenfieldMigration';
+import { useSearchParams } from 'react-router-dom';
+import WorkspaceMap from '../workspace-map/WorkspaceMap';
 
-// Workspace — the Application Rationalization Workspace, full width. No page
-// title: the nav + breadcrumb already say "Workspace" (WR feedback 2026-07-06).
-// D7.2: the Portfolio, Programs, Risks and RAID Log views moved to Home (D1.5)
-// as dashboard widgets; their detail pages live under Home too
-// (/programs/:id, /initiatives/:id and /raid — old /portfolio/* links redirect).
-
+// Workspace — the interactive rationalization map (brown-field decomposition →
+// Normalize → green-field target), rebuilt 2026-07-12 against the live
+// /rationalization API after the previous board was retired. Rendered bare —
+// no Card wrapper: the toolbar sits directly under the app breadcrumb and the
+// map canvas is the page's single card, filling the viewport.
+//
+// Deep links carry the lens in ?domain= (applications | value-streams | roles
+// | products — `product-models` is accepted as an alias); unknown values fall
+// back to applications. ?workspace=<id> is accepted for old links (the map
+// validates it against the board list).
 export default function Portfolio() {
-  return (
-    <Card variant="elevated" className="p-4 border-l-[3px] border-l-[#4f46e5]">
-      <ApplicationRationalization embedded />
-    </Card>
-  );
+  const [params] = useSearchParams();
+  const domain = params.get('domain') ?? undefined;
+
+  return <WorkspaceMap initialDomain={domain} />;
 }

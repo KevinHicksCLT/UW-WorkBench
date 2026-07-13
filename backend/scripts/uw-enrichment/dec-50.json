@@ -1,0 +1,659 @@
+{
+  "tasks": [
+    {
+      "id": "2bf36b35-c3a2-493f-a870-906b1e125dcb",
+      "owner": { "action": "replace", "name": "Senior Underwriter" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The completed referral record for each account escalated to Senior Underwriter / Chief Underwriter review under authority matrix v3.2 — referral rationale, recommendation, limits/appetite check, and the final authority decision with conditions. Scope = all closed referral files for the review queue in the current quarter across P&C commercial, life and specialty lines."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Referral files finalized in the current calendar quarter (e.g. Q2 2026, 2026-04-01 to 2026-06-30); records outside the retention filing window are excluded from this batch."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each retained record carries submission ID, insured name, line of business, referral trigger code, decision (accept/decline/conditional), authority level applied, and reviewer ID. A record missing decision, reviewer or authority level is rejected back to the underwriting file for completion before filing."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of referral records archived reconciles to the referral log in the GRC platform: (records closed in quarter) = (records filed to retention). Any delta between the referral queue and the archive is investigated; target variance = 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Referral record locked as an immutable PDF in OpenText under /underwriting/referrals/<submission-id>/ with version label v1 and system timestamp; retention set to 7 years per the state records-retention and market-conduct schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Records that fail the completeness check are logged as an exception in the referral log with disposition (return-to-underwriter / waive-with-CUO-note) and a 2-business-day remediation SLA before the quarter's archive is certified complete."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "Filing cites the company Underwriting File Documentation & Retention standard and the applicable state market-conduct records-retention requirement (typically 5-7 years post-expiration); citation recorded on the archive cover sheet."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "Retention configured at 7 years from policy expiration in OpenText; legal-hold flag honored where the account is subject to litigation or a pending regulatory exam, suspending automatic purge."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "Record filed to retention within 5 business days of the referral decision being finalized; late filings flagged on the monthly UW quality dashboard."
+        },
+        { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "Monthly 5% sample of archived referral records (minimum 25 files) drawn by Underwriting Quality across all lines."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = 100% of sampled records are complete, immutable, correctly indexed by submission ID, and within the 7-year retention setting. FAIL = any record missing the decision/authority fields, editable, mis-indexed, or purged early."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "On FAIL, re-file the corrected record, log the gap in the GRC platform, and where a record was purged or lost escalate to the Chief Underwriting Officer within 24 hours for a documented recovery/root-cause note."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = every finalized referral is retrievable within one business day for regulatory inspection, reinsurance audit or internal governance review, with a complete decision trail."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "OpenText /underwriting/referrals/<submission-id>/ and the referral audit log in the GRC platform (Archer/ServiceNow GRC)."
+        },
+        {
+          "answerId": "cmr2ocg110yhzkaz3106cok3t",
+          "value": "Field definitions from the referral-record data dictionary: submission_id, insured, line_of_business, referral_trigger, authority_level, decision, conditions, reviewer_id, decision_timestamp. Control total = count of referral records per line reconciled between the referral queue and the OpenText archive."
+        },
+        {
+          "answerId": "cmr2ocg110yi0kaz3ltzhduof",
+          "value": "Applicable rule = state market-conduct records-retention requirement (5-7 years post-expiration) plus reinsurance treaty audit-access clauses; cited on the archive cover sheet with the internal File Documentation standard reference."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Assemble the complete referral file before archiving",
+              "value": "Referral rationale, appetite/limit check, recommendation, decision and conditions all present in the record under /underwriting/referrals/<submission-id>/."
+            },
+            {
+              "step": "Index each record for retrieval",
+              "value": "Record tagged by submission ID, insured, line of business and decision date so it is retrievable within one business day."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample archived files for documentation completeness",
+              "value": "Monthly 5% sample (min 25 files); 100% contain the decision, authority level and reviewer sign-off; 0 incomplete."
+            },
+            {
+              "step": "Test retrievability",
+              "value": "Pull 5 random archived referrals on demand; all returned within one business day with full decision trail."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp2n71n3ombk805591ug1",
+          "checklist": [
+            {
+              "step": "Apply the retention schedule to every referral record",
+              "value": "OpenText retention set to 7 years from policy expiration; legal-hold flag suspends purge for litigated or examined accounts."
+            },
+            {
+              "step": "Prevent premature deletion",
+              "value": "Records stored immutable (locked PDF, version v1); no delete permission granted to underwriting users."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify retention configuration",
+              "value": "Sampled records show correct 7-year retention date and immutable flag; 0 editable or short-retention records."
+            },
+            {
+              "step": "Confirm legal holds honored",
+              "value": "For accounts under exam/litigation, retention date shows hold; 0 auto-purged."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Preserve the referral decision audit trail",
+              "value": "Every state change (referred, reviewed, decided, filed) captured with actor and timestamp in the GRC referral log."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit-trail continuity",
+              "value": "For sampled referrals, the log shows an unbroken actor/timestamp chain from referral to archive; 0 gaps."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "587aa023-ff9f-416d-98dc-aa6437ebc4af",
+      "owner": { "action": "replace", "name": "Senior Underwriter" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Chief Underwriting Officer"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "GRC platform (Archer/ServiceNow GRC)", "usageType": "performed" },
+        { "name": "OpenText Document Mgmt", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Referred accounts approved on a conditional basis where additional information or a loss-control commitment is required before or after binding. Scope = all conditional approvals set during Senior Underwriter / Chief Underwriter review in the current period across commercial and specialty lines."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Current review cycle / month of decision (e.g. 2026-06); conditions are tracked from the approval date to their satisfaction deadline."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each condition records: condition text, type (subjectivity / loss-control / documentation), owner, due date, and satisfaction status. A conditional approval with no due date or unassigned condition owner is invalid and returned to the underwriter."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of open conditions in the PAS subjectivities register reconciles to the referral decision log; every condition maps to exactly one approved referral. Delta between the two must be 0 at cycle close."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Conditions memorialized on the policy record in Guidewire PolicyCenter and the signed conditional-approval note archived to OpenText under /underwriting/referrals/<submission-id>/ with timestamp and version v1."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Conditions not satisfied by their due date are logged as an exception with disposition (extend / waive-with-CUO-approval / cancel-or-non-renew) and escalated to the Chief Underwriting Officer; 10-business-day cure SLA before re-escalation."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All conditional approvals in the current month plus any prior-period conditions still open (census, not a sample)."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = every conditional approval has clearly worded, dated, owned conditions recorded on the policy and tracked to closure. FAIL = any condition that is vague, undated, unowned, or bound without the required subjectivity recorded."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Unsatisfied conditions past due trigger a subjectivity-management workflow; unresolved cases route to the Chief Underwriting Officer for a waive/cancel decision documented in the referral log."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = conditions are specific, measurable, dated and owned; recorded on the risk before coverage is confirmed; and closed with evidence when satisfied."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Guidewire PolicyCenter subjectivities/conditions register and OpenText /underwriting/referrals/<submission-id>/; tracking in the GRC platform."
+        },
+        {
+          "answerId": "cmr2ocfyq0vhkkaz355nn724x",
+          "value": "Field definitions from the conditions register: condition_id, submission_id, condition_type, condition_text, owner, due_date, status, satisfied_date. Control total = open conditions reconciled between PolicyCenter and the referral decision log per line of business."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Record the conditional decision within 24 hours",
+              "value": "Approval with conditions written to the policy record and referral log within 24 hours of the review decision."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify decision timeliness",
+              "value": "Sampled conditional approvals show decision-documented timestamp within 24h of review; 0 late."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppse1o9smbk8sec8gva2",
+          "checklist": [
+            {
+              "step": "Route any appetite/rate exception in the conditions to CUO",
+              "value": "Conditions that involve deviation from filed rates or appetite carry a documented Chief Underwriting Officer approval before binding."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify CUO approval on exceptions",
+              "value": "Every conditional approval containing an exception has a linked CUO sign-off; 0 exceptions bound without it."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document each condition on the file",
+              "value": "Condition text, type, owner and due date recorded on the policy and in the archived approval note."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for condition documentation",
+              "value": "Monthly sample; 100% of conditional approvals fully documented and tracked; 0 undocumented."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "35bc1797-1ee8-4dd2-b1aa-67d19cb74e1b",
+      "owner": { "action": "replace", "name": "Senior Underwriter" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Underwriting Assistant",
+        "Business Analyst",
+        "Data Scientist"
+      ],
+      "addParticipants": ["Chief Underwriting Officer", "Pricing Actuary"],
+      "removeAppNames": [],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Referred accounts where the reviewer challenges the referring underwriter's proposed pricing and terms against filed rates, the pricing tool output and portfolio loss-ratio targets. Scope = large/complex accounts in the Senior Underwriter / CUO review queue for the current period."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Current review cycle (e.g. 2026-06); the challenge and its resolution are documented before the quote is released to the broker."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The challenge note records: proposed rate vs Earnix technical/indicated rate, deviation %, schedule/experience credits applied, target vs projected loss ratio, and the referring underwriter's response. A challenge without the technical-rate comparison is incomplete."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Rate figures in the challenge reconcile to the Earnix pricing worksheet for the account; premium, exposure base and credits match the PAS quote. Any mismatch is resolved before the challenge is closed."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Challenge discussion, rate comparison and agreed outcome archived to OpenText under /underwriting/referrals/<submission-id>/ with timestamp and version; a summary note logged on the referral record."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Where the referring underwriter and reviewer cannot agree, the disagreement is logged with disposition and escalated to the Chief Underwriting Officer / Head of Pricing for adjudication; resolution recorded within 2 business days."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppc31o8wmbk8i3ty2jne",
+          "checklist": [
+            {
+              "step": "Compare proposed pricing against filed rates and the authority matrix",
+              "value": "Challenge quantifies deviation % from filed/technical rate and confirms it is within the referring underwriter's authority per matrix v3.2 or requires escalation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify deviation is authorized",
+              "value": "Sampled challenged accounts show any rate deviation is within authority or has documented sign-off; 0 unauthorized deviations released."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppa51o8smbk82mw0frsj",
+          "checklist": [
+            {
+              "step": "Involve actuarial on large accounts",
+              "value": "For accounts above the large-account threshold, the Pricing Actuary reviews rate adequacy as part of the challenge."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm actuarial review",
+              "value": "Every challenged large account carries a Pricing Actuary rate-adequacy note; 0 missing."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppd31o8ymbk8q4zpd8lh",
+          "checklist": [
+            {
+              "step": "Document the pricing rationale and challenge outcome",
+              "value": "Rate comparison, credits, and agreed terms captured in the archived challenge note on the file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for pricing documentation",
+              "value": "Monthly sample; 100% of challenges show a documented rationale and outcome; 0 undocumented."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "01b98324-34d4-407f-94c1-2042b9c22284",
+      "owner": { "action": "replace", "name": "Chief Underwriting Officer" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Underwriting Assistant",
+        "Business Analyst",
+        "Data Scientist"
+      ],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [],
+      "addApps": [{ "name": "GRC platform (Archer/ServiceNow GRC)", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Risks whose premium, limit, aggregate exposure or appetite deviation exceeds Chief Underwriting Officer authority under matrix v3.2 and therefore must be escalated to the underwriting committee. Scope = all over-authority referrals in the current committee cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Current underwriting-committee cycle (e.g. the June 2026 committee); escalations are compiled ahead of the scheduled committee date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each escalation records: submission ID, line of business, the specific authority threshold breached (premium/limit/aggregate/appetite), exposure figures, reason for support, and a CUO recommendation. An escalation without the breached-threshold value is returned for completion."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Escalated items on the committee agenda reconcile to the over-authority flags in the referral log; every referral flagged over-CUO-authority appears on the agenda. Delta must be 0 before the committee convenes."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Escalation pack and committee agenda item logged in the GRC platform and archived to OpenText under /underwriting/referrals/committee/<cycle>/ with timestamp and version v1."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Time-critical risks that cannot wait for the scheduled committee are handled via a documented out-of-cycle CUO+committee-chair sign-off, logged as an exception with rationale and ratified at the next committee."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03y4mbk8u38o045d" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Escalate to the next authority level with a recommendation",
+              "value": "Each over-authority risk is packaged with a CUO recommendation and full exposure rationale for the underwriting committee."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify recommendation present",
+              "value": "Every committee escalation includes a documented recommendation; 0 escalations submitted without one."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Confirm the breached authority threshold",
+              "value": "Escalation states which premium/limit/aggregate/appetite threshold in matrix v3.2 is exceeded and by how much."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test threshold accuracy",
+              "value": "Sampled escalations verified against the authority matrix; 100% correctly exceed CUO authority; 0 mis-routed items."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppse1o9smbk8sec8gva2",
+          "checklist": [
+            {
+              "step": "Document committee/CUO approval for the exception",
+              "value": "Committee decision (or out-of-cycle CUO+chair approval) recorded with conditions before the risk is bound."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify approval before binding",
+              "value": "No over-authority risk is bound without a recorded committee or out-of-cycle approval; 0 exceptions."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "5eaf8a2f-3421-4a22-a532-26c29dd8c0e3",
+      "owner": { "action": "replace", "name": "Senior Underwriter" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Underwriting Assistant",
+        "Business Analyst",
+        "Data Scientist",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": [],
+      "addApps": [{ "name": "GRC platform (Archer/ServiceNow GRC)", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The authority sign-off decision recorded for each referred account after Senior Underwriter / CUO review — the accept/decline/conditional decision, the authority level exercised, and any attached conditions. Scope = all referral decisions signed off in the current period."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Current review cycle / month of decision (e.g. 2026-06); each sign-off is timestamped at the moment the decision is recorded."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Sign-off record captures: submission ID, decision, authority level applied, signer identity and role, any conditions, and decision timestamp. A sign-off missing the signer's authority level or identity is invalid and cannot bind."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every bound/declined referral has exactly one recorded authority sign-off; the count of sign-offs reconciles to the count of decided referrals in the log. Delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Decision written to the policy record in Guidewire PolicyCenter and the signed decision memorialized in the GRC referral log with timestamp and immutable version; conditions replicated to the subjectivities register."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Any decision made outside the signer's authority is logged as an exception, blocked from binding, and routed to the Chief Underwriting Officer for re-sign-off or committee escalation; disposition recorded."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Record the sign-off decision within 24 hours",
+              "value": "Decision, authority level and conditions written to the policy and referral log within 24 hours of review."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify decision timeliness",
+              "value": "Sampled sign-offs show timestamp within 24h of the review; 0 late."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp161o8cmbk8jeoutzfd",
+          "checklist": [
+            {
+              "step": "Confirm the signer holds the required authority",
+              "value": "Sign-off validated against matrix v3.2 for the account's premium/limit/line before the decision can bind."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test authority conformance",
+              "value": "100% of recorded sign-offs are within the signer's authority; 0 bound outside authority."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppse1o9smbk8sec8gva2",
+          "checklist": [
+            {
+              "step": "Attach CUO approval for any exception in the decision",
+              "value": "Decisions containing an appetite/rate exception carry a linked Chief Underwriting Officer approval and documented conditions."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify exception sign-off",
+              "value": "Every exception decision has a CUO approval on file; 0 unapproved exceptions bound."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "7a77c548-f18a-4520-ac7e-a45d56ee8774",
+      "owner": { "action": "replace", "name": "Senior Underwriter" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Underwriting Assistant",
+        "Business Analyst",
+        "Data Scientist"
+      ],
+      "addParticipants": ["Chief Underwriting Officer", "Portfolio UW Manager"],
+      "removeAppNames": [],
+      "addApps": [{ "name": "GRC platform (Archer/ServiceNow GRC)", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The referral submission package assessed against the documented portfolio appetite (line of business, geography, industry) and the authority/aggregate limits before a decision is made. Scope = all referral packages in the Senior Underwriter / CUO review queue for the current period."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Current review cycle (e.g. 2026-06); appetite and limit checks are run against the appetite statement and aggregate position in force at the time of review."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The assessment records: target-class match (yes/no), no-write-list check, geography/industry appetite fit, requested limit vs authority, and incremental aggregate/PML impact. A package cannot be dispositioned until the appetite and limit fields are populated."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Exposure and limit figures in the package reconcile to the aggregate exposure report; the added limit plus in-force aggregate is checked against the zone/line cap. Any figure that does not tie is corrected before decision."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Appetite/limit assessment recorded on the referral record and archived to OpenText under /underwriting/referrals/<submission-id>/ with timestamp; the appetite-fit result logged in the GRC referral log."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Packages outside appetite or over the aggregate limit are logged as an exception with disposition (decline / refer-up / seek-CUO-appetite-exception) and routed to the Chief Underwriting Officer; resolution recorded within 2 business days."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Check the package against the documented appetite",
+              "value": "Line of business, geography and industry compared to the appetite statement and no-write list; target-class fit recorded."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify appetite assessment",
+              "value": "Sampled referrals show a completed appetite-fit check; 0 dispositioned without it."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Confirm the correct referral trigger applied",
+              "value": "Package tagged with the referral-trigger code that sent it to review, validated against the documented trigger list."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test trigger accuracy",
+              "value": "100% of reviewed packages carry a valid referral trigger; 0 mis-triggered or un-coded referrals."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Assess requested limit against authority and aggregate",
+              "value": "Requested limit checked against matrix v3.2 authority and the in-force aggregate/PML cap for the zone and line."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify limit conformance",
+              "value": "Sampled packages show limit within authority/aggregate or escalated; 0 over-limit risks passed without escalation."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

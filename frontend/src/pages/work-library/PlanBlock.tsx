@@ -17,6 +17,7 @@ import {
   type SubjectType,
 } from './shared';
 import { ValueCell } from './controls';
+import { ProcedureCells } from './ProcedureCells';
 
 // ── Plan matrix block (Checklist / Testing) ──────────────────────────────
 
@@ -176,8 +177,7 @@ export function PlanBlock({
                   />
                 </td>
                 <td className="border border-[#e8ebee] px-2 py-1.5 text-left align-top">
-                  <ValueCell
-                    valueKind="TEXT"
+                  <ProcedureCells
                     current={r}
                     onSave={(patch) => saveRows([{ id: r.id, ...patch }])}
                   />
