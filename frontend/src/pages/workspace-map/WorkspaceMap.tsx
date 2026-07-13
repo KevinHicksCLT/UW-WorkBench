@@ -7,7 +7,7 @@ import BrownfieldPanel from './BrownfieldPanel';
 import NormalizeColumn from './NormalizeColumn';
 import GreenfieldColumn from './GreenfieldColumn';
 import ProductBoard from './product/ProductBoard';
-import { LAYERS, findingMoves, GREEN, RED } from './types';
+import { LAYERS, findingMoves, GREEN, RED, READABLE_FIT_MIN } from './types';
 import type { Finding } from './types';
 
 // The Workspace map — an interactive, three-column rationalization board
@@ -132,8 +132,10 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
   const activeLayer = selected ? selected.layer : null;
 
   // Fit-to-frame: scale the canvas once per board so all three columns are in
-  // view on load; after that the zoom buttons own the scale. zoom is read via
-  // a ref so setting it here can never re-trigger this effect.
+  // view on load; after that the zoom buttons own the scale. Width-only — the
+  // columns are tall lists, so fitting height too crushed the board to the
+  // zoom floor and made it unreadable; the board scrolls vertically instead.
+  // zoom is read via a ref so setting it here can never re-trigger this effect.
   const fittedFor = useRef<string | null>(null);
   const zoomRef = useRef(zoom);
   zoomRef.current = zoom;
@@ -145,15 +147,10 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     // getBoundingClientRect is in screen px (post-zoom) — divide back to natural.
     const rect = canvas.getBoundingClientRect();
     const naturalW = rect.width / (zoomRef.current || 1);
-    const naturalH = rect.height / (zoomRef.current || 1);
     if (naturalW <= 0) return;
     fittedFor.current = board.id;
-    const fit = Math.min(
-      1,
-      (scroller.clientWidth - 8) / naturalW,
-      (scroller.clientHeight - 8) / naturalH,
-    );
-    setZoom(Math.max(0.5, Math.round(fit * 100) / 100));
+    const fit = Math.min(1, (scroller.clientWidth - 8) / naturalW);
+    setZoom(Math.max(READABLE_FIT_MIN, Math.round(fit * 100) / 100));
   }, [board]);
 
   const legacyApps = useMemo(() => {

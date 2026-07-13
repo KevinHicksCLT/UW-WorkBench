@@ -3,7 +3,7 @@ import { LoadingState, ErrorMessage, EmptyState } from '../../../components/ui';
 import { useApi } from '../../../lib/useApi';
 import LensBar, { LegendItem, type WorkspaceLens } from '../LensBar';
 import { FlowEdges, useEdges, type EdgeSpec } from '../FlowEdges';
-import { GREEN, AMBER } from '../types';
+import { GREEN, AMBER, READABLE_FIT_MIN } from '../types';
 import ProductComparePanel from './ProductComparePanel';
 import ProductNormalizeColumn from './ProductNormalizeColumn';
 import ProductGreenfieldColumn from './ProductGreenfieldColumn';
@@ -248,15 +248,13 @@ export default function ProductBoard({
     if (!canvas || !scroller) return;
     const rect = canvas.getBoundingClientRect();
     const naturalW = rect.width / (zoomRef.current || 1);
-    const naturalH = rect.height / (zoomRef.current || 1);
     if (naturalW <= 0) return;
     fittedFor.current = fitKey;
-    const fit = Math.min(
-      1,
-      (scroller.clientWidth - 8) / naturalW,
-      (scroller.clientHeight - 8) / naturalH,
-    );
-    setZoom(Math.max(0.3, Math.round(fit * 100) / 100));
+    // Width-only fit: the columns are tall lists, so fitting height crushed
+    // the board to an unreadable scale. Vertical (and, past the readable
+    // floor, horizontal) overflow scrolls instead.
+    const fit = Math.min(1, (scroller.clientWidth - 8) / naturalW);
+    setZoom(Math.max(READABLE_FIT_MIN, Math.round(fit * 100) / 100));
   }, [fitKey]);
 
   const specs: EdgeSpec[] = useMemo(() => {

@@ -171,6 +171,10 @@ export const LAYER_ACCENT: Record<
   Infrastructure: NEUTRAL,
 };
 
+// Fit-to-frame never scales below this zoom — card text stays legible; a board
+// too big to fit at this scale scrolls instead of shrinking further.
+export const READABLE_FIT_MIN = 0.65;
+
 export const GREEN = '#16a34a';
 export const RED = '#dc2626';
 export const AMBER = '#b45309';
