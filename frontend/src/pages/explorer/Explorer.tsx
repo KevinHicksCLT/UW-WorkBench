@@ -298,7 +298,7 @@ export default function Explorer() {
         {/* Map is the only full-bleed surface that needs the hovering controls;
             TOC and List host the pills + lens inline in their header strips. */}
         {view === 'map' && (
-          <div className="absolute top-3 left-4 z-20 flex items-center gap-3">
+          <div className="map-float-controls absolute top-3 left-4 z-20 flex items-center gap-3">
             <ViewPills options={pillOptions} view={view} onChange={setView} />
             {lensBar}
           </div>

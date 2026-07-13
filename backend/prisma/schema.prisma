@@ -328,6 +328,9 @@ model Company {
   // Value-stream spine
   processLevelTypes         ProcessLevelType[]
   processNodes              ProcessNode[]
+  // Product spine
+  productLevelTypes         ProductLevelType[]
+  productNodes              ProductNode[]
   // Work & control
   deliverables              Deliverable[]
   checklists                Checklist[]
@@ -453,6 +456,7 @@ model Role {
   description   String? // 3–5 sentence job description grounded in the role's tasks/deliverables
   roleFamily    String? // functional family, e.g. Actuarial, Claims, Engineering
   roleLevel     String? // Executive | Senior Leadership | Manager | Individual Contributor
+  sortOrder     Int      @default(0) // display order within the role's org home (org map drag-reorder)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -581,6 +585,67 @@ model ProcessNodeClosure {
   ancestor     ProcessNode @relation("ProcessNodeClosureAncestor", fields: [ancestorId], references: [id], onDelete: Cascade)
   descendantId String
   descendant   ProcessNode @relation("ProcessNodeClosureDescendant", fields: [descendantId], references: [id], onDelete: Cascade)
+  depth        Int
+
+  @@id([ancestorId, descendantId])
+  @@index([descendantId, depth])
+  @@index([ancestorId, depth])
+}
+
+// ─── PRODUCT SPINE (generic, level-typed) ───────────────────────────────
+// Third recursive spine alongside OrgUnit and ProcessNode: the product
+// hierarchy (Segment > LOB/Product Family > Product > Version/Jurisdiction >
+// Model Component by default — level names are per-company editable).
+
+model ProductLevelType {
+  id           String   @id @default(cuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  levelNumber  Int
+  dbValue      String // "L1 L2 L3 L4 L5"
+  displayValue String // EDITABLE: Segment, LOB / Product Family, Product, Version / Jurisdiction, Model Component ...
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  productNodes ProductNode[]
+
+  @@unique([companyId, levelNumber])
+  @@index([companyId])
+}
+
+model ProductNode {
+  id                 String           @id @default(cuid())
+  companyId          String
+  company            Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  productLevelTypeId String
+  productLevelType   ProductLevelType @relation(fields: [productLevelTypeId], references: [id])
+  parentId           String?
+  parent             ProductNode?     @relation("ProductNodeTree", fields: [parentId], references: [id])
+  children           ProductNode[]    @relation("ProductNodeTree")
+  dbValue            String
+  displayValue       String // EDITABLE label
+  description        String? // what this segment/product/version/component is
+  status             String? // version lifecycle: Active | Bound | Renewal only | Runoff | Expired
+  sortOrder          Int              @default(0)
+  code               String?
+  attributes         Json? // level-specific facts (system of record, jurisdiction, effective dates, owner, element source locations)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  // Closure (both directions)
+  ancestorEdges   ProductNodeClosure[] @relation("ProductNodeClosureAncestor")
+  descendantEdges ProductNodeClosure[] @relation("ProductNodeClosureDescendant")
+
+  @@index([companyId, productLevelTypeId])
+  @@index([parentId])
+}
+
+// DERIVED — fast subtree (move-with-children, rollups).
+model ProductNodeClosure {
+  ancestorId   String
+  ancestor     ProductNode @relation("ProductNodeClosureAncestor", fields: [ancestorId], references: [id], onDelete: Cascade)
+  descendantId String
+  descendant   ProductNode @relation("ProductNodeClosureDescendant", fields: [descendantId], references: [id], onDelete: Cascade)
   depth        Int
 
   @@id([ancestorId, descendantId])
@@ -2426,6 +2491,9 @@ model RegulatoryRequirement {
   lastVerifiedAt DateTime?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+  // User-flagged "we actually follow this as compliance practice" bucket —
+  // surfaces as the Compliance card/page, cutting across all three lenses.
+  complianceFlagged Boolean   @default(false)
 
   nodeRegulations           NodeRegulation[]
   regulationApplications    RegulationApplication[]
@@ -2445,6 +2513,7 @@ model RegulatoryRequirement {
   // and lineOfBusiness — a covering-ish composite keeps the large catalog fast.
   @@index([companyId, status, regime])
   @@index([companyId, status, lineOfBusiness])
+  @@index([companyId, complianceFlagged])
 }
 
 // Line-of-business taxonomy — the deduped NAIC annual-statement + Solvency II

@@ -200,5 +200,9 @@ export function ViewPills<V extends string>({
       ))}
     </div>
   );
-  return floating ? <div className="absolute top-3 left-4 z-20">{pills}</div> : pills;
+  return floating ? (
+    <div className="map-float-controls absolute top-3 left-4 z-20">{pills}</div>
+  ) : (
+    pills
+  );
 }

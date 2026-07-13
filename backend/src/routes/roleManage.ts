@@ -7,6 +7,7 @@ import { Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { prisma } from '../db/prisma.js';
+import { defaultRoleHome } from '../lib/roleHome.js';
 import { requireAuth } from '../middleware/auth.js';
 import { requirePermission } from '../middleware/permissions.js';
 import { logAudit, computeDiff } from '../services/audit.js';
@@ -143,7 +144,9 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
         roleFamily: body.roleFamily ?? null,
         roleLevel: body.roleLevel ?? null,
         roleType: body.roleType ?? null,
-        orgUnitId: body.orgUnitId ?? null,
+        // No explicit home → default one (lib/roleHome.ts); an unhomed role
+        // lands in the org views' dead "Unassigned" bucket.
+        orgUnitId: body.orgUnitId ?? (await defaultRoleHome(company.id)),
       },
       select: { id: true, displayValue: true },
     });
@@ -156,6 +159,38 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       diff: { displayValue: role.displayValue },
     });
     res.status(201).json({ id: role.id, name: role.displayValue });
+  } catch (e) {
+    next(e);
+  }
+});
+
+// PUT /roles/reorder — persist a drag-reorder from the org map: each role's
+// sortOrder becomes its index in orderedIds (org-table lists roles by
+// sortOrder, then name). Registered before the /:id routes on purpose.
+router.put('/reorder', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const company = await tenantCompany(req);
+    if (!company) return res.status(404).json({ error: 'No company' });
+    const { orderedIds } = z
+      .object({ orderedIds: z.array(z.string()).min(1).max(500) })
+      .parse(req.body);
+    const count = await prisma.role.count({
+      where: { id: { in: orderedIds }, companyId: company.id },
+    });
+    if (count !== orderedIds.length)
+      return res.status(404).json({ error: 'Unknown role(s) in the order' });
+    await prisma.$transaction(
+      orderedIds.map((id, i) => prisma.role.update({ where: { id }, data: { sortOrder: i + 1 } })),
+    );
+    await logAudit({
+      tenantId: req.tenantId,
+      actorEmail: req.user.email,
+      entityType: 'Role',
+      entityId: orderedIds[0],
+      action: 'UPDATE',
+      diff: { reorder: orderedIds },
+    });
+    res.json({ applied: orderedIds.length });
   } catch (e) {
     next(e);
   }

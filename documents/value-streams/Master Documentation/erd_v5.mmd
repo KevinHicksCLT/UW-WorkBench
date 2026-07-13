@@ -56,6 +56,7 @@ erDiagram
     string description "job description (research-sourced, nullable)"
     string roleFamily "functional family (nullable)"
     string roleLevel "Executive|Senior Leadership|Manager|Individual Contributor (nullable)"
+    int sortOrder "display order within the org home (org map drag-reorder)"
   }
   RoleOrgAssignment {
     string status "NEW — role at multiple levels (M:N)"
@@ -88,6 +89,35 @@ erDiagram
     json attributes "Verified/Issues"
   }
   ProcessNodeClosure {
+    string status "DERIVED — fast subtree (move-with-children, rollups)"
+    string ancestorId PK, FK
+    string descendantId PK, FK
+    int depth
+  }
+  %% ---------- PRODUCT SPINE (generic recursive) ----------
+  ProductLevelType {
+    string status "generic levels, db + display value"
+    string id PK
+    string companyId FK
+    int levelNumber
+    string dbValue "L1 L2 L3 L4 L5"
+    string displayValue "EDITABLE: Segment, LOB Family, Product, Version, Model Component"
+  }
+  ProductNode {
+    string status "product hierarchy node at any level"
+    string id PK
+    string companyId FK
+    string productLevelTypeId FK
+    string parentId FK "self -> ProductNode"
+    string dbValue
+    string displayValue "EDITABLE label"
+    string description
+    string statusToken "Active|Bound|Renewal only|Runoff|Expired"
+    int sortOrder
+    string code
+    json attributes "system of record, jurisdiction, effective dates, owner, element locations"
+  }
+  ProductNodeClosure {
     string status "DERIVED — fast subtree (move-with-children, rollups)"
     string ancestorId PK, FK
     string descendantId PK, FK
@@ -661,6 +691,7 @@ erDiagram
     string regime "GDPR|CCPA-CPRA|NYDFS-500|SERFF|IIPRC|IAIABC-EDI|..."
     string confidence "BASELINE|VERIFIED|DERIVED|STALE"
     string agentSkill "FB-59 — SDLC skill for migrated privacy/cyber regimes"
+    boolean complianceFlagged "user-flagged as a compliance practice the company follows"
   }
   LineOfBusiness {
     string id PK
@@ -1063,6 +1094,12 @@ erDiagram
   ProcessLevelType ||--o{ ProcessNode : "types"
   ProcessNode ||--o{ ProcessNode : "parent-of"
   ProcessNode ||--o{ ProcessNodeClosure : "ancestor"
+  %% product spine
+  Company ||--o{ ProductLevelType : "defines"
+  Company ||--o{ ProductNode : "owns"
+  ProductLevelType ||--o{ ProductNode : "types"
+  ProductNode ||--o{ ProductNode : "parent-of"
+  ProductNode ||--o{ ProductNodeClosure : "ancestor"
   %% work & control
   Company ||--o{ Deliverable : "tracks"
   Company ||--o{ Checklist : "defines"
@@ -1269,6 +1306,9 @@ erDiagram
   style InitiativeObjective fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style ProcessLevelType fill:#EAF2F8,stroke:#2980B9,stroke-width:2px,color:#1A5276
   style ProcessNode fill:#EAF2F8,stroke:#2980B9,stroke-width:2px,color:#1A5276
+  style ProductLevelType fill:#EAF2F8,stroke:#2980B9,stroke-width:2px,color:#1A5276
+  style ProductNode fill:#EAF2F8,stroke:#2980B9,stroke-width:2px,color:#1A5276
+  style ProductNodeClosure fill:#FDEDEC,stroke:#C0392B,stroke-width:2px,color:#922B21
   style Metric fill:#EAF2F8,stroke:#2980B9,stroke-width:2px,color:#1A5276
   style Company fill:#FCEFE0,stroke:#E67E22,stroke-width:2px,color:#7E4A12
   style OrgLevelType fill:#FCEFE0,stroke:#E67E22,stroke-width:2px,color:#7E4A12

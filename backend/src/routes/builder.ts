@@ -6,9 +6,13 @@ import { requirePermission } from '../middleware/permissions.js';
 import { logAudit } from '../services/audit.js';
 import {
   closureFor,
-  moveProcessSubtreeWithRelevel,
+  moveSubtreeWithRelevel,
   moveSubtreeWithRelevelTx,
+  type LevelByDepth,
 } from '../lib/closure.js';
+
+/** The process-spine level at which a node is a task leaf (erd_v5: L5 = task). */
+const TASK_LEVEL = 5;
 import { invalidateStructureCounts } from '../lib/resolvers/index.js';
 
 // Interactive operating-model builder.
@@ -70,13 +74,16 @@ function audit(req: Request, entityId: string, action: string, diff?: Record<str
   });
 }
 
-// typeKey ⇄ (spine, levelNumber). p2 = ProcessNode level 2, o1 = OrgUnit level 1.
-type Spine = 'processNode' | 'orgUnit';
-const typeKeyFor = (spine: Spine, level: number) => (spine === 'processNode' ? 'p' : 'o') + level;
+// typeKey ⇄ (spine, levelNumber). p2 = ProcessNode level 2, o1 = OrgUnit
+// level 1, m3 = ProductNode ("model") level 3.
+type Spine = 'processNode' | 'orgUnit' | 'productNode';
+const SPINE_KEY: Record<Spine, string> = { processNode: 'p', orgUnit: 'o', productNode: 'm' };
+const typeKeyFor = (spine: Spine, level: number) => SPINE_KEY[spine] + level;
 function parseTypeKey(typeKey: string): { spine: Spine; level: number } | null {
-  const m = /^([po])(\d+)$/.exec(typeKey);
+  const m = /^([pom])(\d+)$/.exec(typeKey);
   if (!m) return null;
-  return { spine: m[1] === 'p' ? 'processNode' : 'orgUnit', level: Number(m[2]) };
+  const spine: Spine = m[1] === 'p' ? 'processNode' : m[1] === 'o' ? 'orgUnit' : 'productNode';
+  return { spine, level: Number(m[2]) };
 }
 // Structural view of a spine row / delegate as used by the dynamic Prisma access
 // below. Purely compile-time (casts are erased); Prisma still validates shapes.
@@ -88,6 +95,7 @@ type SpineRecord = {
   attributes?: unknown;
   processLevelType?: { levelNumber: number } | null;
   orgLevelType?: { levelNumber: number } | null;
+  productLevelType?: { levelNumber: number } | null;
 };
 type SpineDelegate = {
   findFirst(args: unknown): Promise<SpineRecord | null>;
@@ -108,15 +116,16 @@ type LevelTypeDelegate = {
 const isHidden = (attrs: unknown): boolean =>
   typeof attrs === 'object' && attrs !== null && (attrs as Record<string, unknown>).hidden === true;
 
+const LEVEL_RELATION = {
+  processNode: 'processLevelType',
+  orgUnit: 'orgLevelType',
+  productNode: 'productLevelType',
+} as const;
 const delegateFor = (spine: Spine) => (prisma as unknown as Record<string, SpineDelegate>)[spine];
 const levelDelegateFor = (spine: Spine) =>
-  (prisma as unknown as Record<string, LevelTypeDelegate>)[
-    spine === 'processNode' ? 'processLevelType' : 'orgLevelType'
-  ];
-const levelRelationFor = (spine: Spine) =>
-  spine === 'processNode' ? 'processLevelType' : 'orgLevelType';
-const levelFkFor = (spine: Spine) =>
-  spine === 'processNode' ? 'processLevelTypeId' : 'orgLevelTypeId';
+  (prisma as unknown as Record<string, LevelTypeDelegate>)[LEVEL_RELATION[spine]];
+const levelRelationFor = (spine: Spine): (typeof LEVEL_RELATION)[Spine] => LEVEL_RELATION[spine];
+const levelFkFor = (spine: Spine) => `${LEVEL_RELATION[spine]}Id`;
 
 // ── Taxonomy ────────────────────────────────────────────────────────────────
 // Synthesize the NodeType list from the company's level types. Each level's
@@ -291,16 +300,20 @@ type ClosureDelegate = {
 };
 const closureDelegateFor = (spine: Spine) =>
   (prisma as unknown as Record<string, ClosureDelegate>)[
-    spine === 'processNode' ? 'processNodeClosure' : 'orgUnitClosure'
+    spine === 'processNode'
+      ? 'processNodeClosure'
+      : spine === 'orgUnit'
+        ? 'orgUnitClosure'
+        : 'productNodeClosure'
   ];
 
 // Validate + plan a reparent on EITHER spine. The tree allows re-leveling: a node
 // can drop under ANY target and adopts level (parentLevel + 1), its whole subtree
 // shifting with it. If the drop would nest past the deepest configured level we
 // AUTO-CREATE the missing levels (no hard cap) so depth is unlimited. Returns the
-// depth→levelTypeId map to apply (empty when the level is unchanged) plus the node's
+// depth→level map to apply (empty when the level is unchanged) plus the node's
 // resulting level, or an error to surface verbatim.
-type MovePlan = { levelByDepth: Map<number, string>; newRootLevel: number };
+type MovePlan = { levelByDepth: LevelByDepth; newRootLevel: number };
 async function planMove(
   spine: Spine,
   cid: string,
@@ -361,25 +374,18 @@ async function planMove(
     });
   }
 
-  const levelByDepth = new Map<number, string>();
+  const levelByDepth: LevelByDepth = new Map();
   if (newRootLevel !== currentLevel) {
     const byNum = new Map(levels.map((l) => [l.levelNumber, l.id]));
     for (let d = 0; d <= maxDepth; d++) {
-      const id = byNum.get(newRootLevel + d);
-      if (!id)
-        return { error: `This company has no level ${newRootLevel + d} configured`, status: 400 };
-      levelByDepth.set(d, id);
+      const levelNumber = newRootLevel + d;
+      const id = byNum.get(levelNumber);
+      if (!id) return { error: `This company has no level ${levelNumber} configured`, status: 400 };
+      levelByDepth.set(d, { id, levelNumber });
     }
   }
   return { levelByDepth, newRootLevel };
 }
-const planProcessMove = (
-  cid: string,
-  nodeId: string,
-  currentLevel: number,
-  newParentId: string | null,
-) => planMove('processNode', cid, nodeId, currentLevel, newParentId);
-
 router.post('/nodes', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const cid = await companyForReq(req);
@@ -423,24 +429,27 @@ router.post('/nodes', async (req: Request, res: Response, next: NextFunction) =>
       [levelFkFor(t.spine)]: ltId,
       sortOrder: (maxSort._max.sortOrder ?? 0) + 1,
     };
-    if (t.spine === 'processNode' && typeof description === 'string')
-      data.attributes = { description };
+    if (t.spine === 'processNode') {
+      // erd_v5: L5 = task (isTask=true leaves) — every other spine/level reader
+      // (Work Library, dashboards, regulations, Roles/Deliverables associations)
+      // scopes off this column, so a node created at the task level must carry it.
+      data.isTask = t.level === TASK_LEVEL;
+      if (typeof description === 'string') data.attributes = { description };
+    }
     const node = await del.create({ data });
     // Closure: self-row + ancestor edges (transactional).
     await closureFor(t.spine).insertNode({ nodeId: node.id, parentId: node.parentId ?? null });
     invalidateStructureCounts(cid);
     audit(req, node.id, 'CREATE', { typeKey, name: node.displayValue, parentId: node.parentId });
-    res
-      .status(201)
-      .json({
-        id: node.id,
-        typeKey,
-        parentId: node.parentId,
-        name: node.displayValue,
-        sortOrder: node.sortOrder,
-        provenance: 'real',
-        hidden: false,
-      });
+    res.status(201).json({
+      id: node.id,
+      typeKey,
+      parentId: node.parentId,
+      name: node.displayValue,
+      sortOrder: node.sortOrder,
+      provenance: 'real',
+      hidden: false,
+    });
   } catch (e) {
     next(e);
   }
@@ -486,18 +495,19 @@ router.patch('/nodes/:id', async (req: Request, res: Response, next: NextFunctio
         return res.status(400).json({ error: 'sortOrder must be an integer' });
       data.sortOrder = n;
     }
-    // Parent reassignment. The ProcessNode tree supports re-leveling (drop under any
-    // target; the subtree adopts the new depth, capped at the deepest level) via
-    // planProcessMove + moveProcessSubtreeWithRelevel. OrgUnit keeps the stricter
-    // "parent exactly one level up" rule. Either path maintains the closure edges
+    // Parent reassignment. The ProcessNode and ProductNode trees support
+    // re-leveling (drop under any target; the subtree adopts the new depth) via
+    // planMove + moveSubtreeWithRelevel. OrgUnit keeps the stricter "parent
+    // exactly one level up" rule. Either path maintains the closure edges
     // transactionally; other field updates go through del.update.
     let moveTo: string | null | undefined; // undefined = no move requested
-    let relevel: Map<number, string> | undefined;
+    let relevel: LevelByDepth | undefined;
     let newLevel = level;
     if (body.parentId !== undefined) {
       const newParentId: string | null = body.parentId ?? null;
-      if (spine === 'processNode') {
-        const plan = await planProcessMove(cid, req.params.id, level, newParentId);
+      if (spine !== 'orgUnit') {
+        // ProcessNode + ProductNode both support drop-anywhere re-leveling.
+        const plan = await planMove(spine, cid, req.params.id, level, newParentId);
         if ('error' in plan) return res.status(plan.status).json({ error: plan.error });
         relevel = plan.levelByDepth;
         newLevel = plan.newRootLevel;
@@ -511,12 +521,10 @@ router.patch('/nodes/:id', async (req: Request, res: Response, next: NextFunctio
           });
           if (!parent) return res.status(400).json({ error: 'Parent not found in this company' });
           if ((parent[levelRelationFor(spine)]?.levelNumber ?? 0) + 1 !== level) {
-            return res
-              .status(400)
-              .json({
-                error:
-                  "Re-leveling (changing a node's level) is not supported for this tree; pick a parent one level above this node.",
-              });
+            return res.status(400).json({
+              error:
+                "Re-leveling (changing a node's level) is not supported for this tree; pick a parent one level above this node.",
+            });
           }
           // Cycle guard: the new parent must not be inside this node's own subtree.
           let cursor: string | null = newParentId;
@@ -538,8 +546,9 @@ router.patch('/nodes/:id', async (req: Request, res: Response, next: NextFunctio
 
     if (Object.keys(data).length) await del.update({ where: { id: req.params.id }, data });
     if (moveTo !== undefined) {
-      if (spine === 'processNode') {
-        await moveProcessSubtreeWithRelevel({
+      if (spine !== 'orgUnit') {
+        await moveSubtreeWithRelevel({
+          spine,
           nodeId: req.params.id,
           newParentId: moveTo,
           levelByDepth: relevel,
@@ -616,7 +625,7 @@ router.post('/nodes/batch', async (req: Request, res: Response, next: NextFuncti
           spine: Spine;
           id: string;
           newParentId: string | null;
-          levelByDepth: Map<number, string>;
+          levelByDepth: LevelByDepth;
         }
       | { op: 'reorder'; spine: Spine; orderedIds: string[] }
       | { op: 'rename'; spine: Spine; id: string; name: string };
@@ -720,6 +729,21 @@ async function findNode(
       name: o.displayValue,
       attributes: null,
     };
+  const pr = await prisma.productNode.findFirst({
+    where: { id, companyId },
+    select: {
+      displayValue: true,
+      attributes: true,
+      productLevelType: { select: { levelNumber: true } },
+    },
+  });
+  if (pr)
+    return {
+      spine: 'productNode',
+      level: pr.productLevelType.levelNumber,
+      name: pr.displayValue,
+      attributes: pr.attributes,
+    };
   return null;
 }
 
@@ -741,12 +765,10 @@ router.get('/nodes/:id/links', async (req: Request, res: Response, next: NextFun
 });
 
 router.post('/links', async (_req: Request, res: Response) => {
-  res
-    .status(400)
-    .json({
-      error:
-        'Free-form connections are not available in this model — relationships are typed junctions edited via the relevant tab or Data Admin.',
-    });
+  res.status(400).json({
+    error:
+      'Free-form connections are not available in this model — relationships are typed junctions edited via the relevant tab or Data Admin.',
+  });
 });
 
 router.delete('/links/:id', async (_req: Request, res: Response) => {

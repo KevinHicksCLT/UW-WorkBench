@@ -490,11 +490,18 @@ export default function Regulations() {
   const jurLabel =
     tab === 'State' ? 'Jurisdictions' : tab === 'Federal' ? 'Agencies' : 'Regulators';
 
+  // Compliance bucket — user-flagged requirements, cutting across all three
+  // lenses (not scoped to the active tab).
+  const { data: compliance } = useApi<{ count: number }>(
+    companyId ? withCompany('/regulations/compliance-summary', companyId) : null,
+  );
+
   return (
     <div>
-      {/* Headline tiles — scoped to the active lens; each opens its insight page. */}
+      {/* Headline tiles — Jurisdictions, Requirements, then Compliance
+          (cross-lens), then Agent rules, Regulatory sources. */}
       {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-2">
           <Tile
             compact
             label={jurLabel}
@@ -509,6 +516,16 @@ export default function Regulations() {
             hint={`in the ${tab} lens`}
             onClick={() => navigate(`/regulations/catalog?lens=${LENS_PARAM[tab]}`)}
           />
+          {compliance && (
+            <Tile
+              compact
+              tone="positive"
+              label="Compliance"
+              value={compliance.count.toLocaleString()}
+              hint="requirements flagged as compliance practice"
+              onClick={() => navigate('/regulations/compliance')}
+            />
+          )}
           <Tile
             compact
             label="Agent rules"

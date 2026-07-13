@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useState, type RefObject } from 'react';
-import { GREEN, RED } from './types';
+import { AMBER, GREEN, RED } from './types';
 
 // One drawn connector between two column anchors. Points are in canvas
 // (unscaled) coordinates; the SVG lives inside the same scaled canvas so it
@@ -154,6 +154,9 @@ export function FlowEdges({ edges }: { edges: Edge[] }) {
         <marker id="wm-mv" markerWidth={9} markerHeight={9} refX={7} refY={4.5} orient="auto">
           <path d="M1,1 L7,4.5 L1,8" stroke={RED} strokeWidth={1.6} fill="none" />
         </marker>
+        <marker id="wm-rv" markerWidth={9} markerHeight={9} refX={7} refY={4.5} orient="auto">
+          <path d="M1,1 L7,4.5 L1,8" stroke={AMBER} strokeWidth={1.6} fill="none" />
+        </marker>
       </defs>
       {edges.map((e) => (
         <path
@@ -162,7 +165,9 @@ export function FlowEdges({ edges }: { edges: Edge[] }) {
           stroke={e.color}
           strokeWidth={e.width}
           opacity={e.dim ? 0.18 : 1}
-          markerEnd={e.color === GREEN ? 'url(#wm-ok)' : 'url(#wm-mv)'}
+          markerEnd={
+            e.color === GREEN ? 'url(#wm-ok)' : e.color === AMBER ? 'url(#wm-rv)' : 'url(#wm-mv)'
+          }
         />
       ))}
       {edges

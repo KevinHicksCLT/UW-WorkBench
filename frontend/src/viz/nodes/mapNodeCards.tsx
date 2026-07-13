@@ -5,14 +5,26 @@
  */
 import { memo } from 'react';
 import { type NodeProps } from '@xyflow/react';
-import {
-  DOMAIN_HEX, DOMAIN_BG, DOMAIN_BORDER, DOMAIN_TEXT,
-} from '../model';
+import { DOMAIN_HEX, DOMAIN_BG, DOMAIN_BORDER, DOMAIN_TEXT } from '../model';
 import { Chip } from '../../components/ui';
 import {
-  MAP_CARD_W, MAP_CARD_H, CLAMP3, sentenceCase, focusClass, editStyle, AllHandles, StagedDot,
-  type CompanyNodeData, type CoreNodeData, type DivisionNodeData, type ValueStreamNodeData,
-  type StepNodeData, type SubStepNodeData, type LeafStepNodeData,
+  MAP_CARD_W,
+  MAP_CARD_H,
+  CLAMP3,
+  sentenceCase,
+  focusClass,
+  editStyle,
+  AllHandles,
+  StagedDot,
+  EditBadges,
+  type CompanyNodeData,
+  type CoreNodeData,
+  type DivisionNodeData,
+  type ValueStreamNodeData,
+  type StepNodeData,
+  type SubStepNodeData,
+  type LeafStepNodeData,
+  type AddNodeData,
 } from './mapNodeShared';
 
 // ── companyNode ──────────────────────────────────────────────────────────────
@@ -28,7 +40,7 @@ const CompanyNodeImpl = memo(function CompanyNodeImpl({ data }: NodeProps) {
         width: MAP_CARD_W,
         height: MAP_CARD_H,
         boxSizing: 'border-box',
-        overflow: 'hidden',
+        overflow: 'visible',
         padding: '10px 12px',
         borderRadius: 12,
         background: '#171717',
@@ -57,11 +69,11 @@ const CompanyNodeImpl = memo(function CompanyNodeImpl({ data }: NodeProps) {
 
 const CoreNodeImpl = memo(function CoreNodeImpl({ data }: NodeProps) {
   const d = data as CoreNodeData;
-  const hex   = DOMAIN_HEX[d.category]    ?? '#94a3b8';
-  const bg    = DOMAIN_BG[d.category]     ?? '#f8fafc';
+  const hex = DOMAIN_HEX[d.category] ?? '#94a3b8';
+  const bg = DOMAIN_BG[d.category] ?? '#f8fafc';
   const border = DOMAIN_BORDER[d.category] ?? '#e2e8f0';
-  const text  = DOMAIN_TEXT[d.category]   ?? '#475569';
-  const fc    = focusClass(d.focusState);
+  const text = DOMAIN_TEXT[d.category] ?? '#475569';
+  const fc = focusClass(d.focusState);
   const animStyle = d.pieceIndex != null ? { animationDelay: `${d.pieceIndex * 40}ms` } : undefined;
 
   return (
@@ -71,7 +83,7 @@ const CoreNodeImpl = memo(function CoreNodeImpl({ data }: NodeProps) {
         width: MAP_CARD_W,
         height: MAP_CARD_H,
         boxSizing: 'border-box',
-        overflow: 'hidden',
+        overflow: 'visible',
         padding: '8px 12px',
         borderRadius: 10,
         background: bg,
@@ -103,6 +115,7 @@ const CoreNodeImpl = memo(function CoreNodeImpl({ data }: NodeProps) {
         {sentenceCase(d.label)}
       </div>
       {d.staged && <StagedDot />}
+      <EditBadges d={d} />
       <AllHandles />
     </div>
   );
@@ -112,9 +125,9 @@ const CoreNodeImpl = memo(function CoreNodeImpl({ data }: NodeProps) {
 
 const DivisionNodeImpl = memo(function DivisionNodeImpl({ data }: NodeProps) {
   const d = data as DivisionNodeData;
-  const hex    = DOMAIN_HEX[d.category]    ?? '#94a3b8';
+  const hex = DOMAIN_HEX[d.category] ?? '#94a3b8';
   const border = DOMAIN_BORDER[d.category] ?? '#e2e8f0';
-  const fc     = focusClass(d.focusState);
+  const fc = focusClass(d.focusState);
   const animStyle = d.pieceIndex != null ? { animationDelay: `${d.pieceIndex * 40}ms` } : undefined;
 
   return (
@@ -124,7 +137,7 @@ const DivisionNodeImpl = memo(function DivisionNodeImpl({ data }: NodeProps) {
         width: MAP_CARD_W,
         height: MAP_CARD_H,
         boxSizing: 'border-box',
-        overflow: 'hidden',
+        overflow: 'visible',
         padding: '10px 26px 10px 12px',
         borderRadius: 10,
         background: '#ffffff',
@@ -143,10 +156,20 @@ const DivisionNodeImpl = memo(function DivisionNodeImpl({ data }: NodeProps) {
       }}
     >
       {/* Name */}
-      <div style={{ fontSize: 12, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.3, ...CLAMP3 }}>
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 600,
+          color: '#171717',
+          letterSpacing: '-0.011em',
+          lineHeight: 1.3,
+          ...CLAMP3,
+        }}
+      >
         {sentenceCase(d.name)}
       </div>
       {d.staged && <StagedDot />}
+      <EditBadges d={d} />
       {/* Arrow affordance */}
       <svg
         width="13"
@@ -162,7 +185,13 @@ const DivisionNodeImpl = memo(function DivisionNodeImpl({ data }: NodeProps) {
           flexShrink: 0,
         }}
       >
-        <path d="M2 6.5h9M6.5 2.5l4 4-4 4" stroke={hex} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M2 6.5h9M6.5 2.5l4 4-4 4"
+          stroke={hex}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
       <AllHandles />
     </div>
@@ -186,7 +215,7 @@ const ValueStreamNodeImpl = memo(function ValueStreamNodeImpl({ data }: NodeProp
         width: MAP_CARD_W,
         height: MAP_CARD_H,
         boxSizing: 'border-box',
-        overflow: 'hidden',
+        overflow: 'visible',
         padding: '8px 10px',
         borderRadius: 10,
         background: '#ffffff',
@@ -205,10 +234,20 @@ const ValueStreamNodeImpl = memo(function ValueStreamNodeImpl({ data }: NodeProp
       }}
     >
       {/* Name */}
-      <div style={{ fontSize: 11.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35, ...CLAMP3 }}>
+      <div
+        style={{
+          fontSize: 11.5,
+          fontWeight: 600,
+          color: '#171717',
+          letterSpacing: '-0.011em',
+          lineHeight: 1.35,
+          ...CLAMP3,
+        }}
+      >
         {sentenceCase(d.name)}
       </div>
       {d.staged && <StagedDot />}
+      <EditBadges d={d} />
       <AllHandles />
     </div>
   );
@@ -221,7 +260,10 @@ const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
   const fc = focusClass(d.focusState);
   // Domain color from the L1 segment — consistent green/orange/blue at this level
   // (was primaryCategory, which fell back to gray when unset).
-  const accent = DOMAIN_HEX[d.category] ?? (d.primaryCategory ? DOMAIN_HEX[d.primaryCategory] : undefined) ?? '#a3a3a3';
+  const accent =
+    DOMAIN_HEX[d.category] ??
+    (d.primaryCategory ? DOMAIN_HEX[d.primaryCategory] : undefined) ??
+    '#a3a3a3';
   const animStyle = d.pieceIndex != null ? { animationDelay: `${d.pieceIndex * 40}ms` } : undefined;
 
   return (
@@ -231,7 +273,7 @@ const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
         width: MAP_CARD_W,
         height: MAP_CARD_H,
         boxSizing: 'border-box',
-        overflow: 'hidden',
+        overflow: 'visible',
         padding: '9px 10px',
         borderRadius: 10,
         background: '#ffffff',
@@ -269,11 +311,21 @@ const StepNodeImpl = memo(function StepNodeImpl({ data }: NodeProps) {
         </span>
         {/* 3-line clamp: the sub-process tag chip was removed, so the name can
             use the full card height. */}
-        <span style={{ fontSize: 11.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35, ...CLAMP3 }}>
+        <span
+          style={{
+            fontSize: 11.5,
+            fontWeight: 600,
+            color: '#171717',
+            letterSpacing: '-0.011em',
+            lineHeight: 1.35,
+            ...CLAMP3,
+          }}
+        >
           {sentenceCase(d.name)}
         </span>
       </div>
       {d.staged && <StagedDot />}
+      <EditBadges d={d} />
       <AllHandles />
     </div>
   );
@@ -297,7 +349,7 @@ const SubStepNodeImpl = memo(function SubStepNodeImpl({ data }: NodeProps) {
         width: MAP_CARD_W,
         height: MAP_CARD_H,
         boxSizing: 'border-box',
-        overflow: 'hidden',
+        overflow: 'visible',
         padding: '9px 10px',
         borderRadius: 10,
         background: '#ffffff',
@@ -335,7 +387,16 @@ const SubStepNodeImpl = memo(function SubStepNodeImpl({ data }: NodeProps) {
         </span>
         {/* 3-line clamp — match the other levels. The l5Count chip is vestigial
             (sub.l5 is always empty), so the name gets the full card height. */}
-        <span style={{ fontSize: 11.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35, ...CLAMP3 }}>
+        <span
+          style={{
+            fontSize: 11.5,
+            fontWeight: 600,
+            color: '#171717',
+            letterSpacing: '-0.011em',
+            lineHeight: 1.35,
+            ...CLAMP3,
+          }}
+        >
           {sentenceCase(d.name)}
         </span>
       </div>
@@ -346,6 +407,7 @@ const SubStepNodeImpl = memo(function SubStepNodeImpl({ data }: NodeProps) {
         </Chip>
       )}
       {d.staged && <StagedDot />}
+      <EditBadges d={d} />
       <AllHandles />
     </div>
   );
@@ -366,7 +428,7 @@ const LeafStepNodeImpl = memo(function LeafStepNodeImpl({ data }: NodeProps) {
         width: MAP_CARD_W,
         height: MAP_CARD_H,
         boxSizing: 'border-box',
-        overflow: 'hidden',
+        overflow: 'visible',
         padding: '9px 10px',
         borderRadius: 10,
         background: '#ffffff',
@@ -401,7 +463,16 @@ const LeafStepNodeImpl = memo(function LeafStepNodeImpl({ data }: NodeProps) {
         >
           {d.step}
         </span>
-        <span style={{ fontSize: 11.5, fontWeight: 600, color: '#171717', letterSpacing: '-0.011em', lineHeight: 1.35, ...CLAMP3 }}>
+        <span
+          style={{
+            fontSize: 11.5,
+            fontWeight: 600,
+            color: '#171717',
+            letterSpacing: '-0.011em',
+            lineHeight: 1.35,
+            ...CLAMP3,
+          }}
+        >
           {sentenceCase(d.name)}
         </span>
       </div>
@@ -410,14 +481,56 @@ const LeafStepNodeImpl = memo(function LeafStepNodeImpl({ data }: NodeProps) {
   );
 });
 
+// ── addNode ───────────────────────────────────────────────────────────────────
+// Edit-mode placeholder shown under a focused node that has no children yet —
+// clicking it starts the "add a child" prompt flow. Shared by both maps
+// (Value Streams and Organization import it into their registries).
+
+export const AddNodeCard = memo(function AddNodeCard({ data }: NodeProps) {
+  const d = data as AddNodeData;
+  return (
+    <div
+      role="button"
+      aria-label={d.label}
+      onClick={(e) => {
+        e.stopPropagation();
+        d.onClick();
+      }}
+      style={{
+        width: MAP_CARD_W,
+        height: MAP_CARD_H,
+        boxSizing: 'border-box',
+        borderRadius: 10,
+        border: '1.5px dashed #5eead4',
+        background: 'rgba(13,148,136,0.04)',
+        cursor: 'pointer',
+        userSelect: 'none',
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        color: '#0d9488',
+        fontSize: 11.5,
+        fontWeight: 600,
+      }}
+    >
+      <span style={{ fontSize: 15, lineHeight: 1 }}>+</span>
+      {d.label}
+      <AllHandles />
+    </div>
+  );
+});
+
 // ── Export ────────────────────────────────────────────────────────────────────
 
 export const mapNodeTypes = {
-  companyNode:     CompanyNodeImpl,
-  coreNode:        CoreNodeImpl,
-  divisionNode:    DivisionNodeImpl,
+  companyNode: CompanyNodeImpl,
+  coreNode: CoreNodeImpl,
+  divisionNode: DivisionNodeImpl,
   valueStreamNode: ValueStreamNodeImpl,
-  stepNode:        StepNodeImpl,
-  subStepNode:     SubStepNodeImpl,
-  leafStepNode:    LeafStepNodeImpl,
+  stepNode: StepNodeImpl,
+  subStepNode: SubStepNodeImpl,
+  leafStepNode: LeafStepNodeImpl,
+  addNode: AddNodeCard,
 };

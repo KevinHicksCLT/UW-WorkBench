@@ -89,6 +89,16 @@ export const TYPE_LEVEL: Record<string, number> = {
   subStepNode: 5,
 };
 export const MAX_LEVEL = 5;
+
+// Human labels for the process levels, in this map's vocabulary (used by the
+// add/remove dialogs). Matches TYPE_LEVEL above.
+export const LEVEL_LABEL: Record<number, string> = {
+  1: 'domain',
+  2: 'division',
+  3: 'value stream',
+  4: 'process step',
+  5: 'sub-step',
+};
 export const HOVER_DRILL_MS = 800; // hold the cursor directly over a box this long mid-drag → it drills open
 
 // An in-progress custom pointer drag of one process card.
@@ -121,8 +131,15 @@ export type MoveRec = {
   cat: string;
 };
 
-// The open insertion slot under the cursor mid-drag.
-export type GapState = { parent: string; index: number; type: string };
+// The open insertion slot under the cursor mid-drag. `hover` marks the small
+// spread opened by hovering a "+" badge (just enough room for the button),
+// as opposed to the full card-width slot a drag opens.
+export type GapState = { parent: string; index: number; type: string; hover?: boolean };
+
+// Hover "+" spread: siblings after the badge move over by this much, growing
+// the 12px gutter to 42px — the 26px badge sits centered with 8px breathing
+// room on each side. (EditBadges positions the badge at the 42px gap's middle.)
+export const PLUS_GAP_SPREAD = 30;
 
 // Active double-click rename editor (positioned over the box, in screen coords).
 export type RenameState = {

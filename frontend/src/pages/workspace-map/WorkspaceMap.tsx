@@ -1,143 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { LoadingState, ErrorMessage, EmptyState, Select } from '../../components/ui';
+import { LoadingState, ErrorMessage, EmptyState } from '../../components/ui';
 import { useBoardList, useBoardDetail, type Lens } from './useBoard';
 import { FlowEdges, useEdges, type EdgeSpec } from './FlowEdges';
+import LensBar, { LegendItem, type WorkspaceLens } from './LensBar';
 import BrownfieldPanel from './BrownfieldPanel';
 import NormalizeColumn from './NormalizeColumn';
 import GreenfieldColumn from './GreenfieldColumn';
+import ProductBoard from './product/ProductBoard';
 import { LAYERS, findingMoves, GREEN, RED } from './types';
 import type { Finding } from './types';
 
-// The Workspace map — an interactive, three-column application-rationalization
-// board (brown-field decomposition → normalize → green-field target) rendered
-// from the live /rationalization API. Replaces the retired board; nothing here
-// is hard-coded to a particular seeded application.
-
-const LENSES: { key: Lens; label: string }[] = [
-  { key: 'applications', label: 'Applications' },
-  { key: 'value-streams', label: 'Value streams' },
-  { key: 'roles', label: 'Roles' },
-];
-
-function LensBar({
-  lens,
-  onLens,
-  boards,
-  boardId,
-  onBoard,
-}: {
-  lens: Lens;
-  onLens: (l: Lens) => void;
-  boards: { id: string; name: string }[];
-  boardId: string | null;
-  onBoard: (id: string) => void;
-}) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        marginBottom: 10,
-        flexWrap: 'nowrap',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          height: 30,
-          border: '1px solid #eaeaea',
-          borderRadius: 6,
-          overflow: 'hidden',
-          flexShrink: 0,
-        }}
-      >
-        {LENSES.map((l, i) => (
-          <button
-            key={l.key}
-            type="button"
-            onClick={() => onLens(l.key)}
-            style={{
-              padding: '0 12px',
-              fontSize: 12.5,
-              fontWeight: 500,
-              border: 'none',
-              borderLeft: i === 0 ? 'none' : '1px solid #eaeaea',
-              cursor: 'pointer',
-              background: lens === l.key ? '#171717' : '#fff',
-              color: lens === l.key ? '#fff' : '#525252',
-            }}
-          >
-            {l.label}
-          </button>
-        ))}
-      </div>
-      {boards.length > 0 && (
-        <Select
-          aria-label="Board"
-          title="Board"
-          value={boardId ?? ''}
-          onChange={(e) => onBoard(e.target.value)}
-          style={{
-            width: 'auto',
-            minWidth: 220,
-            maxWidth: 340,
-            height: 30,
-            padding: '0 28px 0 10px',
-            fontSize: 12.5,
-            flexShrink: 0,
-          }}
-        >
-          {boards.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.name}
-            </option>
-          ))}
-        </Select>
-      )}
-      <div style={{ flex: 1 }} />
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          height: 30,
-          padding: '0 12px',
-          border: '1px solid #eaeaea',
-          borderRadius: 6,
-          background: '#fff',
-        }}
-      >
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 5,
-            fontSize: 11,
-            fontWeight: 500,
-            color: '#525252',
-          }}
-        >
-          <span style={{ width: 16, height: 3, borderRadius: 99, background: GREEN }} />
-          correct — stays
-        </span>
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 5,
-            fontSize: 11,
-            fontWeight: 500,
-            color: '#525252',
-          }}
-        >
-          <span style={{ width: 16, height: 3, borderRadius: 99, background: RED }} />
-          needs to move
-        </span>
-      </div>
-    </div>
-  );
-}
+// The Workspace map — an interactive, three-column rationalization board
+// (brown-field decomposition → normalize → green-field target) rendered from
+// the live APIs. The Applications / Value streams / Roles lenses share the
+// /rationalization board; the Products lens renders its own comparison board
+// (product/ProductBoard) over /product-models/workspaces.
 
 function TraceBreadcrumb({
   finding,
@@ -216,10 +93,19 @@ function TraceBreadcrumb({
   );
 }
 
+function lensFromDomain(d?: string): WorkspaceLens {
+  if (d === 'value-streams' || d === 'roles' || d === 'products') return d;
+  if (d === 'product-models') return 'products'; // e2e / legacy deep-link alias
+  return 'applications';
+}
+
 export default function WorkspaceMap({ initialDomain }: { initialDomain?: string }) {
-  const lensFromDomain = (d?: string): Lens =>
-    d === 'value-streams' || d === 'roles' ? d : 'applications';
-  const [lens, setLens] = useState<Lens>(lensFromDomain(initialDomain));
+  const [lens, setLens] = useState<WorkspaceLens>(lensFromDomain(initialDomain));
+  if (lens === 'products') return <ProductBoard lens={lens} onLens={setLens} />;
+  return <AppBoard lens={lens} onLens={setLens} />;
+}
+
+function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => void }) {
   const [boardId, setBoardId] = useState<string | null>(null);
   const [screenName, setScreenName] = useState<string | null>(null);
   const [selected, setSelected] = useState<Finding | null>(null);
@@ -376,8 +262,8 @@ export default function WorkspaceMap({ initialDomain }: { initialDomain?: string
       <LensBar
         lens={lens}
         onLens={(l) => {
-          setLens(l);
           setSelected(null);
+          onLens(l);
         }}
         boards={boards}
         boardId={boardId}
@@ -385,6 +271,12 @@ export default function WorkspaceMap({ initialDomain }: { initialDomain?: string
           setBoardId(id);
           setSelected(null);
         }}
+        legend={
+          <>
+            <LegendItem color={GREEN} label="correct — stays" />
+            <LegendItem color={RED} label="needs to move" />
+          </>
+        }
       />
       {selected && <TraceBreadcrumb finding={selected} destination={destination} />}
 

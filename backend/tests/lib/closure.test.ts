@@ -23,7 +23,13 @@ const { tx, prismaMock } = vi.hoisted(() => {
 });
 vi.mock('../../src/db/prisma.js', () => ({ prisma: prismaMock }));
 
-import { closureFor, moveProcessSubtreeTx, moveSubtreeWithRelevel, orgClosure, processClosure } from '../../src/lib/closure.js';
+import {
+  closureFor,
+  moveProcessSubtreeTx,
+  moveSubtreeWithRelevel,
+  orgClosure,
+  processClosure,
+} from '../../src/lib/closure.js';
 
 // The tx double stands in for Prisma's interactive-transaction client.
 const txArg = tx as unknown as Parameters<typeof moveProcessSubtreeTx>[0];
@@ -82,7 +88,9 @@ describe('moveSubtree', () => {
     expect(calls[0].sql).toContain('AND "ancestorId" NOT IN');
     expect(calls[0].params).toEqual(['n1']);
     // (b) relink: cross join of new-parent ancestors × subtree descendants.
-    expect(calls[1].sql).toContain('SELECT a."ancestorId", d."descendantId", a."depth" + d."depth" + 1');
+    expect(calls[1].sql).toContain(
+      'SELECT a."ancestorId", d."descendantId", a."depth" + d."depth" + 1',
+    );
     expect(calls[1].params).toEqual(['p2', 'n1']);
     // (c) persist the parent pointer.
     expect(calls[2].sql).toContain('UPDATE "ProcessNode" SET "parentId" = $1');
@@ -100,20 +108,21 @@ describe('moveSubtree', () => {
 });
 
 describe('moveProcessSubtreeTx (re-level)', () => {
-  it('rewrites processLevelTypeId per relative depth after the move', async () => {
+  it('rewrites processLevelTypeId + isTask per relative depth after the move', async () => {
     const levelByDepth = new Map([
-      [0, 'lt-4'],
-      [1, 'lt-5'],
+      [0, { id: 'lt-4', levelNumber: 4 }],
+      [1, { id: 'lt-5', levelNumber: 5 }],
     ]);
     await moveProcessSubtreeTx(txArg, 'n1', 'p2', levelByDepth);
 
     const calls = execCalls(tx);
     // 3 move statements + one UPDATE per distinct depth.
     expect(calls).toHaveLength(5);
-    expect(calls[3].sql).toContain('SET "processLevelTypeId" = $1');
+    expect(calls[3].sql).toContain('SET "processLevelTypeId" = $1, "isTask" = $4');
     expect(calls[3].sql).toContain('AND "depth" = $3');
-    expect(calls[3].params).toEqual(['lt-4', 'n1', 0]);
-    expect(calls[4].params).toEqual(['lt-5', 'n1', 1]);
+    // depth 0 lands on level 4 → isTask false; depth 1 lands on level 5 (TASK_LEVEL) → true.
+    expect(calls[3].params).toEqual(['lt-4', 'n1', 0, false]);
+    expect(calls[4].params).toEqual(['lt-5', 'n1', 1, true]);
   });
 
   it('leaves levels untouched when levelByDepth is empty', async () => {
@@ -123,17 +132,19 @@ describe('moveProcessSubtreeTx (re-level)', () => {
 });
 
 describe('moveSubtreeWithRelevel (own transaction)', () => {
-  it('runs move + re-level inside one $transaction on the requested spine', async () => {
+  it('runs move + re-level inside one $transaction on the requested spine, without isTask (org spine has no such column)', async () => {
     await moveSubtreeWithRelevel({
       spine: 'orgUnit',
       nodeId: 'ou1',
       newParentId: 'ou2',
-      levelByDepth: new Map([[0, 'olt-3']]),
+      levelByDepth: new Map([[0, { id: 'olt-3', levelNumber: 3 }]]),
     });
     expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
     const calls = execCalls(tx);
     expect(calls[0].sql).toContain('"OrgUnitClosure"');
     expect(calls[3].sql).toContain('SET "orgLevelTypeId" = $1');
+    expect(calls[3].sql).not.toContain('isTask');
+    expect(calls[3].params).toEqual(['olt-3', 'ou1', 0]);
   });
 });
 
@@ -147,7 +158,9 @@ describe('deleteSubtree', () => {
     expect(tx.$queryRawUnsafe.mock.calls[0][1]).toBe('n1');
     const calls = execCalls(tx);
     expect(calls[0].sql).toContain('DELETE FROM "ProcessNodeClosure"');
-    expect(calls[0].sql).toContain('"ancestorId" = ANY($1::text[]) OR "descendantId" = ANY($1::text[])');
+    expect(calls[0].sql).toContain(
+      '"ancestorId" = ANY($1::text[]) OR "descendantId" = ANY($1::text[])',
+    );
     expect(calls[0].params).toEqual([['n1', 'c1']]);
     expect(calls[1].sql).toContain('DELETE FROM "ProcessNode" WHERE "id" = ANY($1::text[])');
     expect(calls[1].params).toEqual([['n1', 'c1']]);

@@ -7,9 +7,10 @@ import WorkspaceMap from '../workspace-map/WorkspaceMap';
 // no Card wrapper: the toolbar sits directly under the app breadcrumb and the
 // map canvas is the page's single card, filling the viewport.
 //
-// Deep links carry the lens in ?domain= (applications | value-streams | roles);
-// unknown values fall back to applications. ?workspace=<id> is accepted for
-// old links (the map validates it against the board list).
+// Deep links carry the lens in ?domain= (applications | value-streams | roles
+// | products — `product-models` is accepted as an alias); unknown values fall
+// back to applications. ?workspace=<id> is accepted for old links (the map
+// validates it against the board list).
 export default function Portfolio() {
   const [params] = useSearchParams();
   const domain = params.get('domain') ?? undefined;
