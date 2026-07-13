@@ -1,0 +1,1532 @@
+{
+  "tasks": [
+    {
+      "id": "ea3e8e93-3f69-42c5-a754-41b1a115bbc8",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Reinsurance Analyst"],
+      "removeAppNames": ["billing/commission platform", "GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [{ "name": "Reinsurance administration system", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All life cases ceded facultatively or under treaty that received a reinsurer decision this cycle; scope = one case at a time, keyed by the PAS policy/quote number and the facultative certificate or treaty cession ID."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The concurrent-underwriting review window for the case, from facultative submission date to reinsurer decision receipt (typically 5-10 business days); only decisions received in this window are recorded against the case."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "d67c486b-98ee-4128-8863-de6062eac135"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Reinsurer name, decision code (accept/decline/counter-offer), participation %, retained vs ceded net amount at risk, table rating or flat extra, and decision date are all populated in the cession record; a blank participation % or decision date blocks binding."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Retained NAAR plus ceded NAAR equals the total face amount on the policy, and the ceded share reconciles to the reinsurer's signed confirmation; delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The reinsurer decision email/certificate is imaged into OpenText under /reinsurance/<policy-no>/ and the cession record is versioned in the reinsurance administration system with an immutable timestamp; retention 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Any discrepancy between the reinsurer's stated participation and the system entry is logged as a cession exception and returned to the Reinsurance Analyst for correction within 2 business days before the case can bind."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Retention and cession are applied per the approved corporate retention schedule (per line, per issue-age/rating band) currently in force; the schedule version is noted on the cession record."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03y5mbk85lrlrry0" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Cases where the ceded amount falls within 5% of a retention breakpoint are re-checked against the schedule before the decision is recorded."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "A participation-percentage difference of 1 point or more, or a recorded-amount discrepancy of $1,000 or more, is treated as material and must be reconciled before sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Recorded participation % and ceded amounts trace to the reinsurer's signed facultative certificate or treaty cession advice imaged in OpenText for the case."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "The cession status is set to 'Bound/Confirmed' only after the reinsurer decision is recorded, and matches the PAS policy status."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Decision date is on or before the bind date and the cession effective date equals the policy effective date."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "Quarterly sample of 25 ceded life cases bound in the period."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = 100% of sampled cases show the reinsurer decision, participation % and amounts recorded and reconciled; FAIL = any case bound without a recorded reinsurer decision or with an unreconciled amount."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Failures are logged in the GRC platform, corrected by the Reinsurance Analyst and re-tested; systemic gaps escalate to the UW Operations Manager."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions from the reinsurance administration system data dictionary: participation_pct, ceded_naar, retained_naar, decision_code, decision_date."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Total ceded NAAR in the reinsurance administration system reconciles to the ceded-exposure report for the period with 0 variance."
+        },
+        {
+          "answerId": "cmr2ocg0p0y22kaz3qkp1z3ug",
+          "value": "Source is the approved retention schedule v3.2 (effective current year) plus the treaty slip parameters; ceded and retained amounts are derived from the schedule's per-life retention limit for the issue-age/rating band recorded on the case."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Record the reinsurer decision and supporting evidence in the case file",
+              "value": "Cession record in the reinsurance administration system plus the imaged reinsurer certificate under /reinsurance/<policy-no>/ document the decision, participation and amounts."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect sampled ceded files for complete decision documentation",
+              "value": "25 sampled bound cases each show a recorded decision, participation % and amounts; 0 files missing the reinsurer certificate."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Record the cession decision within 24 hours of receipt",
+              "value": "Decision date/time stamped in the cession record; entry made within one business day of the reinsurer's confirmation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Measure recording lag",
+              "value": "Elapsed time between reinsurer confirmation and system entry is within 24 hours for 100% of sampled cases."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Preserve an audit trail of the recorded decision",
+              "value": "System change log captures who recorded the participation %/amounts and when; edits are versioned, not overwritten."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit-trail completeness",
+              "value": "For sampled cases the change log shows author, timestamp and prior values for every amendment; 0 untracked edits."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "60486597-f559-40a4-99e9-76b1a4235d87",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Reinsurance Analyst", "Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Every case that exceeds retention and is being bound with a reinsurer; scope = one case, requiring a completed facultative certificate or treaty cession entry before the bind action in the PAS."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From reinsurer acceptance to policy bind date; the cession documentation must be complete within this window and no bind is permitted until it is."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "d67c486b-98ee-4128-8863-de6062eac135"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Facultative certificate number (or treaty section reference), reinsurer, ceded amount, participation %, effective date and reinsurer signature/authorization are all present; a missing certificate number or signature makes the case ineligible to bind."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Ceded amount on the certificate equals the ceded NAAR in the reinsurance administration system and the excess-over-retention on the PAS; the three figures reconcile to 0 variance."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Signed certificate/cession advice imaged into OpenText under /reinsurance/<policy-no>/ with timestamp and version; a pre-bind checklist snapshot is retained on the case."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "If binding is attempted with incomplete cession documentation, the case is held in 'Pending cession' status and an exception is logged with the missing item and owner; resolved before release."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The bind decision and confirmation that cession documentation is complete are recorded on the case with the approver's name, the certificate reference and the date."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Bind confirmation is communicated to the producer, the Reinsurance Analyst and new-business processing; recipients are recorded on the case activity log."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "Quarterly sample of 25 excess-retention cases bound during the period."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = 100% of sampled cases had complete, signed cession documentation on file before the bind timestamp; FAIL = any case bound before the certificate was completed and imaged."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "A bind-before-cession failure is logged in the GRC platform, the Senior Underwriter is notified, and the gap is remediated with a root-cause note; repeats escalate to the Chief Underwriting Officer."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions from the reinsurance administration system dictionary: certificate_no, reinsurer_id, ceded_amount, participation_pct, effective_date, authorized_flag."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Count of bound excess-retention cases equals the count of completed certificates for the period; 0 unmatched binds."
+        },
+        {
+          "answerId": "cmr2ocg120yjmkaz3x2vm15rt",
+          "value": "Authorized approver is the Senior Underwriter per the underwriting authority matrix v3.2; cession-binding authority is delegated by NAAR band, with amounts above the band referred to the Chief Underwriting Officer."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Trigger cession documentation when retention is exceeded",
+              "value": "Any case above the per-life retention limit is flagged for facultative/treaty cession before binding per the documented referral triggers."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify the trigger fired for over-retention cases",
+              "value": "100% of sampled over-retention binds have a cession record created before the bind timestamp."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the signed certificate before binding",
+              "value": "Signed facultative certificate/treaty cession advice imaged to /reinsurance/<policy-no>/ and linked to the case before release."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect pre-bind file completeness",
+              "value": "0 sampled cases bound without a signed, imaged certificate on file."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Confirm the binder is within authority",
+              "value": "Bind action taken only by an underwriter whose authority (premium/limit/line) covers the retained amount; over-limit cases referred."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check authority against retained amount",
+              "value": "For sampled cases the binding underwriter's authority level covers the retained NAAR; 0 out-of-authority binds."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "bcf9f1bc-91b2-458c-9e75-edfcea0e9fda",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Reinsurance Analyst"],
+      "removeAppNames": ["billing/commission platform", "HRIS (Workday/SuccessFactors)"],
+      "addApps": [{ "name": "Reinsurance administration system", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All correspondence between the ceding underwriter and the reinsurer for an open concurrent-underwriting case; scope = one case's message thread (requests, medical/APS follow-ups, offers and clarifications) keyed to the case ID."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The full review period for the case, from facultative submission through final reinsurer decision; correspondence outside an open case is out of scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "d67c486b-98ee-4128-8863-de6062eac135"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each logged communication has date, direction (in/out), reinsurer contact, subject and any requested item and due date; messages missing a due date on an outstanding request are flagged for follow-up."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of open information requests equals count of outstanding responses tracked on the case; the tracker reconciles to the reinsurer exchange thread with 0 orphaned items."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "All correspondence is captured against the case in the reinsurance administration system and imaged to OpenText under /reinsurance/<policy-no>/ with timestamps; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Requests not answered within the agreed SLA (default 3 business days) are logged as follow-up exceptions and re-sent; unresponsive reinsurers are escalated to the Reinsurance Analyst."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "Quarterly sample of 20 concurrent-underwriting cases with reinsurer correspondence in the period."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every open request on the sampled cases has a logged response or an in-SLA follow-up; FAIL = any request left unanswered past SLA with no follow-up recorded."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Stalled threads are escalated to the Reinsurance Analyst and, if the reinsurer remains unresponsive, to the Head of Reinsurance; the escalation is noted on the case."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance criteria: no open reinsurer request is outstanding beyond SLA without a follow-up, and the full thread is retrievable from the case at decision time."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence is the correspondence log on the case in the reinsurance administration system plus imaged emails under /reinsurance/<policy-no>/."
+        },
+        {
+          "answerId": "cmr2ocfyq0vgskaz3q49h8ad2",
+          "value": "In-scope period is the case review window from facultative submission date to reinsurer decision date; only correspondence dated within this window and tied to the open case is evaluated."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Capture all reinsurer correspondence in the case file",
+              "value": "Inbound and outbound messages logged against the case with date, contact and subject and imaged to OpenText."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect correspondence completeness",
+              "value": "Sampled cases show a complete, retrievable thread; 0 gaps between requests and recorded responses."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Route reinsurer requests to the right internal owner",
+              "value": "Requests for medical/APS or financial evidence are triggered to the case owner and Reinsurance Analyst with a due date."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify request routing and follow-up",
+              "value": "100% of open requests in the sample have an assigned owner and an in-SLA follow-up or logged response."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fl6xr1qw8kfgzwzbmtp5w",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Senior Underwriter", "Reinsurance Analyst"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "Reinsurance administration system", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Life cases where the reinsurer's initial offer differs from the ceding company's view; scope = one case's negotiation of rate class, table rating, flat extras and participation terms with the reinsurer."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From receipt of the reinsurer's initial offer to agreed final terms, within the case review window (typically a few business days); superseded interim offers are retained but not the operative terms."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "d67c486b-98ee-4128-8863-de6062eac135"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each negotiation round records the reinsurer's offered table/flat extra, our counter, the rationale (evidence cited) and the outcome; a counter without a documented rationale is not accepted."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Final agreed table rating and flat extras entered on the case match the reinsurer's confirmation and the modeled mortality assumption used in pricing; the three reconcile before binding."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The negotiation trail (offers, counters, final terms) is retained on the case in the reinsurance administration system and imaged to OpenText with timestamps and version labels."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Where terms cannot be agreed, the case is logged as an impasse exception and referred to the Senior Underwriter/Head of Reinsurance for a retain-net or alternative-reinsurer decision."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Mortality assumptions and debit/credit rationale are based on the approved underwriting manual and reinsurer manual edition in force; the manual version is cited on the case."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "A change of one table rating (25 mortality points) or a flat extra change of $2.50 per $1,000 or more triggers a re-check of the pricing impact before agreeing."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Rating differences that move the case across an automatic-vs-referral threshold, or that alter net premium by 5% or more, are treated as material and documented."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "Quarterly sample of 15 negotiated life cases with a table rating or flat extra agreed in the period."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = each sampled case shows the offer/counter trail, cited evidence and final agreed terms matching the bound policy; FAIL = final terms not supported by the documented negotiation or not matching the policy."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Unsupported or mismatched terms are corrected on the case and, if pricing was affected, re-referred to the Senior Underwriter; the exception is logged in the GRC platform."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance criteria: agreed table/flat extra is evidence-based, within manual guidance or documented as an exception, and consistently reflected in the reinsurance system and the PAS."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence is the negotiation log and final terms in the reinsurance administration system plus imaged offer/counter correspondence under /reinsurance/<policy-no>/."
+        },
+        {
+          "answerId": "cmr2ocdxx0v8jkaz3pew8xjmb",
+          "value": "Approved source is the underwriting manual (current edition) and the reinsurer's rating manual; mortality debits/credits and flat extras are drawn from these, with the edition and page/table cited on the case."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppa51o8smbk82mw0frsj",
+          "checklist": [
+            {
+              "step": "Obtain actuarial/technical input on the rating for large cases",
+              "value": "For high-face or heavily rated cases the mortality assumption and flat extras are reviewed against pricing before terms are agreed."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify technical review occurred",
+              "value": "Sampled large negotiated cases show a documented technical review of the agreed rating; 0 large cases agreed without it."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Refer impasses to the next authority level with a recommendation",
+              "value": "Where the reinsurer will not agree acceptable terms, the case is referred up with a retain-net or alternative-reinsurer recommendation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check referral quality",
+              "value": "100% of impasse cases carry a documented recommendation to the Senior Underwriter/Head of Reinsurance."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of offers and counters",
+              "value": "Every negotiation round is logged with author, timestamp and rationale; superseded offers are retained, not deleted."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify negotiation audit trail",
+              "value": "Sampled cases show a complete offer/counter history reconstructable from the log; 0 missing rounds."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fl76b1r1dkfgz9tl1kxqe",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Senior Underwriter", "Reinsurance Analyst"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "Reinsurance administration system", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Life cases reaching final concurrent-underwriting agreement; scope = one case, capturing the final concurred rate class, table rating and flat extras agreed by the ceding company and the reinsurer before issue."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The point at which negotiation closes and final terms are set, before policy issue; only the operative final terms in this window are recorded as the concurred rating."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "d67c486b-98ee-4128-8863-de6062eac135"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Final rate class, table rating, flat extras, ceded participation and the concurring reinsurer are recorded, and both parties' agreement is evidenced; a case cannot be issued without recorded concurrence."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The concurred rating on the case equals the rating loaded in the PAS and the rating used to calculate premium; the three reconcile to 0 variance before issue."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The final concurrence (reinsurer confirmation of table/flat extra) is imaged to OpenText and stamped on the cession record in the reinsurance administration system with a version label."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "If the reinsurer's final rating differs from the issued rating, issue is held and the discrepancy logged as an exception for correction or re-referral before release."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The concurred rating is expressed in the standard mortality-table/flat-extra framework of the underwriting manual edition in force; the framework version is cited."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Any last-minute change of one table rating or more between draft and final concurrence triggers a re-check of premium and reinsurance amounts."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "A rating difference that changes premium by 5% or more, or crosses a substandard/decline boundary, is material and must be reconciled before issue."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "Quarterly sample of 20 reinsured life cases issued in the period."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = 100% of sampled issued cases show recorded final concurrence matching the issued rating and premium; FAIL = any case issued without recorded concurrence or with a rating mismatch."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "A missing-concurrence or mismatch finding blocks the file, is logged in the GRC platform and re-worked; systemic issues escalate to the Chief Underwriting Officer."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance criteria: final concurred rating is recorded, agreed by the reinsurer, and equal to the rating and premium on the issued policy."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence is the concurrence record on the cession in the reinsurance administration system plus imaged reinsurer confirmation under /reinsurance/<policy-no>/."
+        },
+        {
+          "answerId": "cmr2ocdxx0v8kkaz3dsmmyki4",
+          "value": "Approved source is the underwriting manual (current edition) mortality-table and flat-extra schedule; the final concurred rating references the specific table/flat extra and manual edition."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppa51o8smbk82mw0frsj",
+          "checklist": [
+            {
+              "step": "Confirm the rating is technically supported before concurrence",
+              "value": "Final table rating/flat extra checked against manual guidance and the reinsurer's view for large/rated cases."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify technical support for concurred rating",
+              "value": "Sampled issued cases show the concurred rating supported by manual/evidence; 0 unsupported ratings."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Document the concurrence decision promptly",
+              "value": "Final concurrence recorded with date/time on the cession record within 24 hours of agreement."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Measure concurrence recording lag",
+              "value": "Recording occurs within 24 hours of reinsurer agreement for 100% of sampled cases."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowqe1mswmbk8wnjoqs6v",
+          "checklist": [
+            {
+              "step": "Apply peer/second-eyes review to the final rating",
+              "value": "A Senior Underwriter confirms the concurred rating matches the issued policy before release."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify second-eyes sign-off",
+              "value": "Sampled cases show Senior Underwriter sign-off on final concurrence; 0 cases issued without it."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "a2103a30-2d8b-422d-9611-c1445f5e3fef",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Reinsurance Analyst"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Cases referred to a reinsurer for facultative/concurrent review; scope = the complete case file for one referral, including application, medical/APS, labs, financials, illustration and the underwriter's analysis."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At referral, before the reinsurer begins review; the file provided reflects all evidence gathered up to the referral date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203zjmbk8y2uum9fk"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The referral package contains application, all ordered evidence (APS, exam, labs, MIB, MVR where applicable), financials and the underwriting summary; a required-evidence checklist confirms none is missing before sending."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Documents sent equal documents on the required-evidence checklist for the case; the package index count matches the reinsurer's acknowledgement of receipt with 0 missing items."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The transmitted package and its index are retained in OpenText under /reinsurance/<policy-no>/ with a send timestamp; a copy is linked on the cession record."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Missing or illegible evidence identified at assembly is logged and obtained before referral; if referral proceeds with a pending item, the gap and expected date are noted for the reinsurer."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "Quarterly sample of 20 facultative referrals sent in the period."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = 100% of sampled referrals show a complete, indexed case file matching the required-evidence checklist; FAIL = any referral missing required evidence without a documented pending note."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Incomplete referrals are logged in the GRC platform, the missing evidence obtained and re-sent, and repeat gaps escalated to the UW Operations Manager."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field/document definitions from the OpenText case-file taxonomy: application, APS, exam, labs, MIB, MVR, financials, uw_summary."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Package index document count reconciles to the reinsurer's receipt acknowledgement; 0 variance."
+        },
+        {
+          "answerId": "cmr2ocdv50rlqkaz3m4f0nxk1",
+          "value": "Acceptance criteria: the reinsurer receives a complete, indexed case file matching the required-evidence checklist. Evidence is the transmitted package and index in OpenText under /reinsurance/<policy-no>/ plus the reinsurer receipt acknowledgement on the cession record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Assemble a complete, indexed case file for referral",
+              "value": "All application and evidence documents indexed in OpenText and packaged against the required-evidence checklist before sending."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect referral package completeness",
+              "value": "Sampled referrals match the required-evidence checklist; 0 packages missing a required document without a pending note."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Record what was sent and when",
+              "value": "Send timestamp and package index retained on the case, providing an audit trail of the evidence provided to the reinsurer."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify send audit trail",
+              "value": "Sampled cases show a retained transmittal index and timestamp reconciling to the reinsurer acknowledgement; 0 untracked sends."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "4f9d7d72-4172-4f8c-90a9-4ba1fd37c21e",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Senior Underwriter", "Reinsurance Analyst"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "Reinsurance administration system", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Cases where the internal risk classification or pricing view differs from the reinsurer's; scope = one case, reconciling the internal table rating/decision against the reinsurer's classification or pricing."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From identification of the difference to a reconciled position, within the case review window before final terms are set."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "d67c486b-98ee-4128-8863-de6062eac135"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The internal rating, the reinsurer rating, the specific driver of the difference (e.g. an APS finding weighted differently) and the reconciled outcome are all documented; a difference cannot be closed without a stated basis."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The reconciled rating equals the rating carried into pricing and the bound policy; internal and reinsurer figures are shown side by side and the residual difference is 0 or documented as accepted."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The reconciliation memo (internal vs reinsurer, driver, resolution) is retained on the case in the reinsurance administration system and imaged to OpenText with a version and timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Unresolved differences are logged as an exception and escalated to the Senior Underwriter; if pricing-material, the case is re-referred rather than bound on a disputed basis."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Both ratings are expressed on the common mortality-table framework of the underwriting manual edition in force so differences are directly comparable; the edition is cited."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03y5mbk85lrlrry0" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "A rating gap of one table (25 points) or more between internal and reinsurer views triggers a documented driver analysis."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Differences that change premium by 5% or more, or move the case across a referral/decline boundary, are material and require explicit resolution before binding."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "Quarterly sample of 15 cases where an internal/reinsurer rating difference was recorded."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = each sampled difference has a documented driver and reconciled outcome matching the bound rating; FAIL = any difference closed without a stated basis or not reflected in the final rating."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Findings are corrected on the case and, where pricing-material, re-referred to the Senior Underwriter; the exception is logged in the GRC platform and re-tested."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dates run from the date the difference was raised to the date it was reconciled, within the case review window; only in-window reconciliations are evaluated."
+        },
+        {
+          "answerId": "cmr2ocdww0tv9kaz3ho2ayex6",
+          "value": "Acceptance criteria: every internal/reinsurer rating difference is reconciled with a documented driver and the agreed rating flows to pricing and the policy. Evidence is the reconciliation memo on the cession record and imaged under /reinsurance/<policy-no>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowqe1mswmbk8wnjoqs6v",
+          "checklist": [
+            {
+              "step": "Second-eyes review of the reconciliation",
+              "value": "A Senior Underwriter or UW Quality/Audit Manager independently reviews the driver analysis and the reconciled rating."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify independent review",
+              "value": "Sampled reconciliations show independent review sign-off; 0 material differences closed on a single reviewer."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Refer unresolved material differences up with a recommendation",
+              "value": "Where internal and reinsurer views cannot be reconciled, the case is referred to the next authority with a recommended position."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check referral of unresolved differences",
+              "value": "100% of unresolved material differences carry a documented referral and recommendation."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the reconciliation basis in the file",
+              "value": "Reconciliation memo showing internal vs reinsurer rating, driver and outcome retained on the case."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect reconciliation documentation",
+              "value": "Sampled cases show a complete reconciliation memo; 0 differences closed without documentation."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fjbtw0vktkfgzcrzqpokd",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Reinsurance Analyst"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Life cases whose net amount at risk exceeds the company's automatic retention; scope = one case submitted to the treaty reinsurer for concurrent underwriting review of the excess."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At the point retention is exceeded during underwriting, before final decision; the submission reflects evidence gathered up to the submission date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "d67c486b-98ee-4128-8863-de6062eac135"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Submission carries face amount, calculated NAAR, retained amount, excess to be ceded, treaty reference and the case evidence bundle; a submission missing the NAAR or treaty reference is rejected by the intake check."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Excess submitted equals total NAAR minus automatic retention per the retention schedule; the figure reconciles to the treaty cession calculation with 0 variance."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The submission and its evidence bundle are logged on the case in the reinsurance administration system and imaged to OpenText under /reinsurance/<policy-no>/ with a submit timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Cases at or near the retention breakpoint that are mis-classified as within-retention are caught by a monthly over-retention sweep, logged as an exception and submitted late with a root-cause note."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "Monthly population of all life cases underwritten with NAAR above automatic retention."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = 100% of over-retention cases were submitted to the treaty reinsurer before decision; FAIL = any over-retention case decided/bound without a treaty submission."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Missed submissions are logged in the GRC platform, submitted retroactively where the treaty allows, and root-caused; systemic misses escalate to the Head of Reinsurance."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance criteria: every case above automatic retention has a treaty submission with correct excess calculation before a final underwriting decision."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence is the submission record on the cession in the reinsurance administration system plus the imaged evidence bundle under /reinsurance/<policy-no>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Trigger treaty submission when retention is exceeded",
+              "value": "The over-retention referral trigger fires automatically when NAAR exceeds the schedule limit, routing the case to treaty submission."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify trigger coverage",
+              "value": "100% of over-retention cases in the monthly population were flagged and submitted; 0 missed triggers."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Submit the excess to the correct authority (treaty reinsurer)",
+              "value": "Excess portion referred to the treaty reinsurer with the case recommendation and evidence bundle."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check submission completeness",
+              "value": "Sampled submissions include the excess calculation and evidence; 0 incomplete submissions."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "5b52c5b4-13aa-4d0e-a463-761915820f1d",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Data Scientist", "Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Annuity Suitability Analyst", "Compliance Analyst"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All annuity applications and recommendations subject to the NAIC Suitability in Annuity Transactions Model Regulation (best-interest standard); scope = one transaction, assessing the consumer's suitability information against the recommended product."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At new-business review, before issue, using the consumer profile and suitability form current as of the application date; reassessed if the recommendation changes."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Suitability information is complete: age, income, financial situation and needs, liquid net worth, risk tolerance, time horizon, existing holdings and the reason for the recommendation; missing fields block the best-interest determination."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every issued annuity in the period has a matching best-interest assessment record; the count of assessments reconciles to issued annuity count with 0 unassessed policies."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The completed suitability form and best-interest determination are imaged to OpenText under /suitability/<policy-no>/ and stamped on the PAS record with a version and timestamp; retained per the Model Reg record-retention period."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Transactions that do not meet the best-interest standard are logged as unsuitable, not issued as recommended, and referred to the producer/compliance for a corrected recommendation or documented consumer-directed exception."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The assessment follows the current best-interest framework implementing the NAIC Suitability in Annuity Transactions Model Regulation (care, disclosure, conflict-of-interest and documentation obligations); the procedure version is cited."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqscl35c1hjnmbk86xvnu6i5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Recommendations involving a replacement, a surrender charge, or an allocation outside the consumer's stated risk tolerance are re-examined more closely for suitability."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "A recommendation is treated as materially unsuitable if it exceeds stated risk tolerance/time horizon or if surrender charges/loss of benefits outweigh the documented consumer benefit."
+        },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "The best-interest determination cites the NAIC Suitability in Annuity Transactions Model Regulation and the applicable state adoption on the case."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "Suitability records are retained for the state-required period (commonly the greater of the applicable statute or 5 years after the transaction) in OpenText under legal hold controls."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "No external filing deadline applies; the internal control is that the best-interest determination is completed before issue, which is date-stamped and monitored."
+        },
+        {
+          "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "Quarterly sample of 30 issued annuity transactions, oversampling replacements."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = each sampled transaction has complete suitability information and a documented best-interest basis; FAIL = any issued annuity with missing suitability data or an unsupported best-interest conclusion."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "Failures are logged in the GRC platform, referred to the Compliance Analyst, and the transaction is remediated (corrected recommendation, additional disclosure or unwind) before or shortly after issue."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "The approved best-interest assessment procedure version implementing the NAIC Model Reg, as adopted in the relevant state, is referenced on each case."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "Parameters (consumer profile inputs) are sourced from the signed suitability questionnaire and, where applicable, replacement disclosure and existing-policy data in the PAS."
+        },
+        {
+          "answerId": "cmr2ocdws0tqfkaz3zr1sksdq",
+          "value": "Applicable rule is the NAIC Suitability in Annuity Transactions Model Regulation (best-interest standard) as adopted by the issuing state; the state adoption citation is recorded on the case."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp1tk1n28mbk8acxt1ens",
+          "checklist": [
+            {
+              "step": "Collect and assess required suitability information before recommending",
+              "value": "Consumer profile (needs, financial situation, risk tolerance, time horizon, existing holdings) captured and assessed against the recommended annuity under the best-interest standard."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test suitability completeness and basis",
+              "value": "Sampled transactions show complete suitability information and a documented best-interest rationale; 0 issued without a determination."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the best-interest determination in the file",
+              "value": "Signed suitability form and determination imaged to /suitability/<policy-no>/ and linked on the PAS record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect documentation",
+              "value": "Sampled files contain the completed suitability form and determination; 0 missing."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowqe1mswmbk8wnjoqs6v",
+          "checklist": [
+            {
+              "step": "Second-eyes review of higher-risk recommendations",
+              "value": "Replacements and allocations outside stated risk tolerance receive Annuity Suitability Analyst review before issue."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify review of flagged cases",
+              "value": "100% of flagged higher-risk transactions show a documented second review; 0 issued without it."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5h6et024xv880c3ly3q8x",
+          "checklist": [
+            {
+              "step": "Assess suitability and customer needs before advising or selling",
+              "value": "Best-interest assessment completed against the consumer's needs and financial situation before the annuity is recommended or issued, per the suitability standard."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify pre-sale suitability assessment",
+              "value": "Sampled annuity issues show a completed suitability/best-interest assessment dated before issue; 0 issued without one."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "98aba380-b3be-429b-a00a-98ece4e2268e",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Annuity Suitability Analyst", "Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All life/annuity applications flagged as replacements; scope = one case, recording the disposition of the replacement/suitability review (approve, decline or escalate) with rationale."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At completion of the replacement review, before issue; the disposition reflects the replacement notices and comparison in force on the review date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Disposition code, rationale, reviewer, replacement type (internal/external, 1035), existing vs proposed policy comparison and any escalation reference are populated; a disposition without a rationale is not accepted."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every replacement-flagged case in the period has a recorded disposition; count of dispositions reconciles to count of replacement flags with 0 open items at cycle close."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The disposition memo and supporting comparison are imaged to OpenText under /suitability/<policy-no>/ and stamped on the PAS record with reviewer, version and timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Cases with unfavorable comparisons or churning indicators are dispositioned as 'escalate', logged as exceptions and routed to compliance rather than approved; the disposition records the reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Disposition follows the current replacement-review procedure implementing the NAIC replacement and suitability model regulations; the procedure version is cited on the case."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqscl35c1hjnmbk86xvnu6i5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Dispositions to approve a replacement with surrender charges, loss of guaranteed benefits, or new contestability/suicide periods are re-examined before finalizing."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "A disposition is material if it approves a replacement that reduces guaranteed benefits or imposes significant surrender charges without a documented offsetting consumer benefit."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "Quarterly sample of 25 replacement-flagged cases dispositioned in the period."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = each sampled case has a recorded disposition with rationale consistent with the comparison and procedure; FAIL = any disposition missing a rationale or inconsistent with the replacement comparison."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Weak or inconsistent dispositions are returned for rework, escalated to the Senior Underwriter, and logged in the GRC platform; churning patterns route to compliance."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance criteria: every replacement case carries a documented disposition and rationale, escalated where indicators warrant, before issue."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence is the disposition memo on the PAS case plus the imaged comparison under /suitability/<policy-no>/."
+        },
+        {
+          "answerId": "cmr2ocdxj0uqakaz3qqxf5olq",
+          "value": "Approved source is the replacement-review procedure implementing the NAIC replacement and suitability model regulations (state-adopted edition); the disposition references the procedure version and the replacement comparison inputs."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp1tk1n28mbk8acxt1ens",
+          "checklist": [
+            {
+              "step": "Base the disposition on a suitability/replacement comparison",
+              "value": "Existing-vs-proposed comparison and suitability information drive the recorded disposition and rationale."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test disposition rationale against comparison",
+              "value": "Sampled dispositions are consistent with the replacement comparison; 0 unsupported approvals."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Record the disposition promptly",
+              "value": "Disposition and rationale recorded within 24 hours of review completion with reviewer and timestamp."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Measure disposition recording lag",
+              "value": "Recording within 24 hours of review completion for 100% of sampled cases."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the disposition memo and supporting comparison",
+              "value": "Disposition memo and comparison imaged to /suitability/<policy-no>/ and linked on the PAS record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect disposition documentation",
+              "value": "Sampled cases contain a complete disposition memo and comparison; 0 missing."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5h6et024xv880c3ly3q8x",
+          "checklist": [
+            {
+              "step": "Confirm suitability before dispositioning a replacement",
+              "value": "Disposition confirms the recommendation meets the customer's needs and is suitable given the existing policy being replaced."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify suitability basis of dispositions",
+              "value": "Sampled replacement approvals show a documented suitability basis; 0 approved against the comparison."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "9f2ef171-16b8-4d36-b0e9-63000edfdc4b",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Compliance Analyst", "Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Replacement cases exhibiting potential churning or unsuitable-replacement indicators (repeat replacements, unnecessary surrender charges, benefit loss); scope = each flagged case escalated to compliance."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At the point indicators are identified during replacement review, before issue where possible; escalations are raised within 2 business days of detection."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The escalation captures the indicator(s), producer, existing/proposed policies, surrender charges/benefit loss and the reason for concern; an escalation missing the indicator basis is returned for completion."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of cases with churning indicators equals count of escalations raised to compliance; the GRC escalation log reconciles to the flagged-case list with 0 unescalated flags."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The escalation record and supporting evidence are retained in the GRC platform with a case reference and timestamp and cross-linked to the PAS case; retained per record-retention policy."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "If an escalation is not acknowledged by compliance within the SLA (2 business days), it is re-escalated to the Compliance Manager; the disposition of each escalation is recorded on close."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqscl3cg1hjzmbk8fgzr1qcb" },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "The escalation cites the NAIC replacement/suitability model regulations and the company's anti-churning market-conduct policy as the basis for referral."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "Escalation records and outcomes are retained for the state-required market-conduct period (commonly 5 years) in the GRC platform under retention controls."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "No external filing deadline; the control deadline is that escalation occurs within 2 business days of indicator detection, which is timestamp-monitored."
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "Quarterly sample of 20 replacement cases showing churning/unsuitability indicators."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = 100% of sampled indicator cases were escalated to compliance with a documented basis within SLA; FAIL = any indicator case issued without escalation or escalated past SLA."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "Missed or late escalations are logged in the GRC platform, escalated to the Compliance Manager, and root-caused; producer patterns are referred for market-conduct review."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqscl3cg1hjzmbk8fgzr1qcb" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "The escalation/authority matrix defines who may clear vs escalate a flagged case: underwriters escalate, the Compliance Manager dispositions churning referrals; the matrix version is cited."
+        },
+        {
+          "answerId": "cmr2ocg110yiokaz3qzwh1075",
+          "value": "Applicable rule is the NAIC replacement and suitability model regulations plus the company anti-churning market-conduct policy; the citation is recorded on each escalation."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp1tk1n28mbk8acxt1ens",
+          "checklist": [
+            {
+              "step": "Identify unsuitable/churning replacement indicators",
+              "value": "Repeat replacements, unnecessary surrender charges and benefit loss are screened against suitability criteria and flagged."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test indicator detection and escalation",
+              "value": "Sampled indicator cases were detected and escalated; 0 unsuitable replacements cleared without escalation."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Route flagged cases via the defined escalation trigger",
+              "value": "Churning/unsuitability triggers route the case to compliance with the indicator basis attached."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify escalation routing and timeliness",
+              "value": "100% of flagged cases escalated within the 2-business-day SLA with the correct recipient; 0 mis-routed."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5h6et024xv880c3ly3q8x",
+          "checklist": [
+            {
+              "step": "Escalate transactions that fail the suitability/fair-treatment test",
+              "value": "Cases where a replacement is not in the customer's interest are escalated to compliance rather than issued."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify escalation of unsuitable replacements",
+              "value": "Sampled unsuitable-indicator cases show a compliance escalation; 0 issued despite failing suitability."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "83923f1a-1cbd-44dd-a031-7e6337b409c5",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Annuity Suitability Analyst"],
+      "removeAppNames": ["billing/commission platform", "ITSM platform (ServiceNow/Jira)"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All new life/annuity applications, screened for replacement activity using 1035-exchange documentation and replacement notice forms; scope = one application, flagging any existing-policy replacement."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At intake/new-business review, before the case advances to issue; screening uses the replacement forms and application answers submitted with the case."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203zjmbk8y2uum9fk"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The replacement question on the application is answered, and where 'yes' a signed replacement notice and 1035 paperwork (existing carrier, policy number, values) are present; a 'yes' answer with no notice is flagged as incomplete."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of cases with a replacement indicator (application answer, 1035 form or notice) equals count flagged as replacements in the PAS; the two reconcile with 0 missed flags."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Replacement/1035 documents are imaged to OpenText under /suitability/<policy-no>/ and the replacement flag is set on the PAS case with a timestamp; retained per policy."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Applications indicating replacement but missing the notice/1035 paperwork are held as exceptions and the documents requested from the producer before the case proceeds."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "Monthly population of new life/annuity applications processed, with a quarterly 25-file review focus."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every application with a replacement indicator is flagged and has the required 1035/notice documentation; FAIL = any replacement missed at intake or flagged without the required forms."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Missed replacements or missing forms are corrected at review, the case re-flagged, and repeat producer omissions referred to compliance; exceptions logged in the GRC platform."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance criteria: all replacement activity is detected at intake and each replacement case carries the signed notice and 1035 documentation before advancing."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence is the replacement flag on the PAS case plus imaged 1035/replacement notices under /suitability/<policy-no>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Capture replacement/1035 documentation in the file",
+              "value": "Signed replacement notice and 1035 paperwork imaged to /suitability/<policy-no>/ and linked to the flagged case."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect replacement documentation completeness",
+              "value": "Sampled replacement cases contain the notice and 1035 forms; 0 flagged cases missing required documents."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp1tk1n28mbk8acxt1ens",
+          "checklist": [
+            {
+              "step": "Detect replacement activity as a suitability control",
+              "value": "Replacement indicators from the application and 1035 forms are screened at intake and feed the suitability/replacement review."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test replacement detection coverage",
+              "value": "100% of applications with replacement indicators are flagged; 0 undetected replacements in the sample."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5h6et024xv880c3ly3q8x",
+          "checklist": [
+            {
+              "step": "Identify replacements so suitability can be assessed",
+              "value": "Replacement detection ensures each replacing transaction enters the suitability/best-interest review before sale is completed."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify replacements feed suitability review",
+              "value": "Sampled replacement flags each link to a suitability review; 0 replacements advanced without one."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

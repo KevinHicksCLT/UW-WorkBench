@@ -1,0 +1,1449 @@
+{
+  "tasks": [
+    {
+      "id": "3ad01e12-388f-4a6d-8e82-2ac60c63aaea",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": ["GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All newly bound policies for which issuance and delivery must be memorialized; scope = one underwriter's bound queue in Guidewire PolicyCenter for the day, one policy record at a time (policy issuance date + delivery confirmation)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From confirmed bind to policy delivery, within 1 business day of bind; only issuance/delivery events dated in the current binding cycle are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "PolicyCenter issuance record carries: policy number, issuance date, delivery method (mail/email/portal), delivery-confirmation timestamp, and recipient (insured/producer). Any blank issuance or delivery field blocks file closure."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of policies marked 'Issued' reconciles to count with a recorded delivery confirmation; delta must be 0 at end of day. Any issued-but-undelivered policy is flagged for follow-up."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Issuance/delivery evidence retained on the policy transaction record with system timestamp and version; delivery proof (portal receipt/email log) filed to /UW-Files/<policy-number>/ per Records Retention Policy RM-04 (7 years after expiry)."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Missing delivery confirmation or bounced delivery logged as a service exception in PolicyCenter with disposition (re-send / alternate channel / escalate to producer) and a 2-business-day resolution SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Issuance follows the approved policy-issuance workflow configuration in PolicyCenter (release v current); delivery rules per product/channel matrix are the approved version."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: any policy where recorded delivery date exceeds issuance date by more than 5 business days is surfaced for review of the delivery obligation."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: any policy with premium above the authority-matrix v3.2 referral threshold gets a confirmed delivery-tracking record, not just a system flag."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled issuance records trace to the PolicyCenter policy screen and the delivery-channel log (portal/email/print vendor) confirming date and recipient match."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy status = 'Issued/In-Force' and delivery status = 'Confirmed' align to the post-bind workflow gate before the file can be closed."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Issuance date, effective date, and delivery date populate in the correct order (effective ≤ issuance ≤ delivery) per workflow date rules."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All policies bound and issued in the day's queue plus a monthly 5% sample of issued policies reviewed by Underwriting Management."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = 100% of issued policies have both issuance date and delivery confirmation recorded with matching recipient. FAIL = any issued policy lacking a delivery confirmation or with mismatched recipient/date."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "On FAIL, re-drive the delivery (re-send via alternate channel), record the corrected confirmation, and log the exception with disposition; unresolved after 2 business days escalates to the UW Operations queue."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dates = policy effective date through delivery-confirmation date; only records with activity in the current binding cycle are tested."
+        },
+        {
+          "answerId": "cmr2ocfzt0wwhkaz36l92t8kb",
+          "value": "Approved PolicyCenter issuance/delivery workflow configuration (current release) and the product/channel delivery-rules matrix are the sole source for how issuance and delivery are recorded."
+        },
+        {
+          "answerId": "cmr2ocfzt0wwikaz3zaxjwp4k",
+          "value": "Field definitions (policy_number, issuance_date, delivery_method, delivery_confirmed_ts, recipient) from the PolicyCenter data dictionary; control total = issued-count vs delivered-count reconciled daily."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Record complete issuance and delivery evidence in the policy file",
+              "value": "PolicyCenter issuance record and delivery proof stored under /UW-Files/<policy-number>/ with issuance date, delivery method and confirmation timestamp."
+            },
+            {
+              "step": "Confirm no mandatory issuance field is blank",
+              "value": "File-completeness rule blocks closure until policy number, issuance date and delivery confirmation are all populated."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect a sample of issued files for documentation completeness",
+              "value": "Monthly 5% sample shows 100% of issued policies have both issuance date and delivery confirmation on file; 0 gaps."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain a system audit trail for issuance and delivery entries",
+              "value": "PolicyCenter records user, timestamp and before/after values for each issuance and delivery-confirmation update; no manual overwrite without a logged reason."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit-trail entries exist for issuance/delivery updates",
+              "value": "For every sampled issued policy the audit log shows a matching issuance and delivery entry with user and timestamp; 0 records without a trail."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "051de7dd-a308-4c11-999d-55e971296b96",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform", "GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Confirmed-bound policies awaiting schedule generation; scope = one policy at a time in Guidewire PolicyCenter where bind is confirmed and the coverage schedule has not yet been generated."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Immediately after confirmed bind, same business day; only post-bind, pre-issuance triggers in the current cycle are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Bind confirmation flag = true, coverages/limits/deductibles finalized, and effective date populated before generation is triggered; a missing bind flag prevents the generate action."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every confirmed-bound policy has exactly one schedule-generation trigger; count of bound policies reconciles to count of generation requests (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Generation-trigger event retained on the PolicyCenter transaction log with user and timestamp; retained per Records Retention Policy RM-04 (7 years after expiry)."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A generation error (rating/form error, missing data) is logged as a system exception with disposition (correct data / re-trigger / refer to config) and cleared before issuance; same-day resolution SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Schedule generation runs the approved PolicyCenter product template and current filed forms/endorsement set (approved release)."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: any policy whose generation is triggered before all mandatory endorsements are attached is held for review."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: policies above the authority-matrix v3.2 limit require the Senior Underwriter to confirm bind before generation is triggered."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled generation triggers trace to the confirmed-bind transaction and the underwriting decision in the workstation, confirming authority to bind existed."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy status must equal 'Bound' before status advances to 'Schedule Generation Requested' per the post-bind workflow."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Generation-request date follows the bind-confirmation date and precedes the issuance date, enforced by workflow date rules."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All bound policies triggered for generation in the current cycle plus a monthly 5% Underwriting-Management sample."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = generation triggered only on policies with a confirmed bind and complete coverage data. FAIL = generation triggered on an unbound or incomplete policy."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "On FAIL, void the generated schedule, correct the underlying data, and re-trigger; the void/re-trigger is logged as an exception with reason."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dates = bind-confirmation date through generation-request date; only current-cycle triggers are tested."
+        },
+        {
+          "answerId": "cmr2ocfz50vzzkaz32nh8p2en",
+          "value": "Approved PolicyCenter product template and current filed forms/endorsement configuration govern how the schedule is generated; parameters sourced from the approved release only."
+        },
+        {
+          "answerId": "cmr2ocfz50w00kaz3lrr34wmi",
+          "value": "Field definitions (bind_confirmed_flag, effective_date, coverage set) from the PolicyCenter data dictionary; control total = bound-policy count vs generation-request count reconciled per cycle."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp161o8cmbk8jeoutzfd",
+          "checklist": [
+            {
+              "step": "Confirm bind authority before triggering generation",
+              "value": "PolicyCenter enforces that only a user with bind authority for the policy's premium/limit/LOB per authority matrix v3.2 can advance the policy to schedule generation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify no schedule generated without authorized bind",
+              "value": "For all sampled generation triggers the confirming user holds sufficient authority; 0 triggers by an unauthorized user."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Record the generation trigger in the policy file",
+              "value": "Trigger event with user and timestamp captured on the PolicyCenter transaction log and reflected in /UW-Files/<policy-number>/."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect trigger evidence for completeness",
+              "value": "Every generated schedule maps to a logged trigger event with user and timestamp; 0 orphan generations."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "0a0e1854-5c39-4829-b0eb-8d20bf93b7ce",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Generated policy schedules pending accuracy verification; scope = one policy schedule at a time in Guidewire PolicyCenter, checking coverages, limits, deductibles, endorsements, wordings and premium against the underwriting decision."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Post-generation and pre-delivery, same day as generation; only schedules generated in the current cycle are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Schedule shows all bound coverages with correct limits, deductibles, attached endorsements, filed wordings, and premium matching the rating worksheet; any discrepancy fails verification."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Premium on the schedule reconciles to the rating-engine premium to the cent; endorsement count on the schedule equals the count in the underwriting decision (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Verification result (pass, or discrepancy list) recorded on the policy record with the reviewer and timestamp; the checked schedule PDF filed to /UW-Files/<policy-number>/ per RM-04."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Any schedule discrepancy logged as an exception with disposition (correct and regenerate / accept with note), owner = Underwriter, cleared before delivery; same-day SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Premium verified against the approved rating-engine version and filed rate tables; wordings verified against the current filed forms library."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: a premium variance over 0.5% or $100 between schedule and rating worksheet triggers a full re-check before the schedule is accepted."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: any missing or incorrect mandatory endorsement or filed wording is a material defect that fails verification regardless of premium."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Each schedule line traces to the underwriting decision screen and the rating worksheet; limits/deductibles/endorsements match one-to-one."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy status advances to 'Schedule Verified' only after all coverage, wording and premium checks pass, per workflow."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Schedule effective and expiration dates match the bound term dates; verification date recorded after generation date per date rules."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All generated schedules in the current cycle, with a monthly 5% Underwriting-Management sample re-verified independently."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = coverages, limits, deductibles, endorsements, wordings and premium all match the decision/rating with 0 discrepancies. FAIL = any mismatch."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "On FAIL, correct the policy data, regenerate the schedule, and re-verify; the discrepancy and fix are logged as an exception before delivery."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dates = bound term (effective through expiration); only current-cycle schedules are tested."
+        },
+        {
+          "answerId": "cmr2ocdxd0ui5kaz3010wl7w1",
+          "value": "Field definitions (limit, deductible, endorsement_code, wording_form_id, written_premium) from the PolicyCenter data dictionary; control total = schedule premium vs rating-engine premium reconciled to the cent."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Verify filed rates were applied to the schedule premium",
+              "value": "Schedule premium recomputed against the approved filed rate tables in the rating engine; deviations only where an authority-approved schedule/IRPM factor is documented."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-perform the premium calculation on a sample",
+              "value": "Monthly 5% sample: recomputed premium equals schedule premium to the cent; 0 unexplained deviations from filed rates."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowqe1mswmbk8wnjoqs6v",
+          "checklist": [
+            {
+              "step": "Perform an independent review of schedule accuracy",
+              "value": "A second underwriter/Senior Underwriter re-checks coverages, endorsements, wordings and premium before the schedule is delivered."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm peer review occurred on in-scope schedules",
+              "value": "Sampled schedules show a reviewer sign-off distinct from the preparer; 0 self-verified schedules above the referral threshold."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "86e71dc0-f2e4-41c6-b9f8-961d3f7cd6c3",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": [
+        "billing/commission platform",
+        "ERP/General ledger (SAP/Oracle/Workday Financials)"
+      ],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Closed underwriting files ready for archival; scope = each completed underwriting file for a bound (or declined/closed) policy, archived one at a time with a retention period set per records-management policy."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At file closure, following bind/issuance completion; only files closed in the current period are archived in this cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Archived file has: policy number, closure date, retention class, and retention-expiry date set; the file is complete (checklist, rationale, exceptions) before archival is permitted."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of closed files reconciles to count of archived records with a retention date; delta must be 0. No closed file remains in the active queue."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "File archived to OpenText Document Mgmt under /UW-Files/<policy-number>/ with immutable timestamp, version, and retention label; retained 7 years after policy expiry per Records Retention Policy RM-04."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A file that cannot be archived (missing document, open item) is logged as an exception with disposition (obtain document / complete item / legal-hold), owner = Underwriter; resolved before archival within 5 business days."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled archived files trace back to the PolicyCenter policy record and the underwriting workstation file, confirming all indexed documents are present."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "File status = 'Closed/Archived' aligns to the records workflow; no file is archived while still in 'Open' or 'Pending' status."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Archive date and retention-expiry date populate correctly (expiry = expiry-of-policy + retention years) per the retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Pre/post check: before archival the file is 'Open' in the active workstation; after archival it is read-only in OpenText with a retention date and no longer editable in the active queue."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "Archival linked to the file-closure record in PolicyCenter and, where the retention class was overridden, to the records-management approval reference."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All files closed in the period plus a monthly 5% sample of archived files reviewed for correct retention setting."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = 100% of closed files archived with a valid retention class and expiry date, immutable copy present. FAIL = any closed file un-archived, or archived without a retention date."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "On FAIL, complete/obtain the missing content, re-archive with the correct retention class, and log the exception; legal-hold files are flagged and excluded from purge."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dates = file-closure date through retention-expiry date; only files closed in the current period are tested."
+        },
+        {
+          "answerId": "cmr2ocfyr0vi5kaz3t781j1h6",
+          "value": "Field definitions (policy_number, closure_date, retention_class, retention_expiry) from the records-management retention schedule; control total = closed-file count vs archived-with-retention count reconciled per cycle."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp2n71n3ombk805591ug1",
+          "checklist": [
+            {
+              "step": "Set the retention period from the approved retention schedule",
+              "value": "Retention class assigned per Records Retention Policy RM-04 (7 years after policy expiry, longer under legal hold) and the expiry date computed automatically."
+            },
+            {
+              "step": "Store the archived file on immutable, retention-enforced storage",
+              "value": "File committed to OpenText Document Mgmt with WORM/retention lock so it cannot be altered or deleted before expiry."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify retention is set and enforced on archived files",
+              "value": "Sampled archived files show a retention class and expiry date; attempts to delete before expiry are blocked; 0 files without retention."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Confirm the file is complete before archival",
+              "value": "Underwriting checklist, rationale and exception log are present in the file; incomplete files are blocked from archival."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect archived files for completeness",
+              "value": "Monthly 5% sample: 100% of archived files contain checklist, rationale and exceptions; 0 incomplete archives."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "3c397aed-e315-4496-b1c8-24906412e7cc",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Underwriting files being compiled for completion; scope = one bound policy's underwriting file, assembling the underwriting checklist, decision rationale and any exceptions before handoff."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Post-bind, before the file is handed off or archived; only files completed in the current cycle are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "File contains: completed underwriting checklist, documented decision rationale, referral/exception records with approvals, and all supporting documents indexed; a missing mandatory item fails completion."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Checklist items marked complete equals total required items for the product/LOB; exceptions in the file equal exceptions logged in the workflow (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Completed file saved to /UW-Files/<policy-number>/ with version and timestamp; the completion sign-off recorded on the policy record and retained per RM-04."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Any unresolved checklist item or undocumented exception is logged with disposition (complete / waive-with-approval), owner = Underwriter, and cleared before the file is marked complete; 2-business-day SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled file items trace to their source: rating worksheet, screening results, referral approvals and correspondence, all present in the workstation file."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "File status = 'Complete' aligns to the workflow gate requiring checklist done, rationale documented and exceptions dispositioned."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "File-complete date follows the bind date and precedes handoff/archive date per workflow date rules."
+        },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Pre/post: before completion the checklist shows open items; after completion all mandatory items are closed and the file passes the completeness gate; comparison captured on the file record."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "File completion linked to the underlying bind transaction and to any referral/exception approval records in PolicyCenter."
+        },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "Underwriting decision and rationale documented on the policy record: appetite fit, pricing basis, key risk factors, and any deviations from filed rates with authority reference."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Completion notice/handoff recipients documented: servicing operations and, where relevant, the producer and any referring specialist; recorded on the file."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All files completed in the current cycle plus a monthly 5% sample reviewed by Underwriting Management."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = checklist complete, rationale documented, all exceptions dispositioned with correct authority. FAIL = any open mandatory item, missing rationale, or unapproved exception."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "On FAIL, return the file to the Underwriter to complete the item or obtain the required approval; the gap and resolution are logged before the file is re-marked complete."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dates = bind date through file-complete date; only files completed in the current cycle are tested."
+        },
+        {
+          "answerId": "cmr2ocfzz0x4bkaz3lb1zvr0f",
+          "value": "Acceptance criteria: complete checklist, documented rationale, and all exceptions dispositioned with correct authority per the file-documentation standard. Evidence: completed file in /UW-Files/<policy-number>/ with the completion sign-off recorded on the PolicyCenter policy record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Assemble a complete underwriting file",
+              "value": "Checklist, decision rationale, screening results, referral approvals and exceptions indexed in the workstation file under /UW-Files/<policy-number>/."
+            },
+            {
+              "step": "Block completion until mandatory items are present",
+              "value": "File-completeness rule prevents 'Complete' status while any mandatory checklist item or required approval is missing."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect completed files against the documentation standard",
+              "value": "Monthly 5% sample: 100% of completed files have checklist, rationale and dispositioned exceptions; 0 gaps."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Document the underwriting decision and rationale in the file",
+              "value": "Decision, pricing basis and any authority deviations recorded on the policy record at file completion."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify decision documentation is present and timely",
+              "value": "Sampled files show the decision rationale documented; 0 completed files without a documented decision."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "db8db982-acf4-4b93-8f9f-01df01d364d6",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Newly issued policies awaiting confirmation of the system-generated policy number and coverage schedule; scope = one policy at a time in Guidewire PolicyCenter after issuance."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Immediately after issuance, same business day; only policies issued in the current cycle are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Policy number generated in the correct format/sequence for the product and state, and the coverage schedule matches the bound coverages; a malformed number or mismatched schedule fails confirmation."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "One unique policy number per issued policy (no duplicates or gaps in the day's sequence); schedule coverage count reconciles to the bound coverage count (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Confirmation result recorded on the policy record with reviewer and timestamp; the confirmed schedule filed to /UW-Files/<policy-number>/ and retained per RM-04."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A wrong/duplicate policy number or mismatched schedule is logged as an exception with disposition (regenerate / correct sequence / refer to config), owner = Underwriter; same-day resolution SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Policy-number format and the schedule template are the approved PolicyCenter configuration (current release) for the product and jurisdiction."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: any policy number that breaks the expected sequence or format is escalated for a configuration check before delivery."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: a schedule missing a bound coverage or endorsement is a material defect confirmed as failed regardless of the policy-number check."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "The confirmed policy number and schedule trace to the bind transaction and underwriting decision; coverages on the schedule match the decision line by line."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy status = 'Issued' with a confirmed number before status advances to delivery per workflow."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Issuance date and schedule effective/expiration dates match the bound term; confirmation date recorded after issuance date per date rules."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All policies issued in the current cycle plus a monthly 5% sample re-confirmed by Underwriting Management."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = unique, correctly formatted policy number and a schedule matching bound coverages. FAIL = duplicate/malformed number or any coverage mismatch."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "On FAIL, correct the number/regenerate the schedule and re-confirm before delivery; the defect and fix are logged as an exception."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dates = bound term (effective through expiration); only current-cycle issued policies are tested."
+        },
+        {
+          "answerId": "cmr2ocfys0vjskaz3mx78k4qa",
+          "value": "Approved PolicyCenter policy-number format/sequence configuration and schedule template (current release) for the product and jurisdiction are the source for the confirmation."
+        },
+        {
+          "answerId": "cmr2ocfys0vjtkaz385bunbtg",
+          "value": "Field definitions (policy_number, product_code, jurisdiction, coverage set) from the PolicyCenter data dictionary; control total = issued-policy count vs unique-number count, and schedule vs decision coverage counts, reconciled per cycle."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Confirm the schedule reflects filed coverages and premium",
+              "value": "Coverages, limits, endorsements and premium on the generated schedule match the bound, filed rating for the product and state."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-check schedule against the underwriting decision",
+              "value": "Sampled schedules match the decision line by line with correct premium; 0 mismatches."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Record the policy-number/schedule confirmation in the file",
+              "value": "Confirmation result with reviewer and timestamp captured on the policy record and filed to /UW-Files/<policy-number>/."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect confirmation evidence",
+              "value": "Every issued policy has a recorded number/schedule confirmation; 0 policies delivered without confirmation."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "6f2cdffd-3160-4747-ba64-c66337cb652b",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform", "GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Newly issued policies requiring a welcome kit and producer correspondence; scope = one policy at a time, distributing the welcome kit to the insured and correspondence to the producer per product and channel rules."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "After issuance and delivery, within the product's welcome-kit SLA (e.g. 5 business days of issuance); only policies issued in the current cycle are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Welcome-kit package contains the correct product documents, the policy schedule, and the required privacy notice; producer correspondence has the correct producer, commission summary and policy reference. Missing privacy notice blocks distribution."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of issued policies reconciles to count of welcome kits distributed and producer letters sent (delta = 0); no issued policy without a distributed kit."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Distribution record (channel, date, recipient) retained on the policy record; the kit contents and correspondence copy filed to OpenText under /UW-Files/<policy-number>/ per RM-04."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A failed or returned distribution (bad address, bounce) logged as an exception with disposition (re-send / alternate channel / update contact), owner = Underwriter; 3-business-day SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled distributions trace to the issued policy and the contact/producer record, confirming the recipient and address match the policy."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy status = 'Delivered' before the welcome-kit distribution task is opened; kit status advances to 'Distributed' on send, per workflow."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Distribution date follows the issuance/delivery date and lands within the welcome-kit SLA window per date rules."
+        },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Pre/post: before the task the policy has no distribution record; after the task the welcome kit and producer letter show a 'Distributed' status with date and channel; captured on the policy record."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "Distribution linked to the issuance transaction and the correspondence-generation batch reference in PolicyCenter/document services."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "All welcome kits and producer letters generated in the current cycle plus a monthly 5% sample inspected for correct content and recipient."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = correct kit contents including privacy notice, correct schedule, and correct producer/commission letter, sent to the right recipient within SLA. FAIL = wrong/missing content or recipient, or missed SLA."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "On FAIL, regenerate and re-send the correct package, update the contact record if needed, and log the exception with disposition."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions: recipient_name, address/email, product_kit_id, privacy_notice_version, producer_id, commission_summary — from the correspondence/document-services template and the PolicyCenter contact record."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control totals: issued-policy count vs welcome-kit-sent count and producer-letter-sent count, reconciled per cycle to 0 variance."
+        },
+        {
+          "answerId": "cmr2ocdy10vejkaz3pmhxdokk",
+          "value": "Acceptance criteria: welcome kit (with required privacy notice and schedule) and producer correspondence distributed to the correct recipients within the SLA. Evidence: distribution record on the policy record plus the kit/letter copies filed to OpenText under /UW-Files/<policy-number>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the distributed welcome kit and correspondence in the policy file",
+              "value": "Copies of the welcome kit and producer letter, with distribution date and channel, filed to OpenText under /UW-Files/<policy-number>/."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect distribution evidence",
+              "value": "Monthly 5% sample: 100% of issued policies have a filed welcome kit and producer correspondence with a distribution record; 0 gaps."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5oy8o0bu9v880x8l0nto7",
+          "checklist": [
+            {
+              "step": "Include the initial GLBA privacy notice in the welcome kit",
+              "value": "Current-version privacy notice bundled into the welcome kit delivered to the insured at the start of the customer relationship."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify the privacy notice was delivered",
+              "value": "Sampled welcome kits show the required privacy-notice version included and a delivery record; 0 kits sent without the notice."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d0ed67e6-8c7c-490d-92fa-19263ed52781",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Integration Engineer",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": [],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Newly in-force policies to be transitioned to servicing operations; scope = one bound/issued policy at a time handed off from underwriting to policy servicing with its complete file and any special conditions."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "After issuance and file completion, within 2 business days of in-force; only policies going in-force in the current cycle are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Handoff record has: policy number, in-force date, servicing-team assignment, complete underwriting file link, and any special conditions/warranties flagged; a missing servicing assignment or incomplete file blocks handoff."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of in-force policies reconciles to count accepted by servicing (delta = 0); no in-force policy left unassigned in the underwriting queue."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Handoff record with servicing acknowledgement, date and user retained on the PolicyCenter policy record and filed to /UW-Files/<policy-number>/ per RM-04."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A rejected or incomplete handoff (missing document, unclear condition) logged as an exception with disposition (complete file / clarify condition / reassign), owner = Underwriter; 2-business-day SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Hand off a complete file to servicing",
+              "value": "Complete underwriting file (checklist, rationale, special conditions) linked in the handoff so servicing has full context."
+            },
+            {
+              "step": "Record servicing acknowledgement of the handoff",
+              "value": "Servicing team assignment and acknowledgement captured on the policy record before the handoff is closed."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify handoffs include a complete file and acknowledgement",
+              "value": "Monthly 5% sample: 100% of in-force handoffs have a complete file link and a servicing acknowledgement; 0 incomplete handoffs."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "ce0fbc2f-7abb-44dc-8016-9dca762b18d7",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Integration Engineer"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "In-force policies with third-party interests requiring evidence of insurance; scope = one certificate/evidence request at a time (additional insured, loss payee, mortgagee) issued to a named third party."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "On request during the policy term, within the certificate SLA (e.g. 1 business day); only certificate requests in the current cycle are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Certificate shows correct insured, policy number, coverages/limits, effective/expiry dates, and the named third-party interest and its status (additional insured/loss payee); a coverage figure not matching the policy blocks issuance."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Coverages and limits on the certificate reconcile exactly to the in-force policy schedule (delta = 0); certificate count reconciles to approved requests."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Issued certificate and the request retained on the policy record and filed to OpenText under /UW-Files/<policy-number>/certificates/ with timestamp and version per RM-04."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A request for coverage terms not on the policy, or an unverifiable third party, is logged as an exception with disposition (decline / endorse policy first / verify requester), owner = Underwriter; 1-business-day SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Issue certificates only from the in-force policy of record",
+              "value": "Certificate generated from PolicyCenter reflecting the exact in-force coverages, limits and endorsements; no manual figures."
+            },
+            {
+              "step": "File the issued certificate and request",
+              "value": "Certificate and originating request filed to OpenText under /UW-Files/<policy-number>/certificates/ with recipient and date."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile certificate terms to the policy",
+              "value": "Sampled certificates match the in-force schedule coverages/limits/dates exactly; 0 certificates overstating coverage."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5oz360bvpv880i1ri23y4",
+          "checklist": [
+            {
+              "step": "Limit disclosure of policyholder NPI to what the certificate requires",
+              "value": "Certificate discloses only the coverage evidence the third party is entitled to (limits, dates, status) and no unnecessary nonpublic personal information about the insured."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify no over-disclosure of NPI on issued certificates",
+              "value": "Sampled certificates contain only required coverage evidence with no extraneous insured NPI; 0 over-disclosures."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2824248e-3123-4a6e-8646-10b4c9c65822",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["payment/subrogation system"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Bound policies carrying special conditions, warranties or coverage restrictions that claims must be aware of; scope = one policy at a time where special terms exist, notifying the claims team of those terms."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At bind/issuance and on any endorsement changing conditions, within 2 business days; only policies with special terms bound in the current cycle are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Notification identifies the policy number, the specific warranty/condition/restriction with its wording reference, and the claims impact; a special-term flag without a described condition fails."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of policies flagged with special conditions reconciles to count of claims notifications sent (delta = 0); no flagged policy without a claims notification."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Notification and claims acknowledgement retained on the policy record and mirrored to the claims platform note, with date and user, per RM-04."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "An unacknowledged notification is logged as an exception with disposition (resend / escalate to Claims lead), owner = Underwriter; 2-business-day follow-up SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled notifications trace to the policy wording/endorsement that created the condition and to the claims-platform note recording receipt."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy special-conditions flag = set, and notification status = 'Sent/Acknowledged' align to the post-bind workflow before the file is closed."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Notification date follows the bind/endorsement date and precedes file closure per date rules."
+        },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Pre/post: before the task claims has no note of the special condition; after the task the claims platform holds a note referencing the warranty/condition with an acknowledgement; captured on both records."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "Notification linked to the bind/endorsement transaction that introduced the condition and to the claims-platform note reference."
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "All policies with special conditions bound in the current cycle plus a monthly 5% sample checked for a claims notification."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = every policy with a special condition has a claims notification describing the term, with acknowledgement. FAIL = any flagged policy without a notification or without acknowledgement."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "On FAIL, resend the notification and escalate to the Claims lead if unacknowledged within SLA; the gap and resolution are logged as an exception."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "Delegation: the Underwriter notifies claims for standard conditions; conditions arising from an authority-referred/exception risk are confirmed by the Senior Underwriter per authority matrix v3.2."
+        },
+        {
+          "answerId": "cmr2ocdy10ve1kaz3is804z5w",
+          "value": "Field definitions (policy_number, condition_type, wording_form_id, claims_note_ref) from the PolicyCenter and claims-platform data dictionaries; control total = special-condition-flagged count vs claims-notification count reconciled per cycle."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the special condition and the claims notification",
+              "value": "Warranty/condition/restriction and the notification to claims recorded on the policy record and mirrored as a claims-platform note."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify claims were notified of special conditions",
+              "value": "Monthly 5% sample: 100% of policies with special conditions have a claims notification with acknowledgement; 0 gaps."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of the notification",
+              "value": "Notification event (user, timestamp, condition reference) logged on the policy record and the claims note; no untracked verbal-only notice."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify the notification audit trail",
+              "value": "Sampled notifications show a logged, timestamped entry on both systems; 0 notifications without a trail."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "dd455224-999f-443b-9825-b3979c9f18a8",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Integration Engineer"],
+      "addParticipants": ["Exposure Management Manager"],
+      "removeAppNames": [],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Newly bound risks whose exposure must be recorded and rolled into portfolio aggregates; scope = one bound policy at a time, capturing exposure (TIV, limits, location/peril) and refreshing the relevant aggregate views."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At bind, before the aggregate reporting cutoff (same day/next aggregation run); only exposures bound in the current cycle are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Exposure record has: TIV/limit, deductible/retention, location (geocode) and peril, line of business, and inception date; missing geocode or limit blocks the aggregate update."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Sum of bound exposures reconciles to the change in the portfolio aggregate for the period (opening aggregate + new bound exposure = closing aggregate); delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Exposure entry and aggregate-refresh result retained on the policy record with timestamp; the aggregate snapshot version filed to /UW-Files/aggregates/<period>/ per RM-04."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "An exposure that breaches an appetite/aggregate limit is logged as an exception with disposition (refer for reinsurance / decline / accept with approval), owner = Underwriter, referred to Exposure Management; same-day SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of exposure entries and aggregate updates",
+              "value": "Each exposure entry and aggregate refresh logs user, timestamp and before/after aggregate values; no untracked manual aggregate edit."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify exposure entries tie to aggregate movement",
+              "value": "Sampled bound exposures reconcile to the aggregate change for the period; 0 exposures missing from the aggregate."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Record complete exposure data in the file",
+              "value": "TIV/limit, location geocode and peril captured on the policy record so the aggregate is built from complete data."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect exposure records for completeness",
+              "value": "Monthly 5% sample: 100% of bound exposures have limit, geocode and peril populated; 0 incomplete records feeding aggregates."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "051aed72-d521-43a3-948f-effb1a07a6c8",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Bound policies whose final premium, commission and reinsurance cession data must be recorded; scope = one policy at a time in Guidewire PolicyCenter/BillingCenter, capturing written premium, producer commission and any facultative/treaty cession."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At bind/issuance, before the premium/commission accounting cutoff; only policies bound in the current cycle are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Record has: written premium (matching the rating worksheet), commission rate/amount for the producer, and cession details (treaty/facultative, ceded share and premium); a premium not matching rating or a missing commission rate fails."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Recorded premium reconciles to the rating-engine premium and to the billing entry to the cent; net-retained = gross premium − ceded premium checks out (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Premium/commission/cession entries retained on the PolicyCenter and BillingCenter records with timestamp and version; the reconciliation filed to /UW-Files/<policy-number>/ per RM-04."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A premium/commission/cession mismatch is logged as an exception with disposition (correct entry / re-rate / adjust cession), owner = Underwriter; same-day resolution SLA before accounting cutoff."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled entries trace to the rating worksheet (premium), the producer agreement (commission rate) and the reinsurance treaty/facultative certificate (cession share)."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy status = 'Bound' and financials status = 'Recorded' align to the workflow before the file is closed."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Premium effective date matches the policy effective date and the accounting period; cession booked to the correct treaty year per date rules."
+        },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Pre/post: before recording the billing entry is absent; after recording, premium/commission/cession appear in BillingCenter and reconcile to the policy; comparison captured on the record."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "Recording linked to the bind transaction, the billing/commission entry, and the reinsurance cession record for the policy."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "All policies with premium/commission/cession recorded in the current cycle plus a monthly 5% sample reconciled independently."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = premium matches rating and billing, commission matches the producer agreement, and cession matches the treaty/facultative terms. FAIL = any mismatch across premium, commission or cession."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "On FAIL, correct the entry (re-rate, fix commission rate, adjust cession) and re-reconcile before the accounting cutoff; the defect and fix are logged as an exception."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions: written_premium, commission_rate, commission_amount, treaty_id, ceded_share, ceded_premium — from the PolicyCenter/BillingCenter and reinsurance data dictionaries."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control totals: recorded premium vs rating-engine premium vs billing entry reconciled to the cent; gross − ceded = net-retained checked per policy."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Record premium consistent with filed rates",
+              "value": "Written premium recorded equals the rating-engine premium built from approved filed rates; deviations only where an authority-approved adjustment is documented."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile recorded premium to rating",
+              "value": "Monthly 5% sample: recorded premium equals rating-engine premium to the cent; 0 unexplained variances."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail for premium, commission and cession entries",
+              "value": "Each entry logs user, timestamp and source (rating worksheet, producer agreement, treaty); manual overrides carry a documented reason."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify the financial audit trail and reconciliation",
+              "value": "Sampled policies show premium/commission/cession entries with a trail and a passing reconciliation (gross − ceded = net); 0 untracked entries."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

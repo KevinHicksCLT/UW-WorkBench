@@ -1,0 +1,1879 @@
+{
+  "tasks": [
+    {
+      "id": "cmr2fktvm1kljkfgzoj2dml3h",
+      "owner": { "action": "replace", "name": "New Business Case Manager" },
+      "removeRoleNames": ["Underwriter", "Business Analyst"],
+      "addParticipants": ["Life Underwriter"],
+      "removeAppNames": ["billing/commission platform", "GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All newly issued life policies whose contracts require a signed delivery receipt/amendment acknowledgment before the case is complete, tracked in Guidewire PolicyCenter under status 'Awaiting Delivery Receipt' for the New Business Case Manager's queue."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current new-business issue cycle: policies issued in the trailing 30 days that are pending delivery-receipt confirmation (e.g. 2026-06-15 to 2026-07-15)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each case shows policy number, insured, delivery method, required-forms checklist (delivery receipt, policy amendments, HIPAA/HIV consents) and received-date; a case cannot close with a blank received-date or a missing required form."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of cases marked 'delivery requirements received' reconciles to the count of scanned receipts logged in OpenText for the same batch; delta must be 0 at end of day."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Signed delivery receipt and amendment acknowledgments scanned to OpenText under /NB/<policy-number>/delivery/ with capture timestamp and version; retained per the life records schedule (policy term + 7 years)."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Missing or late receipts are flagged as a PolicyCenter activity 'Delivery Exception', assigned to the New Business Case Manager, with disposition (follow-up sent / window extended / not-taken) and a 5-business-day follow-up SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqscl3tu1hktmbk82xth8j1w" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Weekly sample of 25 cases: the 'received' flag traces to the scanned signed delivery receipt in OpenText and to the producer transmittal note."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Case status advances from 'Awaiting Delivery Receipt' to 'Delivery Requirements Received' only when every required-form flag is green in PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Received-date is on or after the issue-date and within the applicable state delivery window; out-of-window dates trigger review before the case closes."
+        },
+        { "templateKeyId": "cmr2oapmt002rlasbojqqymeh", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All cases that moved to 'Delivery Requirements Received' in the sample week (census of the batch, ~200 policies)."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = 100% of confirmed cases have a scanned signed receipt and a complete required-form set; FAIL = any case confirmed without a receipt on file."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Failures are re-opened to 'Delivery Exception', the producer is re-contacted, and unresolved items after 5 business days escalate to the UW Operations Manager."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Delivery-receipt dates within the current issue cycle; receipts dated outside the state delivery window are excluded and reworked."
+        },
+        {
+          "answerId": "cmr2ocdxg0ulukaz3579plu2k",
+          "value": "Acceptance: signed delivery receipt plus all required amendments/consents on file, received within the state delivery window. Evidence stored in OpenText /NB/<policy-number>/delivery/ and linked on the PolicyCenter case record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the signed delivery receipt and amendments in the new-business case",
+              "value": "All delivery documents scanned to OpenText /NB/<policy-number>/delivery/ and indexed to the PolicyCenter case before it is closed."
+            },
+            {
+              "step": "Record the delivery method and date on the case",
+              "value": "Delivery method (producer/e-delivery/mail) and received-date captured on the PolicyCenter case status screen."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample cases for complete delivery documentation",
+              "value": "25 closed cases/week reviewed; 100% must show a scanned signed receipt and complete required-form set."
+            },
+            {
+              "step": "Confirm no case closed without a receipt",
+              "value": "0 cases in status 'Delivery Requirements Received' lacking a filed signed receipt."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp1wg1n2cmbk8v2xttem0",
+          "checklist": [
+            {
+              "step": "Track delivery-receipt against the state timing requirement",
+              "value": "PolicyCenter computes the state delivery deadline from issue-date; cases past deadline are surfaced on the exception queue."
+            },
+            {
+              "step": "Follow up on receipts outstanding beyond SLA",
+              "value": "Outstanding receipts trigger a 5-business-day producer follow-up recorded as a case activity."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify receipts fall within the state window",
+              "value": "Sampled received-dates are within the applicable state delivery window; out-of-window items show a documented remediation."
+            },
+            {
+              "step": "Measure aging of outstanding receipts",
+              "value": "0 receipts outstanding beyond the follow-up SLA without a logged disposition."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "9d717990-042c-46e1-bf56-28dace64dae9",
+      "owner": { "action": "replace", "name": "Life Underwriter" },
+      "removeRoleNames": ["Underwriter", "Legal Counsel", "Business Analyst"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["Guidewire PolicyCenter; Earnix Rating & Pricing; Broker & Agent Portal"],
+      "addApps": [
+        {
+          "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "usageType": "performed"
+        },
+        { "name": "underwriting workstation", "usageType": "performed" },
+        { "name": "OpenText Document Mgmt", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All life applications at final decision whose underwriting class (Preferred Plus / Preferred / Standard Plus / Standard / rated table plus flat extras), riders and amendments must be confirmed before issue; tracked in the underwriting workstation as 'Ready to Issue'."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Cases reaching final underwriting decision in the current issue cycle (e.g. 2026-06-15 to 2026-07-15)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqscl3tu1hktmbk82xth8j1w" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Final class code, table rating, flat extras, exclusions/riders and effective date are populated in PolicyCenter and match the approved underwriting worksheet; blanks or mismatches block issue."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The class on the issue record reconciles to the class on the approved underwriting worksheet and the reinsurance-cession record; 0 discrepancies permitted before release to issue."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The confirmed-class worksheet and any amendment memo are saved to OpenText /NB/<policy-number>/underwriting/ with timestamp and version label."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Class mismatches are raised as a 'UW Class Exception' activity, dispositioned (correct-and-reissue / referral to Senior Underwriter) with a documented reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Document the final underwriting class and rationale",
+              "value": "Final class, table rating and flat extras recorded on the PolicyCenter decision screen with reference to the underwriting worksheet within 24 hours of decision."
+            },
+            {
+              "step": "Capture any amendments before issue",
+              "value": "Riders/exclusions or amended terms documented and linked to the case prior to release to issue."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify decision timestamp within SLA",
+              "value": "Sampled cases show the class confirmation recorded within 24 hours of the final underwriting decision."
+            },
+            {
+              "step": "Reconcile confirmed class to worksheet",
+              "value": "100% of sampled issue records match the approved underwriting worksheet class; 0 mismatches at release."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Retain the confirmed-class evidence in the file",
+              "value": "Underwriting worksheet and amendment memos filed to OpenText /NB/<policy-number>/underwriting/ with version control."
+            },
+            {
+              "step": "Link reinsurance cession to the confirmed class",
+              "value": "Cession record referenced on the case so the confirmed class matches the reinsured terms."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for class documentation",
+              "value": "25 cases/quarter reviewed; each must contain a complete confirmed-class worksheet and sign-off."
+            },
+            {
+              "step": "Confirm sign-off present",
+              "value": "0 issued cases lacking a Senior Underwriter sign-off on the confirmed class."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "77716517-55a7-4dc4-ac66-8a4f83a262ac",
+      "owner": { "action": "replace", "name": "New Business Case Manager" },
+      "removeRoleNames": ["Underwriter", "Business Analyst"],
+      "addParticipants": ["Life Underwriter"],
+      "removeAppNames": ["billing/commission platform", "GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All issued life contracts due for delivery to the insured or producer per the state delivery-receipt requirement; tracked in PolicyCenter under 'Ready to Deliver' for the New Business Case Manager."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current issue cycle: contracts issued in the trailing 30 days awaiting delivery (e.g. 2026-06-15 to 2026-07-15)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Delivery record shows contract package (policy, schedule, riders, required state disclosures and privacy notice), delivery method, recipient and delivery date; a missing state-required disclosure blocks delivery."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of contracts marked 'delivered' reconciles to the count of e-delivery/mail confirmations recorded in OpenText; delta must be 0 for the batch."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Delivered contract package and delivery confirmation stored in OpenText /NB/<policy-number>/delivery/ with timestamp and version; retained policy term + 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Undeliverable or returned contracts logged as a 'Delivery Exception' activity, dispositioned (re-issue address / re-send / escalate) with a 5-business-day SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqscl3tu1hktmbk82xth8j1w" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sample of 25 delivered contracts/week: the delivery record traces to the OpenText delivery confirmation and the packaged PDF that includes the state disclosure set."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Case status moves to 'Delivered' only after the delivery confirmation is captured and the free-look start-date is set in PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Delivery date drives the state free-look start-date; both dates are consistent and within the state delivery window."
+        },
+        { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "All contracts marked 'delivered' in the sample week (census of the batch, ~200 policies)."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = delivered package contains policy, schedule, riders and all state-required disclosures, with a captured delivery confirmation; FAIL = any missing disclosure or absent delivery confirmation."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Failures re-packaged and re-delivered; repeated failures escalate to the UW Operations Manager and the producer within 5 business days."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions from the PolicyCenter delivery data dictionary: delivery_method, delivery_date, recipient, disclosure_set_version, free_look_start_date."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = count of issued contracts due for delivery in the batch; reconciles to delivered + pending + exception counts with 0 unaccounted items."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp1wg1n2cmbk8v2xttem0",
+          "checklist": [
+            {
+              "step": "Deliver within the state delivery timeframe",
+              "value": "PolicyCenter tracks delivery against the state deadline computed from issue-date; overdue items surface on the delivery exception queue."
+            },
+            {
+              "step": "Set the free-look clock from the delivery date",
+              "value": "Free-look start-date is set from the confirmed delivery date so the statutory window is measured correctly."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify on-time delivery",
+              "value": "Sampled contracts delivered within the state window; 0 undocumented late deliveries."
+            },
+            {
+              "step": "Confirm free-look start aligns to delivery",
+              "value": "100% of sampled cases show free-look start-date equal to the captured delivery date."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp1n21n1ymbk80ec1eahz",
+          "checklist": [
+            {
+              "step": "Include all state-required disclosures in the delivered package",
+              "value": "Contract package assembled with the current state disclosure set and privacy notice per the disclosure matrix."
+            },
+            {
+              "step": "Verify disclosure-set version before delivery",
+              "value": "Delivered package references the approved disclosure_set_version for the issue state."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect delivered packages for disclosures",
+              "value": "Sampled packages contain every state-mandated disclosure; 0 packages missing a required disclosure."
+            },
+            {
+              "step": "Confirm current disclosure version",
+              "value": "Disclosure-set version on delivered packages matches the current approved version for the state."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the delivery confirmation",
+              "value": "E-delivery/mail confirmation stored in OpenText /NB/<policy-number>/delivery/ and indexed to the case."
+            },
+            {
+              "step": "Record recipient and method",
+              "value": "Recipient and delivery method captured on the PolicyCenter delivery record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample for delivery evidence",
+              "value": "25 delivered cases/week checked; each has a filed delivery confirmation."
+            },
+            {
+              "step": "Confirm no delivery without evidence",
+              "value": "0 cases marked delivered without a filed confirmation."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5ozhw0bwbv880yxxntb6u",
+          "checklist": [
+            {
+              "step": "Deliver privacy and opt-out notices with the contract",
+              "value": "GLBA privacy notice (and opt-out where applicable) is included in the delivered contract package so the consumer can reasonably access it at issuance."
+            },
+            {
+              "step": "Record notice delivery on the case",
+              "value": "Delivery of the privacy notice is logged with the contract delivery confirmation in OpenText."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm privacy notice delivered",
+              "value": "Sampled delivered packages include the GLBA privacy notice; 0 deliveries without it."
+            },
+            {
+              "step": "Verify accessibility of the notice",
+              "value": "Notice format (paper/electronic) matches the customer's delivery preference and is retrievable from the case."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "4705c68f-675d-4f96-bb7a-914027d3f13f",
+      "owner": { "action": "replace", "name": "New Business Case Manager" },
+      "removeRoleNames": ["Underwriter", "Legal Counsel"],
+      "addParticipants": ["Legal Counsel"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Generation of the life policy contract document — base policy, schedule, riders and required regulatory disclosures — from the approved offer; produced in PolicyCenter document generation for issued cases in the cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Cases approved for issue in the current cycle (e.g. 2026-06-15 to 2026-07-15)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Generated contract carries policy number, insured/owner, face amount, premium, class, riders, effective date and the state-specific approved form numbers; a document failing the form-number/merge validation is rejected."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Merge fields on the generated PDF reconcile to the PolicyCenter policy record (face, premium, class); the premium reconciles to the rating engine output with 0 variance before the document is finalized."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Final contract PDF stored in OpenText /NB/<policy-number>/contract/ with template version, timestamp and generation user; retained policy term + 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Merge or form-selection errors logged as a 'Doc Gen Exception' activity, dispositioned (regenerate / correct data / legal review) with reason; recurring template defects raised to the forms owner."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqscl3tu1hktmbk82xth8j1w" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Contract is generated from the current approved policy-form template and disclosure package version registered in the forms library; only approved (filed) form versions may be used."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqscl3tu1hktmbk82xth8j1w" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Premium and cash-value figures on the contract must match the rating/illustration output within a $0.00 tolerance; any variance halts generation."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Any material variance (wrong form number, missing state disclosure, premium mismatch) is treated as material and blocks issue until corrected."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sample of 25 generated contracts/week: merged values trace to the PolicyCenter record and the rating output; form numbers trace to the approved forms library."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Document status moves to 'Generated' only after form-selection and merge validations pass in PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Effective/issue dates on the contract match the policy record and drive downstream free-look and billing dates."
+        },
+        { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "All contracts generated in the sample week (census of the batch, ~200 policies)."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = correct approved form numbers, all state disclosures present, merged values matching the policy record and premium reconciled to rating; FAIL = any wrong form, missing disclosure or premium mismatch."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Failures routed to 'Doc Gen Exception', corrected and regenerated; ambiguous wording routed to Legal Counsel before re-issue."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions from the document-generation data dictionary: form_number, template_version, face_amount, modal_premium, class_code, effective_date, disclosure_set_version."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = generated documents equal approved-for-issue cases in the batch; premium sum on documents equals rating-engine premium sum with 0 variance."
+        },
+        {
+          "answerId": "cmr2ocfza0w6kkaz3zg2nhxd4",
+          "value": "Approved policy-form template version and disclosure package from the forms library (e.g. LIFE-WL-2025 v4, state disclosure set v12); rating parameters sourced from the filed rate tables in the rating engine, referenced by version on the case."
+        },
+        {
+          "answerId": "cmr2ocfza0w6lkaz3fe8lp2s1",
+          "value": "Contract uses state-filed policy forms and mandated disclosures (state insurance code form-filing requirements; GLBA privacy notice; free-look notice); the applicable filed form numbers are cited on the generated document."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp5u1o8kmbk8z2uf21t9",
+          "checklist": [
+            {
+              "step": "Generate only from current filed form versions",
+              "value": "Document generation restricted to approved/filed policy-form and disclosure versions in the forms library for the issue state."
+            },
+            {
+              "step": "Validate form numbers before finalizing",
+              "value": "Form-selection validation confirms the correct state form numbers appear on the generated contract."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample contracts for correct filed forms",
+              "value": "25 generated contracts/week checked; 100% use the current approved form versions for the state."
+            },
+            {
+              "step": "Confirm no superseded forms in use",
+              "value": "0 generated contracts using a superseded or unfiled form version."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Reconcile printed premium to the filed rate output",
+              "value": "Modal premium and any extras on the contract match the rating-engine output built from filed rate tables."
+            },
+            {
+              "step": "Reference the rate version on the case",
+              "value": "Filed rate-table version recorded on the policy record for traceability."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Recompute premium for the sample",
+              "value": "Re-rate sampled cases; printed premium equals filed-rate premium with 0 variance."
+            },
+            {
+              "step": "Confirm rate version approved",
+              "value": "Rate version used is an approved filed version effective on the policy effective date."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp1n21n1ymbk80ec1eahz",
+          "checklist": [
+            {
+              "step": "Assemble all required regulatory disclosures",
+              "value": "Generated package includes state-mandated disclosures, GLBA privacy notice and free-look notice per the disclosure matrix."
+            },
+            {
+              "step": "Version-check the disclosure set",
+              "value": "Disclosure_set_version on the document matches the current approved version for the issue state."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect generated packages for disclosures",
+              "value": "Sampled documents contain every mandated disclosure; 0 missing."
+            },
+            {
+              "step": "Confirm disclosure currency",
+              "value": "Disclosure versions match the current approved set on the generation date."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5oyl80buvv880g136jfyg",
+          "checklist": [
+            {
+              "step": "Include all required GLBA privacy-notice content in the package",
+              "value": "Generated contract package embeds the privacy notice with all required content elements per the GLBA model form."
+            },
+            {
+              "step": "Bind the current notice version to the document",
+              "value": "Privacy-notice template version recorded on the generated document metadata."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify privacy-notice content completeness",
+              "value": "Sampled packages include the full required privacy-notice content; 0 packages with an incomplete notice."
+            },
+            {
+              "step": "Confirm notice version currency",
+              "value": "Privacy-notice version used matches the current approved GLBA notice."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cmr2flgt21vq1kfgz2zzzsiyv",
+      "owner": { "action": "replace", "name": "New Business Case Manager" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["UW Operations Manager"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "ERP/General ledger (SAP/Oracle/Workday Financials)"
+      ],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Completed new-business life cases being handed off to policy administration for ongoing servicing; scope = cases at status 'Ready for Admin Handoff' in PolicyCenter for the current cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Cases completing issuance in the current cycle (e.g. 2026-06-15 to 2026-07-15)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Handoff package shows in-force policy record, delivered contract, confirmed class, billing setup, reinsurance cession and completed required-forms checklist; an incomplete checklist blocks acceptance by admin."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of cases handed off reconciles to cases accepted by policy administration; the handoff and acceptance counts must match with delta 0 for the day."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Handoff checklist and acceptance acknowledgment stored in OpenText /NB/<policy-number>/handoff/ with timestamp and version; case audit trail retained per schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Rejected handoffs logged as a 'Handoff Exception' activity with the gap (missing form/billing/cession), owner and a 2-business-day remediation SLA before re-submission."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03y0mbk8y3lmtov6" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Handoff follows the approved new-business-to-admin transfer checklist (current version) governing which artifacts and system statuses must be present before acceptance."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03y0mbk8y3lmtov6" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Any missing mandatory artifact (contract, billing, cession, delivery receipt) is a hard stop; no tolerance for incomplete handoffs."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Optional/non-blocking items (e.g. secondary correspondence) are noted but do not hold the handoff; blocking items are treated as material."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sample of 25 handoffs/week: checklist items trace to the underlying PolicyCenter statuses and the filed artifacts in OpenText."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Case status advances to 'In Admin' only after policy administration records acceptance in PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Handoff date is on or after the in-force date; billing and free-look dates carry over unchanged to admin."
+        },
+        { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "All cases handed off in the sample week (census of the batch, ~200 policies)."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = handoff checklist 100% complete and acceptance acknowledged by admin; FAIL = any missing mandatory artifact or unacknowledged handoff."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Failures routed to 'Handoff Exception', remediated within 2 business days, and escalated to the UW Operations Manager if not accepted."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions from the handoff data dictionary: handoff_checklist_status, in_force_date, billing_setup_flag, cession_flag, delivery_receipt_flag, acceptance_user."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = cases handed off equal cases accepted plus cases in exception; 0 cases lost between new business and admin."
+        },
+        {
+          "answerId": "cmr2ocg120yjxkaz312lusqzz",
+          "value": "Approved new-business-to-admin transfer checklist (current version) as the methodology; parameters (required artifacts and statuses) sourced from the checklist configuration and referenced on the case."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Complete the handoff checklist before transfer",
+              "value": "All mandatory artifacts (contract, delivery receipt, billing, cession) present and filed to OpenText /NB/<policy-number>/handoff/."
+            },
+            {
+              "step": "Capture admin acceptance",
+              "value": "Policy administration acceptance acknowledgment stored with the case."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample handoffs for completeness",
+              "value": "25 handoffs/week reviewed; each shows a complete checklist and acceptance record."
+            },
+            {
+              "step": "Confirm no unaccepted handoffs",
+              "value": "0 cases in 'In Admin' without an acceptance acknowledgment."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an end-to-end audit trail across the handoff",
+              "value": "PolicyCenter records the status transitions, user and timestamp for issuance and handoff of each case."
+            },
+            {
+              "step": "Preserve linkage between new-business and admin records",
+              "value": "Case retains links to contract, billing and cession records after transfer."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect the audit trail for sampled cases",
+              "value": "Sampled cases show a complete, timestamped status history from issue to admin acceptance."
+            },
+            {
+              "step": "Confirm no gaps in the trail",
+              "value": "0 sampled cases with missing status transitions between issuance and handoff."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "c015ad93-e203-4bbd-a8cb-8a77d04503e4",
+      "owner": { "action": "replace", "name": "New Business Case Manager" },
+      "removeRoleNames": [
+        "New Business Case Manager",
+        "Underwriter",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist"
+      ],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform", "GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All delivered life policies for which the statutory free-look period must be tracked from the confirmed free-look start date; scope = delivered policies in the current cycle with a set free-look start-date in PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Policies delivered in the current cycle whose free-look windows are open (e.g. 2026-06-15 to 2026-07-15 delivery dates)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Free-look record shows confirmed start-date (delivery date), state free-look length, computed end-date and status; a policy cannot be tracked without a confirmed start-date and a state-specific window length."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of delivered policies with an open free-look reconciles to the count with a tracking record; every delivered policy must have exactly one free-look record (delta 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Free-look tracking entry retained on the PolicyCenter case with the confirmed start-date and computed end-date; supporting delivery confirmation filed in OpenText with timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Policies with a missing or inconsistent start-date flagged as a 'Free-Look Exception' activity, dispositioned (correct start-date / confirm delivery) with a 1-business-day SLA so the clock is not lost."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqscl3tu1hktmbk82xth8j1w" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sample of 25 policies/week: the free-look start-date traces to the captured delivery confirmation in OpenText and the delivery record in PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Free-look status is 'Open' from start-date to end-date and transitions to 'Closed' or 'Cancelled' automatically at window end or on a cancellation request."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Start-date equals the confirmed delivery date; end-date = start-date + state free-look length; both consistent with the state rule table."
+        },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqscl3tu1hktmbk82xth8j1w" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The confirmed start-date decision and the state free-look length applied are documented on the PolicyCenter free-look record with the source delivery confirmation referenced."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Free-look terms and window are communicated to the policyowner in the delivered contract and to the producer via the servicing notification; recipients recorded on the case."
+        },
+        { "templateKeyId": "cmr2oapmt002rlasbojqqymeh", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All delivered policies with an open free-look in the sample week (census of the batch, ~200 policies)."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = every delivered policy has a free-look record with start-date = delivery date and correct state window length; FAIL = any policy without a record or with an incorrect window."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Failures routed to 'Free-Look Exception', corrected within 1 business day, and escalated to the New Business Case Manager if the start-date cannot be confirmed."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Free-look start/end dates within the current delivery cycle; the state rule table version in effect on the delivery date governs the window length."
+        },
+        {
+          "answerId": "cmr2ocfzu0wxakaz39yvkjxub",
+          "value": "Field definitions from the free-look data dictionary: free_look_start_date, state_window_days, free_look_end_date, status. Control total = delivered policies equal free-look records; state_window_days sourced from the state free-look rule table (version-referenced on the case)."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp1wg1n2cmbk8v2xttem0",
+          "checklist": [
+            {
+              "step": "Compute the free-look window from the confirmed start date",
+              "value": "PolicyCenter sets end-date = confirmed delivery date + state free-look length from the state rule table."
+            },
+            {
+              "step": "Prevent loss of the free-look clock",
+              "value": "Policies without a confirmed start-date are held on the exception queue until the date is set."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify window length by state",
+              "value": "Sampled records use the correct state free-look length; 0 records with an incorrect window."
+            },
+            {
+              "step": "Confirm every delivered policy is tracked",
+              "value": "100% of delivered policies in the sample have exactly one free-look record."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the start-date source",
+              "value": "Free-look start-date references the captured delivery confirmation filed in OpenText."
+            },
+            {
+              "step": "Record the state rule applied",
+              "value": "State window length and rule version recorded on the case."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample for start-date traceability",
+              "value": "25 records/week traced to the delivery confirmation; 100% supported."
+            },
+            {
+              "step": "Confirm documentation completeness",
+              "value": "0 free-look records lacking a documented start-date source."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fkq1e1iookfgzm7zf7v0v",
+      "owner": { "action": "replace", "name": "New Business Case Manager" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["UW Operations Manager"],
+      "removeAppNames": ["GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Premium refunds due within a required timeframe — free-look surrenders, overpayments and not-taken policies; scope = refund requests raised in the current cycle in the billing/commission platform."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Refund requests created in the current cycle (e.g. 2026-06-15 to 2026-07-15) with a statutory or contractual refund deadline."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Refund record shows policy number, refund reason, premium paid, refund amount, payee, required-by date and payment method; a refund cannot be issued with a blank amount or missing payee."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Refund amount reconciles to premium received in the billing platform less any earned amount; the sum of refunds issued reconciles to the disbursement file with 0 variance."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Refund authorization and payment confirmation retained on the billing record and copied to OpenText /NB/<policy-number>/refunds/ with timestamp; retained per finance records schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Refunds at risk of missing the deadline flagged as a 'Refund SLA Exception' activity, owner the UW Operations Manager, dispositioned (expedite / manual check) with reason and same-day escalation."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03y0mbk8y3lmtov6" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sample of 25 refunds/week: the refund amount traces to the premium-receipt entry in the billing platform and the free-look/cancellation trigger on the case."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Refund status moves to 'Issued' only after the payment confirmation is returned from the payment gateway and posted to the policy record."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Refund issue-date is on or before the required-by date computed from the trigger event date (free-look/cancellation) and the state rule."
+        },
+        { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All refunds due in the sample week (census of the batch), including those approaching their statutory deadline."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = 100% of refunds issued on or before the required-by date with amount reconciled to premium; FAIL = any refund late or with an unreconciled amount."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Late-risk or failed payments routed to 'Refund SLA Exception', expedited via manual check, and escalated to the UW Operations Manager same day."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance: refund equals unearned premium per the reason and state rule, issued to the correct payee on or before the required-by date, with a posted payment confirmation."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence stored on the billing record and in OpenText /NB/<policy-number>/refunds/, linked on the PolicyCenter case."
+        },
+        {
+          "answerId": "cmr2ocdxa0ue0kaz30twq0ylr",
+          "value": "Field definitions from the billing data dictionary: premium_paid, earned_premium, refund_amount, payee, required_by_date, payment_ref. Control total = sum of refunds issued equals the disbursement file total with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp1wg1n2cmbk8v2xttem0",
+          "checklist": [
+            {
+              "step": "Compute the refund deadline from the trigger event",
+              "value": "Required-by date derived from the free-look/cancellation date and the state refund-timing rule; surfaced on the refund queue."
+            },
+            {
+              "step": "Prioritize refunds nearing the deadline",
+              "value": "Refunds within 2 days of the deadline are expedited and monitored daily."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Measure on-time refund rate",
+              "value": "Sampled refunds issued on or before the required-by date; 0 late refunds without a documented exception."
+            },
+            {
+              "step": "Confirm deadline computation",
+              "value": "Required-by dates match the state timing rule for the refund reason."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail for each refund",
+              "value": "Refund authorization, amount, payee and payment confirmation recorded with user and timestamp in the billing platform."
+            },
+            {
+              "step": "Reconcile refunds to disbursements",
+              "value": "Issued refunds reconciled to the payment-gateway disbursement file daily."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect the refund audit trail",
+              "value": "Sampled refunds show a complete authorization-to-payment trail; 0 refunds without authorization."
+            },
+            {
+              "step": "Verify disbursement reconciliation",
+              "value": "Refund total equals the disbursement file total with 0 unreconciled items."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2flgst1vpxkfgz9o2sxhja",
+      "owner": { "action": "replace", "name": "New Business Case Manager" },
+      "removeRoleNames": [
+        "New Business Case Manager",
+        "Underwriter",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist"
+      ],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Placing approved, issued life policies in force in the policy administration system once premium and all binding conditions are met; scope = cases at status 'Ready to Activate' in the current cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Cases cleared for activation in the current issue cycle (e.g. 2026-06-15 to 2026-07-15)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Activation checklist confirms initial premium received, delivery requirements met, sanctions/OFAC screen clear, reinsurance cession bound and effective date set; any open condition blocks in-force."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of policies set 'In Force' reconciles to cases cleared for activation and to premium receipts posted; the activated and premium-posted counts match with delta 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Activation record (status change, user, timestamp) retained in PolicyCenter; the clear OFAC screen result and premium confirmation filed to OpenText /NB/<policy-number>/inforce/."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Policies failing a binding condition (premium not received, screen hit) held as an 'In-Force Exception', dispositioned (await premium / sanctions review) with reason; sanctions hits routed to the AML/Sanctions team before any activation."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqscl3tu1hktmbk82xth8j1w" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "In-force activation follows the approved binding-conditions checklist (current version) governing premium, delivery, screening and cession prerequisites."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqscl3tu1hktmbk82xth8j1w" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "No tolerance on binding prerequisites; every mandatory condition must be satisfied before activation."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Any unmet binding condition (premium, delivery, sanctions, cession) is material and blocks placing the policy in force."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sample of 25 activations/week: the 'In Force' status traces to premium-receipt, clear OFAC screen and bound cession records."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Status advances 'Ready to Activate' -> 'In Force' only when all binding-condition flags are green and an authorized user performs activation."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "In-force/effective date equals the policy effective date; premium-received date is on or before activation."
+        },
+        { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "All policies set in force in the sample week (census of the batch, ~200 policies)."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = all binding conditions satisfied and activation performed by an authorized user; FAIL = any policy in force with an unmet condition or activated by an unauthorized user."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Failures reversed to 'In-Force Exception', condition remediated, and sanctions hits escalated to the AML/Sanctions team before re-activation."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions from the activation data dictionary: in_force_status, effective_date, premium_received_flag, ofac_screen_result, cession_bound_flag, activation_user."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = cases activated equal cases with premium posted and clear screen; 0 policies in force without a matching premium and clear OFAC result."
+        },
+        {
+          "answerId": "cmr2ocg120yk7kaz3prbruyvl",
+          "value": "Approved binding-conditions checklist (current version) as the methodology; parameters (required prerequisites and authority) sourced from the checklist configuration and the underwriting authority matrix, referenced on the case."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp161o8cmbk8jeoutzfd",
+          "checklist": [
+            {
+              "step": "Restrict activation to authorized personnel",
+              "value": "Only users with binding authority for the line and limit can set a policy in force in PolicyCenter, enforced by role-based permissions."
+            },
+            {
+              "step": "Verify authority against the matrix",
+              "value": "Activation checks the underwriting authority matrix for face amount and product before allowing in-force."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test activation permissions",
+              "value": "Sampled activations performed by users within authority; 0 activations by unauthorized users."
+            },
+            {
+              "step": "Confirm authority-matrix enforcement",
+              "value": "Attempted over-authority activations are blocked and referred; 0 unauthorized bindings."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp4u1o8imbk8fwfbmrnd",
+          "checklist": [
+            {
+              "step": "Screen the insured/owner before binding",
+              "value": "OFAC/sanctions screen run on all parties and returned clear before the policy is set in force."
+            },
+            {
+              "step": "Hold on any screen hit",
+              "value": "Potential hits block activation and route to the AML/Sanctions team for adjudication."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify pre-binding screening",
+              "value": "100% of sampled in-force policies have a clear screen result dated on or before activation."
+            },
+            {
+              "step": "Confirm hit handling",
+              "value": "0 policies placed in force with an unresolved sanctions hit."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Record the activation audit trail",
+              "value": "Status change to in force recorded with user, timestamp and the satisfied binding conditions."
+            },
+            {
+              "step": "Preserve premium and cession linkage",
+              "value": "In-force record links to the premium receipt and bound cession."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect activation records",
+              "value": "Sampled activations show a complete, timestamped record with the authorizing user; 0 gaps."
+            },
+            {
+              "step": "Reconcile in-force to premium",
+              "value": "0 in-force policies lacking a linked premium receipt."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5onpn0bdnv8807pn9u4yi",
+          "checklist": [
+            {
+              "step": "Screen all parties to the policy against OFAC lists before in-force",
+              "value": "Insured, owner and payors screened against current OFAC/SDN lists; a clear result is a prerequisite to activation."
+            },
+            {
+              "step": "Refresh screening on list updates before binding",
+              "value": "Screening uses the latest sanctions list version at activation time."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify clear OFAC result before activation",
+              "value": "Sampled in-force policies show a clear OFAC screen dated on or before the in-force date; 0 exceptions."
+            },
+            {
+              "step": "Confirm hits blocked and reported",
+              "value": "Any hit is blocked, escalated and, where required, reported; 0 policies bound over an open hit."
+            }
+          ]
+        },
+        {
+          "regId": "cmrbfzlpc00f7v8kgfdoiliy1",
+          "checklist": [
+            {
+              "step": "Apply the AML program controls at binding for covered products",
+              "value": "Covered life/annuity policies pass the risk-based AML checks (CIP, screening) required by the AML compliance program before in-force."
+            },
+            {
+              "step": "Document AML clearance on the case",
+              "value": "AML/CIP clearance recorded on the case prior to activation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify AML checks completed",
+              "value": "Sampled covered policies show completed AML/CIP checks before in-force; 0 missing."
+            },
+            {
+              "step": "Confirm escalation of red flags",
+              "value": "AML red flags routed to the AML team and resolved before binding; 0 bound with open red flags."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cmr2fku531kpvkfgzv4at2gvn",
+      "owner": { "action": "replace", "name": "New Business Case Manager" },
+      "removeRoleNames": ["Underwriter", "Business Analyst"],
+      "addParticipants": ["Life Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Placing issued life policies in force once premium and binding conditions are met; scope = cases at status 'Ready to Activate' in the current cycle in Guidewire PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Cases cleared for activation in the current issue cycle (e.g. 2026-06-15 to 2026-07-15)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Activation checklist confirms initial premium received, delivery requirements met, OFAC screen clear, cession bound and effective date set; an open condition blocks in-force status."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of policies set 'In Force' reconciles to premium receipts posted and cases cleared for activation with delta 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Activation record (status, user, timestamp) retained in PolicyCenter; clear screen and premium confirmation filed to OpenText /NB/<policy-number>/inforce/ with timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Policies failing a binding condition held as 'In-Force Exception', dispositioned (await premium / sanctions review) with reason; sanctions hits routed to the AML/Sanctions team before activation."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqscl3tu1hktmbk82xth8j1w" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sample of 25 activations/week: 'In Force' status traces to premium-receipt, clear OFAC screen and bound cession records."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Status advances to 'In Force' only when all binding-condition flags are green and an authorized user performs activation."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "In-force/effective date equals the policy effective date; premium-received date is on or before activation."
+        },
+        { "templateKeyId": "cmr2oapmt002rlasbojqqymeh", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All policies set in force in the sample week (census of the batch, ~200 policies)."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = all binding conditions satisfied and activation by an authorized user; FAIL = any policy in force with an unmet condition or by an unauthorized user."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Failures reversed to 'In-Force Exception', condition remediated, and sanctions hits escalated to the AML/Sanctions team before re-activation."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "In-force effective dates within the current cycle; the authority matrix version in effect on the effective date governs who may activate."
+        },
+        {
+          "answerId": "cmr2ocdxg0ulvkaz3bfn0r8t4",
+          "value": "Acceptance: initial premium received, delivery requirements met, OFAC screen clear and cession bound, activation by an authorized user. Evidence stored in OpenText /NB/<policy-number>/inforce/ and linked on the PolicyCenter case."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp161o8cmbk8jeoutzfd",
+          "checklist": [
+            {
+              "step": "Restrict activation to authorized personnel",
+              "value": "Only users with binding authority for the product and limit can set a policy in force, enforced by role-based permissions."
+            },
+            {
+              "step": "Check authority before activation",
+              "value": "Activation validates face amount and product against the underwriting authority matrix."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test activation permissions",
+              "value": "Sampled activations performed within authority; 0 unauthorized activations."
+            },
+            {
+              "step": "Confirm over-authority blocks",
+              "value": "Over-authority attempts are blocked and referred; 0 unauthorized bindings."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp4u1o8imbk8fwfbmrnd",
+          "checklist": [
+            {
+              "step": "Screen parties before binding",
+              "value": "OFAC/sanctions screen returns clear on all parties before the policy is set in force."
+            },
+            {
+              "step": "Hold on any hit",
+              "value": "Potential hits block activation and route to the AML/Sanctions team."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify pre-binding screening",
+              "value": "100% of sampled in-force policies show a clear screen dated on or before activation."
+            },
+            {
+              "step": "Confirm hit handling",
+              "value": "0 policies placed in force with an unresolved sanctions hit."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5onpn0bdnv8807pn9u4yi",
+          "checklist": [
+            {
+              "step": "Screen all parties against OFAC lists before in-force",
+              "value": "Insured, owner and payors screened against current OFAC/SDN lists; clear result required before activation."
+            },
+            {
+              "step": "Use the latest list version",
+              "value": "Screening refreshed to the current sanctions list at activation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify clear OFAC result",
+              "value": "Sampled in-force policies show a clear screen dated on or before the in-force date; 0 exceptions."
+            },
+            {
+              "step": "Confirm hits blocked",
+              "value": "0 policies bound over an open hit; hits escalated and reported as required."
+            }
+          ]
+        },
+        {
+          "regId": "cmrbfzlpc00f7v8kgfdoiliy1",
+          "checklist": [
+            {
+              "step": "Apply AML program controls at binding",
+              "value": "Covered life/annuity policies pass the risk-based AML/CIP checks required by the AML compliance program before in-force."
+            },
+            {
+              "step": "Document AML clearance",
+              "value": "AML/CIP clearance recorded on the case before activation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify AML checks completed",
+              "value": "Sampled covered policies show completed AML/CIP checks before in-force; 0 missing."
+            },
+            {
+              "step": "Confirm red-flag escalation",
+              "value": "AML red flags resolved before binding; 0 bound with open red flags."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cmr2fjcwt0w4hkfgzps7fram1",
+      "owner": { "action": "replace", "name": "New Business Case Manager" },
+      "removeRoleNames": ["Underwriter", "Legal Counsel"],
+      "addParticipants": ["Legal Counsel"],
+      "removeAppNames": ["billing/commission platform", "GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Assembling the life policy contract for issue from the approved underwriting offer — selecting forms, riders, schedule pages and disclosures; scope = approved cases at status 'Prepare Contract' in the current cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Cases approved for issue in the current cycle (e.g. 2026-06-15 to 2026-07-15)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Contract prep record shows selected form numbers, riders, class, premium, effective date and disclosure set matching the approved offer; missing or mismatched terms block readiness."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Prepared terms reconcile to the approved underwriting offer and rating output (class, premium, riders) with 0 variance before the case is marked ready."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Contract-prep worksheet and selected-forms list retained in OpenText /NB/<policy-number>/contract/ with template versions and timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Discrepancies against the offer logged as a 'Contract Prep Exception', dispositioned (correct terms / legal review of wording) with reason before proceeding to generation."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqscl3tu1hktmbk82xth8j1w" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Preparation uses the current approved policy-form template and disclosure package versions from the forms library; only filed versions may be selected."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqscl3tu1hktmbk82xth8j1w" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Premium and class on the prepared contract must match the approved offer within a $0.00 tolerance; any variance holds preparation."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Any wrong form, missing state disclosure or term mismatch against the offer is material and blocks readiness for issue."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sample of 25 prepared cases/week: selected forms and terms trace to the approved offer, the forms library and the rating output."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Case status advances to 'Ready to Generate' only after the prep validations (forms, disclosures, terms) pass in PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Effective date on the prepared contract matches the offer and drives free-look and billing dates downstream."
+        },
+        { "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "All contracts prepared in the sample week (census of the batch, ~200 policies)."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = prepared terms match the approved offer, correct filed forms and all state disclosures selected; FAIL = any mismatch to the offer, wrong form or missing disclosure."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "Failures routed to 'Contract Prep Exception', corrected, and wording questions referred to Legal Counsel before generation."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "Approved policy-form template and disclosure package version from the forms library (e.g. LIFE-TERM-2025 v3, state disclosure set v12)."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "Premium and value parameters sourced from the filed rate tables in the rating engine; class/riders sourced from the approved underwriting offer."
+        },
+        {
+          "answerId": "cmr2ocdvr0sddkaz3e778bvto",
+          "value": "Authorized approver = the Life Underwriter within the applicable authority tier per the underwriting authority matrix (version-referenced on the case); the approved offer must bear that sign-off before contract prep proceeds."
+        },
+        {
+          "answerId": "cmr2ocdvr0sdekaz3lkit3qfq",
+          "value": "Field definitions from the policy data dictionary: form_number, template_version, class_code, modal_premium, rider_codes, effective_date, disclosure_set_version. Control total = prepared cases equal approved-for-issue cases; premium equals rating output with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp5u1o8kmbk8z2uf21t9",
+          "checklist": [
+            {
+              "step": "Select only current filed forms",
+              "value": "Contract prep restricted to approved/filed policy-form and disclosure versions for the issue state."
+            },
+            {
+              "step": "Validate selected form numbers",
+              "value": "Selected form numbers checked against the forms library before the case is marked ready."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample prepared cases for filed forms",
+              "value": "25 prepared cases/week checked; 100% use current approved form versions."
+            },
+            {
+              "step": "Confirm no superseded forms selected",
+              "value": "0 prepared cases referencing a superseded or unfiled form."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the prepared terms and their source",
+              "value": "Prep worksheet ties class, premium and riders to the approved offer and rating output, filed in OpenText."
+            },
+            {
+              "step": "Record disclosure selection",
+              "value": "Selected state disclosure set and versions recorded on the case."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for prep documentation",
+              "value": "25 cases/week reviewed; each shows a complete prep worksheet reconciled to the offer."
+            },
+            {
+              "step": "Confirm reconciliation to offer",
+              "value": "0 prepared cases with terms differing from the approved offer."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Carry filed-rate premium into the prepared contract",
+              "value": "Premium and extras taken from the rating-engine output built on filed rate tables."
+            },
+            {
+              "step": "Reference rate version",
+              "value": "Filed rate-table version recorded on the case for the effective date."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Recompute premium for the sample",
+              "value": "Re-rate sampled prepared cases; premium equals filed-rate output with 0 variance."
+            },
+            {
+              "step": "Confirm rate approval",
+              "value": "Rate version is approved and effective on the policy effective date."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5oy8o0bu9v880x8l0nto7",
+          "checklist": [
+            {
+              "step": "Include the initial GLBA privacy notice in the prepared package",
+              "value": "Contract prep selects the initial privacy notice so it is delivered at the start of the customer relationship (policy issuance)."
+            },
+            {
+              "step": "Confirm the notice version",
+              "value": "Current approved GLBA initial privacy-notice version selected for the state."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify initial notice included",
+              "value": "Sampled prepared packages include the initial privacy notice; 0 without it."
+            },
+            {
+              "step": "Confirm timing at relationship start",
+              "value": "Privacy notice is scheduled for delivery with the contract at issuance."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cmr2fkpsw1iktkfgza3zguopf",
+      "owner": { "action": "replace", "name": "New Business Case Manager" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["UW Operations Manager"],
+      "removeAppNames": ["GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Processing free-look cancellation requests received within the statutory free-look window — rescission, premium refund and policy void; scope = requests logged in the current cycle in PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Free-look cancellation requests received in the current cycle (e.g. 2026-06-15 to 2026-07-15) within the policy's open free-look window."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Cancellation record shows request date, policy number, free-look window dates, refund amount and payee; a request outside the window or lacking a refund amount is flagged for review."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of processed free-look cancellations reconciles to refunds issued in the billing platform; the cancellation and refund counts match with delta 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Cancellation request, rescission confirmation and refund evidence retained in OpenText /NB/<policy-number>/freelook/ with timestamp and version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Requests near or outside the window flagged as a 'Free-Look Cancel Exception', dispositioned (process within window / route to surrender team if outside) with reason and same-day handling."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03y0mbk8y3lmtov6" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sample of 25 cancellations/week: the processed cancellation traces to the request document in OpenText and the refund entry in the billing platform."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy status moves to 'Free-Look Cancelled/Void' and the free-look record closes only after the refund is authorized."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Request date is within the free-look window; cancellation-effective date set to policy inception so full premium is returned per the free-look rule."
+        },
+        { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All free-look cancellation requests processed in the sample week (census of the batch)."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = requests within the window processed with full premium refund and policy voided from inception; FAIL = any in-window request not fully refunded or voided incorrectly."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Out-of-window requests routed to the standard surrender/cancellation path; in-window failures escalated to the UW Operations Manager same day."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance: in-window request voids the policy from inception, issues the full premium refund to the correct payee, and closes the free-look record."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence stored in OpenText /NB/<policy-number>/freelook/ and linked on the PolicyCenter case and the billing refund record."
+        },
+        {
+          "answerId": "cmr2ocdxa0udzkaz3i5du04u8",
+          "value": "Field definitions from the free-look data dictionary: request_date, free_look_start_date, free_look_end_date, refund_amount, cancel_effective_date, payee. Control total = in-window cancellations equal full-premium refunds issued with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp1wg1n2cmbk8v2xttem0",
+          "checklist": [
+            {
+              "step": "Validate the request against the free-look window",
+              "value": "PolicyCenter checks the request date against the state free-look window before processing a full-premium cancellation."
+            },
+            {
+              "step": "Process in-window cancellations promptly",
+              "value": "In-window cancellations processed and refunds initiated within the state refund timeframe."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify window determination",
+              "value": "Sampled cancellations correctly classified in/out of window per the state rule; 0 misclassifications."
+            },
+            {
+              "step": "Measure processing timeliness",
+              "value": "In-window refunds issued within the required timeframe; 0 late without a documented exception."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the cancellation request and outcome",
+              "value": "Request, rescission confirmation and refund evidence filed to OpenText /NB/<policy-number>/freelook/."
+            },
+            {
+              "step": "Record the void effective date",
+              "value": "Cancellation-effective date (inception) and full-premium refund recorded on the case."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample for complete documentation",
+              "value": "25 cancellations/week reviewed; each has request, void confirmation and refund evidence."
+            },
+            {
+              "step": "Confirm full premium returned",
+              "value": "0 in-window cancellations with a partial or missing premium refund."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2flh3q1vv1kfgze53k1nue",
+      "owner": { "action": "replace", "name": "New Business Case Manager" },
+      "removeRoleNames": [
+        "New Business Case Manager",
+        "Underwriter",
+        "Life Underwriter",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist"
+      ],
+      "addParticipants": ["UW Operations Manager"],
+      "removeAppNames": ["GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Triggering producer commission payment on newly issued and in-force life policies; scope = policies placed in force in the current cycle with a commission-eligible producer and schedule."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Policies going in force in the current commission cycle (e.g. 2026-06-15 to 2026-07-15)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Commission trigger record shows policy number, producer, licensed/appointed status, commission schedule, premium base and computed commission; a policy with an unlicensed producer or missing schedule is held."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Computed commission reconciles to premium base times the applicable schedule rate; the commission run total reconciles to the billing/commission platform posting with 0 variance."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Commission calculation and trigger confirmation retained on the billing/commission record and copied to OpenText /NB/<policy-number>/commission/ with timestamp and version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Producers failing licensing/appointment or schedule checks flagged as a 'Commission Hold' exception, owner the UW Operations Manager, dispositioned (verify license / correct schedule) before release."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03y0mbk8y3lmtov6" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Commission is computed from the approved producer commission schedule (current version) and the compensation rules configured in the billing/commission platform."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03y0mbk8y3lmtov6" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Commission amount must match schedule-rate x premium base within a $0.00 tolerance; variances hold the payment."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Any unlicensed/unappointed producer or wrong schedule is material and blocks the commission trigger."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sample of 25 triggers/week: computed commission traces to the producer schedule, the premium base on the policy record and the licensing/appointment record."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Commission status moves to 'Triggered' only after the policy is in force and the producer passes licensing/appointment and schedule checks."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Commission trigger date is on or after the in-force date; premium base date matches the initial premium receipt."
+        },
+        { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "cmqscl3y21hl1mbk8xkofd5sy" },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "All commission triggers in the sample week (census of the batch, ~200 policies)."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = commission computed on the correct schedule for a licensed/appointed producer and reconciled to the posting; FAIL = wrong schedule, unlicensed producer or unreconciled amount."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Failures routed to 'Commission Hold', corrected (license/schedule), and escalated to the UW Operations Manager for release."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions from the commission data dictionary: producer_id, license_status, appointment_status, schedule_code, premium_base, commission_amount, trigger_date."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = commission run total equals sum of computed commissions equals the billing/commission platform posting with 0 variance."
+        },
+        {
+          "answerId": "cmr2ocg120yk8kaz37rygjf0c",
+          "value": "Approved producer commission schedule (current version) as the methodology; parameters (schedule rates, premium base, licensing/appointment status) sourced from the compensation configuration and NIPR/appointment records, referenced on the case."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail for each commission trigger",
+              "value": "Commission calculation, schedule used, producer status and trigger action recorded with user and timestamp in the billing/commission platform."
+            },
+            {
+              "step": "Reconcile commission runs to postings",
+              "value": "Triggered commissions reconciled to the platform posting each run."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect the commission audit trail",
+              "value": "Sampled triggers show a complete calculation-to-posting trail; 0 triggers without a recorded basis."
+            },
+            {
+              "step": "Verify run reconciliation",
+              "value": "Commission run total equals the posting with 0 unreconciled items."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the commission basis on the case",
+              "value": "Schedule version, premium base and computed amount filed to OpenText /NB/<policy-number>/commission/."
+            },
+            {
+              "step": "Record producer eligibility",
+              "value": "Licensing/appointment status recorded before the trigger."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample for commission documentation",
+              "value": "25 triggers/week reviewed; each has a documented schedule and eligibility check."
+            },
+            {
+              "step": "Confirm no payment without eligibility",
+              "value": "0 commissions triggered for unlicensed or unappointed producers."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

@@ -1,0 +1,1328 @@
+{
+  "tasks": [
+    {
+      "id": "cmr2fjv6r14mvkfgzrdikugdl",
+      "owner": { "action": "replace", "name": "Portfolio Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Exposure Management Manager"],
+      "removeAppNames": [],
+      "addApps": [
+        { "name": "Moody's RMS (Cat Model); Catastrophe Data Provider", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All in-force property exposures on the current bound book across personal and commercial property, flood WYO and specialty programs; scope = every location record with a street address in Guidewire PolicyCenter that lacks validated lat/long, run before each quarterly CAT accumulation cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The in-force snapshot as of the quarter-end accumulation date (e.g. 2026-06-30); only policies in-force on that date are geocoded, plus new/endorsed locations bound since the prior snapshot."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "8ad32be7-9ee4-44d8-9d7a-a83a120c5ff1"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each location has full street address, city, state, ZIP and country populated; geocoder returns lat/long with a match-level code. Records geocoded only to ZIP-centroid (match level < parcel/rooftop) are flagged for manual review; missing state or ZIP rejects the record."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of geocoded locations reconciles to the in-force location count in PolicyCenter (delta = 0); total insured value (TIV) of geocoded locations reconciles to the in-force TIV within 0.5%; any variance investigated before the file is released to Moody's RMS."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Geocoded exposure extract saved to SharePoint /Exposure-Management/CAT-Accumulation/<YYYY-Qn>/geocoding/ as geocode_result_v<n>.csv with run timestamp, geocoder version and match-rate summary; retained 7 years per accumulation audit trail."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Locations that fail to geocode above ZIP-centroid logged in the geocoding exception register with disposition (manual-coordinate / hold-from-model / accept-ZIP-centroid) and analyst initials; unresolved exceptions above 2% of TIV escalated to the Exposure Management Manager."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp4pb1n7imbk81wrwxt4y",
+          "checklist": [
+            {
+              "step": "Apply address and geocode data-quality rules for the exposure domain",
+              "value": "Location domain rules enforce non-null state/ZIP and require a geocoder match-level code before a record is admitted to the CAT model feed."
+            },
+            {
+              "step": "Quarantine records below rooftop/parcel match quality",
+              "value": "Records geocoded only to ZIP-centroid are routed to the manual-review queue rather than passed straight to RMS."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Measure geocode match rate against threshold",
+              "value": "Rooftop/parcel match rate ≥ 95% of TIV; any quarter below threshold triggers a data-quality corrective action."
+            },
+            {
+              "step": "Sample failed records for correct disposition",
+              "value": "Sample 25 quarantined locations; 100% show a recorded disposition and, where accepted, documented rationale."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscoz5h1mx6mbk8j247egfv",
+          "checklist": [
+            {
+              "step": "Validate the exposure extract before model ingestion",
+              "value": "Automated validation confirms TIV, location count and coordinate ranges are within expected bounds versus the prior snapshot."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile geocoded TIV to source-of-record",
+              "value": "Geocoded TIV ties to PolicyCenter in-force TIV within 0.5%; break out and explain any location dropped between source and model feed."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "1da168ac-ee13-49d6-9805-426e768b9809",
+      "owner": { "action": "replace", "name": "Portfolio Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Exposure Management Manager"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [
+        { "name": "Moody's RMS (Cat Model); Catastrophe Data Provider", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Aggregate in-force TIV and modeled loss by CRESTA/CAT zone against the board-approved zonal capacity limits and the reinsurance program per-occurrence and per-zone retentions; scope = all catastrophe-exposed property zones (US wind, quake, flood, SCS)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Monitored continuously against the current in-force book, refreshed at each quarter-end accumulation run (e.g. Q2 2026 as of 2026-06-30) and re-checked intra-quarter on any large single-risk bind that could move a peak zone."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each zone row carries current aggregate TIV, modeled 1-in-100 and 1-in-250 loss, approved limit, headroom and utilisation %. Rows missing an approved limit or a current modeled loss are treated as invalid and excluded from the breach calculation until corrected."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Sum of zonal aggregates reconciles to the total in-force accumulation report (delta = 0); the utilisation calculation ties limit and exposure to the CAT Authority Matrix v3.1 capacity table; any unreconciled zone is held from sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Zonal utilisation dashboard and breach list exported to /Exposure-Management/CAT-Accumulation/<YYYY-Qn>/zonal-monitoring/ as zonal_utilisation_v<n>.xlsx with timestamp and RMS event-set version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Zones exceeding 90% utilisation flagged amber and >100% flagged red in the breach register with disposition (buy fac reinsurance / restrict binding / accept with CUO waiver); red breaches escalate same day to the Exposure Management Manager and CUO."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All catastrophe-exposed zones in the current accumulation run (census); every zone is tested for its utilisation against the approved limit, not a sample."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every zone at or below 100% of approved limit, or any overage covered by a documented CUO waiver or in-force facultative cession. FAIL = any zone over limit without a waiver or offsetting cover."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "On a red breach, open a capacity-exception item, notify the Exposure Management Manager, and pursue mitigation (facultative purchase, binding restriction, or non-renewal plan) with a resolution target of 10 business days; re-run the accumulation after mitigation."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = zonal utilisation report produced for 100% of zones, all breaches dispositioned, and headroom recalculated after any mitigation, signed by the Exposure Management Manager."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence (utilisation report, breach register, waiver approvals) stored in /Exposure-Management/CAT-Accumulation/<YYYY-Qn>/zonal-monitoring/ and linked from the quarterly accumulation governance pack."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscoxdc1mtymbk8j5mbv05a",
+          "checklist": [
+            {
+              "step": "Compare each zone's aggregate against its approved concentration limit",
+              "value": "Utilisation = current aggregate / approved zonal limit computed per zone against the CAT Authority Matrix v3.1 capacity table."
+            },
+            {
+              "step": "Flag zones breaching or approaching the concentration limit",
+              "value": "Amber at ≥90% and red at >100% utilisation, surfaced on the zonal dashboard each accumulation run."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify no undocumented over-limit zone",
+              "value": "0 zones over 100% utilisation without a CUO waiver or offsetting facultative cover."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscox9e1mtqmbk8fy73p2yh",
+          "checklist": [
+            {
+              "step": "Track aggregate exposure by peril and zone each cycle",
+              "value": "Aggregate TIV and modeled loss tracked per CRESTA/CAT zone and reconciled to the total in-force accumulation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile zonal aggregates to the total book",
+              "value": "Sum of zonal aggregates equals the total in-force accumulation (delta = 0) for the tested quarter."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppse1o9smbk8sec8gva2",
+          "checklist": [
+            {
+              "step": "Route capacity overages to CUO for approval",
+              "value": "Any bind that would push a zone over its approved limit is referred for CUO approval with documented rationale before it is retained."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm over-limit retentions carry CUO approval",
+              "value": "100% of over-limit positions retained in the quarter have a documented CUO waiver on file."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "6b0cd052-0fc0-4b98-8467-a28b0910f560",
+      "owner": { "action": "replace", "name": "Portfolio Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Exposure Management Manager"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [
+        { "name": "Moody's RMS (Cat Model); Catastrophe Data Provider", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "CRESTA-zone accumulation reports summarising aggregate TIV and modeled loss by CRESTA zone for internal governance (Risk Committee) and for reinsurer submission at renewal; scope = all catastrophe-exposed property in the in-force book grouped to CRESTA zones."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Produced at each quarter-end accumulation date (e.g. 2026-06-30) for internal governance, and as at the reinsurance renewal snapshot date for reinsurer reporting."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each CRESTA row carries zone code, aggregate TIV, policy/location count and modeled 1-in-100/1-in-250 loss. Reports missing a CRESTA mapping for any location, or with unmapped 'zone 99' residual above tolerance, are not issued until the mapping gap is closed."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Total TIV across CRESTA zones reconciles to the in-force accumulation control total (delta = 0); location counts reconcile to the geocoded exposure file; residual/unmapped TIV kept below 0.5% or explained in a footnote."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Issued report (PDF plus data workbook) stored in /Exposure-Management/CAT-Accumulation/<YYYY-Qn>/cresta-reports/ as cresta_accumulation_v<n> with timestamp, RMS event-set version and distribution list; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Data or mapping issues found during production logged in the report exception log with disposition (remap / restate / footnote); any restatement after distribution is versioned and re-issued with a change note to recipients."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "The full set of CRESTA zones in the accumulation run for the reported snapshot; all zones and the residual bucket are inspected before issue."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = report ties to control totals, residual unmapped TIV < 0.5%, and all peril views (wind/quake/flood) present. FAIL = control-total break, residual over tolerance, or a missing peril view."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "On a failed inspection, hold distribution, correct the mapping or extract, re-run, and re-inspect; material corrections found post-issue are re-issued as a versioned restatement within 5 business days."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions sourced from the accumulation data dictionary: cresta_zone, peril, aggregate_tiv, location_count, modeled_loss_100yr, modeled_loss_250yr — one row per zone per peril."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Source control totals: in-force TIV and location count from Guidewire PolicyCenter as of the snapshot date, and modeled-loss totals from the Moody's RMS run of record; both stamped on the report cover sheet."
+        },
+        {
+          "answerId": "cmr2ocfzr0wtjkaz38u3bcv57",
+          "value": "Acceptance criteria: report ties to control totals, residual unmapped TIV < 0.5%, and all peril views present, signed by the Exposure Management Manager. Evidence (issued PDF, data workbook, reconciliation) stored in /Exposure-Management/CAT-Accumulation/<YYYY-Qn>/cresta-reports/ and linked from the accumulation governance pack."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscox9e1mtqmbk8fy73p2yh",
+          "checklist": [
+            {
+              "step": "Aggregate exposure to CRESTA zones each reporting cycle",
+              "value": "TIV and modeled loss aggregated per CRESTA zone and reconciled to the in-force accumulation control totals before issue."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile the CRESTA report to source totals",
+              "value": "Report TIV ties to PolicyCenter in-force TIV and RMS modeled-loss totals with 0 unexplained variance."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscoxdc1mtymbk8j5mbv05a",
+          "checklist": [
+            {
+              "step": "Show zonal aggregates against concentration limits in the report",
+              "value": "Each CRESTA zone reported alongside its approved concentration limit and utilisation for governance visibility."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify limit context is present for peak zones",
+              "value": "100% of peak zones in the report show the approved limit and current utilisation."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "ed526a62-4837-48eb-a4cc-ba6c5837a6d9",
+      "owner": { "action": "replace", "name": "Portfolio Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant", "Data Scientist"],
+      "addParticipants": ["Exposure Management Manager"],
+      "removeAppNames": [],
+      "addApps": [{ "name": "Moody's RMS (Cat Model); Microsoft Excel", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Underwriting-action recommendations to relieve concentration peaks in over-utilised CAT zones — e.g. binding moratoria, sub-limit tightening, non-renewal targeting, facultative purchase or geographic re-mix; scope = the amber/red zones identified in the current accumulation run."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Prepared each quarter for the zones breaching capacity in that accumulation cycle (e.g. Q2 2026), with recommendations effective from the next binding period until the peak is relieved."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each recommendation names the target zone, current utilisation, the action, the estimated TIV/loss relief, and the affected LOB/segment. Recommendations without a quantified relief estimate or a named action owner are returned for completion."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The modeled post-action utilisation is recomputed and reconciled: projected relief per action sums to the reduction needed to bring the zone to or below its approved limit; residual overage after all actions is stated explicitly."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Recommendation memo and supporting relief model saved to /Exposure-Management/CAT-Accumulation/<YYYY-Qn>/peak-actions/ as peak_relief_recommendation_v<n> with timestamp and the accumulation run reference; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Where a peak cannot be relieved within appetite by underwriting action alone, the residual is logged as an exception with disposition (buy additional reinsurance / accept with CUO waiver / portfolio exit plan) and escalated to the Exposure Management Manager."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscoxdc1mtymbk8j5mbv05a",
+          "checklist": [
+            {
+              "step": "Target actions at zones over the concentration limit",
+              "value": "Recommendations are generated for every zone above its approved concentration limit and sized to close the utilisation gap."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify projected relief closes each peak",
+              "value": "For each over-limit zone, the sum of recommended actions brings modeled utilisation to ≤100% or the residual is explicitly dispositioned."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Align recommendations with the documented CAT appetite",
+              "value": "Actions reference the CAT Risk Appetite Statement FY26 for the affected LOB, geography and industry so the re-mix stays within appetite."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm recommendations respect appetite bounds",
+              "value": "0 recommended actions push another zone or segment outside its documented appetite band."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppse1o9smbk8sec8gva2",
+          "checklist": [
+            {
+              "step": "Escalate un-relievable peaks for CUO decision",
+              "value": "Residual overages that cannot be closed by underwriting action are packaged for CUO approval with quantified retained risk."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm residual peaks carry a documented decision",
+              "value": "100% of residual over-limit positions have a CUO waiver or an approved mitigation plan on file."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "e78f1dac-7d46-4d66-8722-5338cec260ca",
+      "owner": { "action": "replace", "name": "Portfolio Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Exposure Management Manager", "Chief Underwriting Officer"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [
+        {
+          "name": "Moody's RMS (Cat Model); Catastrophe Data Provider",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Quarterly aggregate catastrophe-exposure report to the Chief Underwriting Officer and the Risk Management Committee: gross and net PML by peril and return period, zonal utilisation, reinsurance program headroom and quarter-over-quarter movement; scope = the whole cat-exposed in-force book."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Reports each calendar quarter on the accumulation snapshot as of quarter-end (e.g. Q2 2026 as of 2026-06-30), delivered within 15 business days of the snapshot date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The pack carries gross/net PML at 1-in-100 and 1-in-250 by peril, zonal utilisation, reinsurance recoverables and remaining vertical/horizontal cover. A pack missing the net-of-reinsurance view or the QoQ movement commentary is not released to committee."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "PML and TIV figures reconcile to the accumulation run of record and the CRESTA report; net PML ties to the reinsurance program structure in the ceded system; any figure not traceable to a source run is withheld."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Final committee pack saved to /Exposure-Management/CAT-Accumulation/<YYYY-Qn>/cuo-report/ as cat_exposure_cuo_v<n>.pdf with timestamp, RMS event-set version and committee meeting date; minutes cross-referenced; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Items breaching risk tolerance are shown on an exception page with disposition (mitigation underway / CUO waiver / escalate to Board Risk); open items carried forward with owner and target date until closed."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The CUO's decisions (accept position, direct mitigation, escalate to Board Risk) are minuted in the Risk Management Committee record and captured on the report cover sheet with date and attendees."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Recipients documented on the distribution list: Chief Underwriting Officer, Chief Risk Officer, Head of Reinsurance and Risk Management Committee members; distribution logged with send date and version."
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "All quarterly CAT-exposure reports issued in the period under review; each is traced from source accumulation run through to the committee minutes."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = report delivered within 15 business days, figures reconcile to the run of record, and CUO sign-off is minuted. FAIL = late delivery, an unreconciled figure, or missing committee sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "A missed or late report is logged as a governance exception, notified to the Exposure Management Manager and CUO, and remediated with a documented cause and a same-quarter catch-up delivery."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "Reporting and escalation authority follows the CAT Authority Matrix v3.1: Portfolio Analyst prepares, Exposure Management Manager reviews, CUO approves and owns escalation to the Board Risk Committee above tolerance."
+        },
+        {
+          "answerId": "cmr2ocdxk0urzkaz3zn7icgx7",
+          "value": "Effective date = the quarter-end accumulation snapshot (e.g. 2026-06-30); the report reflects the in-force position and reinsurance program in effect on that date, and is valid for that quarter's governance cycle only."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscox9e1mtqmbk8fy73p2yh",
+          "checklist": [
+            {
+              "step": "Report aggregate tracked exposure to governance each quarter",
+              "value": "Gross/net PML and zonal aggregates reported to the CUO and Risk Committee, reconciled to the accumulation run of record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify quarterly reporting completeness",
+              "value": "A CAT-exposure report exists and is minuted for every quarter in the review period with 0 gaps."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Route the exposure position to the correct authority level",
+              "value": "Positions above tolerance are presented to the CUO, whose authority to accept or escalate is defined in the CAT Authority Matrix v3.1."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm sign-off at the correct authority",
+              "value": "100% of over-tolerance items in the quarter carry a CUO (or Board Risk) decision consistent with the authority matrix."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc4uvxl0689v8f8s2l6q142",
+          "checklist": [
+            {
+              "step": "Include TRIP terrorism aggregation and retention in CUO oversight",
+              "value": "The quarterly pack reports terrorism aggregation and the insurer deductible/program-year retention so the CUO exercises TRIP governance oversight alongside natural-cat exposure."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify TRIP retention is reported and reviewed",
+              "value": "Each quarter's report shows the current TRIP deductible/retention position and is acknowledged in the committee minutes."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "976e3714-24e7-4fb1-8f51-f86f42d575d6",
+      "owner": { "action": "replace", "name": "Portfolio Analyst" },
+      "removeRoleNames": ["Data Scientist", "Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Exposure Management Manager", "Data Scientist"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [
+        { "name": "Moody's RMS (Cat Model); Catastrophe Data Provider", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Catastrophe model runs on the in-force exposure set using Moody's RMS (with AIR as challenger) to produce PML and TVaR by peril and return period; scope = all cat-exposed property, run gross and net of the reinsurance program."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Run on the quarter-end accumulation snapshot (e.g. 2026-06-30) and re-run at reinsurance renewal and after any model/event-set version change during the year."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "651d362a-de3b-4e34-89e5-504085d85d0d"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The exposure import passes RMS data-completeness checks (geocode match, construction/occupancy/year-built coded, TIV present); unmapped or defaulted characteristics are quantified. A run with import warnings above the defaulting tolerance is not used for reporting."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Imported TIV and location count reconcile to the geocoded exposure feed (delta = 0); modeled loss totals reconcile to the prior run within an explained movement corridor; secondary-uncertainty and demand-surge settings match the approved run configuration."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Run outputs (EP curves, PML/TVaR by peril, run log) exported to /Exposure-Management/CAT-Accumulation/<YYYY-Qn>/model-runs/ as rms_run_v<n> with RMS software and event-set version, analysis settings and timestamp; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Import defaults, geocode gaps or setting deviations logged in the model-run exception register with disposition (accept / rerun after fix); deviations from the approved configuration require Exposure Management Manager approval before the run is designated run of record."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "RMS software version and event-set (e.g. NA Hurricane v23) are on the approved-vendor-model register; the blending approach between RMS and AIR is the current Board-approved methodology documented in the CAT model governance file."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity thresholds: a >10% movement in 1-in-100 PML versus the prior run, or a >15% divergence between RMS and AIR, triggers a documented reasonableness review before the run is accepted."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality threshold: any peril whose net 1-in-250 loss exceeds 5% of capital, or moves the reinsurance sufficiency conclusion, is flagged as material and reviewed with the Capital Model Actuary."
+        },
+        {
+          "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "The full in-force exposure set for the snapshot; the run is re-performed end-to-end on the same exposure import to confirm reproducibility, not a sample."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = re-run reproduces PML/TVaR within 0.1% on identical inputs and settings, and all model/version/setting parameters match the approved configuration. FAIL = non-reproducible output or an unapproved setting."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "A non-reproducible or out-of-corridor result is quarantined, root-caused (data, setting, or version), corrected, and re-run; the accepted run is re-designated run of record only after Exposure Management Manager sign-off, target 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "Approved methodology = the Board-approved RMS/AIR blending and secondary-uncertainty configuration recorded in the CAT model governance file, version-controlled with an effective date."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "Parameters (event set, demand surge, secondary uncertainty, reinsurance structure) sourced from the approved run configuration and the ceded reinsurance system; each parameter's source is logged in the run log."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscoxf61mu2mbk8o9n9wv6c",
+          "checklist": [
+            {
+              "step": "Produce PML across defined return periods",
+              "value": "PML computed at 1-in-100 and 1-in-250 (and TVaR) by peril, gross and net of reinsurance, from the run of record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify PML reproducibility",
+              "value": "Re-running identical inputs reproduces PML within 0.1%; deviations are investigated before acceptance."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscoxbd1mtumbk8dpbzte8t",
+          "checklist": [
+            {
+              "step": "Use only approved vendor model versions",
+              "value": "RMS software and event-set versions used are on the approved-vendor-model register with a recorded approval date."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm model version approval",
+              "value": "100% of runs of record cite an approved model/event-set version; unapproved versions are rejected for reporting."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscoxaf1mtsmbk83lta2bw3",
+          "checklist": [
+            {
+              "step": "Compare results against the challenger model",
+              "value": "Each cycle compares RMS PML/TVaR against AIR and documents the divergence and blending rationale."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify divergence is within tolerance or explained",
+              "value": "RMS-vs-AIR divergence beyond 15% carries a documented reasonableness explanation."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "2d921a30-dc6d-40dc-9248-77a4cfd83c5e",
+      "owner": { "action": "replace", "name": "Portfolio Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Exposure Management Manager", "Reinsurance Analyst"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [
+        { "name": "Moody's RMS (Cat Model); Catastrophe Data Provider", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "CAT sub-limits and per-risk and per-occurrence limits set by zone and peril so retained exposure aligns with the catastrophe reinsurance program's attachment, limit and reinstatements; scope = all cat-exposed zones and the per-risk limit grid used by underwriting."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Set at reinsurance program inception/renewal (e.g. effective 2026-07-01) and reviewed at each quarter-end accumulation cycle; limits remain in force for the treaty year unless a mid-term restructure occurs."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each limit row carries zone, peril, per-risk limit, per-occurrence sub-limit and the mapped treaty layer. Rows without a mapped reinsurance layer or that exceed treaty capacity are rejected until reconciled to the program structure."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Aggregate of per-occurrence sub-limits reconciles to net retained occurrence exposure below the reinsurance attachment; the limit grid ties to the treaty schedule in the ceded system; any limit exceeding program capacity is held from activation."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Approved limit schedule stored in /Exposure-Management/CAT-Accumulation/<YYYY-Qn>/cat-limits/ as cat_limit_schedule_v<n> with effective date, treaty-year reference and approval record; retained 7 years, and loaded to PolicyCenter/underwriting workstation as binding controls."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Proposed limits above program capacity or outside appetite are logged as exceptions with disposition (reduce limit / buy additional cover / CUO waiver); exceptions require CUO approval before the limit is activated."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "The full CAT limit grid for the treaty year (all zone/peril combinations); every limit is traced back to the reinsurance program schedule as the source of record."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = every per-occurrence sub-limit sits within the program's occurrence limit and each per-risk limit maps to a valid treaty layer. FAIL = any limit exceeding treaty capacity or without a mapped layer."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "A limit that breaches program capacity is corrected (reduced or backed by additional facultative/treaty cover) or escalated for a CUO waiver before it is loaded as a binding control; target resolution 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = limit schedule approved, every row reconciled to the reinsurance program, and binding controls loaded to the policy and underwriting systems, signed off by the Exposure Management Manager."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence (approved limit schedule, reconciliation to treaty schedule, system-load confirmation) stored in /Exposure-Management/CAT-Accumulation/<YYYY-Qn>/cat-limits/ and linked from the renewal governance pack."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscoxdc1mtymbk8j5mbv05a",
+          "checklist": [
+            {
+              "step": "Set zonal and per-risk limits to enforce concentration limits",
+              "value": "Per-occurrence sub-limits and per-risk limits are calibrated so retained zonal accumulation stays within the approved concentration limits."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify limits keep zones within concentration bounds",
+              "value": "Modeling the book at the new limits keeps every zone ≤100% of its concentration limit."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Encode limits into the underwriting authority framework",
+              "value": "Per-risk and per-occurrence limits are loaded as binding controls tied to authority levels in the CAT Authority Matrix v3.1."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm binding controls enforce the limits",
+              "value": "System binding controls reject risks exceeding the loaded per-risk limit without a referral."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscox9e1mtqmbk8fy73p2yh",
+          "checklist": [
+            {
+              "step": "Reconcile limits to tracked aggregate and the reinsurance program",
+              "value": "The limit schedule reconciles to net retained aggregate below attachment and to the treaty schedule."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify limit-to-program reconciliation",
+              "value": "0 limits exceed reinsurance program capacity; every row maps to a valid treaty layer."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fjvev14pdkfgzwc6smci3",
+      "owner": { "action": "replace", "name": "Portfolio Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Exposure Management Manager"],
+      "removeAppNames": [],
+      "addApps": [
+        { "name": "Moody's RMS (Cat Model); Catastrophe Data Provider", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Location-data quality validation for in-force exposures before CAT modeling: address completeness, geocode match level, and coding of construction, occupancy, year built, number of storeys and TIV; scope = all cat-exposed locations in the current in-force snapshot."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Validated on the quarter-end accumulation snapshot (e.g. 2026-06-30) and on incremental new/endorsed locations bound since the prior snapshot, ahead of each model run."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "8ad32be7-9ee4-44d8-9d7a-a83a120c5ff1"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Required fields: full address, lat/long with match level, construction class, occupancy, year built and TIV. Locations with missing primary characteristics, ZIP-centroid-only geocodes, or TIV outside plausible bounds are flagged; default-coded characteristics above the tolerance % are reported."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Validated location count and TIV reconcile to the in-force book in PolicyCenter (delta = 0); the share of defaulted/unknown characteristics is measured against the prior snapshot to detect data drift."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Validation report (rule results, pass rate, defect list) saved to /Exposure-Management/CAT-Accumulation/<YYYY-Qn>/data-validation/ as location_validation_v<n> with timestamp and rule-set version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Failed locations logged in the data-quality exception register with disposition (correct at source / re-geocode / accept default with note); repeated coverholder or source-system defects are raised to the data owner and Exposure Management Manager for upstream fix."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp4pb1n7imbk81wrwxt4y",
+          "checklist": [
+            {
+              "step": "Apply location data-quality rules before modeling",
+              "value": "Rule set enforces completeness and validity for address, geocode match level, construction/occupancy/year-built and TIV on the exposure domain."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Publish and check the data-quality score",
+              "value": "Location data-quality score ≥ the agreed threshold; sub-threshold snapshots trigger a corrective action before model use."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscoz5h1mx6mbk8j247egfv",
+          "checklist": [
+            {
+              "step": "Document known data limitations for the run",
+              "value": "Defaulted or unknown characteristics are quantified and documented so downstream modeling accounts for the uncertainty."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify reconciliation and defect closure",
+              "value": "Validated TIV/count ties to source (delta = 0) and every high-severity defect is dispositioned before the exposure feed is released."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fkgkr1e15kfgzmmqyyujv",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager", "Exposure Management Manager"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "Power BI", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Aggregate delegated-authority exposure across all active coverholders and binding authorities: bound premium, TIV and aggregate limits by coverholder, class and geography; scope = every open binder/coverholder reporting bordereaux into the delegated authority book."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Compiled monthly on receipt of coverholder bordereaux and consolidated at quarter-end (e.g. 2026-06-30) to align with the aggregate accumulation and reserving cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each coverholder row carries binder reference, reporting period, bound premium, TIV, aggregate limit used and number of risks. Rows with a missing or late bordereaux, or premium/limit outside the binder terms, are flagged and excluded from the aggregate until resolved."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Sum of coverholder-level premium and TIV reconciles to the consolidated aggregate control totals (delta = 0); bordereaux received count reconciles to the expected count of active binders; missing bordereaux quantified as a completeness gap."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Aggregate exposure workbook saved to /Delegated-Authority/Aggregate-Oversight/<YYYY-Qn>/aggregate-exposure/ as delegated_aggregate_v<n> with timestamp, bordereaux cut-off date and source-binder list; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Late or non-conforming bordereaux logged in the coverholder exception register with disposition (chase / estimate with accrual / suspend binder); persistent breaches escalated to the Delegated Authority Manager and reflected in coverholder performance reviews."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All active coverholders/binders expected to report in the period (census); every expected bordereaux is checked in, not a sample."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = 100% of expected bordereaux received and reconciled, aggregate ties to control totals, and no binder over its aggregate limit. FAIL = a missing bordereaux without an accrual, a control-total break, or a binder over aggregate."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "A missing or broken bordereaux is chased against the binder reporting SLA; if unresolved, an estimated accrual is booked and the binder flagged for suspension review; exceptions tracked to closure within 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = consolidated aggregate reconciled to control totals, completeness gap quantified and dispositioned, and the compiled exposure signed off by the Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence (aggregate workbook, bordereaux receipt log, exception register) stored in /Delegated-Authority/Aggregate-Oversight/<YYYY-Qn>/aggregate-exposure/ and linked from the DA oversight pack."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscox9e1mtqmbk8fy73p2yh",
+          "checklist": [
+            {
+              "step": "Track delegated aggregate exposure across coverholders",
+              "value": "Premium, TIV and aggregate-limit usage tracked by coverholder and consolidated to the delegated book each cycle."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile the delegated aggregate to control totals",
+              "value": "Consolidated premium/TIV ties to control totals with 0 unexplained variance and 100% expected-bordereaux completeness."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp4pb1n7imbk81wrwxt4y",
+          "checklist": [
+            {
+              "step": "Apply bordereaux data-quality rules on intake",
+              "value": "Each bordereaux is validated for required fields and binder-term conformance before it is admitted to the aggregate."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify non-conforming rows are excluded",
+              "value": "0 non-conforming bordereaux rows are included in the aggregate without a documented disposition."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "8e24e747-c2e6-4b29-9b19-d6918b381e14",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager", "Exposure Management Manager"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "Power BI", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Assessment of geographic and class concentration within delegated-authority portfolios against company guidelines and the delegated appetite: exposure by CRESTA zone, class of business and coverholder versus documented concentration thresholds; scope = the consolidated delegated book."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Assessed quarterly on the consolidated aggregate as of quarter-end (e.g. 2026-06-30), and on any binder whose in-quarter growth materially shifts a zone or class concentration."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each concentration row carries zone/class, aggregate exposure, the guideline threshold and utilisation %. Rows lacking a mapped guideline threshold, or with unclassified class-of-business, are flagged and resolved before the assessment is finalised."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Concentration aggregates reconcile to the consolidated delegated aggregate exposure (delta = 0); class and zone totals tie to the bordereaux data; residual unclassified exposure kept below 1% or explained."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Concentration assessment saved to /Delegated-Authority/Aggregate-Oversight/<YYYY-Qn>/concentration/ as delegated_concentration_v<n> with timestamp, threshold-set version and source-aggregate reference; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Zones/classes over the guideline threshold logged in the concentration exception register with disposition (restrict binder / reduce aggregate limit / accept with DA Manager approval); breaches escalated to the Delegated Authority Manager."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Concentration methodology (zone/class definitions and threshold set) is the current company-approved delegated authority guideline version recorded in the DA governance file."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: a >10% quarter-over-quarter increase in any zone or class concentration triggers a documented review even if still under threshold."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: any single zone or class above 90% of its guideline threshold, or contributing >10% of delegated aggregate, is treated as material and reviewed with the Exposure Management Manager."
+        },
+        { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All zone and class-of-business combinations in the consolidated delegated book (census); every combination is assessed against its guideline threshold."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every zone/class at or below its guideline threshold, or any overage documented and approved. FAIL = any concentration over threshold without a recorded disposition."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "On a breach, propose a binder restriction or aggregate-limit reduction, or record DA Manager approval to accept; track the mitigation to effect within 10 business days and re-assess after action."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = concentration assessed for all zones/classes, breaches dispositioned, and the assessment signed off by the Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence (concentration assessment, breach register, approvals) stored in /Delegated-Authority/Aggregate-Oversight/<YYYY-Qn>/concentration/ and linked from the DA oversight pack."
+        },
+        {
+          "answerId": "cmr2ocdw20sqnkaz3jlny3w5d",
+          "value": "Approved methodology = the company-approved delegated concentration guideline (zone/class definitions and thresholds) recorded in the DA governance file; parameters (thresholds, appetite bands) sourced from that guideline version with an effective date logged in the assessment."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscoxdc1mtymbk8j5mbv05a",
+          "checklist": [
+            {
+              "step": "Assess delegated concentration against limits",
+              "value": "Zone and class concentrations in the delegated book are measured against documented concentration limits/guidelines each quarter."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify no undocumented concentration breach",
+              "value": "0 zone/class concentrations over threshold without a recorded disposition or approval."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp2qe1n3umbk8sm5m3zpe",
+          "checklist": [
+            {
+              "step": "Monitor coverholders as delegated third parties",
+              "value": "Concentration outcomes feed ongoing coverholder monitoring so binders driving over-appetite build-up are reviewed and restricted."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm monitoring actions on breaching binders",
+              "value": "Every coverholder contributing to a concentration breach has a monitoring action (restriction/review) recorded."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Compare concentrations to documented appetite",
+              "value": "Zone/class concentrations assessed against the documented delegated appetite by line of business, geography and industry."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify appetite alignment",
+              "value": "100% of material concentrations are shown against their appetite band and out-of-appetite positions are escalated."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cbff99a3-c6cf-45df-ba09-4cfa84e3d57a",
+      "owner": { "action": "replace", "name": "Bordereaux Analyst" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Underwriting Assistant",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": [],
+      "addApps": [{ "name": "Power BI", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Consolidation of all coverholder bordereaux (risk and premium) into the aggregate delegated book for the reporting period; scope = every bordereaux submitted by active coverholders/binders for the month, mapped to the company data model."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Consolidated monthly on the bordereaux reporting cut-off (e.g. bordereaux for period ending 2026-06-30 received by the binder SLA date) and rolled into the quarter-end aggregate view."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z103z3mbk8c39oejng"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each bordereaux is mapped to the standard schema (risk id, inception/expiry, insured location, TIV, premium, commission, class). Rows failing schema mapping, with duplicate risk ids, or with premium/limit outside binder terms are quarantined before merge."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Consolidated premium and risk count reconcile to the sum of individual bordereaux control totals (delta = 0) and to the ledger premium booked for the binders; duplicates and rejects are quantified and excluded from the aggregate."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Consolidated bordereaux dataset and load log saved to /Delegated-Authority/Aggregate-Oversight/<YYYY-Qn>/bordereaux-consolidation/ as bdx_consolidated_v<n> with timestamp, source-file inventory and row counts; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Mapping failures, duplicates and out-of-term rows logged in the bordereaux exception register with disposition (query coverholder / re-map / reject); recurring quality issues escalated to the Delegated Authority Manager and fed into coverholder scorecards."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscoz5h1mx6mbk8j247egfv",
+          "checklist": [
+            {
+              "step": "Validate each bordereaux before merging",
+              "value": "Schema mapping, duplicate detection and binder-term checks run on each file before it is admitted to the consolidated book."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile consolidated totals to sources",
+              "value": "Consolidated premium and risk counts tie to the sum of source-bordereaux control totals with 0 variance."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp4pb1n7imbk81wrwxt4y",
+          "checklist": [
+            {
+              "step": "Apply bordereaux domain data-quality rules",
+              "value": "Required-field and format rules for the bordereaux domain quarantine non-conforming rows rather than loading them."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify quarantine and disposition of bad rows",
+              "value": "100% of quarantined rows carry a disposition and 0 duplicates persist in the consolidated dataset."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "a896091c-8dea-45c0-9b4c-5a0c62f240a3",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Reserving Actuary", "Delegated Authority Manager"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "Power BI", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Coordination with actuarial to feed delegated-authority results (earned premium, paid/incurred losses, aggregate exposure, rate movement by class) into IBNR reserving and pricing reviews; scope = the consolidated delegated book for the reserving/pricing cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Provided to actuarial each quarter on the reserving cut-off (e.g. 2026-06-30), covering the delegated book's cumulative experience and the latest quarter's movement."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The actuarial data pack carries earned premium, paid and incurred losses, open case reserves, exposure and class mapping by coverholder and accident period. A pack with a premium/loss reconciliation break or missing class mapping is not released to actuarial."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Premium and loss totals reconcile to the consolidated bordereaux and to the ledger (delta = 0); triangulated experience ties to the prior submission plus the quarter's movement; any unreconciled coverholder is held back and noted."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Actuarial submission pack saved to /Delegated-Authority/Aggregate-Oversight/<YYYY-Qn>/actuarial-feed/ as delegated_actuarial_pack_v<n> with timestamp, data cut-off and reconciliation summary; retained 7 years and referenced in the reserving working papers."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Data gaps or reconciliation breaks logged in the exception register with disposition (correct / accrue estimate / flag as caveat to actuarial); material caveats communicated in writing to the Reserving Actuary alongside the pack."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The data-preparation methodology (earning basis, loss development mapping, class taxonomy) follows the approved delegated-reserving data standard version recorded in the reserving governance file."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03wzmbk8iu5btcuv" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: a >10% quarter-over-quarter movement in loss ratio for any material coverholder or class is flagged to actuarial for a documented reasonableness discussion before reserving relies on it."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: coverholders or classes above 10% of delegated premium, or whose experience moves the reserve indication materially, are separately reconciled and reviewed with the Reserving Actuary."
+        },
+        { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "The full consolidated delegated book for the reserving period (census across coverholders and accident periods); every coverholder's premium and loss experience is reconciled before submission."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = premium and losses reconcile to bordereaux and ledger, triangulation ties to the prior submission, and material caveats are documented. FAIL = an unreconciled coverholder, a triangulation break, or an undocumented data gap."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "A reconciliation break is investigated and corrected, or an estimated accrual booked with a documented caveat to actuarial; open items tracked to closure within the reserving-cycle timetable (target 10 business days)."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = actuarial data pack reconciled to bordereaux and ledger, caveats documented, and the submission signed off by the Delegated Authority Manager and acknowledged by the Reserving Actuary."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence (actuarial pack, reconciliation summary, caveat memo) stored in /Delegated-Authority/Aggregate-Oversight/<YYYY-Qn>/actuarial-feed/ and cross-referenced from the reserving working papers."
+        },
+        {
+          "answerId": "cmr2ocdw10spfkaz3tidwb8hq",
+          "value": "Approved methodology = the delegated-reserving data standard (earning basis, loss development mapping, class taxonomy) recorded in the reserving governance file; parameters sourced from the consolidated bordereaux and ledger, with the data cut-off and standard version logged on the submission."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscox9e1mtqmbk8fy73p2yh",
+          "checklist": [
+            {
+              "step": "Aggregate delegated experience for reserving",
+              "value": "Premium, losses and exposure aggregated by coverholder and accident period and reconciled before hand-off to actuarial."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile the actuarial feed to sources",
+              "value": "Premium and loss totals in the pack tie to bordereaux and ledger with 0 unexplained variance."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscoz5h1mx6mbk8j247egfv",
+          "checklist": [
+            {
+              "step": "Validate the data feeding reserving",
+              "value": "The actuarial pack passes completeness and reconciliation checks and known limitations are documented as caveats."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify caveats and reconciliation are recorded",
+              "value": "100% of material data gaps are documented as caveats and every material coverholder is reconciled."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscoytp1mwombk88vwkfsze",
+          "checklist": [
+            {
+              "step": "Provide delegated results on the reserve-review timetable",
+              "value": "The delegated data pack is delivered in time for the periodic reserve review with the agreed data cut-off."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm timely delivery each cycle",
+              "value": "The delegated actuarial feed is delivered by the reserving-cycle deadline for every period in the review with 0 misses."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

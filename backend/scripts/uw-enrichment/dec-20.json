@@ -1,0 +1,1343 @@
+{
+  "tasks": [
+    {
+      "id": "85162267-f396-4cab-b434-d774af441397",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Delegated Authority Manager"],
+      "removeAppNames": ["Guidewire PolicyCenter; Earnix Rating & Pricing; Broker & Agent Portal"],
+      "addApps": [
+        {
+          "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "usageType": "performed"
+        },
+        { "name": "underwriting workstation", "usageType": "performed" },
+        { "name": "Power BI", "usageType": "performed" },
+        { "name": "GRC platform (Archer/ServiceNow GRC)", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The full in-force delegated-authority book written by all active coverholders, MGAs and TPAs, tested against each binder's limits in the Delegated Authority Matrix v4.1: per-risk limit, aggregate premium cap, prohibited/no-write classes, and territory restrictions. Scope = every bound risk in the current bordereaux load."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current monthly bordereaux reporting period (e.g. bind dates 2026-06-01 to 2026-06-30); risks bound outside the period are excluded and picked up in their own cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each bound risk carries coverholder code, LOB, limit, premium, effective date and class code; the matrix rule engine flags any field breaching a binder limit. Risks with missing limit or class code are quarantined as data-quality exceptions before the breach test runs."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Bordereaux risk count and premium sum reconcile to the coverholder's declared totals and to PolicyCenter postings; delta must be 0. Any variance over 1% of premium is logged and blocks sign-off until resolved."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The breach/appetite exception report is exported to Archer GRC as a dated 'DA-Breach' record and archived to SharePoint /Underwriting/Portfolio/DA-Oversight/<YYYY-Qn>/ with version label and run timestamp; retained per the 7-year underwriting-file policy."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Each flagged breach or out-of-appetite risk is opened as an Archer 'DA-Breach' item with disposition (within-tolerance / remediate / escalate), owner and target date; unresolved material breaches auto-route to the escalation task within 2 business days."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Test every bound risk against the coverholder's premium, limit and LOB authority in the matrix",
+              "value": "The Archer rule set encodes Delegated Authority Matrix v4.1 limits per binder; each bordereaux row is evaluated against per-risk limit, aggregate premium cap and permitted LOB."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm no bound risk exceeds its binder authority",
+              "value": "0 risks bound above per-risk limit, aggregate cap or outside permitted LOB pass without a flagged breach; sample 25 flagged rows per month reconcile to the matrix."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Apply documented referral triggers to detect risks that should have been referred",
+              "value": "Breach logic includes referral-trigger thresholds (large limits, cat-exposed territory, prohibited class) so unreferred risks surface as out-of-appetite flags."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify triggered risks were referred",
+              "value": "For 100% of risks hitting a referral trigger, a referral record exists in PolicyCenter; any missing referral is logged as a breach."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Preserve a full audit trail of the breach-detection run",
+              "value": "Run parameters, matrix version, input bordereaux and output exception list are captured in Archer with immutable timestamp."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit-trail completeness",
+              "value": "Every breach run has a retrievable trail showing inputs, matrix version and reviewer; 0 runs without a stored trail."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "893d0204-16a3-4421-81e6-71cdb8139b73",
+      "owner": { "action": "replace", "name": "Delegated Authority Manager" },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Chief Underwriting Officer"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [
+        { "name": "GRC platform (Archer/ServiceNow GRC)", "usageType": "memorialized" },
+        { "name": "Power BI", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Material breaches of delegated-authority limits identified in the aggregate book — those exceeding the materiality threshold (single risk >125% of per-risk limit, or aggregate premium >110% of binder cap, or any prohibited-class bind) — that require escalation to underwriting management or the Delegated Authority Committee."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current monthly oversight cycle; breaches are escalated within 2 business days of being flagged, with the committee pack compiled for the next monthly DA governance meeting."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each escalation record carries coverholder, breach type, quantum vs limit, financial exposure, recommended action and sign-off route; records missing quantum or recommended action are returned to the analyst before escalation."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of material breaches escalated reconciles to the breach register: every Archer item flagged 'material' has a matching committee escalation; delta must be 0 at cycle close."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The escalation memo and committee minutes are stored in Archer against the DA-Breach record and archived to SharePoint /Underwriting/Portfolio/DA-Oversight/<YYYY-Qn>/Escalations/ with timestamp and version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Breaches the committee accepts are logged with an approved rationale and expiry; those requiring action get a remediation item with a 10-business-day SLA and re-escalation if breached."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        { "templateKeyId": "cmr2oap6g002flasb12gpqsrx", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "All breaches classified 'material' in the current cycle (census, not a sample) plus a look-back over any prior-cycle material breaches still open."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = 100% of material breaches escalated within the 2-business-day SLA with a complete record and committee disposition. FAIL = any material breach unescalated, escalated late, or lacking a documented decision."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "Late or incomplete escalations raise an Archer 'SLA-Miss' item to the CUO with root cause; recurring misses trigger a review of the DA monitoring workflow."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "Escalation routing follows the Delegated Authority Matrix v4.1 delegation table: manager-level breaches to the Delegated Authority Manager, material/prohibited-class breaches to the CUO and the DA Committee; the matrix is version-controlled in Archer."
+        },
+        {
+          "answerId": "cmr2ocfzj0wivkaz3y6sxb5f3",
+          "value": "Acceptance criteria: every material breach escalated within the 2-business-day SLA with a complete record and a documented committee disposition. Evidence = the Archer escalation record and committee minutes, archived to SharePoint /Underwriting/Portfolio/DA-Oversight/<YYYY-Qn>/Escalations/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppse1o9smbk8sec8gva2",
+          "checklist": [
+            {
+              "step": "Route material breaches for CUO approval with full documentation",
+              "value": "Any acceptance of a material authority breach requires a documented CUO decision captured in the Archer escalation record before the risk is retained."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify CUO sign-off on accepted breaches",
+              "value": "100% of accepted material breaches carry a CUO approval with rationale; 0 accepted without documented authority-level sign-off."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Escalate to the next authority level with a recommendation",
+              "value": "Each escalation memo states the breach, options and a recommended action, addressed to the correct authority tier per the delegation matrix."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm recommendation accompanies each escalation",
+              "value": "Every committee escalation includes a named recommendation and reaches the correct authority level; sample 10 escalations per quarter for completeness."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "34cd2295-1238-4b98-a6bf-605425ffec06",
+      "owner": { "action": "replace", "name": "Delegated Authority Manager" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Chief Underwriting Officer", "Pricing Actuary"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "Power BI", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Coverholders/binders whose portfolio performance has deteriorated beyond tolerance — loss ratio above the agreed threshold, adverse frequency trend, or repeated authority breaches — that warrant capacity reduction or authority withdrawal. Scope = binders breaching the performance triggers in the current review."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Rolling 12-month loss experience as at the current quarter-end (e.g. AY-to-date through 2026-06-30), compared against plan and the prior two review cycles."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each binder record shows earned premium, incurred losses, loss ratio, trend and breach count; binders missing losses-to-date or premium are excluded from the deterioration test until the bordereaux is corrected."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Binder premium and loss totals reconcile to PolicyCenter and to actuarial reserves; loss-ratio figures used in the decision must tie to the quarterly reserving run within 1%."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The capacity-reduction decision memo, supporting loss triangles and the amended authority schedule are stored in Archer and archived to SharePoint /Underwriting/Portfolio/DA-Oversight/<YYYY-Qn>/Capacity/ with version and timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A binder that breaches tolerance but is retained at current capacity requires a documented CUO exception with rationale and review date; otherwise a capacity-reduction or withdrawal action is opened with a 10-business-day SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Loss-ratio and trend figures are produced from the approved quarterly reserving methodology (reserving model vQ2-2026) signed off by the Reserving Actuary; only that approved version feeds the deterioration test."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03w2mbk84o4w6iug" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity of the loss ratio to IBNR selection and large-loss treatment is documented; a +/-5 point loss-ratio swing under alternative assumptions is shown alongside the base case in the decision pack."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality threshold for action = loss ratio >15 points above plan sustained over two quarters, or aggregate deterioration >USD 2m; thresholds are set in the DA performance policy and version-controlled."
+        },
+        { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All binders breaching the performance triggers in the current review (census of deteriorating binders); each assessed for a capacity-reduction or withdrawal decision."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = every binder breaching tolerance has a documented decision (reduce / withdraw / retain-with-exception) supported by reconciled loss data. FAIL = a deteriorating binder with no decision, or a decision unsupported by the loss experience."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Retaining a deteriorating binder requires a documented CUO exception with review date; otherwise a capacity-reduction/withdrawal action is opened with a 10-business-day SLA and coverholder notification."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance criteria: loss data reconciled to reserving, tolerance breach quantified against the documented threshold, and CUO sign-off on the capacity action or exception before it is actioned."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence = the capacity-reduction decision memo, loss triangles and amended authority schedule in Archer, archived to SharePoint /Underwriting/Portfolio/DA-Oversight/<YYYY-Qn>/Capacity/."
+        },
+        {
+          "answerId": "cmr2ocdve0rxdkaz3efgpq1cx",
+          "value": "Materiality/tolerance thresholds = loss ratio >15 points above plan sustained over two quarters, or aggregate deterioration >USD 2m, per the DA performance policy; a binder breaching either triggers a capacity-reduction review."
+        },
+        {
+          "answerId": "cmr2ocdve0rxekaz3d2x2k5w8",
+          "value": "Approved methodology/model = the quarterly reserving model vQ2-2026 signed off by the Reserving Actuary; parameters (development factors, IBNR selections, large-loss thresholds) sourced from the approved reserving parameter set for the current quarter."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Test performance against the documented appetite for the LOB/geography/industry",
+              "value": "Deterioration is judged against the appetite thresholds documented for each binder's LOB and territory; out-of-appetite performance triggers capacity review."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify appetite thresholds drive the decision",
+              "value": "Every capacity-reduction decision cites the specific appetite/loss threshold breached; 0 actions taken without a documented threshold."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppf71o92mbk8voyj74ly",
+          "checklist": [
+            {
+              "step": "Compare binder loss ratio to the LOB target",
+              "value": "Each binder's rolling loss ratio is measured against the loss-ratio target for its line of business, sourced from plan."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm loss-ratio breach quantified",
+              "value": "Binders flagged for reduction show loss ratio above the LOB target by the documented margin; figures reconcile to reserving."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppse1o9smbk8sec8gva2",
+          "checklist": [
+            {
+              "step": "Obtain CUO approval where capacity is retained despite a breach",
+              "value": "Retaining a deteriorating binder at full capacity requires a documented CUO exception in Archer with rationale and review date."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify exception documentation",
+              "value": "100% of retained out-of-tolerance binders carry a CUO exception; 0 undocumented retentions."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "fbaa5cee-2689-46b2-94ed-e563a1b30291",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Delegated Authority Manager", "Coverholder Coordinator"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [
+        { "name": "Power BI", "usageType": "memorialized" },
+        { "name": "OpenText Document Mgmt", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The register of active coverholders, MGAs and TPAs with each entity's binder reference, delegated authority limits, permitted LOB/territory, effective and expiry dates, and due-diligence status. Scope = all binders currently in force plus those expiring within 90 days."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Continuously maintained; a full reconciliation is performed monthly and the register is dated as current at each month-end (e.g. as at 2026-06-30)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each register row must carry binder ID, entity legal name, authority limits, LOB/territory, effective/expiry dates and current due-diligence flag; rows missing expiry date or limits are flagged red and cannot be marked active."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Active-binder count in the register reconciles to executed binder agreements in OpenText and to open coverholder codes in PolicyCenter; delta must be 0 at month-end reconciliation."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The register snapshot is versioned and archived to SharePoint /Underwriting/Portfolio/DA-Oversight/<YYYY-Qn>/Register/ at each month-end with timestamp; supporting binder agreements retained in OpenText for the binder life plus 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Expired or lapsed-due-diligence binders left flagged active are logged as exceptions and either renewed, suspended or removed within 10 business days; suspensions are notified to the Coverholder Coordinator."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "All register entries (census) reconciled against source binder agreements at month-end; expiring-within-90-days binders receive a targeted check."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = every active binder in the register matches an executed, in-date agreement with current due diligence and correct limits. FAIL = any active row with expired agreement, stale due diligence, or limits not matching the signed binder."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Mismatches raise an OpenText/Archer exception; the Coverholder Coordinator obtains the corrected agreement or the entity is suspended until resolved."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions follow the DA register data dictionary: binder_id, entity_name, authority_limit, permitted_lob, territory, effective_date, expiry_date, dd_status — sourced from the executed binder agreement."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = number of executed in-force binder agreements in OpenText; reconciles to active register rows with 0 variance at month-end."
+        },
+        {
+          "answerId": "cmr2ocfzt0wwdkaz3jr91he1a",
+          "value": "In-scope effective dates = each binder's effective date through its expiry/renewal date; the register is reconciled and dated current as at each month-end (e.g. 2026-06-30), with binders expiring within 90 days surfaced for renewal action."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Record each binder's authority limits by premium, limit and LOB in the register",
+              "value": "Register captures per-binder authority limits, permitted LOB and territory exactly as executed in the binder agreement."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify register limits match executed binders",
+              "value": "Sample 25 binders per quarter; register limits reconcile 1:1 to the signed agreement; 0 discrepancies."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of register changes",
+              "value": "Every add/amend/suspend action is logged with user, timestamp and prior value in the register change log."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify change-log completeness",
+              "value": "100% of register changes have a logged actor and timestamp; 0 unattributed edits."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fkgtm1e5zkfgzs2lkkw0e",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Delegated Authority Manager"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "Power BI", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Production volumes (bound premium and risk counts) by coverholder/binder measured against each binder's premium capacity and aggregate limits, plus any per-peril or per-territory sub-limits. Scope = all active binders in the current reporting period."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Year-to-date against the current underwriting year, refreshed monthly on receipt of the coverholder bordereaux (e.g. YTD to 2026-06-30)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each binder line shows written premium YTD, capacity, utilization %, and risk count vs limit; binders with missing capacity figures are flagged and excluded from the utilization ranking."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Written-premium totals from the bordereaux reconcile to PolicyCenter postings for the period; utilization is recomputed only after the reconciliation ties to within 1%."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The monthly utilization report is published to the Power BI 'Delegated Authority Oversight' dashboard and archived to SharePoint /Underwriting/Portfolio/DA-Oversight/<YYYY-Qn>/Utilization/ with version and run timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Binders exceeding 90% capacity utilization raise an early-warning exception to the Delegated Authority Manager; binders over 100% raise a breach item routed to the escalation task within 2 business days."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All active binders in the reporting period (census); each measured for utilization against its capacity and sub-limits."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = utilization computed for 100% of active binders and all breaches/near-limits flagged and routed. FAIL = any binder without a utilization figure, or an over-limit binder not flagged."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Binders over sub-limit or aggregate cap generate an exception with recommended action (pause binding / renegotiate capacity); unactioned exceptions re-escalate after 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance criteria: every active binder has a current utilization %, near-limit (>90%) and over-limit (>100%) binders are flagged, and the dashboard refresh completes for the period with reconciled premium."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence = Power BI utilization report plus the reconciliation workbook, archived to SharePoint /Underwriting/Portfolio/DA-Oversight/<YYYY-Qn>/Utilization/ and linked from the monthly DA oversight pack."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Measure production against each binder's premium and limit authority",
+              "value": "Utilization is computed against the binder capacity and aggregate limits recorded in the Delegated Authority Matrix v4.1."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm utilization tied to matrix capacity",
+              "value": "Sampled binders' utilization denominators equal the matrix capacity; 0 mismatches."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Trigger referral when utilization thresholds are hit",
+              "value": "Near-limit (>90%) and over-limit binders trigger the documented referral/escalation path automatically."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify threshold triggers fire",
+              "value": "Inject a test binder over 100% capacity; confirm an exception is raised and routed to the DA Manager."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2f7grm01h6bn7id5fgkp7z",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Coverholder Coordinator"],
+      "removeAppNames": [],
+      "addApps": [{ "name": "Microsoft 365 / SharePoint", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The coverholder/binder leads who must receive the relevant aggregate oversight findings for their portfolio — utilization warnings, breach notices, loss-ratio deterioration and required remediation actions. Scope = leads for every binder with an open finding in the current cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current monthly oversight cycle; notifications issue within 2 business days of the finding being confirmed."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z103z3mbk8c39oejng"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each notification records recipient, binder reference, finding summary, required action and due date; notifications missing a recipient or an action are held until completed."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of notifications sent reconciles to the count of open findings assigned to a coverholder lead; every finding requiring communication has a matching sent notice (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Sent notifications and acknowledgements are stored against the PolicyCenter binder activity and copied to SharePoint /Underwriting/Portfolio/DA-Oversight/<YYYY-Qn>/Comms/ with timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Notifications not acknowledged within 5 business days are re-sent and escalated to the Coverholder Coordinator; unresolved acknowledgements are logged as exceptions."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Keep an audit trail of findings communicated to coverholder leads",
+              "value": "Each notification is logged with recipient, content, timestamp and acknowledgement against the binder record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify communication audit trail",
+              "value": "100% of open findings requiring notice have a logged, timestamped notification; 0 findings closed as 'notified' without evidence."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the finding, recipient and required action in the file",
+              "value": "The notification content, named recipient and action/due date are recorded in the binder file and the DA comms folder."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm file documentation completeness",
+              "value": "Sample 15 notifications per quarter; each has recipient, finding and action documented; 0 incomplete records."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "b4775154-7b1f-441b-8963-3b92b6ccf612",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Delegated Authority Manager"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [{ "name": "Power BI", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Delegated-authority performance reports for Lloyd's or carrier oversight and governance bodies: binder-level premium, loss ratio, utilization, breach and remediation status across the active DA book, plus the aggregate portfolio view. Scope = all active binders for the reporting quarter."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The reporting quarter just closed (e.g. Q2 2026, through 2026-06-30), with prior-period and plan comparatives."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203znmbk8n0lfz54r"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Every report section is populated — premium, loss ratio, utilization, breach counts, remediation status — with binder and period identifiers; a report with any mandatory KPI blank cannot be issued."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Report premium and loss totals reconcile to PolicyCenter and the quarterly reserving run; the aggregate figures tie to the sum of binder-level lines with 0 variance."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The issued report (PDF plus Power BI export) is versioned and archived to SharePoint /Underwriting/Portfolio/DA-Oversight/<YYYY-Qn>/Reports/ with timestamp; retained 7 years for regulatory/Lloyd's examination."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Data-quality gaps or late bordereaux that prevent a complete report are logged as exceptions with the affected binders noted; the report is issued with a documented caveat and the gap remediated next cycle."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        { "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "The full quarterly report pack (census of all active binders plus the aggregate view); reviewed before release to governance bodies."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = all mandatory KPIs present, aggregate ties to binder detail, figures reconcile to source systems, and the report is signed off before the reporting deadline. FAIL = any missing KPI, reconciliation break, or missed deadline."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Reconciliation breaks or missing KPIs block issue; the analyst corrects and re-runs, or issues with a documented, DA-Manager-approved caveat and a remediation item."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "KPI definitions follow the DA reporting data dictionary: written_premium, earned_premium, incurred_loss, loss_ratio, utilization_pct, breach_count, remediation_status — sourced from PolicyCenter and reserving."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = binder-level premium and loss lines summing to the aggregate portfolio figures on the report cover; reconciles to PolicyCenter with 0 variance."
+        },
+        {
+          "answerId": "cmr2ocg120yk1kaz3k3jtq5cv",
+          "value": "Acceptance criteria: complete KPI set, binder-to-aggregate reconciliation, and sign-off by the Delegated Authority Manager before the governance deadline. Evidence = the issued report plus reconciliation workbook, archived to SharePoint /Underwriting/Portfolio/DA-Oversight/<YYYY-Qn>/Reports/ and linked in the governance pack."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppf71o92mbk8voyj74ly",
+          "checklist": [
+            {
+              "step": "Report binder loss ratios against LOB targets",
+              "value": "Each binder's loss ratio is shown against its LOB target so governance can see performance versus plan."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify loss-ratio reporting accuracy",
+              "value": "Sampled binder loss ratios reconcile to reserving output; 0 unreconciled figures in the issued report."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppj21o9ambk8rknvb4ih",
+          "checklist": [
+            {
+              "step": "Provide DA performance evidence to support internal audit",
+              "value": "The quarterly report and its reconciliations are retained in a form suitable for internal audit and Lloyd's/carrier examination."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm auditability",
+              "value": "For a sampled quarter, the report, source reconciliations and sign-off are all retrievable from the archive; 0 missing artefacts."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Preserve an audit trail for each issued report",
+              "value": "Report version, data cut date, author and approver are logged with the archived report."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify report audit trail",
+              "value": "Every issued report has a version, timestamp and approver on record; 0 reports without a trail."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "17e9e9a2-6186-4a43-b3d3-916f224cba2f",
+      "owner": { "action": "replace", "name": "Exposure Management Manager" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Underwriting Assistant",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "Power BI", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Aggregate delegated-authority exposure — accumulations by peril, zone, class and coverholder — reviewed against treaty retention/limit structure and company risk-tolerance thresholds. Scope = the whole DA book's modelled and booked aggregate as at the review date."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Quarter-end aggregate position (e.g. as at 2026-06-30), compared to the prior quarter and to the reinsurance treaty year in force."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Exposure records carry TIV/limit, peril, zone, class and coverholder; the review requires modelled PML/AAL alongside treaty retention and company tolerance. Records lacking geocode or limit are excluded from the accumulation and flagged."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Aggregate exposure summed from the risk detail reconciles to PolicyCenter in-force and to the cat-model input file; sums must tie within 1% before the tolerance comparison is made."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The review memo, accumulation output and tolerance comparison are versioned and archived to SharePoint /Underwriting/Portfolio/Exposure/<YYYY-Qn>/ with timestamp; retained for treaty-review and regulatory examination."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Any zone/peril breaching the company tolerance or treaty limit is logged as an exception with a recommended action (purchase fac, reduce binding, adjust appetite) and routed to the CUO for decision within 5 business days."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All modelled peril/zone accumulations across the DA book (census); the highest accumulations and any near-tolerance zones receive detailed review."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every zone/peril accumulation is within company tolerance and treaty limits, or a documented exception exists. FAIL = any accumulation over tolerance/treaty limit without an approved exception or mitigation."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Over-tolerance accumulations trigger a mitigation plan (fac purchase, capacity pause) with a named owner and date; unresolved breaches re-escalate to the CUO and the risk committee."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance criteria: reconciled aggregate, every peril/zone measured against company tolerance and treaty structure, and CUO sign-off on any exception before the review closes."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence = accumulation output, tolerance-comparison memo and CUO decisions, archived to SharePoint /Underwriting/Portfolio/Exposure/<YYYY-Qn>/ and linked in the quarterly exposure pack."
+        },
+        {
+          "answerId": "cmr2ocg120yj5kaz3aixv2e7c",
+          "value": "Materiality/tolerance thresholds = the company risk-tolerance limits per peril/zone (e.g. single-zone PML within net treaty retention plus the board-approved appetite buffer) documented in the exposure-management policy and version-controlled; breaches above threshold trigger escalation."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Compare aggregate exposure to the documented appetite by LOB/geography",
+              "value": "Accumulations are tested against the documented appetite limits per peril, zone and LOB set in the exposure policy."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify appetite limits applied",
+              "value": "Every reviewed accumulation cites its appetite/tolerance limit; 0 zones assessed without a documented threshold."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppse1o9smbk8sec8gva2",
+          "checklist": [
+            {
+              "step": "Route over-tolerance exposure for CUO approval",
+              "value": "Any accumulation retained above tolerance requires a documented CUO exception with mitigation and review date."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify CUO sign-off on breaches",
+              "value": "100% of over-tolerance accumulations carry a CUO exception or mitigation; 0 undocumented retentions."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppuf1o9wmbk8chlv6qe5",
+          "checklist": [
+            {
+              "step": "Enforce the no-write list within the aggregate view",
+              "value": "Prohibited zones/classes on the no-write list are checked in the accumulation; any bound risk in a no-write area is flagged."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm no-write enforcement",
+              "value": "0 bound risks in no-write zones/classes pass the review unflagged; sample 25 high-accumulation risks per quarter."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2f7fz501gwbn7iue3ci4lt",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Exposure Management Manager"],
+      "removeAppNames": [],
+      "addApps": [{ "name": "Power BI", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The aggregate delegated-authority exposure dashboard: current accumulations by peril/zone/class/coverholder, utilization vs limits, and tolerance headroom. Scope = the full active DA book feeding the Power BI 'DA Exposure' dashboard."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Refreshed to the latest data cut (monthly on bordereaux receipt, with an intra-month refresh after any large bind); dashboard as-at date stamped at each refresh."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203znmbk8n0lfz54r"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The dashboard load requires exposure, limit and geocode fields per risk; rows failing validation are quarantined and shown as a data-quality count so users know the coverage of the refresh."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Dashboard totals reconcile to the source PolicyCenter in-force extract and the prior refresh; premium and exposure control totals must tie within 1% or the refresh is held."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Each refresh is versioned with an as-at date and the input extract archived to SharePoint /Underwriting/Portfolio/Exposure/<YYYY-Qn>/Dashboard/ so any published view can be reproduced."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A failed or partial refresh raises an exception; the dashboard shows a stale-data banner with the last good as-at date until the load is corrected within 1 business day."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03ubmbk8ik3cfyh4" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Surface exposure against documented appetite on the dashboard",
+              "value": "The dashboard shows accumulations against the documented appetite/tolerance limits per peril and zone."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify appetite lines render correctly",
+              "value": "Sampled zones show the correct tolerance limit and headroom; 0 mislabelled thresholds after refresh."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Keep an audit trail of dashboard refreshes",
+              "value": "Each refresh logs as-at date, source extract and reconciliation status so any view is reproducible."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify refresh reproducibility",
+              "value": "A sampled historical as-at view can be reproduced from the archived extract; 0 irreproducible refreshes."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "2e0c51d2-ff93-4501-8c1c-138121e3fc81",
+      "owner": { "action": "replace", "name": "Portfolio Analyst" },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Pricing Actuary", "Portfolio UW Manager"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "Power BI", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Claim frequency and severity trends sliced by class, geography, construction type and customer segment across the underwriting portfolio, to inform appetite and pricing signals. Scope = the in-force and recently-lapsed book with matched claims experience."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "A rolling look-back of at least the last 12 accident quarters through the current quarter-end (e.g. 2023-Q3 to 2026-Q2) to give a stable trend signal."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each exposure/claim record needs class, geocode, construction/segment tag, earned exposure and incurred loss; records missing segment tags are grouped as 'unclassified' and reported separately so trends are not distorted."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Earned exposure and incurred losses used in the trend reconcile to PolicyCenter and the quarterly reserving run; segment sub-totals sum to the portfolio total with 0 variance."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The trend analysis workbook and Power BI views are versioned and archived to SharePoint /Underwriting/Portfolio/Performance/<YYYY-Qn>/Trends/ with data cut date and timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Anomalous segments (frequency or severity moving beyond the control band) are flagged with a hypothesis and referred to pricing/appetite review; data anomalies are logged and corrected before conclusions are finalised."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Trend methodology (exposure-adjusted frequency and severity with credibility weighting) is the approved portfolio-analytics method v2026.1, signed off by the Pricing Actuary before use."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03w2mbk84o4w6iug" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity of trend selections to development-factor and large-loss thresholds is documented; frequency/severity trends are shown at low/central/high development to bound the estimate."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality threshold for action = a segment trend more than 2 standard deviations from portfolio, or a >10% severity shift sustained over two quarters, documented in the analytics standard."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled aggregated segment figures trace back to individual claim and policy records in ClaimCenter/PolicyCenter; 25 sampled data points per quarter reconcile to source screens."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Claim status (open/closed/reopened) aligns to the reserving workflow so severity uses appropriately developed incurred amounts; open-claim development is handled per the reserving basis."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Accident date, report date and transaction date align to the accident-quarter definition used in the trend so exposure and losses are matched to the correct period."
+        },
+        {
+          "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "The full segment matrix (class x geography x construction/segment) over the look-back window; each cell with credible exposure is trended."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = trend re-run reproduces the reported frequency/severity within tolerance, segment sub-totals reconcile, and flagged segments are supported by the data. FAIL = irreproducible trend, reconciliation break, or an unsupported conclusion."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "Low-credibility cells are grouped up to a credible level rather than over-interpreted; data anomalies are logged and excluded with rationale, and the analysis re-run."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "Portfolio-analytics trend method v2026.1 (exposure-adjusted, credibility-weighted) as approved by the Pricing Actuary."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "Parameters (development factors, trend seeds, large-loss thresholds) sourced from the approved reserving parameter set for the current quarter."
+        },
+        {
+          "answerId": "cmr2ocdxs0v2ikaz3grh7infk",
+          "value": "Acceptance criteria: reconciled exposure/loss inputs, trends produced with the approved method and parameters, and Pricing Actuary review of material segment findings. Evidence = the trend workbook and Power BI views, archived to SharePoint /Underwriting/Portfolio/Performance/<YYYY-Qn>/Trends/ and linked in the portfolio review pack."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppf71o92mbk8voyj74ly",
+          "checklist": [
+            {
+              "step": "Relate frequency/severity trends to LOB loss-ratio targets",
+              "value": "Trend findings are expressed against the LOB loss-ratio targets so deterioration versus plan is visible by segment."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify trend-to-target linkage",
+              "value": "Each flagged segment shows its trend impact on the LOB loss ratio versus target; 0 findings without a target reference."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Feed trend findings into the documented appetite",
+              "value": "Segments trending adversely are referred to appetite review so the documented appetite by LOB/geography can be adjusted."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm appetite feedback loop",
+              "value": "For material adverse trends, an appetite-review referral exists; sample quarterly for evidence of the feedback loop."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "ff53ca40-c1ec-41cb-ab07-f511f291b731",
+      "owner": { "action": "replace", "name": "Portfolio Analyst" },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Portfolio UW Manager", "Records Manager"],
+      "removeAppNames": [
+        "underwriting workstation",
+        "billing/commission platform",
+        "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"
+      ],
+      "addApps": [
+        { "name": "OpenText Document Mgmt", "usageType": "memorialized" },
+        { "name": "Microsoft 365 / SharePoint", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Final portfolio performance reports and their supporting data for the period, archived for regulatory examination, board reporting and reinsurance treaty reviews. Scope = all issued portfolio reports for the reporting quarter plus their reconciliations and sign-offs."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The closed reporting quarter (e.g. Q2 2026); archiving occurs within 5 business days of each report being finalised and signed off."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203zjmbk8y2uum9fk"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each archived item carries report title, period, version, author, approver and retention class; items missing an approver or retention class are not accepted into the record and are returned for completion."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of archived reports reconciles to the register of issued reports for the quarter; every issued report has a matching archived, versioned copy (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Reports are stored in OpenText under the retention class with immutable timestamp and version, indexed to SharePoint /Underwriting/Portfolio/Performance/<YYYY-Qn>/Archive/; retention held for 7 years (longer where treaty or exam rules require)."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Any report that cannot be located or lacks a signed version is logged as a records exception to the Records Manager and resolved before the quarter's archive is certified complete."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "Retention follows the company records-retention schedule and reinsurance treaty requirements (underwriting/financial records retained a minimum of 7 years); the applicable retention class is recorded on each archived item."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "Each archived report is tagged with its retention class and disposition date in OpenText; the retention hold is verified so nothing is purged before its schedule and exam holds are honoured."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "Board and treaty-review reports are archived ahead of the governance/treaty-renewal deadline; the archive-by date is tracked against the reporting calendar."
+        },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The decision to certify the quarter's archive complete is documented by the Portfolio UW Manager, listing reports archived, exceptions and retention classes applied."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Archive completion is communicated to the Records Manager, internal audit and (for treaty packs) the reinsurance team, with the SharePoint index location."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All issued portfolio reports for the quarter (census) checked for a complete, versioned, correctly-retained archived copy."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = 100% of issued reports archived with version, approver and retention class, and retrievable on demand. FAIL = any report missing from the archive, unversioned, or without a retention class."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Missing or non-compliant archives raise a records exception to the Records Manager with a remediation date; the quarter is not certified until exceptions clear."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance criteria: every issued report archived with correct version, approver, retention class and index entry, and the quarter certified by the Portfolio UW Manager."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence = OpenText archive records and the SharePoint index at /Underwriting/Portfolio/Performance/<YYYY-Qn>/Archive/, plus the completion certification memo."
+        },
+        {
+          "answerId": "cmr2ocfzh0wg5kaz3ogg6wgbd",
+          "value": "Authorized approver = the Portfolio UW Manager certifies the quarter's archive; the records-retention schedule and delegation are documented in the records-management policy and applied per retention class."
+        },
+        {
+          "answerId": "cmr2ocfzh0wg6kaz3z584wwyc",
+          "value": "Applicable rule = the company records-retention schedule aligned to state insurance records-retention requirements and reinsurance treaty audit clauses (underwriting/financial records retained a minimum of 7 years); the retention class and citation are recorded on each archived report."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Preserve a complete audit trail for archived reports",
+              "value": "Each archived report retains version, author, approver and data-cut date so the record supports examination."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify archive audit trail",
+              "value": "Sampled archived reports have full version and approver metadata; 0 records missing an audit trail."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppj21o9ambk8rknvb4ih",
+          "checklist": [
+            {
+              "step": "Keep reports in an examinable state for internal audit and regulators",
+              "value": "Archived reports and reconciliations are indexed and retrievable for internal audit and regulatory/treaty examination."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm retrievability on demand",
+              "value": "A sampled prior-quarter report and its support are retrieved within the audit SLA; 0 unretrievable items."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "7ea30649-291f-4a9d-a2e0-8eeb9f53f613",
+      "owner": { "action": "replace", "name": "Portfolio Analyst" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Underwriting Assistant",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": ["Pricing Actuary"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        {
+          "name": "Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)",
+          "usageType": "performed"
+        },
+        { "name": "Power BI", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Portfolio performance (premium, loss ratio, growth, retention, hit ratio) benchmarked against plan, prior year, and external market loss indices by LOB and segment. Scope = the full underwriting portfolio for the reporting quarter."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Current quarter and rolling 12 months (e.g. Q2 2026 and 2025-Q3 to 2026-Q2), with plan and prior-year comparatives and the latest available market index period."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203znmbk8n0lfz54r"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each benchmark line requires actual, plan, prior-year and market-index values with the LOB/segment key; lines missing a plan or index comparator are shown as 'no benchmark' rather than left blank."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Actuals used in the benchmark reconcile to PolicyCenter and the reserving run; segment lines sum to the portfolio total and plan figures tie to the approved plan file with 0 variance."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The benchmarking pack and Power BI views are versioned and archived to SharePoint /Underwriting/Portfolio/Performance/<YYYY-Qn>/Benchmark/ with data cut date, index source and timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Segments materially off benchmark (variance beyond the control band) are flagged with commentary and referred to portfolio/pricing review; comparator or index gaps are logged and sourced before the pack is finalised."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03w0mbk8toiuql4g" },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "c38c9324-90d3-4113-8ae0-3c3d87f46462"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All LOB/segment benchmark lines for the quarter (census); segments with the largest variance to plan or market receive detailed commentary."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every segment benchmarked against plan, prior year and market where available, actuals reconciled, and material variances explained. FAIL = missing comparator without a 'no benchmark' note, reconciliation break, or unexplained material variance."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Unexplained variances are escalated to the Portfolio UW Manager with a hypothesis and follow-up owner; index/comparator sourcing gaps are remediated the next cycle."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance criteria: reconciled actuals, plan and prior-year comparatives loaded, market indices applied where available, and Portfolio UW Manager review of material variances."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence = the benchmarking pack, reconciliation workbook and index source records, archived to SharePoint /Underwriting/Portfolio/Performance/<YYYY-Qn>/Benchmark/ and linked in the portfolio review pack."
+        },
+        {
+          "answerId": "cmr2ocdxr0v0tkaz3wcffohap",
+          "value": "Field definitions follow the portfolio-performance data dictionary: written_premium, earned_premium, incurred_loss, loss_ratio, retention_pct, hit_ratio, plan_value, prior_year_value, market_index — actuals sourced from PolicyCenter/reserving, plan from the approved plan file, indices from the licensed market data source. Control total = segment lines summing to the portfolio total, reconciled with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppf71o92mbk8voyj74ly",
+          "checklist": [
+            {
+              "step": "Benchmark loss ratio against the LOB target and market",
+              "value": "Each LOB's loss ratio is compared to its plan target and the market loss index for the period."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify loss-ratio benchmarking",
+              "value": "Sampled LOB loss ratios reconcile to reserving and are shown against target and index; 0 unreconciled or unbenchmarked lines."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpptg1o9umbk80uzl6cas",
+          "checklist": [
+            {
+              "step": "Benchmark hit ratio against segment targets",
+              "value": "Hit ratio by segment is compared to the target hit ratio to assess conversion performance."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm hit-ratio comparison",
+              "value": "Every segment shows hit ratio against target; underperforming segments are flagged for review."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppoe1o9kmbk8sofla2a9",
+          "checklist": [
+            {
+              "step": "Benchmark retention against segment targets",
+              "value": "Retention rate by segment is compared to the target retention to assess book stability."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify retention benchmarking",
+              "value": "Each segment shows retention against target; segments below target are flagged with commentary."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

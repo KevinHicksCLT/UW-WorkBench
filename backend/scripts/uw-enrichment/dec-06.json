@@ -1,0 +1,1520 @@
+{
+  "tasks": [
+    {
+      "id": "1dba33fc-5d23-4878-933c-6024f7fff6d3",
+      "owner": { "action": "replace", "name": "Underwriting Assistant" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Underwriter"],
+      "removeAppNames": ["GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All newly bound policies awaiting issuance whose data must move from the underwriting workstation into the policy administration system (PolicyCenter); scope = one reporting week's bind queue for the line of business, transmitted via the automated PAS-XFER interface or, on failure, keyed manually."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current reporting week — policies with bind dates in that week that must be issued within the 2-business-day issuance SLA; anything bound outside the week is excluded."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rr03y3mbk80pomhqxg" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Every issued record in PAS carries named insured, coverage and endorsements, limits/deductibles, rated premium, effective/expiry dates, producer code, and reinsurance ceding flags matching the bound quote. Any blank or mismatched key field blocks issuance."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Policy count transmitted equals policy count issued in PAS for the week (delta = 0); total bound premium in the workstation reconciles to total in-force premium loaded to PolicyCenter to the cent."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Interface run logs and manual-entry confirmations retained in the PolicyCenter transaction audit trail and exported to SharePoint /UW/NewBusiness/<policyNo>/Bind/ with timestamp and interface version PAS-XFER v2.1."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Failed or rejected transmissions drop to the PolicyCenter integration error queue, are corrected and resubmitted within 1 business day, and any unresolved >2 days is logged as an exception in the GRC platform with owner and disposition."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Field-mapping specification PAS-XFER v2.1 (underwriting-workstation to PolicyCenter) approved by the integration lead and UW Operations; version recorded in the interface control document."
+        },
+        {
+          "templateKeyId": "cmr2oamg4000llasb5mlmokig",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Not model-driven; transmission tolerance = zero field-level discrepancies permitted between the source workstation record and the issued PAS record for key fields."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Any premium, limit, or named-insured mismatch is material and blocks issuance; non-key descriptive fields (e.g. contact notes) are flagged but non-blocking."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "25 sampled policies traced field-by-field from the signed application and bound quote in the underwriting workstation to the issued record in PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy status = Issued/In-Force in PAS matches Bound in the workstation; no policy remains in Pending-Issuance beyond 2 business days."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Effective, issue, and expiry dates in PAS equal the bound values; issue date is not earlier than the bind date."
+        },
+        { "templateKeyId": "cmr2oaqo3003rlasb1r26nwor", "roleId": "cmqsck0rr03y3mbk80pomhqxg" },
+        {
+          "templateKeyId": "cmr2oaqpd003tlasbyv59t5v5",
+          "value": "All policies transmitted to PAS for issuance in the reporting week (approximately 120 policies)."
+        },
+        {
+          "templateKeyId": "cmr2oaqq9003vlasbyjg1pxll",
+          "value": "PASS = 100% of key fields (insured, coverage, limits, premium, dates) match source and 0 issuance rejects unresolved. FAIL = any key-field mismatch or failed interface transaction still open at week close."
+        },
+        {
+          "templateKeyId": "cmr2oaqrf003xlasb2mopahy1",
+          "value": "Failed transmissions land in the PolicyCenter integration error queue; the UW Assistant corrects and resubmits within 1 business day; unresolved items >2 days are escalated to the Integration Engineer and logged in GRC."
+        },
+        {
+          "templateKeyId": "cmr2oaqsp003zlasbtvvkt534",
+          "value": "Policies with bind dates in the current reporting week; effective dates within the current policy year."
+        },
+        {
+          "answerId": "cmr2ocdw30ssbkaz3z27lmsao",
+          "value": "Approved mapping = PAS-XFER v2.1; premium and rating values carried unchanged from the workstation-approved quote (no re-rating on transmission); parameter source is the bound quote of record signed off at binding."
+        },
+        {
+          "answerId": "cmr2ocdw30ssckaz3k6k1lenw",
+          "value": "Field definitions per the PAS-XFER interface control document data dictionary; control totals = policy count and total premium per batch reconciled between the underwriting workstation extract and the PolicyCenter load log."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Confirm the underwriting file is complete before data handoff",
+              "value": "Signed application, final quote, bind confirmation and any reinsurance evidence present in the workstation file before issuance is triggered."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample issued policies for file completeness",
+              "value": "For 25 policies per week, all mandatory file artifacts exist and match the transmitted PAS record; 0 files incomplete."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Preserve an audit trail of the transmission",
+              "value": "Interface run id, user, timestamp and before/after field values captured in the PolicyCenter transaction log for every issued policy."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit-trail completeness",
+              "value": "Every issued policy in the sample has a corresponding interface/manual-entry audit record; 0 issuances without a traceable log."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscoz8k1mxcmbk84v2ztcsf",
+          "checklist": [
+            {
+              "step": "Reconcile transmitted data back to source systems",
+              "value": "Policy count and premium loaded to PAS reconciled to the underwriting-workstation source extract for the batch."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-perform the source reconciliation",
+              "value": "Independent recount of policies and premium sum matches the PAS load to the cent; delta = 0."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "7f42e503-f54b-4b68-aa85-8cb08a50aa6b",
+      "owner": { "action": "replace", "name": "Underwriting Assistant" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Underwriter"],
+      "removeAppNames": [
+        "underwriting workstation",
+        "billing/commission platform",
+        "GRC platform (Archer/ServiceNow GRC)"
+      ],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The bind-packet documents for each newly bound policy — signed application, final quote, bind confirmation, and reinsurance/facultative certificates — to be filed in the document management system; scope = one reporting week's bound policies."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current reporting week; documents must be uploaded within 2 business days of bind so the policy file is complete at issuance."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203zjmbk8y2uum9fk"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rr03y3mbk80pomhqxg" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each DMS document is indexed with policy number, document type, effective date and coverholder/producer, and linked to the PAS policy record; unindexed or mis-typed documents are rejected by the intake rule."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Document count per policy matches the bind-packet checklist (application + quote + bind confirmation + reinsurance where applicable); any missing document type is flagged before the file is closed."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Uploaded documents stored in OpenText under /UW/NewBusiness/<policyNo>/Bind/ with version and upload timestamp; retention set per the records schedule (policy life + 7 years)."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Missing or illegible documents raised as a follow-up task to the underwriter/producer, tracked in the DMS work queue with disposition, and the file is not marked complete until resolved."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "25 sampled policies traced from the DMS bind folder back to the source signed application and bound quote in the workstation to confirm the filed copy is the executed version."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Document status in DMS = Filed/Final for each required type; no bind packet left in Draft or Pending-Upload beyond the 2-day SLA."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Document effective/received dates align to the policy bind and effective dates; upload date is on or before the issuance date."
+        },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Pre/post check: the DMS bind folder before upload shows missing types; after upload all mandatory document types are present and indexed; comparison recorded on the file-completion checklist."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "cmqsck0z203zjmbk8y2uum9fk"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "Upload linked to the policy record via the PAS policy number and the new-business work item; the DMS document set id is written back to the PolicyCenter policy file."
+        },
+        { "templateKeyId": "cmr2oapmt002rlasbojqqymeh", "roleId": "cmqsck0rr03y3mbk80pomhqxg" },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All bound policies in the reporting week requiring a completed bind packet (approximately 120 policies)."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = every mandatory document type uploaded, correctly indexed and linked to PAS within SLA. FAIL = any missing/mis-indexed document or any packet incomplete after 2 business days."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Incomplete packets generate a DMS follow-up task to the underwriter/producer; unresolved after 5 business days escalated to the Underwriter for chase and recorded on the file."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Policies bound in the current reporting week; document effective dates within the current policy year."
+        },
+        {
+          "answerId": "cmr2ocfys0vjrkaz3sm0k2bp4",
+          "value": "Acceptance criteria: all mandatory bind-packet document types present, indexed with policy number/type/date, and linked to the PAS policy record within 2 business days. Evidence location: OpenText /UW/NewBusiness/<policyNo>/Bind/ plus the file-completion checklist entry."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpkr61o0mmbk8k0o0kemv",
+          "checklist": [
+            {
+              "step": "Apply document indexing standards on upload",
+              "value": "Each document tagged with policy number, document type, effective date and producer per the DMS metadata standard so it is retrievable."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify indexing accuracy",
+              "value": "Sample 25 uploaded documents; 100% carry complete, correct metadata and resolve to the right policy; 0 mis-indexed."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpksp1o0ombk8ubuf84ya",
+          "checklist": [
+            {
+              "step": "Apply the records retention schedule",
+              "value": "Bind documents assigned the policy-life-plus-7-years retention class in OpenText at upload."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm retention class applied",
+              "value": "Sampled documents show the correct retention class and no premature purge eligibility; 0 exceptions."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Confirm the policy file is complete post-upload",
+              "value": "Signed application, final quote, bind confirmation and reinsurance docs all present in the DMS bind folder before the file is closed."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for completeness",
+              "value": "For 25 policies, all mandatory documents are filed and final; 0 incomplete bind files."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "f984017a-b6f9-4383-b9b0-3104e8ebc4ec",
+      "owner": { "action": "replace", "name": "Bordereaux Analyst" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Underwriting Assistant",
+        "Accountant",
+        "Business Analyst"
+      ],
+      "addParticipants": ["Delegated Authority Manager"],
+      "removeAppNames": [],
+      "addApps": [
+        {
+          "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "usageType": "performed"
+        },
+        { "name": "Enterprise data warehouse/lakehouse", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Every risk reported on a coverholder's risk bordereau for the month, checked against the limits in that coverholder's binding authority agreement (per-risk limit, aggregate, class of business, geography and excluded perils); scope = one coverholder, one monthly bordereau."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The bordereau reporting month; the authority check is completed within 5 business days of bordereau receipt."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each risk row carries insured, TIV/limit, class code, territory, inception date and premium; these are compared to the BAA authority matrix v3.2. Rows missing limit or class code cannot be checked and are returned as data exceptions."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Risk count and aggregate exposure on the bordereau reconcile to the coverholder's declared totals; breaches are counted and reconciled against the referral log so no breach is dropped (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The authority-check worksheet (rows flagged in-authority / breach / referral) retained in SharePoint /UW/DelegatedAuthority/<coverholder>/<YYYYMM>/ with timestamp and version, and breaches logged in PAS."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Out-of-authority risks logged as breaches with disposition (ratify, decline, or refer to underwriter), routed per the referral matrix, and tracked to closure; CUO ratification required for material breaches."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Check each reported risk against clear authority levels",
+              "value": "Per-risk limit, aggregate, class and geography from the binding authority agreement authority matrix v3.2 applied to every bordereau row."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-test authority application on a sample",
+              "value": "Sample 25 risks per coverholder; 100% correctly classified in-authority vs breach against the BAA; 0 misclassifications."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Apply documented referral triggers",
+              "value": "Risks exceeding limit, in excluded classes or on the no-write list flagged and routed to the next authority level with a recommendation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify referrals were raised",
+              "value": "Every breach identified maps to a logged referral with a documented decision; 0 breaches unreferred."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppse1o9smbk8sec8gva2",
+          "checklist": [
+            {
+              "step": "Escalate material breaches for CUO approval",
+              "value": "Material authority breaches documented and submitted for CUO ratification with rationale before the risk is accepted onto the book."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm CUO sign-off on material breaches",
+              "value": "Each material breach has a dated CUO approval or decline record; 0 material breaches accepted without ratification."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fiptq0lb4kfgz06m7z3an",
+      "owner": { "action": "replace", "name": "Bordereaux Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "Enterprise data warehouse/lakehouse", "usageType": "performed" },
+        {
+          "name": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The reconciling items between premium reported on a coverholder's premium bordereau and the cash actually settled to the company; scope = one coverholder's monthly premium bordereau and its matching settlement statement."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The bordereau reporting month plus the settlement period; differences investigated and explained within 10 business days of identification."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each reconciling item records gross premium, commission %, taxes/levies, net due and settled amount; items missing a commission rate or currency are returned to the coverholder before investigation continues."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Bordereau net premium reconciles to settlement receipts and to the GL premium-receivable ledger; unexplained variance must reduce to zero (within the $500 / 0.5% tolerance) before sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The reconciliation working (bordereau vs settlement vs GL, with explanations per item) retained in SharePoint /UW/DelegatedAuthority/<coverholder>/<YYYYMM>/Recon/ with timestamp and version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Unexplained differences above tolerance logged as reconciling exceptions with cause (commission dispute, timing, FX, error) and disposition, and chased with the coverholder until cleared."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All reconciling items for the coverholder's month where reported premium does not equal settled cash (typically 10-40 items)."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = 100% of variance value explained and either recovered, accrued or waived with approval; residual unexplained variance within $500 or 0.5%. FAIL = any material variance unexplained at close."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Items unresolved after 10 business days escalated to the Delegated Authority Manager and, for commission/settlement disputes, to the Accountant for GL adjustment or credit-control action."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = every reconciling item has a documented cause and disposition and the residual variance is within tolerance and approved."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence in SharePoint /UW/DelegatedAuthority/<coverholder>/<YYYYMM>/Recon/ and the GL journal reference for any adjustment posted."
+        },
+        {
+          "answerId": "cmr2ocg0k0xw0kaz37rrfs827",
+          "value": "Field definitions from the bordereau data standard mapping (gross premium, commission, taxes, net) in the EDW data dictionary; control totals = net premium sum per coverholder-month reconciled to settlement receipts and the GL premium-receivable balance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscoz8k1mxcmbk84v2ztcsf",
+          "checklist": [
+            {
+              "step": "Reconcile bordereau premium to source and settlement records",
+              "value": "Bordereau net premium tied to settlement statements and the GL premium-receivable ledger for the coverholder-month."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-perform the reconciliation",
+              "value": "Independent recomputation matches the settled and GL balances within the $500 / 0.5% tolerance; 0 unexplained material variance."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscoz5h1mx6mbk8j247egfv",
+          "checklist": [
+            {
+              "step": "Validate premium data before investigating differences",
+              "value": "Commission %, taxes and currency validated on each item so variances reflect real differences, not data errors."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify data validation ran",
+              "value": "Sampled items pass field validation before variance analysis; 0 unresolved data-quality rejects carried into the recon."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp4rp1n7mmbk89u5arrgj",
+          "checklist": [
+            {
+              "step": "Log reconciling exceptions in the tracking system",
+              "value": "Each unexplained difference recorded as an issue with cause, owner and target date, not tracked informally."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm exceptions are tracked to closure",
+              "value": "Every above-tolerance variance has a tracked issue with a disposition; 0 variances closed without an explanation record."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "c50ea492-0d88-4964-bf93-8669a0679b12",
+      "owner": { "action": "replace", "name": "Bordereaux Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager", "Data Quality Analyst"],
+      "removeAppNames": ["underwriting workstation", "billing/commission platform"],
+      "addApps": [{ "name": "ITSM platform (ServiceNow/Jira)", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All data-quality exceptions found on a coverholder's bordereau (missing/invalid fields, bad coverage codes, premium-calc errors, out-of-range values) that require follow-up with the coverholder data team; scope = one coverholder's monthly bordereau."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The bordereau reporting month; exceptions logged within 2 business days of the validation run and issued to the coverholder for correction."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each logged exception records the row/field, rule failed, current value, expected value, severity and coverholder owner; exceptions without a rule reference or severity are not accepted into the log."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Exception count in the log reconciles to the validation run's fail count; every failing rule instance produces exactly one tracked exception (delta = 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The exception log exported from the EDW validation run and stored in ITSM/SharePoint /UW/DelegatedAuthority/<coverholder>/<YYYYMM>/Exceptions/ with run timestamp and ruleset version BDX-DQ v4.2."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Each exception carries a disposition (coverholder to correct / accept with note / waive) and a follow-up ticket to the coverholder data team; materiality/tolerance thresholds determine whether it blocks posting."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All rows failing one or more BDX-DQ v4.2 rules on the coverholder's monthly bordereau."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = 100% of rule failures logged with severity, owner and disposition, and material exceptions issued to the coverholder. FAIL = any failure detected but not logged, or a material exception without follow-up."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Material exceptions above tolerance block posting of the affected rows until corrected; the coverholder follow-up ticket is escalated to the Delegated Authority Manager if unresolved after 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = every validation failure has a logged exception with rule reference, severity and a coverholder follow-up action."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence = the exception register in ITSM plus the exported validation-run log in SharePoint /UW/DelegatedAuthority/<coverholder>/<YYYYMM>/Exceptions/."
+        },
+        {
+          "answerId": "cmr2ocfzc0w99kaz35mbubugv",
+          "value": "Materiality/tolerance: premium-calc variance >0.5% or >$500 per risk, any invalid coverage code, and any missing mandatory field are material and block posting; cosmetic/descriptive-field issues are logged non-blocking."
+        },
+        {
+          "answerId": "cmr2ocfzc0w9akaz3yhnuh6s6",
+          "value": "Field definitions per the bordereau data standard mapping in the EDW data dictionary; control totals = validation-run record count and fail count reconciled to the exception log entries."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp4rp1n7mmbk89u5arrgj",
+          "checklist": [
+            {
+              "step": "Log every data exception in the tracking system",
+              "value": "Each rule failure recorded as an issue with row/field, rule id, severity and coverholder owner in ITSM."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm tracking completeness",
+              "value": "Validation fail count reconciles 1:1 to logged exceptions; 0 failures untracked."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp4u91n7qmbk8b0wtedc2",
+          "checklist": [
+            {
+              "step": "Drive exceptions to timely remediation",
+              "value": "Material exceptions issued to the coverholder data team with a correction SLA and chased until resolved or waived."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify remediation aging",
+              "value": "0 material exceptions open beyond the agreed correction SLA without an approved waiver or escalation."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp4ss1n7ombk8fr6aw1s9",
+          "checklist": [
+            {
+              "step": "Feed recurring exceptions into prevention measures",
+              "value": "Repeat exception patterns fed back to the coverholder as a data-quality improvement action and, where systemic, into the BDX-DQ ruleset."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm preventive follow-up",
+              "value": "Top recurring exception types from the prior month have a documented prevention action; recurrence rate trended down."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "9d8da2ef-0452-43ab-a59a-c78ef551cadf",
+      "owner": { "action": "replace", "name": "Bordereaux Analyst" },
+      "removeRoleNames": [
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Delegated Authority Analyst",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Underwriter",
+        "Underwriting Assistant",
+        "Exposure Management Manager",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "Microsoft 365 / SharePoint", "usageType": "performed" },
+        { "name": "Enterprise data warehouse/lakehouse", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All incoming risk, premium and claims bordereaux submissions received from coverholders for the period, logged on receipt into the bordereau register; scope = every coverholder submission due in the reporting month across delegated-authority binders."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The reporting month; each submission acknowledged and logged within 1 business day of receipt against its contractual due date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203zambk8kfrzp0ud"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each register entry records coverholder, binder reference, bordereau type (risk/premium/claims), period covered, received date, file format and row count; entries missing binder reference or period are rejected at intake."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Submissions logged reconcile to the expected-submissions calendar for the month (one per binder per type); missing or late submissions counted and chased so the delta to expected is zero."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Received files and the register entry retained in SharePoint /UW/DelegatedAuthority/<coverholder>/<YYYYMM>/Inbound/ with received timestamp and a copy landed in the EDW bordereau staging schema."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Missing, late or malformed submissions logged as deficiencies with disposition (chase / partial-accept / reject) and escalated per the delegated-authority monitoring plan."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sample register entries traced back to the received email/portal submission and the stored source file to confirm the log reflects what was actually received."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Submission status = Received/Acknowledged/Validated tracks the intake workflow; no submission left in Received beyond the validation SLA."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Received date and period-covered dates recorded and consistent with the binder reporting frequency; received date not before the period end."
+        },
+        { "templateKeyId": "cmr2oap6g002flasb12gpqsrx", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "All coverholder submissions expected and received in the reporting month across active binders."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = 100% of received submissions logged within 1 business day with complete register metadata, and all expected-but-missing submissions flagged. FAIL = any submission received but unlogged or any missing submission not chased."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "Late/missing submissions raise a chase ticket to the coverholder; persistent late reporting escalated to the Delegated Authority Manager for binder performance review."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "The delegated-authority monitoring/delegation matrix defines who may accept, chase and escalate submissions and the reporting frequency per binder; version-controlled in the DA governance pack."
+        },
+        {
+          "answerId": "cmr2ocdvd0rvbkaz3l1frk8ej",
+          "value": "In-scope period = the bordereau reporting month; effective dates = submission received dates against contractual due dates for each active binder."
+        },
+        {
+          "answerId": "cmr2ocdvd0rvckaz3rvmzst4l",
+          "value": "Field definitions per the bordereau data standard mapping in the EDW staging schema; control totals = expected vs received submission counts and row counts per binder reconciled to the register."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp41u1n6ambk8av928k36",
+          "checklist": [
+            {
+              "step": "Register each submission with an assigned owner and steward",
+              "value": "Every bordereau logged in the register with coverholder, binder and a named data steward (Bordereaux Analyst) accountable for it."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify ownership on registered submissions",
+              "value": "Sampled register entries all have an assigned steward and binder reference; 0 orphan submissions."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpksp1o0ombk8ubuf84ya",
+          "checklist": [
+            {
+              "step": "Retain received submissions per schedule",
+              "value": "Inbound bordereaux files retained in the DA folder under the delegated-authority retention class on receipt."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm retention applied",
+              "value": "Sampled inbound files carry the correct retention class and timestamp; 0 missing source files."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp4pb1n7imbk81wrwxt4y",
+          "checklist": [
+            {
+              "step": "Screen submissions against defined data-domain rules on intake",
+              "value": "Format, mandatory-field and binder-reference checks (BDX-DQ v4.2) run at logging so deficient submissions are flagged immediately."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify intake rules ran",
+              "value": "Every logged submission has an intake validation result recorded; 0 submissions accepted without a rule check."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5onpn0bdnv8807pn9u4yi",
+          "checklist": [
+            {
+              "step": "Screen parties on incoming delegated-authority business against OFAC lists",
+              "value": "Named insureds and interested parties on received risk bordereaux screened against the OFAC SDN and consolidated lists before the risks are booked."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify screening coverage",
+              "value": "100% of insured parties on logged bordereaux are screened; every potential hit is investigated and dispositioned before posting; 0 unscreened parties."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "76348523-ba60-4bbe-8f1f-ae586fe6b18b",
+      "owner": { "action": "replace", "name": "Bordereaux Analyst" },
+      "removeRoleNames": [
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Underwriter",
+        "Underwriting Assistant",
+        "Exposure Management Manager",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": ["Data Quality Analyst"],
+      "removeAppNames": ["underwriting workstation", "billing/commission platform"],
+      "addApps": [{ "name": "Enterprise data warehouse/lakehouse", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Validated bordereau data for a coverholder-month posted downstream to the policy administration system and the actuarial reserving/pricing systems; scope = the risk and premium bordereaux that have passed validation for one coverholder's reporting month."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The bordereau reporting month; posting completed within 2 business days of validation sign-off so downstream reserving and exposure runs use current data."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Only rows with a passed validation status and no open material exception are posted; each posted row carries binder, risk, premium, class and period keys required by PAS and the actuarial feed. Rows with open exceptions are held back."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Row count and premium total posted to PAS and to the actuarial system equal the validated dataset totals; a post-load reconciliation confirms delta = 0 across all three systems."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The load control report (source count, posted count, rejects) retained in SharePoint /UW/DelegatedAuthority/<coverholder>/<YYYYMM>/Posting/ with timestamp and the actuarial feed batch id."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Posting rejects (schema, key, or duplicate errors) logged with disposition, corrected and re-posted; held-back exception rows tracked separately until cleared, and any unresolved reject escalated within 2 business days."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Posting is governed by the validated ruleset BDX-DQ v4.2 and the PAS/actuarial feed mapping spec vDA-3; both approved by the Delegated Authority Committee and version-recorded in the interface control document."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Posting is deterministic (no modelled parameters); sensitivity is limited to the premium and exposure aggregation checked before and after load."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Any premium or exposure difference between the validated set and the posted set is material and blocks confirmation; a $0/0-row tolerance applies to the load reconciliation."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sample posted rows traced back through the validation staging table to the original coverholder bordereau file to confirm no transformation error on load."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Bordereau batch status = Posted in PAS and Loaded in the actuarial feed; no validated batch left in Ready-to-Post beyond the 2-day SLA."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Period-covered and posting dates align to the reporting month; the actuarial feed accounting period matches the bordereau period."
+        },
+        { "templateKeyId": "cmr2oapmt002rlasbojqqymeh", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All validated bordereau rows posted for the coverholder-month (risk and premium)."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = posted counts and premium reconcile to the validated set across PAS and the actuarial system with 0 variance and 0 unresolved rejects. FAIL = any count/premium variance or any reject open at confirmation."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Load rejects routed to the Bordereaux Analyst for correction and re-post; systemic mapping errors escalated to the Data Quality Analyst and the interface owner."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Bordereau period = current reporting month; downstream accounting/effective dates within the current financial period."
+        },
+        {
+          "answerId": "cmr2ocdxy0vaukaz33ifrgwdz",
+          "value": "Approved feed mapping spec vDA-3 and validated ruleset BDX-DQ v4.2; parameter source = the signed-off validation output for the coverholder-month, not raw submission data."
+        },
+        {
+          "answerId": "cmr2ocdxy0vavkaz30869iie0",
+          "value": "Field definitions per the PAS/actuarial feed mapping in the EDW data dictionary; control totals = source vs posted row count and premium sum reconciled across the validation staging table, PAS and the actuarial feed."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscoz8k1mxcmbk84v2ztcsf",
+          "checklist": [
+            {
+              "step": "Reconcile posted data to the validated source",
+              "value": "Row count and premium posted to PAS and the actuarial system tied back to the validated staging totals."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-perform the post-load reconciliation",
+              "value": "Independent recount matches across all three systems; 0 variance and 0 dropped rows."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscoz5h1mx6mbk8j247egfv",
+          "checklist": [
+            {
+              "step": "Post only validated data",
+              "value": "Only rows with passed validation status and no open material exception are eligible for posting."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify validation gating",
+              "value": "Sampled posted rows all carry passed validation status; 0 exception rows posted."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp4l91n7cmbk83gl6rt5r",
+          "checklist": [
+            {
+              "step": "Maintain accuracy above 99% on posted data",
+              "value": "Key-field accuracy of the posted dataset measured against the validated source is held above the 99% threshold."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Measure posted accuracy",
+              "value": "Sampled posted rows show key-field accuracy at or above 99%; failures corrected and re-posted."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5t88b0i1pv880tx9ucuy1",
+          "checklist": [
+            {
+              "step": "Screen insured records against OFAC before booking downstream",
+              "value": "Insured and interested parties on validated bordereaux screened against OFAC sanctions lists prior to posting the risks onto the policy administration and actuarial systems."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm no sanctioned parties are booked",
+              "value": "100% of posted insured parties passed OFAC screening; any hit blocked and reported before posting; 0 sanctioned parties on the posted book."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cmr2fipiw0l58kfgzct7xgymz",
+      "owner": { "action": "replace", "name": "Bordereaux Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager", "Accountant"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "Enterprise data warehouse/lakehouse", "usageType": "performed" },
+        {
+          "name": "ERP/General ledger (SAP/Oracle/Workday Financials)",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The premium totals declared on a coverholder's premium bordereau reconciled to the settlements actually received from that coverholder; scope = one coverholder's monthly premium bordereau versus its remittance/settlement statement."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The bordereau reporting month and the corresponding settlement period; reconciliation completed within 10 business days of settlement receipt."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Bordereau gross premium, commission, taxes and net due are present per risk and in total, and the settlement statement carries the remitted amount and value date; missing commission or FX data blocks the tie-out."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Bordereau net premium equals settlement cash received and ties to the GL premium-receivable movement; residual difference must be within the $500 / 0.5% tolerance to sign off."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The reconciliation working (bordereau net, commission, taxes, settled, GL) retained in SharePoint /UW/DelegatedAuthority/<coverholder>/<YYYYMM>/Recon/ with timestamp and version, and the GL journal reference for any adjustment."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Reconciling differences (short-payment, commission dispute, timing, FX) logged with cause and disposition and pursued with the coverholder and credit control until cleared or accrued."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        { "templateKeyId": "cmr2oaobk001rlasbp41b8ekd", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "The full premium bordereau for the coverholder-month tied line and in total to the settlement statement."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = bordereau net premium reconciles to settled cash and the GL within the $500 / 0.5% tolerance with all differences explained. FAIL = residual unexplained variance above tolerance at close."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Unreconciled amounts escalated to the Accountant for GL treatment (accrual/write-off with approval) and to the Delegated Authority Manager for coverholder follow-up if unresolved after 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = bordereau net premium reconciles to settled cash and the GL premium-receivable movement within the $500 / 0.5% tolerance, with every difference documented as recovered, accrued or approved-waived."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence in SharePoint /UW/DelegatedAuthority/<coverholder>/<YYYYMM>/Recon/ and the GL journal reference for any accrual or write-off posted."
+        },
+        {
+          "answerId": "cmr2ocg0k0xwjkaz36wg02ci8",
+          "value": "Field definitions from the bordereau data standard (gross/commission/tax/net) and the settlement statement layout in the EDW data dictionary; control totals = net premium sum per coverholder-month reconciled to settlement receipts and the GL premium-receivable balance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscoz8k1mxcmbk84v2ztcsf",
+          "checklist": [
+            {
+              "step": "Reconcile bordereau premium to settlements and the GL",
+              "value": "Net premium tied to remittance and the premium-receivable ledger for the coverholder-month."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-perform the reconciliation",
+              "value": "Independent recomputation matches settled cash and GL within tolerance; 0 unexplained material variance."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp2l81n3kmbk8yc9dv6vr",
+          "checklist": [
+            {
+              "step": "Apply accuracy controls to the reconciliation",
+              "value": "Four-eyes review of the tie-out and GL adjustments before sign-off to ensure figures are complete and accurate."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify the accuracy control operated",
+              "value": "Sampled reconciliations show reviewer sign-off and no post-sign-off adjustments; 0 unreviewed close-outs."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp4rp1n7mmbk89u5arrgj",
+          "checklist": [
+            {
+              "step": "Log reconciling items in the tracking system",
+              "value": "Each unexplained difference recorded with cause, owner and target date until cleared or accrued."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm items tracked to closure",
+              "value": "Every above-tolerance difference has a tracked disposition; 0 differences closed without explanation."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "becb77c0-f7bd-4fc9-ad90-00096c133ec1",
+      "owner": { "action": "replace", "name": "Bordereaux Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager", "Underwriting Quality / Audit Manager"],
+      "removeAppNames": ["underwriting workstation", "billing/commission platform"],
+      "addApps": [{ "name": "Power BI", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The delegated-authority governance report covering bordereau timeliness, data-quality scores and outstanding submission deficiencies across all active coverholder binders; scope = the current reporting month's DA performance pack presented to the DA governance forum."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The reporting month, reported at the monthly DA governance forum within 10 business days of month-end."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203znmbk8n0lfz54r"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The pack reports per binder: submissions due vs received vs on-time, average DQ score, open exceptions by severity and aging, and premium reconciled vs outstanding; any binder with missing metrics is flagged rather than shown blank."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Reported totals (submissions, exceptions, premium) reconcile to the underlying bordereau register and EDW validation logs for the month; the pack figures tie to source with 0 variance."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The signed governance pack and the Power BI report snapshot retained in SharePoint /UW/DelegatedAuthority/Governance/<YYYYMM>/ and logged in the GRC platform against the DA oversight control."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Outstanding deficiencies and overdue actions carried on the governance action log with owner, due date and RAG status; repeat or worsening binders escalated for performance review or remediation plan."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        { "templateKeyId": "cmr2oap6g002flasb12gpqsrx", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "All active delegated-authority binders reported in the month's governance pack."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = pack complete for every binder, metrics tie to source, and every open deficiency has an owner and due date. FAIL = any binder missing metrics, a figure that does not reconcile, or a deficiency without an action."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "Binders breaching timeliness or DQ thresholds escalated to the Delegated Authority Manager and Underwriting Quality / Audit Manager for a documented remediation plan or binder review."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "The DA governance terms of reference define who owns, reviews and approves the report and the escalation thresholds; version-controlled in the DA governance pack."
+        },
+        {
+          "answerId": "cmr2ocdw00sorkaz3cusn2mm0",
+          "value": "Reporting methodology = the DA governance metric definitions v2 (timeliness %, DQ score formula, exception aging bands); parameter source = the bordereau register and EDW validation logs, reconciled before publication."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp4qa1n7kmbk8cxw4odar",
+          "checklist": [
+            {
+              "step": "Publish data-quality scores in the governance pack",
+              "value": "Per-binder DQ score and trend published so governance can see coverholder data performance."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify scores tie to source",
+              "value": "Published DQ scores reconcile to the EDW validation logs for the month; 0 variance."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpld51o1qmbk8crfzo5sd",
+          "checklist": [
+            {
+              "step": "Present a quality scorecard to governance",
+              "value": "Timeliness, DQ and open-deficiency metrics shown on a consistent binder scorecard with RAG status."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm scorecard completeness",
+              "value": "Every active binder appears on the scorecard with all mandatory metrics; 0 gaps."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscplg21o1wmbk8lyl7zs1m",
+          "checklist": [
+            {
+              "step": "Run the monthly DA business review",
+              "value": "Report tabled at the monthly governance forum with an action log for outstanding deficiencies."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify the review occurred",
+              "value": "Minutes and the action log evidence the monthly review; every open deficiency has an owner and due date."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "c6439db1-7b95-4b55-a787-eb8b74e922b3",
+      "owner": { "action": "replace", "name": "Bordereaux Analyst" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Underwriting Assistant",
+        "Accountant",
+        "Business Analyst"
+      ],
+      "addParticipants": ["Delegated Authority Manager", "Coverholder Coordinator"],
+      "removeAppNames": [],
+      "addApps": [
+        { "name": "Microsoft 365 / SharePoint", "usageType": "performed" },
+        { "name": "Enterprise data warehouse/lakehouse", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All open bordereau queries raised with a coverholder — data-quality gaps, authority breaches, premium/settlement differences — tracked from issue to resolution; scope = the query log for one coverholder's reporting month."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The reporting month; queries acknowledged within 2 business days of raising and targeted for closure within 10 business days."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z103z3mbk8c39oejng"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each query records the source bordereau reference, issue type, description, severity, raised date, owner and target date; queries without a target date or owner are returned to triage before issue."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Open query count reconciles to the exceptions and reconciling items that generated them; every material exception has a corresponding coverholder query so the delta is zero."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The query log and coverholder correspondence retained in SharePoint /UW/DelegatedAuthority/<coverholder>/<YYYYMM>/Queries/ with raised and closed timestamps and resolution notes; policy-level fixes recorded in PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Queries not resolved within SLA logged with disposition (extend / escalate / accept) and rationale; unresolved material queries block posting of the affected data and are escalated to the Delegated Authority Manager."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp4rp1n7mmbk89u5arrgj",
+          "checklist": [
+            {
+              "step": "Log every coverholder query in the tracking system",
+              "value": "Each query recorded with source reference, severity, owner and target date; none handled informally by email only."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm query tracking completeness",
+              "value": "Material exceptions reconcile 1:1 to logged queries; 0 material issues without a tracked query."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp4u91n7qmbk8b0wtedc2",
+          "checklist": [
+            {
+              "step": "Resolve queries within the agreed SLA",
+              "value": "Queries chased with the coverholder data team and closed within the 10-business-day target or formally extended."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify query aging",
+              "value": "0 material queries open beyond SLA without an approved extension or escalation."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document query resolutions on file",
+              "value": "Resolution, corrected data and coverholder confirmation retained against the bordereau file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample closed queries for evidence",
+              "value": "Sampled closed queries all show a documented resolution and confirmation; 0 closures without evidence."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "3c87f19a-1e50-4be0-81f6-648135907713",
+      "owner": { "action": "replace", "name": "Bordereaux Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager", "Data Quality Analyst"],
+      "removeAppNames": ["underwriting workstation", "billing/commission platform"],
+      "addApps": [{ "name": "Power BI", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The automated data-quality check run over a coverholder's bordereau covering field format, coverage/type code validity and premium-calculation accuracy (gross x rate/commission logic); scope = one coverholder's monthly bordereau processed through the BDX-DQ ruleset in the EDW."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The reporting month; the automated checks run on receipt and re-run after each coverholder correction until clean, within the 5-business-day validation window."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Every row is tested for mandatory-field presence, correct data types/formats, valid coverage/class codes against the reference table, and premium recomputation within tolerance; rows failing any rule are tagged with the rule id."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Rows tested equal rows in the file; pass + fail counts reconcile to the total row count, and recomputed premium totals are compared to declared totals (delta within $500 / 0.5%)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The DQ run report (rules executed, pass/fail counts, premium recompute variance) retained in the EDW run history and exported to SharePoint /UW/DelegatedAuthority/<coverholder>/<YYYYMM>/DQ/ with ruleset version BDX-DQ v4.2 and timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Failed rows raised as exceptions with severity and disposition; material failures block posting and are issued to the coverholder, and any rule error/false-positive is logged for ruleset tuning."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        { "templateKeyId": "cmr2oapmt002rlasbojqqymeh", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All rows of the coverholder's monthly bordereau passed through the BDX-DQ v4.2 ruleset (100% automated, no sampling)."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = every mandatory rule executes, all rows scored, and material-failure rate within threshold with premium recompute variance <= 0.5%. FAIL = any rule not executed, or material failures/premium variance above tolerance uncorrected."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Material failures block posting and route a correction request to the coverholder; rule engine errors escalated to the Data Quality Analyst for fix or tuning within the run window."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Bordereau reporting month; check run effective as of the load date, re-validated on each resubmission."
+        },
+        {
+          "answerId": "cmr2ocdxz0vbdkaz3qvscj0i6",
+          "value": "Field definitions and reference code lists per the bordereau data standard in the EDW data dictionary; control totals = row count and declared vs recomputed premium sum reconciled in the DQ run report."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp4m81n7embk885jhucdp",
+          "checklist": [
+            {
+              "step": "Run automated profiling on each bordereau",
+              "value": "Format, type, code-validity and premium-recompute checks executed automatically on load via the BDX-DQ ruleset."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify profiling coverage",
+              "value": "100% of rows profiled each run; the run report shows all mandatory rules executed; 0 rows unscored."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp4pb1n7imbk81wrwxt4y",
+          "checklist": [
+            {
+              "step": "Define data-quality rules by data domain",
+              "value": "Rules maintained per bordereau domain (risk vs premium) with mandatory fields, valid code sets and premium-calc logic version-controlled."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm rule set currency",
+              "value": "Ruleset version applied matches the approved BDX-DQ v4.2; code reference tables current; 0 stale rules in use."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp4l91n7cmbk83gl6rt5r",
+          "checklist": [
+            {
+              "step": "Hold accuracy above 99% before posting",
+              "value": "Premium-calculation and code-validity accuracy measured; material errors corrected until accuracy exceeds 99%."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Measure accuracy on the run",
+              "value": "Recomputed premium and code checks show accuracy at or above 99%; below-threshold results block posting."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "31ed3c1a-883f-4984-9580-b925fe974311",
+      "owner": { "action": "replace", "name": "Bordereaux Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant", "Business Analyst"],
+      "addParticipants": ["Delegated Authority Manager", "Data Quality Analyst"],
+      "removeAppNames": ["underwriting workstation", "billing/commission platform"],
+      "addApps": [{ "name": "Power BI", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "A coverholder's bordereau validated for data quality and completeness against the specified field requirements in the binding authority agreement's reporting schema (mandatory fields, formats, code sets, and completeness by risk); scope = one coverholder's monthly bordereau."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The reporting month; validation completed within the 5-business-day window before the bordereau is eligible for posting."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Every mandatory field defined in the BAA reporting schema is present and valid on each risk row (insured, TIV/limit, class, territory, inception, premium, commission); missing or invalid mandatory fields fail the completeness check."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Risk count and premium total on the validated file reconcile to the coverholder's declared control totals; completeness percentage computed per field and reconciled to the field-requirements list."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The validation result (field completeness %, failed rules, reconciliation to declared totals) retained in the EDW run history and SharePoint /UW/DelegatedAuthority/<coverholder>/<YYYYMM>/DQ/ with schema version and timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Incomplete or invalid rows logged as exceptions with severity and disposition; material completeness gaps block posting and are returned to the coverholder, non-material gaps accepted with a documented note."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        { "templateKeyId": "cmr2oapmt002rlasbojqqymeh", "roleId": "cmqsck0rn03rpmbk8ew7et8hz" },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All risk rows of the coverholder's monthly bordereau validated against the BAA field-requirements schema (100%, no sampling)."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = mandatory-field completeness at or above 99% and all rows reconcile to declared control totals with 0 invalid mandatory values. FAIL = completeness below 99% on any mandatory field or unreconciled control totals."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Rows failing completeness/validity returned to the coverholder for correction and re-validated on resubmission; systemic schema gaps escalated to the Data Quality Analyst and Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Bordereau reporting month; validation effective as of the load date and re-run on each corrected resubmission."
+        },
+        {
+          "answerId": "cmr2ocfz10vuwkaz31vwazdzq",
+          "value": "Field definitions per the BAA bordereau reporting schema mapped in the EDW data dictionary; control totals = risk count and premium sum validated against the coverholder's declared totals and field-level completeness percentages."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscp4o01n7gmbk8nzsb85bd",
+          "checklist": [
+            {
+              "step": "Hold completeness above 99% on mandatory fields",
+              "value": "Completeness measured per mandatory field against the BAA schema; gaps chased until above the 99% threshold."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Measure field completeness",
+              "value": "Mandatory-field completeness at or above 99% on the validated file; below-threshold blocks posting."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp4pb1n7imbk81wrwxt4y",
+          "checklist": [
+            {
+              "step": "Validate against defined data-domain field requirements",
+              "value": "Mandatory-field, format and code-set rules for the bordereau domain applied per the BAA reporting schema."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm the correct schema was applied",
+              "value": "The schema/ruleset version used matches the coverholder's BAA reporting requirements; 0 rows validated against a stale schema."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscp4ss1n7ombk8fr6aw1s9",
+          "checklist": [
+            {
+              "step": "Feed completeness gaps into prevention measures",
+              "value": "Recurring missing-field patterns raised with the coverholder as a data-improvement action to prevent repeat gaps."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm preventive action",
+              "value": "Prior-month recurring completeness gaps have a documented prevention action; recurrence trended down."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

@@ -1,0 +1,1474 @@
+{
+  "tasks": [
+    {
+      "id": "a37a669b-cb11-46dd-a6ed-798a0e2ec9d9",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "New-business submissions in the triage queue for the current week that trip a specialty-desk trigger (excess casualty, professional/management liability, or surplus lines); scope = the open Guidewire PolicyCenter submission worklist for this underwriting unit."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Submissions received in the current triage cycle (rolling 5 business days from receipt date); flagging must occur within 4 business hours of clearance per the acknowledgement SLA."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each submission carries line of business, NAICS/industry code, requested limit, and coverage type; the specialty-desk flag field and reason code are populated. Submissions missing LOB or limit are returned to intake before flagging."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Flagged count reconciles to the referral-trigger report: every submission meeting a documented trigger has a flag; delta between triggered and flagged must be 0, with any gap logged as a triage exception."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The flag action, reason code, and timestamp are recorded on the PolicyCenter submission activity log and the decision note filed to OpenText /underwriting/new-business/<submission-id>/triage/ with version tag; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Borderline cases where the trigger is ambiguous are logged as a triage exception with disposition (route to specialty desk / retain in unit) and rationale, dispositioned by the Senior Underwriter within 1 business day."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "A quarterly sample of 25 triaged submissions per underwriting unit, drawn from PolicyCenter, weighted toward high-limit and surplus-lines risks."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = 100% of sampled submissions meeting a specialty-desk trigger were flagged and routed correctly; FAIL = any triggered submission underwritten in-unit without a specialty-desk flag."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "A missed flag found in review is re-routed to the specialty desk immediately, the file re-underwritten, and a root-cause note added; repeat misses escalate to the Underwriting Manager."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = each in-scope submission has a specialty-desk flag decision (flag or no-flag) with a documented reason code that maps to the published referral-trigger list."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence = PolicyCenter submission activity log plus the triage decision note in OpenText /underwriting/new-business/<submission-id>/triage/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Screen each submission against the published referral-trigger list",
+              "value": "Triage checklist in PolicyCenter tests LOB, limit and coverage against the documented specialty-desk triggers (excess casualty, professional lines, surplus lines)."
+            },
+            {
+              "step": "Record the trigger reason on flag",
+              "value": "When a trigger fires, the reason code is written to the submission and the case routed to the specialty desk queue."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify trigger coverage",
+              "value": "Sample 25 flagged and 25 non-flagged submissions per quarter; 100% of triggered risks carry the correct reason code."
+            },
+            {
+              "step": "Confirm no untriggered escalation",
+              "value": "0 submissions routed to specialty desk without a matching documented trigger."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Attach an underwriter recommendation to each referral",
+              "value": "Every specialty-desk flag includes the referring underwriter's summary and recommended disposition in the PolicyCenter referral note."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect referral completeness",
+              "value": "For sampled referrals, 100% include a written recommendation before hand-off to the next authority level."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "5abd3134-f8fb-4df8-a032-4bc77d0b9ae5",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All new-business submissions reaching an appetite decision (accept-to-quote, refer, or decline) for this underwriting unit; scope = the PolicyCenter submission records dispositioned in the current cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current triage cycle; the appetite decision and rationale must be recorded within 24 hours of the decision per the authority documentation SLA."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The appetite decision field, decision reason, appetite-guideline reference, and underwriter ID are populated on the submission; decisions without a rationale note are blocked from advancing."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of appetite decisions recorded reconciles to the count of submissions cleared in the queue; every cleared submission has exactly one appetite decision, delta = 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The decision, rationale and appetite-guideline version are written to the PolicyCenter activity log and filed to OpenText /underwriting/new-business/<submission-id>/appetite/ with timestamp and version tag; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Out-of-appetite risks the underwriter still wants to pursue are logged as an appetite exception with disposition and are routed for CUO approval before any quote is issued."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Decision applies the current published Underwriting Appetite Guideline (v2026.2); the guideline version used is stamped on the decision note."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03y5mbk85lrlrry0" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Appetite is applied against defined tolerances (target-class hit ratio, per-risk limit ceilings); risks within 10% of a limit ceiling are flagged for senior review."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality threshold: decisions on risks above the unit's per-risk limit or in a restricted class require documented senior/CUO sign-off before recording."
+        },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Before/after check: the recorded decision matches the appetite tool output; where the underwriter overrode the tool, the override reason is documented and compared against the guideline."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "cmqsck0z103ycmbk8hpzcq8sd"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "For exception-driven decisions, the appetite-exception record is linked to the CUO approval ticket in Archer GRC and to the PolicyCenter submission ID."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "Quarterly sample of 25 recorded appetite decisions per unit, over-weighting exceptions and out-of-appetite acceptances."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = every sampled decision has a rationale, cites the appetite-guideline version, and (if an exception) carries CUO approval; FAIL = any missing rationale or unapproved out-of-appetite acceptance."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "A decision found without rationale or required approval is remediated by re-documenting or, if unsupportable, reversing the disposition; recurring gaps escalate to the Underwriting Manager."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions from the PolicyCenter data dictionary: appetite_decision, decision_reason, appetite_guideline_version, uw_id, exception_flag."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = decisions recorded reconciles to submissions dispositioned in PolicyCenter for the period, with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Apply the documented appetite by LOB, geography and industry",
+              "value": "The appetite decision references the published appetite matrix for the risk's LOB, state and NAICS class."
+            },
+            {
+              "step": "Record the guideline version used",
+              "value": "Decision note stamps the appetite-guideline version (v2026.2) so the basis is auditable."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Trace decisions to the appetite matrix",
+              "value": "For 25 sampled decisions, each maps to an appetite-matrix cell; 0 decisions inconsistent with the documented appetite."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Document the decision within 24 hours",
+              "value": "Appetite decision, reason and underwriter ID are logged to PolicyCenter within 24 hours of the call."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Measure decision-to-documentation lag",
+              "value": "Sampled decisions show timestamp within 24 hours of disposition; 0 undocumented decisions beyond SLA."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppse1o9smbk8sec8gva2",
+          "checklist": [
+            {
+              "step": "Route out-of-appetite acceptances for CUO approval",
+              "value": "Any decision to pursue an out-of-appetite risk is held pending documented CUO approval recorded in Archer GRC."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify exception approvals",
+              "value": "100% of out-of-appetite acceptances in the sample have a linked CUO approval dated before quote release."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fkqrs1j57kfgzelfoiqkv",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Accepted new-business submissions that have cleared appetite and eligibility and are ready for underwriter assignment; scope = the cleared-submission queue in Guidewire PolicyCenter for this unit."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Current triage cycle; routing to the assignment queue occurs within 4 business hours of the accept decision to protect downstream quote SLAs."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Submission carries LOB, requested limit, effective date and appetite-accept flag; the assignment routing rule needs these to place the case with an underwriter holding the correct authority."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of accepted submissions equals count entering the assignment queue; no accepted submission is orphaned. Daily reconciliation of accepted-vs-queued must net to 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The queue-entry event, target authority tier and timestamp are recorded on the PolicyCenter activity log; the routing note is retained on the submission record with version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Submissions that fail auto-routing (missing authority mapping) drop to a manual-assignment exception list, dispositioned by the UW Operations Manager within 1 business day."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03y0mbk8y3lmtov6" },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The routing decision (target underwriter/authority tier) is documented on the submission with the rule that fired and the effective timestamp."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Assignment notification recipients (assigned underwriter, unit supervisor) are recorded on the PolicyCenter assignment event and the CRM activity feed."
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "Quarterly sample of 30 accepted submissions traced end-to-end through the PolicyCenter workflow history."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = 100% of accepted submissions reached the assignment queue and were assigned to an underwriter with matching authority; FAIL = any orphaned or mis-tiered assignment."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "Mis-routed cases are reassigned to the correct authority tier and the routing rule corrected; systemic mis-routes raise a change ticket against the assignment ruleset."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rr03y0mbk8y3lmtov6" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "Assignment tiers follow the UW Authority Matrix v3.2 (premium/limit/LOB bands); the matrix governs which underwriter grade may receive each risk."
+        },
+        {
+          "answerId": "cmr2ocdxa0uezkaz32xmq6nnv",
+          "value": "Acceptance criteria: every accepted submission is queued and assigned to an underwriter with authority for its premium/limit/LOB band within 4 business hours, with no orphans. Evidence = PolicyCenter workflow-history export and the assignment note on /underwriting/new-business/<submission-id>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppxd1oa2mbk82g6mira7",
+          "checklist": [
+            {
+              "step": "Acknowledge and queue accepted submissions within SLA",
+              "value": "Accepted submissions enter the assignment queue within 4 business hours of the accept decision."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Measure acknowledgement lag",
+              "value": "Sampled submissions show queue-entry timestamp within 4 hours of accept; 0 breaches without an exception."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Confirm minimum submission data before routing",
+              "value": "LOB, limit and effective date are validated present before the submission is queued for assignment."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check completeness at queue entry",
+              "value": "100% of queued submissions carry the minimum required fields; incomplete ones are held in the exception list."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Route to an underwriter with correct authority",
+              "value": "Assignment rule maps premium/limit/LOB to the authority tier per the UW Authority Matrix v3.2."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify authority match on assignment",
+              "value": "For sampled assignments, 100% place the risk with an underwriter whose authority covers its band; 0 over-authority assignments."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "009418a8-d4e1-41b6-9c91-42543e21a84c",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant", "Integration Engineer", "Underwriter"],
+      "addParticipants": ["Underwriting Assistant", "Sanctions Analyst"],
+      "removeAppNames": ["Guidewire PolicyCenter; Earnix Rating & Pricing; Broker & Agent Portal"],
+      "addApps": [
+        {
+          "name": "Policy administration system (Guidewire PolicyCenter/Duck Creek/ALIP)",
+          "usageType": "performed"
+        },
+        { "name": "underwriting workstation", "usageType": "performed" },
+        { "name": "LexisNexis Risk", "usageType": "performed" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All insured parties named on the submission (named insured, additional insureds, principals/beneficial owners) run through sanctions and watchlist screening before the submission can be bound; scope = the party records on the PolicyCenter submission."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At new-business intake, before binding, and on every OFAC list update while the submission is open; screening is re-run within 24 hours of a list refresh."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z203z7mbk8fhl1p7ep"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each party record carries full legal name, DOB/formation date, and address; the screening result (clear / potential match / confirmed hit) and match score are written back. Parties missing identifiers are held for enrichment before screening."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Number of parties on the submission equals number screened; every party has a screening disposition. Screened-vs-listed reconciliation must net to 0 before the submission advances to binding."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The screening run ID, list version, result and reviewer disposition are retained on the PolicyCenter party record and archived to OpenText /underwriting/new-business/<submission-id>/screening/ with timestamp; retained 5 years minimum."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Potential matches are escalated to the Sanctions Analyst for adjudication; confirmed hits block binding, are frozen, and are reported to OFAC per the blocking/reporting procedure with disposition recorded."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03t3mbk8fptfr1ob" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp4u1o8imbk8fwfbmrnd",
+          "checklist": [
+            {
+              "step": "Screen every insured party before binding",
+              "value": "All named and related parties are run against SDN/consolidated and internal watchlists in LexisNexis Risk prior to bind; no bind is permitted while a party is unscreened."
+            },
+            {
+              "step": "Record a disposition for each party",
+              "value": "Each party ends with clear or adjudicated disposition written to the PolicyCenter submission."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample bound policies for screening evidence",
+              "value": "Quarterly sample of 25 bound submissions; 100% show pre-bind screening for every party with a recorded disposition."
+            },
+            {
+              "step": "Confirm no unscreened binds",
+              "value": "0 policies bound with an unscreened or unadjudicated party."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the screening evidence to the underwriting file",
+              "value": "Screening run ID, list version and result are stored on the submission and in OpenText."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify evidence completeness",
+              "value": "Sampled files contain the screening artifact with list version and timestamp; 0 files missing screening evidence."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc4ul3f05qfv8f88jgg0t8m",
+          "checklist": [
+            {
+              "step": "Run SDN and consolidated list screening at onboarding",
+              "value": "At submission intake, all parties are screened against the OFAC SDN and consolidated lists via LexisNexis Risk before binding."
+            },
+            {
+              "step": "Block and report confirmed hits",
+              "value": "A confirmed match blocks the bind, freezes any property, and triggers the OFAC blocking/reporting workflow."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test onboarding screening coverage",
+              "value": "Sample 25 new-business submissions; 100% show OFAC screening completed pre-bind for every party."
+            },
+            {
+              "step": "Verify hit handling",
+              "value": "For any potential match, evidence shows adjudication and, where confirmed, timely OFAC reporting."
+            }
+          ]
+        },
+        {
+          "regId": "cmrc5onpn0bdnv8807pn9u4yi",
+          "checklist": [
+            {
+              "step": "Screen all parties to the covered product",
+              "value": "Named insured, additional insureds and beneficial owners are each screened; the party set is reconciled to the submission."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile parties to screening records",
+              "value": "For sampled submissions, every party on the risk has a corresponding OFAC screening record; 0 unscreened parties."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b64d9314-2076-4dc5-a402-9139141e4c18",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant", "Integration Engineer", "Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "New-business submissions screened for industry/risk-class fit against underwriting appetite guidelines; scope = the PolicyCenter submission queue for this unit, keyed on NAICS/SIC industry code and risk class."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Current triage cycle; industry/appetite screening runs at intake before quote work begins, against the appetite guideline version in force."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Submission carries a validated NAICS/SIC code and operations description; the appetite-screen result (target / referral / no-write) and matched appetite rule are populated. Unclassifiable risks are held for underwriter classification."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every screened submission has an appetite-class disposition; count of submissions screened equals count with a disposition, delta = 0. No-write matches are cross-checked against the enterprise no-write list."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Screen result, appetite-guideline version and matched rule are recorded on the PolicyCenter submission and filed to OpenText /underwriting/new-business/<submission-id>/appetite/ with timestamp and version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Industries on the no-write list are declined with reason; borderline/referral classes are logged as an appetite exception and routed to Senior Underwriter/CUO for a documented decision."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Screening applies the current Underwriting Appetite Guideline (v2026.2) and the target-class matrix; the version used is stamped on the result."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rr03y5mbk85lrlrry0" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity: risks near a class boundary or with mixed operations are flagged for underwriter judgement rather than auto-classed; secondary NAICS codes are considered."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality: any no-write or restricted-class match, or a risk above the unit per-risk limit, requires senior/CUO review before proceeding."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "Quarterly sample of 25 screened submissions per unit, over-weighting referral and no-write dispositions."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = 100% of sampled risks classified consistently with the appetite matrix and no-write list, with rationale on referrals; FAIL = any in-appetite quote on a no-write class or missing rationale."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Mis-classed risks are re-screened and, if written in error, referred for corrective action; recurring mis-classification triggers an appetite-rule review."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = each submission has an appetite-class disposition citing the guideline version and matched rule, with no-write matches declined and referrals documented."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence = PolicyCenter appetite-screen result plus the appetite note in OpenText /underwriting/new-business/<submission-id>/appetite/."
+        },
+        {
+          "answerId": "cmr2ocdw80szqkaz3rz1cslr4",
+          "value": "Methodology = Underwriting Appetite Guideline v2026.2 and target-class matrix; parameter source = the maintained appetite/no-write reference tables in PolicyCenter, version-controlled and stamped on each screen result."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppvi1o9ymbk83x2euqy4",
+          "checklist": [
+            {
+              "step": "Test the risk against defined target classes",
+              "value": "Industry/risk class is compared to the target-class selection criteria before quoting."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify target-class alignment",
+              "value": "For 25 sampled risks, classification matches the target-class matrix; 0 off-appetite quotes without referral."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpprc1o9qmbk8244phllu",
+          "checklist": [
+            {
+              "step": "Apply documented appetite by industry and geography",
+              "value": "The appetite screen references the published matrix for the risk's NAICS class and state."
+            },
+            {
+              "step": "Stamp the guideline version",
+              "value": "The appetite-guideline version used is recorded on the screen result."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Trace screens to the appetite matrix",
+              "value": "Sampled screens map to a documented appetite-matrix cell; 0 unsupported classifications."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppuf1o9wmbk8chlv6qe5",
+          "checklist": [
+            {
+              "step": "Enforce the no-write list",
+              "value": "No-write industry matches are auto-declined with reason and cannot proceed to quote."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm no no-write exceptions written",
+              "value": "0 policies quoted or bound on a no-write class without documented CUO override."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "9f66ae6e-b232-48e1-b26f-abb9bd192ebc",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Integration Engineer", "Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "New-business submissions verified for eligibility against approved coverage types, jurisdictions, and state limit/capacity rules; scope = the PolicyCenter submission queue for this unit across admitted and surplus-lines risks."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Current triage cycle; eligibility is verified at intake before quote, against filings and coverage rules effective on the requested policy effective date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Submission carries coverage type, state, requested limit and effective date; the eligibility checks (admitted vs surplus, form/rate filed in state, within capacity) return pass/fail with the rule cited. Missing jurisdiction data blocks verification."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every submission has an eligibility disposition; requested limits reconcile against the state capacity table and treaty capacity. Count verified equals count dispositioned, delta = 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Eligibility result, rules applied and filing references are recorded on the PolicyCenter submission and filed to OpenText /underwriting/new-business/<submission-id>/eligibility/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Ineligible risks (unfiled form/rate, over-capacity, non-admitted where diligent-search not met) are declined or routed to surplus-lines handling; exceptions logged with disposition and reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled submissions trace to source: the state, coverage and limit on the PolicyCenter screen match the ACORD application and the SERFF filing reference used."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "The eligibility status field advances only when all checks pass; a fail holds the submission in an ineligible/refer state per the workflow."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Effective date and filing effective/expiry dates align: the form/rate cited must be filed and in force on the requested policy effective date."
+        },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The eligibility decision, rules applied and any surplus-lines routing are documented on the submission with the underwriter ID and timestamp."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Where a risk is routed to surplus lines or declined, the broker and surplus-lines desk are recorded as notification recipients on the PolicyCenter activity feed."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "Quarterly sample of 25 verified submissions, over-weighting surplus-lines and high-limit risks."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = 100% of sampled risks written on filed forms/rates for the correct state, within capacity, with surplus-lines rules met; FAIL = any coverage bound on an unfiled form/rate or over capacity."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "An eligibility miss is corrected by re-quoting on a compliant basis or unwinding the risk; systemic filing gaps are escalated to Product/Filing and Compliance."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "In scope = submissions with a requested effective date in the current cycle; eligibility is judged against filings in force on that effective date."
+        },
+        {
+          "answerId": "cmr2ocdwa0t27kaz3bj4xmxjr",
+          "value": "Authorized approver = Senior Underwriter for standard eligibility, Chief Underwriting Officer for surplus-lines/over-capacity exceptions, per the UW Authority Matrix v3.2 delegation table which defines who may approve each eligibility exception."
+        },
+        {
+          "answerId": "cmr2ocdwa0t28kaz369mav3a7",
+          "value": "Source-system field definitions from the PolicyCenter data dictionary: coverage_type, risk_state, requested_limit, effective_date, filing_reference, eligibility_status. Control totals = requested limits reconcile to the state capacity and treaty capacity tables with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp5u1o8kmbk8z2uf21t9",
+          "checklist": [
+            {
+              "step": "Verify the form is currently filed for the state",
+              "value": "Eligibility check confirms the coverage form is filed and approved in the risk's state as of the effective date, citing the SERFF reference."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test form-filing currency",
+              "value": "For 25 sampled risks, 100% use a form filed and in force for the state; 0 unfiled-form bindings."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp961o8qmbk8sb62ln4z",
+          "checklist": [
+            {
+              "step": "Apply surplus-lines eligibility rules",
+              "value": "Non-admitted risks confirm diligent-search/export-list eligibility and surplus-lines licensing before proceeding."
+            },
+            {
+              "step": "Route ineligible admitted risks to surplus lines",
+              "value": "Risks that fail admitted eligibility are routed to the surplus-lines path with the reason documented."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify surplus-lines compliance",
+              "value": "Sampled surplus-lines risks show diligent-search evidence and a licensed surplus-lines broker; 0 non-compliant placements."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "8a2083a9-b9c1-4d68-8ee9-979a31ce9120",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Underwriting Assistant",
+        "UI Developer",
+        "Underwriter",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": ["Underwriting Assistant"],
+      "removeAppNames": [],
+      "addApps": [{ "name": "underwriting workstation", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Approved quotes ready for release to the placing broker, with terms, conditions, subjectivities and pricing finalized; scope = quotes in ready-to-issue status on the PolicyCenter/Broker & Agent Portal for this unit."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Current quoting cycle; the firm quote is communicated to the broker within 5 business days of receiving a complete submission per the quote-turnaround SLA."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The quote letter carries limits, deductibles/retentions, premium, subjectivities, quote expiry date and named contact; missing subjectivities or expiry block release. Broker and contact details are validated against the portal record."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Quote terms in the letter reconcile to the approved quote in PolicyCenter (limit, premium, conditions) with 0 variance; any mismatch halts the send until corrected."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The issued quote letter, send timestamp and delivery confirmation are recorded on the PolicyCenter submission and filed to OpenText /underwriting/new-business/<submission-id>/quote/ with version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Undeliverable or bounced quote communications are logged and re-sent to a verified broker contact; disputes over terms are logged with disposition and routed back to the underwriter."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpq051oa8mbk8dk8eyglb",
+          "checklist": [
+            {
+              "step": "Issue the firm quote within 5 business days",
+              "value": "Approved quotes are communicated to the broker within 5 business days of a complete submission, tracked on the PolicyCenter clock."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Measure quote turnaround",
+              "value": "Sampled quotes show broker communication within 5 business days of completeness; SLA breaches carry a logged reason."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the issued quote to the underwriting file",
+              "value": "The quote letter and delivery confirmation are stored on the submission and in OpenText with version."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify quote-file completeness",
+              "value": "For sampled quotes, 100% have the letter and delivery evidence on file; 0 missing quote artifacts."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "8264f31d-e0bd-436d-925d-de6eca4d8bc7",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Producer Compliance Manager"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Producing brokers/agents on submissions moving toward binding, verified for active appointment and state licensing for the risk's line and jurisdiction; scope = the producer records linked to open submissions in PolicyCenter, checked against NIPR."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At submission intake and re-checked before binding; producer status is confirmed within the current cycle and must be valid on the policy effective date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Producer record carries NPN, appointment status, license class and state; the verification result (active/appointed vs lapsed) is written back. Producers without an NPN or state license for the line are held before binding."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every submission's producer has a verified appointment+license disposition; count of producers verified equals count on open submissions, delta = 0. NIPR status reconciles to the internal producer master."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The NIPR verification result, license class/state and appointment status are recorded on the PolicyCenter submission and filed to OpenText /underwriting/new-business/<submission-id>/producer/ with timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Lapsed appointments or missing state licenses block binding and are logged as an exception routed to the Producer Compliance Manager for appointment/licensing remediation before the risk can proceed."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03w7mbk8attff88y" },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "Quarterly sample of 25 bound submissions across states, re-checking producer appointment and licensing at the effective date."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = 100% of sampled binds had an appointed producer licensed for the line and state on the effective date; FAIL = any bind with a lapsed appointment or missing license."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "A bind found with an invalid producer triggers appointment remediation and, if unresolvable, referral to Producer Compliance and possible policy correction; recurring gaps drive a producer-onboarding fix."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "In scope = submissions with an effective date in the current cycle; producer appointment/license must be valid on that effective date."
+        },
+        {
+          "answerId": "cmr2ocfyv0vnqkaz3vn0xfpi8",
+          "value": "Acceptance criteria: each submission's producer is confirmed appointed and licensed for the line/state on the effective date via NIPR before binding, with no lapsed producers. Evidence = the NIPR verification record and producer note in OpenText /underwriting/new-business/<submission-id>/producer/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp961o8qmbk8sb62ln4z",
+          "checklist": [
+            {
+              "step": "Confirm producer licensing for the line and state",
+              "value": "Producer license class and state are verified against NIPR for the risk's line before binding; surplus-lines placements require a licensed surplus-lines broker."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify licensing at bind",
+              "value": "For 25 sampled binds, 100% used a producer licensed for the line/state; 0 unlicensed placements."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File producer verification evidence",
+              "value": "The NIPR appointment/license result is stored on the submission and in OpenText with timestamp."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check evidence completeness",
+              "value": "Sampled binds contain a producer-verification artifact; 0 files missing appointment/license evidence."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc4ulc405qtv8f8s2rtkbnd",
+          "checklist": [
+            {
+              "step": "Screen the producer against sanctions at appointment",
+              "value": "Producing brokers/agents are OFAC-screened at appointment and re-checked before binding new business through them."
+            },
+            {
+              "step": "Block business through sanctioned distribution partners",
+              "value": "A producer match blocks binding pending adjudication by the Producer Compliance Manager."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test producer sanctions screening",
+              "value": "Sample 25 active producers; 100% show sanctions screening at appointment with a recorded disposition."
+            },
+            {
+              "step": "Verify no binding through a hit",
+              "value": "0 policies bound through a producer with an unresolved sanctions match."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "9196b7dd-1e20-4029-a760-b0ffb5b1c603",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Delegated Authority Manager"],
+      "removeAppNames": ["billing/commission platform", "HRIS (Workday/SuccessFactors)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Submissions flowing through delegated/binding-authority channels (coverholders, MGAs, program partners) requiring coordination on terms, referrals and bordereaux; scope = delegated-channel submissions linked in PolicyCenter for this unit."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Current cycle; coordination with the binding-authority partner is completed within the response window agreed in the binding authority agreement (typically 2 business days for referrals)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The submission carries the binding authority agreement reference, coverholder ID, and the item requiring coordination (referral, endorsement, out-of-appetite risk); items missing the agreement reference are held."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Coordinated items reconcile to the delegated-authority referral log; each referral has a recorded response. Referrals raised equals referrals dispositioned, delta = 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Coordination correspondence, decisions and the agreement clause relied on are recorded on the PolicyCenter submission and filed to OpenText /underwriting/delegated/<coverholder-id>/<submission-id>/ with timestamp."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Items outside the coverholder's delegated authority are escalated to the Delegated Authority Manager for a carrier decision; disputes and out-of-authority requests logged with disposition."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "Quarterly sample of 20 delegated-channel referrals traced through the PolicyCenter/coverholder workflow history."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = 100% of coordinated items stayed within the binding authority agreement terms and out-of-authority items were escalated; FAIL = any decision taken outside delegated authority without carrier sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "An out-of-authority action found in review is escalated for ratification or reversal; repeated breaches trigger a review of the coverholder's delegated authority."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "Authority is governed by the binding authority agreement schedule and the UW Authority Matrix v3.2; the delegation matrix defines what the coverholder may bind and what must be referred."
+        },
+        {
+          "answerId": "cmr2ocdxz0vbekaz372rjm0et",
+          "value": "Acceptance criteria: every delegated-channel item is coordinated within the agreement response window, stays within delegated authority, and out-of-authority items are escalated and dispositioned. Evidence = the referral log and correspondence in OpenText /underwriting/delegated/<coverholder-id>/<submission-id>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Coordinate within documented authority levels",
+              "value": "Coordination respects the coverholder's delegated limits per the binding authority agreement and the UW Authority Matrix v3.2."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify authority adherence",
+              "value": "For 20 sampled items, 100% stayed within delegated limits or were escalated; 0 unauthorized bindings."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp161o8cmbk8jeoutzfd",
+          "checklist": [
+            {
+              "step": "Ensure only authorized parties bind",
+              "value": "Only the coverholder acting within delegation, or the carrier underwriter on referral, binds the risk."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm binder authority",
+              "value": "Sampled binders trace to an authorized party; 0 binders executed outside delegated or carrier authority."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File coordination evidence",
+              "value": "Referral correspondence and decisions are stored on the submission and in OpenText."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check documentation completeness",
+              "value": "Sampled referrals have complete correspondence and decision records; 0 undocumented coordination."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "8c2af4fa-9086-4bb2-aeff-a47a3c971c61",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant", "Underwriter"],
+      "addParticipants": ["Underwriting Director / Manager"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Complex broker negotiations exceeding the handling underwriter's authority or appetite (large limits, aggressive terms, out-of-appetite requests) that must be escalated to underwriting management; scope = open negotiations flagged for escalation in PolicyCenter for this unit."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Current cycle; escalation is raised promptly on trigger and, per the referral SLA, a management decision is documented within 24 hours."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The escalation carries the submission ID, the point of contention, the underwriter's recommendation, and the authority/appetite trigger; escalations without a recommendation are returned before management review."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every escalation has a management disposition; escalations raised reconcile to decisions recorded, delta = 0. Open escalations past SLA appear on the management dashboard."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The escalation, management decision and rationale are recorded on the PolicyCenter submission and filed to OpenText /underwriting/new-business/<submission-id>/escalation/ with timestamp and version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Escalations that cannot be resolved at unit-manager level are routed to the CUO; unresolved or disputed items are logged with disposition and a target resolution date."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03y4mbk8u38o045d" },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Before/after: the negotiated terms after management input are compared to the underwriter's pre-escalation position; the change and its authority basis are documented on the file."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "cmqsck0z103ycmbk8hpzcq8sd"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "Where the escalation results in an authority exception, the decision is linked to the exception/approval record in Archer GRC and the PolicyCenter submission ID."
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "Quarterly sample of 15 escalated negotiations traced through the PolicyCenter workflow history and management decision log."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = 100% of escalations reached the correct authority level with a documented decision within SLA; FAIL = any negotiation concluded above the underwriter's authority without management sign-off."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "A concession found made without required approval is reviewed for ratification or correction; recurring over-authority activity is addressed through coaching and authority review."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rr03y4mbk8u38o045d" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "Escalation routing follows the UW Authority Matrix v3.2: unit manager for standard exceptions, CUO for limits/appetite beyond unit authority."
+        },
+        {
+          "answerId": "cmr2ocdw80syykaz3kf59vvh3",
+          "value": "Acceptance criteria: each complex negotiation is escalated to the authority level defined by the matrix, decided within 24 hours, and the decision documented with its authority basis. Evidence = the escalation note and management decision in OpenText /underwriting/new-business/<submission-id>/escalation/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Escalate with a recommendation to the next authority level",
+              "value": "The escalation to management includes the underwriter's recommended position and the trigger reason."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect escalation completeness",
+              "value": "For 15 sampled escalations, 100% include a recommendation and reach the correct authority level."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Escalate on a documented trigger",
+              "value": "Escalation is raised when a negotiation breaches an authority or appetite trigger defined in the referral-trigger list."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify trigger-based escalation",
+              "value": "Sampled escalations map to a documented trigger; 0 over-authority negotiations closed without escalation."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fi0jk09jhkfgz6e8vpth8",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["UI Developer", "Underwriter"],
+      "addParticipants": ["UW Operations Manager"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Submissions and outstanding portal items breaching their handling SLA (acknowledgement, indication, quote-turnaround) that must be escalated to the responsible party; scope = the SLA-breach worklist derived from the broker portal and PolicyCenter aging report."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Rolling SLA windows: acknowledgement > 4 hours, indication > 48 hours, firm quote > 5 business days; items are escalated as they cross their threshold each business day."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each overdue item carries the submission ID, SLA type, age, assigned owner and breach reason; items missing an assigned owner are routed to the operations queue for reassignment before escalation."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of items over SLA on the aging report equals count escalated; every breach has an escalation action. Breached-vs-escalated reconciliation must net to 0 daily."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The escalation notice, recipient and timestamp are recorded on the PolicyCenter submission and the operations dashboard; the SLA-breach report is archived to OpenText /underwriting/ops/sla/<yyyymm>/ with version."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Items still unactioned after first escalation are re-escalated to the UW Operations Manager and, if the breach risks losing the account, flagged for expedited handling; each logged with disposition."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rr03y0mbk8y3lmtov6" },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Before/after: the aging report is compared across consecutive runs to confirm escalated items are being cleared and the over-SLA backlog is trending down; the comparison is attached to the ops review."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "cmqsck0z103ycmbk8hpzcq8sd"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "Systemic SLA breaches (e.g. portal routing defects) are raised as a ServiceNow/ITSM ticket linked to the operations dashboard and the affected submissions."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "Monthly review of the full SLA-breach population for the unit from the PolicyCenter aging report (census, not a sample)."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = 100% of over-SLA items were escalated the same business day and cleared or re-escalated; FAIL = any breach left unescalated or aging beyond a second SLA window without action."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Persistent breaches are re-escalated to the UW Operations Manager with a remediation plan; root causes (staffing, routing) are addressed and tracked to closure."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = every SLA breach on the aging report has a same-day escalation to a named owner with a target resolution date."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence = the escalation log on the operations dashboard and the archived SLA-breach report in OpenText /underwriting/ops/sla/<yyyymm>/."
+        },
+        {
+          "answerId": "cmr2ocfzq0wshkaz37lvv9ouz",
+          "value": "In scope = items measured against their SLA effective dates in the current month; acknowledgement (4h), indication (48h) and firm-quote (5 business days) clocks start at the documented receipt/completeness timestamps on each submission."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppxd1oa2mbk82g6mira7",
+          "checklist": [
+            {
+              "step": "Escalate acknowledgement breaches",
+              "value": "Submissions not acknowledged within 4 hours are surfaced on the aging report and escalated to the owner the same business day."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test acknowledgement-breach handling",
+              "value": "For the monthly population, 100% of >4h items were escalated; 0 unescalated acknowledgement breaches."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpq051oa8mbk8dk8eyglb",
+          "checklist": [
+            {
+              "step": "Escalate quote-turnaround breaches",
+              "value": "Submissions past the 5-business-day firm-quote SLA are escalated to the assigned underwriter and operations for expedited handling."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify quote-SLA escalation",
+              "value": "Sampled >5-day items show an escalation with a target resolution date; 0 silent quote-SLA breaches."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "0686d8b7-1a86-436a-b2a8-75d271472eae",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Underwriter",
+        "Exposure Management Manager",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": ["Underwriting Assistant"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All broker inquiries, communications and commitments on a submission (calls, emails, portal messages, agreed subjectivities) captured in the underwriting file; scope = the correspondence and activity records tied to open submissions in PolicyCenter for this unit."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Continuous over the submission lifecycle; each material broker communication is logged contemporaneously, same business day, while the submission is open."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each log entry carries date/time, channel, broker contact, summary, and any commitment/subjectivity; entries lacking a summary or contact are flagged incomplete and returned to the author."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Logged communications reconcile to the email/portal trail: material broker exchanges have a matching file entry. Any gap between the communication channel and the file log is raised as a documentation exception."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Communication entries and attachments are retained on the PolicyCenter submission activity log and mirrored to OpenText /underwriting/new-business/<submission-id>/correspondence/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Verbal commitments (e.g. verbal binders) are logged and confirmed in writing within 24 hours; disputed or unclear commitments are flagged for underwriter confirmation and logged with disposition."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "Quarterly sample of 25 submissions; the file correspondence log is inspected against the underlying email/portal trail."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = 100% of material broker communications and commitments on sampled files are logged with date, contact and summary; FAIL = any material commitment (esp. verbal binder) missing from the file."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Missing entries found in review are back-filled from the source correspondence with a note; recurring under-logging is addressed through file-quality coaching."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions from the PolicyCenter activity data dictionary: activity_date, channel, broker_contact, summary, commitment_flag, subjectivity_reference."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = count of file communication entries reconciles to the count of inbound/outbound broker messages on the portal/email trail for the submission, with exceptions explained."
+        },
+        {
+          "answerId": "cmr2ocdwv0tuqkaz3p364f8wa",
+          "value": "Acceptance criteria: every material broker communication and commitment is logged contemporaneously with date, contact and summary, and verbal commitments are confirmed in writing within 24 hours. Evidence = the PolicyCenter activity log and correspondence folder in OpenText /underwriting/new-business/<submission-id>/correspondence/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Record all broker communications in the file",
+              "value": "Each broker inquiry, response and commitment is logged on the PolicyCenter submission with date, contact and summary."
+            },
+            {
+              "step": "Mirror correspondence to document management",
+              "value": "Emails and attachments are filed to OpenText under the submission's correspondence folder."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for logging completeness",
+              "value": "For 25 sampled submissions, 100% of material communications are logged; 0 material commitments missing from the file."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of communications",
+              "value": "Log entries are timestamped and immutable, preserving who communicated what and when."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit-trail integrity",
+              "value": "Sampled entries show intact timestamps and author IDs; 0 back-dated or unattributed entries."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

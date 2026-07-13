@@ -1,0 +1,1638 @@
+{
+  "tasks": [
+    {
+      "id": "2d4c3b18-71f0-49d0-b42d-5bba876f0411",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All bound-stage quotes whose broker bind request has been received; scope = one submission's quote and its attached bind conditions in Guidewire PolicyCenter (e.g. quote QUO-#### under submission SUB-####)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The quote's stated validity window, from quote-issue date to expiry (typically 30 days); confirmation is performed on the day the bind request is received and only against quotes still inside that window."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Quote number, effective date, expiry date, premium, limits/deductibles and every attached subjectivity are populated and match the approved offer; any blank or altered field halts confirmation."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of conditions on the quote equals the count tracked in the underwriting workstation subjectivities register (delta = 0); premium on the quote reconciles to the rating-engine output to the cent."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Confirmation note plus a PDF of the validated quote are filed to OpenText under /UW/<policy-no>/bind/ with timestamp and version v-n; retained 7 years per the file-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "An expired quote or unmet condition is logged in the underwriting workstation as an exception with disposition (re-quote / extend validity on Senior Underwriter approval / decline) and reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Each confirmed quote traces to the underwriter's approved-offer screen and rating worksheet in PolicyCenter; each bind-checklist line links to its source condition record."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Quote status is advanced to 'Ready to Bind' only once validity is confirmed; status is never advanced while any subjectivity remains open."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Effective date is within the permitted lead window and expiry date is on/after today; quote-issued and confirmation dates are recorded and internally consistent."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "25 bound files per quarter sampled from PolicyCenter, spread across personal, commercial and specialty lines."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = quote in-date and every attached condition satisfied at bind for 100% of sampled files; FAIL = any file bound on an expired quote or with an unsatisfied condition."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Any fail is routed to a Senior Underwriter; the policy is flagged for endorsement/correction and logged as an exception with a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Files with bind dates in the review quarter; quote validity is assessed as of each file's own bind date."
+        },
+        {
+          "answerId": "cmr2ocg0f0xpnkaz32ye1ic8n",
+          "value": "Acceptance criteria: quote unexpired at bind and every attached condition evidenced as met. Evidence = validated-quote PDF plus condition checklist in OpenText /UW/<policy-no>/bind/, cross-linked from the PolicyCenter bind record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpq051oa8mbk8dk8eyglb",
+          "checklist": [
+            {
+              "step": "Confirm the quote was issued within the firm-quote service standard",
+              "value": "Quote-issued date in PolicyCenter is within 5 business days of a complete submission; any SLA breach is flagged on the file before bind."
+            },
+            {
+              "step": "Confirm the quote remains a firm, unexpired offer at bind",
+              "value": "Quote status is 'Firm' and current date is on/before the stated expiry; expired quotes are re-quoted rather than bound."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify quote turnaround on sampled files",
+              "value": "For 25 sampled files, quote-issued minus submission-complete date is <=5 business days for at least 95%."
+            },
+            {
+              "step": "Verify no bind on stale quotes",
+              "value": "0 sampled files bound after quote expiry without a documented Senior Underwriter validity extension."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Confirm the underwriting file documents the validity check",
+              "value": "A dated confirmation note and validated-quote PDF are present in OpenText /UW/<policy-no>/bind/ before status advances to Ready to Bind."
+            },
+            {
+              "step": "Confirm all attached conditions are evidenced in the file",
+              "value": "Each subjectivity has supporting evidence linked from the file; unresolved items keep the file open."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect file completeness on a sample",
+              "value": "For 25 sampled bound files, 100% contain the validity confirmation note and validated-quote artifact."
+            },
+            {
+              "step": "Trace conditions to evidence",
+              "value": "Every condition on sampled files traces to a stored evidence item; 0 undocumented conditions."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "f3ec8f5d-12c0-4e6b-821f-fccde0a37787",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Bind packages awaiting issuance; scope = the signed application and the broker's order for one submission (SUB-####) held against the PolicyCenter bind record."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From receipt of the bind request to bind; the signed application and order must be on file before the policy is bound in the current bind cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Signed application carries applicant signature and date; broker order references the correct quote number, effective date and limits; both are legible and complete before receipt is confirmed."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Two required documents (signed application + broker order) are present and matched to the submission (2 of 2); a missing document blocks bind."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Both documents are indexed in OpenText under /UW/<policy-no>/bind/ with receipt timestamp and version, and the bind checklist line is marked complete in PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Missing or unsigned documents are logged as a bind exception in the underwriting workstation with disposition (chase broker / hold bind) and a follow-up date."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowzc1mtcmbk8r1advjqt",
+          "checklist": [
+            {
+              "step": "Confirm minimum documentation is present before bind",
+              "value": "Signed application and broker order are received and indexed before the bind record is progressed; incomplete packages are not bound."
+            },
+            {
+              "step": "Match documents to the quoted submission",
+              "value": "Order references the same quote number, effective date and limits as the approved offer in PolicyCenter."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample bind files for required documents",
+              "value": "For 25 sampled bound files, both signed application and broker order are on file for 100%."
+            },
+            {
+              "step": "Verify document-to-quote consistency",
+              "value": "0 sampled files where the order terms differ from the bound quote without a documented endorsement."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Index bind documents to the underwriting file",
+              "value": "Signed application and order stored in OpenText /UW/<policy-no>/bind/ with receipt timestamp and version."
+            },
+            {
+              "step": "Record receipt on the bind checklist",
+              "value": "Bind checklist 'documents received' line marked complete with the receiving user and date in PolicyCenter."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect file for filed documents",
+              "value": "100% of sampled files show both documents filed and the checklist line completed."
+            },
+            {
+              "step": "Verify timestamp integrity",
+              "value": "Receipt timestamps precede the bind date on all sampled files; 0 back-dated receipts."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "9e312d4c-3616-44ec-a0a9-bbc52da3aa39",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Syndicated / shared-line placements requiring co-underwriter concurrence; scope = one shared-line program's binder where our written line is less than 100% (e.g. 40% of a quota-share panel)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Between agreement of terms and bind; co-underwriter sign-off must be captured before the binder is issued in the current bind cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Line percentage, participating carriers, agreed terms and the signing co-underwriter's name/date are populated; the signed line-slip or subscription agreement is attached before sign-off is recorded."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Sum of subscribed line percentages equals 100% and our written line matches the authority granted; any shortfall or over-placement is a reconciliation failure that blocks bind."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Signed line-slip and co-underwriter sign-off are filed in OpenText /UW/<policy-no>/bind/ with timestamp and version and linked from the PolicyCenter bind record."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Missing or partial sign-off is logged as a bind exception with disposition (chase co-underwriter / reduce our line / decline) and reason in the underwriting workstation."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Each sign-off traces to the signed subscription agreement / line-slip and to the panel record in PolicyCenter; the binder references the same participants."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Binder status is 'Held - awaiting co-UW sign-off' until all required signatures are captured, then advanced to Bound."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Sign-off date is on/before the bind date and within the quote validity window; agreement and bind dates are recorded and consistent."
+        },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The concurrence decision (accept / accept-with-changes / decline) and the agreed line percentage are documented on the bind record and in the signed slip."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Sign-off confirmation is communicated to the broker and the participating carriers; recipients (broker, panel carriers, internal file) are recorded on the bind note."
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "All shared-line binders issued in the quarter (census where volume is low), otherwise 25 sampled shared-line files."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = documented co-underwriter sign-off present and lines summing to 100% for 100% of shared-line binds; FAIL = any shared-line bound without recorded concurrence."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "Any fail is escalated to a Senior Underwriter, the binder is suspended pending signature, and an exception is logged with a 5-business-day remediation SLA."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "Authority to bind shared/syndicated lines follows authority matrix v3.2 by premium, limit and line of business; the delegation record is referenced on the file."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Confirm the signer holds authority for the line and limit",
+              "value": "Co-underwriter/approver authority checked against authority matrix v3.2 for the premium, limit and line of business before sign-off is accepted."
+            },
+            {
+              "step": "Confirm our written line is within granted authority",
+              "value": "Our participation percentage and net line are within the underwriter's binding authority for the program."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample shared-line binds against the authority matrix",
+              "value": "For sampled shared-line files, 100% show sign-off by a role within authority for the line and limit."
+            },
+            {
+              "step": "Verify no over-authority binds",
+              "value": "0 sampled files bound above the underwriter's authority without documented referral approval."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Refer shared-line concurrence to the correct authority level",
+              "value": "Where the placement exceeds the underwriter's authority, a referral with recommendation is raised to the next authority level and recorded."
+            },
+            {
+              "step": "Attach the recommendation to the referral",
+              "value": "Referral carries the underwriter's rationale and recommended line before higher-level sign-off."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify referrals for over-authority placements",
+              "value": "100% of sampled over-authority shared-line placements have a documented referral and recommendation."
+            },
+            {
+              "step": "Confirm sign-off follows the referral",
+              "value": "Approval by the next authority level is dated after the referral on all sampled cases."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "1c27413d-5e26-449e-8cbf-6445708de9df",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Inbound bind requests from brokers/MGAs; scope = one binder instruction for a quoted submission (SUB-####) logged into PolicyCenter's bind queue."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The bind-request intake window; the request is logged the same business day it is received and time-stamped for the effective-date reckoning."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Requesting broker/MGA, quote number, requested effective date/time, and the instruction source (email/portal) are captured; requests missing an effective date or quote reference are returned to the broker."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Each received request creates exactly one bind-queue record linked to one quote (1:1); duplicate or orphan requests are identified and merged/rejected."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The original instruction (email/portal message) is filed to OpenText /UW/<policy-no>/bind/ with received timestamp and version and attached to the bind-queue record."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Incomplete or ambiguous requests are logged as intake exceptions with disposition (clarify with broker / hold) and a follow-up timestamp in the underwriting workstation."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Each logged request traces to the original broker instruction and to the quote it references; the bind-queue entry links both."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Bind-queue status is set to 'Request Received' on logging and moves to 'Conditions Verification' only after intake fields are validated."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Received timestamp and requested effective date/time are recorded; requested effective date is not earlier than the received date unless a documented back-date is approved."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "25 bind-queue records per quarter sampled from PolicyCenter across intake channels (portal and email)."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = request logged same day with original instruction attached and linked to a valid quote for 100% of sampled records; FAIL = any request bound with no logged/attached instruction."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Any fail is corrected by attaching the source instruction or is escalated to a Senior Underwriter; logged as an exception with 5-business-day remediation."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance criteria: a bind-queue record exists with requesting party, quote reference, effective date and the original instruction attached before conditions verification begins."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence lives in PolicyCenter's bind-queue record and OpenText /UW/<policy-no>/bind/; the instruction email/portal message is the source of record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp3v1o8gmbk8cr3fdcp0",
+          "checklist": [
+            {
+              "step": "Log and document the bind instruction promptly",
+              "value": "Verbal or written bind instructions are captured in the bind queue and documented within 24 hours, with the original message attached."
+            },
+            {
+              "step": "Record the requested effective date/time",
+              "value": "Effective date/time is recorded at intake so cover inception is unambiguous."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify timeliness of documentation",
+              "value": "For sampled binds, 100% of instructions are documented within 24 hours of receipt."
+            },
+            {
+              "step": "Verify instruction is attached",
+              "value": "0 sampled bind records lack the original broker instruction."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp161o8cmbk8jeoutzfd",
+          "checklist": [
+            {
+              "step": "Route the request only to authorized binding staff",
+              "value": "Bind-queue records are actioned only by roles with binding authority per authority matrix v3.2; intake staff log but do not bind above authority."
+            },
+            {
+              "step": "Confirm requester is an appointed producer",
+              "value": "Requesting broker/MGA is validated as appointed for the line/state before the request advances."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify actioning by authorized personnel",
+              "value": "100% of sampled bind records show the binding action taken by a role within authority."
+            },
+            {
+              "step": "Verify producer validity at intake",
+              "value": "0 sampled requests advanced from an unappointed producer."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "18380ceb-3053-4bc8-9e17-0cb7ffc9a60b",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [],
+      "addApps": [
+        { "name": "underwriting workstation", "usageType": "performed" },
+        { "name": "OpenText Document Mgmt", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All outstanding subjectivities on a bound risk; scope = the subjectivities register for one policy (POL-####) reconciled against the terms recorded on the binder in PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From bind to the subjectivity-clearance deadline (typically 30-60 days post-inception); reconciliation runs until every subjectivity is matched or actioned within that window."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each subjectivity has description, owner, due date, status and evidence link; the bound terms carry matching wording. Blank status or missing evidence marks the item unresolved."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of subjectivities in the register equals the count of conditions on the binder (delta = 0); every open item maps to exactly one bound term."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The reconciliation worksheet and cleared-subjectivity evidence are filed to OpenText /UW/<policy-no>/bind/ with timestamp and version; retained per file-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Unmatched or overdue subjectivities are logged as exceptions with disposition (waive with Senior Underwriter approval / cancel for non-compliance / extend) and reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document each subjectivity and its clearance evidence",
+              "value": "Every subjectivity is recorded in the register with evidence filed in OpenText before it is marked cleared."
+            },
+            {
+              "step": "Reconcile register to bound terms",
+              "value": "Subjectivities register is matched line-by-line to the binder conditions and any variance is documented."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect files for subjectivity clearance",
+              "value": "For 25 sampled bound files, 100% show every subjectivity either cleared-with-evidence or under a documented disposition."
+            },
+            {
+              "step": "Verify no untracked conditions",
+              "value": "0 sampled binder conditions absent from the subjectivities register."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of subjectivity status changes",
+              "value": "Each status change (open to cleared/waived) is time-stamped with the acting user in the underwriting workstation."
+            },
+            {
+              "step": "Record approvals for waivers/extensions",
+              "value": "Waivers or extensions carry the approving Senior Underwriter and rationale on the record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit-trail completeness",
+              "value": "100% of sampled cleared/waived subjectivities have a complete status-change history with user and timestamp."
+            },
+            {
+              "step": "Verify approval capture on waivers",
+              "value": "0 sampled waivers lack a recorded approver."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "8e5449b6-cfb3-4a45-b395-ed868ec17b57",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Underwriting Assistant",
+        "Exposure Management Manager",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": ["Sanctions Analyst"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [
+        {
+          "name": "Sanctions screening system (LexisNexis Bridger/FircoSoft)",
+          "usageType": "performed"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Every named party on the risk immediately before bind - insured, additional insureds, beneficial owners, and payer; scope = one submission's party set screened against OFAC SDN and consolidated sanctions lists."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Point-of-bind: the final clearance is run within the same business day as bind and against the current-day sanctions list version; stale clearances (list refreshed since) are re-run."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "newApplication": "Sanctions screening system (LexisNexis Bridger/FircoSoft)"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Full legal name, address, DOB/entity identifiers of each party are passed to the screening engine; the run returns a clear/hit disposition, match score and list version. Any missing identifier blocks the clear result."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Number of parties screened equals number of parties on the submission (delta = 0); each party has exactly one adjudicated screening result before bind."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The screening result (clear certificate or hit-adjudication record) with list version and timestamp is filed to the GRC platform and OpenText /UW/<policy-no>/bind/, versioned and retained 5 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A potential match is held (bind blocked), escalated to the Sanctions Analyst for adjudication, and dispositioned as false-positive (documented) or true hit (block/reject and report); all logged with reason."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Each screening result traces to the party record in PolicyCenter and to the screening-engine transaction ID; the bind record links the clear certificate."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Bind status cannot advance to Bound while any party carries an unadjudicated hit; status 'Sanctions Clear' is a hard gate before issuance."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Screening date/time equals or precedes the bind date and uses the list version effective on that date; screening and bind timestamps are recorded and consistent."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "100% of bound policies in the quarter (census) checked for a point-of-bind clearance record; 25 files deep-sampled for adjudication quality."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = every bound policy has a same-day clear result against the current list for all parties; FAIL = any policy bound without clearance or with an unadjudicated hit."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "A confirmed true hit blocks/reflects the transaction, is reported to OFAC within the required window, and the risk is not bound; false positives are documented by the Sanctions Analyst and released."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Policies with bind dates in the review quarter; clearance assessed as of each policy's bind date and list version in force then."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp4u1o8imbk8fwfbmrnd",
+          "checklist": [
+            {
+              "step": "Screen all insureds and related parties before binding",
+              "value": "Every party on the risk is screened against OFAC/consolidated lists at point-of-bind; bind is gated on a clear result."
+            },
+            {
+              "step": "Re-run screening when the list has refreshed",
+              "value": "If the sanctions list version changed since the last screen, clearance is re-run before issuance."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify pre-bind screening coverage",
+              "value": "100% of bound policies in the sample carry a point-of-bind clear certificate for all parties."
+            },
+            {
+              "step": "Verify list currency at bind",
+              "value": "0 sampled binds cleared against a superseded list version."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of the screening and adjudication",
+              "value": "Screening transaction ID, list version, match score and adjudicator are recorded in the GRC platform for each bind."
+            },
+            {
+              "step": "Document hit dispositions",
+              "value": "Every potential match has a written false-positive rationale or true-hit action on file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit-trail completeness",
+              "value": "100% of sampled screenings have a full audit record (transaction ID, list version, adjudicator)."
+            },
+            {
+              "step": "Verify hit dispositions are documented",
+              "value": "0 sampled potential matches released without a documented rationale."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc4un5705tlv8f8ca0pixmu",
+          "checklist": [
+            {
+              "step": "Interdict and hold potential sanctions matches before bind",
+              "value": "Any potential match halts the bind and routes to the Sanctions Analyst for adjudication before cover is granted."
+            },
+            {
+              "step": "Escalate confirmed matches for blocking action",
+              "value": "Confirmed hits are escalated for block/reject and reporting; the risk is not bound."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify holds fire on potential matches",
+              "value": "In a controlled test, seeded SDN-like names are held and escalated 100% of the time; 0 auto-cleared."
+            },
+            {
+              "step": "Verify escalation of true hits",
+              "value": "0 sampled confirmed matches proceeded to bind without blocking/escalation."
+            }
+          ]
+        },
+        {
+          "regId": "cmrc4umlc05spv8f8kjcl0it6",
+          "checklist": [
+            {
+              "step": "Refresh screening on every OFAC list update",
+              "value": "The screening engine ingests each OFAC list update and pending binds are re-screened against the new version."
+            },
+            {
+              "step": "Record the list version used at bind",
+              "value": "The list version and effective date are stamped on the clear certificate for each bind."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify list updates are applied",
+              "value": "Screening-engine list version matches the latest published OFAC update within the required refresh SLA."
+            },
+            {
+              "step": "Verify re-screening of open binds",
+              "value": "0 pending binds cleared on a list version older than the current OFAC update."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "acec48c2-c078-455a-a0f7-32ebabd9e85b",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [
+        { "name": "underwriting workstation", "usageType": "performed" },
+        { "name": "OpenText Document Mgmt", "usageType": "memorialized" }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Pre-bind loss-control and warranty conditions on a risk requiring survey; scope = one property/commercial submission's inspection report, loss-control recommendations and policy warranties held against the PolicyCenter bind record."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From order of the survey to bind; inspection and warranty prerequisites must be documented and cleared before the policy is bound in the current cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Inspection date, surveyor, risk grade, open recommendations and each warranty (with compliance status) are populated; the survey report is attached. Missing report or open critical recommendation blocks bind."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of warranties/recommendations on the bind checklist equals the count in the inspection report (delta = 0); every prerequisite maps to a cleared or dispositioned line."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Inspection report and warranty-compliance evidence are filed to OpenText /UW/<policy-no>/bind/ with timestamp and version and linked from the bind record; retained per retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Open recommendations or unmet warranties are logged as exceptions with disposition (warranty with compliance date / risk-improvement subjectivity / decline) and reason in the underwriting workstation."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Each cleared prerequisite traces to the surveyor's inspection report and the warranty schedule; the bind checklist links the source document."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Bind status stays 'Conditions Verification' until inspection and warranties are cleared, then advances to Ready to Bind."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Inspection date is recent enough per underwriting guidelines and warranty compliance dates are recorded; survey and bind dates are consistent."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "25 survey-required bound files per quarter sampled from PolicyCenter across property and commercial lines."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = inspection report on file and all warranties/critical recommendations cleared or dispositioned for 100% of sampled files; FAIL = any file bound with an open critical recommendation or missing survey."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Any fail is escalated to a Senior Underwriter; the policy is flagged for a compliance-date warranty or endorsement and logged as an exception with a 10-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Files with bind dates in the review quarter; inspection/warranty status assessed as of each file's bind date."
+        },
+        {
+          "answerId": "cmr2ocdxf0ukvkaz36cfawy9f",
+          "value": "Source-system field definitions: bind-checklist fields (warranty_status, recommendation_status, inspection_date, risk_grade) are defined in the PolicyCenter underwriting data dictionary; control total = count of warranties/recommendations reconciled between the inspection report and the bind checklist (delta = 0)."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document inspection and warranty clearance in the file",
+              "value": "Inspection report and warranty-compliance evidence are filed and linked before status advances to Ready to Bind."
+            },
+            {
+              "step": "Record disposition of open recommendations",
+              "value": "Each open recommendation is dispositioned (warranty/subjectivity/decline) with rationale on the file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect files for survey evidence",
+              "value": "For 25 sampled survey-required files, 100% contain the inspection report and warranty status."
+            },
+            {
+              "step": "Verify recommendation disposition",
+              "value": "0 sampled files bound with an undocumented open critical recommendation."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of prerequisite clearance",
+              "value": "Each warranty/recommendation status change is time-stamped with the acting user in the underwriting workstation."
+            },
+            {
+              "step": "Capture approvals for warranty waivers",
+              "value": "Any waiver or extended compliance date carries the approving Senior Underwriter and reason."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit-trail completeness",
+              "value": "100% of sampled cleared prerequisites have a complete status-change history."
+            },
+            {
+              "step": "Verify waiver approvals",
+              "value": "0 sampled warranty waivers lack a recorded approver."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "90d57d57-1875-4782-af8b-69df2ba976c6",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Producer Compliance Manager"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The producing broker/agent on a binding submission; scope = verification that the producer's license and carrier appointment are active for the risk state and line of business (e.g. commercial property in TX) via the producer record in PolicyCenter and NIPR."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Before bind and current as of the bind date; license and appointment status must be active on the effective date, re-checked if the prior verification is stale."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Producer NPN, license number, license state(s), lines of authority, appointment status and expiry are populated and active; an expired license or missing appointment for the state/LOB blocks bind."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Producer's authorized state/LOB set covers the risk's state and line (100% coverage of required combinations); any gap is a verification failure."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The NIPR/license verification result is captured on the producer record and filed to OpenText /UW/<policy-no>/bind/ with timestamp and version; retained per retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "An unlicensed/unappointed producer is logged as a compliance exception with disposition (appoint before bind / reassign to licensed producer / decline) and reason; escalated to Producer Compliance."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Each verification traces to the NIPR/state DOI record and the internal producer master; the bind checklist links the verification result."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Bind status cannot advance while the producer's licensing line shows 'Not Verified' or 'Expired'; 'Producer Verified' is required before issuance."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "License and appointment expiry dates are on/after the policy effective date; verification date is recorded and current relative to bind."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "25 bound files per quarter sampled across producers, states and lines of business."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = producer license and appointment active for the risk state/LOB at bind for 100% of sampled files; FAIL = any file bound through an unlicensed or unappointed producer."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Any fail is escalated to Producer Compliance; the policy is held or reassigned to a licensed producer and logged as an exception with a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Files with bind dates in the review quarter; license/appointment status assessed as of each file's effective date."
+        },
+        {
+          "answerId": "cmr2ocfz20vwnkaz36f76hpbq",
+          "value": "Acceptance criteria: producer license active and carrier appointment in force for the risk's state and line of business at the effective date. Evidence = NIPR/state verification result on the producer record and filed to OpenText /UW/<policy-no>/bind/, linked from the PolicyCenter bind checklist."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp961o8qmbk8sb62ln4z",
+          "checklist": [
+            {
+              "step": "Confirm producer authority for the state and line",
+              "value": "License and appointment are validated for the risk state and line of business; surplus-lines placements confirm broker eligibility before bind."
+            },
+            {
+              "step": "Confirm surplus-lines diligence where applicable",
+              "value": "For non-admitted placements, surplus-lines broker licensing and diligent-search/affidavit requirements are checked and filed."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample binds for producer authority",
+              "value": "100% of sampled bound files show an active license and appointment for the state/LOB."
+            },
+            {
+              "step": "Verify surplus-lines compliance",
+              "value": "0 sampled non-admitted placements lack the required surplus-lines broker licensing evidence."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the license verification result",
+              "value": "NIPR/state verification result is stored on the producer record and in OpenText before bind."
+            },
+            {
+              "step": "Record verification date and verifier",
+              "value": "The verifying user and date are captured on the bind checklist."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect files for verification evidence",
+              "value": "100% of sampled files contain the license/appointment verification result."
+            },
+            {
+              "step": "Verify currency of verification",
+              "value": "0 sampled files rely on a verification stale as of the effective date."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "d4898898-0d6e-4e8c-8aa7-6fc237985d74",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["ERP/General ledger (SAP/Oracle/Workday Financials)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Pre-bind premium-payment and warranty conditions on a risk; scope = one submission's premium-payment commitment (or payment-warranty terms) and any premium warranties, held against the PolicyCenter bind record and the billing platform."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Before bind and up to the premium-payment warranty date; verification confirms the payment commitment and warranty compliance in the current bind cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Premium amount, payment terms, premium-payment warranty date and any premium warranties are populated and match the bound terms; the payer is identified for screening. Missing payer or terms blocks bind."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Premium recorded on the bind record reconciles to the invoice raised in the billing platform (delta = 0); each premium warranty maps to a tracked compliance date."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Payment-commitment evidence and warranty terms are filed to OpenText /UW/<policy-no>/bind/ and cross-referenced to the billing record with timestamp and version; retained per retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A missing commitment or unmet premium warranty is logged as an exception with disposition (payment-warranty with cancellation clause / hold bind / decline) and reason in the underwriting workstation."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Each verified item traces to the billing invoice and the payer record; the bind checklist links the payment-commitment and warranty evidence."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Bind status stays in Conditions Verification until premium commitment and warranty compliance are confirmed; 'Premium Verified' gates issuance."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Premium-payment warranty date is on/after the effective date and monitored; invoice and bind dates are recorded and consistent."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "25 bound files per quarter sampled where premium-payment warranties apply."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = documented payment commitment and warranty compliance evidenced for 100% of sampled files, premium reconciled to billing; FAIL = any file bound without a payment commitment or with an unmet premium warranty."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Any fail is escalated to a Senior Underwriter; the policy is held or issued with a premium-payment/cancellation warranty and logged as an exception with a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Files with bind dates in the review quarter; payment/warranty status assessed as of each file's bind date and warranty date."
+        },
+        {
+          "answerId": "cmr2ocdxe0ukckaz3hnxfrov9",
+          "value": "Source-system field definitions: premium and warranty fields (gross_premium, payment_terms, premium_payment_warranty_date, payer_id) are defined in the policy-admin and billing data dictionaries; control total = bound premium reconciled between the PolicyCenter bind record and the billing invoice (delta = 0)."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpph41o96mbk860mhz8r7",
+          "checklist": [
+            {
+              "step": "Confirm premium meets the minimum and matches the offer",
+              "value": "Bound premium is at or above the filed minimum premium and equals the approved-offer premium before issuance."
+            },
+            {
+              "step": "Confirm a payment commitment is in place",
+              "value": "A documented payment commitment or premium-payment warranty is on file before bind."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile premium to billing",
+              "value": "For sampled files, bound premium equals the billing invoice with 0 variance and is at/above minimum."
+            },
+            {
+              "step": "Verify payment commitment presence",
+              "value": "0 sampled files bound without a documented payment commitment or warranty."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp4u1o8imbk8fwfbmrnd",
+          "checklist": [
+            {
+              "step": "Screen the premium payer before accepting funds",
+              "value": "The identified payer is included in pre-bind sanctions screening; funds are not accepted from an unscreened or hit party."
+            },
+            {
+              "step": "Link payer identity to the billing record",
+              "value": "Payer on the billing invoice matches the screened party on the submission."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify payer screening",
+              "value": "100% of sampled files show the payer covered by the pre-bind sanctions clearance."
+            },
+            {
+              "step": "Verify payer-to-invoice match",
+              "value": "0 sampled files where the billing payer differs from the screened party without re-screening."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc4umb805sbv8f88guwzew3",
+          "checklist": [
+            {
+              "step": "Screen premium payments at billing",
+              "value": "The payer and payment instruction are screened against sanctions lists at the billing/collection point before premium is applied."
+            },
+            {
+              "step": "Hold suspect payments",
+              "value": "Payments from a potential-match payer are held and escalated rather than applied to the policy."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify billing-point screening",
+              "value": "100% of sampled premium receipts show a payer screening result before application."
+            },
+            {
+              "step": "Verify holds on suspect payers",
+              "value": "0 sampled payments from a flagged payer applied without adjudication."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "af89ad72-d827-46a8-bc82-845325206e6b",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Reinsurance Analyst", "Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Large or complex risks whose net line exceeds treaty capacity and require facultative or treaty confirmation; scope = one submission's reinsurance capacity confirmation held against the PolicyCenter bind record and the reinsurance system."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Before bind; the facultative placement or treaty capacity availability must be confirmed for the risk period prior to issuance in the current bind cycle."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Gross line, retained net line, ceded amount, reinsurer(s), and facultative confirmation reference are populated; the signed fac cover note or treaty capacity check is attached. Net line above retention without confirmed cession blocks bind."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Gross line equals retained net line plus confirmed ceded capacity (delta = 0); the net retained line is within the treaty retention and per-risk limit."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Facultative cover note / treaty capacity confirmation is filed to OpenText /UW/<policy-no>/bind/ and recorded in the reinsurance system with timestamp and version; retained per retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Unconfirmed or shortfall capacity is logged as an exception with disposition (reduce line to retention / secure fac before bind / decline) and reason; escalated to the Reinsurance Analyst."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "The capacity confirmation traces to the signed fac cover note / treaty schedule and the reinsurance-system cession record; the bind checklist links the confirmation."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Bind status stays 'Awaiting Reinsurance Confirmation' until capacity is confirmed for lines exceeding retention, then advances to Ready to Bind."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Reinsurance confirmation covers the policy period and is dated on/before bind; cession and bind dates are recorded and consistent."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All bound risks over the per-risk retention in the quarter (census where volume is low), otherwise 25 sampled large/complex files."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = confirmed reinsurance capacity in place before bind for 100% of over-retention risks; FAIL = any over-retention risk bound without confirmed cession."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Any fail is escalated to the Reinsurance Analyst and a Senior Underwriter; the line is reduced to retention or the bind is held and logged as an exception with a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Risks with bind dates in the review quarter; capacity confirmation assessed as of each risk's bind date and policy period."
+        },
+        {
+          "answerId": "cmr2ocdwc0t4xkaz3w5vcj3p2",
+          "value": "Materiality/tolerance threshold: reinsurance confirmation is mandatory whenever the gross line exceeds the treaty per-risk retention; net retained line must be within the treaty retention and per-risk limit, with 0 tolerance for binding above confirmed capacity."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppa51o8smbk82mw0frsj",
+          "checklist": [
+            {
+              "step": "Ensure large/complex risks receive the required review before bind",
+              "value": "Risks over the referral threshold receive actuarial/technical review and confirmed reinsurance support prior to binding."
+            },
+            {
+              "step": "Confirm capacity supports the exposure",
+              "value": "Confirmed treaty or facultative capacity covers the ceded portion of the exposure for the policy period."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample large accounts for pre-bind review",
+              "value": "100% of sampled over-threshold risks show the required review and reinsurance confirmation on file."
+            },
+            {
+              "step": "Verify capacity adequacy",
+              "value": "0 sampled over-retention risks bound with unconfirmed or shortfall capacity."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Confirm the net line is within binding authority",
+              "value": "Retained net line after cession is within the underwriter's authority for premium, limit and line of business per authority matrix v3.2."
+            },
+            {
+              "step": "Refer lines exceeding authority",
+              "value": "Where net exposure exceeds authority even after cession, a referral is raised before bind."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify net line against authority",
+              "value": "100% of sampled over-retention binds show a net line within authority or a documented referral."
+            },
+            {
+              "step": "Verify referral completeness",
+              "value": "0 sampled over-authority net lines bound without referral approval."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fjd730w8mkfgzsfj3f2s8",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Legal Counsel", "Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter", "Pricing Actuary"],
+      "removeAppNames": ["GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [{ "name": "Earnix Rating & Pricing", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The approved life underwriting offer for one case; scope = calculation of the initial premium for policy POL-#### from the offered risk class, face amount, plan, and any table rating/flat extra, in the policy admin system and rating engine."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At issuance, after the underwriting decision and before policy delivery; premium is set using the rate table version in force on the policy effective date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Insured age/sex, risk class, face amount, plan code, rating (table/flat extra), modal factor and rate-table version are populated and match the approved offer; any mismatch halts premium set."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Rating-engine premium equals an independent recomputation from the filed rate table (delta = 0 to the cent); modal premium reconciles to the annual premium via the filed modal factor."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Premium calculation worksheet and rating-engine output are filed to OpenText /UW/<policy-no>/issue/ with timestamp and rate-table version; retained per retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A premium mismatch or out-of-table rating is logged as an exception with disposition (correct input / re-rate / actuarial referral) and reason before issuance."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The rate table / pricing model version is the filed, approved version for the plan and effective date; version ID is recorded on the calculation worksheet."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03w2mbk84o4w6iug" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity of premium to rating inputs (age, risk class, table) is bounded by the filed rate structure; a change of one risk class produces the filed rate step, checked as a reasonableness test."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Any premium variance above 1% versus the independent recomputation is material and must be resolved before issuance."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Each premium traces to the approved-offer risk class in the underwriting decision and to the filed rate table in Earnix; the issue record links both."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy status advances to 'Premium Set / Ready to Issue' only after the premium is calculated and reconciled; not before."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Effective date and rate-table version date are consistent; premium-calculation date is recorded and on/before issue."
+        },
+        {
+          "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "25 issued life policies per quarter sampled across plans and risk classes."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = rating-engine premium equals independent recomputation to the cent using the correct filed table for 100% of sampled policies; FAIL = any premium variance above the cent-level tolerance or use of a superseded table."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "Any fail is corrected and re-rated; systemic discrepancies are referred to the Pricing Actuary and logged as an exception with a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "The filed, approved rate-table/pricing-model version for the plan and effective date (version ID recorded on the worksheet)."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "Rating parameters (mortality/rate table, modal factors, policy fees) are sourced from the filed rate manual loaded in Earnix; no manual overrides without actuarial approval."
+        },
+        {
+          "answerId": "cmr2ocdvr0sdfkaz38ymtcjq1",
+          "value": "Authorized approver: premium set is signed off by a Senior Underwriter within authority per authority matrix v3.2; rate deviations or non-standard ratings require Pricing Actuary approval. The delegation matrix reference is recorded on the issue record."
+        },
+        {
+          "answerId": "cmr2ocdvr0sdgkaz3v4elwl4q",
+          "value": "Source-system field definitions: rating inputs (risk_class, face_amount, plan_code, table_rating, modal_factor, rate_table_version) are defined in the policy-admin/Earnix data dictionary; control total = rating-engine premium reconciled to the independent recomputation from the filed table (delta = 0)."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Apply the filed rate table correctly",
+              "value": "Premium is computed from the filed, approved rate table for the plan and effective date; no unfiled rates are used."
+            },
+            {
+              "step": "Document any rate deviation with approval",
+              "value": "Any deviation from filed rates carries the required actuarial approval and rationale on the file."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Recompute premium against the filed table",
+              "value": "For 25 sampled policies, rating-engine premium equals the recomputation from the filed table to the cent for 100%."
+            },
+            {
+              "step": "Verify no unapproved deviations",
+              "value": "0 sampled policies use rates outside the filed table without documented approval."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppg71o94mbk8gdzbxh5q",
+          "checklist": [
+            {
+              "step": "Use the mandated pricing tool",
+              "value": "Premium is calculated in the approved rating engine (Earnix) loaded with the current filed rate manual, not in offline spreadsheets."
+            },
+            {
+              "step": "Confirm rate-manual version currency",
+              "value": "The rate-manual/table version loaded matches the filed version effective on the policy date."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify pricing-tool usage",
+              "value": "100% of sampled premiums are traceable to a rating-engine calculation record."
+            },
+            {
+              "step": "Verify rate-manual version",
+              "value": "0 sampled premiums computed on a superseded rate-manual version."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2flh2z1vumkfgzl7r6u4ci",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "billing/commission platform",
+        "ERP/General ledger (SAP/Oracle/Workday Financials)"
+      ],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Issued life underwriting files ready for closure; scope = one policy's underwriting file (POL-####) closed after issue and delivery, in the policy admin system and OpenText."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Post-issue: the file is closed once the policy is issued/delivered and all outstanding requirements are cleared, within the case-closure SLA (e.g. 5 business days after delivery)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Policy number, issue date, delivery confirmation, outstanding-requirement status and closure reason are populated; any open requirement or missing delivery confirmation prevents closure."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of open requirements at closure equals zero (or each remaining item has a documented post-issue disposition); the file's checklist reconciles to fully cleared."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The closed underwriting file (decision summary, evidence index, delivery receipt) is archived in OpenText /UW/<policy-no>/ with closure timestamp and version; retained per retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Any item remaining open at closure is logged as an exception with disposition (post-issue delivery requirement / reopen / waive with approval) and reason before the file is marked closed."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The underwriting decision and premium were set under the approved/filed methodology and rate-table version; the version is recorded in the file before closure."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Not model-driven at closure; closure applies a completeness check rather than a sensitivity analysis, so sensitivity thresholds are not applicable beyond confirming inputs were within filed ranges."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality for closure: any open mandatory requirement is material and blocks closure; only non-material administrative items may carry a documented post-issue disposition."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "The closed file traces to the underwriting decision, premium worksheet, and delivery receipt in the policy admin system; the closure record links the archived evidence index."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "File status moves to 'Closed' only when policy status is Issued/Delivered and all mandatory requirements are cleared; premature closure is blocked."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Closure date is on/after issue and delivery dates; issue, delivery and closure dates are recorded and consistent."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "25 closed life underwriting files per quarter sampled from the policy admin system."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = file closed only after issue/delivery with 0 open mandatory requirements and a complete archived file for 100% of sampled cases; FAIL = any file closed with an open mandatory requirement or missing delivery confirmation."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Any fail is reopened and remediated or the outstanding item is dispositioned by a Senior Underwriter; logged as an exception with a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Closure fields (issue_date, delivery_confirmed, open_requirement_count, closure_reason) are defined in the policy-admin underwriting data dictionary."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = count of open requirements at closure, which must reconcile to zero (or to items each carrying a documented disposition) on the file checklist."
+        },
+        {
+          "answerId": "cmr2ocg120yjykaz346ej0psx",
+          "value": "Approved methodology/model version and parameter source: the file records the filed rate-table/methodology version and rate-manual source under which the decision and premium were set, confirmed present in the archived file before closure."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Confirm the file is complete before closure",
+              "value": "Decision summary, premium worksheet, evidence index and delivery receipt are present and archived before the file is marked closed."
+            },
+            {
+              "step": "Record the closure reason and approver",
+              "value": "Closure reason and closing user are captured; supervisory approval recorded where required."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Inspect closed files for completeness",
+              "value": "For 25 sampled closed files, 100% contain the full underwriting decision and delivery evidence."
+            },
+            {
+              "step": "Verify no premature closure",
+              "value": "0 sampled files closed with an open mandatory requirement."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Preserve the audit trail on the archived file",
+              "value": "The file's decision and status history are retained intact in OpenText with timestamps and acting users."
+            },
+            {
+              "step": "Lock the file against unlogged change post-closure",
+              "value": "Reopen/amend actions after closure are logged with user, reason and timestamp."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit-trail retention",
+              "value": "100% of sampled closed files retain a complete, time-stamped decision and status history."
+            },
+            {
+              "step": "Verify post-closure changes are logged",
+              "value": "0 sampled files show post-closure edits without a logged reopen record."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

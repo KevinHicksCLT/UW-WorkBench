@@ -1,0 +1,1511 @@
+{
+  "tasks": [
+    {
+      "id": "bc9e4341-fc10-40f2-89f4-5695ec468a61",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager", "Compliance Analyst"],
+      "removeAppNames": [],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All statutory and market notifications triggered by the coverholder's offboarding for the single delegated-authority agreement in run-off: state DOI producer/broker-termination filings, Lloyd's Coverholder Reporting (Atlas/BAR) where applicable, and any reinsurer/treaty notices."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The run-off notification window: from the binder-termination effective date through the final statutory filing deadline (typically a 30-day notice period), e.g. 2026-07-01 to 2026-08-15."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each notification record in the Archer run-off register carries recipient body, statutory citation, due date, submission date, delivery method and acknowledgement reference; any record missing a citation or acknowledgement is rejected and returned to the analyst."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of notifications sent reconciles 1:1 to the offboarding notification checklist (one row per required regulator/counterparty); delta must be 0, and any missing item is raised as a gap in Archer."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Filed notices and acknowledgements stored in OpenText under /DelegatedAuthority/<coverholder>/run-off/regulatory/ with timestamp and version v<n>; retained 7 years per the records-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Any notice that cannot be filed by its deadline is logged in Archer as an exception with disposition (extension requested / late-filed / waived), owner = Delegated Authority Manager, and a 5-business-day remediation SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "Each notice cites its governing rule — the state producer/broker-termination statute, Lloyd's Coverholder Reporting Standards, the relevant reinsurance treaty notice clause, and the DA agreement termination/run-off provisions."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "Notification evidence retained 7 years per the insurer/Lloyd's records policy; the retention flag is set on the OpenText folder and verified against the retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "All statutory notices filed within the required notice period (e.g. 30 days of termination); submission dates checked against each body's deadline, target 0 late filings."
+        },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The confirmation that all obligations are met is recorded as a sign-off memo in Archer referencing each notification and its acknowledgement."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Recipient list (state DOIs, Lloyd's, reinsurers, the coverholder) is captured on the notification register with contact and delivery method for each."
+        },
+        { "templateKeyId": "cmr2oapmt002rlasbojqqymeh", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "100% of the required notifications on the offboarding checklist for this coverholder (census, no sampling)."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = every required notification filed with an acknowledgement on file and within its deadline; FAIL = any required notice missing, unacknowledged, or late."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "On FAIL, escalate to the Delegated Authority Manager, file the outstanding notice immediately, and record a late-filing exception in Archer with a remediation date."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective from the binder-termination date through the last statutory filing deadline; only notifications due in this window are tested."
+        },
+        {
+          "answerId": "cmr2ocfyz0vrykaz3a87arr9d",
+          "value": "State producer/broker termination-notice statutes, Lloyd's Coverholder Reporting Standards, applicable reinsurance treaty notice provisions, and the delegated-authority agreement termination and run-off clauses."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document each required notification and its acknowledgement in the run-off file",
+              "value": "One record per regulator/counterparty in Archer with citation, deadline, submission date and acknowledgement reference; file complete before offboarding closes."
+            },
+            {
+              "step": "Store filed notices in the versioned run-off folder",
+              "value": "PDF of each notice and acknowledgement filed in OpenText /run-off/regulatory/ with version tag."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify notification file completeness",
+              "value": "Sample 100% of checklist rows; every row has a filed notice and acknowledgement, 0 gaps."
+            },
+            {
+              "step": "Confirm citations present",
+              "value": "Each notice records its statutory/contractual citation; 0 notices without a citation."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of who filed each notice and when",
+              "value": "Archer captures analyst, timestamp, method and acknowledgement for every notification action."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-trace the audit trail",
+              "value": "For a sample of notices, the Archer history shows submission and acknowledgement events in sequence; 0 unexplained gaps."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Record the confirmation decision promptly",
+              "value": "The 'obligations met' sign-off memo is entered in Archer within 24 hours of the final acknowledgement."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check decision timeliness",
+              "value": "Sign-off memo timestamp is within 24 hours of the last acknowledgement; exceptions documented."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2flfd51v1xkfgzja8qzj17",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant", "Business Analyst"],
+      "addParticipants": ["Delegated Authority Manager", "Access Management Analyst"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All system entitlements granted to the coverholder under the delegated-authority agreement being wound down: PolicyCenter binding/quoting rights, underwriting-workstation access, portal logins and any API keys tied to the coverholder code."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The deactivation window from binder-termination effective date to confirmed revocation, targeted to complete within 2 business days of termination (e.g. 2026-07-01 to 2026-07-03)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each access record shows the coverholder identity, entitlement type, system, revocation date and requesting analyst; records missing a system or revocation date are returned to access management for correction."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The count of entitlements revoked reconciles to the coverholder access inventory pulled from IAM/PolicyCenter; residual active entitlements after cut-off must equal 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Revocation confirmations (IAM tickets, PolicyCenter role-removal screenshots) filed in OpenText /DelegatedAuthority/<coverholder>/run-off/access/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Any entitlement that cannot be revoked by cut-off (e.g. shared service account) is logged as an exception in Archer with disposition and compensating control, owner = Delegated Authority Manager, 2-business-day SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "Access removal is required by the DA agreement termination clause and the underwriting authority policy that only authorised parties may bind; timeliness aligns to the insurer's joiners/movers/leavers standard."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "Access-revocation evidence retained 7 years; retention flag set on the OpenText folder and reconciled to the records schedule."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "Revocation completed within the 2-business-day internal SLA from the termination effective date; completion date checked against the SLA, 0 overdue."
+        },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The revoke-access decision and confirmation of zero residual entitlements is recorded on the offboarding checklist in Archer with the analyst and manager sign-off."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Coverholder contact, IT/access-management team and the DA relationship owner are notified of revocation; recipients recorded on the access-removal record."
+        },
+        { "templateKeyId": "cmr2oapmt002rlasbojqqymeh", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "100% of entitlements on the coverholder access inventory (census), plus a re-scan of IAM for any account referencing the coverholder code."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = 0 active entitlements remain for the coverholder after cut-off and every revocation has a confirmation; FAIL = any active login, binding right or key remains."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "On FAIL, immediately disable the residual entitlement, log an access exception in Archer, and escalate to the Delegated Authority Manager and CISO/access management."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective from the termination date; the re-scan is run at cut-off + 1 business day to confirm no residual access."
+        },
+        {
+          "answerId": "cmr2ocg100yhgkaz3j2d6fw55",
+          "value": "Source fields: coverholder_code, entitlement_id, system, role/permission, grant_date, revocation_date, requestor. Control total = active-entitlement count from the IAM/PolicyCenter inventory at cut-off, which must reconcile to 0 after revocation."
+        },
+        {
+          "answerId": "cmr2ocg100yhhkaz3rn7dp1dw",
+          "value": "DA agreement termination clause and the underwriting authority policy ('only authorised personnel can bind'), executed under the insurer's leavers access-revocation standard."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp161o8cmbk8jeoutzfd",
+          "checklist": [
+            {
+              "step": "Confirm no unauthorised party retains binding rights",
+              "value": "PolicyCenter binding entitlement for the coverholder is removed and verified; only authorised staff can bind on the affected book."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify binding rights revoked",
+              "value": "Attempt/query shows the coverholder can no longer bind; 0 residual binding entitlements."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Align remaining authority to the run-off state",
+              "value": "Any residual servicing access is limited to run-off tasks per the authority matrix; binding limits set to zero."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check authority limits",
+              "value": "Authority matrix shows the coverholder at zero binding limit; sampled entitlements match the documented run-off level."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Log every revocation action",
+              "value": "IAM/PolicyCenter records each removal with actor, timestamp and confirmation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-trace revocation audit trail",
+              "value": "For a sample, the audit log shows request, approval and revocation events; 0 gaps."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "ae6892be-344f-4b88-be7f-7df976f86f04",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Underwriting Assistant",
+        "Accountant",
+        "Business Analyst"
+      ],
+      "addParticipants": ["Delegated Authority Manager", "Coverholder Coordinator"],
+      "removeAppNames": [],
+      "addApps": [{ "name": "GRC platform (Archer/ServiceNow GRC)", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The single binding-authority (binder) agreement being terminated; scope = the coverholder's contract, its cessation date and the contractual notice period required to terminate it."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From the decision to terminate through service of notice and the confirmed cessation date (respecting the contractual notice period, e.g. 90 days): 2026-07-01 notice, 2026-09-30 cessation."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The termination notice records the binder reference, coverholder, notice date, notice period, cessation date and run-off basis; a notice missing the cessation date or contractual basis is not issued."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The cessation date on the issued notice reconciles to the binder's notice-period terms in PolicyCenter; the effective date recorded on the policy record matches the served notice with 0 variance."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The signed/served notice and delivery proof are filed in OpenText /DelegatedAuthority/<coverholder>/run-off/termination/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A disputed or contested cessation date is logged as an exception in Archer with disposition (renegotiate / legal review), owner = Delegated Authority Manager, and routed to Legal within 5 business days."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Document the termination decision and cessation date",
+              "value": "Decision, contractual notice period and confirmed cessation date recorded in PolicyCenter and Archer within 24 hours of the decision."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify decision documentation",
+              "value": "The termination decision record shows date, authoriser and cessation date; 0 undocumented decisions."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the served notice and proof of delivery",
+              "value": "Signed notice and delivery confirmation stored in the versioned run-off/termination folder."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm notice on file",
+              "value": "The issued notice and delivery proof are present and legible; cessation date matches the policy record."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppli1o9embk8y3bvlnlf",
+          "checklist": [
+            {
+              "step": "Respect the contractual/regulatory notice period",
+              "value": "Notice served no later than the required period before cessation; downstream policyholder non-renewal notices scheduled per state rules."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check notice period compliance",
+              "value": "Days between notice date and cessation date meet or exceed the contractual/state minimum; 0 short-notice terminations."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fia1y0drzkfgznltth4l0",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Underwriting Assistant",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Personal Lines Underwriter",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager"
+      ],
+      "addParticipants": ["Portfolio UW Manager"],
+      "removeAppNames": ["Legal matter management/e-billing system"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The in-force run-off book written under the terminated binder: all live policies on the coverholder's account still on risk, tracked through natural expiry, cancellation or transfer to wind-down."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The run-off period from binder cessation until the last in-force policy expires or is transferred (typically up to 12-18 months), reviewed monthly (e.g. 2026-10-01 onward)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each in-force record shows policy number, effective/expiry dates, premium, exposure, and run-off status; policies missing an expiry date or status flag are flagged for cleanup before the monthly review."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The in-force policy and premium totals in the monthly run-off report reconcile to PolicyCenter; the declining in-force count is tracked month over month with any unexpected additions investigated (delta explained to 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Monthly run-off registers and exposure reports filed in OpenText /DelegatedAuthority/<coverholder>/run-off/book/ with timestamp and version v<n>; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Any policy that cannot expire naturally (e.g. statutory continuation) is logged as an exception in Archer with disposition (transfer / mid-term cancel / continue), owner = Delegated Authority Manager, reviewed monthly."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "Each monthly run-off review decision (continue / cancel / transfer per policy cohort) is recorded in the Archer run-off register with the manager sign-off."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Run-off status is communicated to the Portfolio UW Manager, reinsurance, and finance; distribution list captured on the monthly report."
+        },
+        { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "The full in-force population on the coverholder account for the review month (census), reconciled against PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = in-force count and premium reconcile to PolicyCenter, all policies have a run-off status, and the book trends to zero on schedule; FAIL = unreconciled totals or policies without a status."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, correct the policy records, log the discrepancy in Archer, and escalate persistent stalled policies to the Delegated Authority Manager and Portfolio UW Manager."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance criteria: monthly run-off report produced, reconciled to PolicyCenter, every in-force policy carries a status, and the wind-down timeline is on track."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence in OpenText /run-off/book/ (monthly registers, reconciliation, exposure reports) and the Archer run-off register entry."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Maintain a documented monthly run-off register",
+              "value": "Each month's in-force list, statuses and reconciliation are filed in the versioned run-off/book folder."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify register completeness",
+              "value": "Every in-force policy appears with a status; register reconciles to PolicyCenter, 0 unexplained delta."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Keep an audit trail of run-off status changes",
+              "value": "PolicyCenter/Archer records who changed a policy's run-off status and when."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-trace status-change history",
+              "value": "For a sample of policies, status transitions are evidenced with actor and date; 0 gaps."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppse1o9smbk8sec8gva2",
+          "checklist": [
+            {
+              "step": "Require manager approval for run-off exceptions",
+              "value": "Mid-term cancellations or continuations outside the wind-down plan require Delegated Authority Manager approval with documented reason."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify exception approvals",
+              "value": "Each logged exception has a documented approval; 0 unapproved deviations from the run-off plan."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fljfi1x0jkfgzevdrgnw1",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager", "Claims Adjuster"],
+      "removeAppNames": [],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All open and recently-settled claims on the run-off binder book being monitored through to final resolution (payment, closure or subrogation/recovery complete)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The run-off claims period from binder cessation until the last claim closes and any recovery is complete; monitored monthly (e.g. 2026-10-01 through claim run-out)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each claim record in ClaimCenter shows status, reserve, paid-to-date, last-activity date and closure/recovery flag; claims missing a status or stale beyond 30 days are flagged for follow-up."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Open-claim count and outstanding reserves in the monthly run-off claims report reconcile to ClaimCenter; the declining open-claim count is tracked month over month with new claims investigated (delta explained)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Monthly claims run-off reports and closure evidence filed in the claim file/document repository and OpenText /run-off/claims/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Any claim stalled beyond SLA or in dispute is logged as an exception in Archer with disposition (escalate / litigate / commute), owner = Delegated Authority Manager, reviewed monthly."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled claim records trace to source ClaimCenter screens and the document repository (FNOL, adjuster notes, payment vouchers); 25 files per quarter checked."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Claim status values (open / reserved / settled / closed / reopened) align to the claims workflow; no claim sits in a non-terminal status past its expected run-out."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Date fields (loss date, last activity, closed date) are populated and consistent; closed claims have a closed date and no subsequent open activity."
+        },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "Each monthly monitoring conclusion (claims on track / escalated) is recorded in the Archer run-off register with manager sign-off."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Claims run-off status communicated to the Delegated Authority Manager, reinsurance recoveries and finance; recipients listed on the monthly report."
+        },
+        { "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "All open run-off claims for the review month (census) plus a 25-file quality sample of recently-closed claims."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = open-claim count and reserves reconcile to ClaimCenter, no claim stale beyond 30 days without action, and closed claims fully documented; FAIL = unreconciled reserves or stalled claims without disposition."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "On FAIL, chase the responsible adjuster, log the stalled claim in Archer, and escalate long-tail or disputed claims to the Delegated Authority Manager and Chief Claims Officer."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "Reserving and closure follow the current claims reserving methodology and run-off monitoring procedure (version referenced in the monthly report)."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "Reserve and paid figures sourced from ClaimCenter; recovery figures from the payment/subrogation system."
+        },
+        {
+          "answerId": "cmr2ocg150yn0kaz3s4lqi5xg",
+          "value": "Source fields: claim_number, status, reserve_amount, paid_to_date, loss_date, closed_date, recovery_amount. Control total = sum of outstanding reserves from ClaimCenter, reconciled to the monthly run-off claims report."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document monitoring of each open run-off claim",
+              "value": "Monthly run-off claims register with status, reserve and last activity filed in the versioned folder."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify claim monitoring file",
+              "value": "Every open claim has current status and last-activity date; 0 stale claims without follow-up."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of claim activity",
+              "value": "ClaimCenter records adjuster actions, payments and status changes with actor and timestamp."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-trace claim activity",
+              "value": "For sampled claims, activity and payment history reconstructs from the audit trail; 0 gaps."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc4ull305r5v8f89sjbcxu6",
+          "checklist": [
+            {
+              "step": "Screen claimants and payees against OFAC lists before any disbursement",
+              "value": "Every run-off claim payee is screened against current OFAC SDN/consolidated lists in the payment workflow before funds release."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify pre-disbursement screening",
+              "value": "100% of run-off claim payments have an OFAC screening result on file with no unresolved hits; blocked/rejected as required and reported."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "60bb3485-9677-471c-a6ba-c38fe1367dc2",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager", "Legal Counsel"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The formal notice to the coverholder of the decision to terminate delegated authority, served with the contractual notice required by the binding-authority agreement."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From the termination decision to service of notice, respecting the contractual notice period (e.g. 90 days): decision 2026-07-01, notice served 2026-07-02, effective 2026-09-30."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The notice records the coverholder, DA agreement reference, grounds for termination, notice period, effective date and served-by/served-on details; a notice missing the contractual basis or effective date is not served."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The notice effective date reconciles to the DA agreement's notice-period terms; the single served notice matches the Archer offboarding record (1 notice served, 0 discrepancy)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The served notice and proof of delivery (courier/email receipt) filed in OpenText /DelegatedAuthority/<coverholder>/run-off/termination/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A challenge to the notice or served-date dispute is logged as an exception in Archer with disposition, owner = Delegated Authority Manager, and referred to Legal Counsel within 5 business days."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "The served notice traces to the source DA agreement clause and the PolicyCenter coverholder record; delivery proof traces to the courier/email log."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "The coverholder status in PolicyCenter moves to 'notice served / terminating' on service, aligning to the offboarding workflow."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Notice date and effective/cessation date are populated and consistent with the contractual notice period; no back-dated notices."
+        },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The decision to serve notice, its grounds and effective date are documented in Archer with Delegated Authority Manager (and Legal, where contested) sign-off."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Recipients: the coverholder's principal contact and, internally, the DA relationship owner, reinsurance and finance; recorded on the notice-service record."
+        },
+        { "templateKeyId": "cmr2oap6g002flasb12gpqsrx", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "The single termination-notice event for this coverholder (census of one), traced end to end through the offboarding workflow history."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = notice served with the correct contractual period, delivery proof on file, effective date consistent, and manager authority evidenced; FAIL = short notice, missing delivery proof, or unauthorised issuer."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "On FAIL, re-serve a corrected notice, log the defect in Archer, and escalate contested terminations to Legal Counsel and the Delegated Authority Manager."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "The delegated-authority matrix documents that coverholder termination notices are authorised by the Delegated Authority Manager (with Legal review for contested cases); the authority level is recorded on the notice."
+        },
+        {
+          "answerId": "cmr2ocdwy0ty2kaz3jg8ao35o",
+          "value": "Effective dates: decision date, notice-served date and contractual effective/cessation date; only this termination event is in scope."
+        },
+        {
+          "answerId": "cmr2ocdwy0ty3kaz3s3xj6e8d",
+          "value": "Source fields: coverholder_code, da_agreement_ref, notice_date, notice_period_days, effective_date, served_by, delivery_reference. Control total = 1 served notice, reconciled to the PolicyCenter coverholder record and Archer offboarding entry."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Document the termination notice decision",
+              "value": "Grounds, notice period and effective date recorded in Archer within 24 hours of the decision to serve."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify decision record",
+              "value": "The notice decision shows date, authoriser and effective date; 0 undocumented terminations."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the served notice and delivery proof",
+              "value": "Signed notice and delivery confirmation stored in the versioned run-off/termination folder."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Confirm notice and proof on file",
+              "value": "The served notice and delivery evidence are present; effective date matches the coverholder record."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2flerp1urwkfgzf6rypev2",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": [
+        "Underwriter",
+        "Underwriting Assistant",
+        "Accountant",
+        "Business Analyst"
+      ],
+      "addParticipants": ["Delegated Authority Manager", "Bordereaux Analyst"],
+      "removeAppNames": ["Legal matter management/e-billing system"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The final premium and claims bordereaux due from the coverholder at offboarding: all outstanding monthly/quarterly bordereaux up to the cessation date for the terminated binder."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From the last submitted bordereau through the cessation month's final bordereau, collected within the contractual reporting lag (e.g. 30-60 days post cessation): 2026-09-30 cessation, final bordereaux by 2026-11-30."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z103z1mbk8p7dt2uho"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each received bordereau carries period, risk/premium/claim line items, currency and totals in the agreed template; a bordereau failing template validation (missing fields, bad totals) is rejected back to the coverholder."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Received bordereaux count reconciles to the expected schedule (one per period to cessation); premium and claim totals load to BillingCenter and tie to the coverholder ledger with 0 unexplained variance."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Final bordereaux files and load confirmations stored in OpenText /DelegatedAuthority/<coverholder>/run-off/bordereaux/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A missing or non-conforming final bordereau is logged as an exception in Archer with disposition (chase / estimate / escalate), owner = Delegated Authority Manager, with a 10-business-day chase SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "Confirmation that all final bordereaux are received and loaded is recorded in Archer with the Bordereaux Analyst validation and manager sign-off."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Coverholder submissions contact, finance and reinsurance are notified as final bordereaux are received; recipients recorded on the bordereaux register."
+        },
+        { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "The full expected schedule of outstanding bordereaux to cessation (census), each validated against the agreed template."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = every expected final bordereau received, template-valid, and loaded to BillingCenter with totals reconciled; FAIL = any missing bordereau or unreconciled totals."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, chase the coverholder, log the outstanding bordereau in Archer, and escalate persistent non-submission to the Delegated Authority Manager for contractual enforcement."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance criteria: all outstanding bordereaux to cessation received, validated to the agreed template, loaded to BillingCenter, and totals reconciled to the coverholder ledger."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence in OpenText /run-off/bordereaux/ (received files, validation logs, load confirmations) and the Archer bordereaux register."
+        },
+        {
+          "answerId": "cmr2ocdwy0ty9kaz3dpfw261a",
+          "value": "Effective dates: bordereaux reporting periods from the last-submitted through the cessation month; only periods up to the cessation date are in scope."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Validate and document each received bordereau",
+              "value": "Bordereaux Analyst checks each file against the agreed template and files the validated copy in the versioned folder."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify bordereaux completeness",
+              "value": "Every expected period is present and template-valid; 0 missing or rejected files outstanding at close."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Keep an audit trail of bordereaux receipt and load",
+              "value": "BillingCenter records the load of each bordereau with source file reference, actor and timestamp."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-trace bordereaux load",
+              "value": "For sampled periods, loaded totals trace back to the received file; 0 unreconciled loads."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2flf2o1uwzkfgzg0npm9p7",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant", "Business Analyst"],
+      "addParticipants": ["Delegated Authority Manager"],
+      "removeAppNames": ["Legal matter management/e-billing system"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Outstanding premium balances from the final bordereaux for the terminated binder: premium due to the insurer net of agreed commission, reconciled against the coverholder ledger."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From receipt of the final bordereaux to full reconciliation and settlement, within the contractual settlement period (e.g. 45 days): 2026-11-30 final bordereaux, reconciled by 2027-01-15."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z103z1mbk8p7dt2uho"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each ledger line shows period, gross premium, commission, net due, currency and paid/outstanding status; lines missing a commission rate or period are held from reconciliation until corrected."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Net premium per the bordereaux reconciles to BillingCenter cash received and the coverholder statement; the outstanding balance is agreed to the penny (variance target 0, differences itemised and cleared)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Reconciliation workpapers, agreed statements and settlement confirmations filed in OpenText /run-off/premium/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Unreconciled or disputed balances are logged as exceptions in Archer with disposition (chase / write-off with approval / offset), owner = Delegated Authority Manager, with a documented aging and 30-day resolution SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The agreed final balance and any write-off/offset decision are documented in Archer with the manager sign-off and, for write-offs, finance approval per the authority matrix."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Finance, the coverholder's accounts contact and reinsurance are notified of the reconciled balance and settlement; recipients recorded on the reconciliation."
+        },
+        { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All outstanding premium ledger lines for the coverholder to cessation (census), reconciled line by line to BillingCenter."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = net premium per bordereaux agrees to cash and ledger within tolerance (0 unexplained variance) and the closing balance is signed off; FAIL = unreconciled variance or unresolved dispute at close."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, itemise and investigate the variance, log it in Archer, obtain finance approval for any write-off, and escalate aged balances to the Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance criteria: net premium per the final bordereaux agrees to BillingCenter cash and the coverholder statement within tolerance, the closing balance is agreed, and any write-off is finance-approved."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence in OpenText /run-off/premium/ (reconciliation workpapers, agreed statements, settlement confirmations) and the Archer run-off register entry."
+        },
+        {
+          "answerId": "cmr2ocfyv0vn2kaz3ciqsi85o",
+          "value": "Effective dates: the bordereaux reporting periods through cessation and the contractual settlement date; balances arising after cessation are out of scope."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of the premium reconciliation",
+              "value": "BillingCenter and workpapers record each reconciling item, adjustment and approval with actor and timestamp."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-perform the reconciliation on a sample",
+              "value": "Independently reconcile sampled periods; agreed balance matches BillingCenter, 0 unexplained variance."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File reconciliation workpapers and agreed statements",
+              "value": "Signed statements and workpapers stored in the versioned run-off/premium folder."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify reconciliation documentation",
+              "value": "Each reconciled balance has supporting workpapers and a sign-off; 0 undocumented adjustments."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fkt7i1kb5kfgzlwdg27r8",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager", "Accountant"],
+      "removeAppNames": ["claim file/document repository"],
+      "addApps": [{ "name": "billing/commission platform", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All outstanding premium settlements at offboarding: amounts due to or from the coverholder across premium, commission and claims-fund movements, settled and tied out to zero."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From final reconciliation to full settlement within the contractual period (e.g. 45 days of the agreed balance): reconciled 2027-01-15, settled by 2027-02-28."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z103z1mbk8p7dt2uho"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each settlement record shows the agreed net amount, direction, currency, payment reference and value date; a record missing a payment reference or value date is held until confirmed."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Total settled reconciles to the agreed closing balance in BillingCenter and the coverholder statement; the account ties out to a zero residual balance after settlement (variance 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Settlement confirmations (payment advices, cleared-funds evidence, signed statements) filed in OpenText /run-off/settlement/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A settlement that fails or is short-paid is logged as an exception in Archer with disposition (re-issue / chase / offset), owner = Delegated Authority Manager, with a 15-business-day resolution SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The final settlement (amount, direction, value date) and the zero-balance confirmation are documented in Archer with the manager and finance sign-off."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Finance/treasury, the coverholder's accounts contact and reinsurance are notified of settlement; recipients recorded on the settlement record."
+        },
+        { "templateKeyId": "cmr2oapmt002rlasbojqqymeh", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All outstanding settlement items for the coverholder (census), each traced to cleared-funds evidence."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = every settlement executed and cleared, account ties out to zero, and confirmations on file; FAIL = any item unsettled, short-paid, or account not tied out at close."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "On FAIL, re-issue or chase the payment, log the item in Archer, and escalate aged or failed settlements to the Delegated Authority Manager and treasury."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dates: from the agreed-balance date to the settlement value date; only pre-cessation balances are in scope."
+        },
+        {
+          "answerId": "cmr2ocdxf0ul0kaz38yz49f6l",
+          "value": "Source fields: coverholder_code, period, net_amount, direction, currency, payment_reference, value_date, status. Control total = agreed closing balance in BillingCenter, which must reconcile to cleared funds and tie out to a 0 residual balance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Keep an audit trail of every settlement",
+              "value": "BillingCenter/treasury records each payment with reference, actor, approval and value date."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-trace settlements to cleared funds",
+              "value": "For sampled settlements, payment references trace to bank cleared-funds evidence; 0 unmatched items."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File settlement confirmations and the tie-out",
+              "value": "Payment advices and the zero-balance tie-out stored in the versioned run-off/settlement folder."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify settlement documentation",
+              "value": "The account tie-out and confirmations are on file; residual balance = 0, 0 undocumented settlements."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc4ulc405qtv8f8s2rtkbnd",
+          "checklist": [
+            {
+              "step": "Screen the coverholder/distribution partner before disbursing settlement funds",
+              "value": "The coverholder and any onward payee are screened against OFAC lists before settlement payments are released."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify settlement-payment screening",
+              "value": "100% of outbound settlement payments have a clear OFAC screening result on file; any hit blocked and reported."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cmr2fktgc1kfakfgzx4vela8a",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant", "Accountant"],
+      "addParticipants": ["Delegated Authority Manager", "Commission Analyst"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository"
+      ],
+      "addApps": [{ "name": "billing/commission platform", "usageType": "performed" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Commission overpaid to the coverholder to be recovered at offboarding: any commission paid on premium that was subsequently cancelled, returned or adjusted, quantified per the DA agreement commission terms."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "From identification of the overpayment through recovery or approved waiver, within the contractual clawback window (e.g. 60 days): identified 2027-01-15, recovered/waived by 2027-03-15."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "cmqsck0z103z1mbk8p7dt2uho"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each overpayment line shows the underlying policy/period, premium adjustment, commission rate, overpaid amount and recovery status; lines missing a rate or source adjustment are held until substantiated."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Recalculated commission on adjusted premium reconciles to commission actually paid in BillingCenter; the overpaid amount equals paid minus earned, and recovered plus waived equals the total overpayment (variance 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Overpayment calculations, demand letters and recovery/waiver confirmations filed in OpenText /run-off/commission/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "An uncollectable or disputed overpayment is logged as an exception in Archer with disposition (offset / write-off with approval / legal referral), owner = Delegated Authority Manager, with documented aging."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The recovery amount and any write-off/waiver decision are documented in Archer with the manager sign-off and, for write-offs, finance approval per the authority matrix."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "The coverholder, finance and the DA relationship owner are notified of the recovery demand and outcome; recipients recorded on the recovery record."
+        },
+        { "templateKeyId": "cmr2oapmt002rlasbojqqymeh", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All commission overpayment lines identified from the final premium adjustments (census), recalculated at the agreed commission rate."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = every overpayment recovered or covered by an approved waiver, and recalculated commission ties to BillingCenter (variance 0); FAIL = overpayment outstanding without disposition or a calculation that does not reconcile."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "On FAIL, issue/re-issue the recovery demand, offset against amounts owed to the coverholder where permitted, log in Archer, and escalate to the Delegated Authority Manager and Legal for enforcement."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dates: the premium periods generating the adjustment through the recovery date; only pre-cessation commission is in scope."
+        },
+        {
+          "answerId": "cmr2ocdxf0ul1kaz312rtvl44",
+          "value": "Source fields: policy_number, period, adjusted_premium, commission_rate, commission_paid, commission_earned, overpaid_amount, recovery_status. Control total = commission paid in BillingCenter less recalculated earned commission, which equals the overpayment to be recovered."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of the overpayment calculation and recovery",
+              "value": "BillingCenter and workpapers record the recalculation, demand and recovery/waiver with actor, approval and timestamp."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-perform the commission recalculation",
+              "value": "Independently recompute earned commission on adjusted premium for a sample; overpayment matches the recorded amount, 0 variance."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the recovery demand and outcome",
+              "value": "Demand letters and recovery/waiver confirmations filed in the versioned run-off/commission folder."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify recovery documentation",
+              "value": "Each overpayment line has supporting calculation and a recovery/waiver record; 0 unsupported write-offs."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc4ulc405qtv8f8s2rtkbnd",
+          "checklist": [
+            {
+              "step": "Screen the coverholder before any offsetting disbursement or refund",
+              "value": "Where recovery is settled by offset or refund, the coverholder/distribution partner is screened against OFAC lists before funds move."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify screening on recovery-related payments",
+              "value": "Any outbound offset/refund tied to the recovery has a clear OFAC screening result on file; hits blocked and reported."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cmr2flj6e1wwdkfgznyaw84wl",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": ["Underwriter", "Underwriting Assistant"],
+      "addParticipants": ["Delegated Authority Manager", "Claims Adjuster"],
+      "removeAppNames": [],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Outstanding claims on the run-off binder book to be settled within the run-off management framework: open claims requiring adjudication, reserving and payment to closure."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The run-off claim-settlement period from binder cessation until the last claim is settled and closed; reviewed monthly (e.g. 2026-10-01 through claim run-out)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5a0bd80d-a89a-40c7-ad9f-19606a2643bf"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each claim shows coverage confirmation, reserve, settlement amount, payee and authority level; a claim missing coverage confirmation or an authorised approver is not paid."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Settlement payments in ClaimCenter and the payment/subrogation system reconcile to authorised amounts and to reserves released; paid plus remaining reserve reconciles to the prior period with 0 unexplained movement."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Settlement approvals, releases and payment vouchers filed in the claim file/document repository and OpenText /run-off/claims/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Claims exceeding the run-off adjuster authority or in dispute are logged as exceptions in Archer with disposition (refer / litigate / commute), owner = Delegated Authority Manager, and referred to the appropriate authority level."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled settlements trace to source ClaimCenter screens, coverage confirmation and signed releases; 25 files per quarter checked."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Claim status moves settled -> closed on payment and release; no settled claim remains open past its expected closure."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Settlement and closed dates are populated and consistent with the payment value date; closed claims have no subsequent open activity."
+        },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "Each settlement decision (amount, basis, authority) is documented in ClaimCenter and summarised in the Archer run-off register with manager sign-off."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Claimants/insureds, reinsurance recoveries and finance are notified of settlements; recipients recorded on the settlement record."
+        },
+        { "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "All run-off claims settled in the review month (census) plus a 25-file quarterly sample re-checked for coverage and authority."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = every settlement within authority, coverage-confirmed, paid to the correct payee and reconciled to reserves; FAIL = any settlement over authority, without coverage confirmation, or unreconciled to reserves."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "On FAIL, hold the payment, refer to the correct authority level, log the exception in Archer, and escalate disputed or large losses to the Delegated Authority Manager and Chief Claims Officer."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "Settlements follow the current claims reserving and settlement-authority methodology and the run-off claims-handling procedure (version referenced in the file)."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "Reserve and settlement figures sourced from ClaimCenter; payment execution from the payment/subrogation system."
+        },
+        {
+          "answerId": "cmr2ocg150ymzkaz35mpyc6yu",
+          "value": "Source fields: claim_number, coverage_confirmed, reserve_amount, settlement_amount, payee, authority_level, paid_date, closed_date. Control total = authorised settlement amounts in ClaimCenter, reconciled to payments in the payment/subrogation system."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document coverage, authority and release for each settlement",
+              "value": "Coverage confirmation, authority evidence and signed release filed for every settled run-off claim."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify settlement file completeness",
+              "value": "Sampled settlements have coverage confirmation, authorised approver and release on file; 0 incomplete files."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Maintain an audit trail of settlement and payment",
+              "value": "ClaimCenter and the payment system record approval, payee and value date for each settlement."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-trace settlements to payments",
+              "value": "For sampled claims, authorised settlement amounts trace to executed payments; 0 unmatched or over-authority payments."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc4ull305r5v8f89sjbcxu6",
+          "checklist": [
+            {
+              "step": "Screen claimants and payees against OFAC lists before disbursement",
+              "value": "Every run-off settlement payee is screened against current OFAC lists before funds are released."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify pre-disbursement screening",
+              "value": "100% of settlement payments have a clear OFAC screening result on file with no unresolved hits; blocked/rejected as required and reported."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cmr2fiab30dx7kfgzabgx0uq2",
+      "owner": { "action": "replace", "name": "Delegated Authority Analyst" },
+      "removeRoleNames": [
+        "Personal Lines Underwriter",
+        "Renewal Underwriter",
+        "Exposure Management Manager",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist",
+        "Life Underwriter",
+        "New Business Case Manager",
+        "Underwriter",
+        "Underwriting Assistant",
+        "Risk Engineer",
+        "Annuity Suitability Analyst",
+        "Clearance Specialist",
+        "Chief Underwriting Officer",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator"
+      ],
+      "addParticipants": ["Portfolio UW Manager"],
+      "removeAppNames": ["Legal matter management/e-billing system"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "In-force policies from the terminated binder to be moved to a direct or alternative arrangement: the population continuing on cover that must be transferred to another carrier, MGA or direct handling before or at expiry."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The transition window from binder cessation until the last policy is moved or expires (respecting policyholder notice periods, e.g. 60-90 days per policy): 2026-09-30 onward through the run-off."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each transition record shows policy, policyholder, new arrangement, effective transfer date and continuity-of-cover confirmation; a record missing the destination or transfer date is held until confirmed."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The count of policies transitioned plus those expired reconciles to the in-force population at cessation; no policy is left without a destination (unassigned count must reach 0)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Transition instructions, policyholder notices and confirmations filed in OpenText /run-off/transition/ with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "A policy that cannot be placed with an alternative arrangement is logged as an exception in Archer with disposition (non-renew with notice / run to expiry / direct handling), owner = Delegated Authority Manager, reviewed monthly."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rp03twmbk8kalntt8w" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "Each transition decision (destination and basis per policy cohort) is documented in the Archer run-off register with the Portfolio UW Manager and Delegated Authority Manager sign-off."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Policyholders, producers, the receiving carrier/MGA and finance are notified of the transfer; recipient list captured on the transition record with required policyholder notices logged."
+        },
+        { "templateKeyId": "cmr2oanxo001flasbfucsrtbm", "roleId": "cmqsck0rp03tvmbk89dtmyg17" },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "The full in-force population at cessation (census), each policy tracked to a confirmed destination or expiry."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = every in-force policy has a confirmed destination with continuity of cover and required notices served; FAIL = any policy left unassigned, a coverage gap, or a missing policyholder notice."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, assign the policy to run-to-expiry or direct handling, serve the required notice, log in Archer, and escalate coverage-gap risk to the Portfolio UW Manager and Delegated Authority Manager."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance criteria: every in-force policy transitioned or scheduled to expiry with no coverage gap, required policyholder notices served, and NPI transferred only under the DA agreement and privacy terms."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence in OpenText /run-off/transition/ (transition register, notices, receiving-carrier confirmations) and the Archer run-off register entry."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document each policy transition and continuity of cover",
+              "value": "Transition register records destination, effective date and continuity confirmation for every in-force policy, filed in the versioned folder."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify transition completeness",
+              "value": "Every in-force policy has a confirmed destination or expiry with no coverage gap; 0 unassigned policies."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppli1o9embk8y3bvlnlf",
+          "checklist": [
+            {
+              "step": "Serve required policyholder non-renewal/transfer notices",
+              "value": "State-required non-renewal or transfer notices served within the mandated period before the change takes effect."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Check notice compliance",
+              "value": "Days between notice and effective date meet the state minimum for every affected policy; 0 short-notice transfers."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp4u1o8imbk8fwfbmrnd",
+          "checklist": [
+            {
+              "step": "Confirm screening before cover is bound on the alternative arrangement",
+              "value": "Insureds moving to a new bound arrangement are screened per policy before binding on the receiving carrier/MGA."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify screening before binding",
+              "value": "Sampled transitioned policies show screening completed before the new cover was bound; 0 unscreened binds."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrc5oz360bvpv880i1ri23y4",
+          "checklist": [
+            {
+              "step": "Limit redisclosure and reuse of policyholder NPI in the transfer",
+              "value": "Policyholder nonpublic personal information is transferred to the receiving arrangement only as permitted, under the DA agreement and GLBA redisclosure limits, with no reuse beyond servicing the transferred policies."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify NPI transfer controls",
+              "value": "Sampled transfers show NPI shared only with the authorised receiving party under a data-handling agreement; 0 unauthorised redisclosures."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1554 @@
+{
+  "tasks": [
+    {
+      "id": "4f7a1ef4-f4e7-4adb-88e6-2931e9e19ef3",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All in-flight risks whose exposure characteristics (premium, per-occurrence and aggregate limits, TIV, hazard class, line of business) must be matched to a delegated-authority tier before quote or bind. Population = every submission and mid-term endorsement worked in Guidewire PolicyCenter for the underwriter's book."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Performed per transaction at the point of quote/bind; the applicable grid is the current Underwriting Authority Matrix v3.2 effective 2026-01-01, and the matched tier is timestamped to the working date of the submission."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Grid inputs populated and valid: premium, largest single limit, aggregate exposure, LOB, state, and appetite/hazard code all present on the PolicyCenter risk. Any blank driver forces the risk to the highest-authority (referral) tier by default rather than a lower tier."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The tier the system assigns from Authority Matrix v3.2 reconciles to a manual re-read of the grid for the same driver values; 100% agreement required. Any mismatch between the automated PolicyCenter authority evaluation and the published matrix is logged as a control break."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "The matched authority tier, the grid version (v3.2), the driver values used, and the evaluation timestamp are written to the PolicyCenter activity log and retained on the policy file for 7 years per underwriting file-documentation policy."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Risks that exceed the underwriter's own tier are flagged 'referral required' with disposition (refer to Senior Underwriter / decline / restructure) recorded; missing-driver defaults are logged as exceptions and cleared before quote."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Map the risk's premium, limit and line of business to the published authority tier",
+              "value": "Use Underwriting Authority Matrix v3.2 dimensions (premium band, largest limit, LOB, state) to place the risk in exactly one tier before quoting."
+            },
+            {
+              "step": "Force referral when any driver exceeds the underwriter's tier",
+              "value": "If premium, limit or LOB falls outside the underwriter's grant, PolicyCenter blocks bind and routes to the next authority level."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-derive the tier for a sample of bound risks",
+              "value": "Sample 25 files per quarter; recompute the tier from v3.2 driver values and confirm 100% match the system-assigned tier."
+            },
+            {
+              "step": "Confirm no bind above authority",
+              "value": "Query PolicyCenter for binds where limit/premium exceeded the binder's grant; expected result = 0 unreferred over-authority binds."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpq431oagmbk815sfnpq6",
+          "checklist": [
+            {
+              "step": "Verify the underwriter's grant matches their competency level",
+              "value": "Confirm the acting underwriter's authority grant in the delegation register corresponds to their qualification/LOB certification before allowing self-approval."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile grants to competency records",
+              "value": "For sampled underwriters, authority grant tier ties to HR/competency records; 0 grants above certified competency."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Apply documented referral triggers during grid matching",
+              "value": "Check the risk against the standing trigger list (cat-exposed, high limit, non-standard wording, appetite exception) and route to referral when any trigger fires."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test trigger coverage",
+              "value": "Sample flagged risks; each triggered referral cites the specific documented trigger; 0 triggered risks bound without referral."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "1c6d4ac6-92a1-451c-8e03-b407f06a779c",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Underwriting Assistant"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Every underwriting transaction (new business, endorsement, renewal, bind) written to Guidewire PolicyCenter for the book, on which the authority tier applied must be stamped for audit and market-conduct reporting."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Logged at the moment each transaction is committed; reporting population covers the current calendar quarter, reconciled monthly against the transaction ledger."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each transaction record carries authority tier applied, Authority Matrix version (v3.2), acting underwriter ID, and referral reference where the tier was exceeded. Records missing the tier stamp are rejected by the nightly completeness job."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of transactions in PolicyCenter equals count of authority-stamped records in the GRC/authority register for the period; delta must be 0 at quarter close, with any gap itemised for remediation."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Authority-usage extract archived to Archer GRC with run timestamp and version label each quarter; retained 7 years per underwriting audit-trail policy and available for market-conduct exam."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Transactions where authority was exceeded without a logged referral are raised as exceptions to the Underwriting Quality/Audit Manager with disposition (retro-referral / correction / escalation) and a 5-business-day cure SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "Cites the internal Delegated Underwriting Authority policy (Authority Matrix v3.2) and, where applicable, state producer/binding-authority recordkeeping requirements supporting the market-conduct audit trail."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "Authority-usage records retained 7 years from transaction date in Archer GRC, meeting the underwriting file-retention schedule and state examination lookback windows."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "Quarterly authority-usage attestation compiled and submitted to Underwriting Governance within 15 business days of quarter close; no external regulatory filing deadline, internal deadline enforced."
+        },
+        {
+          "templateKeyId": "cmr2oandp0013lasb81a47aqo",
+          "value": "Pre/post the authority-stamping control: before, a sample of transactions lacked tier metadata; after, 100% of new transactions carry a tier stamp and reconcile to the register. Comparison memo attached to the change record."
+        },
+        {
+          "templateKeyId": "cmr2v88lm000jxa9iggiq99sw",
+          "applicationId": "bfba64d7-d43a-45d4-aac3-342683c98f2f"
+        },
+        {
+          "templateKeyId": "cmr2v88mm000lxa9i1uqmp4n8",
+          "value": "Any configuration change to the authority-stamping rule is linked to its ServiceNow change ticket and the PolicyCenter release tag; ticket reference recorded on the control's evidence sheet."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "All transactions committed in the quarter (census) for the completeness check; a 25-file judgmental sample for the accuracy of the tier applied vs. the matrix."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = 100% of transactions carry a tier stamp and the sampled tier matches Authority Matrix v3.2; FAIL = any un-stamped transaction or any sampled tier that misstates the authority applied."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "On FAIL, the record is corrected in PolicyCenter, a retro-referral opened where authority was exceeded, and the exception logged to the Underwriting Quality/Audit Manager with a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions come from the PolicyCenter data dictionary: transaction_id, txn_type, premium, limit, lob, authority_tier, matrix_version, underwriter_id, referral_ref, commit_timestamp."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = transaction row count from the PolicyCenter ledger for the period; reconciles to the authority-register extract in Archer with 0 variance."
+        },
+        {
+          "answerId": "cmr2ocdxd0uitkaz36glohg4g",
+          "value": "Applicable rule = internal Delegated Underwriting Authority policy under Authority Matrix v3.2, supported by state binding-authority recordkeeping expectations; the authority tier stamped on each transaction is the evidence that the correct rule was applied."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpow11o86mbk8ybplf2t7",
+          "checklist": [
+            {
+              "step": "Stamp the authority tier on every committed transaction",
+              "value": "PolicyCenter writes the matched tier and Authority Matrix version to each new-business, endorsement and renewal record at commit."
+            },
+            {
+              "step": "Reference the referral where authority was exceeded",
+              "value": "Transactions above the acting underwriter's tier carry the referral case reference confirming higher-level approval."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify tier-stamp completeness",
+              "value": "Census check: 100% of quarter transactions carry an authority-tier stamp; 0 blanks."
+            },
+            {
+              "step": "Verify tier accuracy on a sample",
+              "value": "25-file sample: stamped tier matches Authority Matrix v3.2 for the driver values; 0 misstatements."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Retain an immutable authority-usage trail",
+              "value": "Authority-tier records exported to Archer GRC with timestamp and version, immutable and retained 7 years."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile the audit trail to source",
+              "value": "Archer authority register reconciles 1:1 to the PolicyCenter transaction ledger for the period; delta = 0."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp161o8cmbk8jeoutzfd",
+          "checklist": [
+            {
+              "step": "Confirm only authorized personnel bound each transaction",
+              "value": "Acting underwriter's grant covers the stamped tier; over-authority binds require a linked referral approval."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test for unauthorized binds",
+              "value": "Query transactions where authority tier exceeded the binder's grant with no referral reference; expected = 0."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "eaf4fce8-9d72-4a07-beda-8e2859dd3cf1",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [
+        "Chief Data Officer",
+        "Data Modeler",
+        "Data Science Lead",
+        "Data Product Owner",
+        "Data Scientist"
+      ],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [
+        "Claims management platform (Guidewire ClaimCenter/Duck Creek Claims)",
+        "claim file/document repository",
+        "payment/subrogation system"
+      ],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The supporting-evidence package for a single referral case: loss runs, inspection/engineering reports, pricing model output (Earnix), and proposed policy wording, attached to the referral in PolicyCenter and mirrored to OpenText under /Underwriting/Referrals/<account-number>/."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "At referral creation, before routing to the authority holder; documents must be current-term (loss runs within the last 5 valuation years, inspections within 12 months)."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each attachment tagged with document type, source, and valuation/as-of date; mandatory set = loss runs + exposure schedule + pricing output + proposed wording. A missing mandatory type blocks referral submission."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Attachment count on the PolicyCenter referral equals the count mirrored to the OpenText referral folder; 0 delta. Loss-run premium/loss totals tie to the exposure schedule used in pricing."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Attachments retained on the policy file and in OpenText /Underwriting/Referrals/<account-number>/ with upload timestamp and version; retained 7 years per file-documentation policy."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Missing or stale documents logged as a referral-prep exception with disposition (request from broker / waive with rationale / defer); waivers require Senior Underwriter note and a 2-business-day follow-up."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Pricing output attached comes from the approved Earnix model version tagged on the pricing worksheet; superseded model runs are not attached."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Sensitivity of the indicated price to key assumptions (rate change, limit, deductible) is included in the attached pricing exhibit so the authority holder can see the range around the recommendation."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality set by referral threshold: attachments must fully support any deviation greater than 10% from filed/indicated price or any limit above the underwriter's tier."
+        },
+        {
+          "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "All referrals routed in the quarter (census) for completeness of the mandatory attachment set; a 15-file sample for currency/quality of the attached documents."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = all mandatory document types present, current-term, and legible on the referral, and the attached pricing output ties to the Earnix worksheet; FAIL = any mandatory type missing, stale, unreadable, or a pricing attachment that does not reconcile."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "On FAIL, the referral is returned to prep, the missing/stale document requested from the broker, and the exception logged with a 2-business-day cure before re-submission."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "The pricing output attached is from the approved Earnix model version tagged on the pricing worksheet; the version is named so the attached indication can be re-performed."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "Rating parameters in the attached output come from the current filed rate manual and the exposure schedule on the PolicyCenter risk; both sources are cited on the worksheet."
+        },
+        {
+          "answerId": "cmr2ocfzt0ww1kaz31d3o59oa",
+          "value": "Field definitions and control totals sourced from the OpenText content model and the PolicyCenter referral schema: expected mandatory-document count vs. attached count reconcile to 0, and loss-run totals tie to the exposure schedule."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Attach the complete evidentiary file to the referral",
+              "value": "Loss runs, inspection reports, pricing output and proposed wording attached in PolicyCenter and mirrored to OpenText /Underwriting/Referrals/<account>/."
+            },
+            {
+              "step": "Tag each document with type and as-of date",
+              "value": "Every attachment carries doc_type and valuation/as-of date so currency can be judged at review."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify mandatory-set completeness",
+              "value": "Census of referrals: 100% carry the full mandatory attachment set; 0 missing types."
+            },
+            {
+              "step": "Verify document currency on a sample",
+              "value": "15-file sample: loss runs within 5 years, inspections within 12 months; 0 stale mandatory documents."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppd31o8ymbk8q4zpd8lh",
+          "checklist": [
+            {
+              "step": "Record why each supporting document was included or waived",
+              "value": "Referral note documents the basis for the file and any waiver of a missing item with Senior Underwriter sign-off."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify waiver documentation",
+              "value": "For any missing mandatory document, a documented waiver rationale exists; 0 undocumented gaps."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "b03806b1-8ed9-47d1-84da-229f1623bfde",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The authority holder's decision on a single referral case - approve / approve-with-conditions / decline - together with every condition or modification (price, limit, deductible, wording, subjectivities), recorded on the referral in PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Recorded within 24 hours of the authority holder returning the decision; conditions remain open on the file until cleared before bind."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Decision record carries outcome, approving authority, each condition with an owner and clear-by date, and any price/limit modification. A decision without a named approver or dated conditions is invalid and returned."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every open condition on the referral maps to a subjectivity on the policy in PolicyCenter; count of documented conditions equals count of tracked subjectivities, delta 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Decision and conditions written to the referral activity log and the OpenText referral folder with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Conditions not cleared by their due date are exceptions escalated to the Senior Underwriter; disposition (extend / waive with rationale / decline risk) logged with a 5-business-day cure."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Where the decision references pricing, the approved Earnix model version behind the condition is cited so the modification is traceable."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Conditions that flex price/limit note the sensitivity band the authority holder accepted (e.g. rate acceptable within +/-5% of indication)."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Any modification above the 10%-of-indicated-price or one-tier-of-limit materiality threshold must be explicitly stated as a condition, not left implicit."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "All referral decisions recorded in the quarter (census) for documentation completeness; 20-file sample for condition-to-subjectivity linkage."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = decision names the approver, outcome, and all conditions with owners/dates, each mapped to a policy subjectivity; FAIL = missing approver, undated condition, or unmapped condition."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "On FAIL, the underwriter completes the record and links conditions to subjectivities; unresolved items escalate to the Senior Underwriter within 5 business days."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Decision fields from the PolicyCenter referral schema: outcome, approver_id, condition_text, condition_owner, clear_by_date, price_modifier, decision_timestamp."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = documented condition count vs. tracked subjectivity count on the policy; reconcile to 0 before bind."
+        },
+        {
+          "answerId": "cmr2ocdw80sz9kaz39avsbqxj",
+          "value": "Acceptance criteria: decision recorded within 24 hours, names the approving authority, and every condition has an owner and clear-by date mapped to a policy subjectivity. Evidence: referral activity log entry and OpenText copy under /Underwriting/Referrals/<account>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Record the referral decision within 24 hours",
+              "value": "Outcome and conditions logged on the PolicyCenter referral within one business day of the authority holder's response."
+            },
+            {
+              "step": "Name the approving authority on the record",
+              "value": "Decision entry captures the approver identity and their authority tier."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test decision timeliness",
+              "value": "Sample referrals: 100% recorded within 24 hours of response; 0 breaches."
+            },
+            {
+              "step": "Test approver attribution",
+              "value": "Every sampled decision names an approver whose tier covers the risk; 0 anonymous approvals."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppse1o9smbk8sec8gva2",
+          "checklist": [
+            {
+              "step": "Document CUO/authority approval for exceptions",
+              "value": "Appetite or filed-rate exceptions in the decision carry the required higher-authority approval and rationale."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify exception approvals",
+              "value": "For sampled exception decisions, a documented CUO/authority approval exists; 0 unapproved exceptions."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppd31o8ymbk8q4zpd8lh",
+          "checklist": [
+            {
+              "step": "Document every condition with owner and due date",
+              "value": "Each condition/modification recorded with a clear-by date and mapped to a policy subjectivity."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify condition documentation",
+              "value": "Sampled decisions: 100% of conditions have owners and dates; 0 undated conditions."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2flaic1sn2kfgzuvwohe8y",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Business Analyst"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The underwriter's written recommendation on a referral case and the justification for any deviation from filed rates, appetite, or standard terms, captured in the referral memorandum on the PolicyCenter file."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Drafted at referral submission, before routing to the authority holder; the deviation is measured against the current filed-rate/appetite baseline in effect on the working date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Recommendation states proposed terms, the recommended action, the size and direction of any deviation, and its justification (loss experience, exposure quality, market). A deviation stated without a quantified basis is incomplete."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Quoted deviation percentage reconciles to Earnix indicated vs. proposed price; the number in the memo matches the pricing worksheet to the cent, 0 variance."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Recommendation and justification retained in the referral memo on the policy file and in OpenText with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Deviations beyond the underwriter's authority are logged as exceptions requiring higher-level approval; disposition (approve / modify / decline) recorded with a 5-business-day decision SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "The deviation is calculated against the approved Earnix model version and current filed rate cited in the memo; the model/rate version is named so the deviation is reproducible."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Justification includes how the recommended price moves under a plausible loss-ratio stress, showing the recommendation holds within an acceptable band."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Deviations above 10% of the filed/indicated rate are treated as material and require the full quantified justification plus authority approval."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All referrals containing a rate/appetite deviation in the quarter (census) for justification completeness; 20-file sample for the accuracy of the deviation math."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = recommendation and a quantified, sourced deviation justification present, deviation figure ties to Earnix; FAIL = missing justification or a deviation figure that does not reconcile to the pricing worksheet."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "On FAIL, the memo is returned to the underwriter to add/correct the justification; deviations above authority escalate to the Senior Underwriter within 5 business days."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = documented recommendation with a quantified deviation basis and the filed-rate/model version cited, reviewable by the authority holder without further rework."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Stored as the referral memorandum on the PolicyCenter file and in OpenText /Underwriting/Referrals/<account-number>/."
+        },
+        {
+          "answerId": "cmr2ocfyq0vgpkaz31t9jqsu1",
+          "value": "Materiality/tolerance: deviations above 10% of the filed/indicated rate, or any limit above the underwriter's tier, are material and require full quantified justification and authority approval."
+        },
+        {
+          "answerId": "cmr2ocfyq0vgqkaz3dliyhusx",
+          "value": "Deviation math sourced from the Earnix pricing worksheet (indicated vs. proposed) and the filed-rate manual; the memo's deviation percentage reconciles to those source values with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppc31o8wmbk8i3ty2jne",
+          "checklist": [
+            {
+              "step": "Justify any deviation from filed rates against the authority matrix",
+              "value": "Memo quantifies the deviation vs. the filed/indicated rate and cites the authority tier permitting it."
+            },
+            {
+              "step": "Cite the rate/model version behind the deviation",
+              "value": "The filed rate and Earnix model version used are named so the deviation is reproducible."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile the deviation figure",
+              "value": "Sampled memos: stated deviation ties to the Earnix worksheet; 0 unreconciled figures."
+            },
+            {
+              "step": "Confirm deviation is within authority",
+              "value": "Every deviation is within the acting tier or carries a referral approval; 0 out-of-authority deviations unreferred."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Include a clear recommendation to the next authority level",
+              "value": "Referral memo states the recommended action and terms for the authority holder to accept or amend."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify recommendation presence",
+              "value": "Sampled referrals: 100% carry an explicit underwriter recommendation; 0 blank recommendations."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppd31o8ymbk8q4zpd8lh",
+          "checklist": [
+            {
+              "step": "Document the basis for the recommendation",
+              "value": "Loss experience, exposure quality and market rationale recorded in the memo."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify justification completeness",
+              "value": "Sampled memos: each deviation has a quantified, sourced basis; 0 unsupported deviations."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2flam31spgkfgzybkr6pf2",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Open referrals whose authority-holder response has passed the agreed response deadline; population = the underwriter's referral queue in PolicyCenter filtered to status 'awaiting authority' past due."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Follow-up issued once the referral SLA (typically 2-3 business days, aligned to the broker quote deadline) has lapsed without a decision; monitored daily against the queue."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Follow-up records the referral ID, the authority holder chased, days overdue, and the new expected response date. A follow-up without a recorded overdue count or target date is not accepted as issued."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every overdue referral in the queue has a corresponding follow-up entry; count of overdue referrals equals count of follow-ups issued, delta 0 at daily review."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Follow-up logged on the referral activity trail with timestamp; escalation chain retained on the file, retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Referrals still unanswered after the second follow-up are escalated to the Underwriting Manager/CUO as exceptions; disposition (escalate / reassign authority / decline for missed deadline) recorded with a 1-business-day action SLA."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Not model-driven; the follow-up cadence follows the approved referral-SLA procedure version rather than a calculation model."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "N/A - no numerical sensitivity; escalation timing keyed to the broker quote deadline, with the follow-up triggered one business day before the deadline is at risk."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Any referral within one business day of the broker quote deadline is treated as material and escalated immediately rather than chased routinely."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All overdue referrals in the quarter (census) for follow-up coverage; 15-file sample for escalation timeliness against the quote deadline."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = 100% of overdue referrals have a documented follow-up and, where past the second chase, an escalation; FAIL = any overdue referral with no follow-up or missed escalation."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, the underwriter issues the follow-up immediately and escalates persistent non-response to the Underwriting Manager/CUO within one business day."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = follow-up issued before the broker quote deadline is breached, recorded on the referral with days overdue and a new target date."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence in the PolicyCenter referral activity log; escalation notes stored on the file."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Chase overdue referrals to keep the recommendation moving",
+              "value": "Follow-up issued to the authority holder once the referral SLA lapses, recorded on the referral."
+            },
+            {
+              "step": "Escalate persistent non-response",
+              "value": "After a second unanswered chase, escalate to the Underwriting Manager/CUO."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify follow-up coverage",
+              "value": "Census of overdue referrals: 100% carry a documented follow-up; 0 silent overdue referrals."
+            },
+            {
+              "step": "Verify escalation timeliness",
+              "value": "Sampled overdue referrals near the quote deadline escalate within one business day; 0 missed escalations."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpq051oa8mbk8dk8eyglb",
+          "checklist": [
+            {
+              "step": "Protect the firm-quote SLA when chasing referrals",
+              "value": "Follow-up cadence keyed to deliver a firm quote within 5 business days of a complete submission despite referral delay."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test quote-SLA impact",
+              "value": "Sampled overdue referrals: measure share that still met the 5-business-day quote SLA; breaches carry a documented cause."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fla711shpkfgze5vogu06",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Business Analyst"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "For a referral case, the specific approvals required before bind: premium/endorsement approval, limit deviation, or appetite exception - identified from the Authority Matrix and appetite guide and listed on the referral in PolicyCenter."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Determined at referral preparation, before submission; requirements are read from Authority Matrix v3.2 and the current appetite statement in effect on the working date."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each required approval named with its trigger (which driver exceeded which threshold) and the authority level that must grant it. A referral routed without its approval requirements enumerated is incomplete."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Every driver that breaches a matrix/appetite threshold produces exactly one listed approval requirement; the set of triggers reconciles to the set of required approvals, delta 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Approval-requirements list retained on the referral with timestamp and matrix version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Ambiguous cases (driver near a threshold, novel exposure) logged as exceptions to the Senior Underwriter to confirm the required authority; disposition recorded with a 2-business-day turnaround."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Requirements derived from the current approved Authority Matrix v3.2 and appetite guide version; the version is cited so the requirement set is reproducible."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Where a driver sits close to a threshold, the identified requirement notes the sensitivity so a small change in exposure would/would not change the required authority."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Thresholds that flip the required authority (e.g. limit crossing a tier, deviation crossing 10%) are treated as material and stated explicitly on the referral."
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All referrals in the quarter (census) for whether required approvals were correctly identified; 20-file sample re-derived against the matrix."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = every threshold breach on the risk has a matching listed approval requirement at the correct authority; FAIL = a missed requirement or a requirement at the wrong authority level."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "On FAIL, the requirements list is corrected before routing; borderline cases are confirmed with the Senior Underwriter within 2 business days."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = complete, matrix-sourced list of required approvals with triggers and authority levels, ready for the referral to route to the right holder."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Recorded on the PolicyCenter referral and retained on the file."
+        },
+        {
+          "answerId": "cmr2ocfyq0vgnkaz3sfyua7yl",
+          "value": "Materiality/tolerance: any driver crossing a matrix tier or a 10% rate-deviation threshold is material and generates a required approval; sub-threshold variances do not."
+        },
+        {
+          "answerId": "cmr2ocfyq0vgokaz3hujefso2",
+          "value": "Requirements re-derived from Authority Matrix v3.2 driver fields (premium, limit, LOB, appetite code) held in PolicyCenter; the derived requirement set reconciles to the matrix rules with 0 variance."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Read the risk against documented referral triggers",
+              "value": "Check premium, limit, LOB and appetite drivers against the standing trigger list to derive required approvals."
+            },
+            {
+              "step": "List each required approval with its trigger",
+              "value": "Referral records which driver breached which threshold and the authority that must approve."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test trigger-to-requirement mapping",
+              "value": "Sampled referrals: every threshold breach has a matching required approval; 0 missed requirements."
+            },
+            {
+              "step": "Test authority-level accuracy",
+              "value": "Each required approval names the correct tier per Authority Matrix v3.2; 0 wrong-level requirements."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Identify the next authority level required",
+              "value": "Requirement list points the referral to the correct higher authority with the recommendation attached."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify routing target",
+              "value": "Sampled referrals route to the tier matching the highest required approval; 0 misroutes."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppse1o9smbk8sec8gva2",
+          "checklist": [
+            {
+              "step": "Flag appetite/filed-rate exceptions for CUO approval",
+              "value": "Appetite exceptions in the requirement list are marked as needing CUO approval with documentation."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify exception flagging",
+              "value": "Sampled appetite-exception referrals are routed for CUO approval; 0 exceptions handled below required authority."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "d9e5bffe-d65f-431d-a6f4-6b45c8b85860",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Business Analyst", "Data Scientist"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "A single referral memorandum summarising the risk profile, exposure analysis, pricing indication and proposed terms for one referred account, drafted on the PolicyCenter referral and stored in OpenText."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Drafted at referral submission using data current as of the working date - loss runs within 5 valuation years, exposure schedule as-of the effective date, pricing from the current Earnix run."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Memo covers the mandatory sections: risk summary, exposure/limits, loss experience, pricing indication with deviation, proposed terms/subjectivities, and the recommendation. A memo missing any section is returned before routing."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Figures in the memo (premium, indicated vs. proposed price, limits) tie to the Earnix worksheet and exposure schedule; the memo totals reconcile to the source systems with 0 variance."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Memo stored as the referral memorandum on the policy file and in OpenText /Underwriting/Referrals/<account-number>/ with version and timestamp; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Data gaps or unresolved exposure questions noted as open items in the memo with an owner; disposition (obtain / assume with rationale) recorded, and material gaps block routing until cleared."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Pricing in the memo cites the approved Earnix model version; for large accounts, the actuarial review reference is included."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Memo shows how the indicated price moves under key assumption changes (rate, limit, deductible) so the authority holder sees the range around the recommendation."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Exposures or deviations above the 10%-of-indicated-price or one-tier-of-limit materiality threshold are analysed in full in the memo rather than summarised."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "All referral memos drafted in the quarter (census) for section completeness; 15-file sample for figure reconciliation to source."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = all mandatory sections present and memo figures tie to Earnix/exposure schedule; FAIL = a missing section or a figure that does not reconcile to source."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "On FAIL, the memo is returned to the drafting underwriter to complete or correct; material data gaps are escalated to the Senior Underwriter before routing."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Memo data fields defined by the PolicyCenter referral schema and Earnix worksheet: account, exposure, limits, indicated_price, proposed_price, deviation_pct, subjectivities."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control total = memo premium/price figures vs. Earnix worksheet and exposure schedule; reconcile to 0 variance before submission."
+        },
+        {
+          "answerId": "cmr2ocdvu0si1kaz3h0sofgja",
+          "value": "Acceptance criteria: memo contains all mandatory sections, figures reconcile to Earnix and the exposure schedule, and it is ready for authority review without rework. Evidence: referral memorandum on the PolicyCenter file and OpenText copy under /Underwriting/Referrals/<account>/."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Summarise the risk and recommendation for the authority level",
+              "value": "Memo gives risk profile, exposure analysis, pricing and proposed terms with a clear recommendation."
+            },
+            {
+              "step": "Reconcile memo figures to source systems",
+              "value": "Premium, price and limit figures tie to the Earnix worksheet and exposure schedule."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify recommendation and completeness",
+              "value": "Census of memos: 100% carry all mandatory sections and a recommendation; 0 incomplete memos routed."
+            },
+            {
+              "step": "Reconcile sampled figures",
+              "value": "15-file sample: memo figures tie to source; 0 unreconciled figures."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the memo and its supporting evidence together",
+              "value": "Referral memorandum stored with attachments in OpenText under the account referral folder."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify memo is filed and versioned",
+              "value": "Sampled referrals: memo present, versioned and timestamped on the file; 0 missing memos."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppa51o8smbk82mw0frsj",
+          "checklist": [
+            {
+              "step": "Include actuarial review for large accounts",
+              "value": "For accounts above the large-account threshold, the memo references the required actuarial review of rate adequacy."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify large-account actuarial review",
+              "value": "Sampled large-account referrals cite an actuarial review; 0 large accounts routed without it."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "1ce23f29-62cc-42c2-9799-4da83389b5cc",
+      "owner": { "action": "keep" },
+      "removeRoleNames": ["Business Analyst", "Data Scientist"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Comparable in-force and recently-quoted accounts of similar class, size, geography and limits, pulled to benchmark the referral case's price and terms; population sourced from the book in PolicyCenter and rating history in Earnix."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Pulled at referral preparation using comparables from the trailing 24 months so pricing and loss experience reflect current market conditions."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "5e7b3f54-822d-4992-92ad-10f13bf4015c"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Each comparable carries class code, TIV/limit, premium, rate per unit and loss ratio; only comparables matching the subject on class and size band within tolerance are retained. Non-comparable records are excluded and the exclusion noted."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The comparable set (count and average rate) reconciles to the Earnix/PolicyCenter query used; re-running the same filter reproduces the same set, delta 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Benchmark extract saved to the referral file with query parameters, run date and version; retained 7 years so the comparison is reproducible at audit."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Thin or skewed comparable sets (fewer than the minimum count, or dominated by one account) flagged as a limitation; disposition (widen filter / note caveat) recorded before the benchmark is used."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppf71o92mbk8voyj74ly",
+          "checklist": [
+            {
+              "step": "Benchmark the case against loss-ratio targets by line of business",
+              "value": "Comparable accounts pulled to test whether the proposed price meets the LOB loss-ratio target."
+            },
+            {
+              "step": "Match comparables on class and size",
+              "value": "Only accounts matching the subject on class code and size band within tolerance are retained."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify comparability of the set",
+              "value": "Sampled benchmark pulls: comparables match the subject on class/size; off-target records excluded with a note."
+            },
+            {
+              "step": "Verify LOB target linkage",
+              "value": "Benchmark output states the LOB loss-ratio target and the subject's position against it; 0 pulls without the target."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "File the benchmark and its query parameters",
+              "value": "Benchmark extract, filter parameters and run date stored on the referral file for reproducibility."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify benchmark is reproducible",
+              "value": "Re-running the saved query reproduces the same comparable set; 0 irreproducible benchmarks."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "c4f8b11e-c244-4b0f-a10f-e5fc2180da95",
+      "owner": { "action": "replace", "name": "Senior Underwriter" },
+      "removeRoleNames": [],
+      "addParticipants": [],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [{ "name": "OpenText Document Mgmt", "usageType": "memorialized" }],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "An approved referral being returned by the authority holder to the originating underwriter, with implementation instructions: the approved terms, conditions, subjectivities and any price/limit modifications, recorded on the PolicyCenter referral."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Returned within the referral SLA and no later than 24 hours after the decision, so the originating underwriter can quote/bind ahead of the broker deadline."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        { "templateKeyId": "cmr2v87y40005xa9ir47s1qg4", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Return record states the outcome, approved terms, every condition with an owner/clear-by date, and clear next steps for the underwriter. A return without unambiguous implementation instructions is sent back to the authority holder."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Approved terms returned reconcile to the terms the underwriter then binds in PolicyCenter; conditions returned equal subjectivities created, delta 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Return decision and instructions logged on the referral activity trail and copied to OpenText with timestamp and version; retained 7 years."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Ambiguous or partial instructions are exceptions returned to the authority holder for clarification; disposition recorded with a 1-business-day turnaround so the quote deadline is protected."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Where the approval modifies price, the approved Earnix model version and rate basis are cited so the underwriter implements the exact approved figure."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "Instructions note any accepted price band (e.g. bind within +/-5% of approved rate) so the underwriter knows the room to finalise terms."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Any modification above the 10%-of-price or one-tier-of-limit materiality threshold is stated explicitly as an instruction, not left to the underwriter's discretion."
+        },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The approval decision and its conditions are documented on the referral before return, with the approving authority named."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Return is addressed to the originating underwriter (recipient recorded), with the Underwriting Assistant copied for implementation support."
+        },
+        { "templateKeyId": "cmr2oap6g002flasb12gpqsrx", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "All returned approvals in the quarter (census) for instruction clarity; 20-file sample tracing returned terms to what was bound."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = return names the approver, states approved terms and all conditions, and the bound policy matches the returned terms; FAIL = ambiguous instructions or a bind that departs from the approved terms."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "On FAIL, the return is clarified by the authority holder or the bind corrected; departures from approved terms are escalated to the CUO."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0ro03sjmbk8hjhb90bw" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "The Authority Matrix v3.2 delegation register defines who could approve at this tier; the return cites the approving authority consistent with that register."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Return the approved referral with clear implementation instructions",
+              "value": "Authority holder returns approved terms, conditions and next steps to the originating underwriter."
+            },
+            {
+              "step": "Name the approving authority on the return",
+              "value": "Return records the approver and their tier consistent with the delegation register."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Trace returned terms to the bind",
+              "value": "20-file sample: bound policy matches the returned approved terms; 0 departures without escalation."
+            },
+            {
+              "step": "Verify instruction clarity",
+              "value": "Census of returns: 100% state approved terms and all conditions; 0 ambiguous returns."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpoyw1o88mbk8tyh7zdy7",
+          "checklist": [
+            {
+              "step": "Document the decision within 24 hours of approval",
+              "value": "Return and its instructions logged on the referral within one business day of the decision."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test return timeliness",
+              "value": "Sampled returns: 100% issued within 24 hours of the decision; 0 breaches."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Retain the approval and return on the audit trail",
+              "value": "Decision, approver and instructions retained on the referral activity trail and in OpenText."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit-trail completeness",
+              "value": "Sampled returns: activity trail shows approver, terms and timestamp; 0 gaps."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "edecdf6f-0906-4bbb-a274-af303f1c4d46",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "A prepared referral being routed through the PolicyCenter workflow to the correct authority holder, with a priority flag reflecting the broker deadline; population = referrals ready to submit on the underwriter's book."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Routed at submission, immediately after the referral memo and attachments are complete, so the authority holder has maximum time before the quote deadline."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Routing carries the target authority level (from the required-approvals list), a priority flag, and the response-by date. A referral routed without a resolved authority target or deadline is rejected by the workflow."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The authority level the workflow routes to equals the highest required approval identified for the risk; routed-tier reconciles to required-tier, delta 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Routing event (from/to, priority, timestamp) recorded on the referral workflow history; retained 7 years and reviewable in the activity trail."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Misroutes or routes to an unavailable holder are exceptions re-routed to the correct/available authority; disposition and re-route recorded with a same-day SLA to protect the deadline."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Not model-driven; routing follows the approved workflow configuration version mapping authority tiers to holders per Authority Matrix v3.2."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "N/A - no numerical sensitivity; the priority flag escalates the SLA when the broker deadline is near."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Referrals within one business day of the broker deadline are routed with high priority so the authority holder is alerted immediately."
+        },
+        { "templateKeyId": "cmr2oann90019lasbxpi8ldf9", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88pn000nxa9irjv495b3",
+          "value": "The routing decision (target authority, priority, deadline) is recorded on the referral before the workflow advances."
+        },
+        {
+          "templateKeyId": "cmr2v88qn000pxa9iqzvee4lb",
+          "value": "Recipient is the mapped authority holder for the tier; the originating underwriter and Underwriting Assistant remain on the referral watchlist."
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "All routed referrals in the quarter (census) for routing correctness; 20-file sample tracing routed tier against the required-approvals list."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = referral routed to the authority matching the highest required approval with a priority flag and deadline; FAIL = misroute, missing priority flag, or missing response-by date."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "On FAIL, the referral is re-routed to the correct authority the same day and the misroute logged; deadline-at-risk cases are escalated to the Underwriting Manager."
+        },
+        { "templateKeyId": "cmr2v89jj0013xa9iy2urljqv", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "The workflow routing table is driven by the Authority Matrix v3.2 delegation register mapping each tier to its authorised holders and backups."
+        },
+        {
+          "answerId": "cmr2ocg120yjtkaz3n0j1vrvx",
+          "value": "Acceptance criteria: referral routed to the authority holder matching the highest required approval, with a priority flag and response-by date, recorded in workflow history. Evidence: PolicyCenter referral workflow history and OpenText referral folder."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Route the referral to the correct next authority level",
+              "value": "Workflow routes the referral to the authority holder matching the highest required approval, with the recommendation attached."
+            },
+            {
+              "step": "Flag priority against the broker deadline",
+              "value": "Referrals near the quote deadline are routed with a high-priority flag and response-by date."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test routing correctness",
+              "value": "20-file sample: routed tier matches the required-approval tier; 0 misroutes."
+            },
+            {
+              "step": "Test priority flagging",
+              "value": "Sampled deadline-sensitive referrals carry a priority flag; 0 late referrals routed at normal priority."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpozx1o8ambk8sak9g6g1",
+          "checklist": [
+            {
+              "step": "Route based on documented referral triggers",
+              "value": "The trigger that forced the referral determines the target authority per the delegation register."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify trigger-based routing",
+              "value": "Sampled referrals route to the authority mapped to their trigger; 0 mismatches to the register."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "d9546b10-1849-43da-8bbe-dd2b0338cc59",
+      "owner": { "action": "keep" },
+      "removeRoleNames": [],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "The response deadline set on a referral, aligned to the broker quote deadline and the internal referral SLA; population = referrals being submitted on the underwriter's book that need a response-by date."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "Set at routing; the deadline is the earlier of the broker quote deadline (from the CRM/submission) minus a working-day buffer and the internal SLA of 2-3 business days."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "The referral carries a response-by date, the source of the constraint (broker deadline vs. internal SLA), and a buffer for implementation. A referral without a response-by date cannot be routed."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "The response-by date is no later than the broker quote deadline minus the implementation buffer; the set date reconciles to the broker deadline held in the CRM, with any exception noted."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Deadline and its basis recorded on the referral with timestamp; retained 7 years and used to measure SLA adherence."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Cases where the broker deadline is shorter than the internal SLA are exceptions escalated for expedited handling; disposition (expedite / seek extension from broker) recorded with same-day action."
+        },
+        { "templateKeyId": "cmr2oam5o000flasb2i5ekzh1", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Not model-driven; the deadline follows the approved referral-SLA procedure version and the buffer standard."
+        },
+        { "templateKeyId": "cmr2oamg4000llasb5mlmokig", "roleId": "cmqsck0rq03xcmbk82yte24t5" },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "N/A - no numerical sensitivity; the buffer size flexes with case complexity (larger buffer for accounts needing actuarial review)."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Any referral whose broker deadline leaves less than the standard buffer is treated as time-critical and expedited."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All referrals routed in the quarter (census) for whether a valid deadline was set; 15-file sample checking the deadline against the broker quote date."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = response-by date set, at or before the broker deadline minus buffer, with the constraint source recorded; FAIL = missing deadline or a deadline later than the broker quote date."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "On FAIL, the deadline is corrected before routing; where the broker window is too short, the case is expedited or a broker extension is sought the same day."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = a response-by date set on the referral that protects the broker quote deadline and meets the internal SLA, with the constraint source recorded."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Recorded on the PolicyCenter referral; broker quote deadline sourced from the CRM submission record."
+        },
+        {
+          "answerId": "cmr2ocg050xbekaz3e7cncj16",
+          "value": "In-scope period/effective dates: the deadline is set for the current submission and is the earlier of the broker quote deadline (from the CRM, effective the submission date) minus the implementation buffer and the internal 2-3 business-day SLA."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpq051oa8mbk8dk8eyglb",
+          "checklist": [
+            {
+              "step": "Set the referral deadline to protect the firm-quote SLA",
+              "value": "Response-by date set so a firm quote can still be delivered within 5 business days of a complete submission."
+            },
+            {
+              "step": "Align the deadline to the broker quote date",
+              "value": "Deadline set at the broker quote date minus an implementation buffer, sourced from the CRM."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Test deadline validity",
+              "value": "Sampled referrals: response-by date is at or before the broker deadline minus buffer; 0 deadlines set past the quote date."
+            },
+            {
+              "step": "Test SLA protection",
+              "value": "Sampled cases: deadline supports the 5-business-day firm-quote SLA; breaches carry a documented cause."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpp2k1o8embk8fmmi84ai",
+          "checklist": [
+            {
+              "step": "Bind a response deadline to every referral",
+              "value": "No referral advances to an authority level without a recorded response-by date."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify deadline coverage",
+              "value": "Census of routed referrals: 100% carry a response-by date; 0 open-ended referrals."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}

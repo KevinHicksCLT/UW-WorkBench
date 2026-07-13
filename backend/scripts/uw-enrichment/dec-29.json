@@ -1,0 +1,2012 @@
+{
+  "tasks": [
+    {
+      "id": "cmr2fl3yw1pgckfgzf0xl2xqj",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All cancelled policies requiring a return-premium computation in the current cycle; short-rate or pro-rata basis per state+LOB rules."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current renewal/cancellation processing cycle (e.g. 2026-07-01 to 2026-09-30); only transactions effective in this window are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Cancellation effective date, cancellation type (insured/company request), earned premium, filed rate version and computation basis are populated and validate in the rating engine."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Sum of computed return-premium amounts reconciles to the billing/commission platform postings for the cycle; delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Screens/artifacts captured to OpenText DMS under /underwriting/<policy-no>/ with system timestamp and version label; retained per the state records-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Items failing validation or SLA raised as an exception in Archer GRC with disposition (rework / waiver / escalate), owner = Underwriting Manager, and a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Return-premium method (short-rate vs pro-rata) and the current filed rate version approved for the state+LOB."
+        },
+        {
+          "templateKeyId": "cmr2oamg4000llasb5mlmokig",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "N/A for this transactional step; sensitivity applies to rate/return-premium computations, bounded by the filed rate rules."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality set at any error affecting notice timing, coverage continuity or premium >$100; such items are individually reviewed."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled records trace field-by-field to the Guidewire PolicyCenter screens and the source documents indexed in OpenText DMS."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy/transaction status (e.g. Non-Renewal Pending, Cancelled, Reinstated) aligns to the defined workflow state for this step."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Effective date, notice date and expiration date align to the workflow and statutory lead-time rules."
+        },
+        {
+          "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "All policies processed through this step in the cycle; a risk-based quarterly sample of 25 files re-performed by Underwriting Quality."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = independent recompute matches system return premium within +/- $1 on 100% of the sample; FAIL = any variance > $1 or wrong basis."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "Failures routed to the Underwriting Manager for correction within 5 business days; systemic issues escalated to the Chief Underwriting Officer and logged in Archer GRC."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "Short-rate/pro-rata computation per Underwriting Operations SOP v4.1 and the current filed rate version."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "Filed rate version and short-rate penalty table from the rating engine; earned days from the policy-admin system."
+        },
+        {
+          "answerId": "cmr2ocdxt0v2xkaz3fox2x1a5",
+          "value": "Field definitions sourced from the Guidewire PolicyCenter data dictionary (policy_no, txn_type, effective_date, reason_code, approver_id). Control totals reconcile the workbench transaction count to the policy-admin log with 0 variance for the cycle."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Apply filed/approved rates and rules to the calculation",
+              "value": "Return-premium / reinstatement computation uses the current filed rate version and short-rate/pro-rata rule for the state+LOB in the rating engine."
+            },
+            {
+              "step": "Document the rate version used",
+              "value": "Filed rate version id and calculation method recorded on the policy transaction."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-perform the calculation independently",
+              "value": "Independent recompute for the sample matches the system result within +/- $1; deviations investigated."
+            },
+            {
+              "step": "Confirm the correct filed rate version",
+              "value": "Rate version on the transaction equals the effective filed version for the policy period; 0 mismatches."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Preserve a complete, immutable audit trail of the transaction",
+              "value": "Guidewire PolicyCenter transaction history retained (user, timestamp, before/after values) and exported to Archer GRC for the control record."
+            },
+            {
+              "step": "Version and retain the computation/record",
+              "value": "Each recalculation or record change stored with version label and effective date."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit-trail completeness",
+              "value": "Sampled transactions show an unbroken history from initiation to completion; 0 gaps or back-dated edits."
+            },
+            {
+              "step": "Confirm retention and immutability",
+              "value": "Audit records retained per schedule and confirmed read-only; 0 mutable entries found."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fl47r1pjukfgzacjr0i46",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["Actuarial modeling platform (Prophet/MoSes/Axis/ResQ/Igloo)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "All policies cancelled in the current cycle whose records must be closed and final-status posted in the policy-admin system."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current renewal/cancellation processing cycle (e.g. 2026-07-01 to 2026-09-30); only transactions effective in this window are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Cancellation effective date, final premium/return, disposition code and closing approver populated; open activities cleared before status set to Cancelled."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of records moved to Cancelled reconciles to the cancellation work-queue; delta must be 0."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Screens/artifacts captured to OpenText DMS under /underwriting/<policy-no>/ with system timestamp and version label; retained per the state records-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Items failing validation or SLA raised as an exception in Archer GRC with disposition (rework / waiver / escalate), owner = Underwriting Manager, and a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Approved renewals/non-renewal procedure version (Underwriting Operations SOP v4.1) governs the step; deviations require documented approval."
+        },
+        {
+          "templateKeyId": "cmr2oamg4000llasb5mlmokig",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "N/A for this transactional step; sensitivity applies to rate/return-premium computations, bounded by the filed rate rules."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality set at any error affecting notice timing, coverage continuity or premium >$100; such items are individually reviewed."
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled records trace field-by-field to the Guidewire PolicyCenter screens and the source documents indexed in OpenText DMS."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy/transaction status (e.g. Non-Renewal Pending, Cancelled, Reinstated) aligns to the defined workflow state for this step."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Effective date, notice date and expiration date align to the workflow and statutory lead-time rules."
+        },
+        {
+          "templateKeyId": "cmr2oaq0p0033lasbv9x9vl3x",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaq1y0035lasbt581hez0",
+          "value": "All policies processed through this step in the cycle; a risk-based quarterly sample of 25 files re-performed by Underwriting Quality."
+        },
+        {
+          "templateKeyId": "cmr2oaq320037lasb58si1owg",
+          "value": "PASS = required fields, correct status and timely, correctly-addressed action on 100% of the sample; FAIL = any missing rationale, wrong status, or late/mis-addressed action."
+        },
+        {
+          "templateKeyId": "cmr2oaq4e0039lasb7zs1be9x",
+          "value": "Failures routed to the Underwriting Manager for correction within 5 business days; systemic issues escalated to the Chief Underwriting Officer and logged in Archer GRC."
+        },
+        {
+          "templateKeyId": "cmr2v89xj0017xa9ikgynty6d",
+          "value": "Underwriting Operations SOP v4.1 (current approved version) applied for this step."
+        },
+        {
+          "templateKeyId": "cmr2v89ze0019xa9i4s25sd76",
+          "value": "State lead-time and content parameters sourced from the compliance rules table; filed rates from the rating engine."
+        },
+        {
+          "answerId": "cmr2ocdxt0v2ykaz375x7sfpx",
+          "value": "Field definitions sourced from the Guidewire PolicyCenter data dictionary (policy_no, txn_type, effective_date, reason_code, approver_id). Control totals reconcile the workbench transaction count to the policy-admin log with 0 variance for the cycle."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the action and rationale in the underwriting file",
+              "value": "Structured note added to the Guidewire PolicyCenter policy file with decision, rationale, approver and timestamp; supporting documents indexed in OpenText DMS."
+            },
+            {
+              "step": "Index evidence to the policy record",
+              "value": "All artifacts filed under /underwriting/<policy-no>/ with document-type tags for regulatory retrieval."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for completeness",
+              "value": "Quarterly 25-file review confirms rationale, approvals and supporting docs present; target 100% complete, remediate any gap in 5 business days."
+            },
+            {
+              "step": "Trace a sampled action to its file evidence",
+              "value": "Each sampled transaction reconciles 1:1 to an indexed, timestamped file entry."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Preserve a complete, immutable audit trail of the transaction",
+              "value": "Guidewire PolicyCenter transaction history retained (user, timestamp, before/after values) and exported to Archer GRC for the control record."
+            },
+            {
+              "step": "Version and retain the computation/record",
+              "value": "Each recalculation or record change stored with version label and effective date."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit-trail completeness",
+              "value": "Sampled transactions show an unbroken history from initiation to completion; 0 gaps or back-dated edits."
+            },
+            {
+              "step": "Confirm retention and immutability",
+              "value": "Audit records retained per schedule and confirmed read-only; 0 mutable entries found."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "2e37aa9e-4c36-4275-b97f-172d7233a2a3",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [],
+      "addApps": [
+        {
+          "name": "underwriting workstation",
+          "usageType": "performed"
+        },
+        {
+          "name": "GRC platform (Archer/ServiceNow GRC)",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Each policy proposed for non-renewal/cancellation; grounds and eligibility verified against written underwriting guidelines and appetite before proceeding."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current renewal/cancellation processing cycle (e.g. 2026-07-01 to 2026-09-30); only transactions effective in this window are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "8ad32be7-9ee4-44d8-9d7a-a83a120c5ff1"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Documented ground (loss experience, appetite exit, risk quality), guideline reference and eligibility check populated on the policy record."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Transaction count in the workbench queue reconciles to the policy-admin transaction log for the cycle; delta must be 0, with any variance logged and cleared before close."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Screens/artifacts captured to OpenText DMS under /underwriting/<policy-no>/ with system timestamp and version label; retained per the state records-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Items failing validation or SLA raised as an exception in Archer GRC with disposition (rework / waiver / escalate), owner = Underwriting Manager, and a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpq251oacmbk80nlgajf6",
+          "checklist": [
+            {
+              "step": "Ensure every non-renewal is issued with an affirmative, documented notice",
+              "value": "No policy lapses without a generated notice; the renewal work-queue flags any expiring policy with no renewal offer and no non-renewal notice."
+            },
+            {
+              "step": "Capture the underwriting reason on the notice and in the file",
+              "value": "Reason code and narrative recorded in Guidewire PolicyCenter and reflected on the insured/broker notice."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile expiring policies to notices issued",
+              "value": "Monthly: expiring-policy population = renewed + non-renewed-with-notice; delta of silent lapses must be 0."
+            },
+            {
+              "step": "Sample for reason documentation",
+              "value": "25-file quarterly sample shows a documented reason on 100% of non-renewals."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppd31o8ymbk8q4zpd8lh",
+          "checklist": [
+            {
+              "step": "Require documented support for the underwriting decision",
+              "value": "Decision cannot progress until rationale, referenced data and authority level are captured on the policy record."
+            },
+            {
+              "step": "Attach the source evidence",
+              "value": "Loss experience, exposure data and appetite reference attached to the file in OpenText DMS."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify documentation exists before the transaction closes",
+              "value": "System control blocks status change until the required rationale fields are populated; 0 closed transactions with blank rationale."
+            },
+            {
+              "step": "Sample-test documentation quality",
+              "value": "25-file quarterly sample scored against the documentation rubric; pass threshold 95%."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppli1o9embk8y3bvlnlf",
+          "checklist": [
+            {
+              "step": "Confirm the non-renewal/cancellation notice meets the state- and line-specific lead time and content rules",
+              "value": "Notice template selected by state+LOB from the compliance rules table; required elements (reason, effective date, appeal rights) present; lead time (e.g. 60 days commercial NY) validated against the workbench diary."
+            },
+            {
+              "step": "Record proof of timely, correctly-addressed delivery",
+              "value": "USPS certificate of mailing / proof-of-delivery captured to OpenText DMS and linked to the policy record in Guidewire PolicyCenter."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample non-renewal notices for state-rule conformance",
+              "value": "Quarterly sample of 25 notices reviewed by Underwriting Quality; 100% carry correct state lead time, reason text and effective date; 0 defects tolerated on lead time."
+            },
+            {
+              "step": "Verify no notice mailed late",
+              "value": "Re-compute mail-by date from expiration for the sample; 0 notices dispatched inside the statutory window."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrbx94co01erv8ukeer9iypr",
+          "checklist": [
+            {
+              "step": "Provide the specific reason(s) for the adverse underwriting decision",
+              "value": "Non-renewal/cancellation notice states the actual reason (loss experience, appetite exit, risk quality) and the insured's right to access the underlying information, per NAIC Model #670."
+            },
+            {
+              "step": "Record the reason and the information relied upon",
+              "value": "Reason code, narrative and source data referenced in the underwriting file and the Archer GRC control record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample notices for reason adequacy",
+              "value": "Quarterly 25-notice sample: 100% state a specific, non-generic reason and the access/appeal rights."
+            },
+            {
+              "step": "Verify access requests are honored",
+              "value": "Any insured request for reasons/records fulfilled within the statutory period; 0 overdue requests."
+            }
+          ]
+        },
+        {
+          "regId": "cmrbg12yk02bvv8kglbb3x1wd",
+          "checklist": [
+            {
+              "step": "Base the decision on written underwriting guidelines",
+              "value": "Non-renewal/cancellation grounds map to a documented underwriting guideline reference per N.J.A.C. 11:1-40; ad-hoc reasons are prohibited."
+            },
+            {
+              "step": "Issue a compliant adverse-action notice",
+              "value": "Notice includes the specific guideline basis and the insured's rights, filed to OpenText DMS."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Trace grounds to a written guideline",
+              "value": "Each sampled NJ non-renewal cites an existing written guideline; 0 undocumented bases."
+            },
+            {
+              "step": "Confirm notice content and timing",
+              "value": "Sampled NJ notices meet content and lead-time rules; 0 deficiencies."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cmr2fhu0l06ixkfgzh0s0psbq",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": [
+        "Annuity Suitability Analyst",
+        "Chief Underwriting Officer",
+        "Clearance Specialist",
+        "Commercial Lines Underwriter",
+        "Coverholder Coordinator",
+        "Delegated Authority Analyst",
+        "Delegated Authority Manager",
+        "Exposure Management Manager",
+        "Life Underwriter",
+        "New Business Case Manager",
+        "Personal Lines Underwriter",
+        "Portfolio UW Manager",
+        "Renewal Underwriter",
+        "Risk Engineer",
+        "Senior Underwriter",
+        "Submission Intake Specialist",
+        "UW Operations Manager",
+        "Underwriter",
+        "Underwriting Director / Manager",
+        "Underwriting Quality / Audit Manager",
+        "Wordings Coverage Specialist"
+      ],
+      "addParticipants": ["Senior Underwriter", "Records Manager"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [
+        {
+          "name": "document management repository",
+          "usageType": "performed"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Each archived cancelled/non-renewed underwriting file; retention period confirmed set on the OpenText DMS record before closure."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current renewal/cancellation processing cycle (e.g. 2026-07-01 to 2026-09-30); only transactions effective in this window are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "2908a095-10bc-4c8b-a423-1e234c745311"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "cmqz5zn9l001753cre6mjz0aa"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Retention class, retention-start (expiration) date, legal-hold flag and disposition date populated on the DMS record."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of archived files with a retention class set reconciles to files closed in the cycle; delta must be 0 (no file archived without retention)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Screens/artifacts captured to OpenText DMS under /underwriting/<policy-no>/ with system timestamp and version label; retained per the state records-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Items failing validation or SLA raised as an exception in Archer GRC with disposition (rework / waiver / escalate), owner = Underwriting Manager, and a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled records trace field-by-field to the Guidewire PolicyCenter screens and the source documents indexed in OpenText DMS."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy/transaction status (e.g. Non-Renewal Pending, Cancelled, Reinstated) aligns to the defined workflow state for this step."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Effective date, notice date and expiration date align to the workflow and statutory lead-time rules."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All policies processed through this step in the cycle; a risk-based quarterly sample of 25 files re-performed by Underwriting Quality."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = required fields, correct status and timely, correctly-addressed action on 100% of the sample; FAIL = any missing rationale, wrong status, or late/mis-addressed action."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Failures routed to the Underwriting Manager for correction within 5 business days; systemic issues escalated to the Chief Underwriting Officer and logged in Archer GRC."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dates = policy expiration/cancellation effective date through notice/action date; only current-cycle effective dates are in scope."
+        },
+        {
+          "answerId": "cmr2ocfzi0wgvkaz3rvo556yv",
+          "value": "Field definitions sourced from the Guidewire PolicyCenter data dictionary (policy_no, txn_type, effective_date, reason_code, approver_id). Control totals reconcile the workbench transaction count to the policy-admin log with 0 variance for the cycle."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the action and rationale in the underwriting file",
+              "value": "Structured note added to the Guidewire PolicyCenter policy file with decision, rationale, approver and timestamp; supporting documents indexed in OpenText DMS."
+            },
+            {
+              "step": "Index evidence to the policy record",
+              "value": "All artifacts filed under /underwriting/<policy-no>/ with document-type tags for regulatory retrieval."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for completeness",
+              "value": "Quarterly 25-file review confirms rationale, approvals and supporting docs present; target 100% complete, remediate any gap in 5 business days."
+            },
+            {
+              "step": "Trace a sampled action to its file evidence",
+              "value": "Each sampled transaction reconciles 1:1 to an indexed, timestamped file entry."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Preserve a complete, immutable audit trail of the transaction",
+              "value": "Guidewire PolicyCenter transaction history retained (user, timestamp, before/after values) and exported to Archer GRC for the control record."
+            },
+            {
+              "step": "Version and retain the computation/record",
+              "value": "Each recalculation or record change stored with version label and effective date."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit-trail completeness",
+              "value": "Sampled transactions show an unbroken history from initiation to completion; 0 gaps or back-dated edits."
+            },
+            {
+              "step": "Confirm retention and immutability",
+              "value": "Audit records retained per schedule and confirmed read-only; 0 mutable entries found."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "ecd9a123-ee14-4710-885e-2829d327d98c",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["ERP/General ledger (SAP/Oracle/Workday Financials)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Each non-renewal/cancellation; the required statutory notice lead time confirmed by state and LOB from the compliance rules table before the notice is scheduled."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current renewal/cancellation processing cycle (e.g. 2026-07-01 to 2026-09-30); only transactions effective in this window are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "State, LOB, transaction type and computed mail-by date populated; lead time matched to the compliance rules table."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Transaction count in the workbench queue reconciles to the policy-admin transaction log for the cycle; delta must be 0, with any variance logged and cleared before close."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Screens/artifacts captured to OpenText DMS under /underwriting/<policy-no>/ with system timestamp and version label; retained per the state records-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Items failing validation or SLA raised as an exception in Archer GRC with disposition (rework / waiver / escalate), owner = Underwriting Manager, and a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "Applicable state non-renewal/cancellation statute (e.g. NY Ins. Law s.3426, CA Ins. Code s.678) plus NAIC Model #670 reason-disclosure requirement cited on the notice and in the Archer GRC control record."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "Notice and underwriting file retained per the state records-retention schedule (minimum policy term + statute of limitations) in OpenText DMS with the retention clock set to the expiration date."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "Mail-by date computed as expiration minus the state statutory lead time (e.g. 60 days commercial NY, 30 days personal auto); date loaded to the workbench diary."
+        },
+        {
+          "templateKeyId": "cmr2oapmt002rlasbojqqymeh",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oapo2002tlasbrq6ypsfp",
+          "value": "All policies processed through this step in the cycle; a risk-based quarterly sample of 25 files re-performed by Underwriting Quality."
+        },
+        {
+          "templateKeyId": "cmr2oappx002vlasbp983y62z",
+          "value": "PASS = required fields, correct status and timely, correctly-addressed action on 100% of the sample; FAIL = any missing rationale, wrong status, or late/mis-addressed action."
+        },
+        {
+          "templateKeyId": "cmr2oaprq002xlasbn62pym1c",
+          "value": "Failures routed to the Underwriting Manager for correction within 5 business days; systemic issues escalated to the Chief Underwriting Officer and logged in Archer GRC."
+        },
+        {
+          "templateKeyId": "cmr2oapt3002zlasbvo2amzzy",
+          "value": "Effective dates = policy expiration/cancellation effective date through notice/action date; only current-cycle effective dates are in scope."
+        },
+        {
+          "answerId": "cmr2ocdwb0t3mkaz3gjs2r10d",
+          "value": "Applicable state non-renewal/cancellation statute (e.g. NY Ins. Law s.3426, CA Ins. Code s.678) plus NAIC Model #670 reason-disclosure requirement cited on the notice and in the Archer GRC control record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppli1o9embk8y3bvlnlf",
+          "checklist": [
+            {
+              "step": "Confirm the non-renewal/cancellation notice meets the state- and line-specific lead time and content rules",
+              "value": "Notice template selected by state+LOB from the compliance rules table; required elements (reason, effective date, appeal rights) present; lead time (e.g. 60 days commercial NY) validated against the workbench diary."
+            },
+            {
+              "step": "Record proof of timely, correctly-addressed delivery",
+              "value": "USPS certificate of mailing / proof-of-delivery captured to OpenText DMS and linked to the policy record in Guidewire PolicyCenter."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample non-renewal notices for state-rule conformance",
+              "value": "Quarterly sample of 25 notices reviewed by Underwriting Quality; 100% carry correct state lead time, reason text and effective date; 0 defects tolerated on lead time."
+            },
+            {
+              "step": "Verify no notice mailed late",
+              "value": "Re-compute mail-by date from expiration for the sample; 0 notices dispatched inside the statutory window."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpq251oacmbk80nlgajf6",
+          "checklist": [
+            {
+              "step": "Ensure every non-renewal is issued with an affirmative, documented notice",
+              "value": "No policy lapses without a generated notice; the renewal work-queue flags any expiring policy with no renewal offer and no non-renewal notice."
+            },
+            {
+              "step": "Capture the underwriting reason on the notice and in the file",
+              "value": "Reason code and narrative recorded in Guidewire PolicyCenter and reflected on the insured/broker notice."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile expiring policies to notices issued",
+              "value": "Monthly: expiring-policy population = renewed + non-renewed-with-notice; delta of silent lapses must be 0."
+            },
+            {
+              "step": "Sample for reason documentation",
+              "value": "25-file quarterly sample shows a documented reason on 100% of non-renewals."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrbx94co01erv8ukeer9iypr",
+          "checklist": [
+            {
+              "step": "Provide the specific reason(s) for the adverse underwriting decision",
+              "value": "Non-renewal/cancellation notice states the actual reason (loss experience, appetite exit, risk quality) and the insured's right to access the underlying information, per NAIC Model #670."
+            },
+            {
+              "step": "Record the reason and the information relied upon",
+              "value": "Reason code, narrative and source data referenced in the underwriting file and the Archer GRC control record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample notices for reason adequacy",
+              "value": "Quarterly 25-notice sample: 100% state a specific, non-generic reason and the access/appeal rights."
+            },
+            {
+              "step": "Verify access requests are honored",
+              "value": "Any insured request for reasons/records fulfilled within the statutory period; 0 overdue requests."
+            }
+          ]
+        },
+        {
+          "regId": "cmrbg12yk02bvv8kglbb3x1wd",
+          "checklist": [
+            {
+              "step": "Base the decision on written underwriting guidelines",
+              "value": "Non-renewal/cancellation grounds map to a documented underwriting guideline reference per N.J.A.C. 11:1-40; ad-hoc reasons are prohibited."
+            },
+            {
+              "step": "Issue a compliant adverse-action notice",
+              "value": "Notice includes the specific guideline basis and the insured's rights, filed to OpenText DMS."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Trace grounds to a written guideline",
+              "value": "Each sampled NJ non-renewal cites an existing written guideline; 0 undocumented bases."
+            },
+            {
+              "step": "Confirm notice content and timing",
+              "value": "Sampled NJ notices meet content and lead-time rules; 0 deficiencies."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cmr2fkk111fr8kfgzwyuapbnn",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [
+        {
+          "name": "document management repository",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Each generated non-renewal notice; dispatched to insured and producing broker within the statutory timeframe via tracked mail/e-delivery."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current renewal/cancellation processing cycle (e.g. 2026-07-01 to 2026-09-30); only transactions effective in this window are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "2908a095-10bc-4c8b-a423-1e234c745311"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Recipient addresses (insured + broker), mail method, dispatch date and proof-of-mailing reference populated."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of notices dispatched reconciles to notices generated for the cycle; delta must be 0 (no undispatched notice)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Screens/artifacts captured to OpenText DMS under /underwriting/<policy-no>/ with system timestamp and version label; retained per the state records-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Items failing validation or SLA raised as an exception in Archer GRC with disposition (rework / waiver / escalate), owner = Underwriting Manager, and a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "Applicable state non-renewal/cancellation statute (e.g. NY Ins. Law s.3426, CA Ins. Code s.678) plus NAIC Model #670 reason-disclosure requirement cited on the notice and in the Archer GRC control record."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "Notice and underwriting file retained per the state records-retention schedule (minimum policy term + statute of limitations) in OpenText DMS with the retention clock set to the expiration date."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "Notice dispatched no later than the state-mandated lead time before expiration; mailing date and proof-of-mailing stored and monitored by the workbench diary."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All policies processed through this step in the cycle; a risk-based quarterly sample of 25 files re-performed by Underwriting Quality."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = required fields, correct status and timely, correctly-addressed action on 100% of the sample; FAIL = any missing rationale, wrong status, or late/mis-addressed action."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Failures routed to the Underwriting Manager for correction within 5 business days; systemic issues escalated to the Chief Underwriting Officer and logged in Archer GRC."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = correct notice/action generated, delivered and evidenced for the affected policy with reason and approver captured; deviation = returned to underwriter."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence stored in OpenText DMS under /underwriting/<policy-no>/ and linked from the Guidewire PolicyCenter policy record."
+        },
+        {
+          "answerId": "cmr2ocdx30u5akaz3o843hq01",
+          "value": "Applicable state non-renewal/cancellation statute (e.g. NY Ins. Law s.3426, CA Ins. Code s.678) plus NAIC Model #670 reason-disclosure requirement cited on the notice and in the Archer GRC control record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppli1o9embk8y3bvlnlf",
+          "checklist": [
+            {
+              "step": "Confirm the non-renewal/cancellation notice meets the state- and line-specific lead time and content rules",
+              "value": "Notice template selected by state+LOB from the compliance rules table; required elements (reason, effective date, appeal rights) present; lead time (e.g. 60 days commercial NY) validated against the workbench diary."
+            },
+            {
+              "step": "Record proof of timely, correctly-addressed delivery",
+              "value": "USPS certificate of mailing / proof-of-delivery captured to OpenText DMS and linked to the policy record in Guidewire PolicyCenter."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample non-renewal notices for state-rule conformance",
+              "value": "Quarterly sample of 25 notices reviewed by Underwriting Quality; 100% carry correct state lead time, reason text and effective date; 0 defects tolerated on lead time."
+            },
+            {
+              "step": "Verify no notice mailed late",
+              "value": "Re-compute mail-by date from expiration for the sample; 0 notices dispatched inside the statutory window."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpq251oacmbk80nlgajf6",
+          "checklist": [
+            {
+              "step": "Ensure every non-renewal is issued with an affirmative, documented notice",
+              "value": "No policy lapses without a generated notice; the renewal work-queue flags any expiring policy with no renewal offer and no non-renewal notice."
+            },
+            {
+              "step": "Capture the underwriting reason on the notice and in the file",
+              "value": "Reason code and narrative recorded in Guidewire PolicyCenter and reflected on the insured/broker notice."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile expiring policies to notices issued",
+              "value": "Monthly: expiring-policy population = renewed + non-renewed-with-notice; delta of silent lapses must be 0."
+            },
+            {
+              "step": "Sample for reason documentation",
+              "value": "25-file quarterly sample shows a documented reason on 100% of non-renewals."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrbx94co01erv8ukeer9iypr",
+          "checklist": [
+            {
+              "step": "Provide the specific reason(s) for the adverse underwriting decision",
+              "value": "Non-renewal/cancellation notice states the actual reason (loss experience, appetite exit, risk quality) and the insured's right to access the underlying information, per NAIC Model #670."
+            },
+            {
+              "step": "Record the reason and the information relied upon",
+              "value": "Reason code, narrative and source data referenced in the underwriting file and the Archer GRC control record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample notices for reason adequacy",
+              "value": "Quarterly 25-notice sample: 100% state a specific, non-generic reason and the access/appeal rights."
+            },
+            {
+              "step": "Verify access requests are honored",
+              "value": "Any insured request for reasons/records fulfilled within the statutory period; 0 overdue requests."
+            }
+          ]
+        },
+        {
+          "regId": "cmrbg12yk02bvv8kglbb3x1wd",
+          "checklist": [
+            {
+              "step": "Base the decision on written underwriting guidelines",
+              "value": "Non-renewal/cancellation grounds map to a documented underwriting guideline reference per N.J.A.C. 11:1-40; ad-hoc reasons are prohibited."
+            },
+            {
+              "step": "Issue a compliant adverse-action notice",
+              "value": "Notice includes the specific guideline basis and the insured's rights, filed to OpenText DMS."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Trace grounds to a written guideline",
+              "value": "Each sampled NJ non-renewal cites an existing written guideline; 0 undocumented bases."
+            },
+            {
+              "step": "Confirm notice content and timing",
+              "value": "Sampled NJ notices meet content and lead-time rules; 0 deficiencies."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "9c7afd68-474d-481a-9cf0-69b623315631",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [
+        {
+          "name": "document management repository",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Each non-renewed policy; the non-renewal rationale recorded in the underwriting file for regulatory inspection and broker communication."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current renewal/cancellation processing cycle (e.g. 2026-07-01 to 2026-09-30); only transactions effective in this window are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "2908a095-10bc-4c8b-a423-1e234c745311"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Reason code, narrative rationale, guideline reference, approver and date captured in the policy file."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Transaction count in the workbench queue reconciles to the policy-admin transaction log for the cycle; delta must be 0, with any variance logged and cleared before close."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Screens/artifacts captured to OpenText DMS under /underwriting/<policy-no>/ with system timestamp and version label; retained per the state records-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Items failing validation or SLA raised as an exception in Archer GRC with disposition (rework / waiver / escalate), owner = Underwriting Manager, and a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oamel000jlasblc8uognb",
+          "value": "Approved renewals/non-renewal procedure version (Underwriting Operations SOP v4.1) governs the step; deviations require documented approval."
+        },
+        {
+          "templateKeyId": "cmr2oamg4000llasb5mlmokig",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2v88920007xa9iyuatdfi0",
+          "value": "N/A for this transactional step; sensitivity applies to rate/return-premium computations, bounded by the filed rate rules."
+        },
+        {
+          "templateKeyId": "cmr2v88a40009xa9ieiq8xqa0",
+          "value": "Materiality set at any error affecting notice timing, coverage continuity or premium >$100; such items are individually reviewed."
+        },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "Applicable state non-renewal/cancellation statute (e.g. NY Ins. Law s.3426, CA Ins. Code s.678) plus NAIC Model #670 reason-disclosure requirement cited on the notice and in the Archer GRC control record."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "Notice and underwriting file retained per the state records-retention schedule (minimum policy term + statute of limitations) in OpenText DMS with the retention clock set to the expiration date."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "Notice dispatched no later than the state-mandated lead time before expiration; mailing date and proof-of-mailing stored and monitored by the workbench diary."
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "All policies processed through this step in the cycle; a risk-based quarterly sample of 25 files re-performed by Underwriting Quality."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = required fields, correct status and timely, correctly-addressed action on 100% of the sample; FAIL = any missing rationale, wrong status, or late/mis-addressed action."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Failures routed to the Underwriting Manager for correction within 5 business days; systemic issues escalated to the Chief Underwriting Officer and logged in Archer GRC."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions sourced from the Guidewire PolicyCenter data dictionary (policy_no, txn_type, effective_date, reason_code, approver_id)."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control totals reconcile the workbench transaction count to the policy-admin log with 0 variance for the cycle."
+        },
+        {
+          "answerId": "cmr2ocdw40su0kaz3njqjvjdv",
+          "value": "Underwriting Operations SOP v4.1 (current approved version) applied for this step. State lead-time and content parameters sourced from the compliance rules table; filed rates from the rating engine."
+        },
+        {
+          "answerId": "cmr2ocdw40su1kaz31gtcc5f7",
+          "value": "Applicable state non-renewal/cancellation statute (e.g. NY Ins. Law s.3426, CA Ins. Code s.678) plus NAIC Model #670 reason-disclosure requirement cited on the notice and in the Archer GRC control record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the action and rationale in the underwriting file",
+              "value": "Structured note added to the Guidewire PolicyCenter policy file with decision, rationale, approver and timestamp; supporting documents indexed in OpenText DMS."
+            },
+            {
+              "step": "Index evidence to the policy record",
+              "value": "All artifacts filed under /underwriting/<policy-no>/ with document-type tags for regulatory retrieval."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for completeness",
+              "value": "Quarterly 25-file review confirms rationale, approvals and supporting docs present; target 100% complete, remediate any gap in 5 business days."
+            },
+            {
+              "step": "Trace a sampled action to its file evidence",
+              "value": "Each sampled transaction reconciles 1:1 to an indexed, timestamped file entry."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppd31o8ymbk8q4zpd8lh",
+          "checklist": [
+            {
+              "step": "Require documented support for the underwriting decision",
+              "value": "Decision cannot progress until rationale, referenced data and authority level are captured on the policy record."
+            },
+            {
+              "step": "Attach the source evidence",
+              "value": "Loss experience, exposure data and appetite reference attached to the file in OpenText DMS."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify documentation exists before the transaction closes",
+              "value": "System control blocks status change until the required rationale fields are populated; 0 closed transactions with blank rationale."
+            },
+            {
+              "step": "Sample-test documentation quality",
+              "value": "25-file quarterly sample scored against the documentation rubric; pass threshold 95%."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpq251oacmbk80nlgajf6",
+          "checklist": [
+            {
+              "step": "Ensure every non-renewal is issued with an affirmative, documented notice",
+              "value": "No policy lapses without a generated notice; the renewal work-queue flags any expiring policy with no renewal offer and no non-renewal notice."
+            },
+            {
+              "step": "Capture the underwriting reason on the notice and in the file",
+              "value": "Reason code and narrative recorded in Guidewire PolicyCenter and reflected on the insured/broker notice."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile expiring policies to notices issued",
+              "value": "Monthly: expiring-policy population = renewed + non-renewed-with-notice; delta of silent lapses must be 0."
+            },
+            {
+              "step": "Sample for reason documentation",
+              "value": "25-file quarterly sample shows a documented reason on 100% of non-renewals."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrbx94co01erv8ukeer9iypr",
+          "checklist": [
+            {
+              "step": "Provide the specific reason(s) for the adverse underwriting decision",
+              "value": "Non-renewal/cancellation notice states the actual reason (loss experience, appetite exit, risk quality) and the insured's right to access the underlying information, per NAIC Model #670."
+            },
+            {
+              "step": "Record the reason and the information relied upon",
+              "value": "Reason code, narrative and source data referenced in the underwriting file and the Archer GRC control record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample notices for reason adequacy",
+              "value": "Quarterly 25-notice sample: 100% state a specific, non-generic reason and the access/appeal rights."
+            },
+            {
+              "step": "Verify access requests are honored",
+              "value": "Any insured request for reasons/records fulfilled within the statutory period; 0 overdue requests."
+            }
+          ]
+        },
+        {
+          "regId": "cmrbg12yk02bvv8kglbb3x1wd",
+          "checklist": [
+            {
+              "step": "Base the decision on written underwriting guidelines",
+              "value": "Non-renewal/cancellation grounds map to a documented underwriting guideline reference per N.J.A.C. 11:1-40; ad-hoc reasons are prohibited."
+            },
+            {
+              "step": "Issue a compliant adverse-action notice",
+              "value": "Notice includes the specific guideline basis and the insured's rights, filed to OpenText DMS."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Trace grounds to a written guideline",
+              "value": "Each sampled NJ non-renewal cites an existing written guideline; 0 undocumented bases."
+            },
+            {
+              "step": "Confirm notice content and timing",
+              "value": "Sampled NJ notices meet content and lead-time rules; 0 deficiencies."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cmr2fkjtz1fnnkfgz5tlr3c3e",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [
+        {
+          "name": "document management repository",
+          "usageType": "memorialized"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Each policy scheduled for non-renewal; the notice generated from the state+LOB template with required content (reason, effective date, rights)."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current renewal/cancellation processing cycle (e.g. 2026-07-01 to 2026-09-30); only transactions effective in this window are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "2908a095-10bc-4c8b-a423-1e234c745311"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "State/LOB template id, reason text, effective date and rights language populated and validated before generation."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Transaction count in the workbench queue reconciles to the policy-admin transaction log for the cycle; delta must be 0, with any variance logged and cleared before close."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Screens/artifacts captured to OpenText DMS under /underwriting/<policy-no>/ with system timestamp and version label; retained per the state records-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Items failing validation or SLA raised as an exception in Archer GRC with disposition (rework / waiver / escalate), owner = Underwriting Manager, and a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oan48000xlasba0u1ffd8",
+          "value": "Applicable state non-renewal/cancellation statute (e.g. NY Ins. Law s.3426, CA Ins. Code s.678) plus NAIC Model #670 reason-disclosure requirement cited on the notice and in the Archer GRC control record."
+        },
+        {
+          "templateKeyId": "cmr2v88hl000fxa9io24wujiz",
+          "value": "Notice and underwriting file retained per the state records-retention schedule (minimum policy term + statute of limitations) in OpenText DMS with the retention clock set to the expiration date."
+        },
+        {
+          "templateKeyId": "cmr2v88il000hxa9icjpyq8mw",
+          "value": "Notice dispatched no later than the state-mandated lead time before expiration; mailing date and proof-of-mailing stored and monitored by the workbench diary."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All policies processed through this step in the cycle; a risk-based quarterly sample of 25 files re-performed by Underwriting Quality."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = required fields, correct status and timely, correctly-addressed action on 100% of the sample; FAIL = any missing rationale, wrong status, or late/mis-addressed action."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Failures routed to the Underwriting Manager for correction within 5 business days; systemic issues escalated to the Chief Underwriting Officer and logged in Archer GRC."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = correct notice/action generated, delivered and evidenced for the affected policy with reason and approver captured; deviation = returned to underwriter."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence stored in OpenText DMS under /underwriting/<policy-no>/ and linked from the Guidewire PolicyCenter policy record."
+        },
+        {
+          "answerId": "cmr2ocdx30u59kaz3pe9piudm",
+          "value": "Applicable state non-renewal/cancellation statute (e.g. NY Ins. Law s.3426, CA Ins. Code s.678) plus NAIC Model #670 reason-disclosure requirement cited on the notice and in the Archer GRC control record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscppli1o9embk8y3bvlnlf",
+          "checklist": [
+            {
+              "step": "Confirm the non-renewal/cancellation notice meets the state- and line-specific lead time and content rules",
+              "value": "Notice template selected by state+LOB from the compliance rules table; required elements (reason, effective date, appeal rights) present; lead time (e.g. 60 days commercial NY) validated against the workbench diary."
+            },
+            {
+              "step": "Record proof of timely, correctly-addressed delivery",
+              "value": "USPS certificate of mailing / proof-of-delivery captured to OpenText DMS and linked to the policy record in Guidewire PolicyCenter."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample non-renewal notices for state-rule conformance",
+              "value": "Quarterly sample of 25 notices reviewed by Underwriting Quality; 100% carry correct state lead time, reason text and effective date; 0 defects tolerated on lead time."
+            },
+            {
+              "step": "Verify no notice mailed late",
+              "value": "Re-compute mail-by date from expiration for the sample; 0 notices dispatched inside the statutory window."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpq251oacmbk80nlgajf6",
+          "checklist": [
+            {
+              "step": "Ensure every non-renewal is issued with an affirmative, documented notice",
+              "value": "No policy lapses without a generated notice; the renewal work-queue flags any expiring policy with no renewal offer and no non-renewal notice."
+            },
+            {
+              "step": "Capture the underwriting reason on the notice and in the file",
+              "value": "Reason code and narrative recorded in Guidewire PolicyCenter and reflected on the insured/broker notice."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile expiring policies to notices issued",
+              "value": "Monthly: expiring-policy population = renewed + non-renewed-with-notice; delta of silent lapses must be 0."
+            },
+            {
+              "step": "Sample for reason documentation",
+              "value": "25-file quarterly sample shows a documented reason on 100% of non-renewals."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrbx94co01erv8ukeer9iypr",
+          "checklist": [
+            {
+              "step": "Provide the specific reason(s) for the adverse underwriting decision",
+              "value": "Non-renewal/cancellation notice states the actual reason (loss experience, appetite exit, risk quality) and the insured's right to access the underlying information, per NAIC Model #670."
+            },
+            {
+              "step": "Record the reason and the information relied upon",
+              "value": "Reason code, narrative and source data referenced in the underwriting file and the Archer GRC control record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample notices for reason adequacy",
+              "value": "Quarterly 25-notice sample: 100% state a specific, non-generic reason and the access/appeal rights."
+            },
+            {
+              "step": "Verify access requests are honored",
+              "value": "Any insured request for reasons/records fulfilled within the statutory period; 0 overdue requests."
+            }
+          ]
+        },
+        {
+          "regId": "cmrbg12yk02bvv8kglbb3x1wd",
+          "checklist": [
+            {
+              "step": "Base the decision on written underwriting guidelines",
+              "value": "Non-renewal/cancellation grounds map to a documented underwriting guideline reference per N.J.A.C. 11:1-40; ad-hoc reasons are prohibited."
+            },
+            {
+              "step": "Issue a compliant adverse-action notice",
+              "value": "Notice includes the specific guideline basis and the insured's rights, filed to OpenText DMS."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Trace grounds to a written guideline",
+              "value": "Each sampled NJ non-renewal cites an existing written guideline; 0 undocumented bases."
+            },
+            {
+              "step": "Confirm notice content and timing",
+              "value": "Sampled NJ notices meet content and lead-time rules; 0 deficiencies."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c400e938-f207-4cc6-9424-ced12fb77718",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["billing/commission platform"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "In-force portfolio scored for non-renewal candidates based on underwriting performance (loss ratio), appetite change and risk quality via the renewals/exposure dashboard."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current renewal/cancellation processing cycle (e.g. 2026-07-01 to 2026-09-30); only transactions effective in this window are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Trigger type, threshold breached, loss-ratio/exposure metric and candidate flag populated for each identified policy."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of flagged candidates reconciles to the monitoring run output; 100% of in-force policies scored, 0 unscored."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Screens/artifacts captured to OpenText DMS under /underwriting/<policy-no>/ with system timestamp and version label; retained per the state records-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Items failing validation or SLA raised as an exception in Archer GRC with disposition (rework / waiver / escalate), owner = Underwriting Manager, and a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oaobk001rlasbp41b8ekd",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaocj001tlasbyf7jjfrj",
+          "value": "All in-force policies scored in the monitoring run; sample of 25 flagged candidates re-reviewed by Underwriting Quality."
+        },
+        {
+          "templateKeyId": "cmr2oaodj001vlasbycmyhv72",
+          "value": "PASS = required fields, correct status and timely, correctly-addressed action on 100% of the sample; FAIL = any missing rationale, wrong status, or late/mis-addressed action."
+        },
+        {
+          "templateKeyId": "cmr2oaof2001xlasbgo5bzael",
+          "value": "Failures routed to the Underwriting Manager for correction within 5 business days; systemic issues escalated to the Chief Underwriting Officer and logged in Archer GRC."
+        },
+        {
+          "templateKeyId": "cmr2v8940000vxa9iz1ws174c",
+          "value": "Acceptance = correct notice/action generated, delivered and evidenced for the affected policy with reason and approver captured; deviation = returned to underwriter."
+        },
+        {
+          "templateKeyId": "cmr2v8953000xxa9izs452xrs",
+          "value": "Evidence stored in OpenText DMS under /underwriting/<policy-no>/ and linked from the Guidewire PolicyCenter policy record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscpp6s1o8mmbk897wnw3vj",
+          "checklist": [
+            {
+              "step": "Monitor in-force renewals against appetite and performance triggers",
+              "value": "Renewal/exposure dashboard flags policies breaching loss-ratio, appetite or risk-quality thresholds for non-renewal review."
+            },
+            {
+              "step": "Route flagged policies to underwriting review",
+              "value": "Triggered policies enter the referral queue with the breach reason attached."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify monitoring coverage",
+              "value": "100% of in-force policies scored by the monitoring run each cycle; 0 policies unscored."
+            },
+            {
+              "step": "Sample flagged decisions",
+              "value": "25-case sample confirms each non-renewal candidate has a documented trigger and reviewer disposition."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscpq251oacmbk80nlgajf6",
+          "checklist": [
+            {
+              "step": "Ensure every non-renewal is issued with an affirmative, documented notice",
+              "value": "No policy lapses without a generated notice; the renewal work-queue flags any expiring policy with no renewal offer and no non-renewal notice."
+            },
+            {
+              "step": "Capture the underwriting reason on the notice and in the file",
+              "value": "Reason code and narrative recorded in Guidewire PolicyCenter and reflected on the insured/broker notice."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Reconcile expiring policies to notices issued",
+              "value": "Monthly: expiring-policy population = renewed + non-renewed-with-notice; delta of silent lapses must be 0."
+            },
+            {
+              "step": "Sample for reason documentation",
+              "value": "25-file quarterly sample shows a documented reason on 100% of non-renewals."
+            }
+          ]
+        }
+      ],
+      "regulations": [
+        {
+          "regId": "cmrbx94co01erv8ukeer9iypr",
+          "checklist": [
+            {
+              "step": "Provide the specific reason(s) for the adverse underwriting decision",
+              "value": "Non-renewal/cancellation notice states the actual reason (loss experience, appetite exit, risk quality) and the insured's right to access the underlying information, per NAIC Model #670."
+            },
+            {
+              "step": "Record the reason and the information relied upon",
+              "value": "Reason code, narrative and source data referenced in the underwriting file and the Archer GRC control record."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample notices for reason adequacy",
+              "value": "Quarterly 25-notice sample: 100% state a specific, non-generic reason and the access/appeal rights."
+            },
+            {
+              "step": "Verify access requests are honored",
+              "value": "Any insured request for reasons/records fulfilled within the statutory period; 0 overdue requests."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "0408fe20-7bd1-43a3-aeb2-039ce3971ad4",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["claim file/document repository", "payment/subrogation system"],
+      "addApps": [
+        {
+          "name": "underwriting workstation",
+          "usageType": "performed"
+        }
+      ],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Each cancelled policy; billing, reinsurance accounting and claims teams notified of the cancellation effective date via system events and tracked communications."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current renewal/cancellation processing cycle (e.g. 2026-07-01 to 2026-09-30); only transactions effective in this window are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Cancellation effective date, notified teams (billing/reinsurance/claims), notification timestamp and acknowledgement populated."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Count of cancellations reconciles to downstream notifications sent; delta must be 0 (no cancellation un-notified)."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Screens/artifacts captured to OpenText DMS under /underwriting/<policy-no>/ with system timestamp and version label; retained per the state records-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Items failing validation or SLA raised as an exception in Archer GRC with disposition (rework / waiver / escalate), owner = Underwriting Manager, and a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled records trace field-by-field to the Guidewire PolicyCenter screens and the source documents indexed in OpenText DMS."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy/transaction status (e.g. Non-Renewal Pending, Cancelled, Reinstated) aligns to the defined workflow state for this step."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Effective date, notice date and expiration date align to the workflow and statutory lead-time rules."
+        },
+        {
+          "templateKeyId": "cmr2oap6g002flasb12gpqsrx",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oap7x002hlasb21lclhgc",
+          "value": "All policies processed through this step in the cycle; a risk-based quarterly sample of 25 files re-performed by Underwriting Quality."
+        },
+        {
+          "templateKeyId": "cmr2oapa9002jlasbbht6cp5g",
+          "value": "PASS = required fields, correct status and timely, correctly-addressed action on 100% of the sample; FAIL = any missing rationale, wrong status, or late/mis-addressed action."
+        },
+        {
+          "templateKeyId": "cmr2oapbz002llasbwuwwn4mb",
+          "value": "Failures routed to the Underwriting Manager for correction within 5 business days; systemic issues escalated to the Chief Underwriting Officer and logged in Archer GRC."
+        },
+        {
+          "templateKeyId": "cmr2v89jj0013xa9iy2urljqv",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2v89li0015xa9ia4hiukkb",
+          "value": "Authority to release the cancellation and notify downstream is governed by underwriting authority matrix v3.2; the delegation matrix is documented and version-controlled."
+        },
+        {
+          "answerId": "cmr2ocdxs0v26kaz375w004u2",
+          "value": "Effective dates = policy expiration/cancellation effective date through notice/action date; only current-cycle effective dates are in scope."
+        },
+        {
+          "answerId": "cmr2ocdxs0v27kaz37yg529yi",
+          "value": "Field definitions sourced from the Guidewire PolicyCenter data dictionary (policy_no, txn_type, effective_date, reason_code, approver_id). Control totals reconcile the workbench transaction count to the policy-admin log with 0 variance for the cycle."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the action and rationale in the underwriting file",
+              "value": "Structured note added to the Guidewire PolicyCenter policy file with decision, rationale, approver and timestamp; supporting documents indexed in OpenText DMS."
+            },
+            {
+              "step": "Index evidence to the policy record",
+              "value": "All artifacts filed under /underwriting/<policy-no>/ with document-type tags for regulatory retrieval."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for completeness",
+              "value": "Quarterly 25-file review confirms rationale, approvals and supporting docs present; target 100% complete, remediate any gap in 5 business days."
+            },
+            {
+              "step": "Trace a sampled action to its file evidence",
+              "value": "Each sampled transaction reconciles 1:1 to an indexed, timestamped file entry."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Preserve a complete, immutable audit trail of the transaction",
+              "value": "Guidewire PolicyCenter transaction history retained (user, timestamp, before/after values) and exported to Archer GRC for the control record."
+            },
+            {
+              "step": "Version and retain the computation/record",
+              "value": "Each recalculation or record change stored with version label and effective date."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit-trail completeness",
+              "value": "Sampled transactions show an unbroken history from initiation to completion; 0 gaps or back-dated edits."
+            },
+            {
+              "step": "Confirm retention and immutability",
+              "value": "Audit records retained per schedule and confirmed read-only; 0 mutable entries found."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "b32ae965-a6e1-4003-8d53-1acb18635636",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": [],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Mid-term cancellation requests received from insured or producing broker with required notice documentation; processed to effective cancellation and return premium."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current renewal/cancellation processing cycle (e.g. 2026-07-01 to 2026-09-30); only transactions effective in this window are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Requestor, signed request/authorization, requested effective date and cancellation reason populated and validated before processing."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Transaction count in the workbench queue reconciles to the policy-admin transaction log for the cycle; delta must be 0, with any variance logged and cleared before close."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Screens/artifacts captured to OpenText DMS under /underwriting/<policy-no>/ with system timestamp and version label; retained per the state records-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Items failing validation or SLA raised as an exception in Archer GRC with disposition (rework / waiver / escalate), owner = Underwriting Manager, and a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oaoph0023lasb0vuzj8ar",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oaoqp0025lasbrdxc4ebb",
+          "value": "All policies processed through this step in the cycle; a risk-based quarterly sample of 25 files re-performed by Underwriting Quality."
+        },
+        {
+          "templateKeyId": "cmr2oaoru0027lasblf4a3q5g",
+          "value": "PASS = required fields, correct status and timely, correctly-addressed action on 100% of the sample; FAIL = any missing rationale, wrong status, or late/mis-addressed action."
+        },
+        {
+          "templateKeyId": "cmr2oaot40029lasbqt4ono47",
+          "value": "Failures routed to the Underwriting Manager for correction within 5 business days; systemic issues escalated to the Chief Underwriting Officer and logged in Archer GRC."
+        },
+        {
+          "templateKeyId": "cmr2v89b6000zxa9ivo819zn7",
+          "value": "Field definitions sourced from the Guidewire PolicyCenter data dictionary (policy_no, txn_type, effective_date, reason_code, approver_id)."
+        },
+        {
+          "templateKeyId": "cmr2v89c10011xa9ijssevzvo",
+          "value": "Control totals reconcile the workbench transaction count to the policy-admin log with 0 variance for the cycle."
+        },
+        {
+          "answerId": "cmr2ocdxr0v16kaz3w8vy9r1g",
+          "value": "Acceptance = correct notice/action generated, delivered and evidenced for the affected policy with reason and approver captured; deviation = returned to underwriter. Evidence stored in OpenText DMS under /underwriting/<policy-no>/ and linked from the Guidewire PolicyCenter policy record."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the action and rationale in the underwriting file",
+              "value": "Structured note added to the Guidewire PolicyCenter policy file with decision, rationale, approver and timestamp; supporting documents indexed in OpenText DMS."
+            },
+            {
+              "step": "Index evidence to the policy record",
+              "value": "All artifacts filed under /underwriting/<policy-no>/ with document-type tags for regulatory retrieval."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for completeness",
+              "value": "Quarterly 25-file review confirms rationale, approvals and supporting docs present; target 100% complete, remediate any gap in 5 business days."
+            },
+            {
+              "step": "Trace a sampled action to its file evidence",
+              "value": "Each sampled transaction reconciles 1:1 to an indexed, timestamped file entry."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppe71o90mbk8hcjmc126",
+          "checklist": [
+            {
+              "step": "Apply filed/approved rates and rules to the calculation",
+              "value": "Return-premium / reinstatement computation uses the current filed rate version and short-rate/pro-rata rule for the state+LOB in the rating engine."
+            },
+            {
+              "step": "Document the rate version used",
+              "value": "Filed rate version id and calculation method recorded on the policy transaction."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Re-perform the calculation independently",
+              "value": "Independent recompute for the sample matches the system result within +/- $1; deviations investigated."
+            },
+            {
+              "step": "Confirm the correct filed rate version",
+              "value": "Rate version on the transaction equals the effective filed version for the policy period; 0 mismatches."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    },
+    {
+      "id": "cmr2fkgnd1e25kfgzbjw6ax5v",
+      "owner": {
+        "action": "keep"
+      },
+      "removeRoleNames": ["Underwriter"],
+      "addParticipants": ["Senior Underwriter"],
+      "removeAppNames": ["GRC platform (Archer/ServiceNow GRC)"],
+      "addApps": [],
+      "answers": [
+        {
+          "templateKeyId": "cmr2oalvj0003lasbljnppmvk",
+          "value": "Each policy approved for reinstatement; the reinstatement terms (effective date, outstanding premium, conditions, no-lapse confirmation) applied to the policy record."
+        },
+        {
+          "templateKeyId": "cmr2v87uz0001xa9i94umw6d6",
+          "value": "The current renewal/cancellation processing cycle (e.g. 2026-07-01 to 2026-09-30); only transactions effective in this window are in scope."
+        },
+        {
+          "templateKeyId": "cmr2v87wy0003xa9i8jgziihd",
+          "applicationId": "3ced8688-d223-4c04-8b42-0e2f97012bd9"
+        },
+        {
+          "templateKeyId": "cmr2v87y40005xa9ir47s1qg4",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oalzj0007lasbuo4mf8tq",
+          "value": "Reinstatement effective date, premium due, lapse-gap confirmation and approving authority populated on the policy transaction."
+        },
+        {
+          "templateKeyId": "cmr2oam0y0009lasbg6ube3og",
+          "value": "Transaction count in the workbench queue reconciles to the policy-admin transaction log for the cycle; delta must be 0, with any variance logged and cleared before close."
+        },
+        {
+          "templateKeyId": "cmr2oam2m000blasb6n6f4ewh",
+          "value": "Screens/artifacts captured to OpenText DMS under /underwriting/<policy-no>/ with system timestamp and version label; retained per the state records-retention schedule."
+        },
+        {
+          "templateKeyId": "cmr2oam3s000dlasbu5w0fxn2",
+          "value": "Items failing validation or SLA raised as an exception in Archer GRC with disposition (rework / waiver / escalate), owner = Underwriting Manager, and a 5-business-day remediation SLA."
+        },
+        {
+          "templateKeyId": "cmr2oam5o000flasb2i5ekzh1",
+          "roleId": "cmqsck0rq03xcmbk82yte24t5"
+        },
+        {
+          "templateKeyId": "cmr2oamrz000rlasbaapuz8dr",
+          "value": "Sampled records trace field-by-field to the Guidewire PolicyCenter screens and the source documents indexed in OpenText DMS."
+        },
+        {
+          "templateKeyId": "cmr2v88d6000bxa9ic6k59a4g",
+          "value": "Policy/transaction status (e.g. Non-Renewal Pending, Cancelled, Reinstated) aligns to the defined workflow state for this step."
+        },
+        {
+          "templateKeyId": "cmr2v88ea000dxa9idkxuxd1u",
+          "value": "Effective date, notice date and expiration date align to the workflow and statutory lead-time rules."
+        },
+        {
+          "templateKeyId": "cmr2oanxo001flasbfucsrtbm",
+          "roleId": "7eb871d7-7cd9-4cb3-946c-cb8f4df0c7eb"
+        },
+        {
+          "templateKeyId": "cmr2oanyt001hlasb9c3kzvkq",
+          "value": "All policies processed through this step in the cycle; a risk-based quarterly sample of 25 files re-performed by Underwriting Quality."
+        },
+        {
+          "templateKeyId": "cmr2oao03001jlasb1coy37l2",
+          "value": "PASS = required fields, correct status and timely, correctly-addressed action on 100% of the sample; FAIL = any missing rationale, wrong status, or late/mis-addressed action."
+        },
+        {
+          "templateKeyId": "cmr2oao16001llasbnlkf9nbu",
+          "value": "Failures routed to the Underwriting Manager for correction within 5 business days; systemic issues escalated to the Chief Underwriting Officer and logged in Archer GRC."
+        },
+        {
+          "templateKeyId": "cmr2v88x1000rxa9if2t45ukx",
+          "value": "Acceptance = correct notice/action generated, delivered and evidenced for the affected policy with reason and approver captured; deviation = returned to underwriter."
+        },
+        {
+          "templateKeyId": "cmr2v88xv000txa9ih5f5ph5m",
+          "value": "Evidence stored in OpenText DMS under /underwriting/<policy-no>/ and linked from the Guidewire PolicyCenter policy record."
+        },
+        {
+          "answerId": "cmr2ocdwz0tz0kaz3ux0ccxwd",
+          "value": "Field definitions sourced from the Guidewire PolicyCenter data dictionary (policy_no, txn_type, effective_date, reason_code, approver_id). Control totals reconcile the workbench transaction count to the policy-admin log with 0 variance for the cycle."
+        }
+      ],
+      "standards": [
+        {
+          "standardId": "cmqscowpe1msumbk8pwszu587",
+          "checklist": [
+            {
+              "step": "Document the action and rationale in the underwriting file",
+              "value": "Structured note added to the Guidewire PolicyCenter policy file with decision, rationale, approver and timestamp; supporting documents indexed in OpenText DMS."
+            },
+            {
+              "step": "Index evidence to the policy record",
+              "value": "All artifacts filed under /underwriting/<policy-no>/ with document-type tags for regulatory retrieval."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Sample files for completeness",
+              "value": "Quarterly 25-file review confirms rationale, approvals and supporting docs present; target 100% complete, remediate any gap in 5 business days."
+            },
+            {
+              "step": "Trace a sampled action to its file evidence",
+              "value": "Each sampled transaction reconciles 1:1 to an indexed, timestamped file entry."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppb81o8umbk8bbck5d15",
+          "checklist": [
+            {
+              "step": "Preserve a complete, immutable audit trail of the transaction",
+              "value": "Guidewire PolicyCenter transaction history retained (user, timestamp, before/after values) and exported to Archer GRC for the control record."
+            },
+            {
+              "step": "Version and retain the computation/record",
+              "value": "Each recalculation or record change stored with version label and effective date."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify audit-trail completeness",
+              "value": "Sampled transactions show an unbroken history from initiation to completion; 0 gaps or back-dated edits."
+            },
+            {
+              "step": "Confirm retention and immutability",
+              "value": "Audit records retained per schedule and confirmed read-only; 0 mutable entries found."
+            }
+          ]
+        },
+        {
+          "standardId": "cmqscppd31o8ymbk8q4zpd8lh",
+          "checklist": [
+            {
+              "step": "Require documented support for the underwriting decision",
+              "value": "Decision cannot progress until rationale, referenced data and authority level are captured on the policy record."
+            },
+            {
+              "step": "Attach the source evidence",
+              "value": "Loss experience, exposure data and appetite reference attached to the file in OpenText DMS."
+            }
+          ],
+          "testing": [
+            {
+              "step": "Verify documentation exists before the transaction closes",
+              "value": "System control blocks status change until the required rationale fields are populated; 0 closed transactions with blank rationale."
+            },
+            {
+              "step": "Sample-test documentation quality",
+              "value": "25-file quarterly sample scored against the documentation rubric; pass threshold 95%."
+            }
+          ]
+        }
+      ],
+      "regulations": []
+    }
+  ]
+}
