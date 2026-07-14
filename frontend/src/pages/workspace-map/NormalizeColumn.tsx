@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { api } from '../../lib/api';
 import { LAYERS, GREEN, AMBER, INDIGO, findingMoves } from './types';
 import type { BoardApp, BoardDetail, Finding, NormalizationEntry, Layer } from './types';
 
@@ -11,11 +12,17 @@ import type { BoardApp, BoardDetail, Finding, NormalizationEntry, Layer } from '
 // Colour is semantic only: green = same/carries over, amber = needs review,
 // red = moves, indigo = the normalized model. Everything else is neutral.
 
+// Column divider — a clearly-defined dark rule between the source columns and
+// the normalized column so the T-chart reads as distinct panels, not one blur.
+const COL_DIVIDER = '#64748b';
+
 interface Props {
   board: BoardDetail;
   activeLayer: Layer | null;
   /** Findings in the current scope (the panel's active screen) — the column mirrors exactly what the current state shows. */
   findings: Finding[];
+  /** Re-fetch the board after a REVIEW/HELD entry is approved or held. */
+  onResolved: () => void;
 }
 
 /** What the layer covers, in the section subtitle (mirrors the design comp). */
@@ -40,7 +47,7 @@ function ColumnHeads({ names }: { names: string[] }) {
         marginTop: 6,
       }}
     >
-      {names.map((n) => (
+      {names.map((n, i) => (
         <div
           key={n}
           style={{
@@ -51,10 +58,10 @@ function ColumnHeads({ names }: { names: string[] }) {
             letterSpacing: '.08em',
             color: '#171717',
             textTransform: 'uppercase',
-            borderRight: '1px solid #e2e8f0',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
+            // Dark rule between source columns; the last source's right edge is
+            // the boundary to the normalized column.
+            borderRight: `1.5px solid ${COL_DIVIDER}`,
+            borderLeft: i === 0 ? undefined : '1px solid #e2e8f0',
           }}
         >
           {n}
@@ -162,10 +169,81 @@ function CardFooter({ kind, text }: { kind: 'same' | 'different' | 'moves'; text
         lineHeight: 1.4,
       }}
     >
-      <b style={{ fontWeight: 700 }}>{palette.label}</b>
-      <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-        {text}
+      <b style={{ fontWeight: 700, flexShrink: 0 }}>{palette.label}</b>
+      <span style={{ flex: 1 }}>{text}</span>
+    </div>
+  );
+}
+
+/** Approve / Hold controls for a REVIEW or HELD entry. */
+function ReviewActions({
+  entry,
+  onResolved,
+}: {
+  entry: NormalizationEntry;
+  onResolved: () => void;
+}) {
+  const [saving, setSaving] = useState<'AUTO' | 'HELD' | null>(null);
+  const [err, setErr] = useState('');
+  const held = entry.matchStatus === 'HELD';
+
+  const resolve = async (matchStatus: 'AUTO' | 'HELD') => {
+    setErr('');
+    setSaving(matchStatus);
+    try {
+      await api.patch(`/rationalization/normalization-entries/${entry.id}`, { matchStatus });
+      onResolved();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Failed');
+      setSaving(null);
+    }
+  };
+
+  const btn = (bg: string, fg: string, border: string): React.CSSProperties => ({
+    padding: '3px 10px',
+    borderRadius: 5,
+    border: `1px solid ${border}`,
+    background: bg,
+    color: fg,
+    fontSize: 10.5,
+    fontWeight: 700,
+    cursor: saving ? 'default' : 'pointer',
+    opacity: saving ? 0.6 : 1,
+  });
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '6px 9px',
+        borderTop: '1px solid #fde68a',
+        background: '#fffbeb',
+      }}
+    >
+      <span style={{ fontSize: 10.5, color: '#92400e', flex: 1 }}>
+        {held ? 'On hold — approve to normalize, or keep held.' : 'Approve to normalize, or hold.'}
       </span>
+      {err && <span style={{ fontSize: 10, color: '#dc2626' }}>{err}</span>}
+      <button
+        type="button"
+        disabled={!!saving}
+        onClick={() => resolve('AUTO')}
+        style={btn('#16a34a', '#fff', '#15803d')}
+      >
+        {saving === 'AUTO' ? 'Approving…' : 'Approve'}
+      </button>
+      {!held && (
+        <button
+          type="button"
+          disabled={!!saving}
+          onClick={() => resolve('HELD')}
+          style={btn('#fff', '#92400e', '#fbbf24')}
+        >
+          {saving === 'HELD' ? 'Holding…' : 'Hold'}
+        </button>
+      )}
     </div>
   );
 }
@@ -175,10 +253,12 @@ function EntryCard({
   entry,
   apps,
   findingsById,
+  onResolved,
 }: {
   entry: NormalizationEntry;
   apps: BoardApp[];
   findingsById: Map<string, Finding>;
+  onResolved: () => void;
 }) {
   const review = entry.matchStatus === 'REVIEW' || entry.matchStatus === 'HELD';
   const sources = entry.findingIds
@@ -191,79 +271,93 @@ function EntryCard({
         border: `1px solid ${border}`,
         borderRadius: 6,
         overflow: 'hidden',
-        display: 'grid',
-        gridTemplateColumns: '1fr 140px',
         background: '#fff',
       }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${apps.length}, 1fr)` }}>
-          {apps.map((a) => {
-            const mine = sources.filter((f) => f.appId === a.id);
-            return (
-              <div
-                key={a.id}
-                style={{ padding: '4px 9px', borderRight: '1px solid #e2e8f0', minWidth: 0 }}
-              >
-                {mine.length === 0 ? (
-                  <span style={{ fontSize: 10.5, color: '#a3a3a3' }}>—</span>
-                ) : (
-                  mine.map((f) => (
-                    <div key={f.id} style={{ marginBottom: 4 }}>
-                      <div
-                        style={{
-                          fontSize: 11.5,
-                          fontWeight: 700,
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}
-                      >
-                        {f.name}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 140px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${apps.length}, 1fr)` }}>
+            {apps.map((a, i) => {
+              const mine = sources.filter((f) => f.appId === a.id);
+              return (
+                <div
+                  key={a.id}
+                  style={{
+                    padding: '4px 9px',
+                    // Dark rule between adjacent source columns (none after the last).
+                    borderRight: i < apps.length - 1 ? `1.5px solid ${COL_DIVIDER}` : undefined,
+                    minWidth: 0,
+                  }}
+                >
+                  {mine.length === 0 ? (
+                    <span style={{ fontSize: 10.5, color: '#a3a3a3' }}>—</span>
+                  ) : (
+                    mine.map((f) => (
+                      <div key={f.id} style={{ marginBottom: 4 }}>
+                        <div style={{ fontSize: 11.5, fontWeight: 700, lineHeight: 1.3 }}>
+                          {f.name}
+                        </div>
+                        {f.plainSummary && (
+                          <div style={{ fontSize: 10.5, color: '#525252', lineHeight: 1.4 }}>
+                            {f.plainSummary}
+                          </div>
+                        )}
+                        {f.codeRef && (
+                          <div
+                            style={{
+                              fontSize: 9.5,
+                              color: '#a3a3a3',
+                              fontFamily: 'ui-monospace, monospace',
+                              wordBreak: 'break-all',
+                            }}
+                          >
+                            {f.codeRef}
+                          </div>
+                        )}
                       </div>
-                      {f.plainSummary && (
-                        <div style={{ fontSize: 10.5, color: '#525252', lineHeight: 1.4 }}>
-                          {f.plainSummary}
-                        </div>
-                      )}
-                      {f.codeRef && (
-                        <div
-                          style={{
-                            fontSize: 9.5,
-                            color: '#a3a3a3',
-                            fontFamily: 'ui-monospace, monospace',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}
-                        >
-                          {f.codeRef}
-                        </div>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            );
-          })}
+                    ))
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <CardFooter
+            kind={review ? 'different' : 'same'}
+            text={
+              entry.differenceNote ??
+              entry.matchBasis ??
+              entry.proposedResolution ??
+              'reconciled into one capability'
+            }
+          />
         </div>
-        <CardFooter
-          kind={review ? 'different' : 'same'}
-          text={
-            entry.differenceNote ??
-            entry.matchBasis ??
-            entry.proposedResolution ??
-            'reconciled into one capability'
-          }
+        <NormalizedCell
+          notation={entry.notation}
+          name={entry.name}
+          detail={`${entry.findingIds.length} source · 1 capability`}
+          badge={review ? 'REVIEW' : `${entry.findingIds.length}→1 · AUTO`}
+          tone={review ? 'review' : 'same'}
         />
       </div>
-      <NormalizedCell
-        notation={entry.notation}
-        name={entry.name}
-        detail={`${entry.findingIds.length} source · 1 capability`}
-        badge={review ? 'REVIEW' : `${entry.findingIds.length}→1 · AUTO`}
-        tone={review ? 'review' : 'same'}
-      />
+      {review && (
+        <>
+          {entry.proposedResolution && (
+            <div
+              style={{
+                padding: '5px 9px',
+                borderTop: '1px solid #fde68a',
+                background: '#fffbeb',
+                fontSize: 10.5,
+                color: '#92400e',
+                lineHeight: 1.4,
+              }}
+            >
+              <b style={{ fontWeight: 700 }}>To review:</b> {entry.proposedResolution}
+            </div>
+          )}
+          <ReviewActions entry={entry} onResolved={onResolved} />
+        </>
+      )}
     </div>
   );
 }
@@ -285,17 +379,7 @@ function PassThroughCard({ finding }: { finding: Finding }) {
     >
       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <div style={{ padding: '4px 9px', minWidth: 0 }}>
-          <div
-            style={{
-              fontSize: 11.5,
-              fontWeight: 700,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {finding.name}
-          </div>
+          <div style={{ fontSize: 11.5, fontWeight: 700, lineHeight: 1.3 }}>{finding.name}</div>
           {finding.plainSummary && (
             <div style={{ fontSize: 10.5, color: '#525252', lineHeight: 1.4 }}>
               {finding.plainSummary}
@@ -307,9 +391,7 @@ function PassThroughCard({ finding }: { finding: Finding }) {
                 fontSize: 9.5,
                 color: '#a3a3a3',
                 fontFamily: 'ui-monospace, monospace',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
+                wordBreak: 'break-all',
               }}
             >
               {finding.codeRef}
@@ -344,12 +426,14 @@ function LayerSection({
   apps,
   dim,
   findings,
+  onResolved,
 }: {
   layer: Layer;
   board: BoardDetail;
   apps: BoardApp[];
   dim: boolean;
   findings: Finding[];
+  onResolved: () => void;
 }) {
   // Everything starts collapsed — headers carry the counts, expand on demand.
   const [open, setOpen] = useState(false);
@@ -412,7 +496,7 @@ function LayerSection({
           {LAYER_TITLE[layer]}
         </span>
         <span style={{ fontSize: 12, color: '#525252', fontVariantNumeric: 'tabular-nums' }}>
-          {rows.length} raw →{' '}
+          {rows.length} current →{' '}
           <b style={{ fontWeight: 800, color: INDIGO, fontSize: 15 }}>{normalizedCount}</b>
         </span>
       </button>
@@ -422,7 +506,13 @@ function LayerSection({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
             {entries.length > 0
               ? entries.map((e) => (
-                  <EntryCard key={e.id} entry={e} apps={apps} findingsById={findingsById} />
+                  <EntryCard
+                    key={e.id}
+                    entry={e}
+                    apps={apps}
+                    findingsById={findingsById}
+                    onResolved={onResolved}
+                  />
                 ))
               : rows.map((f) => <PassThroughCard key={f.id} finding={f} />)}
           </div>
@@ -432,7 +522,7 @@ function LayerSection({
   );
 }
 
-export default function NormalizeColumn({ board, activeLayer, findings }: Props) {
+export default function NormalizeColumn({ board, activeLayer, findings, onResolved }: Props) {
   const legacyApps = board.apps.filter((a) => a.kind === 'LEGACY');
   const apps = legacyApps.length ? legacyApps : board.apps;
   const passThrough = board.normalizationEntries.length === 0;
@@ -473,8 +563,10 @@ export default function NormalizeColumn({ board, activeLayer, findings }: Props)
             fontVariantNumeric: 'tabular-nums',
           }}
         >
-          <b style={{ fontWeight: 700, color: '#171717' }}>{findings.length} raw steps</b> →{' '}
-          <b style={{ fontWeight: 700, color: GREEN }}>{normalized} normalized</b>
+          <b style={{ fontWeight: 700, color: '#171717' }}>
+            {findings.length} current combined steps
+          </b>{' '}
+          → <b style={{ fontWeight: 700, color: GREEN }}>{normalized} normalized steps</b>
           {awaiting > 0 && (
             <>
               {' '}
@@ -493,6 +585,7 @@ export default function NormalizeColumn({ board, activeLayer, findings }: Props)
             apps={apps}
             dim={activeLayer != null && activeLayer !== layer}
             findings={findings}
+            onResolved={onResolved}
           />
         ))}
       </div>

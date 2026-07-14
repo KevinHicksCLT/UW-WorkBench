@@ -313,6 +313,7 @@ export function registerBoardRoutes(router: Router) {
           destination: c.destination,
           microserviceId: c.microserviceId,
           migrationStatus: c.migrationStatus,
+          targetDate: c.targetDate,
         })),
         // Green-field target services.
         microservices: w.microservices.map((m) => ({
@@ -323,6 +324,7 @@ export function registerBoardRoutes(router: Router) {
           techStack: m.techStack,
           // ownerRole is the linked Role's display label (erd_v5 ownerRoleId FK).
           ownerRole: m.ownerRole?.displayValue ?? null,
+          targetDate: m.targetDate,
         })),
         // Screens/modals of the legacy apps (WR-06: clickable per-L4 links).
         screens: w.screens.map((s) => ({

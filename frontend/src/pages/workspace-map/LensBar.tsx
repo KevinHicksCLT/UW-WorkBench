@@ -30,7 +30,7 @@ export default function LensBar({
   boards: { id: string; name: string }[];
   boardId: string | null;
   onBoard: (id: string) => void;
-  legend: ReactNode;
+  legend?: ReactNode;
 }) {
   return (
     <div
@@ -96,20 +96,22 @@ export default function LensBar({
         </Select>
       )}
       <div style={{ flex: 1 }} />
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          height: 30,
-          padding: '0 12px',
-          border: '1px solid #eaeaea',
-          borderRadius: 6,
-          background: '#fff',
-        }}
-      >
-        {legend}
-      </div>
+      {legend && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            height: 30,
+            padding: '0 12px',
+            border: '1px solid #eaeaea',
+            borderRadius: 6,
+            background: '#fff',
+          }}
+        >
+          {legend}
+        </div>
+      )}
     </div>
   );
 }

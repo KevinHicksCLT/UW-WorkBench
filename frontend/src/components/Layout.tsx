@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { useCompany } from '../lib/company';
 import { api } from '../lib/api';
-import { navItems, prefetchPathFor } from '../lib/navigation';
+import { navGroups, activeGroup, prefetchPathFor, type NavGroup } from '../lib/navigation';
 import { useBreadcrumbHeader } from '../lib/breadcrumbs';
 import SearchBox from './SearchBox';
 import AssistantWidget from './AssistantWidget';
@@ -23,9 +23,14 @@ export default function Layout({ children }: { children: ReactNode }) {
   const userMenuRef = useRef<HTMLDivElement | null>(null);
   const [domains, setDomains] = useState<IndexItem[]>([]);
   const [divisions, setDivisions] = useState<IndexItem[]>([]);
-  // Permission-filtered nav — the single list both the desktop tab bar and the
-  // mobile menu render from (mirrors the backend's requirePermission gates).
-  const tabs = navItems(permissions);
+  // Permission-filtered nav groups — the single source both the desktop tab bar
+  // and the mobile menu render from (mirrors the backend's requirePermission
+  // gates). Grouped tabs (Home / Workspace / Admin) carry a second-row sub-tab
+  // bar; the rest are singletons.
+  const groups = navGroups(permissions);
+  const current = activeGroup(groups, location.pathname);
+  // Sub-tab row shows only when the active group has more than one child.
+  const subTabs = current && current.children.length > 1 ? current.children : null;
   const isExplorer =
     location.pathname.startsWith('/overview') ||
     location.pathname.startsWith('/n/') ||
@@ -75,20 +80,21 @@ export default function Layout({ children }: { children: ReactNode }) {
     setMobileMenuOpen(false);
   };
 
-  // The portfolio drill-downs (program / initiative / RAID log) live under Home —
-  // their entry points are the Home dashboard widgets, so Home stays the active tab.
-  const onHome =
-    location.pathname === '/' ||
-    ['/programs/', '/initiatives/', '/raid'].some((p) => location.pathname.startsWith(p));
-
   // ── Nav link helper ────────────────────────────────────────────────────────
   // Underline-style tab: sits on the nav row's hairline, dark indicator when active.
   // Hovering/focusing a tab warms its list endpoint's GET cache (api dedups, so a
   // warm + the page's own fetch share one round-trip) — the page paints instantly
-  // on click instead of waiting on the network.
-  const NavLink = ({ to, children: label }: { to: string; children: ReactNode }) => {
-    const active =
-      to === '/' ? onHome : location.pathname === to || location.pathname.startsWith(to);
+  // on click instead of waiting on the network. `active` is decided by the caller
+  // (a group tab lights for its whole section; a sub-tab lights for its own page).
+  const NavLink = ({
+    to,
+    active,
+    children: label,
+  }: {
+    to: string;
+    active: boolean;
+    children: ReactNode;
+  }) => {
     const warm = () => {
       const p = prefetchPathFor(to, companyId);
       if (p) api.prefetch(p);
@@ -142,6 +148,31 @@ export default function Layout({ children }: { children: ReactNode }) {
         </span>
       )}
     </button>
+  );
+
+  // ── Mobile grouped section ─────────────────────────────────────────────────
+  // A grouped tab (Home / Workspace / Admin): a section heading over its pages.
+  const MobileGroup = ({ group }: { group: NavGroup }) => (
+    <div className="py-1">
+      <div className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3]">
+        {group.label}
+      </div>
+      {group.children.map((c) => {
+        const active = location.pathname === c.path || location.pathname.startsWith(`${c.path}/`);
+        return (
+          <button
+            key={c.key}
+            onClick={() => go(c.path)}
+            className={
+              'w-full flex items-center gap-3 pl-6 pr-4 py-2 text-sm transition-colors duration-150 ' +
+              (active ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')
+            }
+          >
+            {c.label}
+          </button>
+        );
+      })}
+    </div>
   );
 
   return (
@@ -334,17 +365,38 @@ export default function Layout({ children }: { children: ReactNode }) {
           </button>
         </div>
 
-        {/* Row 2 — full-width tab bar (desktop) */}
+        {/* Row 2 — full-width group tab bar (desktop). Each group lands on its
+            first readable child; the whole tab lights while any of its pages is
+            active. */}
         <nav
           className="hidden sm:flex items-center gap-7 px-4 sm:px-6 border-b border-[#eaeaea] overflow-x-auto"
           aria-label="Main navigation"
         >
-          {tabs.map((t) => (
-            <NavLink key={t.key} to={t.path}>
-              {t.label}
+          {groups.map((g) => (
+            <NavLink key={g.id} to={g.path} active={current?.id === g.id}>
+              {g.label}
             </NavLink>
           ))}
         </nav>
+
+        {/* Row 2b — sub-tab bar for the active group (only when it has >1 page).
+            Lighter surface so it reads as a subordinate strip under the section. */}
+        {subTabs && (
+          <nav
+            className="hidden sm:flex items-center gap-6 px-4 sm:px-6 border-b border-[#eaeaea] bg-[#fafafa] overflow-x-auto"
+            aria-label={`${current?.label} sections`}
+          >
+            {subTabs.map((c) => (
+              <NavLink
+                key={c.key}
+                to={c.path}
+                active={location.pathname === c.path || location.pathname.startsWith(`${c.path}/`)}
+              >
+                {c.label}
+              </NavLink>
+            ))}
+          </nav>
+        )}
 
         {/* Row 3 — the app's single breadcrumb: the cross-tab visited trail,
             or a map view's portaled drill breadcrumb. Hidden on Home. */}
@@ -386,23 +438,28 @@ export default function Layout({ children }: { children: ReactNode }) {
               </div>
             )}
 
-            {/* Nav links — same permission-filtered list as the desktop tab bar */}
+            {/* Nav links — same permission-filtered groups as the desktop tab bar.
+                Singletons render as one row; grouped tabs list their pages under a
+                section heading. */}
             <div className="py-1">
-              {tabs.map((t) => {
-                const active = t.path === '/' ? onHome : here(t.path);
-                return (
+              {groups.map((g) =>
+                g.children.length === 1 ? (
                   <button
-                    key={t.key}
-                    onClick={() => go(t.path)}
+                    key={g.id}
+                    onClick={() => go(g.children[0].path)}
                     className={
                       'w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-150 ' +
-                      (active ? 'bg-[#fafafa] text-[#171717] font-medium' : 'text-[#525252]')
+                      (current?.id === g.id
+                        ? 'bg-[#fafafa] text-[#171717] font-medium'
+                        : 'text-[#525252]')
                     }
                   >
-                    {t.label}
+                    {g.label}
                   </button>
-                );
-              })}
+                ) : (
+                  <MobileGroup key={g.id} group={g} />
+                ),
+              )}
             </div>
 
             {/* Operating Model */}
