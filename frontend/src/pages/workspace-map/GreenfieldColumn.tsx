@@ -237,6 +237,10 @@ function MicrositeCard({
   normalizationEntries: NormalizationEntry[];
   padTop: number;
 }) {
+  // Collapsed by default: a one-line header plus only the floors something
+  // lands on — keeps the card short so the layer rows across the three columns
+  // sit close together. Expanding reveals stack/owner/target/progress.
+  const [open, setOpen] = useState(false);
   const tone = statusTone(ms.status);
   const mine = components.filter((c) => c.microserviceId === ms.id);
   const byLayer = new Map<Layer, BoardComponent>(mine.map((c) => [c.layer, c]));
@@ -249,6 +253,7 @@ function MicrositeCard({
       ? 0
       : mine.reduce((a, c) => a + (STATUS_WEIGHT[c.migrationStatus] ?? 0), 0) / mine.length;
   const msTarget = formatTargetDate(ms.targetDate);
+  const floors = LAYERS.filter((layer) => byLayer.has(layer));
 
   return (
     <div
@@ -262,104 +267,119 @@ function MicrositeCard({
         marginTop: padTop || undefined,
       }}
     >
-      {/* header */}
-      <div style={{ padding: '11px 13px 9px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 600,
-              letterSpacing: '.1em',
-              color: '#047857',
-              textTransform: 'uppercase',
-            }}
-          >
-            {tone.label}
-          </span>
-          <span style={{ fontSize: 11, color: '#525252', fontVariantNumeric: 'tabular-nums' }}>
-            {Math.round(progress * 100)}% migrated
-          </span>
-        </div>
-        <div style={{ fontSize: 16, fontWeight: 700, marginTop: 2 }}>{ms.name}</div>
-        {ms.techStack && (
-          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{ms.techStack}</div>
-        )}
-        <div
+      {/* compact header line — expand for stack / owner / target / progress */}
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '7px 11px',
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          font: 'inherit',
+          textAlign: 'left',
+        }}
+      >
+        <span
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '2px 12px',
-            marginTop: 3,
+            color: '#059669',
+            fontSize: 9,
+            display: 'inline-block',
+            transform: open ? 'none' : 'rotate(-90deg)',
+            flexShrink: 0,
           }}
         >
-          {ms.ownerRole && (
-            <span style={{ fontSize: 11.5, color: GREEN, fontWeight: 600 }}>
-              Owner · {ms.ownerRole}
-            </span>
-          )}
-          {msTarget && (
-            <span style={{ fontSize: 11.5, color: '#6b7280', fontWeight: 600 }}>
-              Target · {msTarget}
-            </span>
-          )}
-        </div>
-        {/* progress bar */}
-        <div
+          ▾
+        </span>
+        <span style={{ fontSize: 13.5, fontWeight: 700, minWidth: 0, flex: 1 }}>{ms.name}</span>
+        <span
           style={{
-            height: 5,
-            borderRadius: 999,
-            background: '#d1fae5',
-            marginTop: 8,
-            overflow: 'hidden',
+            fontSize: 9.5,
+            fontWeight: 600,
+            letterSpacing: '.08em',
+            color: '#047857',
+            textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
           }}
         >
+          {tone.label}
+        </span>
+        <span
+          style={{
+            fontSize: 10.5,
+            color: '#525252',
+            fontVariantNumeric: 'tabular-nums',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          }}
+        >
+          {Math.round(progress * 100)}%
+        </span>
+      </button>
+      {open && (
+        <div style={{ padding: '0 13px 9px' }}>
+          {ms.techStack && <div style={{ fontSize: 12, color: '#6b7280' }}>{ms.techStack}</div>}
           <div
             style={{
-              width: `${Math.round(progress * 100)}%`,
-              height: '100%',
-              borderRadius: 999,
-              background: GREEN,
-              transition: 'width .3s',
+              display: 'flex',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '2px 12px',
+              marginTop: 3,
             }}
-          />
+          >
+            {ms.ownerRole && (
+              <span style={{ fontSize: 11.5, color: GREEN, fontWeight: 600 }}>
+                Owner · {ms.ownerRole}
+              </span>
+            )}
+            {msTarget && (
+              <span style={{ fontSize: 11.5, color: '#6b7280', fontWeight: 600 }}>
+                Target · {msTarget}
+              </span>
+            )}
+          </div>
+          <div
+            style={{
+              height: 5,
+              borderRadius: 999,
+              background: '#d1fae5',
+              marginTop: 8,
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                width: `${Math.round(progress * 100)}%`,
+                height: '100%',
+                borderRadius: 999,
+                background: GREEN,
+                transition: 'width .3s',
+              }}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* layer slots — the floors of the new build */}
+      {/* layer slots — only the floors something lands on */}
       <div
         style={{
           background: '#fff',
           borderTop: '1px solid #d1fae5',
-          padding: '8px 10px',
+          padding: '6px 8px',
           display: 'flex',
           flexDirection: 'column',
-          gap: 6,
+          gap: 5,
         }}
       >
-        {LAYERS.map((layer) => {
+        {floors.map((layer) => {
           const comp = byLayer.get(layer);
-          if (!comp) {
-            return (
-              <div
-                key={layer}
-                style={{
-                  border: '1px dashed #e2e8f0',
-                  borderRadius: 8,
-                  padding: '5px 10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  color: '#a3a3a3',
-                  fontSize: 11,
-                }}
-              >
-                <span style={{ width: 8, height: 8, borderRadius: 999, background: '#e2e8f0' }} />
-                <span style={{ fontWeight: 600 }}>{layer}</span>
-                <span style={{ marginLeft: 'auto' }}>nothing lands here yet</span>
-              </div>
-            );
-          }
+          if (!comp) return null;
           const lives = normalizationEntries.filter((e) => e.componentId === comp.id);
           return (
             <LayerSlot
@@ -372,6 +392,11 @@ function MicrositeCard({
             />
           );
         })}
+        {floors.length === 0 && (
+          <span style={{ fontSize: 10.5, color: '#a3a3a3', padding: '2px 4px' }}>
+            Nothing lands here yet.
+          </span>
+        )}
       </div>
     </div>
   );
