@@ -185,8 +185,6 @@ export default function ScreenView(props: Props) {
           })()}
       </div>
 
-      {screen && <ScreenPreview screen={screen} />}
-
       {LAYERS.map((layer: Layer) => {
         const layerRows = rows.filter((f) => f.layer === layer);
         const accent = LAYER_ACCENT[layer];
@@ -394,6 +392,10 @@ export default function ScreenView(props: Props) {
           </div>
         );
       })}
+
+      {/* Live preview last — the layer decomposition (and the Normalize column
+          beside it) own the top of the screen; the screenshot is reference. */}
+      {screen && <ScreenPreview screen={screen} />}
     </div>
   );
 }
