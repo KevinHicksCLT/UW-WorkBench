@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { MENU_TREE, type MenuNode } from '@cascade/shared';
 import { Select } from '../../components/ui';
 import { LAYERS, LAYER_ACCENT, findingMoves, GREEN, RED } from './types';
-import type { BoardApp, BoardScreen, Finding, Layer, LayerPads } from './types';
+import type { BoardApp, BoardScreen, Finding, Layer, LayerExpansion, LayerPads } from './types';
 import { ScreenPreview, WhyDetail } from './ScreenDetail';
 
 // Per-screen decomposition of the current state: pick one screen of the
@@ -23,6 +23,9 @@ interface Props {
   onSelectFinding: (f: Finding | null) => void;
   /** Per-layer top spacing that lines the layer rows up with the other columns (SCRUM-222). */
   layerPads?: LayerPads;
+  /** Shared per-layer expansion — one toggle opens the layer in every column. */
+  expandedLayers: LayerExpansion;
+  onToggleLayer: (layer: Layer) => void;
 }
 
 /** What the layer means for a single screen (subtitle in each section). */
@@ -89,6 +92,8 @@ export default function ScreenView(props: Props) {
     selectedFindingId,
     onSelectFinding,
     layerPads,
+    expandedLayers,
+    onToggleLayer,
   } = props;
   const options = screenOptions(screens, findings);
   const multiApp = apps.length > 1;
@@ -112,10 +117,6 @@ export default function ScreenView(props: Props) {
   const active = screenName ?? ordered[0] ?? null;
   const screen = screens.find((s) => s.name === active) ?? null;
   const rows = findings.filter((f) => f.screenRef === active);
-  // Layers start collapsed (headers carry the counts); switching screens
-  // collapses everything again.
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  useEffect(() => setExpanded({}), [active]);
 
   // Commit the default pick upstream so the connector counts track this screen.
   useEffect(() => {
@@ -162,7 +163,7 @@ export default function ScreenView(props: Props) {
         const accent = LAYER_ACCENT[layer];
         const stays = layerRows.filter((f) => !findingMoves(f)).length;
         const moves = layerRows.length - stays;
-        const open = !!expanded[layer];
+        const open = !!expandedLayers[layer];
         return (
           <div
             key={layer}
@@ -177,7 +178,7 @@ export default function ScreenView(props: Props) {
           >
             <button
               type="button"
-              onClick={() => setExpanded((c) => ({ ...c, [layer]: !c[layer] }))}
+              onClick={() => onToggleLayer(layer)}
               style={{
                 width: '100%',
                 height: 32,

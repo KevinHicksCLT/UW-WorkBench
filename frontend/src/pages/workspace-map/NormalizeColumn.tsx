@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { LAYERS, GREEN, AMBER, INDIGO } from './types';
-import type { BoardDetail, Finding, Layer, LayerPads } from './types';
+import type { BoardDetail, Finding, Layer, LayerExpansion, LayerPads } from './types';
 import { ColumnHeads, EntryCard, PassThroughCard, entryAppIds } from './NormalizeCards';
 
 // Middle column — the heart of the board. Each layer is a collapsible T-chart:
@@ -25,6 +24,9 @@ interface Props {
   onResolved: () => void;
   /** Per-layer top spacing that lines this column's rows up with the others (SCRUM-222). */
   layerPads?: LayerPads;
+  /** Shared per-layer expansion — one toggle opens the layer in every column. */
+  expandedLayers: LayerExpansion;
+  onToggleLayer: (layer: Layer) => void;
 }
 
 /** What the layer covers, in the section subtitle (mirrors the design comp). */
@@ -75,6 +77,8 @@ function LayerSection({
   findings,
   onResolved,
   padTop,
+  open,
+  onToggle,
 }: {
   layer: Layer;
   board: BoardDetail;
@@ -82,9 +86,9 @@ function LayerSection({
   findings: Finding[];
   onResolved: () => void;
   padTop: number;
+  open: boolean;
+  onToggle: () => void;
 }) {
-  // Everything starts collapsed — headers carry the counts, expand on demand.
-  const [open, setOpen] = useState(false);
   const legacyApps = board.apps.filter((a) => a.kind === 'LEGACY');
   const apps = legacyApps.length ? legacyApps : board.apps;
   const rows = findings.filter((f) => f.layer === layer);
@@ -121,7 +125,7 @@ function LayerSection({
     >
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={onToggle}
         style={{
           width: '100%',
           display: 'flex',
@@ -203,6 +207,8 @@ export default function NormalizeColumn({
   findings,
   onResolved,
   layerPads,
+  expandedLayers,
+  onToggleLayer,
 }: Props) {
   const legacyApps = board.apps.filter((a) => a.kind === 'LEGACY');
   const apps = legacyApps.length ? legacyApps : board.apps;
@@ -305,6 +311,8 @@ export default function NormalizeColumn({
             findings={findings}
             onResolved={onResolved}
             padTop={layerPads?.[layer] ?? 0}
+            open={!!expandedLayers[layer]}
+            onToggle={() => onToggleLayer(layer)}
           />
         ))}
       </div>

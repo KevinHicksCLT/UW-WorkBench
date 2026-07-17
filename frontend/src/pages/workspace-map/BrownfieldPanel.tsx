@@ -1,5 +1,5 @@
 import ScreenView from './ScreenView';
-import type { BoardApp, BoardScreen, Finding, LayerPads } from './types';
+import type { BoardApp, BoardScreen, Finding, Layer, LayerExpansion, LayerPads } from './types';
 
 // Left column — the current state, walked screen by screen. A single-product
 // board merges its legacy sources (e.g. a frontend and a backend) into one
@@ -22,6 +22,9 @@ interface Props {
   onSelectFinding: (f: Finding | null) => void;
   /** Per-layer top spacing that lines this panel's rows up with the other columns (SCRUM-222). */
   layerPads?: LayerPads;
+  /** Shared per-layer expansion — one toggle opens the layer in every column. */
+  expandedLayers: LayerExpansion;
+  onToggleLayer: (layer: Layer) => void;
 }
 
 export default function BrownfieldPanel(props: Props) {
@@ -35,6 +38,8 @@ export default function BrownfieldPanel(props: Props) {
     selectedFindingId,
     onSelectFinding,
     layerPads,
+    expandedLayers,
+    onToggleLayer,
   } = props;
   const screenCount = new Set(findings.map((f) => f.screenRef).filter(Boolean)).size;
 
@@ -82,6 +87,8 @@ export default function BrownfieldPanel(props: Props) {
         selectedFindingId={selectedFindingId}
         onSelectFinding={onSelectFinding}
         layerPads={layerPads}
+        expandedLayers={expandedLayers}
+        onToggleLayer={onToggleLayer}
       />
     </div>
   );

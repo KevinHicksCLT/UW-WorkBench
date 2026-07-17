@@ -8,7 +8,7 @@ import NormalizeColumn from './NormalizeColumn';
 import GreenfieldColumn from './GreenfieldColumn';
 import ProductBoard from './product/ProductBoard';
 import { LAYERS, findingMoves, GREEN, RED, READABLE_FIT_MIN } from './types';
-import type { Finding } from './types';
+import type { Finding, Layer } from './types';
 import { useLayerAlignment } from './useLayerAlignment';
 
 // The Workspace map — an interactive, three-column rationalization board
@@ -111,6 +111,11 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
   const [screenName, setScreenName] = useState<string | null>(null);
   const [selected, setSelected] = useState<Finding | null>(null);
   const [zoom, setZoom] = useState(1);
+  // One expand/collapse state per LAYER, shared by all three columns: opening
+  // "UI" anywhere opens the UI row in the panel, the Normalize section and the
+  // Greenfield floor together, so the whole band reads as one row.
+  const [expandedLayers, setExpandedLayers] = useState<Partial<Record<Layer, boolean>>>({});
+  const toggleLayer = (layer: Layer) => setExpandedLayers((c) => ({ ...c, [layer]: !c[layer] }));
 
   const { data: boards, loading: listLoading, error: listError } = useBoardList({ lens });
   const { data: board, loading, error, refetch } = useBoardDetail(boardId);
@@ -127,7 +132,13 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
   useEffect(() => {
     setScreenName(null);
     setSelected(null);
+    setExpandedLayers({});
   }, [board]);
+
+  // A screen switch starts collapsed again (the counts live in the headers).
+  useEffect(() => {
+    setExpandedLayers({});
+  }, [screenName]);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const activeLayer = selected ? selected.layer : null;
@@ -324,6 +335,8 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
               selectedFindingId={selected?.id ?? null}
               onSelectFinding={setSelected}
               layerPads={pads.bf}
+              expandedLayers={expandedLayers}
+              onToggleLayer={toggleLayer}
             />
             <NormalizeColumn
               board={board}
@@ -331,6 +344,8 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
               findings={scoped}
               onResolved={refetch}
               layerPads={pads.nz}
+              expandedLayers={expandedLayers}
+              onToggleLayer={toggleLayer}
             />
             <GreenfieldColumn
               microservices={board.microservices}
@@ -338,6 +353,8 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
               findings={scoped}
               normalizationEntries={scopedEntries}
               layerPads={pads.gf}
+              expandedLayers={expandedLayers}
+              onToggleLayer={toggleLayer}
             />
           </div>
         </div>

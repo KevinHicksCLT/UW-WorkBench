@@ -5,6 +5,7 @@ import type {
   BoardMicroservice,
   Finding,
   Layer,
+  LayerExpansion,
   LayerPads,
   NormalizationEntry,
 } from './types';
@@ -25,6 +26,9 @@ interface Props {
   normalizationEntries: NormalizationEntry[];
   /** Per-layer top spacing that lines each service card up with its layer row (SCRUM-222). */
   layerPads?: LayerPads;
+  /** Shared per-layer expansion — one toggle opens the layer in every column. */
+  expandedLayers: LayerExpansion;
+  onToggleLayer: (layer: Layer) => void;
 }
 
 function statusTone(status: string): { border: string; shadow: string; label: string } {
@@ -62,6 +66,8 @@ function LayerSlot({
   lives,
   landed,
   anchor,
+  open,
+  onToggle,
 }: {
   layer: Layer;
   comp: BoardComponent;
@@ -70,8 +76,9 @@ function LayerSlot({
   /** The findings that carry into this floor (pass-through boards list these). */
   landed: Finding[];
   anchor: string;
+  open: boolean;
+  onToggle: () => void;
 }) {
-  const [open, setOpen] = useState(false);
   const pct = Math.round((STATUS_WEIGHT[comp.migrationStatus] ?? 0) * 100);
   const targetLabel = formatTargetDate(comp.targetDate);
   // What actually landed here: authored entries if the board has them, else the
@@ -89,7 +96,7 @@ function LayerSlot({
     >
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={onToggle}
         style={{
           width: '100%',
           padding: '6px 10px',
@@ -250,12 +257,16 @@ function MicrositeCard({
   findings,
   normalizationEntries,
   padTop,
+  expandedLayers,
+  onToggleLayer,
 }: {
   ms: BoardMicroservice;
   components: BoardComponent[];
   findings: Finding[];
   normalizationEntries: NormalizationEntry[];
   padTop: number;
+  expandedLayers: LayerExpansion;
+  onToggleLayer: (layer: Layer) => void;
 }) {
   // Collapsed by default: a one-line header plus only the floors something
   // lands on — keeps the card short so the layer rows across the three columns
@@ -419,6 +430,8 @@ function MicrositeCard({
               lives={lives}
               landed={landingFindings(layer)}
               anchor={`gf:${ms.id}:${layer}`}
+              open={!!expandedLayers[layer]}
+              onToggle={() => onToggleLayer(layer)}
             />
           );
         })}
@@ -433,6 +446,8 @@ export default function GreenfieldColumn({
   findings,
   normalizationEntries,
   layerPads,
+  expandedLayers,
+  onToggleLayer,
 }: Props) {
   // The alignment pad of a service card is the pad of the layer whose
   // component lands on it (each card hosts one layer's component here).
@@ -454,6 +469,8 @@ export default function GreenfieldColumn({
             findings={findings}
             normalizationEntries={normalizationEntries}
             padTop={padFor(ms)}
+            expandedLayers={expandedLayers}
+            onToggleLayer={onToggleLayer}
           />
         ))}
         {microservices.length === 0 && (

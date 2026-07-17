@@ -153,6 +153,10 @@ export interface BoardDetail {
  *  other columns' rows (SCRUM-222 — see useLayerAlignment). */
 export type LayerPads = Partial<Record<Layer, number>>;
 
+/** Shared per-layer expand/collapse state — one toggle opens the same layer in
+ *  the Brownfield panel, the Normalize section and the Greenfield floor. */
+export type LayerExpansion = Partial<Record<Layer, boolean>>;
+
 /** Short, locale-stable date label for a target date (e.g. "Jul 1, 2026"). */
 export function formatTargetDate(iso: string | null): string | null {
   if (!iso) return null;
