@@ -16,6 +16,8 @@ interface Props {
   onMatchFilter: (s: MatchStatus | null) => void;
   selectedKey: string | null;
   onSelect: (g: ElementGroup | null) => void;
+  /** Per-component top spacing that lines the matrix rows up with the other columns. */
+  rowPads?: Record<string, number>;
 }
 
 const LABEL_W = 148;
@@ -178,6 +180,7 @@ export default function ProductComparePanel(props: Props) {
     onMatchFilter,
     selectedKey,
     onSelect,
+    rowPads,
   } = props;
   const single = versions.length === 1;
   const countBy = (s: MatchStatus) =>
@@ -309,7 +312,9 @@ export default function ProductComparePanel(props: Props) {
                 display: 'grid',
                 gridTemplateColumns: `${LABEL_W}px repeat(${versions.length}, ${COL_W}px)`,
                 borderBottom: '1px solid #f1f1f1',
+                borderTop: rowPads?.[row.component] ? '1px solid #f1f1f1' : undefined,
                 opacity: matchFilter && groups.length === 0 ? 0.4 : 1,
+                marginTop: rowPads?.[row.component] || undefined,
               }}
             >
               <div style={{ padding: '8px 10px', background: '#fcfcfc', minWidth: 0 }}>

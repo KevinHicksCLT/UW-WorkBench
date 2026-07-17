@@ -42,6 +42,11 @@ interface Props {
   lobId: string;
   decisions: Decisions;
   onResolved: () => void;
+  /** Per-component top spacing that lines this column's rows up with the others. */
+  rowPads?: Record<string, number>;
+  /** Shared per-component expansion — one toggle opens the band in every column. */
+  expandedComponents: Record<string, boolean>;
+  onToggleComponent: (component: string) => void;
 }
 
 function ColumnHeads({ names }: { names: string[] }) {
@@ -362,6 +367,9 @@ function ComponentSection({
   lobId,
   decisions,
   onResolved,
+  padTop,
+  open,
+  onToggle,
 }: {
   row: ComponentRow;
   versions: VersionColumn[];
@@ -370,8 +378,10 @@ function ComponentSection({
   lobId: string;
   decisions: Decisions;
   onResolved: () => void;
+  padTop: number;
+  open: boolean;
+  onToggle: () => void;
 }) {
-  const [open, setOpen] = useState(false);
   const groups = matchFilter ? row.groups.filter((g) => g.status === matchFilter) : row.groups;
   const raw = row.groups.reduce((a, g) => a + g.presentIn, 0);
   if (row.groups.length === 0) return null;
@@ -387,11 +397,12 @@ function ComponentSection({
         opacity: dim || (matchFilter != null && groups.length === 0) ? 0.45 : 1,
         transition: 'opacity .15s',
         overflow: 'hidden',
+        marginTop: padTop || undefined,
       }}
     >
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={onToggle}
         style={{
           width: '100%',
           display: 'flex',
@@ -459,6 +470,9 @@ export default function ProductNormalizeColumn({
   lobId,
   decisions,
   onResolved,
+  rowPads,
+  expandedComponents,
+  onToggleComponent,
 }: Props) {
   // Outstanding review = flagged groups not yet approved (held still counts).
   const approvedCount = comparison.rows.reduce(
@@ -553,6 +567,9 @@ export default function ProductNormalizeColumn({
             lobId={lobId}
             decisions={decisions}
             onResolved={onResolved}
+            padTop={rowPads?.[row.component] ?? 0}
+            open={!!expandedComponents[row.component]}
+            onToggle={() => onToggleComponent(row.component)}
           />
         ))}
       </div>

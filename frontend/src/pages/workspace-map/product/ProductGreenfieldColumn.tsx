@@ -26,6 +26,11 @@ interface Props {
   comparison: Comparison;
   matchFilter: MatchStatus | null;
   decisions: Decisions;
+  /** Per-component top spacing that lines each slot up with its band. */
+  rowPads?: Record<string, number>;
+  /** Shared per-component expansion — one toggle opens the band in every column. */
+  expandedComponents: Record<string, boolean>;
+  onToggleComponent: (component: string) => void;
 }
 
 /** Groups that are IN the normalized model: auto-folds + approved reviews. */
@@ -39,12 +44,17 @@ function GreenfieldSlot({
   row,
   decisions,
   dim,
+  padTop,
+  open,
+  onToggle,
 }: {
   row: ComponentRow;
   decisions: Decisions;
   dim: boolean;
+  padTop: number;
+  open: boolean;
+  onToggle: () => void;
 }) {
-  const [open, setOpen] = useState(false);
   const normalized = normalizedGroups(row, decisions);
   const toReconcile = row.groups.filter(
     (g) => (g.status === 'PARTIAL' || g.status === 'UNIQUE') && decisions[g.key] !== 'APPROVED',
@@ -60,11 +70,12 @@ function GreenfieldSlot({
         background: '#f8fffb',
         overflow: 'hidden',
         opacity: dim ? 0.45 : 1,
+        marginTop: padTop || undefined,
       }}
     >
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={onToggle}
         style={{
           width: '100%',
           padding: '6px 10px',
@@ -180,7 +191,13 @@ export default function ProductGreenfieldColumn({
   comparison,
   matchFilter,
   decisions,
+  rowPads,
+  expandedComponents,
+  onToggleComponent,
 }: Props) {
+  // Collapsed by default — the compact header keeps the model card short so
+  // the component bands across the three columns sit close together.
+  const [headerOpen, setHeaderOpen] = useState(false);
   // Reconciled = normalized elements actually in the model ÷ total groups.
   const inModel = comparison.rows.reduce((a, r) => a + normalizedGroups(r, decisions).length, 0);
   const progress = comparison.normalizedCount === 0 ? 0 : inModel / comparison.normalizedCount;
@@ -208,56 +225,95 @@ export default function ProductGreenfieldColumn({
           overflow: 'hidden',
         }}
       >
-        <div style={{ padding: '11px 13px 9px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: '.1em',
-                color: '#047857',
-                textTransform: 'uppercase',
-              }}
-            >
-              Proposed
-            </span>
-            <span style={{ fontSize: 11, color: '#525252', fontVariantNumeric: 'tabular-nums' }}>
-              {Math.round(progress * 100)}% reconciled
-            </span>
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 700, marginTop: 2 }}>{lobName}</div>
-          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-            one normalized model from {versions.length} version
-            {versions.length === 1 ? '' : 's'}
-          </div>
-          <div style={{ fontSize: 11.5, color: GREEN, marginTop: 3, fontWeight: 600 }}>
-            {inModel} normalized elements ·{' '}
-            {openDecisions > 0 ? (
-              <span style={{ color: MATCH_META.PARTIAL.fg }}>{openDecisions} decisions open</span>
-            ) : (
-              'no open decisions'
-            )}
-          </div>
-          <div
+        {/* compact header line — expand for the model detail + progress */}
+        <button
+          type="button"
+          onClick={() => setHeaderOpen((o) => !o)}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '7px 11px',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            font: 'inherit',
+            textAlign: 'left',
+          }}
+        >
+          <span
             style={{
-              height: 5,
-              borderRadius: 999,
-              background: '#d1fae5',
-              marginTop: 8,
-              overflow: 'hidden',
+              color: '#059669',
+              fontSize: 9,
+              display: 'inline-block',
+              transform: headerOpen ? 'none' : 'rotate(-90deg)',
+              flexShrink: 0,
             }}
           >
+            ▾
+          </span>
+          <span style={{ fontSize: 13.5, fontWeight: 700, minWidth: 0, flex: 1 }}>{lobName}</span>
+          <span
+            style={{
+              fontSize: 9.5,
+              fontWeight: 600,
+              letterSpacing: '.08em',
+              color: '#047857',
+              textTransform: 'uppercase',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            Proposed
+          </span>
+          <span
+            style={{
+              fontSize: 10.5,
+              color: '#525252',
+              fontVariantNumeric: 'tabular-nums',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            {Math.round(progress * 100)}%
+          </span>
+        </button>
+        {headerOpen && (
+          <div style={{ padding: '0 13px 9px' }}>
+            <div style={{ fontSize: 12, color: '#6b7280' }}>
+              one normalized model from {versions.length} version
+              {versions.length === 1 ? '' : 's'}
+            </div>
+            <div style={{ fontSize: 11.5, color: GREEN, marginTop: 3, fontWeight: 600 }}>
+              {inModel} normalized elements ·{' '}
+              {openDecisions > 0 ? (
+                <span style={{ color: MATCH_META.PARTIAL.fg }}>{openDecisions} decisions open</span>
+              ) : (
+                'no open decisions'
+              )}
+            </div>
             <div
               style={{
-                width: `${Math.round(progress * 100)}%`,
-                height: '100%',
+                height: 5,
                 borderRadius: 999,
-                background: GREEN,
-                transition: 'width .3s',
+                background: '#d1fae5',
+                marginTop: 8,
+                overflow: 'hidden',
               }}
-            />
+            >
+              <div
+                style={{
+                  width: `${Math.round(progress * 100)}%`,
+                  height: '100%',
+                  borderRadius: 999,
+                  background: GREEN,
+                  transition: 'width .3s',
+                }}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Component slots — expand to the normalized elements in the model. */}
         <div
@@ -279,6 +335,9 @@ export default function ProductGreenfieldColumn({
                 matchFilter != null &&
                 (matchFilter ? row.groups.filter((g) => g.status === matchFilter).length : 0) === 0
               }
+              padTop={rowPads?.[row.component] ?? 0}
+              open={!!expandedComponents[row.component]}
+              onToggle={() => onToggleComponent(row.component)}
             />
           ))}
           {comparison.rows.length === 0 && (
