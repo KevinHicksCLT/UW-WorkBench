@@ -174,6 +174,14 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     [appScoped, screenName],
   );
 
+  // The Greenfield column mirrors the active screen too: only the normalized
+  // entries fed by an in-scope finding land on its floors.
+  const scopedEntries = useMemo(() => {
+    if (!board) return [];
+    const ids = new Set(scoped.map((f) => f.id));
+    return board.normalizationEntries.filter((e) => e.findingIds.some((id) => ids.has(id)));
+  }, [board, scoped]);
+
   const specs: EdgeSpec[] = useMemo(() => {
     if (!board) return [];
     const mine = scoped;
@@ -327,8 +335,8 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
             <GreenfieldColumn
               microservices={board.microservices}
               components={board.components}
-              findings={appScoped}
-              normalizationEntries={board.normalizationEntries}
+              findings={scoped}
+              normalizationEntries={scopedEntries}
               layerPads={pads.gf}
             />
           </div>

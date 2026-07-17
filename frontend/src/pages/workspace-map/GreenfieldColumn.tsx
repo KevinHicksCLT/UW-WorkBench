@@ -273,7 +273,17 @@ function MicrositeCard({
       ? 0
       : mine.reduce((a, c) => a + (STATUS_WEIGHT[c.migrationStatus] ?? 0), 0) / mine.length;
   const msTarget = formatTargetDate(ms.targetDate);
-  const floors = LAYERS.filter((layer) => byLayer.has(layer));
+  // Only floors the ACTIVE SCREEN feeds (findings/entries arrive pre-scoped);
+  // a card nothing in scope lands on hides entirely.
+  const floors = LAYERS.filter((layer) => {
+    const comp = byLayer.get(layer);
+    if (!comp) return false;
+    return (
+      normalizationEntries.some((e) => e.componentId === comp.id) ||
+      landingFindings(layer).length > 0
+    );
+  });
+  if (floors.length === 0) return null;
 
   return (
     <div
@@ -412,11 +422,6 @@ function MicrositeCard({
             />
           );
         })}
-        {floors.length === 0 && (
-          <span style={{ fontSize: 10.5, color: '#a3a3a3', padding: '2px 4px' }}>
-            Nothing lands here yet.
-          </span>
-        )}
       </div>
     </div>
   );
