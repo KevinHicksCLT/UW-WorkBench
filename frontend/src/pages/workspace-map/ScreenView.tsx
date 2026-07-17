@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { MENU_TREE, type MenuNode } from '@cascade/shared';
 import { Select } from '../../components/ui';
-import { LAYERS, LAYER_ACCENT, APP_COLORS, findingMoves, GREEN, RED } from './types';
+import { LAYERS, LAYER_ACCENT, findingMoves, GREEN, RED } from './types';
 import type { BoardApp, BoardScreen, Finding, Layer, LayerPads } from './types';
 import { ScreenPreview, WhyDetail } from './ScreenDetail';
 
@@ -94,7 +94,6 @@ export default function ScreenView(props: Props) {
   const multiApp = apps.length > 1;
   // SCRUM-222: on a multi-application board the screen picker groups per app,
   // so the two systems' screens read as clearly separate estates.
-  const appColor = new Map(apps.map((a, i) => [a.id, APP_COLORS[i % APP_COLORS.length]]));
   const optionGroups = multiApp
     ? [
         ...apps.map((a) => ({
@@ -156,33 +155,6 @@ export default function ScreenView(props: Props) {
                 </option>
               ))}
         </Select>
-        {multiApp &&
-          active &&
-          (() => {
-            const owner = apps.find((a) => a.id === screenAppId(active, screens, findings));
-            if (!owner) return null;
-            const color = appColor.get(owner.id) ?? '#64748b';
-            return (
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 5,
-                  padding: '2px 8px',
-                  borderRadius: 999,
-                  border: `1px solid ${color}44`,
-                  background: `${color}0d`,
-                  fontSize: 10.5,
-                  fontWeight: 600,
-                  color: '#334155',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                <span style={{ width: 7, height: 7, borderRadius: 999, background: color }} />
-                {owner.name}
-              </span>
-            );
-          })()}
       </div>
 
       {LAYERS.map((layer: Layer) => {

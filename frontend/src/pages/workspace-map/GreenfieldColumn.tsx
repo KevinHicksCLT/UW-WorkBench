@@ -117,9 +117,28 @@ function LayerSlot({
         <span
           style={{ width: 8, height: 8, borderRadius: 999, background: GREEN, flexShrink: 0 }}
         />
-        <span style={{ minWidth: 0, flex: 1 }}>
-          <span style={{ display: 'block', fontSize: 11, fontWeight: 700 }}>{layer}</span>
-          <span style={{ display: 'block', fontSize: 10.5, color: '#525252' }}>{comp.name}</span>
+        <span
+          style={{
+            minWidth: 0,
+            flex: 1,
+            display: 'flex',
+            alignItems: 'baseline',
+            gap: 6,
+            overflow: 'hidden',
+          }}
+        >
+          <span style={{ fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap' }}>{layer}</span>
+          <span
+            style={{
+              fontSize: 10.5,
+              color: '#525252',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {comp.name}
+          </span>
         </span>
         <span
           style={{
@@ -135,37 +154,38 @@ function LayerSlot({
         {slotStatusChip(comp.migrationStatus)}
       </button>
 
-      {/* per-slot progress + target date, always visible */}
-      <div style={{ padding: '0 10px 7px 26px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div
-            style={{
-              flex: 1,
-              height: 4,
-              borderRadius: 999,
-              background: '#d1fae5',
-              overflow: 'hidden',
-            }}
-          >
-            <div style={{ width: `${pct}%`, height: '100%', background: GREEN }} />
+      {open && (
+        <div style={{ padding: '0 10px 7px 26px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div
+              style={{
+                flex: 1,
+                height: 4,
+                borderRadius: 999,
+                background: '#d1fae5',
+                overflow: 'hidden',
+              }}
+            >
+              <div style={{ width: `${pct}%`, height: '100%', background: GREEN }} />
+            </div>
+            <span
+              style={{
+                fontSize: 9.5,
+                color: '#047857',
+                fontVariantNumeric: 'tabular-nums',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {pct}%
+            </span>
           </div>
-          <span
-            style={{
-              fontSize: 9.5,
-              color: '#047857',
-              fontVariantNumeric: 'tabular-nums',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {pct}%
-          </span>
+          {targetLabel && (
+            <div style={{ fontSize: 9.5, color: '#6b7280', marginTop: 3 }}>
+              Target · {targetLabel}
+            </div>
+          )}
         </div>
-        {targetLabel && (
-          <div style={{ fontSize: 9.5, color: '#6b7280', marginTop: 3 }}>
-            Target · {targetLabel}
-          </div>
-        )}
-      </div>
+      )}
 
       {open && (
         <div
@@ -420,7 +440,7 @@ export default function GreenfieldColumn({
       <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>
         Greenfield
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {microservices.map((ms) => (
           <MicrositeCard
             key={ms.id}
