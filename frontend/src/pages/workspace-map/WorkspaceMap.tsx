@@ -9,6 +9,7 @@ import GreenfieldColumn from './GreenfieldColumn';
 import ProductBoard from './product/ProductBoard';
 import { LAYERS, findingMoves, GREEN, RED, READABLE_FIT_MIN } from './types';
 import type { Finding } from './types';
+import { useLayerAlignment } from './useLayerAlignment';
 
 // The Workspace map — an interactive, three-column rationalization board
 // (brown-field decomposition → normalize → green-field target) rendered from
@@ -230,6 +231,9 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
   }, [board, scoped, activeLayer]);
 
   const edges = useEdges(canvasRef, specs, zoom);
+  // SCRUM-222: line each layer's rows up across the three columns so the
+  // connectors run horizontally instead of criss-crossing diagonals.
+  const pads = useLayerAlignment(canvasRef, board?.id ?? null, board?.components ?? [], zoom);
 
   if (listLoading || loading) return <LoadingState message="Loading workspace board…" />;
   if (listError) return <ErrorMessage>{listError}</ErrorMessage>;
@@ -301,6 +305,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
             <FlowEdges edges={edges} />
             <BrownfieldPanel
               title={board.application || board.name}
+              apps={legacyApps}
               findings={appScoped}
               screens={board.screens}
               screenName={screenName}
@@ -310,18 +315,21 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
               }}
               selectedFindingId={selected?.id ?? null}
               onSelectFinding={setSelected}
+              layerPads={pads.bf}
             />
             <NormalizeColumn
               board={board}
               activeLayer={activeLayer}
               findings={scoped}
               onResolved={refetch}
+              layerPads={pads.nz}
             />
             <GreenfieldColumn
               microservices={board.microservices}
               components={board.components}
               findings={appScoped}
               normalizationEntries={board.normalizationEntries}
+              layerPads={pads.gf}
             />
           </div>
         </div>

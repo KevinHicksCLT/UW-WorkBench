@@ -149,6 +149,10 @@ export interface BoardDetail {
   findings: Finding[];
 }
 
+/** Per-layer extra top spacing (px) that aligns a column's layer rows with the
+ *  other columns' rows (SCRUM-222 — see useLayerAlignment). */
+export type LayerPads = Partial<Record<Layer, number>>;
+
 /** Short, locale-stable date label for a target date (e.g. "Jul 1, 2026"). */
 export function formatTargetDate(iso: string | null): string | null {
   if (!iso) return null;
@@ -191,6 +195,9 @@ export const LAYER_ACCENT: Record<
 // Fit-to-frame never scales below this zoom — card text stays legible; a board
 // too big to fit at this scale scrolls instead of shrinking further.
 export const READABLE_FIT_MIN = 0.65;
+
+/** Stable per-source-application accent colours (chips/dots on multi-app boards). */
+export const APP_COLORS = ['#0284c7', '#9333ea', '#0d9488', '#ca8a04'];
 
 export const GREEN = '#16a34a';
 export const RED = '#dc2626';

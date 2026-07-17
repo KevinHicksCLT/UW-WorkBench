@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { MENU_TREE, type MenuNode } from '@cascade/shared';
 import { Select } from '../../components/ui';
-import { LAYERS, LAYER_ACCENT, findingMoves, GREEN, RED } from './types';
-import type { BoardScreen, Finding, Layer } from './types';
+import { LAYERS, LAYER_ACCENT, APP_COLORS, findingMoves, GREEN, RED } from './types';
+import type { BoardApp, BoardScreen, Finding, Layer, LayerPads } from './types';
+import { ScreenPreview, WhyDetail } from './ScreenDetail';
 
 // Per-screen decomposition of the current state: pick one screen of the
 // application and see the full stack underneath it — every tech layer is
@@ -12,12 +13,16 @@ import type { BoardScreen, Finding, Layer } from './types';
 // same-origin URLs).
 
 interface Props {
+  /** The board's legacy source applications (SCRUM-222: screens group per app). */
+  apps: BoardApp[];
   screens: BoardScreen[];
   findings: Finding[]; // scoped to the application
   screenName: string | null;
   onScreen: (name: string | null) => void;
   selectedFindingId: string | null;
   onSelectFinding: (f: Finding | null) => void;
+  /** Per-layer top spacing that lines the layer rows up with the other columns (SCRUM-222). */
+  layerPads?: LayerPads;
 }
 
 /** What the layer means for a single screen (subtitle in each section). */
@@ -65,204 +70,47 @@ function screenOptions(screens: BoardScreen[], findings: Finding[]): string[] {
   return [...names].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
 }
 
-function ScreenPreview({ screen }: { screen: BoardScreen }) {
-  // The preview stays hidden behind a loading veil until the framed page has
-  // fired load AND had a settle window for its lazy chunk + data fetches —
-  // the user never sees a half-rendered page.
-  const [ready, setReady] = useState(false);
-  useEffect(() => setReady(false), [screen.url]);
-
-  if (!screen.url) {
-    return (
-      <div
-        style={{
-          height: 120,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: '1px dashed #eaeaea',
-          borderRadius: 8,
-          fontSize: 11.5,
-          color: '#a3a3a3',
-        }}
-      >
-        No preview URL for this {screen.kind === 'MODAL' ? 'modal' : 'screen'}
-      </div>
-    );
-  }
-  // 1280×800 page scaled to fit the panel width (~500px inner).
-  const scale = 0.39;
-  return (
-    <div
-      style={{
-        border: '1px solid #eaeaea',
-        borderRadius: 8,
-        overflow: 'hidden',
-        background: '#fff',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          padding: '4px 10px',
-          borderBottom: '1px solid #eaeaea',
-          background: '#fafafa',
-        }}
-      >
-        <span
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: 999,
-            background: ready ? '#22c55e' : '#f59e0b',
-          }}
-        />
-        <span style={{ fontSize: 10.5, color: '#525252', fontWeight: 600 }}>{screen.name}</span>
-        <span style={{ fontSize: 10, color: '#a3a3a3', marginLeft: 'auto' }}>
-          live preview · {screen.url}
-        </span>
-      </div>
-      <div style={{ height: Math.round(800 * scale), overflow: 'hidden', position: 'relative' }}>
-        <iframe
-          key={screen.url}
-          src={screen.url}
-          title={`Preview — ${screen.name}`}
-          onLoad={() => setTimeout(() => setReady(true), 900)}
-          style={{
-            width: 1280,
-            height: 800,
-            border: 'none',
-            transform: `scale(${scale})`,
-            transformOrigin: 'top left',
-            pointerEvents: 'none',
-            opacity: ready ? 1 : 0,
-            transition: 'opacity .2s',
-          }}
-          tabIndex={-1}
-          aria-hidden
-        />
-        {!ready && (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: '#fafafa',
-              fontSize: 11.5,
-              color: '#a3a3a3',
-            }}
-          >
-            Loading preview…
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function WhyDetail({ f }: { f: Finding }) {
-  const w = f.whyThisMoves;
-  const moved = findingMoves(f);
-  const accent = moved ? RED : GREEN;
-  return (
-    <div
-      style={{
-        margin: '2px 8px 6px 31px',
-        border: `1px solid ${moved ? '#fecaca' : '#bbf7d0'}`,
-        borderLeft: `3px solid ${accent}`,
-        borderRadius: 8,
-        background: '#fff',
-        padding: '8px 12px',
-      }}
-    >
-      <div
-        style={{
-          fontSize: 10,
-          fontWeight: 700,
-          letterSpacing: '.08em',
-          color: accent,
-          textTransform: 'uppercase',
-        }}
-      >
-        {moved ? 'Why this moves — what happens here' : 'Why this stays'}
-      </div>
-      {w ? (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '72px 1fr',
-            gap: '2px 10px',
-            fontSize: 11.5,
-            lineHeight: 1.45,
-            marginTop: 4,
-          }}
-        >
-          {w.captured && (
-            <>
-              <span style={{ color: '#a3a3a3', fontWeight: 600 }}>Captured</span>
-              <span style={{ color: '#525252' }}>{w.captured}</span>
-            </>
-          )}
-          {w.sent && (
-            <>
-              <span style={{ color: '#a3a3a3', fontWeight: 600 }}>Sent</span>
-              <span style={{ color: '#525252' }}>{w.sent}</span>
-            </>
-          )}
-          {w.processed && (
-            <>
-              <span style={{ color: '#a3a3a3', fontWeight: 600 }}>Processed</span>
-              <span style={{ color: '#525252' }}>{w.processed}</span>
-            </>
-          )}
-          {w.validation && (
-            <>
-              <span style={{ color: '#a3a3a3', fontWeight: 600 }}>Validation</span>
-              <span style={{ color: accent, fontWeight: 500 }}>{w.validation}</span>
-            </>
-          )}
-        </div>
-      ) : (
-        f.plainSummary && (
-          <div style={{ fontSize: 11.5, color: '#525252', lineHeight: 1.45, marginTop: 4 }}>
-            {f.plainSummary}
-          </div>
-        )
-      )}
-      {(w?.location || w?.landsIn || f.codeRef) && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            marginTop: 5,
-            fontSize: 11,
-            flexWrap: 'wrap',
-          }}
-        >
-          {(w?.location || f.codeRef) && (
-            <span style={{ color: '#a3a3a3' }}>location: {w?.location ?? f.codeRef}</span>
-          )}
-          {w?.landsIn && (
-            <>
-              <span style={{ color: '#525252' }}>· lands in</span>
-              <span style={{ fontWeight: 600, color: '#0d9488' }}>{w.landsIn}</span>
-            </>
-          )}
-        </div>
-      )}
-    </div>
-  );
+/** Which application owns a screen: its catalog appId, else the unanimous app
+ *  of the findings recorded against it (SCRUM-222 screen grouping). */
+function screenAppId(name: string, screens: BoardScreen[], findings: Finding[]): string | null {
+  const catalog = screens.find((s) => s.name === name);
+  if (catalog?.appId) return catalog.appId;
+  const owners = new Set(findings.filter((f) => f.screenRef === name).map((f) => f.appId));
+  return owners.size === 1 ? [...owners][0] : null;
 }
 
 export default function ScreenView(props: Props) {
-  const { screens, findings, screenName, onScreen, selectedFindingId, onSelectFinding } = props;
+  const {
+    apps,
+    screens,
+    findings,
+    screenName,
+    onScreen,
+    selectedFindingId,
+    onSelectFinding,
+    layerPads,
+  } = props;
   const options = screenOptions(screens, findings);
-  const active = screenName ?? options[0] ?? null;
+  const multiApp = apps.length > 1;
+  // SCRUM-222: on a multi-application board the screen picker groups per app,
+  // so the two systems' screens read as clearly separate estates.
+  const appColor = new Map(apps.map((a, i) => [a.id, APP_COLORS[i % APP_COLORS.length]]));
+  const optionGroups = multiApp
+    ? [
+        ...apps.map((a) => ({
+          label: a.name,
+          names: options.filter((n) => screenAppId(n, screens, findings) === a.id),
+        })),
+        {
+          label: 'Cross-application',
+          names: options.filter((n) => screenAppId(n, screens, findings) === null),
+        },
+      ].filter((g) => g.names.length > 0)
+    : null;
+  // Grouped boards default to the first app's first screen (group order),
+  // not the alphabetical head of the flat list.
+  const ordered = optionGroups ? optionGroups.flatMap((g) => g.names) : options;
+  const active = screenName ?? ordered[0] ?? null;
   const screen = screens.find((s) => s.name === active) ?? null;
   const rows = findings.filter((f) => f.screenRef === active);
   // Layers start collapsed (headers carry the counts); switching screens
@@ -292,12 +140,49 @@ export default function ScreenView(props: Props) {
           style={{ flex: 1 }}
           aria-label="Screen"
         >
-          {options.map((name) => (
-            <option key={name} value={name}>
-              {name}
-            </option>
-          ))}
+          {optionGroups
+            ? optionGroups.map((g) => (
+                <optgroup key={g.label} label={g.label}>
+                  {g.names.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
+                </optgroup>
+              ))
+            : options.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
         </Select>
+        {multiApp &&
+          active &&
+          (() => {
+            const owner = apps.find((a) => a.id === screenAppId(active, screens, findings));
+            if (!owner) return null;
+            const color = appColor.get(owner.id) ?? '#64748b';
+            return (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  padding: '2px 8px',
+                  borderRadius: 999,
+                  border: `1px solid ${color}44`,
+                  background: `${color}0d`,
+                  fontSize: 10.5,
+                  fontWeight: 600,
+                  color: '#334155',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <span style={{ width: 7, height: 7, borderRadius: 999, background: color }} />
+                {owner.name}
+              </span>
+            );
+          })()}
       </div>
 
       {screen && <ScreenPreview screen={screen} />}
@@ -317,6 +202,7 @@ export default function ScreenView(props: Props) {
               borderRadius: 10,
               overflow: 'hidden',
               background: '#fff',
+              marginTop: layerPads?.[layer] || undefined,
             }}
           >
             <button

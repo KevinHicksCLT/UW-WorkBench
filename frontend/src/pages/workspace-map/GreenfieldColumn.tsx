@@ -5,6 +5,7 @@ import type {
   BoardMicroservice,
   Finding,
   Layer,
+  LayerPads,
   NormalizationEntry,
 } from './types';
 
@@ -22,6 +23,8 @@ interface Props {
   components: BoardComponent[];
   findings: Finding[];
   normalizationEntries: NormalizationEntry[];
+  /** Per-layer top spacing that lines each service card up with its layer row (SCRUM-222). */
+  layerPads?: LayerPads;
 }
 
 function statusTone(status: string): { border: string; shadow: string; label: string } {
@@ -226,11 +229,13 @@ function MicrositeCard({
   components,
   findings,
   normalizationEntries,
+  padTop,
 }: {
   ms: BoardMicroservice;
   components: BoardComponent[];
   findings: Finding[];
   normalizationEntries: NormalizationEntry[];
+  padTop: number;
 }) {
   const tone = statusTone(ms.status);
   const mine = components.filter((c) => c.microserviceId === ms.id);
@@ -254,6 +259,7 @@ function MicrositeCard({
         boxShadow: tone.shadow,
         boxSizing: 'border-box',
         overflow: 'hidden',
+        marginTop: padTop || undefined,
       }}
     >
       {/* header */}
@@ -376,7 +382,14 @@ export default function GreenfieldColumn({
   components,
   findings,
   normalizationEntries,
+  layerPads,
 }: Props) {
+  // The alignment pad of a service card is the pad of the layer whose
+  // component lands on it (each card hosts one layer's component here).
+  const padFor = (ms: BoardMicroservice): number => {
+    const layer = components.find((c) => c.microserviceId === ms.id)?.layer;
+    return (layer && layerPads?.[layer]) || 0;
+  };
   return (
     <div style={{ width: 340, flexShrink: 0, alignSelf: 'flex-start' }}>
       <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>
@@ -390,6 +403,7 @@ export default function GreenfieldColumn({
             components={components}
             findings={findings}
             normalizationEntries={normalizationEntries}
+            padTop={padFor(ms)}
           />
         ))}
         {microservices.length === 0 && (
