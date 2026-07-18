@@ -22,11 +22,40 @@ import {
   StatusPill,
 } from '../../components/ui';
 
+type ScanSummary = {
+  fetchedAt?: string;
+  source?: string;
+  fullName?: string;
+  description?: string | null;
+  defaultBranch?: string;
+  sizeKb?: number;
+  stars?: number;
+  forks?: number;
+  openIssues?: number;
+  lastPushedAt?: string;
+  topics?: string[];
+  license?: string | null;
+  languages?: Record<string, number>;
+  error?: string;
+};
+
+type ScanContents = {
+  findings: number;
+  findingsByLayer: { layer: string; count: number }[];
+  common: number;
+  moves: number;
+  deadCode: number;
+  screens: number;
+  microservices: { name: string; status: string }[];
+};
+
 type Scan = {
   status: string; // NOT_SCANNED | SCANNED
   repoUrl: string | null;
   appUrl: string | null;
   scannedAt: string | null;
+  summary: ScanSummary | null;
+  contents: ScanContents | null;
 };
 
 type AppDetail = {
@@ -146,6 +175,126 @@ function ScanCard({
           </div>
         )}
       </div>
+    </Card>
+  );
+}
+
+const LANG_COLORS = ['#0070AD', '#4f46e5', '#0d9488', '#ca8a04', '#9333ea', '#64748b'];
+
+/** What the scan gathered — repo facts from the GitHub/GitLab API plus the
+ *  knowledge-base contents derived from this app's Workspace board data. */
+function ScanOverview({ scan }: { scan: Scan }) {
+  const s = scan.summary;
+  const c = scan.contents;
+  if (scan.status !== 'SCANNED' || (!s && !c)) return null;
+
+  const langs = Object.entries(s?.languages ?? {}).sort((a, b) => b[1] - a[1]);
+  const totalBytes = langs.reduce((n, [, b]) => n + b, 0);
+  const top = langs.slice(0, 6);
+
+  return (
+    <Card className="p-4">
+      <SectionLabel>Scan overview</SectionLabel>
+
+      {s?.error && !s.fullName ? (
+        <p className="text-[12px] text-[#b45309]">
+          Repository metadata unavailable ({s.error}) — re-scan to retry.
+        </p>
+      ) : (
+        s && (
+          <div className="space-y-3">
+            {s.description && (
+              <p className="text-[12px] text-[#525252] leading-relaxed">{s.description}</p>
+            )}
+            {totalBytes > 0 && (
+              <div>
+                <div className="flex h-2 rounded-full overflow-hidden bg-[#f0f0f0] mb-1.5">
+                  {top.map(([lang, bytes], i) => (
+                    <span
+                      key={lang}
+                      title={lang}
+                      style={{
+                        width: `${(bytes / totalBytes) * 100}%`,
+                        background: LANG_COLORS[i % LANG_COLORS.length],
+                      }}
+                    />
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+                  {top.map(([lang, bytes], i) => (
+                    <span
+                      key={lang}
+                      className="inline-flex items-center gap-1 text-[10.5px] text-[#525252]"
+                    >
+                      <span
+                        className="w-2 h-2 rounded-full"
+                        style={{ background: LANG_COLORS[i % LANG_COLORS.length] }}
+                      />
+                      {lang}{' '}
+                      <span className="tnum text-[#a3a3a3]">
+                        {Math.round((bytes / totalBytes) * 100)}%
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-[#525252]">
+              {s.fullName && (
+                <div className="col-span-2 truncate">
+                  <span className="text-[#a3a3a3]">Repo</span> {s.fullName}
+                </div>
+              )}
+              {s.defaultBranch && (
+                <div>
+                  <span className="text-[#a3a3a3]">Branch</span> {s.defaultBranch}
+                </div>
+              )}
+              {s.sizeKb != null && (
+                <div>
+                  <span className="text-[#a3a3a3]">Size</span>{' '}
+                  {s.sizeKb > 1024 ? `${(s.sizeKb / 1024).toFixed(1)} MB` : `${s.sizeKb} KB`}
+                </div>
+              )}
+              {s.lastPushedAt && (
+                <div>
+                  <span className="text-[#a3a3a3]">Last push</span>{' '}
+                  {new Date(s.lastPushedAt).toLocaleDateString()}
+                </div>
+              )}
+              {s.license && (
+                <div>
+                  <span className="text-[#a3a3a3]">License</span> {s.license}
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      )}
+
+      {c && (
+        <div className={s ? 'mt-3 pt-3 border-t border-[#f0f0f0]' : ''}>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-[#a3a3a3] mb-1.5">
+            Knowledge base
+          </div>
+          <div className="grid grid-cols-2 gap-3 mb-2">
+            <Stat label="Decomposed steps" value={c.findings.toLocaleString()} />
+            <Stat label="Screens mapped" value={c.screens.toLocaleString()} />
+            <Stat label="Stay as-is" value={c.common.toLocaleString()} />
+            <Stat label="Move / retire" value={c.moves.toLocaleString()} />
+          </div>
+          {c.findingsByLayer.length > 0 && (
+            <div className="space-y-0.5">
+              {c.findingsByLayer.map((l) => (
+                <div key={l.layer} className="flex items-baseline justify-between text-[11px]">
+                  <span className="text-[#525252]">{l.layer}</span>
+                  <span className="tnum text-[#737373]">{l.count}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </Card>
   );
 }
@@ -283,7 +432,14 @@ export default function ApplicationDetail() {
             )}
           </Card>
 
-          <ScanCard appId={app.id} scan={scan} onScanned={setScanOverride} />
+          <ScanCard
+            appId={app.id}
+            scan={scan}
+            // POST /scan returns contents: null (board data derives on read) —
+            // keep whatever the page already loaded so the overview stays put.
+            onScanned={(s) => setScanOverride({ ...s, contents: app.scan.contents })}
+          />
+          <ScanOverview scan={scan} />
 
           {(scan.repoUrl || scan.appUrl) && (
             <Card className="p-4">

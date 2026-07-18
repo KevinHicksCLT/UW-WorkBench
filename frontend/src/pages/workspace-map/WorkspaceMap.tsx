@@ -306,6 +306,21 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     [bfFindings, screenName],
   );
 
+  // The whole band follows the Brownfield walk: while a screen is active, the
+  // ACTIVE application's findings narrow to that screen in every column, so
+  // the counts agree left to right (4 stay → 4 current → 4 in, not 4 → 98).
+  // Other picked applications keep their full sets — only the walked app zooms.
+  const modelFindings = useMemo(() => {
+    if (!merged) return [];
+    if (!screenName || !activeId) return merged.findings;
+    return merged.findings.filter((f) => f.appId !== activeId || f.screenRef === screenName);
+  }, [merged, activeId, screenName]);
+  const modelEntries = useMemo(() => {
+    if (!merged) return [];
+    const ids = new Set(modelFindings.map((f) => f.id));
+    return merged.normalizationEntries.filter((e) => e.findingIds.some((id) => ids.has(id)));
+  }, [merged, modelFindings]);
+
   // Greenfield pass-through scoping: a target service only counts findings
   // from ITS OWN board's applications (cross-board findings never leak onto
   // another initiative's floors).
@@ -316,11 +331,11 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
       const bId = merged.boardOfMs.get(ms.id);
       m.set(
         ms.id,
-        merged.findings.filter((f) => merged.boardOfApp.get(f.appId) === bId),
+        modelFindings.filter((f) => merged.boardOfApp.get(f.appId) === bId),
       );
     }
     return m;
-  }, [merged]);
+  }, [merged, modelFindings]);
 
   const specs: EdgeSpec[] = useMemo(() => {
     if (!merged) return [];
@@ -365,7 +380,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
       for (const comp of merged.components) {
         if (comp.layer !== layer || !comp.microserviceId) continue;
         const lands =
-          merged.normalizationEntries.some((e) => e.componentId === comp.id) ||
+          modelEntries.some((e) => e.componentId === comp.id) ||
           (findingsByMs.get(comp.microserviceId) ?? []).some(
             (f) => f.layer === layer && !f.deadCode && f.capdan !== 'Eliminate',
           );
@@ -399,7 +414,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
   if (!boards || boards.length === 0)
     return (
-      <EmptyState message="No rationalization boards for this lens yet. Switch the lens or seed a board." />
+      <EmptyState message="No scanned applications yet — the Workspace only shows applications whose codebase has been scanned. Open an application's page and run a codebase scan to light up its board." />
     );
   if (!merged || !activeApp) return <LoadingState message="Loading board…" />;
 
@@ -493,7 +508,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
             <NormalizeColumn
               board={merged}
               activeLayer={activeLayer}
-              findings={merged.findings}
+              findings={modelFindings}
               onResolved={refetch}
               layerPads={pads.nz}
               expandedLayers={expandedLayers}
@@ -502,9 +517,9 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
             <GreenfieldColumn
               microservices={merged.microservices}
               components={merged.components}
-              findings={merged.findings}
+              findings={modelFindings}
               findingsByMs={findingsByMs}
-              normalizationEntries={merged.normalizationEntries}
+              normalizationEntries={modelEntries}
               layerPads={pads.gf}
               expandedLayers={expandedLayers}
               onToggleLayer={toggleLayer}
