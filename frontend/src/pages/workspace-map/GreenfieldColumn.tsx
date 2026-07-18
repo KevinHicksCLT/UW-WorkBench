@@ -23,6 +23,9 @@ interface Props {
   microservices: BoardMicroservice[];
   components: BoardComponent[];
   findings: Finding[];
+  /** Cross-board comparisons: each service's own board's findings, so one
+   *  initiative's pass-through floors never count another's findings. */
+  findingsByMs?: Map<string, Finding[]>;
   normalizationEntries: NormalizationEntry[];
   /** Per-layer top spacing that lines each service card up with its layer row (SCRUM-222). */
   layerPads?: LayerPads;
@@ -284,8 +287,8 @@ function MicrositeCard({
       ? 0
       : mine.reduce((a, c) => a + (STATUS_WEIGHT[c.migrationStatus] ?? 0), 0) / mine.length;
   const msTarget = formatTargetDate(ms.targetDate);
-  // Only floors the ACTIVE SCREEN feeds (findings/entries arrive pre-scoped);
-  // a card nothing in scope lands on hides entirely.
+  // Only floors the comparison feeds (findings/entries arrive pre-scoped to
+  // the picked applications); a card nothing in scope lands on hides entirely.
   const floors = LAYERS.filter((layer) => {
     const comp = byLayer.get(layer);
     if (!comp) return false;
@@ -444,6 +447,7 @@ export default function GreenfieldColumn({
   microservices,
   components,
   findings,
+  findingsByMs,
   normalizationEntries,
   layerPads,
   expandedLayers,
@@ -466,7 +470,7 @@ export default function GreenfieldColumn({
             key={ms.id}
             ms={ms}
             components={components}
-            findings={findings}
+            findings={findingsByMs?.get(ms.id) ?? findings}
             normalizationEntries={normalizationEntries}
             padTop={padFor(ms)}
             expandedLayers={expandedLayers}

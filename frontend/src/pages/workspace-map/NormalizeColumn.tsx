@@ -1,5 +1,5 @@
 import { LAYERS, GREEN, AMBER, INDIGO } from './types';
-import type { BoardDetail, Finding, Layer, LayerExpansion, LayerPads } from './types';
+import type { Finding, Layer, LayerExpansion, LayerPads, NormalizeScope } from './types';
 import { ColumnHeads, EntryCard, PassThroughCard, entryAppIds } from './NormalizeCards';
 
 // Middle column — the heart of the board. Each layer is a collapsible T-chart:
@@ -16,9 +16,9 @@ import { ColumnHeads, EntryCard, PassThroughCard, entryAppIds } from './Normaliz
 // red = moves, indigo = the normalized model. Everything else is neutral.
 
 interface Props {
-  board: BoardDetail;
+  board: NormalizeScope;
   activeLayer: Layer | null;
-  /** Findings in the current scope (the panel's active screen) — the column mirrors exactly what the current state shows. */
+  /** Findings in the comparison scope (every picked application) — Normalize always aggregates the full comparison. */
   findings: Finding[];
   /** Re-fetch the board after a REVIEW/HELD entry is approved or held. */
   onResolved: () => void;
@@ -38,9 +38,14 @@ const LAYER_TITLE: Record<Layer, string> = {
   Infrastructure: 'Infra Security Rules & Logs',
 };
 
-/** Small "Shared across applications (n)" / "Application-specific (n)" divider. */
-function GroupHead({ kind, count }: { kind: 'shared' | 'unique'; count: number }) {
+/** Small group divider: shared / application-specific / pass-through. */
+function GroupHead({ kind, count }: { kind: 'shared' | 'unique' | 'passthrough'; count: number }) {
   const shared = kind === 'shared';
+  const label = shared
+    ? `Shared across applications (${count})`
+    : kind === 'unique'
+      ? `Application-specific (${count})`
+      : `Carries over 1→1 (${count})`;
   return (
     <div
       style={{
@@ -64,7 +69,7 @@ function GroupHead({ kind, count }: { kind: 'shared' | 'unique'; count: number }
           border: `1px solid ${shared ? INDIGO : '#94a3b8'}`,
         }}
       />
-      {shared ? `Shared across applications (${count})` : `Application-specific (${count})`}
+      {label}
       <span style={{ flex: 1, height: 1, background: shared ? '#e0e7ff' : '#e2e8f0' }} />
     </div>
   );
@@ -81,7 +86,7 @@ function LayerSection({
   onToggle,
 }: {
   layer: Layer;
-  board: BoardDetail;
+  board: NormalizeScope;
   dim: boolean;
   findings: Finding[];
   onResolved: () => void;
@@ -101,8 +106,17 @@ function LayerSection({
   // SCRUM-222 grouping: shared (2+ source apps) first, then single-app entries.
   const sharedEntries = entries.filter((e) => entryAppIds(e, findingsById).length > 1);
   const uniqueEntries = entries.filter((e) => entryAppIds(e, findingsById).length <= 1);
-  const grouped = apps.length > 1 && sharedEntries.length > 0 && uniqueEntries.length > 0;
-  const normalizedCount = entries.length || rows.length;
+  // Cross-board comparisons mix authored boards with pass-through boards in
+  // one layer: findings no entry covers still carry 1→1 into the model, so
+  // they stay counted and listed (otherwise a whole application would vanish
+  // from Normalize while Greenfield keeps landing it).
+  const covered = new Set(entries.flatMap((e) => e.findingIds));
+  const uncovered = entries.length > 0 ? rows.filter((r) => !covered.has(r.id)) : [];
+  const grouped =
+    apps.length > 1 &&
+    sharedEntries.length > 0 &&
+    (uniqueEntries.length > 0 || uncovered.length > 0);
+  const normalizedCount = entries.length > 0 ? entries.length + uncovered.length : rows.length;
   // Authored entries compare the sources column by column; pass-through mode
   // treats the whole board as ONE application, so a single source column.
   const headNames =
@@ -180,7 +194,9 @@ function LayerSection({
                     onResolved={onResolved}
                   />
                 ))}
-                {grouped && <GroupHead kind="unique" count={uniqueEntries.length} />}
+                {grouped && uniqueEntries.length > 0 && (
+                  <GroupHead kind="unique" count={uniqueEntries.length} />
+                )}
                 {uniqueEntries.map((e) => (
                   <EntryCard
                     key={e.id}
@@ -190,6 +206,14 @@ function LayerSection({
                     onResolved={onResolved}
                   />
                 ))}
+                {uncovered.length > 0 && (
+                  <>
+                    {grouped && <GroupHead kind="passthrough" count={uncovered.length} />}
+                    {uncovered.map((f) => (
+                      <PassThroughCard key={f.id} finding={f} />
+                    ))}
+                  </>
+                )}
               </>
             ) : (
               rows.map((f) => <PassThroughCard key={f.id} finding={f} />)
@@ -213,12 +237,17 @@ export default function NormalizeColumn({
   const legacyApps = board.apps.filter((a) => a.kind === 'LEGACY');
   const apps = legacyApps.length ? legacyApps : board.apps;
   const passThrough = board.normalizationEntries.length === 0;
-  // The header pill mirrors the active scope (the panel's selected screen).
+  // The header pill totals the full comparison scope (every picked app);
+  // findings no entry covers pass through 1→1 and stay counted.
   const scopeIds = new Set(findings.map((f) => f.id));
   const scopedEntries = board.normalizationEntries.filter((e) =>
     e.findingIds.some((id) => scopeIds.has(id)),
   );
-  const normalized = scopedEntries.length || findings.length;
+  const covered = new Set(scopedEntries.flatMap((e) => e.findingIds));
+  const normalized =
+    scopedEntries.length > 0
+      ? scopedEntries.length + findings.filter((f) => !covered.has(f.id)).length
+      : findings.length;
   const awaiting = scopedEntries.filter(
     (e) => e.matchStatus === 'REVIEW' || e.matchStatus === 'HELD',
   ).length;

@@ -1,20 +1,25 @@
 import ScreenView from './ScreenView';
+import { APP_COLORS } from './types';
 import type { BoardApp, BoardScreen, Finding, Layer, LayerExpansion, LayerPads } from './types';
 
-// Left column — the current state, walked screen by screen. A single-product
-// board merges its legacy sources (e.g. a frontend and a backend) into one
-// panel; a multi-application board (SCRUM-134: two real overlapping systems)
-// shows WHICH application owns the active screen via the picker's owner chip.
+// Left column — the current state of ONE application of the comparison at a
+// time, walked screen by screen. When several applications are being compared,
+// a toggle strip switches which brownfield state the panel is showing —
+// Normalize and Greenfield keep aggregating the whole comparison regardless.
 // The layer decomposition leads; the live screen preview sits below it so the
 // layers and the Normalize column share the top of the viewport.
 
 interface Props {
-  /** Application title — the board's application name. */
+  /** Panel title — the active application's name. */
   title: string;
-  /** The board's legacy source applications, in position order. */
+  /** Every application in the comparison (the toggle strip). */
   apps: BoardApp[];
-  /** All findings of the application (every legacy source merged). */
+  /** Which application's brownfield state the panel is walking. */
+  activeAppId: string;
+  onActiveApp: (id: string) => void;
+  /** Findings of the ACTIVE application only. */
   findings: Finding[];
+  /** Screens of the ACTIVE application only. */
   screens: BoardScreen[];
   screenName: string | null;
   onScreen: (name: string | null) => void;
@@ -27,10 +32,66 @@ interface Props {
   onToggleLayer: (layer: Layer) => void;
 }
 
+/** Toggle strip: one chip per compared application, the active one filled. */
+function AppToggle({
+  apps,
+  activeAppId,
+  onActiveApp,
+}: {
+  apps: BoardApp[];
+  activeAppId: string;
+  onActiveApp: (id: string) => void;
+}) {
+  return (
+    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      {apps.map((a, i) => {
+        const active = a.id === activeAppId;
+        const color = APP_COLORS[i % APP_COLORS.length];
+        return (
+          <button
+            key={a.id}
+            type="button"
+            onClick={() => onActiveApp(a.id)}
+            aria-pressed={active}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '3px 10px',
+              borderRadius: 999,
+              border: `1px solid ${active ? '#171717' : '#e5e5e5'}`,
+              background: active ? '#171717' : '#fff',
+              color: active ? '#fff' : '#525252',
+              fontSize: 11,
+              fontWeight: 600,
+              cursor: 'pointer',
+              font: 'inherit',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 999,
+                background: color,
+                flexShrink: 0,
+              }}
+            />
+            {a.name}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function BrownfieldPanel(props: Props) {
   const {
     title,
     apps,
+    activeAppId,
+    onActiveApp,
     findings,
     screens,
     screenName,
@@ -41,6 +102,7 @@ export default function BrownfieldPanel(props: Props) {
     expandedLayers,
     onToggleLayer,
   } = props;
+  const activeApp = apps.find((a) => a.id === activeAppId) ?? null;
   const screenCount = new Set(findings.map((f) => f.screenRef).filter(Boolean)).size;
 
   return (
@@ -78,8 +140,12 @@ export default function BrownfieldPanel(props: Props) {
         </span>
       </div>
 
+      {apps.length > 1 && (
+        <AppToggle apps={apps} activeAppId={activeAppId} onActiveApp={onActiveApp} />
+      )}
+
       <ScreenView
-        apps={apps}
+        apps={activeApp ? [activeApp] : apps}
         screens={screens}
         findings={findings}
         screenName={screenName}

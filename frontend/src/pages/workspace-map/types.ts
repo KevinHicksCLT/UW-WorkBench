@@ -19,6 +19,11 @@ export interface BoardSummary {
   findings: number;
   byCapdan: Record<string, number>;
   progress: number;
+  /** The board's value stream + its L1 domain (picker filters); null when unwired. */
+  valueStream: string | null;
+  valueStreamDomain: string | null;
+  /** The board's source applications — feeds the cross-board compare picker. */
+  apps: BoardApp[];
 }
 
 export interface ColumnStat {
@@ -147,6 +152,16 @@ export interface BoardDetail {
   microservices: BoardMicroservice[];
   screens: BoardScreen[];
   findings: Finding[];
+}
+
+/** The slice of board data the Normalize column reads — satisfied by a real
+ *  BoardDetail or by the map's cross-board merged comparison view. */
+export interface NormalizeScope {
+  name: string;
+  application: string;
+  apps: BoardApp[];
+  findings: Finding[];
+  normalizationEntries: NormalizationEntry[];
 }
 
 /** Per-layer extra top spacing (px) that aligns a column's layer rows with the
