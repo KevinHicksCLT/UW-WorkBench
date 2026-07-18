@@ -103,80 +103,69 @@ export function matchScreensAcrossApps(
   return new Map([...best].map(([appId, v]) => [appId, v.name]));
 }
 
-/** Catch-all area for steps recorded against no screen (services, jobs, infra). */
-export const CORE_AREA = 'Core services';
+/** Catch-all area for steps no capability pattern claims. */
+export const CORE_AREA = 'General';
 
-/** Cluster the comparison's screens into FUNCTIONAL AREAS, on the fly: screens
- *  whose names semantically match (same rule as the screen walk) fall into one
- *  area — "Login" + "Login Page" become the Login area — and every finding maps
- *  to its screen's area (no screen → Core services). Keeps an "all screens"
- *  view readable without hiding any data: the Normalize column groups its
- *  cards under these areas.
- *
- *  `primaryOrder` is the screen picker's own option list (the walked
- *  application's screens, dropdown order): areas take THOSE names as labels
- *  and render in THAT order — the "all screens" view reads as the dropdown,
- *  walked top to bottom — with other applications' unmatched screens after
- *  them and Core services last. */
-export function computeFunctionalAreas(
-  screens: BoardScreen[],
-  findings: Finding[],
-  primaryOrder: string[] = [],
-): { areaOf: Map<string, string>; order: string[] } {
-  // Union-find over screen names (screens with equal names share a node).
-  const names = [
-    ...new Set([
-      ...screens.map((s) => s.name),
-      ...findings.map((f) => f.screenRef).filter((n): n is string => Boolean(n)),
-    ]),
-  ];
-  const parent = new Map<string, string>(names.map((n) => [n, n]));
-  const find = (n: string): string => {
-    const p = parent.get(n) ?? n;
-    if (p === n) return n;
-    const root = find(p);
-    parent.set(n, root);
-    return root;
-  };
-  const unite = (a: string, b: string) => parent.set(find(a), find(b));
-  for (let i = 0; i < names.length; i++)
-    for (let j = i + 1; j < names.length; j++) {
-      const a = tokens(names[i]);
-      const b = tokens(names[j]);
-      const inter = [...a].filter((x) => b.has(x)).length;
-      const union = new Set([...a, ...b]).size;
-      const la = names[i].toLowerCase().trim();
-      const lb = names[j].toLowerCase().trim();
-      const contained = la.includes(lb) || lb.includes(la);
-      if ((union ? inter / union : 0) >= 0.5 || contained) unite(names[i], names[j]);
-    }
-  // Area label + position: the cluster member that appears in the screen
-  // dropdown wins (its name, its dropdown position); clusters the dropdown
-  // doesn't know keep their shortest member name and sort after; Core last.
-  const dropdownRank = new Map(primaryOrder.map((n, i) => [n, i]));
-  const label = new Map<string, string>();
-  const rank = new Map<string, number>();
-  for (const n of names) {
-    const root = find(n);
-    const r = dropdownRank.get(n) ?? Number.MAX_SAFE_INTEGER;
-    const cur = rank.get(root);
-    if (cur === undefined || r < cur || (r === cur && n.length < (label.get(root)?.length ?? 99))) {
-      label.set(root, n);
-      rank.set(root, r);
-    }
-  }
+/** Generic, application-agnostic capability areas — every application maps
+ *  into the SAME buckets (Intake, Authentication, Logging …) no matter how its
+ *  steps are worded, so a comparison's layers group identically on both sides.
+ *  Order is display order; first matching pattern wins. */
+const CAPABILITY_AREAS: { name: string; pattern: RegExp }[] = [
+  {
+    name: 'Intake & Capture',
+    pattern: /intake|capture|form|submission|submit|entry|filing|enrol|registration|onboard/,
+  },
+  {
+    name: 'Authentication & Access',
+    pattern: /login|logout|auth|session|credential|permission|access|sso|token|user role/,
+  },
+  { name: 'Validation & Rules', pattern: /validat|verify|checksum|rule|eligib|dedup/ },
+  { name: 'Search & Lookup', pattern: /search|lookup|enquiry|inquiry|query|filter|browse/ },
+  { name: 'Review & Approval', pattern: /review|approv|adjudicat|feedback|assign|workflow/ },
+  { name: 'Payments & Billing', pattern: /payment|billing|invoice|disburs|remittance|premium/ },
+  { name: 'Notifications & Messaging', pattern: /notif|email|alert|message|reminder/ },
+  { name: 'Reporting & Analytics', pattern: /report|dashboard|analytic|export|metric|kpi/ },
+  { name: 'Logging & Audit', pattern: /\blog|audit|trace|telemetry|monitor/ },
+  { name: 'Data & Storage', pattern: /schema|storage|database|table|persist|payload|record/ },
+  {
+    name: 'Integration & APIs',
+    pattern: /\bapi\b|endpoint|gateway|integrat|webhook|sync|fhir|interface/,
+  },
+  {
+    name: 'Security & Infrastructure',
+    pattern: /secur|encrypt|tls|iam|backup|deploy|infra|certificate/,
+  },
+];
+
+/** Classify one step into its generic capability area from its own text
+ *  (name, category, summary, screen) — on the fly, nothing authored. */
+export function capabilityAreaOf(f: Finding): string {
+  const hay = `${f.name} ${f.category ?? ''} ${f.screenRef ?? ''} ${f.plainSummary ?? ''}`
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]+/g, ' ');
+  for (const a of CAPABILITY_AREAS) if (a.pattern.test(hay)) return a.name;
+  return CORE_AREA;
+}
+
+/** Generic grouping for the "all screens" walk: every finding maps into the
+ *  shared capability taxonomy, so BOTH applications produce the same areas
+ *  (Intake, Logging …) and their steps meet inside them. Order follows the
+ *  taxonomy, General last. */
+export function computeCapabilityAreas(findings: Finding[]): {
+  areaOf: Map<string, string>;
+  order: string[];
+} {
   const areaOf = new Map<string, string>();
-  const areaRank = new Map<string, number>();
+  const present = new Set<string>();
   for (const f of findings) {
-    const root = f.screenRef ? find(f.screenRef) : null;
-    const area = root ? (label.get(root) ?? f.screenRef ?? CORE_AREA) : CORE_AREA;
+    const area = capabilityAreaOf(f);
     areaOf.set(f.id, area);
-    if (!areaRank.has(area))
-      areaRank.set(area, root ? (rank.get(root) ?? Number.MAX_SAFE_INTEGER) : Infinity);
+    present.add(area);
   }
-  const order = [...areaRank.entries()]
-    .sort((a, b) => a[1] - b[1] || a[0].localeCompare(b[0]))
-    .map(([n]) => n);
+  const order = [
+    ...CAPABILITY_AREAS.map((a) => a.name).filter((n) => present.has(n)),
+    ...(present.has(CORE_AREA) ? [CORE_AREA] : []),
+  ];
   return { areaOf, order };
 }
 

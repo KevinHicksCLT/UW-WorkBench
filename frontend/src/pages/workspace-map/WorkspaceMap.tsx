@@ -9,10 +9,9 @@ import NormalizeColumn from './NormalizeColumn';
 import GreenfieldColumn from './GreenfieldColumn';
 import ProductBoard from './product/ProductBoard';
 import BoardErrorBoundary from './BoardErrorBoundary';
-import { screenOptions } from './ScreenView';
 import {
+  computeCapabilityAreas,
   computeCrossAppEntries,
-  computeFunctionalAreas,
   matchScreensAcrossApps,
   synthesizeGreenfield,
 } from './compare';
@@ -376,20 +375,13 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
         : matchedScreens.get(f.appId) === f.screenRef || partners.has(f.id),
     );
   }, [merged, activeId, screenWalk, matchedScreens, modelEntries]);
-  // Functional areas keep the "all screens" view readable: screens cluster by
-  // semantic match, findings map to their screen's area (no screen → Core
-  // services), and the Normalize column sub-groups its cards by area — using
-  // the walked application's screen-dropdown names and order as the groups.
+  // Capability areas keep the "all screens" view readable AND comparable:
+  // every step classifies into the same generic taxonomy (Intake,
+  // Authentication, Logging …) regardless of application vocabulary, so both
+  // sides produce identical groups and their steps meet inside them.
   const areas = useMemo(
-    () =>
-      merged && !screenWalk
-        ? computeFunctionalAreas(
-            merged.screens,
-            modelFindings,
-            screenOptions(bfScreens, bfFindings),
-          )
-        : null,
-    [merged, screenWalk, modelFindings, bfScreens, bfFindings],
+    () => (merged && !screenWalk ? computeCapabilityAreas(modelFindings) : null),
+    [merged, screenWalk, modelFindings],
   );
 
   // Greenfield pass-through scoping: a target service only counts findings

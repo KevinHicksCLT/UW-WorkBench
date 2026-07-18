@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
+  computeCapabilityAreas,
   computeCrossAppEntries,
-  computeFunctionalAreas,
   CORE_AREA,
   matchScreensAcrossApps,
   synthesizeGreenfield,
@@ -100,40 +100,27 @@ describe('matchScreensAcrossApps', () => {
   });
 });
 
-describe('computeFunctionalAreas', () => {
-  it('clusters matching screens across apps into one area and buckets the rest', () => {
-    const screens = [
-      screen({ id: 's1', appId: 'a1', name: 'Login' }),
-      screen({ id: 's2', appId: 'a2', name: 'Login Page' }),
-      screen({ id: 's3', appId: 'a2', name: 'Claims Review' }),
-    ];
+describe('computeCapabilityAreas', () => {
+  it('maps BOTH applications into the same generic areas from their own wording', () => {
     const findings = [
-      finding({ id: 'f1', appId: 'a1', screenRef: 'Login' }),
-      finding({ id: 'f2', appId: 'a2', screenRef: 'Login Page' }),
-      finding({ id: 'f3', appId: 'a2', screenRef: 'Claims Review' }),
-      finding({ id: 'f4', appId: 'a2', screenRef: null }),
+      finding({ id: 'f1', appId: 'a1', name: 'Claim intake form' }),
+      finding({ id: 'f2', appId: 'a2', name: 'FNOL submission wizard' }),
+      finding({ id: 'f3', appId: 'a1', name: 'Audit log writer' }),
+      finding({ id: 'f4', appId: 'a2', name: 'Request tracing & telemetry' }),
+      finding({ id: 'f5', appId: 'a1', name: 'Session login handler' }),
+      finding({ id: 'f6', appId: 'a2', name: 'Completely bespoke thing' }),
     ];
-    const { areaOf, order } = computeFunctionalAreas(screens, findings, ['Claims Review', 'Login']);
-    // Both login screens fall into ONE area, labelled by the dropdown's name.
-    expect(areaOf.get('f1')).toBe('Login');
-    expect(areaOf.get('f2')).toBe('Login');
-    expect(areaOf.get('f3')).toBe('Claims Review');
-    expect(areaOf.get('f4')).toBe(CORE_AREA);
-    // Areas render in the screen dropdown's order, Core services last.
-    expect(order).toEqual(['Claims Review', 'Login', CORE_AREA]);
-  });
-
-  it('sorts screens the dropdown does not list after the dropdown ones', () => {
-    const screens = [
-      screen({ id: 's1', appId: 'a1', name: 'Login' }),
-      screen({ id: 's2', appId: 'a2', name: 'Billing' }),
-    ];
-    const findings = [
-      finding({ id: 'f1', appId: 'a1', screenRef: 'Login' }),
-      finding({ id: 'f2', appId: 'a2', screenRef: 'Billing' }),
-    ];
-    const { order } = computeFunctionalAreas(screens, findings, ['Login']);
-    expect(order).toEqual(['Login', 'Billing']);
+    const { areaOf, order } = computeCapabilityAreas(findings);
+    // Different wording, same generic bucket — the areas exist in BOTH apps.
+    expect(areaOf.get('f1')).toBe('Intake & Capture');
+    expect(areaOf.get('f2')).toBe('Intake & Capture');
+    expect(areaOf.get('f3')).toBe('Logging & Audit');
+    expect(areaOf.get('f4')).toBe('Logging & Audit');
+    expect(areaOf.get('f5')).toBe('Authentication & Access');
+    expect(areaOf.get('f6')).toBe(CORE_AREA);
+    // Taxonomy display order, General (catch-all) last.
+    expect(order[0]).toBe('Intake & Capture');
+    expect(order.at(-1)).toBe(CORE_AREA);
   });
 });
 
