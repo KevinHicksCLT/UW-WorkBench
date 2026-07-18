@@ -3,6 +3,7 @@
 // new-initiative starter stage, and the user-curated layout overlay.
 import type { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../../db/prisma.js';
+import { streamAncestry } from '../../lib/resolvers/ancestorNames.js';
 import { LAYERS, columnStatsOf, normalizeStatsOf, progressOf } from '../../lib/rationalization.js';
 import { logAudit } from '../../services/audit.js';
 import { activeCompanyId, capdanCounts, csv, valueStreamIdsForRoles } from './helpers.js';
@@ -99,20 +100,53 @@ export function registerBoardRoutes(router: Router) {
         where: {
           tenantId: req.tenantId,
           companyId,
+          // The Workspace map only shows applications whose codebase has been
+          // scanned — the estate catalog's scan gate is the single source of truth.
+          applicationRef: { scanStatus: 'SCANNED' },
           ...(applicationIds.length > 0 ? { applicationId: { in: applicationIds } } : {}),
           ...(valueStreamIds.length > 0 ? { valueStreamNodeId: { in: valueStreamIds } } : {}),
         },
         orderBy: [{ stageOrder: 'asc' }, { name: 'asc' }],
-        include: { capabilities: { select: { migrationStatus: true, capdan: true } } },
+        include: {
+          applicationRef: { select: { id: true, name: true, scanStatus: true } },
+          capabilities: { select: { migrationStatus: true, capdan: true } },
+          // The Workspace map's cross-board compare picker needs each board's
+          // source applications up front, before any detail fetch.
+          apps: {
+            orderBy: [{ position: 'asc' }, { name: 'asc' }],
+            select: {
+              id: true,
+              name: true,
+              kind: true,
+              techStack: true,
+              disposition: true,
+              position: true,
+            },
+          },
+        },
       });
+
+      // Board → value-stream + L1 domain names (picker filters); resolved via
+      // the closure in one batch, never denormalized onto the rows.
+      const ancestry = await streamAncestry(
+        stages.map((s) => s.valueStreamNodeId).filter((id): id is string => !!id),
+      );
 
       res.json(
         stages.map((s) => ({
           id: s.id,
           name: s.name,
-          application: s.application,
+          // The catalog row's name is canonical; the free-text label is only a
+          // fallback for boards that predate the estate link.
+          application: s.applicationRef?.name ?? s.application,
           applicationId: s.applicationId,
           valueStreamNodeId: s.valueStreamNodeId,
+          valueStream: s.valueStreamNodeId
+            ? (ancestry.get(s.valueStreamNodeId)?.valueStreamName ?? null)
+            : null,
+          valueStreamDomain: s.valueStreamNodeId
+            ? (ancestry.get(s.valueStreamNodeId)?.domain ?? null)
+            : null,
           stageOrder: s.stageOrder,
           businessProcess: s.businessProcess,
           status: s.status,
@@ -121,6 +155,7 @@ export function registerBoardRoutes(router: Router) {
           findings: s.capabilities.length,
           byCapdan: capdanCounts(s.capabilities),
           progress: progressOf(s.capabilities.map((c) => c.migrationStatus)),
+          apps: s.apps,
         })),
       );
     } catch (e) {
@@ -221,7 +256,11 @@ export function registerBoardRoutes(router: Router) {
       const w = await prisma.rationalizationWorkspace.findFirst({
         where: { id: req.params.id, tenantId: req.tenantId },
         include: {
-          apps: { orderBy: [{ position: 'asc' }, { name: 'asc' }] },
+          applicationRef: { select: { name: true } },
+          apps: {
+            orderBy: [{ position: 'asc' }, { name: 'asc' }],
+            include: { applicationRef: { select: { id: true, name: true, scanStatus: true } } },
+          },
           microservices: {
             orderBy: [{ position: 'asc' }, { name: 'asc' }],
             include: { ownerRole: { select: { displayValue: true } } },
@@ -255,7 +294,7 @@ export function registerBoardRoutes(router: Router) {
       res.json({
         id: w.id,
         name: w.name,
-        application: w.application,
+        application: w.applicationRef?.name ?? w.application,
         stageOrder: w.stageOrder,
         businessProcess: w.businessProcess,
         description: w.description,
@@ -296,7 +335,10 @@ export function registerBoardRoutes(router: Router) {
         // Brown-field apps (the grid columns) + shared services (own lane, WR-15).
         apps: w.apps.map((a) => ({
           id: a.id,
-          name: a.name,
+          // Catalog-linked board columns take the Application row's name.
+          name: a.applicationRef?.name ?? a.name,
+          applicationId: a.applicationRef?.id ?? null,
+          scanStatus: a.applicationRef?.scanStatus ?? null,
           kind: a.kind,
           techStack: a.techStack,
           disposition: a.disposition,

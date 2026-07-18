@@ -1,20 +1,20 @@
 import { useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
 import PageHeader from '../../components/PageHeader';
 import { ListSearch } from '../../components/Sheet';
 import { BackButton, Card, EmptyState, ErrorMessage, LoadingState } from '../../components/ui';
-import AppDrawer, { type App } from './AppDrawer';
+import type { App } from './types';
 
 // Application-kind detail — drill target from the Applications TOC (mirrors
 // the Standards area page). Shows every application of one kind grouped by
-// category; clicking an application opens its detail drawer in place.
+// category; clicking an application drills into its own page.
 export default function ApplicationKind() {
   const { kind } = useParams();
   const kindName = kind ? decodeURIComponent(kind) : '';
   const { data, error, loading } = useApi<{ applications: App[] }>('/applications');
   const [q, setQ] = useState('');
-  const [selected, setSelected] = useState<App | null>(null);
+  const navigate = useNavigate();
 
   const apps = useMemo(() => {
     const all = (data?.applications ?? []).filter((a) => a.kind === kindName);
@@ -87,7 +87,7 @@ export default function ApplicationKind() {
                 <button
                   key={a.id}
                   type="button"
-                  onClick={() => setSelected(a)}
+                  onClick={() => navigate(`/applications/${a.id}`)}
                   className="w-full text-left flex items-center gap-3 px-4 py-2 border-b border-[#f5f5f5] last:border-0 hover:bg-[#fafafa] transition-colors duration-150"
                 >
                   <span className="flex-1 min-w-0 text-sm text-[#171717] font-medium truncate">
@@ -115,8 +115,6 @@ export default function ApplicationKind() {
           ))}
         </div>
       )}
-
-      {selected && <AppDrawer app={selected} onClose={() => setSelected(null)} />}
     </div>
   );
 }

@@ -3,8 +3,8 @@
 // illustrative app estate), rendered in the canonical Sheet format (see
 // components/Sheet.tsx). Sidebar "Applications & systems" items deep-link here
 // with ?focus=<id> — the focused row is highlighted and scrolled into view.
-// Clicking a row opens a right-hand drawer with what the app does, the roles
-// that use it, the value streams it ties to, and usage stats. Data: GET /applications.
+// Clicking a row drills into the application's own page (profile + codebase
+// scan). Data: GET /applications.
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useApi } from '../../lib/useApi';
@@ -12,7 +12,7 @@ import PageHeader from '../../components/PageHeader';
 import { Sheet, SheetCell, type SheetCol } from '../../components/Sheet';
 import { TocView, ViewPills, type TocRow } from '../../components/TocView';
 import { ErrorMessage } from '../../components/ui';
-import AppDrawer, { type App } from './AppDrawer';
+import type { App } from './types';
 
 const DASH = '—';
 
@@ -33,6 +33,19 @@ const cols: SheetCol<App>[] = [
     width: 'minmax(0,1fr)',
     value: (a) => a.primaryDivisionName ?? DASH,
     dim: true,
+  },
+  {
+    key: 'scanned',
+    label: 'Scan',
+    width: '110px',
+    value: (a) => (a.scanStatus === 'SCANNED' ? 'Scanned' : 'Not scanned'),
+    align: 'center',
+    render: (a) =>
+      a.scanStatus === 'SCANNED' ? (
+        <span className="pill-green">Scanned</span>
+      ) : (
+        <SheetCell text="Not scanned" dim />
+      ),
   },
   {
     key: 'tco',
@@ -56,7 +69,6 @@ export default function Applications() {
   const navigate = useNavigate();
   const focusId = params.get('focus');
   const apps = data?.applications ?? [];
-  const [selected, setSelected] = useState<App | null>(null);
 
   // ── TOC (default view): one row per application kind — count + run cost.
   // Click drills into the kind's detail page (its applications, grouped by
@@ -131,15 +143,12 @@ export default function Applications() {
           scrollToKey={focusId}
           unit="applications"
           leading={viewToggle}
-          onRowClick={(a) => setSelected(a)}
-          selectedKey={selected?.id}
+          onRowClick={(a) => navigate(`/applications/${a.id}`)}
           summarize={(v) =>
             `${v.filter((a) => a.systemOfRecord).length} systems of record · ${new Set(v.map((a) => a.vendor).filter(Boolean)).size} vendors`
           }
         />
       )}
-
-      {selected && <AppDrawer app={selected} onClose={() => setSelected(null)} />}
     </div>
   );
 }
