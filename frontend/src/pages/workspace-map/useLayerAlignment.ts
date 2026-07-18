@@ -95,7 +95,9 @@ export function useRowAlignment(
         const eff = (c: ColKey) => (natural.get(c)?.get(row.key) ?? 0) + offset[c];
         const target = Math.max(...present.map(eff));
         for (const c of present) {
-          const pad = Math.max(0, Math.round(target - eff(c)));
+          // Cap: a runaway measurement (duplicate anchors, mid-layout reads)
+          // must never spiral the board into six-figure margins.
+          const pad = Math.min(1200, Math.max(0, Math.round(target - eff(c))));
           next[c][row.key] = pad;
           offset[c] += pad;
         }
@@ -134,10 +136,22 @@ export function useLayerAlignment(
   scale: number,
 ): ColumnPads {
   // Greenfield anchor per layer: the layer's component names its target service.
+  // A cross-board comparison brings SEVERAL components per layer (one per
+  // board) whose floors stack vertically — aligning to any one of them while
+  // the per-layer pad shifts them all diverges into a feedback loop (the
+  // 172k-px-margin incident). Those layers skip gf alignment; bf/nz still
+  // line up and the greenfield column stacks naturally.
+  const perLayer = new Map<Layer, string[]>();
+  for (const c of components) {
+    if (!c.microserviceId) continue;
+    const list = perLayer.get(c.layer) ?? [];
+    list.push(`gf:${c.microserviceId}:${c.layer}`);
+    perLayer.set(c.layer, list);
+  }
   const gfKey = new Map<Layer, string>(
-    components
-      .filter((c): c is BoardComponent & { microserviceId: string } => !!c.microserviceId)
-      .map((c) => [c.layer, `gf:${c.microserviceId}:${c.layer}`]),
+    [...perLayer.entries()]
+      .filter(([, keys]) => keys.length === 1)
+      .map(([l, keys]) => [l, keys[0]]),
   );
   const rows: AlignRow[] = LAYERS.map((layer) => ({
     key: layer,
