@@ -86,9 +86,9 @@ export default function OverviewCard({
   /** Expanded detail block. */
   children: ReactNode;
 }) {
-  // Collapsed by default — the compact header keeps each column's card short
-  // so the component bands across the three columns sit close together.
-  const [open, setOpen] = useState(false);
+  // Open by default — the card IS each column's summary; collapsing it is the
+  // space-saving opt-in. The alignment pads absorb the height difference.
+  const [open, setOpen] = useState(true);
   return (
     <div
       style={{

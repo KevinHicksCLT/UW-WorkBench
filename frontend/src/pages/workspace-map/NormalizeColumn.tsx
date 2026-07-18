@@ -117,6 +117,13 @@ function LayerSection({
     sharedEntries.length > 0 &&
     (uniqueEntries.length > 0 || uncovered.length > 0);
   const normalizedCount = entries.length > 0 ? entries.length + uncovered.length : rows.length;
+  // "current" = the source findings this section actually SHOWS: every source
+  // of a rendered entry (a shared entry drags its partner sources in even when
+  // the scope only touched one of them — 7 in → 5 out, not 5 → 5) plus the
+  // pass-through rows.
+  const sourceIds = new Set(uncovered.map((f) => f.id));
+  for (const e of entries) for (const id of e.findingIds) if (findingsById.has(id)) sourceIds.add(id);
+  const currentCount = entries.length > 0 ? sourceIds.size : rows.length;
   // Authored entries compare the sources column by column; pass-through mode
   // treats the whole board as ONE application, so a single source column.
   const headNames =
@@ -174,7 +181,7 @@ function LayerSection({
               {sharedEntries.length} shared · {uniqueEntries.length} unique ·{' '}
             </span>
           )}
-          {rows.length} current →{' '}
+          {currentCount} current →{' '}
           <b style={{ fontWeight: 800, color: INDIGO, fontSize: 15 }}>{normalizedCount}</b>
         </span>
       </button>
@@ -248,6 +255,13 @@ export default function NormalizeColumn({
     scopedEntries.length > 0
       ? scopedEntries.length + findings.filter((f) => !covered.has(f.id)).length
       : findings.length;
+  // The "current" side counts every source the column shows: a scoped entry
+  // drags all of its sources in (see LayerSection), so in ≥ out reads true.
+  const boardFindingIds = new Set(board.findings.map((f) => f.id));
+  const pillSources = new Set(findings.filter((f) => !covered.has(f.id)).map((f) => f.id));
+  for (const e of scopedEntries)
+    for (const id of e.findingIds) if (boardFindingIds.has(id)) pillSources.add(id);
+  const current = scopedEntries.length > 0 ? pillSources.size : findings.length;
   const awaiting = scopedEntries.filter(
     (e) => e.matchStatus === 'REVIEW' || e.matchStatus === 'HELD',
   ).length;
@@ -280,7 +294,7 @@ export default function NormalizeColumn({
           }}
         >
           <b style={{ fontWeight: 700, color: '#171717' }}>
-            {findings.length} current combined steps
+            {current} current combined steps
           </b>{' '}
           → <b style={{ fontWeight: 700, color: GREEN }}>{normalized} normalized steps</b>
           {awaiting > 0 && (

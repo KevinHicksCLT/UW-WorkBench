@@ -27,65 +27,35 @@ interface Props {
 const LABEL_W = 148;
 const COL_W = 250;
 
-function VersionHead({ version, comparison }: { version: VersionColumn; comparison: Comparison }) {
-  let elements = 0;
-  let common = 0;
-  for (const row of comparison.rows) {
-    for (const g of row.groups) {
-      if (g.perVersion[version.id]) {
-        elements += 1;
-        if (g.status === 'COMMON') common += 1;
-      }
-    }
-  }
+/** Slim matrix column head — identification only; the status/components chips
+ *  and the per-version element counts live up in the Current overview card. */
+function VersionHead({ version }: { version: VersionColumn }) {
   return (
     <div style={{ padding: '8px 10px', borderRight: '1px solid #f1f1f1', minWidth: 0 }}>
       <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.3 }}>{version.name}</div>
       <div style={{ fontSize: 10.5, color: '#a3a3a3', marginTop: 1 }}>{version.productName}</div>
-      <div style={{ display: 'flex', gap: 4, marginTop: 5, flexWrap: 'wrap' }}>
-        {version.status && (
-          <span
-            style={{
-              padding: '1px 6px',
-              borderRadius: 4,
-              fontSize: 9.5,
-              fontWeight: 600,
-              whiteSpace: 'nowrap',
-              background: version.status === 'Active' ? '#dcfce7' : '#f5f5f5',
-              color: version.status === 'Active' ? '#15803d' : '#525252',
-              border: `1px solid ${version.status === 'Active' ? '#86efac' : '#e5e5e5'}`,
-            }}
-          >
-            {version.status}
-          </span>
-        )}
-        <span
-          style={{
-            padding: '1px 6px',
-            borderRadius: 4,
-            fontSize: 9.5,
-            fontWeight: 600,
-            background: '#f5f5f5',
-            border: '1px solid #e5e5e5',
-            color: '#525252',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {version.components.size} components
-        </span>
-      </div>
-      <div
-        style={{
-          fontSize: 10.5,
-          color: '#525252',
-          marginTop: 5,
-          fontVariantNumeric: 'tabular-nums',
-        }}
-      >
-        {elements} elements ·{' '}
-        <b style={{ color: MATCH_META.COMMON.fg, fontWeight: 600 }}>{common} common</b>
-      </div>
     </div>
+  );
+}
+
+/** Tiny neutral/status chip used in the overview card's per-version rows. */
+function VersionChip({ label, active }: { label: string; active?: boolean }) {
+  return (
+    <span
+      style={{
+        padding: '1px 6px',
+        borderRadius: 4,
+        fontSize: 9.5,
+        fontWeight: 600,
+        whiteSpace: 'nowrap',
+        flexShrink: 0,
+        background: active ? '#dcfce7' : '#f5f5f5',
+        color: active ? '#15803d' : '#525252',
+        border: `1px solid ${active ? '#86efac' : '#e5e5e5'}`,
+      }}
+    >
+      {label}
+    </span>
   );
 }
 
@@ -299,11 +269,11 @@ export default function ProductComparePanel(props: Props) {
         <div style={{ fontSize: 12, color: '#6b7280' }}>
           {comparison.rawCount} elements as filed → {comparison.normalizedCount} distinct concepts
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 5 }}>
           {perVersion.map(({ v, elements, common }) => (
             <div
               key={v.id}
-              style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 11.5 }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5 }}
             >
               <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{v.name}</span>
               <span
@@ -317,12 +287,15 @@ export default function ProductComparePanel(props: Props) {
               >
                 {v.productName}
               </span>
+              {v.status && <VersionChip label={v.status} active={v.status === 'Active'} />}
+              <VersionChip label={`${v.components.size} components`} />
               <span
                 style={{
                   marginLeft: 'auto',
                   color: '#525252',
                   fontVariantNumeric: 'tabular-nums',
                   whiteSpace: 'nowrap',
+                  flexShrink: 0,
                 }}
               >
                 {elements} elements ·{' '}
@@ -374,7 +347,7 @@ export default function ProductComparePanel(props: Props) {
               Component
             </div>
             {versions.map((v) => (
-              <VersionHead key={v.id} version={v} comparison={comparison} />
+              <VersionHead key={v.id} version={v} />
             ))}
           </div>
 
