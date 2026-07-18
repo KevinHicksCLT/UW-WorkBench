@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   computeCrossAppEntries,
+  computeFunctionalAreas,
+  CORE_AREA,
   matchScreensAcrossApps,
   synthesizeGreenfield,
   UNIFIED_GF_ID,
@@ -95,6 +97,30 @@ describe('matchScreensAcrossApps', () => {
   it('ignores unrelated names below the similarity threshold', () => {
     const m = matchScreensAcrossApps(screens, 'a1', 'Dashboard');
     expect(m.size).toBe(0);
+  });
+});
+
+describe('computeFunctionalAreas', () => {
+  it('clusters matching screens across apps into one area and buckets the rest', () => {
+    const screens = [
+      screen({ id: 's1', appId: 'a1', name: 'Login' }),
+      screen({ id: 's2', appId: 'a2', name: 'Login Page' }),
+      screen({ id: 's3', appId: 'a2', name: 'Claims Review' }),
+    ];
+    const findings = [
+      finding({ id: 'f1', appId: 'a1', screenRef: 'Login' }),
+      finding({ id: 'f2', appId: 'a2', screenRef: 'Login Page' }),
+      finding({ id: 'f3', appId: 'a2', screenRef: 'Claims Review' }),
+      finding({ id: 'f4', appId: 'a2', screenRef: null }),
+    ];
+    const { areaOf, order } = computeFunctionalAreas(screens, findings);
+    // Both login screens fall into ONE area, labelled by the shortest name.
+    expect(areaOf.get('f1')).toBe('Login');
+    expect(areaOf.get('f2')).toBe('Login');
+    expect(areaOf.get('f3')).toBe('Claims Review');
+    expect(areaOf.get('f4')).toBe(CORE_AREA);
+    // Ordered by finding count: Login (2) first.
+    expect(order[0]).toBe('Login');
   });
 });
 

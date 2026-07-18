@@ -1,6 +1,17 @@
 import { LAYERS, GREEN, AMBER, INDIGO } from './types';
-import type { Finding, Layer, LayerExpansion, LayerPads, NormalizeScope } from './types';
+import type {
+  Finding,
+  Layer,
+  LayerExpansion,
+  LayerPads,
+  NormalizationEntry,
+  NormalizeScope,
+} from './types';
 import { ColumnHeads, EntryCard, PassThroughCard, entryAppIds } from './NormalizeCards';
+import { CORE_AREA } from './compare';
+
+/** Functional-area model for the "all screens" walk (null = single-screen walk). */
+export type AreaModel = { areaOf: Map<string, string>; order: string[] } | null;
 
 // Middle column — the heart of the board. Each layer is a collapsible T-chart:
 // one column per legacy source application, a NORMALIZED column on the right.
@@ -20,6 +31,8 @@ interface Props {
   activeLayer: Layer | null;
   /** Findings in the comparison scope (every picked application) — Normalize always aggregates the full comparison. */
   findings: Finding[];
+  /** "All screens" walk: cards sub-group under computed functional areas. */
+  areas?: AreaModel;
   /** Re-fetch the board after a REVIEW/HELD entry is approved or held. */
   onResolved: () => void;
   /** Per-layer top spacing that lines this column's rows up with the others (SCRUM-222). */
@@ -75,11 +88,37 @@ function GroupHead({ kind, count }: { kind: 'shared' | 'unique' | 'passthrough';
   );
 }
 
+/** Functional-area divider inside a layer (the "all screens" walk). */
+function AreaHead({ name, count }: { name: string; count: number }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        marginTop: 6,
+        fontSize: 10.5,
+        fontWeight: 800,
+        letterSpacing: '.05em',
+        textTransform: 'uppercase',
+        color: '#171717',
+      }}
+    >
+      {name}
+      <span style={{ fontWeight: 600, color: '#a3a3a3', fontVariantNumeric: 'tabular-nums' }}>
+        {count}
+      </span>
+      <span style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+    </div>
+  );
+}
+
 function LayerSection({
   layer,
   board,
   dim,
   findings,
+  areas,
   onResolved,
   padTop,
   open,
@@ -89,6 +128,7 @@ function LayerSection({
   board: NormalizeScope;
   dim: boolean;
   findings: Finding[];
+  areas?: AreaModel;
   onResolved: () => void;
   padTop: number;
   open: boolean;
@@ -129,6 +169,32 @@ function LayerSection({
   // treats the whole board as ONE application, so a single source column.
   const headNames =
     entries.length > 0 ? apps.map((a) => a.name) : [board.application || board.name];
+  // "All screens" walk: sub-group this layer's cards under functional areas so
+  // the full comparison stays readable without hiding anything. Single-area
+  // layers render flat.
+  const areaOfEntry = (e: NormalizationEntry): string => {
+    const f = e.findingIds.map((id) => findingsById.get(id)).find(Boolean);
+    return f ? (areas?.areaOf.get(f.id) ?? CORE_AREA) : CORE_AREA;
+  };
+  const areaOfFinding = (f: Finding): string => areas?.areaOf.get(f.id) ?? CORE_AREA;
+  const areaSections = (() => {
+    if (!areas) return null;
+    const passPool = entries.length > 0 ? uncovered : rows;
+    const names = new Set<string>([...entries.map(areaOfEntry), ...passPool.map(areaOfFinding)]);
+    if (names.size <= 1) return null;
+    const orderedNames = [
+      ...areas.order.filter((a) => names.has(a)),
+      ...[...names].filter((n) => !areas.order.includes(n)),
+    ];
+    return orderedNames
+      .map((area) => ({
+        area,
+        shared: sharedEntries.filter((e) => areaOfEntry(e) === area),
+        unique: uniqueEntries.filter((e) => areaOfEntry(e) === area),
+        pass: passPool.filter((f) => areaOfFinding(f) === area),
+      }))
+      .filter((s) => s.shared.length + s.unique.length + s.pass.length > 0);
+  })();
   if (rows.length === 0 && entries.length === 0) return null;
 
   return (
@@ -188,7 +254,40 @@ function LayerSection({
           <b style={{ fontWeight: 800, color: INDIGO, fontSize: 15 }}>{normalizedCount}</b>
         </span>
       </button>
-      {open && (
+      {open && areaSections && (
+        <div style={{ padding: '0 12px 12px' }}>
+          <ColumnHeads names={headNames} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 2 }}>
+            {areaSections.map((s) => (
+              <div key={s.area} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <AreaHead name={s.area} count={s.shared.length + s.unique.length + s.pass.length} />
+                {s.shared.map((e) => (
+                  <EntryCard
+                    key={e.id}
+                    entry={e}
+                    apps={apps}
+                    findingsById={findingsById}
+                    onResolved={onResolved}
+                  />
+                ))}
+                {s.unique.map((e) => (
+                  <EntryCard
+                    key={e.id}
+                    entry={e}
+                    apps={apps}
+                    findingsById={findingsById}
+                    onResolved={onResolved}
+                  />
+                ))}
+                {s.pass.map((f) => (
+                  <PassThroughCard key={f.id} finding={f} />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {open && !areaSections && (
         <div style={{ padding: '0 12px 12px' }}>
           <ColumnHeads names={headNames} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
@@ -239,6 +338,7 @@ export default function NormalizeColumn({
   board,
   activeLayer,
   findings,
+  areas,
   onResolved,
   layerPads,
   expandedLayers,
@@ -367,6 +467,7 @@ export default function NormalizeColumn({
             board={board}
             dim={activeLayer != null && activeLayer !== layer}
             findings={findings}
+            areas={areas}
             onResolved={onResolved}
             padTop={layerPads?.[layer] ?? 0}
             open={!!expandedLayers[layer]}

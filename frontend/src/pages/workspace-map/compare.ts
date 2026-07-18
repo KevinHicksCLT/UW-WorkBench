@@ -103,6 +103,65 @@ export function matchScreensAcrossApps(
   return new Map([...best].map(([appId, v]) => [appId, v.name]));
 }
 
+/** Catch-all area for steps recorded against no screen (services, jobs, infra). */
+export const CORE_AREA = 'Core services';
+
+/** Cluster the comparison's screens into FUNCTIONAL AREAS, on the fly: screens
+ *  whose names semantically match (same rule as the screen walk) fall into one
+ *  area — "Login" + "Login Page" become the Login area — and every finding maps
+ *  to its screen's area (no screen → Core services). Keeps an "all screens"
+ *  view readable without hiding any data: the Normalize column groups its
+ *  cards under these areas. Returns the finding→area map plus the areas in
+ *  descending finding-count order. */
+export function computeFunctionalAreas(
+  screens: BoardScreen[],
+  findings: Finding[],
+): { areaOf: Map<string, string>; order: string[] } {
+  // Union-find over screen names (screens with equal names share a node).
+  const names = [
+    ...new Set([
+      ...screens.map((s) => s.name),
+      ...findings.map((f) => f.screenRef).filter((n): n is string => Boolean(n)),
+    ]),
+  ];
+  const parent = new Map<string, string>(names.map((n) => [n, n]));
+  const find = (n: string): string => {
+    const p = parent.get(n) ?? n;
+    if (p === n) return n;
+    const root = find(p);
+    parent.set(n, root);
+    return root;
+  };
+  const unite = (a: string, b: string) => parent.set(find(a), find(b));
+  for (let i = 0; i < names.length; i++)
+    for (let j = i + 1; j < names.length; j++) {
+      const a = tokens(names[i]);
+      const b = tokens(names[j]);
+      const inter = [...a].filter((x) => b.has(x)).length;
+      const union = new Set([...a, ...b]).size;
+      const la = names[i].toLowerCase().trim();
+      const lb = names[j].toLowerCase().trim();
+      const contained = la.includes(lb) || lb.includes(la);
+      if ((union ? inter / union : 0) >= 0.5 || contained) unite(names[i], names[j]);
+    }
+  // Area label = the shortest screen name in the cluster ("Login" over "Login Page").
+  const label = new Map<string, string>();
+  for (const n of names) {
+    const root = find(n);
+    const cur = label.get(root);
+    if (!cur || n.length < cur.length) label.set(root, n);
+  }
+  const areaOf = new Map<string, string>();
+  const counts = new Map<string, number>();
+  for (const f of findings) {
+    const area = f.screenRef ? (label.get(find(f.screenRef)) ?? f.screenRef) : CORE_AREA;
+    areaOf.set(f.id, area);
+    counts.set(area, (counts.get(area) ?? 0) + 1);
+  }
+  const order = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([n]) => n);
+  return { areaOf, order };
+}
+
 export const UNIFIED_GF_ID = 'cmp:gf';
 
 /** ONE greenfield platform for a cross-board comparison, synthesized on the

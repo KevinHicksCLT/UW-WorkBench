@@ -218,6 +218,10 @@ export const READABLE_FIT_MIN = 0.65;
 /** Stable per-source-application accent colours (chips/dots on multi-app boards). */
 export const APP_COLORS = ['#0284c7', '#9333ea', '#0d9488', '#ca8a04'];
 
+/** Screen-picker sentinel: walk ALL screens at once — the band shows the full
+ *  comparison grouped by functional area instead of a single screen's slice. */
+export const ALL_SCREENS = '__all-screens__';
+
 export const GREEN = '#16a34a';
 export const RED = '#dc2626';
 export const AMBER = '#b45309';

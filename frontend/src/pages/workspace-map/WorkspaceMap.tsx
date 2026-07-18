@@ -9,8 +9,13 @@ import NormalizeColumn from './NormalizeColumn';
 import GreenfieldColumn from './GreenfieldColumn';
 import ProductBoard from './product/ProductBoard';
 import BoardErrorBoundary from './BoardErrorBoundary';
-import { computeCrossAppEntries, matchScreensAcrossApps, synthesizeGreenfield } from './compare';
-import { LAYERS, findingMoves, GREEN, RED, READABLE_FIT_MIN } from './types';
+import {
+  computeCrossAppEntries,
+  computeFunctionalAreas,
+  matchScreensAcrossApps,
+  synthesizeGreenfield,
+} from './compare';
+import { ALL_SCREENS, LAYERS, findingMoves, GREEN, RED, READABLE_FIT_MIN } from './types';
 import type { BoardDetail, Finding, Layer } from './types';
 import { useLayerAlignment } from './useLayerAlignment';
 
@@ -326,9 +331,12 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     () => (merged && activeId ? merged.screens.filter((s) => s.appId === activeId) : []),
     [merged, activeId],
   );
+  // ALL_SCREENS walks every screen at once — no single-screen narrowing; the
+  // Normalize column groups the full comparison by functional area instead.
+  const screenWalk = screenName && screenName !== ALL_SCREENS ? screenName : null;
   const scoped = useMemo(
-    () => (screenName ? bfFindings.filter((f) => f.screenRef === screenName) : bfFindings),
-    [bfFindings, screenName],
+    () => (screenWalk ? bfFindings.filter((f) => f.screenRef === screenWalk) : bfFindings),
+    [bfFindings, screenWalk],
   );
 
   // The whole band follows the Brownfield walk BY SCREEN: while a screen is
@@ -339,34 +347,41 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
   // sources back in so consolidations still read N→1.
   const matchedScreens = useMemo(
     () =>
-      merged && screenName && activeId
-        ? matchScreensAcrossApps(merged.screens, activeId, screenName)
+      merged && screenWalk && activeId
+        ? matchScreensAcrossApps(merged.screens, activeId, screenWalk)
         : new Map<string, string>(),
-    [merged, activeId, screenName],
+    [merged, activeId, screenWalk],
   );
   const modelEntries = useMemo(() => {
     if (!merged) return [];
     const walked =
-      !screenName || !activeId
+      !screenWalk || !activeId
         ? merged.findings
         : merged.findings.filter((f) =>
             f.appId === activeId
-              ? f.screenRef === screenName
+              ? f.screenRef === screenWalk
               : matchedScreens.get(f.appId) === f.screenRef,
           );
     const ids = new Set(walked.map((f) => f.id));
     return merged.normalizationEntries.filter((e) => e.findingIds.some((id) => ids.has(id)));
-  }, [merged, activeId, screenName, matchedScreens]);
+  }, [merged, activeId, screenWalk, matchedScreens]);
   const modelFindings = useMemo(() => {
     if (!merged) return [];
-    if (!screenName || !activeId) return merged.findings;
+    if (!screenWalk || !activeId) return merged.findings;
     const partners = new Set(modelEntries.flatMap((e) => e.findingIds));
     return merged.findings.filter((f) =>
       f.appId === activeId
-        ? f.screenRef === screenName
+        ? f.screenRef === screenWalk
         : matchedScreens.get(f.appId) === f.screenRef || partners.has(f.id),
     );
-  }, [merged, activeId, screenName, matchedScreens, modelEntries]);
+  }, [merged, activeId, screenWalk, matchedScreens, modelEntries]);
+  // Functional areas keep the "all screens" view readable: screens cluster by
+  // semantic match, findings map to their screen's area (no screen → Core
+  // services), and the Normalize column sub-groups its cards by area.
+  const areas = useMemo(
+    () => (merged && !screenWalk ? computeFunctionalAreas(merged.screens, modelFindings) : null),
+    [merged, screenWalk, modelFindings],
+  );
 
   // Greenfield pass-through scoping: a target service only counts findings
   // from ITS OWN board's applications (cross-board findings never leak onto
@@ -588,6 +603,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
               board={merged}
               activeLayer={activeLayer}
               findings={modelFindings}
+              areas={areas}
               onResolved={refetch}
               layerPads={pads.nz}
               expandedLayers={expandedLayers}

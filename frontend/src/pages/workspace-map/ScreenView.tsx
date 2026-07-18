@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { MENU_TREE, type MenuNode } from '@cascade/shared';
 import { Select } from '../../components/ui';
-import { LAYERS, LAYER_ACCENT, findingMoves, GREEN, RED } from './types';
+import { ALL_SCREENS, LAYERS, LAYER_ACCENT, findingMoves, GREEN, RED } from './types';
 import type { BoardApp, BoardScreen, Finding, Layer, LayerExpansion, LayerPads } from './types';
 import { ScreenPreview, WhyDetail } from './ScreenDetail';
 
@@ -112,11 +112,13 @@ export default function ScreenView(props: Props) {
       ].filter((g) => g.names.length > 0)
     : null;
   // Grouped boards default to the first app's first screen (group order),
-  // not the alphabetical head of the flat list.
+  // not the alphabetical head of the flat list. ALL_SCREENS walks every screen
+  // at once — the band shows the full comparison grouped by functional area.
   const ordered = optionGroups ? optionGroups.flatMap((g) => g.names) : options;
-  const active = screenName ?? ordered[0] ?? null;
+  const allMode = screenName === ALL_SCREENS;
+  const active = allMode ? null : (screenName ?? ordered[0] ?? null);
   const screen = screens.find((s) => s.name === active) ?? null;
-  const rows = findings.filter((f) => f.screenRef === active);
+  const rows = allMode ? findings : findings.filter((f) => f.screenRef === active);
 
   // Commit the default pick upstream so the connector counts track this screen.
   useEffect(() => {
@@ -135,11 +137,12 @@ export default function ScreenView(props: Props) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <Select
-          value={active ?? ''}
+          value={allMode ? ALL_SCREENS : (active ?? '')}
           onChange={(e) => onScreen(e.target.value)}
           style={{ flex: 1 }}
           aria-label="Screen"
         >
+          <option value={ALL_SCREENS}>All screens — grouped by area</option>
           {optionGroups
             ? optionGroups.map((g) => (
                 <optgroup key={g.label} label={g.label}>
