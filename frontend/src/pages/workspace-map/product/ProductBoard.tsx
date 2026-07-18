@@ -480,6 +480,8 @@ export default function ProductBoard({
               selectedKey={selected?.key ?? null}
               onSelect={setSelected}
               rowPads={pads.bf}
+              expandedComponents={expandedComponents}
+              onToggleComponent={toggleComponent}
             />
             <ProductNormalizeColumn
               versions={versions}
