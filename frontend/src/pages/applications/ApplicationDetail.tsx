@@ -322,11 +322,12 @@ export default function ApplicationDetail() {
 
       <div className="flex flex-wrap items-center gap-1.5 -mt-2 mb-4">
         <StatusPill tone="blue">{app.kind}</StatusPill>
-        <StatusPill
-          tone={app.criticality === 'High' ? 'red' : app.criticality === 'Low' ? 'slate' : 'amber'}
-        >
-          {app.criticality} criticality
-        </StatusPill>
+        {/* Medium is the catalog default — only an unusual criticality is a signal. */}
+        {(app.criticality === 'High' || app.criticality === 'Low') && (
+          <StatusPill tone={app.criticality === 'High' ? 'red' : 'slate'}>
+            {app.criticality} criticality
+          </StatusPill>
+        )}
         {app.systemOfRecord && <StatusPill tone="green">System of record</StatusPill>}
         <StatusPill tone={scan.status === 'SCANNED' ? 'green' : 'slate'}>
           {scan.status === 'SCANNED' ? 'Scanned' : 'Not scanned'}
