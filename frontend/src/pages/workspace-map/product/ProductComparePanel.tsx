@@ -220,7 +220,8 @@ export default function ProductComparePanel(props: Props) {
                       flexShrink: 0,
                     }}
                   />
-                  <b style={{ fontWeight: 700, color: meta.fg }}>{countBy(s)}</b> {meta.label.toLowerCase()}
+                  <b style={{ fontWeight: 700, color: meta.fg }}>{countBy(s)}</b>{' '}
+                  {meta.label.toLowerCase()}
                 </button>
               );
             })}

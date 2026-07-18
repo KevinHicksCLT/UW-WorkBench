@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { api } from '../../lib/api';
+import ReviewModal, { REVIEW_STATUS, type ReviewSource } from './ReviewModal';
 import { AMBER, INDIGO, findingMoves } from './types';
 import type { BoardApp, Finding, NormalizationEntry } from './types';
 
@@ -189,41 +190,53 @@ function CardFooter({ kind, text }: { kind: 'same' | 'different' | 'moves'; text
   );
 }
 
-/** Approve / Hold controls for a REVIEW or HELD entry. */
+/** Review bar for a REVIEW/HELD entry — opens the shared decision modal with
+ *  every source implementation and explicit consequence choices. */
 function ReviewActions({
   entry,
+  apps,
+  findingsById,
   onResolved,
 }: {
   entry: NormalizationEntry;
+  apps: BoardApp[];
+  findingsById: Map<string, Finding>;
   onResolved: () => void;
 }) {
-  const [saving, setSaving] = useState<'AUTO' | 'HELD' | null>(null);
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState<string | null>(null);
   const [err, setErr] = useState('');
   const held = entry.matchStatus === 'HELD';
 
-  const resolve = async (matchStatus: 'AUTO' | 'HELD') => {
+  const resolve = async (matchStatus: string) => {
     setErr('');
     setSaving(matchStatus);
     try {
       await api.patch(`/rationalization/normalization-entries/${entry.id}`, { matchStatus });
       onResolved();
+      setOpen(false);
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Failed');
+    } finally {
       setSaving(null);
     }
   };
 
-  const btn = (bg: string, fg: string, border: string): React.CSSProperties => ({
-    padding: '3px 10px',
-    borderRadius: 5,
-    border: `1px solid ${border}`,
-    background: bg,
-    color: fg,
-    fontSize: 10.5,
-    fontWeight: 700,
-    cursor: saving ? 'default' : 'pointer',
-    opacity: saving ? 0.6 : 1,
+  const sources: ReviewSource[] = apps.flatMap((a): ReviewSource[] => {
+    const mine = entry.findingIds
+      .map((id) => findingsById.get(id))
+      .filter((f): f is Finding => !!f && f.appId === a.id);
+    if (mine.length === 0) return [{ key: a.id, name: a.name, present: false }];
+    return mine.map((f) => ({
+      key: f.id,
+      name: a.name,
+      present: true,
+      title: f.name,
+      detail: f.plainSummary ?? undefined,
+      code: f.codeRef ?? undefined,
+    }));
   });
+  const sourceCount = entry.findingIds.length;
 
   return (
     <div
@@ -237,27 +250,64 @@ function ReviewActions({
       }}
     >
       <span style={{ fontSize: 10.5, color: '#92400e', flex: 1 }}>
-        {held ? 'On hold — approve to normalize, or keep held.' : 'Approve to normalize, or hold.'}
+        {held
+          ? 'On hold — not in the normalized model.'
+          : `${sourceCount} source implementation${sourceCount === 1 ? '' : 's'} — needs a decision.`}
       </span>
-      {err && <span style={{ fontSize: 10, color: '#dc2626' }}>{err}</span>}
       <button
         type="button"
-        disabled={!!saving}
-        onClick={() => resolve('AUTO')}
-        style={btn('#16a34a', '#fff', '#15803d')}
+        onClick={() => setOpen(true)}
+        style={{
+          padding: '3px 10px',
+          borderRadius: 5,
+          border: '1px solid #fbbf24',
+          background: held ? '#fff' : '#f59e0b',
+          color: held ? '#92400e' : '#fff',
+          fontSize: 10.5,
+          fontWeight: 700,
+          cursor: 'pointer',
+          font: 'inherit',
+          whiteSpace: 'nowrap',
+        }}
       >
-        {saving === 'AUTO' ? 'Approving…' : 'Approve'}
+        {held ? 'Change decision' : 'Review'}
       </button>
-      {!held && (
-        <button
-          type="button"
-          disabled={!!saving}
-          onClick={() => resolve('HELD')}
-          style={btn('#fff', '#92400e', '#fbbf24')}
-        >
-          {saving === 'HELD' ? 'Holding…' : 'Hold'}
-        </button>
-      )}
+      <ReviewModal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={entry.name}
+        status={held ? REVIEW_STATUS.held : REVIEW_STATUS.review}
+        context={`${entry.layer} layer${entry.notation ? ` · ${entry.notation}` : ''} · ${sourceCount} source${
+          sourceCount === 1 ? '' : 's'
+        } → 1 normalized capability`}
+        question={entry.proposedResolution ?? entry.differenceNote ?? entry.matchBasis}
+        sources={sources}
+        sourcesLabel="Source implementations"
+        choices={[
+          {
+            key: 'AUTO',
+            label: 'Approve — consolidate into the model',
+            tone: 'adopt',
+            explain:
+              sourceCount > 1
+                ? `The ${sourceCount} source implementations fold into ONE normalized capability, ` +
+                  `“${entry.name}”, in the target build. The differences noted above are resolved by this design.`
+                : `“${entry.name}” carries into the normalized model as one capability of the target build.`,
+          },
+          {
+            key: 'HELD',
+            label: 'Hold — keep out for now',
+            tone: 'hold',
+            current: held,
+            explain:
+              'The sources stay as they are and this capability is parked. It stays OUT of the ' +
+              'normalized model (and its greenfield floor) until someone approves it.',
+          },
+        ]}
+        busyKey={saving}
+        error={err}
+        onChoose={resolve}
+      />
     </div>
   );
 }
@@ -378,7 +428,12 @@ export function EntryCard({
               <b style={{ fontWeight: 700 }}>To review:</b> {entry.proposedResolution}
             </div>
           )}
-          <ReviewActions entry={entry} onResolved={onResolved} />
+          <ReviewActions
+            entry={entry}
+            apps={apps}
+            findingsById={findingsById}
+            onResolved={onResolved}
+          />
         </>
       )}
     </div>

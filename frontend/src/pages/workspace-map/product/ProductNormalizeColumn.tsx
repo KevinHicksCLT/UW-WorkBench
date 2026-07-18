@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api } from '../../../lib/api';
 import { GREEN, AMBER, INDIGO } from '../types';
+import ReviewModal, { REVIEW_STATUS, type ReviewStatusChip } from '../ReviewModal';
 import OverviewCard, { OVERVIEW_TONES, SegmentBar } from './OverviewCard';
 import { MATCH_META } from './spine';
 import type {
@@ -171,22 +172,26 @@ function CardFooter({ kind, text }: { kind: 'same' | 'different'; text: string }
   );
 }
 
-/** Approve (adopt everywhere) / Hold (keep as variant) for a review group. */
+/** Review bar for a varies/unique group — opens the shared decision modal
+ *  with the full per-version picture and explicit consequence choices. */
 function ReviewActions({
   lobId,
   group,
+  versions,
   decision,
   onResolved,
 }: {
   lobId: string;
   group: ElementGroup;
+  versions: VersionColumn[];
   decision: ProductDecisionStatus | undefined;
   onResolved: () => void;
 }) {
-  const [saving, setSaving] = useState<ProductDecisionStatus | null>(null);
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState<string | null>(null);
   const [err, setErr] = useState('');
 
-  const resolve = async (status: ProductDecisionStatus) => {
+  const resolve = async (status: string) => {
     setErr('');
     setSaving(status);
     try {
@@ -197,23 +202,23 @@ function ReviewActions({
         status,
       });
       onResolved();
+      setOpen(false);
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Failed');
+    } finally {
       setSaving(null);
     }
   };
 
-  const btn = (bg: string, fg: string, bd: string): React.CSSProperties => ({
-    padding: '3px 10px',
-    borderRadius: 5,
-    border: `1px solid ${bd}`,
-    background: bg,
-    color: fg,
-    fontSize: 10.5,
-    fontWeight: 700,
-    cursor: saving ? 'default' : 'pointer',
-    opacity: saving ? 0.6 : 1,
-  });
+  const carriers = versions.filter((v) => group.perVersion[v.id]);
+  const missing = versions.length - carriers.length;
+  const carrierNames = carriers.map((v) => v.name).join(', ');
+  const chip: ReviewStatusChip =
+    decision === 'APPROVED'
+      ? { label: 'Adopted', fg: '#15803d', bg: '#dcfce7', border: '#86efac' }
+      : decision === 'HELD'
+        ? REVIEW_STATUS.held
+        : REVIEW_STATUS.review;
 
   return (
     <div
@@ -228,32 +233,77 @@ function ReviewActions({
     >
       <span style={{ fontSize: 10.5, color: '#92400e', flex: 1 }}>
         {decision === 'APPROVED'
-          ? 'Approved — adopts across every version.'
+          ? 'Adopted — part of the normalized model.'
           : decision === 'HELD'
-            ? 'Held as a version variant — approve to adopt everywhere.'
-            : 'Adopt everywhere, or keep as a version variant.'}
+            ? 'Held as a version variant — not in the model.'
+            : `In ${group.presentIn} of ${versions.length} versions — needs a decision.`}
       </span>
-      {err && <span style={{ fontSize: 10, color: '#dc2626' }}>{err}</span>}
-      {decision !== 'APPROVED' && (
-        <button
-          type="button"
-          disabled={!!saving}
-          onClick={() => resolve('APPROVED')}
-          style={btn('#16a34a', '#fff', '#15803d')}
-        >
-          {saving === 'APPROVED' ? 'Approving…' : 'Approve'}
-        </button>
-      )}
-      {decision !== 'HELD' && (
-        <button
-          type="button"
-          disabled={!!saving}
-          onClick={() => resolve('HELD')}
-          style={btn('#fff', '#92400e', '#fbbf24')}
-        >
-          {saving === 'HELD' ? 'Holding…' : 'Hold as variant'}
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        style={{
+          padding: '3px 10px',
+          borderRadius: 5,
+          border: '1px solid #fbbf24',
+          background: decision ? '#fff' : '#f59e0b',
+          color: decision ? '#92400e' : '#fff',
+          fontSize: 10.5,
+          fontWeight: 700,
+          cursor: 'pointer',
+          font: 'inherit',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {decision ? 'Change decision' : 'Review'}
+      </button>
+      <ReviewModal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={group.name}
+        status={chip}
+        context={`${group.component} · carried by ${group.presentIn} of ${versions.length} compared versions`}
+        question={
+          group.status === 'UNIQUE'
+            ? `Only ${carrierNames || 'one version'} carries this element. Should the single normalized model adopt it for every version, or is it a jurisdiction/version-specific variant?`
+            : `${group.presentIn} of ${versions.length} versions carry this element. Should the normalized model adopt it everywhere, or keep it a variant of the versions that have it?`
+        }
+        sources={versions.map((v) => {
+          const el = group.perVersion[v.id];
+          return {
+            key: v.id,
+            name: v.name,
+            sub: v.productName,
+            present: !!el,
+            title: el?.element,
+            detail: el?.description ?? undefined,
+            code: el?.livesIn ?? undefined,
+          };
+        })}
+        sourcesLabel={`Across the ${versions.length} compared versions`}
+        choices={[
+          {
+            key: 'APPROVED',
+            label: 'Adopt into the model',
+            tone: 'adopt',
+            current: decision === 'APPROVED',
+            explain:
+              `“${group.name}” becomes part of the single normalized model — all ${versions.length} ` +
+              `versions align to it${missing > 0 ? `, including the ${missing} that don't carry it today` : ''}. `,
+          },
+          {
+            key: 'HELD',
+            label: 'Keep as a version variant',
+            tone: 'hold',
+            current: decision === 'HELD',
+            explain:
+              `Stays specific to ${carrierNames || 'its versions'} as a jurisdiction/version variant. ` +
+              'It is left OUT of the normalized model unless adopted later.',
+          },
+        ]}
+        busyKey={saving}
+        error={err}
+        onChoose={resolve}
+      />
     </div>
   );
 }
@@ -355,7 +405,13 @@ function GroupCard({
         />
       </div>
       {review && (
-        <ReviewActions lobId={lobId} group={group} decision={decision} onResolved={onResolved} />
+        <ReviewActions
+          lobId={lobId}
+          group={group}
+          versions={versions}
+          decision={decision}
+          onResolved={onResolved}
+        />
       )}
     </div>
   );
