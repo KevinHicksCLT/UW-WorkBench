@@ -331,20 +331,28 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     [bfFindings, screenName],
   );
 
-  // The whole band follows the Brownfield walk: while a screen is active, the
-  // ACTIVE application's findings narrow to that screen in every column, so
-  // the counts agree left to right (4 stay → 4 current → 4 in, not 4 → 98).
-  // Other picked applications keep their full sets — only the walked app zooms.
+  // The whole band follows the Brownfield walk BY SCREEN: while a screen is
+  // active, only that screen's steps stay in the model — Normalize and
+  // Greenfield show the screen's slice, never the totals. Shared entries drag
+  // their partner sources back in so consolidations still read N→1, and the
+  // counts agree left to right (4 stay → 4 current → 4 in, not 4 → 98).
+  const modelEntries = useMemo(() => {
+    if (!merged) return [];
+    const walked =
+      !screenName || !activeId
+        ? merged.findings
+        : merged.findings.filter((f) => f.appId === activeId && f.screenRef === screenName);
+    const ids = new Set(walked.map((f) => f.id));
+    return merged.normalizationEntries.filter((e) => e.findingIds.some((id) => ids.has(id)));
+  }, [merged, activeId, screenName]);
   const modelFindings = useMemo(() => {
     if (!merged) return [];
     if (!screenName || !activeId) return merged.findings;
-    return merged.findings.filter((f) => f.appId !== activeId || f.screenRef === screenName);
-  }, [merged, activeId, screenName]);
-  const modelEntries = useMemo(() => {
-    if (!merged) return [];
-    const ids = new Set(modelFindings.map((f) => f.id));
-    return merged.normalizationEntries.filter((e) => e.findingIds.some((id) => ids.has(id)));
-  }, [merged, modelFindings]);
+    const partners = new Set(modelEntries.flatMap((e) => e.findingIds));
+    return merged.findings.filter((f) =>
+      f.appId === activeId ? f.screenRef === screenName : partners.has(f.id),
+    );
+  }, [merged, activeId, screenName, modelEntries]);
 
   // Greenfield pass-through scoping: a target service only counts findings
   // from ITS OWN board's applications (cross-board findings never leak onto
