@@ -1864,31 +1864,31 @@ export async function seedRationalization(
       );
       let normSeq = 101; // stable per-workspace notations: N-101, N-102, …
 
+      // ONE greenfield platform per stage board — every layer is a slot inside
+      // it (the Transformation Bridge pattern), never a service per layer.
+      const svcId = `rms_${stage.key}`;
+      const gfName = `${stage.name} — Greenfield`;
+      svcRows.push({
+        id: svcId,
+        tenantId,
+        companyId,
+        workspaceId: wsId,
+        name: gfName,
+        kind: 'Platform',
+        status: gfStatus(clamp(stage.base)),
+        techStack: GF.Infrastructure.tech,
+        ownerRoleId: refs.roleResolver(GF.Infrastructure.owner),
+        position: 0,
+        illustrative: true,
+      });
+
       stageLayers.forEach((layer, li) => {
         const def = stage.layers[layer];
         const advance = clamp(stage.base + LAYER_OFFSET[layer]);
-        // Green-field target — one per IT layer, named + teched for that layer.
         // A noTarget row keeps its findings (they all relocate or die) but gets
-        // no Normalize box and no green-field target of its own.
-        const gf = GF[layer];
-        const svcId = `rms_${stage.key}_${li}`;
-        const gfName = `${stage.name} ${gf.suffix}`;
+        // no Normalize box and no green-field slot of its own.
         const compId = def.noTarget ? null : `rc_${stage.key}_${li}`;
         if (!def.noTarget && compId) {
-          svcRows.push({
-            id: svcId,
-            tenantId,
-            companyId,
-            workspaceId: wsId,
-            name: gfName,
-            kind: gf.kind,
-            status: gfStatus(advance),
-            techStack: gf.tech,
-            ownerRoleId: refs.roleResolver(gf.owner),
-            position: li,
-            illustrative: true,
-          });
-
           compRows.push({
             id: compId,
             tenantId,

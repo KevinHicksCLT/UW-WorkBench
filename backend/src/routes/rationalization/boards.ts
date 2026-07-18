@@ -209,24 +209,24 @@ export function registerBoardRoutes(router: Router) {
           illustrative: true,
         })),
       });
-      await prisma.rationalizationMicroservice.createMany({
+      // ONE greenfield platform per board — every layer is a slot inside it
+      // (the Transformation Bridge pattern), never a separate service per layer.
+      const gfId = `${base}_gf`;
+      const gfName = `${name} — Greenfield`;
+      await prisma.rationalizationMicroservice.create({
         // erd_v5: ownerRole is now an optional Role FK (ownerRoleId); the scaffold's
         // illustrative free-text owner is dropped (no free-text column).
-        data: LAYERS.map((layer, li) => {
-          const g = templates[layer];
-          return {
-            id: `${base}_s${li}`,
-            tenantId,
-            companyId,
-            workspaceId: ws.id,
-            name: `${stageName} ${g.suffix}`,
-            kind: g.kind,
-            status: 'Planned',
-            techStack: g.tech,
-            position: li,
-            illustrative: true,
-          };
-        }),
+        data: {
+          id: gfId,
+          tenantId,
+          companyId,
+          workspaceId: ws.id,
+          name: gfName,
+          kind: 'Platform',
+          status: 'Planned',
+          position: 0,
+          illustrative: true,
+        },
       });
       await prisma.rationalizationComponent.createMany({
         data: LAYERS.map((layer, li) => ({
@@ -236,8 +236,9 @@ export function registerBoardRoutes(router: Router) {
           workspaceId: ws.id,
           layer,
           name: templates[layer].component,
-          destination: `${stageName} ${templates[layer].suffix}`,
-          microserviceId: `${base}_s${li}`,
+          targetTech: templates[layer].tech,
+          destination: gfName,
+          microserviceId: gfId,
           migrationStatus: 'Identified',
           illustrative: true,
         })),
