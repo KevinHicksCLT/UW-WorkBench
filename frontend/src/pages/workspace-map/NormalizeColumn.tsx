@@ -177,9 +177,11 @@ function LayerSection({
           {LAYER_TITLE[layer]}
         </span>
         <span style={{ fontSize: 12, color: '#525252', fontVariantNumeric: 'tabular-nums' }}>
-          {entries.length > 0 && apps.length > 1 && (
+          {apps.length > 1 && (
             <span style={{ color: '#a3a3a3' }}>
-              {sharedEntries.length} shared · {uniqueEntries.length} unique ·{' '}
+              {sharedEntries.length} shared ·{' '}
+              {entries.length > 0 ? uniqueEntries.length + uncovered.length : rows.length} unique
+              ·{' '}
             </span>
           )}
           {currentCount} current →{' '}
@@ -266,6 +268,11 @@ export default function NormalizeColumn({
   const awaiting = scopedEntries.filter(
     (e) => e.matchStatus === 'REVIEW' || e.matchStatus === 'HELD',
   ).length;
+  // Comparison verdict: with several applications in scope and not a single
+  // shared entry, say so plainly — nothing consolidates, everything migrates
+  // application-specific.
+  const findingsById = new Map(board.findings.map((f) => [f.id, f]));
+  const sharedTotal = scopedEntries.filter((e) => entryAppIds(e, findingsById).length > 1).length;
 
   return (
     <div style={{ width: 560, flexShrink: 0, alignSelf: 'flex-start' }}>
@@ -300,6 +307,15 @@ export default function NormalizeColumn({
             <>
               {' '}
               · <b style={{ fontWeight: 600, color: AMBER }}>{awaiting} awaiting review</b>
+            </>
+          )}
+          {apps.length > 1 && sharedTotal === 0 && (
+            <>
+              {' '}
+              ·{' '}
+              <b style={{ fontWeight: 600, color: '#64748b' }}>
+                no shared steps between these applications
+              </b>
             </>
           )}
         </span>

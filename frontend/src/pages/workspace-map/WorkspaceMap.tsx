@@ -9,6 +9,7 @@ import NormalizeColumn from './NormalizeColumn';
 import GreenfieldColumn from './GreenfieldColumn';
 import ProductBoard from './product/ProductBoard';
 import BoardErrorBoundary from './BoardErrorBoundary';
+import { computeCrossAppEntries } from './compare';
 import { LAYERS, findingMoves, GREEN, RED, READABLE_FIT_MIN } from './types';
 import type { BoardDetail, Finding, Layer } from './types';
 import { useLayerAlignment } from './useLayerAlignment';
@@ -225,9 +226,17 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     const apps = list.flatMap((b) => b.apps.filter((a) => selectedAppIds.has(a.id)));
     const findings = list.flatMap((b) => b.findings.filter((f) => selectedAppIds.has(f.appId)));
     const inScope = new Set(findings.map((f) => f.id));
-    const normalizationEntries = list.flatMap((b) =>
-      b.normalizationEntries.filter((e) => e.findingIds.some((id) => inScope.has(id))),
-    );
+    // Same-board comparisons keep their scan-authored entries (field-level
+    // cards, review verdicts). A MIXED-board comparison has no authored rows
+    // spanning its applications, so the shared/unique verdict is computed on
+    // the fly from the findings themselves — generic for any pair of scanned
+    // applications; zero overlap yields zero consolidation entries.
+    const normalizationEntries =
+      list.length > 1
+        ? computeCrossAppEntries(findings)
+        : list.flatMap((b) =>
+            b.normalizationEntries.filter((e) => e.findingIds.some((id) => inScope.has(id))),
+          );
     const title = apps.map((a) => a.name).join(' + ');
     return {
       name: title,
