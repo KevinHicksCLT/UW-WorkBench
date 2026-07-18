@@ -8,10 +8,10 @@ import { resolveSpineRefs, type SpineRefs } from './resolveSpineRefs.js';
 // STAGES (the chevron lenses). For each stage, two overlapping brown-field apps
 // are decomposed by IT layer into findings, classified CAPDAN
 // (Common | Different | Relocate→targetLayer | Eliminate). Kept findings
-// normalize into one CAPDAN component per layer, which lands on a GREEN-FIELD
-// target that is specific to that IT layer (a React web app for UI, an API
-// gateway for Integration, a domain service for Business Service, a data store
-// for Data, a platform for Infrastructure). All illustrative=true.
+// normalize into one CAPDAN component per layer, and every layer component
+// lands as a slot inside the stage's SINGLE green-field platform (the
+// Transformation Bridge pattern — never one target service per layer).
+// All illustrative=true.
 
 type Layer = 'UI' | 'Integration' | 'Business Service' | 'Data' | 'Infrastructure';
 type Capdan = 'Common' | 'Different' | 'Relocate' | 'Eliminate';
