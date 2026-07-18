@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState, type RefObject } from 'react';
+import { anchorY } from './FlowEdges';
 import { LAYERS } from './types';
 import type { BoardComponent, Layer, LayerPads } from './types';
 
@@ -38,10 +39,12 @@ export type RowPads = Record<ColKey, Record<string, number>>;
 
 const EMPTY_ROW_PADS: RowPads = { bf: {}, nz: {}, gf: {} };
 
-/** Anchor centre-y of one element, in unscaled canvas coordinates. */
-function centerY(el: Element, origin: DOMRect, scale: number): number {
-  const r = el.getBoundingClientRect();
-  return (r.top + r.height / 2 - origin.top) / scale;
+/** Anchor y of one element (its header line — see anchorY), in unscaled
+ *  canvas coordinates. Matching FlowEdges keeps pads and connectors agreeing:
+ *  expanded bands align at the top instead of drifting to centre a tall
+ *  section against a short one. */
+function headerY(el: Element, origin: DOMRect, scale: number): number {
+  return (anchorY(el.getBoundingClientRect()) - origin.top) / scale;
 }
 
 export function useRowAlignment(
@@ -77,7 +80,7 @@ export function useRowAlignment(
         for (const row of rowsRef.current) {
           cum += applied.current[col][row.key] ?? 0;
           const el = find(row[col]);
-          if (el) m.set(row.key, centerY(el, origin, scale) - cum);
+          if (el) m.set(row.key, headerY(el, origin, scale) - cum);
         }
         natural.set(col, m);
       }
