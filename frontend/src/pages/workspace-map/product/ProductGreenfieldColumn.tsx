@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { GREEN } from '../types';
+import OverviewCard, { OVERVIEW_TONES, SegmentBar } from './OverviewCard';
 import { MATCH_META } from './spine';
 import type {
   Comparison,
@@ -216,9 +216,6 @@ export default function ProductGreenfieldColumn({
   expandedComponents,
   onToggleComponent,
 }: Props) {
-  // Collapsed by default — the compact header keeps the model card short so
-  // the component bands across the three columns sit close together.
-  const [headerOpen, setHeaderOpen] = useState(false);
   // Reconciled = normalized elements actually in the model ÷ total groups.
   const inModel = comparison.rows.reduce((a, r) => a + normalizedGroups(r, decisions).length, 0);
   const progress = comparison.normalizedCount === 0 ? 0 : inModel / comparison.normalizedCount;
@@ -272,107 +269,32 @@ export default function ProductGreenfieldColumn({
           )}
         </span>
       </div>
-      <div
-        style={{
-          border: '2px solid #6ee7b7',
-          borderRadius: 12,
-          background: '#ecfdf5',
-          boxShadow: '0 2px 8px rgba(16,185,129,.10)',
-          boxSizing: 'border-box',
-          overflow: 'hidden',
-          marginBottom: 10,
-        }}
+      <OverviewCard
+        tone={OVERVIEW_TONES.greenfield}
+        title={lobName}
+        tag="Proposed"
+        right={`${Math.round(progress * 100)}%`}
       >
-        {/* compact header line — expand for the model detail + progress */}
-        <button
-          type="button"
-          onClick={() => setHeaderOpen((o) => !o)}
-          style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '7px 11px',
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            font: 'inherit',
-            textAlign: 'left',
-          }}
-        >
-          <span
-            style={{
-              color: '#059669',
-              fontSize: 9,
-              display: 'inline-block',
-              transform: headerOpen ? 'none' : 'rotate(-90deg)',
-              flexShrink: 0,
-            }}
-          >
-            ▾
-          </span>
-          <span style={{ fontSize: 13.5, fontWeight: 700, minWidth: 0, flex: 1 }}>{lobName}</span>
-          <span
-            style={{
-              fontSize: 9.5,
-              fontWeight: 600,
-              letterSpacing: '.08em',
-              color: '#047857',
-              textTransform: 'uppercase',
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-            }}
-          >
-            Proposed
-          </span>
-          <span
-            style={{
-              fontSize: 10.5,
-              color: '#525252',
-              fontVariantNumeric: 'tabular-nums',
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-            }}
-          >
-            {Math.round(progress * 100)}%
-          </span>
-        </button>
-        {headerOpen && (
-          <div style={{ padding: '0 13px 9px' }}>
-            <div style={{ fontSize: 12, color: '#6b7280' }}>
-              one normalized model from {versions.length} version
-              {versions.length === 1 ? '' : 's'}
-            </div>
-            <div style={{ fontSize: 11.5, color: GREEN, marginTop: 3, fontWeight: 600 }}>
-              {inModel} normalized elements ·{' '}
-              {openDecisions > 0 ? (
-                <span style={{ color: MATCH_META.PARTIAL.fg }}>{openDecisions} decisions open</span>
-              ) : (
-                'no open decisions'
-              )}
-            </div>
-            <div
-              style={{
-                height: 5,
-                borderRadius: 999,
-                background: '#d1fae5',
-                marginTop: 8,
-                overflow: 'hidden',
-              }}
-            >
-              <div
-                style={{
-                  width: `${Math.round(progress * 100)}%`,
-                  height: '100%',
-                  borderRadius: 999,
-                  background: GREEN,
-                  transition: 'width .3s',
-                }}
-              />
-            </div>
-          </div>
-        )}
-      </div>
+        <div style={{ fontSize: 12, color: '#6b7280' }}>
+          one normalized model from {versions.length} version
+          {versions.length === 1 ? '' : 's'}
+        </div>
+        <div style={{ fontSize: 11.5, color: GREEN, marginTop: 3, fontWeight: 600 }}>
+          {inModel} normalized elements ·{' '}
+          {openDecisions > 0 ? (
+            <span style={{ color: MATCH_META.PARTIAL.fg }}>{openDecisions} decisions open</span>
+          ) : (
+            'no open decisions'
+          )}
+        </div>
+        <SegmentBar
+          track="#d1fae5"
+          segments={[
+            { value: inModel, color: GREEN },
+            { value: openDecisions, color: 'transparent' },
+          ]}
+        />
+      </OverviewCard>
 
       {/* Component slots — standalone cards (not boxed into the model card),
           so the alignment pads open dotted-canvas gaps like the other columns

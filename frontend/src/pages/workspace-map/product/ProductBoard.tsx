@@ -484,6 +484,7 @@ export default function ProductBoard({
               onToggleComponent={toggleComponent}
             />
             <ProductNormalizeColumn
+              lobName={crossLob ? `${lob.name} + other lines` : lob.name}
               versions={versions}
               comparison={comparison}
               matchFilter={matchFilter}

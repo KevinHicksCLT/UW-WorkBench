@@ -1,3 +1,4 @@
+import OverviewCard, { OVERVIEW_TONES, SegmentBar } from './OverviewCard';
 import { MATCH_META } from './spine';
 import type { Comparison, ElementGroup, MatchStatus, VersionColumn } from './spine';
 
@@ -191,37 +192,50 @@ export default function ProductComparePanel(props: Props) {
   const countBy = (s: MatchStatus) =>
     comparison.rows.reduce((a, r) => a + r.groups.filter((g) => g.status === s).length, 0);
   const filterable: MatchStatus[] = ['COMMON', 'PARTIAL', 'UNIQUE'];
+  // Per-version rollup for the overview card (mirrors each VersionHead).
+  const perVersion = versions.map((v) => {
+    let elements = 0;
+    let common = 0;
+    for (const row of comparison.rows) {
+      for (const g of row.groups) {
+        if (g.perVersion[v.id]) {
+          elements += 1;
+          if (g.status === 'COMMON') common += 1;
+        }
+      }
+    }
+    return { v, elements, common };
+  });
 
   return (
     <div
       style={{
         width: LABEL_W + versions.length * COL_W + 34,
         flexShrink: 0,
-        background: '#fff',
-        border: '1px solid #eaeaea',
-        borderRadius: 14,
-        boxShadow: '0 1px 4px rgba(0,0,0,.05)',
-        padding: 16,
-        boxSizing: 'border-box',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 10,
         alignSelf: 'flex-start',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, minHeight: 26 }}>
-        <span style={{ fontSize: 16, fontWeight: 700 }}>{title}</span>
-        <span style={{ fontSize: 11, color: '#a3a3a3' }}>
-          {versions.length} {versionLevelName.toLowerCase()}
-          {versions.length === 1 ? '' : 's'} · {comparison.rawCount} elements →{' '}
-          {comparison.normalizedCount} distinct concepts
+      <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>
+        Current
+        <span style={{ fontWeight: 400, fontSize: 12, color: '#a3a3a3' }}>
+          {' '}
+          · the {versionLevelName.toLowerCase()}s as filed
         </span>
       </div>
 
       {/* Match counters double as filters (multi-version comparisons only). Each
           says how many of the distinct concepts fall in that match class. */}
       {!single && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 6,
+            flexWrap: 'wrap',
+            marginBottom: 12,
+          }}
+        >
           <span style={{ fontSize: 11, color: '#525252', marginRight: 2 }}>
             Of {comparison.normalizedCount} concepts:
           </span>
@@ -276,186 +290,249 @@ export default function ProductComparePanel(props: Props) {
         </div>
       )}
 
-      {/* The matrix. Row = model component, column = picked version. */}
-      <div style={{ border: '1px solid #f1f1f1', borderRadius: 10, overflow: 'hidden' }}>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: `${LABEL_W}px repeat(${versions.length}, ${COL_W}px)`,
-            background: '#fafafa',
-            borderBottom: '2px solid #e5e5e5',
-          }}
-        >
-          <div
-            style={{
-              padding: '8px 10px',
-              fontSize: 10,
-              fontWeight: 800,
-              letterSpacing: '.08em',
-              color: '#a3a3a3',
-              textTransform: 'uppercase',
-              alignSelf: 'end',
-            }}
-          >
-            Component
-          </div>
-          {versions.map((v) => (
-            <VersionHead key={v.id} version={v} comparison={comparison} />
+      <OverviewCard
+        tone={OVERVIEW_TONES.current}
+        title={title}
+        tag="Current"
+        right={`${versions.length} version${versions.length === 1 ? '' : 's'}`}
+      >
+        <div style={{ fontSize: 12, color: '#6b7280' }}>
+          {comparison.rawCount} elements as filed → {comparison.normalizedCount} distinct concepts
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 4 }}>
+          {perVersion.map(({ v, elements, common }) => (
+            <div
+              key={v.id}
+              style={{ display: 'flex', alignItems: 'baseline', gap: 6, fontSize: 11.5 }}
+            >
+              <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{v.name}</span>
+              <span
+                style={{
+                  color: '#6b7280',
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {v.productName}
+              </span>
+              <span
+                style={{
+                  marginLeft: 'auto',
+                  color: '#525252',
+                  fontVariantNumeric: 'tabular-nums',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {elements} elements ·{' '}
+                <b style={{ color: MATCH_META.COMMON.fg, fontWeight: 600 }}>{common} common</b>
+              </span>
+            </div>
           ))}
         </div>
+        <SegmentBar
+          track="#e2e8f0"
+          segments={filterable.map((s) => ({ value: countBy(s), color: MATCH_META[s].fg }))}
+        />
+      </OverviewCard>
 
-        {comparison.rows.map((row) => {
-          const groups = matchFilter
-            ? row.groups.filter((g) => g.status === matchFilter)
-            : row.groups;
-          const common = row.groups.filter((g) => g.status === 'COMMON').length;
-          const open = !!expandedComponents[row.component];
-          const counts = (
+      {/* The matrix panel. Row = model component, column = picked version. */}
+      <div
+        style={{
+          background: '#fff',
+          border: '1px solid #eaeaea',
+          borderRadius: 14,
+          boxShadow: '0 1px 4px rgba(0,0,0,.05)',
+          padding: 12,
+          boxSizing: 'border-box',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+        }}
+      >
+        <div style={{ border: '1px solid #f1f1f1', borderRadius: 10, overflow: 'hidden' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: `${LABEL_W}px repeat(${versions.length}, ${COL_W}px)`,
+              background: '#fafafa',
+              borderBottom: '2px solid #e5e5e5',
+            }}
+          >
             <div
               style={{
-                fontSize: 10.5,
-                color: '#737373',
-                fontVariantNumeric: 'tabular-nums',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <b style={{ fontWeight: 700, color: '#525252' }}>{row.groups.length}</b> concerns
-              {!single && common > 0 && (
-                <>
-                  {' · '}
-                  <span style={{ color: MATCH_META.COMMON.fg, fontWeight: 600 }}>
-                    {common} common
-                  </span>
-                </>
-              )}
-            </div>
-          );
-          const chevron = (
-            <span
-              style={{
-                color: '#a3a3a3',
+                padding: '8px 10px',
                 fontSize: 10,
-                display: 'inline-block',
-                transform: open ? 'none' : 'rotate(-90deg)',
-                marginRight: 6,
-                flexShrink: 0,
+                fontWeight: 800,
+                letterSpacing: '.08em',
+                color: '#a3a3a3',
+                textTransform: 'uppercase',
+                alignSelf: 'end',
               }}
             >
-              ▾
-            </span>
-          );
-          // Collapsed: one compact clickable strip per component — the legacy
-          // state opens with the same shared toggle the other columns use.
-          if (!open) {
-            return (
-              <button
-                key={row.component}
-                type="button"
-                data-anchor={`bf:${row.component}`}
-                onClick={() => onToggleComponent(row.component)}
+              Component
+            </div>
+            {versions.map((v) => (
+              <VersionHead key={v.id} version={v} comparison={comparison} />
+            ))}
+          </div>
+
+          {comparison.rows.map((row) => {
+            const groups = matchFilter
+              ? row.groups.filter((g) => g.status === matchFilter)
+              : row.groups;
+            const common = row.groups.filter((g) => g.status === 'COMMON').length;
+            const open = !!expandedComponents[row.component];
+            const counts = (
+              <div
                 style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'baseline',
-                  gap: 8,
-                  padding: '8px 10px',
-                  background: '#fcfcfc',
-                  border: 'none',
+                  fontSize: 10.5,
+                  color: '#737373',
+                  fontVariantNumeric: 'tabular-nums',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <b style={{ fontWeight: 700, color: '#525252' }}>{row.groups.length}</b> concerns
+                {!single && common > 0 && (
+                  <>
+                    {' · '}
+                    <span style={{ color: MATCH_META.COMMON.fg, fontWeight: 600 }}>
+                      {common} common
+                    </span>
+                  </>
+                )}
+              </div>
+            );
+            const chevron = (
+              <span
+                style={{
+                  color: '#a3a3a3',
+                  fontSize: 10,
+                  display: 'inline-block',
+                  transform: open ? 'none' : 'rotate(-90deg)',
+                  marginRight: 6,
+                  flexShrink: 0,
+                }}
+              >
+                ▾
+              </span>
+            );
+            // Collapsed: one compact clickable strip per component — the legacy
+            // state opens with the same shared toggle the other columns use.
+            if (!open) {
+              return (
+                <button
+                  key={row.component}
+                  type="button"
+                  data-anchor={`bf:${row.component}`}
+                  onClick={() => onToggleComponent(row.component)}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    gap: 8,
+                    padding: '8px 10px',
+                    background: '#fcfcfc',
+                    border: 'none',
+                    borderBottom: '1px solid #f1f1f1',
+                    borderTop: rowPads?.[row.component] ? '1px solid #f1f1f1' : undefined,
+                    cursor: 'pointer',
+                    font: 'inherit',
+                    textAlign: 'left',
+                    boxSizing: 'border-box',
+                    opacity: matchFilter && groups.length === 0 ? 0.4 : 1,
+                    marginTop: rowPads?.[row.component] || undefined,
+                  }}
+                >
+                  <span style={{ fontSize: 11.5, fontWeight: 700, lineHeight: 1.3 }}>
+                    {chevron}
+                    {row.component}
+                  </span>
+                  <span style={{ marginLeft: 'auto' }}>{counts}</span>
+                </button>
+              );
+            }
+            return (
+              <div
+                key={row.component}
+                data-anchor={`bf:${row.component}`}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: `${LABEL_W}px repeat(${versions.length}, ${COL_W}px)`,
                   borderBottom: '1px solid #f1f1f1',
                   borderTop: rowPads?.[row.component] ? '1px solid #f1f1f1' : undefined,
-                  cursor: 'pointer',
-                  font: 'inherit',
-                  textAlign: 'left',
-                  boxSizing: 'border-box',
                   opacity: matchFilter && groups.length === 0 ? 0.4 : 1,
                   marginTop: rowPads?.[row.component] || undefined,
                 }}
               >
-                <span style={{ fontSize: 11.5, fontWeight: 700, lineHeight: 1.3 }}>
-                  {chevron}
-                  {row.component}
-                </span>
-                <span style={{ marginLeft: 'auto' }}>{counts}</span>
-              </button>
-            );
-          }
-          return (
-            <div
-              key={row.component}
-              data-anchor={`bf:${row.component}`}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: `${LABEL_W}px repeat(${versions.length}, ${COL_W}px)`,
-                borderBottom: '1px solid #f1f1f1',
-                borderTop: rowPads?.[row.component] ? '1px solid #f1f1f1' : undefined,
-                opacity: matchFilter && groups.length === 0 ? 0.4 : 1,
-                marginTop: rowPads?.[row.component] || undefined,
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => onToggleComponent(row.component)}
-                style={{
-                  padding: '8px 10px',
-                  background: '#fcfcfc',
-                  minWidth: 0,
-                  border: 'none',
-                  cursor: 'pointer',
-                  font: 'inherit',
-                  textAlign: 'left',
-                }}
-              >
-                <div style={{ fontSize: 11.5, fontWeight: 700, lineHeight: 1.3 }}>
-                  {chevron}
-                  {row.component}
-                </div>
-                {counts}
-              </button>
-              {versions.map((v) => {
-                const hasComponent = row.presentIn.includes(v.id);
-                const mine = groups.filter((g) => g.perVersion[v.id]);
-                return (
-                  <div
-                    key={v.id}
-                    style={{
-                      padding: 6,
-                      borderLeft: '1px solid #f1f1f1',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 5,
-                      minWidth: 0,
-                    }}
-                  >
-                    {!hasComponent ? (
-                      <span style={{ fontSize: 10, color: '#d4d4d4', padding: '2px 4px' }}>
-                        not in this version
-                      </span>
-                    ) : mine.length === 0 ? (
-                      <span style={{ fontSize: 10, color: '#d4d4d4', padding: '2px 4px' }}>—</span>
-                    ) : (
-                      mine.map((g) => (
-                        <ElementCard
-                          key={g.key}
-                          group={g}
-                          versionId={v.id}
-                          selected={g.key === selectedKey}
-                          onSelect={onSelect}
-                        />
-                      ))
-                    )}
+                <button
+                  type="button"
+                  onClick={() => onToggleComponent(row.component)}
+                  style={{
+                    padding: '8px 10px',
+                    background: '#fcfcfc',
+                    minWidth: 0,
+                    border: 'none',
+                    cursor: 'pointer',
+                    font: 'inherit',
+                    textAlign: 'left',
+                  }}
+                >
+                  <div style={{ fontSize: 11.5, fontWeight: 700, lineHeight: 1.3 }}>
+                    {chevron}
+                    {row.component}
                   </div>
-                );
-              })}
-            </div>
-          );
-        })}
-      </div>
-
-      {single && (
-        <div style={{ fontSize: 11.5, color: '#a3a3a3', lineHeight: 1.5 }}>
-          One version — its own decomposition. Add versions to compare.
+                  {counts}
+                </button>
+                {versions.map((v) => {
+                  const hasComponent = row.presentIn.includes(v.id);
+                  const mine = groups.filter((g) => g.perVersion[v.id]);
+                  return (
+                    <div
+                      key={v.id}
+                      style={{
+                        padding: 6,
+                        borderLeft: '1px solid #f1f1f1',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 5,
+                        minWidth: 0,
+                      }}
+                    >
+                      {!hasComponent ? (
+                        <span style={{ fontSize: 10, color: '#d4d4d4', padding: '2px 4px' }}>
+                          not in this version
+                        </span>
+                      ) : mine.length === 0 ? (
+                        <span style={{ fontSize: 10, color: '#d4d4d4', padding: '2px 4px' }}>
+                          —
+                        </span>
+                      ) : (
+                        mine.map((g) => (
+                          <ElementCard
+                            key={g.key}
+                            group={g}
+                            versionId={v.id}
+                            selected={g.key === selectedKey}
+                            onSelect={onSelect}
+                          />
+                        ))
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
-      )}
+
+        {single && (
+          <div style={{ fontSize: 11.5, color: '#a3a3a3', lineHeight: 1.5 }}>
+            One version — its own decomposition. Add versions to compare.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
