@@ -122,7 +122,8 @@ function LayerSection({
   // the scope only touched one of them — 7 in → 5 out, not 5 → 5) plus the
   // pass-through rows.
   const sourceIds = new Set(uncovered.map((f) => f.id));
-  for (const e of entries) for (const id of e.findingIds) if (findingsById.has(id)) sourceIds.add(id);
+  for (const e of entries)
+    for (const id of e.findingIds) if (findingsById.has(id)) sourceIds.add(id);
   const currentCount = entries.length > 0 ? sourceIds.size : rows.length;
   // Authored entries compare the sources column by column; pass-through mode
   // treats the whole board as ONE application, so a single source column.
@@ -293,10 +294,8 @@ export default function NormalizeColumn({
             fontVariantNumeric: 'tabular-nums',
           }}
         >
-          <b style={{ fontWeight: 700, color: '#171717' }}>
-            {current} current combined steps
-          </b>{' '}
-          → <b style={{ fontWeight: 700, color: GREEN }}>{normalized} normalized steps</b>
+          <b style={{ fontWeight: 700, color: '#171717' }}>{current} current combined steps</b> →{' '}
+          <b style={{ fontWeight: 700, color: GREEN }}>{normalized} normalized steps</b>
           {awaiting > 0 && (
             <>
               {' '}
