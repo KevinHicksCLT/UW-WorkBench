@@ -113,14 +113,27 @@ describe('computeFunctionalAreas', () => {
       finding({ id: 'f3', appId: 'a2', screenRef: 'Claims Review' }),
       finding({ id: 'f4', appId: 'a2', screenRef: null }),
     ];
-    const { areaOf, order } = computeFunctionalAreas(screens, findings);
-    // Both login screens fall into ONE area, labelled by the shortest name.
+    const { areaOf, order } = computeFunctionalAreas(screens, findings, ['Claims Review', 'Login']);
+    // Both login screens fall into ONE area, labelled by the dropdown's name.
     expect(areaOf.get('f1')).toBe('Login');
     expect(areaOf.get('f2')).toBe('Login');
     expect(areaOf.get('f3')).toBe('Claims Review');
     expect(areaOf.get('f4')).toBe(CORE_AREA);
-    // Ordered by finding count: Login (2) first.
-    expect(order[0]).toBe('Login');
+    // Areas render in the screen dropdown's order, Core services last.
+    expect(order).toEqual(['Claims Review', 'Login', CORE_AREA]);
+  });
+
+  it('sorts screens the dropdown does not list after the dropdown ones', () => {
+    const screens = [
+      screen({ id: 's1', appId: 'a1', name: 'Login' }),
+      screen({ id: 's2', appId: 'a2', name: 'Billing' }),
+    ];
+    const findings = [
+      finding({ id: 'f1', appId: 'a1', screenRef: 'Login' }),
+      finding({ id: 'f2', appId: 'a2', screenRef: 'Billing' }),
+    ];
+    const { order } = computeFunctionalAreas(screens, findings, ['Login']);
+    expect(order).toEqual(['Login', 'Billing']);
   });
 });
 

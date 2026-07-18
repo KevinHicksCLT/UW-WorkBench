@@ -111,11 +111,17 @@ export const CORE_AREA = 'Core services';
  *  area — "Login" + "Login Page" become the Login area — and every finding maps
  *  to its screen's area (no screen → Core services). Keeps an "all screens"
  *  view readable without hiding any data: the Normalize column groups its
- *  cards under these areas. Returns the finding→area map plus the areas in
- *  descending finding-count order. */
+ *  cards under these areas.
+ *
+ *  `primaryOrder` is the screen picker's own option list (the walked
+ *  application's screens, dropdown order): areas take THOSE names as labels
+ *  and render in THAT order — the "all screens" view reads as the dropdown,
+ *  walked top to bottom — with other applications' unmatched screens after
+ *  them and Core services last. */
 export function computeFunctionalAreas(
   screens: BoardScreen[],
   findings: Finding[],
+  primaryOrder: string[] = [],
 ): { areaOf: Map<string, string>; order: string[] } {
   // Union-find over screen names (screens with equal names share a node).
   const names = [
@@ -144,21 +150,33 @@ export function computeFunctionalAreas(
       const contained = la.includes(lb) || lb.includes(la);
       if ((union ? inter / union : 0) >= 0.5 || contained) unite(names[i], names[j]);
     }
-  // Area label = the shortest screen name in the cluster ("Login" over "Login Page").
+  // Area label + position: the cluster member that appears in the screen
+  // dropdown wins (its name, its dropdown position); clusters the dropdown
+  // doesn't know keep their shortest member name and sort after; Core last.
+  const dropdownRank = new Map(primaryOrder.map((n, i) => [n, i]));
   const label = new Map<string, string>();
+  const rank = new Map<string, number>();
   for (const n of names) {
     const root = find(n);
-    const cur = label.get(root);
-    if (!cur || n.length < cur.length) label.set(root, n);
+    const r = dropdownRank.get(n) ?? Number.MAX_SAFE_INTEGER;
+    const cur = rank.get(root);
+    if (cur === undefined || r < cur || (r === cur && n.length < (label.get(root)?.length ?? 99))) {
+      label.set(root, n);
+      rank.set(root, r);
+    }
   }
   const areaOf = new Map<string, string>();
-  const counts = new Map<string, number>();
+  const areaRank = new Map<string, number>();
   for (const f of findings) {
-    const area = f.screenRef ? (label.get(find(f.screenRef)) ?? f.screenRef) : CORE_AREA;
+    const root = f.screenRef ? find(f.screenRef) : null;
+    const area = root ? (label.get(root) ?? f.screenRef ?? CORE_AREA) : CORE_AREA;
     areaOf.set(f.id, area);
-    counts.set(area, (counts.get(area) ?? 0) + 1);
+    if (!areaRank.has(area))
+      areaRank.set(area, root ? (rank.get(root) ?? Number.MAX_SAFE_INTEGER) : Infinity);
   }
-  const order = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([n]) => n);
+  const order = [...areaRank.entries()]
+    .sort((a, b) => a[1] - b[1] || a[0].localeCompare(b[0]))
+    .map(([n]) => n);
   return { areaOf, order };
 }
 

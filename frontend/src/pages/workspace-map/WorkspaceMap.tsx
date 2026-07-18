@@ -9,6 +9,7 @@ import NormalizeColumn from './NormalizeColumn';
 import GreenfieldColumn from './GreenfieldColumn';
 import ProductBoard from './product/ProductBoard';
 import BoardErrorBoundary from './BoardErrorBoundary';
+import { screenOptions } from './ScreenView';
 import {
   computeCrossAppEntries,
   computeFunctionalAreas,
@@ -377,10 +378,18 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
   }, [merged, activeId, screenWalk, matchedScreens, modelEntries]);
   // Functional areas keep the "all screens" view readable: screens cluster by
   // semantic match, findings map to their screen's area (no screen → Core
-  // services), and the Normalize column sub-groups its cards by area.
+  // services), and the Normalize column sub-groups its cards by area — using
+  // the walked application's screen-dropdown names and order as the groups.
   const areas = useMemo(
-    () => (merged && !screenWalk ? computeFunctionalAreas(merged.screens, modelFindings) : null),
-    [merged, screenWalk, modelFindings],
+    () =>
+      merged && !screenWalk
+        ? computeFunctionalAreas(
+            merged.screens,
+            modelFindings,
+            screenOptions(bfScreens, bfFindings),
+          )
+        : null,
+    [merged, screenWalk, modelFindings, bfScreens, bfFindings],
   );
 
   // Greenfield pass-through scoping: a target service only counts findings

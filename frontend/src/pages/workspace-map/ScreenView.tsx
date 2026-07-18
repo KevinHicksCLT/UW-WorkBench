@@ -51,8 +51,9 @@ function navOrder(): Map<string, number> {
   return order;
 }
 
-/** Every screen of the application, ordered by its position in the app nav. */
-function screenOptions(screens: BoardScreen[], findings: Finding[]): string[] {
+/** Every screen of the application, ordered by its position in the app nav.
+ *  Exported: the "all screens" functional areas mirror THIS list and order. */
+export function screenOptions(screens: BoardScreen[], findings: Finding[]): string[] {
   const byName = new Map(screens.map((s) => [s.name, s]));
   const order = navOrder();
   const rank = (name: string): number => {
