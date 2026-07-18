@@ -3,6 +3,7 @@ import type {
   BoardComponent,
   BoardDetail,
   BoardMicroservice,
+  BoardScreen,
   Finding,
   Layer,
   NormalizationEntry,
@@ -59,6 +60,47 @@ export function computeCrossAppEntries(findings: Finding[]): NormalizationEntry[
     });
   }
   return entries;
+}
+
+/** Word set of a screen name, case/punctuation-insensitive. */
+function tokens(s: string): Set<string> {
+  return new Set(
+    s
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim()
+      .split(' ')
+      .filter(Boolean),
+  );
+}
+
+/** Walking a screen in one application pulls the SEMANTICALLY MATCHING screen
+ *  of every other compared application into the band — both apps' "Login"
+ *  compare side by side. Match = token overlap (Jaccard ≥ 0.5) or full name
+ *  containment; the best-scoring screen per application wins, none below the
+ *  threshold. Returns appId → that app's matching screen name. */
+export function matchScreensAcrossApps(
+  screens: BoardScreen[],
+  activeAppId: string,
+  screenName: string,
+): Map<string, string> {
+  const walked = tokens(screenName);
+  const lcWalked = screenName.toLowerCase().trim();
+  const best = new Map<string, { name: string; score: number }>();
+  for (const s of screens) {
+    if (!s.appId || s.appId === activeAppId) continue;
+    const t = tokens(s.name);
+    const inter = [...t].filter((x) => walked.has(x)).length;
+    const union = new Set([...t, ...walked]).size;
+    const jaccard = union ? inter / union : 0;
+    const lc = s.name.toLowerCase().trim();
+    const contained = lc.includes(lcWalked) || lcWalked.includes(lc);
+    const score = Math.max(jaccard, contained ? 0.6 : 0);
+    if (score < 0.5) continue;
+    const prev = best.get(s.appId);
+    if (!prev || score > prev.score) best.set(s.appId, { name: s.name, score });
+  }
+  return new Map([...best].map(([appId, v]) => [appId, v.name]));
 }
 
 export const UNIFIED_GF_ID = 'cmp:gf';

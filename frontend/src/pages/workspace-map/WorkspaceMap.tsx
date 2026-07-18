@@ -9,7 +9,7 @@ import NormalizeColumn from './NormalizeColumn';
 import GreenfieldColumn from './GreenfieldColumn';
 import ProductBoard from './product/ProductBoard';
 import BoardErrorBoundary from './BoardErrorBoundary';
-import { computeCrossAppEntries, synthesizeGreenfield } from './compare';
+import { computeCrossAppEntries, matchScreensAcrossApps, synthesizeGreenfield } from './compare';
 import { LAYERS, findingMoves, GREEN, RED, READABLE_FIT_MIN } from './types';
 import type { BoardDetail, Finding, Layer } from './types';
 import { useLayerAlignment } from './useLayerAlignment';
@@ -333,26 +333,40 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
 
   // The whole band follows the Brownfield walk BY SCREEN: while a screen is
   // active, only that screen's steps stay in the model — Normalize and
-  // Greenfield show the screen's slice, never the totals. Shared entries drag
-  // their partner sources back in so consolidations still read N→1, and the
-  // counts agree left to right (4 stay → 4 current → 4 in, not 4 → 98).
+  // Greenfield show the screen's slice, never the totals. The SEMANTICALLY
+  // MATCHING screen of every other compared application joins the slice (both
+  // apps' "Login" compare side by side), and shared entries drag their partner
+  // sources back in so consolidations still read N→1.
+  const matchedScreens = useMemo(
+    () =>
+      merged && screenName && activeId
+        ? matchScreensAcrossApps(merged.screens, activeId, screenName)
+        : new Map<string, string>(),
+    [merged, activeId, screenName],
+  );
   const modelEntries = useMemo(() => {
     if (!merged) return [];
     const walked =
       !screenName || !activeId
         ? merged.findings
-        : merged.findings.filter((f) => f.appId === activeId && f.screenRef === screenName);
+        : merged.findings.filter((f) =>
+            f.appId === activeId
+              ? f.screenRef === screenName
+              : matchedScreens.get(f.appId) === f.screenRef,
+          );
     const ids = new Set(walked.map((f) => f.id));
     return merged.normalizationEntries.filter((e) => e.findingIds.some((id) => ids.has(id)));
-  }, [merged, activeId, screenName]);
+  }, [merged, activeId, screenName, matchedScreens]);
   const modelFindings = useMemo(() => {
     if (!merged) return [];
     if (!screenName || !activeId) return merged.findings;
     const partners = new Set(modelEntries.flatMap((e) => e.findingIds));
     return merged.findings.filter((f) =>
-      f.appId === activeId ? f.screenRef === screenName : partners.has(f.id),
+      f.appId === activeId
+        ? f.screenRef === screenName
+        : matchedScreens.get(f.appId) === f.screenRef || partners.has(f.id),
     );
-  }, [merged, activeId, screenName, modelEntries]);
+  }, [merged, activeId, screenName, matchedScreens, modelEntries]);
 
   // Greenfield pass-through scoping: a target service only counts findings
   // from ITS OWN board's applications (cross-board findings never leak onto
