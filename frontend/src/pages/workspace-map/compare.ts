@@ -1,4 +1,12 @@
-import type { Finding, NormalizationEntry } from './types';
+import { LAYERS, STATUS_WEIGHT } from './types';
+import type {
+  BoardComponent,
+  BoardDetail,
+  BoardMicroservice,
+  Finding,
+  Layer,
+  NormalizationEntry,
+} from './types';
 
 // On-the-fly cross-application comparison (generic — works for ANY pair of
 // scanned applications). A cross-board comparison has no authored
@@ -45,9 +53,63 @@ export function computeCrossAppEntries(findings: Finding[]): NormalizationEntry[
       differenceNote: null,
       proposedResolution: null,
       sourceCards: null,
-      componentId: null,
+      // Lands on the synthesized unified platform's floor for its layer.
+      componentId: `cmp:c:${g[0].layer}`,
       findingIds: g.map((f) => f.id),
     });
   }
   return entries;
+}
+
+export const UNIFIED_GF_ID = 'cmp:gf';
+
+/** ONE greenfield platform for a cross-board comparison, synthesized on the
+ *  fly: each layer slot merges the involved boards' target components — the
+ *  slot is only as far along as the LEAST-advanced board — and the whole
+ *  comparison lands in this single target instead of one card per board. */
+export function synthesizeGreenfield(boards: BoardDetail[]): {
+  microservice: BoardMicroservice;
+  components: BoardComponent[];
+} {
+  const byLayer = new Map<Layer, BoardComponent[]>();
+  for (const b of boards)
+    for (const c of b.components) {
+      const g = byLayer.get(c.layer) ?? [];
+      g.push(c);
+      byLayer.set(c.layer, g);
+    }
+  const components: BoardComponent[] = LAYERS.filter((l) => byLayer.has(l)).map((layer) => {
+    const srcs = byLayer.get(layer) as BoardComponent[];
+    const worst = srcs.reduce((a, c) =>
+      (STATUS_WEIGHT[c.migrationStatus] ?? 0) < (STATUS_WEIGHT[a.migrationStatus] ?? 0) ? c : a,
+    );
+    return {
+      id: `cmp:c:${layer}`,
+      layer,
+      name: [...new Set(srcs.map((s) => s.name))].join(' · '),
+      destination: 'Unified Greenfield Platform',
+      microserviceId: UNIFIED_GF_ID,
+      migrationStatus: worst.migrationStatus,
+      targetDate:
+        srcs
+          .map((s) => s.targetDate)
+          .filter((d): d is string => Boolean(d))
+          .sort()
+          .at(-1) ?? null,
+    };
+  });
+  const avg = components.length
+    ? components.reduce((a, c) => a + (STATUS_WEIGHT[c.migrationStatus] ?? 0), 0) /
+      components.length
+    : 0;
+  const microservice: BoardMicroservice = {
+    id: UNIFIED_GF_ID,
+    name: 'Unified Greenfield Platform',
+    kind: 'Platform',
+    status: avg >= 1 ? 'Live' : avg > 0.3 ? 'Building' : 'Planned',
+    techStack: null,
+    ownerRole: null,
+    targetDate: null,
+  };
+  return { microservice, components };
 }

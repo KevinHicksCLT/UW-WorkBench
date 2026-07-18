@@ -9,7 +9,7 @@ import NormalizeColumn from './NormalizeColumn';
 import GreenfieldColumn from './GreenfieldColumn';
 import ProductBoard from './product/ProductBoard';
 import BoardErrorBoundary from './BoardErrorBoundary';
-import { computeCrossAppEntries } from './compare';
+import { computeCrossAppEntries, synthesizeGreenfield } from './compare';
 import { LAYERS, findingMoves, GREEN, RED, READABLE_FIT_MIN } from './types';
 import type { BoardDetail, Finding, Layer } from './types';
 import { useLayerAlignment } from './useLayerAlignment';
@@ -231,12 +231,16 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     // spanning its applications, so the shared/unique verdict is computed on
     // the fly from the findings themselves — generic for any pair of scanned
     // applications; zero overlap yields zero consolidation entries.
-    const normalizationEntries =
-      list.length > 1
-        ? computeCrossAppEntries(findings)
-        : list.flatMap((b) =>
-            b.normalizationEntries.filter((e) => e.findingIds.some((id) => inScope.has(id))),
-          );
+    const crossBoard = list.length > 1;
+    const normalizationEntries = crossBoard
+      ? computeCrossAppEntries(findings)
+      : list.flatMap((b) =>
+          b.normalizationEntries.filter((e) => e.findingIds.some((id) => inScope.has(id))),
+        );
+    // A comparison has ONE greenfield: mixed-board scopes synthesize a unified
+    // target platform on the fly (layer slots merged from the boards' own
+    // targets) instead of stacking each board's card.
+    const gf = crossBoard ? synthesizeGreenfield(list) : null;
     const title = apps.map((a) => a.name).join(' + ');
     return {
       name: title,
@@ -244,8 +248,8 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
       apps,
       findings,
       normalizationEntries,
-      components: list.flatMap((b) => b.components),
-      microservices: list.flatMap((b) => b.microservices),
+      components: gf ? gf.components : list.flatMap((b) => b.components),
+      microservices: gf ? [gf.microservice] : list.flatMap((b) => b.microservices),
       screens: list.flatMap((b) => b.screens.filter((s) => selectedAppIds.has(s.appId))),
       boardOfApp,
       boardOfMs,
@@ -350,9 +354,13 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     if (!merged) return m;
     for (const ms of merged.microservices) {
       const bId = merged.boardOfMs.get(ms.id);
+      // A synthesized unified platform belongs to no single board — the whole
+      // comparison lands on it.
       m.set(
         ms.id,
-        modelFindings.filter((f) => merged.boardOfApp.get(f.appId) === bId),
+        bId === undefined
+          ? modelFindings
+          : modelFindings.filter((f) => merged.boardOfApp.get(f.appId) === bId),
       );
     }
     return m;
@@ -469,7 +477,10 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
         (c) =>
           c.layer === selected.layer &&
           merged.boardOfComp.get(c.id) === merged.boardOfApp.get(selected.appId),
-      )?.destination ?? null)
+      )?.destination ??
+      // Synthesized unified-platform components belong to no board.
+      merged.components.find((c) => c.layer === selected.layer)?.destination ??
+      null)
     : null;
 
   return (

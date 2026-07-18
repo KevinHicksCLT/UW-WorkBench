@@ -84,9 +84,12 @@ function LayerSlot({
 }) {
   const pct = Math.round((STATUS_WEIGHT[comp.migrationStatus] ?? 0) * 100);
   const targetLabel = formatTargetDate(comp.targetDate);
-  // What actually landed here: authored entries if the board has them, else the
-  // pass-through findings (each carries 1→1 into the normalized model).
-  const inCount = lives.length > 0 ? lives.length : landed.length;
+  // What actually landed here: normalization entries (authored or computed)
+  // PLUS the findings no entry covers — those carry 1→1 into the model, so a
+  // partially-matched comparison never undercounts its floor.
+  const covered = new Set(lives.flatMap((e) => e.findingIds));
+  const passThrough = landed.filter((f) => !covered.has(f.id));
+  const inCount = lives.length + passThrough.length;
   return (
     <div
       data-anchor={anchor}
@@ -208,46 +211,44 @@ function LayerSlot({
             gap: 5,
           }}
         >
-          {lives.length > 0 ? (
-            lives.map((e) => (
-              <div key={e.id} style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                {e.notation && (
-                  <span
-                    style={{
-                      fontSize: 9,
-                      fontWeight: 800,
-                      color: '#4f46e5',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {e.notation}
-                  </span>
-                )}
-                <span style={{ fontSize: 11, color: '#1e1b4b', fontWeight: 600 }}>{e.name}</span>
-                <span style={{ fontSize: 10, color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                  {e.findingIds.length}→1
-                </span>
-              </div>
-            ))
-          ) : landed.length > 0 ? (
-            // Pass-through board: every finding on this floor carries 1→1 into the
-            // normalized model — list them all so the greenfield is comprehensive.
-            landed.map((f) => (
-              <div key={f.id} style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                  <span style={{ fontSize: 11, color: '#166534', fontWeight: 700 }}>{f.name}</span>
-                  <span style={{ fontSize: 9.5, color: '#94a3b8', whiteSpace: 'nowrap' }}>1→1</span>
-                </div>
-                {f.plainSummary && (
-                  <span style={{ fontSize: 10, color: '#525252', lineHeight: 1.35 }}>
-                    {f.plainSummary}
-                  </span>
-                )}
-              </div>
-            ))
-          ) : (
+          {inCount === 0 && (
             <span style={{ fontSize: 10.5, color: '#a3a3a3' }}>Nothing lands on this floor.</span>
           )}
+          {lives.map((e) => (
+            <div key={e.id} style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+              {e.notation && (
+                <span
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 800,
+                    color: '#4f46e5',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {e.notation}
+                </span>
+              )}
+              <span style={{ fontSize: 11, color: '#1e1b4b', fontWeight: 600 }}>{e.name}</span>
+              <span style={{ fontSize: 10, color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                {e.findingIds.length}→1
+              </span>
+            </div>
+          ))}
+          {/* Findings no entry covers carry 1→1 — listed after the merged
+              entries so the floor stays comprehensive. */}
+          {passThrough.map((f) => (
+            <div key={f.id} style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                <span style={{ fontSize: 11, color: '#166534', fontWeight: 700 }}>{f.name}</span>
+                <span style={{ fontSize: 9.5, color: '#94a3b8', whiteSpace: 'nowrap' }}>1→1</span>
+              </div>
+              {f.plainSummary && (
+                <span style={{ fontSize: 10, color: '#525252', lineHeight: 1.35 }}>
+                  {f.plainSummary}
+                </span>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
