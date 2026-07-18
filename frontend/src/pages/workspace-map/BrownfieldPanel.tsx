@@ -19,7 +19,9 @@ interface Props {
   onActiveApp: (id: string) => void;
   /** Findings of the ACTIVE application only. */
   findings: Finding[];
-  /** Screens of the ACTIVE application only. */
+  /** Screens of EVERY compared application — the picker lists the whole
+   *  comparison (identical dropdown on every app toggle); picking another
+   *  application's screen switches the walk to that application. */
   screens: BoardScreen[];
   screenName: string | null;
   onScreen: (name: string | null) => void;
@@ -145,7 +147,8 @@ export default function BrownfieldPanel(props: Props) {
       )}
 
       <ScreenView
-        apps={activeApp ? [activeApp] : apps}
+        apps={apps}
+        activeAppId={activeApp?.id ?? null}
         screens={screens}
         findings={findings}
         screenName={screenName}

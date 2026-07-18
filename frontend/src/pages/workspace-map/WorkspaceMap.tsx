@@ -289,11 +289,27 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     : null;
   const activeId = activeApp?.id ?? null;
 
-  // Switching the brownfield application restarts its screen walk.
+  // Switching the brownfield application restarts its screen walk — unless the
+  // current pick already belongs to the new application (a shared-dropdown pick
+  // switched the app) or is the ALL_SCREENS view.
+  const screenOwner = (name: string): string | null =>
+    merged?.screens.find((s) => s.name === name)?.appId ?? null;
   useEffect(() => {
-    setScreenName(null);
     setSelected(null);
+    setScreenName((cur) =>
+      !cur || cur === ALL_SCREENS || screenOwner(cur) === activeId ? cur : null,
+    );
   }, [activeId]);
+
+  // Shared dropdown: picking another application's screen walks that app.
+  const pickScreen = (name: string | null) => {
+    setSelected(null);
+    if (name && name !== ALL_SCREENS) {
+      const owner = screenOwner(name);
+      if (owner && owner !== activeId) setActiveAppId(owner);
+    }
+    setScreenName(name);
+  };
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const activeLayer = selected ? selected.layer : null;
@@ -325,10 +341,6 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
   // with what the panel is showing.
   const bfFindings = useMemo(
     () => (merged && activeId ? merged.findings.filter((f) => f.appId === activeId) : []),
-    [merged, activeId],
-  );
-  const bfScreens = useMemo(
-    () => (merged && activeId ? merged.screens.filter((s) => s.appId === activeId) : []),
     [merged, activeId],
   );
   // ALL_SCREENS walks every screen at once — no single-screen narrowing; the
@@ -588,12 +600,9 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
               activeAppId={activeApp.id}
               onActiveApp={setActiveAppId}
               findings={bfFindings}
-              screens={bfScreens}
+              screens={merged.screens}
               screenName={screenName}
-              onScreen={(n) => {
-                setScreenName(n);
-                setSelected(null);
-              }}
+              onScreen={pickScreen}
               selectedFindingId={selected?.id ?? null}
               onSelectFinding={setSelected}
               layerPads={pads.bf}

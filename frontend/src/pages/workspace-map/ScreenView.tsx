@@ -15,6 +15,9 @@ import { ScreenPreview, WhyDetail } from './ScreenDetail';
 interface Props {
   /** The board's legacy source applications (SCRUM-222: screens group per app). */
   apps: BoardApp[];
+  /** Which application the panel is walking — the default screen pick and the
+   *  layer rows belong to it; the dropdown itself lists EVERY app's screens. */
+  activeAppId?: string | null;
   screens: BoardScreen[];
   findings: Finding[]; // scoped to the application
   screenName: string | null;
@@ -86,6 +89,7 @@ function screenAppId(name: string, screens: BoardScreen[], findings: Finding[]):
 export default function ScreenView(props: Props) {
   const {
     apps,
+    activeAppId,
     screens,
     findings,
     screenName,
@@ -117,7 +121,13 @@ export default function ScreenView(props: Props) {
   // at once — the band shows the full comparison grouped by functional area.
   const ordered = optionGroups ? optionGroups.flatMap((g) => g.names) : options;
   const allMode = screenName === ALL_SCREENS;
-  const active = allMode ? null : (screenName ?? ordered[0] ?? null);
+  // Default pick = the WALKED application's first screen (the dropdown lists
+  // every app's screens, so plain head-of-list could belong to another app and
+  // bounce the walk).
+  const defaultName = activeAppId
+    ? (ordered.find((n) => screenAppId(n, screens, findings) === activeAppId) ?? ordered[0] ?? null)
+    : (ordered[0] ?? null);
+  const active = allMode ? null : (screenName ?? defaultName);
   const screen = screens.find((s) => s.name === active) ?? null;
   const rows = allMode ? findings : findings.filter((f) => f.screenRef === active);
 
