@@ -8,6 +8,7 @@ import BrownfieldPanel from './BrownfieldPanel';
 import NormalizeColumn from './NormalizeColumn';
 import GreenfieldColumn from './GreenfieldColumn';
 import ProductBoard from './product/ProductBoard';
+import BoardErrorBoundary from './BoardErrorBoundary';
 import { LAYERS, findingMoves, GREEN, RED, READABLE_FIT_MIN } from './types';
 import type { BoardDetail, Finding, Layer } from './types';
 import { useLayerAlignment } from './useLayerAlignment';
@@ -108,8 +109,15 @@ function lensFromDomain(d?: string): WorkspaceLens {
 
 export default function WorkspaceMap({ initialDomain }: { initialDomain?: string }) {
   const [lens, setLens] = useState<WorkspaceLens>(lensFromDomain(initialDomain));
+  // A crash inside one comparison must never blank the whole tab — the
+  // boundary shows a reset that remounts the board with fresh state.
+  const [boardKey, setBoardKey] = useState(0);
   if (lens === 'products') return <ProductBoard lens={lens} onLens={setLens} />;
-  return <AppBoard lens={lens} onLens={setLens} />;
+  return (
+    <BoardErrorBoundary onReset={() => setBoardKey((k) => k + 1)}>
+      <AppBoard key={boardKey} lens={lens} onLens={setLens} />
+    </BoardErrorBoundary>
+  );
 }
 
 function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => void }) {
@@ -416,7 +424,32 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     return (
       <EmptyState message="No scanned applications yet — the Workspace only shows applications whose codebase has been scanned. Open an application's page and run a codebase scan to light up its board." />
     );
-  if (!merged || !activeApp) return <LoadingState message="Loading board…" />;
+  // Selection resolved to nothing (filters excluded every picked app, or the
+  // boards share no data) — keep the toolbar + picker so the user can adjust,
+  // instead of a dead "Loading…" or a crash.
+  if (!merged || !activeApp)
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <LensBar
+          lens={lens}
+          onLens={(l) => {
+            setSelected(null);
+            onLens(l);
+          }}
+          boards={[]}
+          boardId={null}
+          onBoard={() => undefined}
+        />
+        <AppPicker
+          pool={pool}
+          selected={selectedOptions}
+          onReplace={replaceApp}
+          onAdd={addApp}
+          onRemove={removeApp}
+        />
+        <EmptyState message="Nothing to compare for this selection — add a scanned application with the picker above, or clear the filters." />
+      </div>
+    );
 
   const destination = selected
     ? (merged.components.find(

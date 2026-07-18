@@ -1,4 +1,3 @@
-import OverviewCard, { OVERVIEW_TONES, SegmentBar } from './OverviewCard';
 import { MATCH_META } from './spine';
 import type { Comparison, ElementGroup, MatchStatus, VersionColumn } from './spine';
 
@@ -35,27 +34,6 @@ function VersionHead({ version }: { version: VersionColumn }) {
       <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.3 }}>{version.name}</div>
       <div style={{ fontSize: 10.5, color: '#a3a3a3', marginTop: 1 }}>{version.productName}</div>
     </div>
-  );
-}
-
-/** Tiny neutral/status chip used in the overview card's per-version rows. */
-function VersionChip({ label, active }: { label: string; active?: boolean }) {
-  return (
-    <span
-      style={{
-        padding: '1px 6px',
-        borderRadius: 4,
-        fontSize: 9.5,
-        fontWeight: 600,
-        whiteSpace: 'nowrap',
-        flexShrink: 0,
-        background: active ? '#dcfce7' : '#f5f5f5',
-        color: active ? '#15803d' : '#525252',
-        border: `1px solid ${active ? '#86efac' : '#e5e5e5'}`,
-      }}
-    >
-      {label}
-    </span>
   );
 }
 
@@ -146,7 +124,6 @@ function ElementCard({
 
 export default function ProductComparePanel(props: Props) {
   const {
-    title,
     versionLevelName,
     versions,
     comparison,
@@ -162,20 +139,6 @@ export default function ProductComparePanel(props: Props) {
   const countBy = (s: MatchStatus) =>
     comparison.rows.reduce((a, r) => a + r.groups.filter((g) => g.status === s).length, 0);
   const filterable: MatchStatus[] = ['COMMON', 'PARTIAL', 'UNIQUE'];
-  // Per-version rollup for the overview card (mirrors each VersionHead).
-  const perVersion = versions.map((v) => {
-    let elements = 0;
-    let common = 0;
-    for (const row of comparison.rows) {
-      for (const g of row.groups) {
-        if (g.perVersion[v.id]) {
-          elements += 1;
-          if (g.status === 'COMMON') common += 1;
-        }
-      }
-    }
-    return { v, elements, common };
-  });
 
   return (
     <div
@@ -193,53 +156,75 @@ export default function ProductComparePanel(props: Props) {
         </span>
       </div>
 
-      {/* Match counters double as filters (multi-version comparisons only). Each
-          says how many of the distinct concepts fall in that match class. */}
+      {/* Match counters double as filters (multi-version comparisons only) —
+          one white stat pill, presented like the Normalize/Greenfield pills. */}
       {!single && (
         <div
           style={{
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            gap: 6,
+            gap: 8,
             flexWrap: 'wrap',
             marginBottom: 12,
           }}
         >
-          <span style={{ fontSize: 11, color: '#525252', marginRight: 2 }}>
-            Of {comparison.normalizedCount} concepts:
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              border: '1px solid #eaeaea',
+              borderRadius: 999,
+              background: '#fff',
+              boxShadow: '0 1px 3px rgba(0,0,0,.05)',
+              padding: '3px 12px',
+              fontSize: 12,
+              fontVariantNumeric: 'tabular-nums',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.normalizedCount}</b>
+            <span style={{ color: '#525252' }}>concepts</span>
+            {filterable.map((s) => {
+              const meta = MATCH_META[s];
+              const active = matchFilter === s;
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => onMatchFilter(active ? null : s)}
+                  title={meta.hint}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    border: 'none',
+                    borderRadius: 999,
+                    background: active ? meta.bg : 'transparent',
+                    boxShadow: active ? `0 0 0 1.5px ${meta.fg}` : 'none',
+                    padding: '1px 6px',
+                    color: '#525252',
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    font: 'inherit',
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: 999,
+                      background: meta.fg,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <b style={{ fontWeight: 700, color: meta.fg }}>{countBy(s)}</b> {meta.label.toLowerCase()}
+                </button>
+              );
+            })}
           </span>
-          {filterable.map((s) => {
-            const meta = MATCH_META[s];
-            const active = matchFilter === s;
-            return (
-              <button
-                key={s}
-                type="button"
-                onClick={() => onMatchFilter(active ? null : s)}
-                title={meta.hint}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 5,
-                  padding: '3px 9px',
-                  borderRadius: 999,
-                  border: `1px solid ${active ? meta.fg : meta.border}`,
-                  background: meta.bg,
-                  color: meta.fg,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  font: 'inherit',
-                  boxShadow: active ? `0 0 0 2px ${meta.border}` : 'none',
-                  fontVariantNumeric: 'tabular-nums',
-                }}
-              >
-                <span style={{ width: 8, height: 8, borderRadius: 999, background: meta.fg }} />
-                {meta.label} {countBy(s)}
-              </button>
-            );
-          })}
           {matchFilter && (
             <button
               type="button"
@@ -260,55 +245,45 @@ export default function ProductComparePanel(props: Props) {
         </div>
       )}
 
-      <OverviewCard
-        tone={OVERVIEW_TONES.current}
-        title={title}
-        tag="Current"
-        right={`${versions.length} version${versions.length === 1 ? '' : 's'}`}
+      {/* Version identification strip — separated from the component rows but
+          on the same grid, so each head sits exactly above its column. */}
+      <div
+        style={{
+          background: '#fff',
+          border: '1px solid #eaeaea',
+          borderRadius: 14,
+          boxShadow: '0 1px 4px rgba(0,0,0,.05)',
+          // 12px panel padding + 1px inner-box border = the matrix's content
+          // inset, so the strip's columns sit exactly over the matrix columns.
+          padding: '0 13px',
+          boxSizing: 'border-box',
+          marginBottom: 10,
+        }}
       >
-        <div style={{ fontSize: 12, color: '#6b7280' }}>
-          {comparison.rawCount} elements as filed → {comparison.normalizedCount} distinct concepts
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 5 }}>
-          {perVersion.map(({ v, elements, common }) => (
-            <div
-              key={v.id}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5 }}
-            >
-              <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{v.name}</span>
-              <span
-                style={{
-                  color: '#6b7280',
-                  minWidth: 0,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {v.productName}
-              </span>
-              {v.status && <VersionChip label={v.status} active={v.status === 'Active'} />}
-              <VersionChip label={`${v.components.size} components`} />
-              <span
-                style={{
-                  marginLeft: 'auto',
-                  color: '#525252',
-                  fontVariantNumeric: 'tabular-nums',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                }}
-              >
-                {elements} elements ·{' '}
-                <b style={{ color: MATCH_META.COMMON.fg, fontWeight: 600 }}>{common} common</b>
-              </span>
-            </div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: `${LABEL_W}px repeat(${versions.length}, ${COL_W}px)`,
+          }}
+        >
+          <div
+            style={{
+              padding: '8px 10px',
+              fontSize: 10,
+              fontWeight: 800,
+              letterSpacing: '.08em',
+              color: '#a3a3a3',
+              textTransform: 'uppercase',
+              alignSelf: 'end',
+            }}
+          >
+            Component
+          </div>
+          {versions.map((v) => (
+            <VersionHead key={v.id} version={v} />
           ))}
         </div>
-        <SegmentBar
-          track="#e2e8f0"
-          segments={filterable.map((s) => ({ value: countBy(s), color: MATCH_META[s].fg }))}
-        />
-      </OverviewCard>
+      </div>
 
       {/* The matrix panel. Row = model component, column = picked version. */}
       <div
@@ -325,32 +300,6 @@ export default function ProductComparePanel(props: Props) {
         }}
       >
         <div style={{ border: '1px solid #f1f1f1', borderRadius: 10, overflow: 'hidden' }}>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: `${LABEL_W}px repeat(${versions.length}, ${COL_W}px)`,
-              background: '#fafafa',
-              borderBottom: '2px solid #e5e5e5',
-            }}
-          >
-            <div
-              style={{
-                padding: '8px 10px',
-                fontSize: 10,
-                fontWeight: 800,
-                letterSpacing: '.08em',
-                color: '#a3a3a3',
-                textTransform: 'uppercase',
-                alignSelf: 'end',
-              }}
-            >
-              Component
-            </div>
-            {versions.map((v) => (
-              <VersionHead key={v.id} version={v} />
-            ))}
-          </div>
-
           {comparison.rows.map((row) => {
             const groups = matchFilter
               ? row.groups.filter((g) => g.status === matchFilter)

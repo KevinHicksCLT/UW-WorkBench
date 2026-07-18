@@ -218,7 +218,6 @@ export default function ProductGreenfieldColumn({
 }: Props) {
   // Reconciled = normalized elements actually in the model ÷ total groups.
   const inModel = comparison.rows.reduce((a, r) => a + normalizedGroups(r, decisions).length, 0);
-  const progress = comparison.normalizedCount === 0 ? 0 : inModel / comparison.normalizedCount;
   const openDecisions = comparison.rows.reduce(
     (a, r) =>
       a +
@@ -227,6 +226,22 @@ export default function ProductGreenfieldColumn({
       ).length,
     0,
   );
+  // Model composition (the card) — WHAT the target model is made of, not the
+  // normalization progress (that story lives on the Normalize card): how many
+  // components carry elements, and how each element got in (auto-fold of
+  // commons/single carries vs an explicit adopt decision).
+  const componentsInModel = comparison.rows.filter(
+    (r) => normalizedGroups(r, decisions).length > 0,
+  ).length;
+  const adoptedIn = comparison.rows.reduce(
+    (a, r) =>
+      a +
+      r.groups.filter(
+        (g) => (g.status === 'PARTIAL' || g.status === 'UNIQUE') && decisions[g.key] === 'APPROVED',
+      ).length,
+    0,
+  );
+  const autoIn = inModel - adoptedIn;
 
   return (
     <div style={{ width: 340, flexShrink: 0, alignSelf: 'flex-start' }}>
@@ -273,25 +288,21 @@ export default function ProductGreenfieldColumn({
         tone={OVERVIEW_TONES.greenfield}
         title={lobName}
         tag="Proposed"
-        right={`${Math.round(progress * 100)}%`}
+        right={`${inModel} elements`}
       >
         <div style={{ fontSize: 12, color: '#6b7280' }}>
-          one normalized model from {versions.length} version
-          {versions.length === 1 ? '' : 's'}
+          one model spanning {componentsInModel} component{componentsInModel === 1 ? '' : 's'},
+          replacing {versions.length} filed version{versions.length === 1 ? '' : 's'}
         </div>
         <div style={{ fontSize: 11.5, color: GREEN, marginTop: 3, fontWeight: 600 }}>
-          {inModel} normalized elements ·{' '}
-          {openDecisions > 0 ? (
-            <span style={{ color: MATCH_META.PARTIAL.fg }}>{openDecisions} decisions open</span>
-          ) : (
-            'no open decisions'
-          )}
+          {autoIn} fold in automatically ·{' '}
+          <span style={{ color: '#4f46e5' }}>{adoptedIn} adopted by decision</span>
         </div>
         <SegmentBar
           track="#d1fae5"
           segments={[
-            { value: inModel, color: GREEN },
-            { value: openDecisions, color: 'transparent' },
+            { value: autoIn, color: GREEN },
+            { value: adoptedIn, color: '#4f46e5' },
           ]}
         />
       </OverviewCard>
