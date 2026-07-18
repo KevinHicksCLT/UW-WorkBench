@@ -408,7 +408,7 @@ function ComponentSection({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'baseline',
-          padding: '10px 12px',
+          padding: '8px 12px',
           background: '#fafafa',
           border: 'none',
           borderBottom: open ? '1px solid #e2e8f0' : 'none',
@@ -417,11 +417,11 @@ function ComponentSection({
           textAlign: 'left',
         }}
       >
-        <span style={{ fontSize: 14, fontWeight: 700 }}>
+        <span style={{ fontSize: 13, fontWeight: 700 }}>
           <span
             style={{
               color: '#a3a3a3',
-              fontSize: 11,
+              fontSize: 10,
               display: 'inline-block',
               transform: open ? 'none' : 'rotate(-90deg)',
               marginRight: 6,
@@ -431,9 +431,9 @@ function ComponentSection({
           </span>
           {row.component}
         </span>
-        <span style={{ fontSize: 12, color: '#525252', fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ fontSize: 11.5, color: '#525252', fontVariantNumeric: 'tabular-nums' }}>
           {raw} current →{' '}
-          <b style={{ fontWeight: 800, color: INDIGO, fontSize: 15 }}>{row.groups.length}</b>
+          <b style={{ fontWeight: 800, color: INDIGO, fontSize: 13 }}>{row.groups.length}</b>
         </span>
       </button>
       {open && (
@@ -519,7 +519,7 @@ export default function ProductNormalizeColumn({
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 6,
+            gap: 5,
             border: '1px solid #eaeaea',
             borderRadius: 999,
             background: '#fff',
@@ -528,11 +528,12 @@ export default function ProductNormalizeColumn({
             fontSize: 12,
             color: '#525252',
             fontVariantNumeric: 'tabular-nums',
+            whiteSpace: 'nowrap',
           }}
         >
-          <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.rawCount}</b> elements across{' '}
+          <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.rawCount}</b> elements ·{' '}
           {versions.length} version{versions.length === 1 ? '' : 's'} →{' '}
-          <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.normalizedCount}</b> distinct
+          <b style={{ fontWeight: 700, color: INDIGO }}>{comparison.normalizedCount}</b> distinct
         </span>
         {versions.length > 1 && (
           <span
@@ -547,6 +548,7 @@ export default function ProductNormalizeColumn({
               padding: '3px 12px',
               fontSize: 12,
               fontVariantNumeric: 'tabular-nums',
+              whiteSpace: 'nowrap',
             }}
           >
             <CountKey color={MATCH_META.COMMON.fg} n={commonCount} label="common" />

@@ -65,11 +65,13 @@ function GreenfieldSlot({
     <div
       data-anchor={`gf:model:${row.component}`}
       style={{
-        border: '1px solid #d1fae5',
+        border: `1px solid ${settled ? '#d1fae5' : '#fde68a'}`,
         borderRadius: 8,
-        background: '#f8fffb',
+        background: settled ? '#f8fffb' : '#fffdf5',
+        boxShadow: '0 1px 2px rgba(0,0,0,.03)',
         overflow: 'hidden',
         opacity: dim ? 0.45 : 1,
+        transition: 'opacity .15s',
         marginTop: padTop || undefined,
       }}
     >
@@ -78,7 +80,7 @@ function GreenfieldSlot({
         onClick={onToggle}
         style={{
           width: '100%',
-          padding: '6px 10px',
+          padding: '7px 10px',
           display: 'flex',
           alignItems: 'center',
           gap: 8,
@@ -109,9 +111,28 @@ function GreenfieldSlot({
             flexShrink: 0,
           }}
         />
-        <span style={{ minWidth: 0, flex: 1 }}>
-          <span style={{ display: 'block', fontSize: 11, fontWeight: 700 }}>{row.component}</span>
-          <span style={{ display: 'block', fontSize: 10.5, color: '#525252' }}>
+        <span
+          style={{
+            minWidth: 0,
+            flex: 1,
+            display: 'flex',
+            alignItems: 'baseline',
+            gap: 6,
+            overflow: 'hidden',
+          }}
+        >
+          <span style={{ fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap' }}>
+            {row.component}
+          </span>
+          <span
+            style={{
+              fontSize: 10,
+              color: settled ? '#047857' : '#b45309',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
             {settled ? 'reconciled' : `${toReconcile} to reconcile`}
           </span>
         </span>
@@ -124,7 +145,7 @@ function GreenfieldSlot({
             flexShrink: 0,
           }}
         >
-          {normalized.length} in model
+          <b style={{ fontWeight: 700 }}>{normalized.length}</b> in model
         </span>
       </button>
 
@@ -212,8 +233,44 @@ export default function ProductGreenfieldColumn({
 
   return (
     <div style={{ width: 340, flexShrink: 0, alignSelf: 'flex-start' }}>
-      <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>
+      <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>
         Greenfield
+        <span style={{ fontWeight: 400, fontSize: 12, color: '#a3a3a3' }}> · the target model</span>
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 8,
+          marginBottom: 12,
+        }}
+      >
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            border: '1px solid #eaeaea',
+            borderRadius: 999,
+            background: '#fff',
+            boxShadow: '0 1px 3px rgba(0,0,0,.05)',
+            padding: '3px 12px',
+            fontSize: 12,
+            color: '#525252',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          <b style={{ fontWeight: 700, color: GREEN }}>{inModel}</b> in model
+          {openDecisions > 0 ? (
+            <>
+              {' · '}
+              <b style={{ fontWeight: 700, color: MATCH_META.PARTIAL.fg }}>{openDecisions}</b> open
+            </>
+          ) : (
+            <span style={{ color: GREEN }}>· reconciled</span>
+          )}
+        </span>
       </div>
       <div
         style={{
@@ -223,6 +280,7 @@ export default function ProductGreenfieldColumn({
           boxShadow: '0 2px 8px rgba(16,185,129,.10)',
           boxSizing: 'border-box',
           overflow: 'hidden',
+          marginBottom: 10,
         }}
       >
         {/* compact header line — expand for the model detail + progress */}
@@ -314,38 +372,31 @@ export default function ProductGreenfieldColumn({
             </div>
           </div>
         )}
+      </div>
 
-        {/* Component slots — expand to the normalized elements in the model. */}
-        <div
-          style={{
-            background: '#fff',
-            borderTop: '1px solid #d1fae5',
-            padding: '8px 10px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 6,
-          }}
-        >
-          {comparison.rows.map((row) => (
-            <GreenfieldSlot
-              key={row.component}
-              row={row}
-              decisions={decisions}
-              dim={
-                matchFilter != null &&
-                (matchFilter ? row.groups.filter((g) => g.status === matchFilter).length : 0) === 0
-              }
-              padTop={rowPads?.[row.component] ?? 0}
-              open={!!expandedComponents[row.component]}
-              onToggle={() => onToggleComponent(row.component)}
-            />
-          ))}
-          {comparison.rows.length === 0 && (
-            <div style={{ fontSize: 11, color: '#a3a3a3', padding: '4px 2px' }}>
-              Pick versions to derive the model.
-            </div>
-          )}
-        </div>
+      {/* Component slots — standalone cards (not boxed into the model card),
+          so the alignment pads open dotted-canvas gaps like the other columns
+          instead of dead white space inside one tall card. */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {comparison.rows.map((row) => (
+          <GreenfieldSlot
+            key={row.component}
+            row={row}
+            decisions={decisions}
+            dim={
+              matchFilter != null &&
+              (matchFilter ? row.groups.filter((g) => g.status === matchFilter).length : 0) === 0
+            }
+            padTop={rowPads?.[row.component] ?? 0}
+            open={!!expandedComponents[row.component]}
+            onToggle={() => onToggleComponent(row.component)}
+          />
+        ))}
+        {comparison.rows.length === 0 && (
+          <div style={{ fontSize: 11, color: '#a3a3a3', textAlign: 'center', padding: '4px 2px' }}>
+            Pick versions to derive the model.
+          </div>
+        )}
       </div>
     </div>
   );

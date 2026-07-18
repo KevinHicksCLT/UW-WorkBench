@@ -210,7 +210,7 @@ export default function ProductComparePanel(props: Props) {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, minHeight: 26 }}>
-        <span style={{ fontSize: 17, fontWeight: 700 }}>{title}</span>
+        <span style={{ fontSize: 16, fontWeight: 700 }}>{title}</span>
         <span style={{ fontSize: 11, color: '#a3a3a3' }}>
           {versions.length} {versionLevelName.toLowerCase()}
           {versions.length === 1 ? '' : 's'} · {comparison.rawCount} elements →{' '}
@@ -313,13 +313,13 @@ export default function ProductComparePanel(props: Props) {
           const counts = (
             <div
               style={{
-                fontSize: 10,
-                color: '#a3a3a3',
-                marginTop: 2,
+                fontSize: 10.5,
+                color: '#737373',
                 fontVariantNumeric: 'tabular-nums',
+                whiteSpace: 'nowrap',
               }}
             >
-              {row.groups.length} concerns
+              <b style={{ fontWeight: 700, color: '#525252' }}>{row.groups.length}</b> concerns
               {!single && common > 0 && (
                 <>
                   {' · '}
