@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { api } from '../../../lib/api';
 import { GREEN, AMBER, INDIGO } from '../types';
 import ReviewModal, { REVIEW_STATUS, type ReviewStatusChip } from '../ReviewModal';
-import OverviewCard, { OVERVIEW_TONES, SegmentBar } from './OverviewCard';
+import OverviewCard, { OVERVIEW_TONES } from './OverviewCard';
 import { MATCH_META } from './spine';
 import type {
   Comparison,
@@ -521,7 +521,6 @@ function ComponentSection({
 }
 
 export default function ProductNormalizeColumn({
-  lobName,
   versions,
   comparison,
   matchFilter,
@@ -619,33 +618,26 @@ export default function ProductNormalizeColumn({
 
       <OverviewCard
         tone={OVERVIEW_TONES.normalize}
-        title={lobName}
         tag="Normalizing"
         right={`${
           comparison.normalizedCount === 0
             ? 0
             : Math.round((settled / comparison.normalizedCount) * 100)
         }%`}
+        track="#e0e7ff"
+        segments={[
+          { value: settled, color: INDIGO },
+          { value: outstandingReview, color: MATCH_META.PARTIAL.fg },
+        ]}
       >
-        <div style={{ fontSize: 12, color: '#6b7280' }}>
-          {comparison.normalizedCount} distinct concepts from {versions.length} version
-          {versions.length === 1 ? '' : 's'}
-        </div>
-        <div style={{ fontSize: 11.5, marginTop: 3, fontWeight: 600, color: INDIGO }}>
+        <span style={{ color: INDIGO }}>
           {settled} settled into the model ·{' '}
           {outstandingReview > 0 ? (
             <span style={{ color: MATCH_META.PARTIAL.fg }}>{outstandingReview} to review</span>
           ) : (
             <span style={{ color: GREEN }}>nothing left to review</span>
           )}
-        </div>
-        <SegmentBar
-          track="#e0e7ff"
-          segments={[
-            { value: settled, color: INDIGO },
-            { value: outstandingReview, color: MATCH_META.PARTIAL.fg },
-          ]}
-        />
+        </span>
       </OverviewCard>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

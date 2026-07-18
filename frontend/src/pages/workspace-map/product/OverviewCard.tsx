@@ -1,9 +1,11 @@
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
-// One collapsible overview card per board column — Current (slate), Normalize
-// (indigo), Greenfield (green). Same anatomy everywhere: chevron · title ·
-// uppercase state tag · right-hand stat, expanding to a short detail block, so
-// the three columns read as the same entity in three states.
+// One slim overview card per board column — Normalize (indigo) and Greenfield
+// (green), sized to EXACTLY match the Current column's version-identification
+// strip so the three column headers read as one row. No title (the LOB is
+// already the board context) and no collapse — the card is a fixed-height
+// summary: state tag + headline stat, one detail line, and a distribution bar
+// drawn as the card's bottom edge.
 
 export interface OverviewTone {
   border: string;
@@ -32,6 +34,10 @@ export const OVERVIEW_TONES: Record<'current' | 'normalize' | 'greenfield', Over
     shadow: '0 2px 8px rgba(16,185,129,.10)',
   },
 };
+
+/** Rendered height of the Current column's version strip (border-box px) —
+ *  the overview cards pin to it so all three column heads are the same size. */
+export const OVERVIEW_CARD_H = 51;
 
 /** A slim distribution bar; segments render left→right, zero-width ones skip. */
 export function SegmentBar({
@@ -72,101 +78,109 @@ export function SegmentBar({
 
 export default function OverviewCard({
   tone,
-  title,
   tag,
   right,
+  track,
+  segments,
   children,
 }: {
   tone: OverviewTone;
-  title: string;
-  /** Uppercase state chip: CURRENT · NORMALIZING · PROPOSED. */
+  /** Uppercase state chip: NORMALIZING · PROPOSED. */
   tag: string;
-  /** Right-hand headline stat (e.g. "2 versions", "23%"). */
+  /** Right-hand headline stat (e.g. "23%", "22 elements"). */
   right: ReactNode;
-  /** Expanded detail block. */
+  /** Bottom-edge distribution bar. */
+  track: string;
+  segments: { value: number; color: string }[];
+  /** The single detail line under the tag row. */
   children: ReactNode;
 }) {
-  // Open by default — the card IS each column's summary; collapsing it is the
-  // space-saving opt-in. The alignment pads absorb the height difference.
-  const [open, setOpen] = useState(true);
+  const total = segments.reduce((a, s) => a + s.value, 0);
   return (
     <div
       style={{
+        height: OVERVIEW_CARD_H,
+        boxSizing: 'border-box',
+        position: 'relative',
         border: `2px solid ${tone.border}`,
         borderRadius: 12,
         background: tone.background,
         boxShadow: tone.shadow,
-        boxSizing: 'border-box',
         overflow: 'hidden',
         marginBottom: 10,
       }}
     >
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
+      <div
         style={{
-          width: '100%',
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'baseline',
           gap: 8,
-          padding: '7px 11px',
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          font: 'inherit',
-          textAlign: 'left',
+          padding: '7px 11px 0',
         }}
       >
         <span
           style={{
-            color: tone.tag,
-            fontSize: 9,
-            display: 'inline-block',
-            transform: open ? 'none' : 'rotate(-90deg)',
-            flexShrink: 0,
-          }}
-        >
-          ▾
-        </span>
-        <span
-          style={{
-            fontSize: 13.5,
-            fontWeight: 700,
-            minWidth: 0,
-            flex: 1,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          {title}
-        </span>
-        <span
-          style={{
             fontSize: 9.5,
-            fontWeight: 600,
+            fontWeight: 700,
             letterSpacing: '.08em',
             color: tone.tag,
             textTransform: 'uppercase',
             whiteSpace: 'nowrap',
-            flexShrink: 0,
           }}
         >
           {tag}
         </span>
         <span
           style={{
+            marginLeft: 'auto',
             fontSize: 10.5,
             color: '#525252',
             fontVariantNumeric: 'tabular-nums',
             whiteSpace: 'nowrap',
-            flexShrink: 0,
           }}
         >
           {right}
         </span>
-      </button>
-      {open && <div style={{ padding: '0 13px 9px' }}>{children}</div>}
+      </div>
+      <div
+        style={{
+          padding: '2px 11px 0',
+          fontSize: 11,
+          fontWeight: 600,
+          lineHeight: '15px',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        {children}
+      </div>
+      {/* distribution bar = the card's bottom edge */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 4,
+          display: 'flex',
+          background: track,
+        }}
+      >
+        {total > 0 &&
+          segments
+            .filter((s) => s.value > 0)
+            .map((s, i) => (
+              <div
+                key={i}
+                style={{
+                  width: `${(s.value / total) * 100}%`,
+                  background: s.color,
+                  transition: 'width .3s',
+                }}
+              />
+            ))}
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { GREEN } from '../types';
-import OverviewCard, { OVERVIEW_TONES, SegmentBar } from './OverviewCard';
+import OverviewCard, { OVERVIEW_TONES } from './OverviewCard';
 import { MATCH_META } from './spine';
 import type {
   Comparison,
@@ -207,8 +207,6 @@ function GreenfieldSlot({
 }
 
 export default function ProductGreenfieldColumn({
-  lobName,
-  versions,
   comparison,
   matchFilter,
   decisions,
@@ -286,25 +284,18 @@ export default function ProductGreenfieldColumn({
       </div>
       <OverviewCard
         tone={OVERVIEW_TONES.greenfield}
-        title={lobName}
         tag="Proposed"
-        right={`${inModel} elements`}
+        right={`${inModel} elements · ${componentsInModel} component${componentsInModel === 1 ? '' : 's'}`}
+        track="#d1fae5"
+        segments={[
+          { value: autoIn, color: GREEN },
+          { value: adoptedIn, color: '#4f46e5' },
+        ]}
       >
-        <div style={{ fontSize: 12, color: '#6b7280' }}>
-          one model spanning {componentsInModel} component{componentsInModel === 1 ? '' : 's'},
-          replacing {versions.length} filed version{versions.length === 1 ? '' : 's'}
-        </div>
-        <div style={{ fontSize: 11.5, color: GREEN, marginTop: 3, fontWeight: 600 }}>
+        <span style={{ color: GREEN }}>
           {autoIn} fold in automatically ·{' '}
           <span style={{ color: '#4f46e5' }}>{adoptedIn} adopted by decision</span>
-        </div>
-        <SegmentBar
-          track="#d1fae5"
-          segments={[
-            { value: autoIn, color: GREEN },
-            { value: adoptedIn, color: '#4f46e5' },
-          ]}
-        />
+        </span>
       </OverviewCard>
 
       {/* Component slots — standalone cards (not boxed into the model card),
