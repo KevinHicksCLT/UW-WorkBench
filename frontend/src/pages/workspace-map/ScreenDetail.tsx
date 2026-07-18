@@ -6,12 +6,45 @@ import type { BoardScreen, Finding } from './types';
 // per-finding "WHY THIS MOVES / STAYS" panel. Extracted so ScreenView stays
 // under the 500-line structure rule.
 
+/** True when the preview URL would embed THIS page (the Workspace board)
+ *  inside itself — an infinite board-in-board recursion that melts layout. */
+function wouldRecurse(url: string): boolean {
+  try {
+    const u = new URL(url, window.location.origin);
+    return u.origin === window.location.origin && u.pathname === window.location.pathname;
+  } catch {
+    return false;
+  }
+}
+
 export function ScreenPreview({ screen }: { screen: BoardScreen }) {
   // The preview stays hidden behind a loading veil until the framed page has
   // fired load AND had a settle window for its lazy chunk + data fetches —
   // the user never sees a half-rendered page.
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(false), [screen.url]);
+
+  if (screen.url && wouldRecurse(screen.url)) {
+    return (
+      <div
+        style={{
+          height: 120,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          border: '1px dashed #eaeaea',
+          borderRadius: 8,
+          fontSize: 11.5,
+          color: '#a3a3a3',
+          textAlign: 'center',
+          padding: '0 16px',
+        }}
+      >
+        This screen is the Workspace itself — no live preview (it would nest the board inside
+        itself).
+      </div>
+    );
+  }
 
   if (!screen.url) {
     return (

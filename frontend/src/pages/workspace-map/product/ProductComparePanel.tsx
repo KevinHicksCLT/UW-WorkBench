@@ -376,13 +376,17 @@ export default function ProductComparePanel(props: Props) {
                 </button>
               );
             }
+            // Expanded: one ROW PER CONCEPT GROUP — the same concept sits on
+            // the same line in every version column (tops aligned; cards may
+            // run longer). A concept only one version carries gets its own
+            // row with the other columns left blank.
             return (
               <div
                 key={row.component}
                 data-anchor={`bf:${row.component}`}
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: `${LABEL_W}px repeat(${versions.length}, ${COL_W}px)`,
+                  gridTemplateColumns: `${LABEL_W}px 1fr`,
                   borderBottom: '1px solid #f1f1f1',
                   borderTop: rowPads?.[row.component] ? '1px solid #f1f1f1' : undefined,
                   opacity: matchFilter && groups.length === 0 ? 0.4 : 1,
@@ -408,43 +412,54 @@ export default function ProductComparePanel(props: Props) {
                   </div>
                   {counts}
                 </button>
-                {versions.map((v) => {
-                  const hasComponent = row.presentIn.includes(v.id);
-                  const mine = groups.filter((g) => g.perVersion[v.id]);
-                  return (
+                <div>
+                  {groups.map((g, gi) => (
                     <div
-                      key={v.id}
+                      key={g.key}
                       style={{
-                        padding: 6,
-                        borderLeft: '1px solid #f1f1f1',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 5,
-                        minWidth: 0,
+                        display: 'grid',
+                        gridTemplateColumns: `repeat(${versions.length}, ${COL_W}px)`,
+                        alignItems: 'start',
+                        borderTop: gi > 0 ? '1px dashed #f1f1f1' : undefined,
                       }}
                     >
-                      {!hasComponent ? (
-                        <span style={{ fontSize: 10, color: '#d4d4d4', padding: '2px 4px' }}>
-                          not in this version
-                        </span>
-                      ) : mine.length === 0 ? (
-                        <span style={{ fontSize: 10, color: '#d4d4d4', padding: '2px 4px' }}>
-                          —
-                        </span>
-                      ) : (
-                        mine.map((g) => (
-                          <ElementCard
-                            key={g.key}
-                            group={g}
-                            versionId={v.id}
-                            selected={g.key === selectedKey}
-                            onSelect={onSelect}
-                          />
-                        ))
-                      )}
+                      {versions.map((v) => (
+                        <div
+                          key={v.id}
+                          style={{ padding: 6, borderLeft: '1px solid #f1f1f1', minWidth: 0 }}
+                        >
+                          {g.perVersion[v.id] ? (
+                            <ElementCard
+                              group={g}
+                              versionId={v.id}
+                              selected={g.key === selectedKey}
+                              onSelect={onSelect}
+                            />
+                          ) : null}
+                        </div>
+                      ))}
                     </div>
-                  );
-                })}
+                  ))}
+                  {groups.length === 0 && (
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: `repeat(${versions.length}, ${COL_W}px)`,
+                      }}
+                    >
+                      {versions.map((v) => (
+                        <div
+                          key={v.id}
+                          style={{ padding: 6, borderLeft: '1px solid #f1f1f1', minWidth: 0 }}
+                        >
+                          <span style={{ fontSize: 10, color: '#d4d4d4', padding: '2px 4px' }}>
+                            —
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })}

@@ -112,6 +112,10 @@ export default function WorkspaceMap({ initialDomain }: { initialDomain?: string
   // A crash inside one comparison must never blank the whole tab — the
   // boundary shows a reset that remounts the board with fresh state.
   const [boardKey, setBoardKey] = useState(0);
+  // Recursion stop: screen previews iframe app pages, and an embedded app must
+  // never render the board again (board → preview → board … melts the page).
+  if (window.self !== window.top)
+    return <EmptyState message="The Workspace board doesn't render inside screen previews." />;
   if (lens === 'products') return <ProductBoard lens={lens} onLens={setLens} />;
   return (
     <BoardErrorBoundary onReset={() => setBoardKey((k) => k + 1)}>
