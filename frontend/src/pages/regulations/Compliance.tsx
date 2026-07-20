@@ -9,7 +9,7 @@ import { BackButton } from '../../components/ui';
 import { RegulationBrowser } from './compliance/RegulationBrowser';
 import { ReviewQueue } from './compliance/ReviewQueue';
 import { ItemDrawer } from './compliance/ItemDrawer';
-import type { ComplianceSummary } from './compliance/shared';
+import { COMPLIANCE_LENS_KEY, type ComplianceSummary } from './compliance/shared';
 
 // Compliance register — /regulations/compliance. The SCRUM-46 v2
 // determination-ready register imported from the frozen workbook baseline:
@@ -30,9 +30,8 @@ const LENSES = [
   ['federal', 'Federal'],
   ['state', 'State'],
 ] as const;
-const LENS_KEY = 'regulations.compliance.lens';
 const initialLens = (): string => {
-  const saved = sessionStorage.getItem(LENS_KEY);
+  const saved = sessionStorage.getItem(COMPLIANCE_LENS_KEY);
   return LENSES.some(([v]) => v === saved) ? (saved ?? '') : '';
 };
 
@@ -42,7 +41,7 @@ export default function Compliance() {
   const [view, setView] = useState<View>('byRegulation');
   const [lens, setLensState] = useState<string>(initialLens);
   const setLens = (v: string) => {
-    sessionStorage.setItem(LENS_KEY, v);
+    sessionStorage.setItem(COMPLIANCE_LENS_KEY, v);
     setLensState(v);
   };
   const [openItemId, setOpenItemId] = useState<string | null>(null);

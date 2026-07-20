@@ -5,6 +5,7 @@ import { useApi } from '../../lib/useApi';
 import { withCompany, Tile } from '../../lib/portfolio';
 import { useRegisterCrumb } from '../../lib/breadcrumbs';
 import { RequirementsTable } from './RequirementsTable';
+import { COMPLIANCE_LENS_KEY } from './compliance/shared';
 
 // Regulations — three lenses, each a FLAT table where every row is ONE atomic
 // regulation. Rows open the regulation's own page (/regulations/requirement/:id);
@@ -490,12 +491,17 @@ export default function Regulations() {
   const jurLabel =
     tab === 'State' ? 'Jurisdictions' : tab === 'Federal' ? 'Agencies' : 'Regulators';
 
-  // Compliance register (SCRUM-46 v2) — cross-lens; replaces the old
-  // complianceFlagged bucket (the "137" tile was a random placeholder).
+  // Compliance register (SCRUM-46 v2) — scoped to the active lens; replaces
+  // the old complianceFlagged bucket (the "137" tile was a random placeholder).
   const { data: compliance } = useApi<{
+    regulations: number;
     items: number;
     signOff: { confirmed: number };
-  }>(companyId ? withCompany('/regulations/compliance-register/summary', companyId) : null);
+  }>(
+    companyId
+      ? withCompany(`/regulations/compliance-register/summary?lens=${LENS_PARAM[tab]}`, companyId)
+      : null,
+  );
 
   return (
     <div>
@@ -523,8 +529,12 @@ export default function Regulations() {
               tone="positive"
               label="Compliance"
               value={compliance.items.toLocaleString()}
-              hint={`compliance items · ${compliance.signOff.confirmed.toLocaleString()} confirmed by Legal`}
-              onClick={() => navigate('/regulations/compliance')}
+              hint={`items across ${compliance.regulations.toLocaleString()} ${tab.toLowerCase()} regulations · ${compliance.signOff.confirmed.toLocaleString()} confirmed`}
+              onClick={() => {
+                // Land the register on the lens the user was looking at.
+                sessionStorage.setItem(COMPLIANCE_LENS_KEY, LENS_PARAM[tab]);
+                navigate('/regulations/compliance');
+              }}
             />
           )}
           <Tile

@@ -44,6 +44,11 @@ export const LENS_LABEL: Record<string, string> = {
   international: 'International',
 };
 
+// sessionStorage key for the register's active lens tab — also written by the
+// Regulations landing page so its Compliance tile deep-links into the lens the
+// user was looking at.
+export const COMPLIANCE_LENS_KEY = 'regulations.compliance.lens';
+
 export type ItemRow = {
   id: string;
   itemCode: string;
