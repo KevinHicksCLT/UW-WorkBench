@@ -1,20 +1,36 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { LoadingState, ErrorMessage, EmptyState } from '../../components/ui';
-import { useBoardList, useBoardDetail, type Lens } from './useBoard';
+import { useBoardList, useBoardDetails, type Lens } from './useBoard';
 import { FlowEdges, useEdges, type EdgeSpec } from './FlowEdges';
 import LensBar, { type WorkspaceLens } from './LensBar';
+import AppPicker, { type AppOption } from './AppPicker';
 import BrownfieldPanel from './BrownfieldPanel';
 import NormalizeColumn from './NormalizeColumn';
 import GreenfieldColumn from './GreenfieldColumn';
 import ProductBoard from './product/ProductBoard';
-import { LAYERS, findingMoves, GREEN, RED, READABLE_FIT_MIN } from './types';
-import type { Finding } from './types';
+import VsStreamBoard from './spine/VsStreamBoard';
+import RoleCompareBoard from './spine/RoleCompareBoard';
+import BoardErrorBoundary from './BoardErrorBoundary';
+import {
+  computeCapabilityAreas,
+  computeCrossAppEntries,
+  matchScreensAcrossApps,
+  synthesizeGreenfield,
+} from './compare';
+import { ALL_SCREENS, LAYERS, findingMoves, GREEN, RED, READABLE_FIT_MIN } from './types';
+import type { BoardDetail, Finding, Layer } from './types';
+import { useLayerAlignment } from './useLayerAlignment';
 
 // The Workspace map — an interactive, three-column rationalization board
 // (brown-field decomposition → normalize → green-field target) rendered from
 // the live APIs. The Applications / Value streams / Roles lenses share the
 // /rationalization board; the Products lens renders its own comparison board
 // (product/ProductBoard) over /product-models/workspaces.
+//
+// Like the Products lens, the board compares a PICKED SET of scanned
+// applications (from any board): the Brownfield panel walks ONE of them at a
+// time (app toggle + screen picker), while Normalize and Greenfield always
+// aggregate every application in the comparison.
 
 function TraceBreadcrumb({
   finding,
@@ -101,18 +117,51 @@ function lensFromDomain(d?: string): WorkspaceLens {
 
 export default function WorkspaceMap({ initialDomain }: { initialDomain?: string }) {
   const [lens, setLens] = useState<WorkspaceLens>(lensFromDomain(initialDomain));
+  // A crash inside one comparison must never blank the whole tab — the
+  // boundary shows a reset that remounts the board with fresh state.
+  const [boardKey, setBoardKey] = useState(0);
+  // Recursion stop: screen previews iframe app pages, and an embedded app must
+  // never render the board again (board → preview → board … melts the page).
+  if (window.self !== window.top)
+    return <EmptyState message="The Workspace board doesn't render inside screen previews." />;
   if (lens === 'products') return <ProductBoard lens={lens} onLens={setLens} />;
-  return <AppBoard lens={lens} onLens={setLens} />;
+  // Spine lenses compare the REAL operating-model graph: N value streams or
+  // N roles horizontally, with consolidation computed on the fly.
+  if (lens === 'value-streams')
+    return (
+      <BoardErrorBoundary onReset={() => setBoardKey((k) => k + 1)}>
+        <VsStreamBoard key={boardKey} lens={lens} onLens={setLens} />
+      </BoardErrorBoundary>
+    );
+  if (lens === 'roles')
+    return (
+      <BoardErrorBoundary onReset={() => setBoardKey((k) => k + 1)}>
+        <RoleCompareBoard key={boardKey} lens={lens} onLens={setLens} />
+      </BoardErrorBoundary>
+    );
+  return (
+    <BoardErrorBoundary onReset={() => setBoardKey((k) => k + 1)}>
+      <AppBoard key={boardKey} lens={lens} onLens={setLens} />
+    </BoardErrorBoundary>
+  );
 }
 
 function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => void }) {
   const [boardId, setBoardId] = useState<string | null>(null);
+  // The picked comparison set (null = the active board's own apps) and which
+  // of them the Brownfield panel is currently walking.
+  const [pickedAppIds, setPickedAppIds] = useState<Set<string> | null>(null);
+  const [activeAppId, setActiveAppId] = useState<string | null>(null);
   const [screenName, setScreenName] = useState<string | null>(null);
   const [selected, setSelected] = useState<Finding | null>(null);
   const [zoom, setZoom] = useState(1);
+  // One expand/collapse state per LAYER, shared by all three columns: opening
+  // "UI" anywhere opens the UI row in the panel, the Normalize section and the
+  // Greenfield floor together, so the whole band reads as one row.
+  const [expandedLayers, setExpandedLayers] = useState<Partial<Record<Layer, boolean>>>({});
+  const toggleLayer = (layer: Layer) => setExpandedLayers((c) => ({ ...c, [layer]: !c[layer] }));
 
   const { data: boards, loading: listLoading, error: listError } = useBoardList({ lens });
-  const { data: board, loading, error, refetch } = useBoardDetail(boardId);
 
   // Default the selected board to the first in the list for the active lens.
   useEffect(() => {
@@ -122,25 +171,175 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     if (boards && boards.length === 0) setBoardId(null);
   }, [boards, boardId]);
 
-  // A board switch resets the current-state scope.
+  // Every scanned application across every board of the lens, as one FLAT
+  // pool — the compare picker can mix applications from any board, and its
+  // domain/value-stream filters come from the owning board's wiring.
+  const pool: AppOption[] = useMemo(
+    () =>
+      (boards ?? []).flatMap((b) => {
+        const legacy = (b.apps ?? []).filter((a) => a.kind === 'LEGACY');
+        const src = legacy.length ? legacy : (b.apps ?? []);
+        return src.map((a) => ({
+          id: a.id,
+          name: a.name,
+          boardId: b.id,
+          valueStream: b.valueStream,
+          domain: b.valueStreamDomain,
+        }));
+      }),
+    [boards],
+  );
+
+  // Selection defaults to the active board's own applications.
+  const selectedAppIds = useMemo(
+    () => pickedAppIds ?? new Set(pool.filter((o) => o.boardId === boardId).map((o) => o.id)),
+    [pickedAppIds, pool, boardId],
+  );
+  const selectedOptions = useMemo(
+    () => pool.filter((o) => selectedAppIds.has(o.id)),
+    [pool, selectedAppIds],
+  );
+  const involvedBoardIds = useMemo(
+    () => [...new Set(selectedOptions.map((o) => o.boardId))],
+    [selectedOptions],
+  );
+  const selectionKey = useMemo(() => [...selectedAppIds].sort().join('+'), [selectedAppIds]);
+
+  const { data: details, loading, error, refetch } = useBoardDetails(involvedBoardIds);
+
+  // A board switch resets the whole comparison scope.
   useEffect(() => {
+    setPickedAppIds(null);
+    setActiveAppId(null);
     setScreenName(null);
     setSelected(null);
-  }, [board]);
+    setExpandedLayers({});
+  }, [boardId]);
+
+  // A different comparison (app added/removed) starts collapsed again.
+  useEffect(() => {
+    setSelected(null);
+    setExpandedLayers({});
+  }, [selectionKey]);
+
+  // A screen switch starts collapsed again (the counts live in the headers).
+  useEffect(() => {
+    setExpandedLayers({});
+  }, [screenName]);
+
+  // Merge the involved boards into one comparison, scoped to the picked apps.
+  // Normalize/Greenfield read this full scope; the Brownfield panel narrows
+  // further to its active application.
+  const merged = useMemo(() => {
+    if (!details) return null;
+    const list = involvedBoardIds
+      .map((id) => details[id])
+      .filter((b): b is BoardDetail => Boolean(b));
+    if (list.length === 0) return null;
+    const boardOfApp = new Map<string, string>();
+    const boardOfMs = new Map<string, string>();
+    const boardOfComp = new Map<string, string>();
+    for (const b of list) {
+      for (const a of b.apps) boardOfApp.set(a.id, b.id);
+      for (const m of b.microservices) boardOfMs.set(m.id, b.id);
+      for (const c of b.components) boardOfComp.set(c.id, b.id);
+    }
+    const apps = list.flatMap((b) => b.apps.filter((a) => selectedAppIds.has(a.id)));
+    const findings = list.flatMap((b) => b.findings.filter((f) => selectedAppIds.has(f.appId)));
+    const inScope = new Set(findings.map((f) => f.id));
+    // Same-board comparisons keep their scan-authored entries (field-level
+    // cards, review verdicts). A MIXED-board comparison has no authored rows
+    // spanning its applications, so the shared/unique verdict is computed on
+    // the fly from the findings themselves — generic for any pair of scanned
+    // applications; zero overlap yields zero consolidation entries.
+    const crossBoard = list.length > 1;
+    const normalizationEntries = crossBoard
+      ? computeCrossAppEntries(findings)
+      : list.flatMap((b) =>
+          b.normalizationEntries.filter((e) => e.findingIds.some((id) => inScope.has(id))),
+        );
+    // A comparison has ONE greenfield: mixed-board scopes synthesize a unified
+    // target platform on the fly (layer slots merged from the boards' own
+    // targets) instead of stacking each board's card.
+    const gf = crossBoard ? synthesizeGreenfield(list) : null;
+    const title = apps.map((a) => a.name).join(' + ');
+    return {
+      name: title,
+      application: title,
+      apps,
+      findings,
+      normalizationEntries,
+      components: gf ? gf.components : list.flatMap((b) => b.components),
+      microservices: gf ? [gf.microservice] : list.flatMap((b) => b.microservices),
+      screens: list.flatMap((b) => b.screens.filter((s) => selectedAppIds.has(s.appId))),
+      boardOfApp,
+      boardOfMs,
+      boardOfComp,
+    };
+  }, [details, involvedBoardIds, selectedAppIds]);
+
+  const addApp = (id: string) => {
+    const next = new Set(selectedAppIds);
+    next.add(id);
+    setPickedAppIds(next);
+  };
+  const removeApp = (id: string) => {
+    if (selectedAppIds.size === 1) return; // at least one application stays
+    const next = new Set(selectedAppIds);
+    next.delete(id);
+    setPickedAppIds(next);
+    if (activeAppId === id) setActiveAppId(null);
+  };
+  const replaceApp = (oldId: string, newId: string) => {
+    if (oldId === newId) return;
+    const next = new Set(selectedAppIds);
+    next.delete(oldId);
+    next.add(newId);
+    setPickedAppIds(next);
+    if (activeAppId === oldId) setActiveAppId(null);
+  };
+
+  // The Brownfield panel walks ONE application of the comparison at a time.
+  const activeApp = merged
+    ? (merged.apps.find((a) => a.id === activeAppId) ?? merged.apps[0] ?? null)
+    : null;
+  const activeId = activeApp?.id ?? null;
+
+  // Switching the brownfield application restarts its screen walk — unless the
+  // current pick already belongs to the new application (a shared-dropdown pick
+  // switched the app) or is the ALL_SCREENS view.
+  const screenOwner = (name: string): string | null =>
+    merged?.screens.find((s) => s.name === name)?.appId ?? null;
+  useEffect(() => {
+    setSelected(null);
+    setScreenName((cur) =>
+      !cur || cur === ALL_SCREENS || screenOwner(cur) === activeId ? cur : null,
+    );
+  }, [activeId]);
+
+  // Shared dropdown: picking another application's screen walks that app.
+  const pickScreen = (name: string | null) => {
+    setSelected(null);
+    if (name && name !== ALL_SCREENS) {
+      const owner = screenOwner(name);
+      if (owner && owner !== activeId) setActiveAppId(owner);
+    }
+    setScreenName(name);
+  };
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const activeLayer = selected ? selected.layer : null;
 
-  // Fit-to-frame: scale the canvas once per board so all three columns are in
-  // view on load; after that the zoom buttons own the scale. Width-only — the
-  // columns are tall lists, so fitting height too crushed the board to the
-  // zoom floor and made it unreadable; the board scrolls vertically instead.
-  // zoom is read via a ref so setting it here can never re-trigger this effect.
+  // Fit-to-frame: scale the canvas once per comparison so all three columns
+  // are in view on load; after that the zoom buttons own the scale. Width-only
+  // — the columns are tall lists, so fitting height too crushed the board to
+  // the zoom floor and made it unreadable; the board scrolls vertically
+  // instead. zoom is read via a ref so setting it can't re-trigger the effect.
   const fittedFor = useRef<string | null>(null);
   const zoomRef = useRef(zoom);
   zoomRef.current = zoom;
   useEffect(() => {
-    if (!board || fittedFor.current === board.id) return;
+    if (!merged || fittedFor.current === selectionKey) return;
     const canvas = canvasRef.current;
     const scroller = canvas?.parentElement;
     if (!canvas || !scroller) return;
@@ -148,39 +347,96 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     const rect = canvas.getBoundingClientRect();
     const naturalW = rect.width / (zoomRef.current || 1);
     if (naturalW <= 0) return;
-    fittedFor.current = board.id;
+    fittedFor.current = selectionKey;
     const fit = Math.min(1, (scroller.clientWidth - 8) / naturalW);
     setZoom(Math.max(READABLE_FIT_MIN, Math.round(fit * 100) / 100));
-  }, [board]);
+  }, [merged, selectionKey]);
 
-  const legacyApps = useMemo(() => {
-    if (!board) return [];
-    const legacy = board.apps.filter((a) => a.kind === 'LEGACY');
-    return legacy.length ? legacy : board.apps;
-  }, [board]);
-
-  // App-scoped findings feed the panel (it does its own per-screen grouping);
-  // the connector counts additionally narrow to the active screen so the map
-  // always agrees with what the panel is showing.
-  const appScoped = useMemo(() => {
-    if (!board) return [];
-    const ids = new Set(legacyApps.map((a) => a.id));
-    return board.findings.filter((f) => ids.has(f.appId));
-  }, [board, legacyApps]);
-
+  // Brownfield scope: the active application's findings/screens; the connector
+  // counts additionally narrow to the active screen so the map always agrees
+  // with what the panel is showing.
+  const bfFindings = useMemo(
+    () => (merged && activeId ? merged.findings.filter((f) => f.appId === activeId) : []),
+    [merged, activeId],
+  );
+  // ALL_SCREENS walks every screen at once — no single-screen narrowing; the
+  // Normalize column groups the full comparison by functional area instead.
+  const screenWalk = screenName && screenName !== ALL_SCREENS ? screenName : null;
   const scoped = useMemo(
-    () => (screenName ? appScoped.filter((f) => f.screenRef === screenName) : appScoped),
-    [appScoped, screenName],
+    () => (screenWalk ? bfFindings.filter((f) => f.screenRef === screenWalk) : bfFindings),
+    [bfFindings, screenWalk],
   );
 
+  // The whole band follows the Brownfield walk BY SCREEN: while a screen is
+  // active, only that screen's steps stay in the model — Normalize and
+  // Greenfield show the screen's slice, never the totals. The SEMANTICALLY
+  // MATCHING screen of every other compared application joins the slice (both
+  // apps' "Login" compare side by side), and shared entries drag their partner
+  // sources back in so consolidations still read N→1.
+  const matchedScreens = useMemo(
+    () =>
+      merged && screenWalk && activeId
+        ? matchScreensAcrossApps(merged.screens, activeId, screenWalk)
+        : new Map<string, string>(),
+    [merged, activeId, screenWalk],
+  );
+  const modelEntries = useMemo(() => {
+    if (!merged) return [];
+    const walked =
+      !screenWalk || !activeId
+        ? merged.findings
+        : merged.findings.filter((f) =>
+            f.appId === activeId
+              ? f.screenRef === screenWalk
+              : matchedScreens.get(f.appId) === f.screenRef,
+          );
+    const ids = new Set(walked.map((f) => f.id));
+    return merged.normalizationEntries.filter((e) => e.findingIds.some((id) => ids.has(id)));
+  }, [merged, activeId, screenWalk, matchedScreens]);
+  const modelFindings = useMemo(() => {
+    if (!merged) return [];
+    if (!screenWalk || !activeId) return merged.findings;
+    const partners = new Set(modelEntries.flatMap((e) => e.findingIds));
+    return merged.findings.filter((f) =>
+      f.appId === activeId
+        ? f.screenRef === screenWalk
+        : matchedScreens.get(f.appId) === f.screenRef || partners.has(f.id),
+    );
+  }, [merged, activeId, screenWalk, matchedScreens, modelEntries]);
+  // Capability areas keep the "all screens" view readable AND comparable:
+  // every step classifies into the same generic taxonomy (Intake,
+  // Authentication, Logging …) regardless of application vocabulary, so both
+  // sides produce identical groups and their steps meet inside them.
+  const areas = useMemo(
+    () => (merged && !screenWalk ? computeCapabilityAreas(modelFindings) : null),
+    [merged, screenWalk, modelFindings],
+  );
+
+  // Greenfield pass-through scoping: a target service only counts findings
+  // from ITS OWN board's applications (cross-board findings never leak onto
+  // another initiative's floors).
+  const findingsByMs = useMemo(() => {
+    const m = new Map<string, Finding[]>();
+    if (!merged) return m;
+    for (const ms of merged.microservices) {
+      const bId = merged.boardOfMs.get(ms.id);
+      // A synthesized unified platform belongs to no single board — the whole
+      // comparison lands on it.
+      m.set(
+        ms.id,
+        bId === undefined
+          ? modelFindings
+          : modelFindings.filter((f) => merged.boardOfApp.get(f.appId) === bId),
+      );
+    }
+    return m;
+  }, [merged, modelFindings]);
+
   const specs: EdgeSpec[] = useMemo(() => {
-    if (!board) return [];
-    const mine = scoped;
-    const componentByLayer = new Map(board.components.map((c) => [c.layer, c]));
+    if (!merged) return [];
     const out: EdgeSpec[] = [];
     for (const layer of LAYERS) {
-      const rows = mine.filter((f) => f.layer === layer);
-      if (rows.length === 0) continue;
+      const rows = scoped.filter((f) => f.layer === layer);
       const stays = rows.filter((f) => !findingMoves(f)).length;
       const moves = rows.length - stays;
       const dim = activeLayer != null && activeLayer !== layer;
@@ -214,34 +470,83 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
           y1Offset: both ? 10 : 0,
           lane: both ? base + 1 : base,
         });
-      const comp = componentByLayer.get(layer);
-      if (comp?.microserviceId)
-        out.push({
-          id: `g-${layer}`,
-          from: `nz:${layer}`,
-          to: `gf:${comp.microserviceId}:${layer}`,
-          color: GREEN,
-          width: 2.5,
-          dim,
-          lane: base,
-        });
+      // One green edge per component whose floor actually renders — a merged
+      // comparison can land the same layer on several boards' services.
+      for (const comp of merged.components) {
+        if (comp.layer !== layer || !comp.microserviceId) continue;
+        const lands =
+          modelEntries.some((e) => e.componentId === comp.id) ||
+          (findingsByMs.get(comp.microserviceId) ?? []).some(
+            (f) => f.layer === layer && !f.deadCode && f.capdan !== 'Eliminate',
+          );
+        if (lands)
+          out.push({
+            id: `g-${comp.id}`,
+            from: `nz:${layer}`,
+            to: `gf:${comp.microserviceId}:${layer}`,
+            color: GREEN,
+            width: 2.5,
+            dim,
+            lane: base,
+          });
+      }
     }
     return out;
-  }, [board, scoped, activeLayer]);
+  }, [merged, scoped, activeLayer, findingsByMs]);
 
   const edges = useEdges(canvasRef, specs, zoom);
+  // SCRUM-222: line each layer's rows up across the three columns so the
+  // connectors run horizontally instead of criss-crossing diagonals.
+  const pads = useLayerAlignment(
+    canvasRef,
+    merged ? selectionKey : null,
+    merged?.components ?? [],
+    zoom,
+  );
 
   if (listLoading || loading) return <LoadingState message="Loading workspace board…" />;
   if (listError) return <ErrorMessage>{listError}</ErrorMessage>;
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
   if (!boards || boards.length === 0)
     return (
-      <EmptyState message="No rationalization boards for this lens yet. Switch the lens or seed a board." />
+      <EmptyState message="No scanned applications yet — the Workspace only shows applications whose codebase has been scanned. Open an application's page and run a codebase scan to light up its board." />
     );
-  if (!board) return <LoadingState message="Loading board…" />;
+  // Selection resolved to nothing (filters excluded every picked app, or the
+  // boards share no data) — keep the toolbar + picker so the user can adjust,
+  // instead of a dead "Loading…" or a crash.
+  if (!merged || !activeApp)
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <LensBar
+          lens={lens}
+          onLens={(l) => {
+            setSelected(null);
+            onLens(l);
+          }}
+          boards={[]}
+          boardId={null}
+          onBoard={() => undefined}
+        />
+        <AppPicker
+          pool={pool}
+          selected={selectedOptions}
+          onReplace={replaceApp}
+          onAdd={addApp}
+          onRemove={removeApp}
+        />
+        <EmptyState message="Nothing to compare for this selection — add a scanned application with the picker above, or clear the filters." />
+      </div>
+    );
 
   const destination = selected
-    ? (board.components.find((c) => c.layer === selected.layer)?.destination ?? null)
+    ? (merged.components.find(
+        (c) =>
+          c.layer === selected.layer &&
+          merged.boardOfComp.get(c.id) === merged.boardOfApp.get(selected.appId),
+      )?.destination ??
+      // Synthesized unified-platform components belong to no board.
+      merged.components.find((c) => c.layer === selected.layer)?.destination ??
+      null)
     : null;
 
   return (
@@ -256,18 +561,24 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
         minHeight: 480,
       }}
     >
+      {/* No board dropdown here — applications are picked flat via AppPicker;
+          the board is only the data container behind each application. */}
       <LensBar
         lens={lens}
         onLens={(l) => {
           setSelected(null);
           onLens(l);
         }}
-        boards={boards}
-        boardId={boardId}
-        onBoard={(id) => {
-          setBoardId(id);
-          setSelected(null);
-        }}
+        boards={[]}
+        boardId={null}
+        onBoard={() => undefined}
+      />
+      <AppPicker
+        pool={pool}
+        selected={selectedOptions}
+        onReplace={replaceApp}
+        onAdd={addApp}
+        onRemove={removeApp}
       />
       {selected && <TraceBreadcrumb finding={selected} destination={destination} />}
 
@@ -300,28 +611,39 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
           >
             <FlowEdges edges={edges} />
             <BrownfieldPanel
-              title={board.application || board.name}
-              findings={appScoped}
-              screens={board.screens}
+              title={activeApp.name}
+              apps={merged.apps}
+              activeAppId={activeApp.id}
+              onActiveApp={setActiveAppId}
+              findings={bfFindings}
+              screens={merged.screens}
               screenName={screenName}
-              onScreen={(n) => {
-                setScreenName(n);
-                setSelected(null);
-              }}
+              onScreen={pickScreen}
               selectedFindingId={selected?.id ?? null}
               onSelectFinding={setSelected}
+              layerPads={pads.bf}
+              expandedLayers={expandedLayers}
+              onToggleLayer={toggleLayer}
             />
             <NormalizeColumn
-              board={board}
+              board={merged}
               activeLayer={activeLayer}
-              findings={scoped}
+              findings={modelFindings}
+              areas={areas}
               onResolved={refetch}
+              layerPads={pads.nz}
+              expandedLayers={expandedLayers}
+              onToggleLayer={toggleLayer}
             />
             <GreenfieldColumn
-              microservices={board.microservices}
-              components={board.components}
-              findings={appScoped}
-              normalizationEntries={board.normalizationEntries}
+              microservices={merged.microservices}
+              components={merged.components}
+              findings={modelFindings}
+              findingsByMs={findingsByMs}
+              normalizationEntries={modelEntries}
+              layerPads={pads.gf}
+              expandedLayers={expandedLayers}
+              onToggleLayer={toggleLayer}
             />
           </div>
         </div>

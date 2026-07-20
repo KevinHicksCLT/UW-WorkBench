@@ -4,6 +4,7 @@ import { useApi } from '../../../lib/useApi';
 import LensBar, { type WorkspaceLens } from '../LensBar';
 import { FlowEdges, useEdges, type EdgeSpec } from '../FlowEdges';
 import { GREEN, AMBER, READABLE_FIT_MIN } from '../types';
+import { useRowAlignment, type AlignRow } from '../useLayerAlignment';
 import ProductComparePanel from './ProductComparePanel';
 import ProductNormalizeColumn from './ProductNormalizeColumn';
 import ProductGreenfieldColumn from './ProductGreenfieldColumn';
@@ -226,6 +227,12 @@ export default function ProductBoard({
   const [matchFilter, setMatchFilter] = useState<MatchStatus | null>(null);
   const [selected, setSelected] = useState<ElementGroup | null>(null);
   const [zoom, setZoom] = useState(1);
+  // One expand/collapse state per model COMPONENT, shared by the Normalize
+  // section and the Greenfield slot — an aligned band opens as one row
+  // (mirrors the application board's synced layer expansion).
+  const [expandedComponents, setExpandedComponents] = useState<Record<string, boolean>>({});
+  const toggleComponent = (component: string) =>
+    setExpandedComponents((c) => ({ ...c, [component]: !c[component] }));
 
   // Default to the first LOB where a comparison exists (2+ versions).
   useEffect(() => {
@@ -238,6 +245,7 @@ export default function ProductBoard({
     setPickedVersionIds(null);
     setMatchFilter(null);
     setSelected(null);
+    setExpandedComponents({});
   }, [lobId]);
 
   const lob = lobs.find((l) => l.id === lobId) ?? null;
@@ -272,6 +280,11 @@ export default function ProductBoard({
     for (const d of decisionRows ?? []) m[d.groupKey] = d.status;
     return m;
   }, [decisionRows]);
+
+  // A different comparison (version added/removed) starts collapsed again.
+  useEffect(() => {
+    setExpandedComponents({});
+  }, [selectedVersionIds]);
 
   const addVersion = (id: string) => {
     const next = new Set(selectedVersionIds);
@@ -370,6 +383,18 @@ export default function ProductBoard({
   }, [comparison, matchFilter, activeComponent]);
 
   const edges = useEdges(canvasRef, specs, zoom);
+  // Align each component band across the three columns (straight connectors).
+  const alignRows: AlignRow[] = useMemo(
+    () =>
+      comparison.rows.map((r) => ({
+        key: r.component,
+        bf: `bf:${r.component}`,
+        nz: `nz:${r.component}`,
+        gf: `gf:model:${r.component}`,
+      })),
+    [comparison],
+  );
+  const pads = useRowAlignment(canvasRef, fitKey, alignRows, zoom);
 
   if (loading) return <LoadingState message="Loading the product spine…" />;
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
@@ -454,8 +479,12 @@ export default function ProductBoard({
               }}
               selectedKey={selected?.key ?? null}
               onSelect={setSelected}
+              rowPads={pads.bf}
+              expandedComponents={expandedComponents}
+              onToggleComponent={toggleComponent}
             />
             <ProductNormalizeColumn
+              lobName={crossLob ? `${lob.name} + other lines` : lob.name}
               versions={versions}
               comparison={comparison}
               matchFilter={matchFilter}
@@ -463,6 +492,9 @@ export default function ProductBoard({
               lobId={lob.id}
               decisions={decisions}
               onResolved={refetchDecisions}
+              rowPads={pads.nz}
+              expandedComponents={expandedComponents}
+              onToggleComponent={toggleComponent}
             />
             <ProductGreenfieldColumn
               lobName={lob.name}
@@ -470,6 +502,9 @@ export default function ProductBoard({
               comparison={comparison}
               matchFilter={matchFilter}
               decisions={decisions}
+              rowPads={pads.gf}
+              expandedComponents={expandedComponents}
+              onToggleComponent={toggleComponent}
             />
           </div>
         </div>

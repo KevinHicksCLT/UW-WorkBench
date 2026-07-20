@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { api } from '../../../lib/api';
 import { GREEN, AMBER, INDIGO } from '../types';
+import ReviewModal, { REVIEW_STATUS, type ReviewStatusChip } from '../ReviewModal';
+import OverviewCard, { OVERVIEW_TONES } from './OverviewCard';
 import { MATCH_META } from './spine';
 import type {
   Comparison,
@@ -35,6 +37,7 @@ function CountKey({ color, n, label }: { color: string; n: number; label: string
 // Approve / Hold controls, persisted per group via /product-spine/decisions.
 
 interface Props {
+  lobName: string;
   versions: VersionColumn[];
   comparison: Comparison;
   matchFilter: MatchStatus | null;
@@ -42,6 +45,11 @@ interface Props {
   lobId: string;
   decisions: Decisions;
   onResolved: () => void;
+  /** Per-component top spacing that lines this column's rows up with the others. */
+  rowPads?: Record<string, number>;
+  /** Shared per-component expansion — one toggle opens the band in every column. */
+  expandedComponents: Record<string, boolean>;
+  onToggleComponent: (component: string) => void;
 }
 
 function ColumnHeads({ names }: { names: string[] }) {
@@ -164,22 +172,26 @@ function CardFooter({ kind, text }: { kind: 'same' | 'different'; text: string }
   );
 }
 
-/** Approve (adopt everywhere) / Hold (keep as variant) for a review group. */
+/** Review bar for a varies/unique group — opens the shared decision modal
+ *  with the full per-version picture and explicit consequence choices. */
 function ReviewActions({
   lobId,
   group,
+  versions,
   decision,
   onResolved,
 }: {
   lobId: string;
   group: ElementGroup;
+  versions: VersionColumn[];
   decision: ProductDecisionStatus | undefined;
   onResolved: () => void;
 }) {
-  const [saving, setSaving] = useState<ProductDecisionStatus | null>(null);
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState<string | null>(null);
   const [err, setErr] = useState('');
 
-  const resolve = async (status: ProductDecisionStatus) => {
+  const resolve = async (status: string) => {
     setErr('');
     setSaving(status);
     try {
@@ -190,23 +202,23 @@ function ReviewActions({
         status,
       });
       onResolved();
+      setOpen(false);
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Failed');
+    } finally {
       setSaving(null);
     }
   };
 
-  const btn = (bg: string, fg: string, bd: string): React.CSSProperties => ({
-    padding: '3px 10px',
-    borderRadius: 5,
-    border: `1px solid ${bd}`,
-    background: bg,
-    color: fg,
-    fontSize: 10.5,
-    fontWeight: 700,
-    cursor: saving ? 'default' : 'pointer',
-    opacity: saving ? 0.6 : 1,
-  });
+  const carriers = versions.filter((v) => group.perVersion[v.id]);
+  const missing = versions.length - carriers.length;
+  const carrierNames = carriers.map((v) => v.name).join(', ');
+  const chip: ReviewStatusChip =
+    decision === 'APPROVED'
+      ? { label: 'Adopted', fg: '#15803d', bg: '#dcfce7', border: '#86efac' }
+      : decision === 'HELD'
+        ? REVIEW_STATUS.held
+        : REVIEW_STATUS.review;
 
   return (
     <div
@@ -221,32 +233,77 @@ function ReviewActions({
     >
       <span style={{ fontSize: 10.5, color: '#92400e', flex: 1 }}>
         {decision === 'APPROVED'
-          ? 'Approved — adopts across every version.'
+          ? 'Adopted — part of the normalized model.'
           : decision === 'HELD'
-            ? 'Held as a version variant — approve to adopt everywhere.'
-            : 'Adopt everywhere, or keep as a version variant.'}
+            ? 'Held as a version variant — not in the model.'
+            : `In ${group.presentIn} of ${versions.length} versions — needs a decision.`}
       </span>
-      {err && <span style={{ fontSize: 10, color: '#dc2626' }}>{err}</span>}
-      {decision !== 'APPROVED' && (
-        <button
-          type="button"
-          disabled={!!saving}
-          onClick={() => resolve('APPROVED')}
-          style={btn('#16a34a', '#fff', '#15803d')}
-        >
-          {saving === 'APPROVED' ? 'Approving…' : 'Approve'}
-        </button>
-      )}
-      {decision !== 'HELD' && (
-        <button
-          type="button"
-          disabled={!!saving}
-          onClick={() => resolve('HELD')}
-          style={btn('#fff', '#92400e', '#fbbf24')}
-        >
-          {saving === 'HELD' ? 'Holding…' : 'Hold as variant'}
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        style={{
+          padding: '3px 10px',
+          borderRadius: 5,
+          border: '1px solid #fbbf24',
+          background: decision ? '#fff' : '#f59e0b',
+          color: decision ? '#92400e' : '#fff',
+          fontSize: 10.5,
+          fontWeight: 700,
+          cursor: 'pointer',
+          font: 'inherit',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {decision ? 'Change decision' : 'Review'}
+      </button>
+      <ReviewModal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={group.name}
+        status={chip}
+        context={`${group.component} · carried by ${group.presentIn} of ${versions.length} compared versions`}
+        question={
+          group.status === 'UNIQUE'
+            ? `Only ${carrierNames || 'one version'} carries this element. Should the single normalized model adopt it for every version, or is it a jurisdiction/version-specific variant?`
+            : `${group.presentIn} of ${versions.length} versions carry this element. Should the normalized model adopt it everywhere, or keep it a variant of the versions that have it?`
+        }
+        sources={versions.map((v) => {
+          const el = group.perVersion[v.id];
+          return {
+            key: v.id,
+            name: v.name,
+            sub: v.productName,
+            present: !!el,
+            title: el?.element,
+            detail: el?.description ?? undefined,
+            code: el?.livesIn ?? undefined,
+          };
+        })}
+        sourcesLabel={`Across the ${versions.length} compared versions`}
+        choices={[
+          {
+            key: 'APPROVED',
+            label: 'Adopt into the model',
+            tone: 'adopt',
+            current: decision === 'APPROVED',
+            explain:
+              `“${group.name}” becomes part of the single normalized model — all ${versions.length} ` +
+              `versions align to it${missing > 0 ? `, including the ${missing} that don't carry it today` : ''}. `,
+          },
+          {
+            key: 'HELD',
+            label: 'Keep as a version variant',
+            tone: 'hold',
+            current: decision === 'HELD',
+            explain:
+              `Stays specific to ${carrierNames || 'its versions'} as a jurisdiction/version variant. ` +
+              'It is left OUT of the normalized model unless adopted later.',
+          },
+        ]}
+        busyKey={saving}
+        error={err}
+        onChoose={resolve}
+      />
     </div>
   );
 }
@@ -348,7 +405,13 @@ function GroupCard({
         />
       </div>
       {review && (
-        <ReviewActions lobId={lobId} group={group} decision={decision} onResolved={onResolved} />
+        <ReviewActions
+          lobId={lobId}
+          group={group}
+          versions={versions}
+          decision={decision}
+          onResolved={onResolved}
+        />
       )}
     </div>
   );
@@ -362,6 +425,9 @@ function ComponentSection({
   lobId,
   decisions,
   onResolved,
+  padTop,
+  open,
+  onToggle,
 }: {
   row: ComponentRow;
   versions: VersionColumn[];
@@ -370,8 +436,10 @@ function ComponentSection({
   lobId: string;
   decisions: Decisions;
   onResolved: () => void;
+  padTop: number;
+  open: boolean;
+  onToggle: () => void;
 }) {
-  const [open, setOpen] = useState(false);
   const groups = matchFilter ? row.groups.filter((g) => g.status === matchFilter) : row.groups;
   const raw = row.groups.reduce((a, g) => a + g.presentIn, 0);
   if (row.groups.length === 0) return null;
@@ -387,17 +455,18 @@ function ComponentSection({
         opacity: dim || (matchFilter != null && groups.length === 0) ? 0.45 : 1,
         transition: 'opacity .15s',
         overflow: 'hidden',
+        marginTop: padTop || undefined,
       }}
     >
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={onToggle}
         style={{
           width: '100%',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'baseline',
-          padding: '10px 12px',
+          padding: '8px 12px',
           background: '#fafafa',
           border: 'none',
           borderBottom: open ? '1px solid #e2e8f0' : 'none',
@@ -406,11 +475,11 @@ function ComponentSection({
           textAlign: 'left',
         }}
       >
-        <span style={{ fontSize: 14, fontWeight: 700 }}>
+        <span style={{ fontSize: 13, fontWeight: 700 }}>
           <span
             style={{
               color: '#a3a3a3',
-              fontSize: 11,
+              fontSize: 10,
               display: 'inline-block',
               transform: open ? 'none' : 'rotate(-90deg)',
               marginRight: 6,
@@ -420,9 +489,9 @@ function ComponentSection({
           </span>
           {row.component}
         </span>
-        <span style={{ fontSize: 12, color: '#525252', fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ fontSize: 11.5, color: '#525252', fontVariantNumeric: 'tabular-nums' }}>
           {raw} current →{' '}
-          <b style={{ fontWeight: 800, color: INDIGO, fontSize: 15 }}>{row.groups.length}</b>
+          <b style={{ fontWeight: 800, color: INDIGO, fontSize: 13 }}>{row.groups.length}</b>
         </span>
       </button>
       {open && (
@@ -459,6 +528,9 @@ export default function ProductNormalizeColumn({
   lobId,
   decisions,
   onResolved,
+  rowPads,
+  expandedComponents,
+  onToggleComponent,
 }: Props) {
   // Outstanding review = flagged groups not yet approved (held still counts).
   const approvedCount = comparison.rows.reduce(
@@ -505,7 +577,7 @@ export default function ProductNormalizeColumn({
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 6,
+            gap: 5,
             border: '1px solid #eaeaea',
             borderRadius: 999,
             background: '#fff',
@@ -514,11 +586,12 @@ export default function ProductNormalizeColumn({
             fontSize: 12,
             color: '#525252',
             fontVariantNumeric: 'tabular-nums',
+            whiteSpace: 'nowrap',
           }}
         >
-          <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.rawCount}</b> elements across{' '}
+          <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.rawCount}</b> elements ·{' '}
           {versions.length} version{versions.length === 1 ? '' : 's'} →{' '}
-          <b style={{ fontWeight: 700, color: '#171717' }}>{comparison.normalizedCount}</b> distinct
+          <b style={{ fontWeight: 700, color: INDIGO }}>{comparison.normalizedCount}</b> distinct
         </span>
         {versions.length > 1 && (
           <span
@@ -533,6 +606,7 @@ export default function ProductNormalizeColumn({
               padding: '3px 12px',
               fontSize: 12,
               fontVariantNumeric: 'tabular-nums',
+              whiteSpace: 'nowrap',
             }}
           >
             <CountKey color={MATCH_META.COMMON.fg} n={commonCount} label="common" />
@@ -541,6 +615,30 @@ export default function ProductNormalizeColumn({
           </span>
         )}
       </div>
+
+      <OverviewCard
+        tone={OVERVIEW_TONES.normalize}
+        tag="Normalizing"
+        right={`${
+          comparison.normalizedCount === 0
+            ? 0
+            : Math.round((settled / comparison.normalizedCount) * 100)
+        }%`}
+        track="#e0e7ff"
+        segments={[
+          { value: settled, color: INDIGO },
+          { value: outstandingReview, color: MATCH_META.PARTIAL.fg },
+        ]}
+      >
+        <span style={{ color: INDIGO }}>
+          {settled} settled into the model ·{' '}
+          {outstandingReview > 0 ? (
+            <span style={{ color: MATCH_META.PARTIAL.fg }}>{outstandingReview} to review</span>
+          ) : (
+            <span style={{ color: GREEN }}>nothing left to review</span>
+          )}
+        </span>
+      </OverviewCard>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {comparison.rows.map((row) => (
@@ -553,6 +651,9 @@ export default function ProductNormalizeColumn({
             lobId={lobId}
             decisions={decisions}
             onResolved={onResolved}
+            padTop={rowPads?.[row.component] ?? 0}
+            open={!!expandedComponents[row.component]}
+            onToggle={() => onToggleComponent(row.component)}
           />
         ))}
       </div>

@@ -1,3 +1,5 @@
+import { useCallback, useEffect, useState } from 'react';
+import { api } from '../../lib/api';
 import { useApi } from '../../lib/useApi';
 import type { BoardDetail, BoardSummary } from './types';
 
@@ -30,4 +32,43 @@ export function useBoardList(p: BoardListParams) {
 /** Full board detail; pass null while no board is selected. */
 export function useBoardDetail(id: string | null) {
   return useApi<BoardDetail>(id ? `/rationalization/${id}` : null);
+}
+
+/** Details for every board a cross-board comparison touches, keyed by board id.
+ *  The compare picker can pull applications from different boards, so the map
+ *  merges 1..n details client-side. */
+export function useBoardDetails(ids: string[]) {
+  const [data, setData] = useState<Record<string, BoardDetail> | null>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
+  // Stable key: same id set (any order) → no refetch.
+  const key = [...ids].sort().join(',');
+
+  useEffect(() => {
+    if (!key) {
+      setLoading(false);
+      setData(null);
+      return;
+    }
+    let active = true;
+    setLoading(true);
+    setError('');
+    Promise.all(key.split(',').map((id) => api.get<BoardDetail>(`/rationalization/${id}`)))
+      .then((boards) => {
+        if (active) setData(Object.fromEntries(boards.map((b) => [b.id, b])));
+      })
+      .catch((e) => {
+        if (active) setError(e instanceof Error ? e.message : 'Failed to load boards');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [key, reloadKey]);
+
+  const refetch = useCallback(() => setReloadKey((k) => k + 1), []);
+  return { data, error, loading, refetch };
 }

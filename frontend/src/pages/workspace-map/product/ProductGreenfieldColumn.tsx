@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { GREEN } from '../types';
+import OverviewCard, { OVERVIEW_TONES } from './OverviewCard';
 import { MATCH_META } from './spine';
 import type {
   Comparison,
@@ -26,6 +26,11 @@ interface Props {
   comparison: Comparison;
   matchFilter: MatchStatus | null;
   decisions: Decisions;
+  /** Per-component top spacing that lines each slot up with its band. */
+  rowPads?: Record<string, number>;
+  /** Shared per-component expansion — one toggle opens the band in every column. */
+  expandedComponents: Record<string, boolean>;
+  onToggleComponent: (component: string) => void;
 }
 
 /** Groups that are IN the normalized model: auto-folds + approved reviews. */
@@ -39,12 +44,17 @@ function GreenfieldSlot({
   row,
   decisions,
   dim,
+  padTop,
+  open,
+  onToggle,
 }: {
   row: ComponentRow;
   decisions: Decisions;
   dim: boolean;
+  padTop: number;
+  open: boolean;
+  onToggle: () => void;
 }) {
-  const [open, setOpen] = useState(false);
   const normalized = normalizedGroups(row, decisions);
   const toReconcile = row.groups.filter(
     (g) => (g.status === 'PARTIAL' || g.status === 'UNIQUE') && decisions[g.key] !== 'APPROVED',
@@ -55,19 +65,22 @@ function GreenfieldSlot({
     <div
       data-anchor={`gf:model:${row.component}`}
       style={{
-        border: '1px solid #d1fae5',
+        border: `1px solid ${settled ? '#d1fae5' : '#fde68a'}`,
         borderRadius: 8,
-        background: '#f8fffb',
+        background: settled ? '#f8fffb' : '#fffdf5',
+        boxShadow: '0 1px 2px rgba(0,0,0,.03)',
         overflow: 'hidden',
         opacity: dim ? 0.45 : 1,
+        transition: 'opacity .15s',
+        marginTop: padTop || undefined,
       }}
     >
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={onToggle}
         style={{
           width: '100%',
-          padding: '6px 10px',
+          padding: '7px 10px',
           display: 'flex',
           alignItems: 'center',
           gap: 8,
@@ -98,9 +111,28 @@ function GreenfieldSlot({
             flexShrink: 0,
           }}
         />
-        <span style={{ minWidth: 0, flex: 1 }}>
-          <span style={{ display: 'block', fontSize: 11, fontWeight: 700 }}>{row.component}</span>
-          <span style={{ display: 'block', fontSize: 10.5, color: '#525252' }}>
+        <span
+          style={{
+            minWidth: 0,
+            flex: 1,
+            display: 'flex',
+            alignItems: 'baseline',
+            gap: 6,
+            overflow: 'hidden',
+          }}
+        >
+          <span style={{ fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap' }}>
+            {row.component}
+          </span>
+          <span
+            style={{
+              fontSize: 10,
+              color: settled ? '#047857' : '#b45309',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
             {settled ? 'reconciled' : `${toReconcile} to reconcile`}
           </span>
         </span>
@@ -113,7 +145,7 @@ function GreenfieldSlot({
             flexShrink: 0,
           }}
         >
-          {normalized.length} in model
+          <b style={{ fontWeight: 700 }}>{normalized.length}</b> in model
         </span>
       </button>
 
@@ -175,15 +207,15 @@ function GreenfieldSlot({
 }
 
 export default function ProductGreenfieldColumn({
-  lobName,
-  versions,
   comparison,
   matchFilter,
   decisions,
+  rowPads,
+  expandedComponents,
+  onToggleComponent,
 }: Props) {
   // Reconciled = normalized elements actually in the model ÷ total groups.
   const inModel = comparison.rows.reduce((a, r) => a + normalizedGroups(r, decisions).length, 0);
-  const progress = comparison.normalizedCount === 0 ? 0 : inModel / comparison.normalizedCount;
   const openDecisions = comparison.rows.reduce(
     (a, r) =>
       a +
@@ -192,101 +224,103 @@ export default function ProductGreenfieldColumn({
       ).length,
     0,
   );
+  // Model composition (the card) — WHAT the target model is made of, not the
+  // normalization progress (that story lives on the Normalize card): how many
+  // components carry elements, and how each element got in (auto-fold of
+  // commons/single carries vs an explicit adopt decision).
+  const componentsInModel = comparison.rows.filter(
+    (r) => normalizedGroups(r, decisions).length > 0,
+  ).length;
+  const adoptedIn = comparison.rows.reduce(
+    (a, r) =>
+      a +
+      r.groups.filter(
+        (g) => (g.status === 'PARTIAL' || g.status === 'UNIQUE') && decisions[g.key] === 'APPROVED',
+      ).length,
+    0,
+  );
+  const autoIn = inModel - adoptedIn;
 
   return (
     <div style={{ width: 340, flexShrink: 0, alignSelf: 'flex-start' }}>
-      <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>
+      <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>
         Greenfield
+        <span style={{ fontWeight: 400, fontSize: 12, color: '#a3a3a3' }}> · the target model</span>
       </div>
       <div
         style={{
-          border: '2px solid #6ee7b7',
-          borderRadius: 12,
-          background: '#ecfdf5',
-          boxShadow: '0 2px 8px rgba(16,185,129,.10)',
-          boxSizing: 'border-box',
-          overflow: 'hidden',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 8,
+          marginBottom: 12,
         }}
       >
-        <div style={{ padding: '11px 13px 9px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: '.1em',
-                color: '#047857',
-                textTransform: 'uppercase',
-              }}
-            >
-              Proposed
-            </span>
-            <span style={{ fontSize: 11, color: '#525252', fontVariantNumeric: 'tabular-nums' }}>
-              {Math.round(progress * 100)}% reconciled
-            </span>
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 700, marginTop: 2 }}>{lobName}</div>
-          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-            one normalized model from {versions.length} version
-            {versions.length === 1 ? '' : 's'}
-          </div>
-          <div style={{ fontSize: 11.5, color: GREEN, marginTop: 3, fontWeight: 600 }}>
-            {inModel} normalized elements ·{' '}
-            {openDecisions > 0 ? (
-              <span style={{ color: MATCH_META.PARTIAL.fg }}>{openDecisions} decisions open</span>
-            ) : (
-              'no open decisions'
-            )}
-          </div>
-          <div
-            style={{
-              height: 5,
-              borderRadius: 999,
-              background: '#d1fae5',
-              marginTop: 8,
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                width: `${Math.round(progress * 100)}%`,
-                height: '100%',
-                borderRadius: 999,
-                background: GREEN,
-                transition: 'width .3s',
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Component slots — expand to the normalized elements in the model. */}
-        <div
+        <span
           style={{
-            background: '#fff',
-            borderTop: '1px solid #d1fae5',
-            padding: '8px 10px',
-            display: 'flex',
-            flexDirection: 'column',
+            display: 'inline-flex',
+            alignItems: 'center',
             gap: 6,
+            border: '1px solid #eaeaea',
+            borderRadius: 999,
+            background: '#fff',
+            boxShadow: '0 1px 3px rgba(0,0,0,.05)',
+            padding: '3px 12px',
+            fontSize: 12,
+            color: '#525252',
+            fontVariantNumeric: 'tabular-nums',
           }}
         >
-          {comparison.rows.map((row) => (
-            <GreenfieldSlot
-              key={row.component}
-              row={row}
-              decisions={decisions}
-              dim={
-                matchFilter != null &&
-                (matchFilter ? row.groups.filter((g) => g.status === matchFilter).length : 0) === 0
-              }
-            />
-          ))}
-          {comparison.rows.length === 0 && (
-            <div style={{ fontSize: 11, color: '#a3a3a3', padding: '4px 2px' }}>
-              Pick versions to derive the model.
-            </div>
+          <b style={{ fontWeight: 700, color: GREEN }}>{inModel}</b> in model
+          {openDecisions > 0 ? (
+            <>
+              {' · '}
+              <b style={{ fontWeight: 700, color: MATCH_META.PARTIAL.fg }}>{openDecisions}</b> open
+            </>
+          ) : (
+            <span style={{ color: GREEN }}>· reconciled</span>
           )}
-        </div>
+        </span>
+      </div>
+      <OverviewCard
+        tone={OVERVIEW_TONES.greenfield}
+        tag="Proposed"
+        right={`${inModel} elements · ${componentsInModel} component${componentsInModel === 1 ? '' : 's'}`}
+        track="#d1fae5"
+        segments={[
+          { value: autoIn, color: GREEN },
+          { value: adoptedIn, color: '#4f46e5' },
+        ]}
+      >
+        <span style={{ color: GREEN }}>
+          {autoIn} fold in automatically ·{' '}
+          <span style={{ color: '#4f46e5' }}>{adoptedIn} adopted by decision</span>
+        </span>
+      </OverviewCard>
+
+      {/* Component slots — standalone cards (not boxed into the model card),
+          so the alignment pads open dotted-canvas gaps like the other columns
+          instead of dead white space inside one tall card. */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {comparison.rows.map((row) => (
+          <GreenfieldSlot
+            key={row.component}
+            row={row}
+            decisions={decisions}
+            dim={
+              matchFilter != null &&
+              (matchFilter ? row.groups.filter((g) => g.status === matchFilter).length : 0) === 0
+            }
+            padTop={rowPads?.[row.component] ?? 0}
+            open={!!expandedComponents[row.component]}
+            onToggle={() => onToggleComponent(row.component)}
+          />
+        ))}
+        {comparison.rows.length === 0 && (
+          <div style={{ fontSize: 11, color: '#a3a3a3', textAlign: 'center', padding: '4px 2px' }}>
+            Pick versions to derive the model.
+          </div>
+        )}
       </div>
     </div>
   );

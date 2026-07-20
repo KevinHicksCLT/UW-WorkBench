@@ -19,6 +19,11 @@ export interface BoardSummary {
   findings: number;
   byCapdan: Record<string, number>;
   progress: number;
+  /** The board's value stream + its L1 domain (picker filters); null when unwired. */
+  valueStream: string | null;
+  valueStreamDomain: string | null;
+  /** The board's source applications — feeds the cross-board compare picker. */
+  apps: BoardApp[];
 }
 
 export interface ColumnStat {
@@ -149,6 +154,24 @@ export interface BoardDetail {
   findings: Finding[];
 }
 
+/** The slice of board data the Normalize column reads — satisfied by a real
+ *  BoardDetail or by the map's cross-board merged comparison view. */
+export interface NormalizeScope {
+  name: string;
+  application: string;
+  apps: BoardApp[];
+  findings: Finding[];
+  normalizationEntries: NormalizationEntry[];
+}
+
+/** Per-layer extra top spacing (px) that aligns a column's layer rows with the
+ *  other columns' rows (SCRUM-222 — see useLayerAlignment). */
+export type LayerPads = Partial<Record<Layer, number>>;
+
+/** Shared per-layer expand/collapse state — one toggle opens the same layer in
+ *  the Brownfield panel, the Normalize section and the Greenfield floor. */
+export type LayerExpansion = Partial<Record<Layer, boolean>>;
+
 /** Short, locale-stable date label for a target date (e.g. "Jul 1, 2026"). */
 export function formatTargetDate(iso: string | null): string | null {
   if (!iso) return null;
@@ -191,6 +214,13 @@ export const LAYER_ACCENT: Record<
 // Fit-to-frame never scales below this zoom — card text stays legible; a board
 // too big to fit at this scale scrolls instead of shrinking further.
 export const READABLE_FIT_MIN = 0.65;
+
+/** Stable per-source-application accent colours (chips/dots on multi-app boards). */
+export const APP_COLORS = ['#0284c7', '#9333ea', '#0d9488', '#ca8a04'];
+
+/** Screen-picker sentinel: walk ALL screens at once — the band shows the full
+ *  comparison grouped by functional area instead of a single screen's slice. */
+export const ALL_SCREENS = '__all-screens__';
 
 export const GREEN = '#16a34a';
 export const RED = '#dc2626';

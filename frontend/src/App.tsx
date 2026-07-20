@@ -39,6 +39,7 @@ const WorkLibrary = lazy(() => import('./pages/work-library/WorkLibrary'));
 const Approvals = lazy(() => import('./pages/approvals/Approvals'));
 const Applications = lazy(() => import('./pages/applications/Applications'));
 const ApplicationKind = lazy(() => import('./pages/applications/ApplicationKind'));
+const ApplicationDetail = lazy(() => import('./pages/applications/ApplicationDetail'));
 const ProductModelHierarchy = lazy(() => import('./pages/product-models/ProductModelHierarchy'));
 const ProductNodeDetail = lazy(() => import('./pages/product-models/ProductNodeDetail'));
 const External = lazy(() => import('./pages/external/External'));
@@ -397,6 +398,15 @@ export default function App() {
                     element={
                       <G k="applications">
                         <ApplicationKind />
+                      </G>
+                    }
+                  />
+                  {/* Application drill-down — profile + codebase-scan block. */}
+                  <Route
+                    path="/applications/:id"
+                    element={
+                      <G k="applications">
+                        <ApplicationDetail />
                       </G>
                     }
                   />

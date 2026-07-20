@@ -16,6 +16,7 @@ import { requirePermission } from '../../middleware/permissions.js';
 import { registerVocabularyRoutes } from './vocabulary.js';
 import { registerFindingRoutes } from './findings.js';
 import { registerNormalizationRoutes } from './normalization.js';
+import { registerSpineRoutes } from './spine.js';
 import { registerBoardRoutes } from './boards.js';
 
 const router = Router();
@@ -27,6 +28,9 @@ router.use(requirePermission('applications'));
 registerVocabularyRoutes(router);
 registerFindingRoutes(router);
 registerNormalizationRoutes(router);
+// Spine (value-stream / role comparison) routes are literal-prefixed and must
+// register before the board routes' /:id catch-all.
+registerSpineRoutes(router);
 registerBoardRoutes(router);
 
 export default router;
