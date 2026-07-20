@@ -1,0 +1,587 @@
+[
+  {
+    "taskId": "cmr2fke9q1cwdkfgzj4jv8g1m",
+    "roles": [
+      { "roleId": "cmqscl3h31hk7mbk8x3xdf0kj", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03tlmbk8iahrj6cv", "rel": "Participant" },
+      { "roleId": "cmqsck0ro03tmmbk8ggz2wirh", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmr2wshim0005uqhrdty4zo3j", "use": "performed" },
+      { "appId": "cmqsck0z203zwmbk83ds28yf1", "use": "performed" }
+    ],
+    "standards": ["cmqscogqp1m1ambk8y9e9eoy6", "cmqscp3vm1n5ymbk8qgjozhcq"],
+    "regs": [],
+    "checklistGeneric": [
+      "Approver sign-off captured with a named approver",
+      "Change logged with a ticket reference"
+    ],
+    "checklistSpecific": [
+      "Production change request approved in ServiceNow with a CAB reference",
+      "All upstream quality gates and non-prod test runs are green before approval",
+      "Rollback plan and runbook link attached to the change record",
+      "Dataset owner and steward confirmed assigned before promotion is granted"
+    ],
+    "testing": [
+      {
+        "system": "ServiceNow ITSM",
+        "location": null,
+        "checkType": "presence",
+        "expected": "A change record for the ingestion pipeline exists in the Approved state with a CAB reference before deployment"
+      }
+    ]
+  },
+  {
+    "taskId": "902ab921-a825-4ed8-94ea-c786605c8e6e",
+    "roles": [
+      { "roleId": "cmqsck0ro03tmmbk8ggz2wirh", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03u4mbk86d6p7580", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmr96zlvc0003v81kwzsfo8qb", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp3q01n5ombk81drn9kwt",
+      "cmqscp3oz1n5mmbk8w0mgzz9i",
+      "cmqscp3nx1n5kmbk8zr3f6wc4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Change logged with a ticket reference",
+      "Code merged via reviewed pull request"
+    ],
+    "checklistSpecific": [
+      "High-watermark / incremental key persists and advances only on a successful load",
+      "Re-running the extract produces no duplicate rows in the landing zone (idempotent)",
+      "Landing files written in Parquet/Delta with the expected partitioning layout",
+      "Extracted row count reconciles to the source watermark delta"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": "landing zone",
+        "checkType": "presence",
+        "expected": "Landing zone contains the incremental extract with a row count matching the source watermark delta"
+      }
+    ]
+  },
+  {
+    "taskId": "34745296-315e-474a-a0b9-d931972d42fa",
+    "roles": [
+      { "roleId": "cmqsck0ro03tmmbk8ggz2wirh", "rel": "Owner" },
+      { "roleId": "4a7ec7f0-644e-4943-9829-914696d87ba1", "rel": "Participant" },
+      { "roleId": "cmqsck0rp03u4mbk86d6p7580", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmr96zlvc0003v81kwzsfo8qb", "use": "performed" },
+      { "appId": "cmr96zlqu0001v81klyav3qri", "use": "performed" },
+      { "appId": "cmr2wshim0005uqhrdty4zo3j", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp3k91n5embk88vzqljzw",
+      "cmqscp3oz1n5mmbk8w0mgzz9i",
+      "cmqscp3uh1n5wmbk8928m3303"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Code merged via reviewed pull request",
+      "Change logged with a ticket reference"
+    ],
+    "checklistSpecific": [
+      "CDC slot/offset persists and resumes cleanly after a connector restart",
+      "Source credentials stored in the secrets manager, not in connector config or code",
+      "Both backfill and incremental modes validated against source counts",
+      "Connector retry/backoff and dead-letter handling configured"
+    ],
+    "testing": [
+      {
+        "system": "GitHub Enterprise",
+        "location": null,
+        "checkType": "absence",
+        "expected": "Connector configuration in the repository contains no plaintext credentials; secrets are referenced by name only"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2f4zvi00j9bn7ihwh0up3g",
+    "roles": [
+      { "roleId": "cmqsck0ro03tmmbk8ggz2wirh", "rel": "Owner" },
+      { "roleId": "cmqsck0rq03xdmbk89kroddbt", "rel": "Participant" },
+      { "roleId": "e3f0dab1-136a-4b10-89b4-5690c1d51009", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmr2wwdlz040xuqhrbwo5143w", "use": "performed" },
+      { "appId": "cmr96zlvc0003v81kwzsfo8qb", "use": "performed" },
+      { "appId": "cmqsck0z203zwmbk83ds28yf1", "use": "performed" }
+    ],
+    "standards": ["cmqscp3rz1n5smbk85axljifj", "cmqscoh3c1m1wmbk8i79bqt4n"],
+    "regs": [],
+    "checklistGeneric": [
+      "Change logged with a ticket reference",
+      "Runbook updated with the new alert and response steps"
+    ],
+    "checklistSpecific": [
+      "Alert fires on load failure and on SLA-breach latency, verified with a forced failure",
+      "Alerts route to the correct on-call channel/pager with the right severity",
+      "Freshness and row-count anomaly thresholds configured per the source SLA",
+      "Each alert links back to the failing run and its runbook"
+    ],
+    "testing": [
+      {
+        "system": "Grafana",
+        "location": null,
+        "checkType": "presence",
+        "expected": "An alert rule for the ingestion job exists and fired during a forced test failure"
+      }
+    ]
+  },
+  {
+    "taskId": "fc7b5ed3-d863-44b3-8ddd-311e02784d3a",
+    "roles": [
+      { "roleId": "cmqsck0ro03tlmbk8iahrj6cv", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03tmmbk8ggz2wirh", "rel": "Participant" },
+      { "roleId": "cmqscl3h31hk7mbk8x3xdf0kj", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmr2wwb6w03ynuqhrdjajxr30", "use": "performed" },
+      { "appId": "cmr96zlvc0003v81kwzsfo8qb", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscogqp1m1ambk8y9e9eoy6",
+      "cmqscp3my1n5imbk8ygj1ri3k",
+      "cmqscp4wa1n7umbk8rckhlnz3"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Design reviewed and approved by a named reviewer",
+      "Decision documented in the shared knowledge base"
+    ],
+    "checklistSpecific": [
+      "Batch vs micro-batch vs streaming choice justified against the source SLA",
+      "Target latency and refresh cadence documented and agreed with the consumer",
+      "Medallion landing to bronze to silver flow defined for the source",
+      "Design reviewed and approved by data architecture before build starts"
+    ],
+    "testing": [
+      {
+        "system": "Confluence",
+        "location": null,
+        "checkType": "presence",
+        "expected": "An approved ingestion pattern design document exists for the source with the SLA-justified pattern choice"
+      }
+    ]
+  },
+  {
+    "taskId": "f697c6cf-1fa6-492b-9536-5172ec738b1c",
+    "roles": [
+      { "roleId": "cmqsck0ro03tmmbk8ggz2wirh", "rel": "Owner" },
+      { "roleId": "4a7ec7f0-644e-4943-9829-914696d87ba1", "rel": "Participant" },
+      { "roleId": "e3f0dab1-136a-4b10-89b4-5690c1d51009", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmr96zlvc0003v81kwzsfo8qb", "use": "performed" },
+      { "appId": "cmr2wwjqk0479uqhrcdpi6f06", "use": "performed" },
+      { "appId": "d2ab52d9-6951-4e31-8b03-f3ba74183bfa", "use": "performed" }
+    ],
+    "standards": ["cmqscp4cf1n6umbk85bpt2uag", "cmqscp4fb1n70mbk8lf9qj0kl"],
+    "regs": [],
+    "checklistGeneric": [
+      "Change logged with a ticket reference",
+      "Access request approved before credentials are issued"
+    ],
+    "checklistSpecific": [
+      "Authenticated test connection to the source succeeds from the pipeline runtime",
+      "Credentials/keys stored in the secrets manager and rotated per policy",
+      "Connection encrypted in transit (TLS) with firewall/allow-list rules approved",
+      "Source system registered as a configuration item in the CMDB"
+    ],
+    "testing": [
+      {
+        "system": "Data pipeline orchestrator (Airflow/Dagster/Prefect)",
+        "location": null,
+        "checkType": "presence",
+        "expected": "A successful authenticated connection to the source is logged from the orchestrator runtime"
+      }
+    ]
+  },
+  {
+    "taskId": "fc5cee1e-92ff-4c7b-bd3f-fe292744606c",
+    "roles": [
+      { "roleId": "cmqsck0ro03tmmbk8ggz2wirh", "rel": "Owner" },
+      { "roleId": "cmqsck0rq03xdmbk89kroddbt", "rel": "Participant" },
+      { "roleId": "e3f0dab1-136a-4b10-89b4-5690c1d51009", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmr2wwb6w03ynuqhrdjajxr30", "use": "performed" },
+      { "appId": "cmqsck0z203zwmbk83ds28yf1", "use": "performed" }
+    ],
+    "standards": ["cmqscp3rz1n5smbk85axljifj", "cmqscogqp1m1ambk8y9e9eoy6"],
+    "regs": [],
+    "checklistGeneric": [
+      "Receiving team acknowledges the handoff on the ticket",
+      "Runbook updated and linked from the handoff record"
+    ],
+    "checklistSpecific": [
+      "Runbook published with restart, backfill, and escalation steps",
+      "On-call rotation and alert routing confirmed with operations",
+      "Operations acknowledges the handoff and the agreed SLOs in the ticket",
+      "Known issues and manual steps documented for support"
+    ],
+    "testing": [
+      {
+        "system": "Confluence",
+        "location": null,
+        "checkType": "presence",
+        "expected": "A published runbook for the pipeline exists and is linked from the operations handoff ticket"
+      }
+    ]
+  },
+  {
+    "taskId": "2350301e-b938-48d7-9d04-248bcb25d716",
+    "roles": [
+      { "roleId": "cmqsck0ro03tmmbk8ggz2wirh", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03u4mbk86d6p7580", "rel": "Participant" },
+      { "roleId": "cmqscl3ic1hk9mbk81xv0sukb", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmr96zlvc0003v81kwzsfo8qb", "use": "performed" },
+      { "appId": "89cd2109-63ff-4bf7-a31c-14e6b68e7ed9", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp3lx1n5gmbk8a2ok7wtg",
+      "cmqscp3uh1n5wmbk8928m3303",
+      "cmqscp32w1n4imbk8cl9att9q"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Code merged via reviewed pull request",
+      "Change logged with a ticket reference"
+    ],
+    "checklistSpecific": [
+      "Incoming records validated against the registered schema / data contract",
+      "Nonconforming rows rejected or routed to a quarantine/dead-letter table",
+      "Additive schema changes handled without breaking the load; breaking changes raise an alert",
+      "Rejected-record count and reason are logged and observable"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": "quarantine/reject table",
+        "checkType": "presence",
+        "expected": "Nonconforming test records land in the quarantine/reject table instead of the target table"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fkc7q1bzqkfgzlrvu4gel",
+    "roles": [
+      { "roleId": "cmqsck0ro03tmmbk8ggz2wirh", "rel": "Owner" },
+      { "roleId": "cmqsck0rq03xdmbk89kroddbt", "rel": "Participant" },
+      { "roleId": "cmqsck0rp03u4mbk86d6p7580", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmr2wwdlz040xuqhrbwo5143w", "use": "performed" },
+      { "appId": "cmr96zlvc0003v81kwzsfo8qb", "use": "performed" }
+    ],
+    "standards": ["cmqscp3rz1n5smbk85axljifj", "cmqscp4wa1n7umbk8rckhlnz3"],
+    "regs": [],
+    "checklistGeneric": [
+      "Run health recorded against the change/ticket reference",
+      "Issues raised as tickets with severity"
+    ],
+    "checklistSpecific": [
+      "First production runs reviewed for status, duration, and row counts",
+      "Any errors or retries triaged and logged with a ticket",
+      "Latency and freshness within the agreed SLA on the initial runs",
+      "Run health recorded in the pipeline dashboard/log"
+    ],
+    "testing": [
+      {
+        "system": "Data pipeline orchestrator (Airflow/Dagster/Prefect)",
+        "location": null,
+        "checkType": "presence",
+        "expected": "Initial production run records for the pipeline are visible with success status and durations within SLA"
+      }
+    ]
+  },
+  {
+    "taskId": "5b87f075-1fb4-43c7-9ba0-a0cff1d1bac5",
+    "roles": [
+      { "roleId": "cmqsck0ro03tmmbk8ggz2wirh", "rel": "Owner" },
+      { "roleId": "cmqscl3ic1hk9mbk81xv0sukb", "rel": "Participant" },
+      { "roleId": "cmqsck0rp03u4mbk86d6p7580", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "89cd2109-63ff-4bf7-a31c-14e6b68e7ed9", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": ["cmqscp4m81n7embk885jhucdp", "cmqscoh271m1umbk87ebv27kx"],
+    "regs": [],
+    "checklistGeneric": [
+      "Profiling summary documented in the shared knowledge base",
+      "Findings shared with the requester"
+    ],
+    "checklistSpecific": [
+      "Column-level profile captured: data types, null rates, cardinality, min/max",
+      "Volume and arrival cadence measured for sizing and SLA planning",
+      "Candidate PII / sensitive fields flagged for classification",
+      "Profiling summary documented and shared with the requesting team"
+    ],
+    "testing": [
+      {
+        "system": "data catalog/quality tool",
+        "location": null,
+        "checkType": "presence",
+        "expected": "A profiling summary for the source exists with null-rate, cardinality, and volume statistics"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fkej61d25kfgzddueaweh",
+    "roles": [
+      { "roleId": "cmqsck0ro03tmmbk8ggz2wirh", "rel": "Owner" },
+      { "roleId": "e3f0dab1-136a-4b10-89b4-5690c1d51009", "rel": "Participant" },
+      { "roleId": "f561d684-faf3-4a4a-9a14-b3259e20a5d2", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmr2ww1lc03ojuqhrymhk4pic", "use": "performed" },
+      { "appId": "cmr2wshim0005uqhrdty4zo3j", "use": "performed" },
+      { "appId": "cmr2wwjqk0479uqhrcdpi6f06", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscogqp1m1ambk8y9e9eoy6",
+      "cmqscp3oz1n5mmbk8w0mgzz9i",
+      "cmqscp4be1n6smbk8q7c323vx"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Deployment approved and logged with a change reference",
+      "Code merged via reviewed pull request"
+    ],
+    "checklistSpecific": [
+      "Deployment runs only after CI checks and quality gates pass",
+      "Pipeline artifact versioned and tagged in the repository",
+      "Infrastructure and config applied via IaC with no manual production changes",
+      "Post-deploy smoke run confirms the pipeline executes in production"
+    ],
+    "testing": [
+      {
+        "system": "GitHub Actions",
+        "location": null,
+        "checkType": "presence",
+        "expected": "A successful production deployment workflow run for the pipeline exists with all gates passed"
+      }
+    ]
+  },
+  {
+    "taskId": "cb029cb4-c8e8-4f86-96fb-a264da7bd8b2",
+    "roles": [
+      { "roleId": "cmqsck0rp03ttmbk8u2zj9y2w", "rel": "Owner" },
+      { "roleId": "cmqsck0ro03tmmbk8ggz2wirh", "rel": "Participant" },
+      { "roleId": "cmqscl3ep1hk3mbk86rxnmy0a", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "89cd2109-63ff-4bf7-a31c-14e6b68e7ed9", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp3bp1n50mbk87dyji9cj",
+      "cmqscp41u1n6ambk8av928k36",
+      "cmqscp3gv1n5ambk8g72ztaj0",
+      "cmqscp3do1n54mbk8m6ubfgf4"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Catalog entry reviewed and approved by the steward",
+      "Ownership recorded against the dataset record"
+    ],
+    "checklistSpecific": [
+      "Dataset entry created in the catalog with technical and business metadata",
+      "Named owner and steward assigned on the catalog entry",
+      "Classification and refresh frequency recorded on the entry",
+      "Upstream lineage from source to registered dataset captured"
+    ],
+    "testing": [
+      {
+        "system": "data catalog/quality tool",
+        "location": null,
+        "checkType": "presence",
+        "expected": "The ingested dataset appears in the catalog with an assigned owner and steward and captured lineage"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2f4z5y00iibn7i2n6vmm9e",
+    "roles": [
+      { "roleId": "cmqsck0ro03tmmbk8ggz2wirh", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03u4mbk86d6p7580", "rel": "Participant" },
+      { "roleId": "e3f0dab1-136a-4b10-89b4-5690c1d51009", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmr96zlvc0003v81kwzsfo8qb", "use": "performed" },
+      { "appId": "cmr2wshim0005uqhrdty4zo3j", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp37s1n4smbk8v03mmcl5",
+      "cmqscp3oz1n5mmbk8w0mgzz9i",
+      "cmqscp4wa1n7umbk8rckhlnz3"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Schedule change merged via reviewed pull request",
+      "Change logged with a ticket reference"
+    ],
+    "checklistSpecific": [
+      "Job scheduled at the agreed cadence in the orchestrator",
+      "Schedule defined as code and version-controlled",
+      "Dependencies/sensors set so the job waits for upstream readiness",
+      "Catch-up/backfill behavior and SLA timeout configured"
+    ],
+    "testing": [
+      {
+        "system": "Data pipeline orchestrator (Airflow/Dagster/Prefect)",
+        "location": null,
+        "checkType": "presence",
+        "expected": "The ingestion DAG/job is registered and enabled at the agreed cadence in the orchestrator"
+      }
+    ]
+  },
+  {
+    "taskId": "c85c7998-c16d-4be5-8b71-ba581f5cfbbf",
+    "roles": [
+      { "roleId": "cmqsck0ro03tmmbk8ggz2wirh", "rel": "Owner" },
+      { "roleId": "cmqsck0rq03wgmbk8l97vjt6e", "rel": "Participant" },
+      { "roleId": "cmqsck0rp03u4mbk86d6p7580", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmr96zlvc0003v81kwzsfo8qb", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": ["cmqscp32w1n4imbk8cl9att9q", "cmqscp3oz1n5mmbk8w0mgzz9i"],
+    "regs": [],
+    "checklistGeneric": [
+      "Test results recorded against the ticket reference",
+      "Code merged via reviewed pull request"
+    ],
+    "checklistSpecific": [
+      "End-to-end run in non-prod with representative data completes successfully",
+      "Output row counts and key fields reconcile to the source",
+      "Re-run confirms idempotency with no duplicate rows",
+      "Failure and retry paths exercised with negative test cases"
+    ],
+    "testing": [
+      {
+        "system": null,
+        "location": "non-production",
+        "checkType": "presence",
+        "expected": "A successful end-to-end non-prod pipeline run with passing validations is recorded"
+      }
+    ]
+  },
+  {
+    "taskId": "0a5aee3e-cb55-4a46-a353-8ca7c01b202c",
+    "roles": [
+      { "roleId": "cmqsck0ro03tmmbk8ggz2wirh", "rel": "Owner" },
+      { "roleId": "cmqscl3h31hk7mbk8x3xdf0kj", "rel": "Participant" },
+      { "roleId": "cmqsck0ro03tlmbk8iahrj6cv", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmr9b1ruq0001v810kep3zsxp", "use": "performed" },
+      { "appId": "89cd2109-63ff-4bf7-a31c-14e6b68e7ed9", "use": "performed" }
+    ],
+    "standards": ["cmqscp3lx1n5gmbk8a2ok7wtg", "cmqscogsi1m1embk85gzwjlph"],
+    "regs": [],
+    "checklistGeneric": [
+      "Request logged with a ticket reference",
+      "Feasibility decision recorded on the ticket"
+    ],
+    "checklistSpecific": [
+      "Request logged with source system, requesting owner, and business purpose",
+      "Source connectivity method and access path assessed for feasibility",
+      "Data contract / expected schema reviewed with the requester",
+      "Feasibility decision and next step recorded on the ticket"
+    ],
+    "testing": [
+      {
+        "system": "Jira",
+        "location": null,
+        "checkType": "presence",
+        "expected": "The ingestion request is logged with source details and a recorded feasibility assessment"
+      }
+    ]
+  },
+  {
+    "taskId": "cmr2fkcks1c5nkfgzscksgluq",
+    "roles": [
+      { "roleId": "cmqsck0ro03tmmbk8ggz2wirh", "rel": "Owner" },
+      { "roleId": "cmqsck0rp03u4mbk86d6p7580", "rel": "Participant" },
+      { "roleId": "cmqsck0rq03xdmbk89kroddbt", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "cmr96zlvc0003v81kwzsfo8qb", "use": "performed" },
+      { "appId": "cmr2wwdlz040xuqhrbwo5143w", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp3te1n5umbk8wsj9wlm4",
+      "cmqscp3oz1n5mmbk8w0mgzz9i",
+      "cmqscp3rz1n5smbk85axljifj"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Change logged with a ticket reference",
+      "Code merged via reviewed pull request"
+    ],
+    "checklistSpecific": [
+      "Bottleneck identified from run metrics and addressed (partitioning/parallelism)",
+      "Retry, backoff, and dead-letter handling tuned for transient failures",
+      "Run duration meets the SLA after tuning",
+      "Changes validated against a representative production-scale load"
+    ],
+    "testing": [
+      {
+        "system": "Grafana",
+        "location": null,
+        "checkType": "presence",
+        "expected": "Post-tuning run duration and error-rate metrics meet the target SLA"
+      }
+    ]
+  },
+  {
+    "taskId": "f9a01072-1058-4ad1-b41f-2f4d73dc0640",
+    "roles": [
+      { "roleId": "cmqsck0ro03tmmbk8ggz2wirh", "rel": "Owner" },
+      { "roleId": "cmqscl3ic1hk9mbk81xv0sukb", "rel": "Participant" },
+      { "roleId": "cmqsck0rp03u4mbk86d6p7580", "rel": "Participant" }
+    ],
+    "apps": [
+      { "appId": "89cd2109-63ff-4bf7-a31c-14e6b68e7ed9", "use": "performed" },
+      { "appId": "3b31e8e8-1414-40e1-ac3a-9d2a3a49e80e", "use": "performed" }
+    ],
+    "standards": [
+      "cmqscp4o01n7gmbk8nzsb85bd",
+      "cmqscp32w1n4imbk8cl9att9q",
+      "cmqscp4wa1n7umbk8rckhlnz3"
+    ],
+    "regs": [],
+    "checklistGeneric": [
+      "Validation result recorded against the acceptance criteria",
+      "Sign-off captured on pass/fail"
+    ],
+    "checklistSpecific": [
+      "Completeness checked against expected volume and meets the acceptance threshold",
+      "End-to-end latency measured and within the agreed SLA",
+      "Key and reference integrity validated on the ingested data",
+      "Validation result recorded as pass against the documented criteria"
+    ],
+    "testing": [
+      {
+        "system": "data catalog/quality tool",
+        "location": null,
+        "checkType": "presence",
+        "expected": "Validation results show completeness and latency meeting the defined acceptance criteria"
+      }
+    ]
+  }
+]
