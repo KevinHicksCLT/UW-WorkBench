@@ -19,7 +19,8 @@ import {
 } from './compare';
 import { ALL_SCREENS, LAYERS, findingMoves, GREEN, RED, READABLE_FIT_MIN } from './types';
 import type { BoardDetail, Finding, Layer } from './types';
-import { useLayerAlignment } from './useLayerAlignment';
+import { useLayerAlignment, type AlignRow } from './useLayerAlignment';
+import { entryAppIds } from './NormalizeCards';
 
 // The Workspace map — an interactive, three-column rationalization board
 // (brown-field decomposition → normalize → green-field target) rendered from
@@ -444,32 +445,51 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
       // Every layer gets its own gutter lane so verticals never stack; a
       // stay/move pair splits one lane further apart.
       const base = (LAYERS.indexOf(layer) - 2) * 2;
-      if (stays > 0)
-        out.push({
-          id: `s-${layer}`,
-          from: `bf:${layer}`,
-          to: `nz:${layer}`,
-          color: GREEN,
-          width: 2.5,
-          count: stays,
-          dim,
-          y0Offset: both ? -12 : 0,
-          y1Offset: both ? -8 : 0,
-          lane: both ? base - 1 : base,
+      if (expandedLayers[layer] && rows.length > 0) {
+        // Expanded layer: one connector PER ROW, from the brownfield step to
+        // the normalize card it lands on (its entry, else its pass-through
+        // card) — green = stays, red = moves. Anchors that aren't in the DOM
+        // (filtered cards) simply draw nothing.
+        rows.forEach((f, ri) => {
+          const entry = modelEntries.find((e) => e.findingIds.includes(f.id));
+          out.push({
+            id: `row-${f.id}`,
+            from: `bf:f:${f.id}`,
+            to: entry ? `nz:e:${entry.id}` : `nz:f:${f.id}`,
+            color: findingMoves(f) ? RED : GREEN,
+            width: 2,
+            dim,
+            lane: (ri % 3) - 1,
+          });
         });
-      if (moves > 0)
-        out.push({
-          id: `m-${layer}`,
-          from: `bf:${layer}`,
-          to: `nz:${layer}`,
-          color: RED,
-          width: 2.5,
-          count: moves,
-          dim,
-          y0Offset: both ? 14 : 0,
-          y1Offset: both ? 10 : 0,
-          lane: both ? base + 1 : base,
-        });
+      } else {
+        if (stays > 0)
+          out.push({
+            id: `s-${layer}`,
+            from: `bf:${layer}`,
+            to: `nz:${layer}`,
+            color: GREEN,
+            width: 2.5,
+            count: stays,
+            dim,
+            y0Offset: both ? -12 : 0,
+            y1Offset: both ? -8 : 0,
+            lane: both ? base - 1 : base,
+          });
+        if (moves > 0)
+          out.push({
+            id: `m-${layer}`,
+            from: `bf:${layer}`,
+            to: `nz:${layer}`,
+            color: RED,
+            width: 2.5,
+            count: moves,
+            dim,
+            y0Offset: both ? 14 : 0,
+            y1Offset: both ? 10 : 0,
+            lane: both ? base + 1 : base,
+          });
+      }
       // One green edge per component whose floor actually renders — a merged
       // comparison can land the same layer on several boards' services.
       for (const comp of merged.components) {
@@ -492,9 +512,44 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
       }
     }
     return out;
-  }, [merged, scoped, activeLayer, findingsByMs]);
+  }, [merged, scoped, activeLayer, findingsByMs, expandedLayers, modelEntries]);
 
-  const edges = useEdges(canvasRef, specs, zoom);
+  // SCRUM-259: inside an EXPANDED layer, every brownfield step aligns with its
+  // normalize card so the per-row connectors run dead horizontal. Pairs are
+  // listed in the Normalize column's render order (shared → unique → pass-
+  // through) so the engine's cumulative walk matches that column's DOM.
+  const innerAlign = useMemo(() => {
+    const byLayer: Partial<Record<Layer, AlignRow[]>> = {};
+    const nzAnchorOf: Record<string, string> = {};
+    if (!merged) return { byLayer, nzAnchorOf };
+    const findingsById = new Map(merged.findings.map((f) => [f.id, f]));
+    for (const layer of LAYERS) {
+      if (!expandedLayers[layer]) continue;
+      const layerScoped = scoped.filter((f) => f.layer === layer);
+      if (layerScoped.length === 0) continue;
+      const layerEntries = modelEntries.filter((e) => e.layer === layer);
+      const covered = new Set(layerEntries.flatMap((e) => e.findingIds));
+      const shared = layerEntries.filter((e) => entryAppIds(e, findingsById).length > 1);
+      const unique = layerEntries.filter((e) => entryAppIds(e, findingsById).length <= 1);
+      const rows: AlignRow[] = [];
+      for (const e of [...shared, ...unique]) {
+        const f = layerScoped.find((x) => e.findingIds.includes(x.id));
+        if (!f) continue;
+        const key = `f:${f.id}`;
+        rows.push({ key, bf: `bf:f:${f.id}`, nz: `nz:e:${e.id}`, gf: null });
+        nzAnchorOf[key] = `nz:e:${e.id}`;
+      }
+      const pool =
+        layerEntries.length > 0 ? layerScoped.filter((f) => !covered.has(f.id)) : layerScoped;
+      for (const f of pool) {
+        const key = `f:${f.id}`;
+        rows.push({ key, bf: `bf:f:${f.id}`, nz: `nz:f:${f.id}`, gf: null });
+        nzAnchorOf[key] = `nz:f:${f.id}`;
+      }
+      byLayer[layer] = rows;
+    }
+    return { byLayer, nzAnchorOf };
+  }, [merged, scoped, modelEntries, expandedLayers]);
   // SCRUM-222: line each layer's rows up across the three columns so the
   // connectors run horizontally instead of criss-crossing diagonals.
   const pads = useLayerAlignment(
@@ -502,7 +557,34 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     merged ? selectionKey : null,
     merged?.components ?? [],
     zoom,
+    innerAlign.byLayer,
   );
+  // Split the inner-row pads out for the columns: brownfield rows keyed by
+  // finding id, normalize cards keyed by their anchor key.
+  const { bfRowPads, nzCardPads } = useMemo(() => {
+    const bf: Record<string, number> = {};
+    const nz: Record<string, number> = {};
+    for (const [key, nzAnchor] of Object.entries(innerAlign.nzAnchorOf)) {
+      const bfPad = pads.bf[key];
+      if (bfPad) bf[key.slice(2)] = bfPad;
+      const nzPad = pads.nz[key];
+      if (nzPad) nz[nzAnchor] = nzPad;
+    }
+    return { bfRowPads: bf, nzCardPads: nz };
+  }, [innerAlign, pads]);
+  // Render the brownfield rows of an expanded layer in the SAME vertical order
+  // as their normalize cards — the alignment engine (and the eye) needs both
+  // columns ordered alike for the per-row connectors to run level.
+  const bfRowOrder = useMemo(() => {
+    const order: Record<string, number> = {};
+    for (const rows of Object.values(innerAlign.byLayer)) {
+      rows?.forEach((r, i) => {
+        order[r.key.slice(2)] = i;
+      });
+    }
+    return order;
+  }, [innerAlign]);
+  const edges = useEdges(canvasRef, specs, zoom, JSON.stringify(pads));
 
   if (listLoading || loading) return <LoadingState message="Loading workspace board…" />;
   if (listError) return <ErrorMessage>{listError}</ErrorMessage>;
@@ -622,6 +704,8 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
               selectedFindingId={selected?.id ?? null}
               onSelectFinding={setSelected}
               layerPads={pads.bf}
+              rowPads={bfRowPads}
+              rowOrder={bfRowOrder}
               expandedLayers={expandedLayers}
               onToggleLayer={toggleLayer}
             />
@@ -632,6 +716,7 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
               areas={areas}
               onResolved={refetch}
               layerPads={pads.nz}
+              cardPads={nzCardPads}
               expandedLayers={expandedLayers}
               onToggleLayer={toggleLayer}
             />

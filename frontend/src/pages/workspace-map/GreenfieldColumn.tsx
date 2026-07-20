@@ -69,6 +69,7 @@ function LayerSlot({
   lives,
   landed,
   anchor,
+  padTop,
   open,
   onToggle,
 }: {
@@ -79,6 +80,9 @@ function LayerSlot({
   /** The findings that carry into this floor (pass-through boards list these). */
   landed: Finding[];
   anchor: string;
+  /** Alignment spacing that levels THIS floor with its layer band — applied per
+   *  floor (not per card) so several floors inside one card can spread apart. */
+  padTop?: number;
   open: boolean;
   onToggle: () => void;
 }) {
@@ -98,6 +102,7 @@ function LayerSlot({
         borderRadius: 8,
         background: '#f8fffb',
         overflow: 'hidden',
+        marginTop: padTop || undefined,
       }}
     >
       <button
@@ -260,7 +265,7 @@ function MicrositeCard({
   components,
   findings,
   normalizationEntries,
-  padTop,
+  layerPads,
   expandedLayers,
   onToggleLayer,
 }: {
@@ -268,7 +273,7 @@ function MicrositeCard({
   components: BoardComponent[];
   findings: Finding[];
   normalizationEntries: NormalizationEntry[];
-  padTop: number;
+  layerPads?: LayerPads;
   expandedLayers: LayerExpansion;
   onToggleLayer: (layer: Layer) => void;
 }) {
@@ -309,7 +314,6 @@ function MicrositeCard({
         boxShadow: tone.shadow,
         boxSizing: 'border-box',
         overflow: 'hidden',
-        marginTop: padTop || undefined,
       }}
     >
       {/* compact header line — expand for stack / owner / target / progress */}
@@ -434,6 +438,7 @@ function MicrositeCard({
               lives={lives}
               landed={landingFindings(layer)}
               anchor={`gf:${ms.id}:${layer}`}
+              padTop={layerPads?.[layer]}
               open={!!expandedLayers[layer]}
               onToggle={() => onToggleLayer(layer)}
             />
@@ -454,12 +459,6 @@ export default function GreenfieldColumn({
   expandedLayers,
   onToggleLayer,
 }: Props) {
-  // The alignment pad of a service card is the pad of the layer whose
-  // component lands on it (each card hosts one layer's component here).
-  const padFor = (ms: BoardMicroservice): number => {
-    const layer = components.find((c) => c.microserviceId === ms.id)?.layer;
-    return (layer && layerPads?.[layer]) || 0;
-  };
   return (
     <div style={{ width: 340, flexShrink: 0, alignSelf: 'flex-start' }}>
       <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 12 }}>
@@ -473,7 +472,7 @@ export default function GreenfieldColumn({
             components={components}
             findings={findingsByMs?.get(ms.id) ?? findings}
             normalizationEntries={normalizationEntries}
-            padTop={padFor(ms)}
+            layerPads={layerPads}
             expandedLayers={expandedLayers}
             onToggleLayer={onToggleLayer}
           />

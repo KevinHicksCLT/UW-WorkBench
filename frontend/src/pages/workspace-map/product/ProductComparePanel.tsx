@@ -416,11 +416,14 @@ export default function ProductComparePanel(props: Props) {
                   {groups.map((g, gi) => (
                     <div
                       key={g.key}
+                      data-anchor={`bf:${row.component}:${g.key}`}
                       style={{
                         display: 'grid',
                         gridTemplateColumns: `repeat(${versions.length}, ${COL_W}px)`,
                         alignItems: 'start',
                         borderTop: gi > 0 ? '1px dashed #f1f1f1' : undefined,
+                        // SCRUM-259: level this concept row with its normalize card.
+                        marginTop: rowPads?.[`${row.component}:${g.key}`] || undefined,
                       }}
                     >
                       {versions.map((v) => (

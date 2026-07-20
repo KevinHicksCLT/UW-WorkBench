@@ -314,12 +314,15 @@ function GroupCard({
   lobId,
   decision,
   onResolved,
+  padTop,
 }: {
   group: ElementGroup;
   versions: VersionColumn[];
   lobId: string;
   decision: ProductDecisionStatus | undefined;
   onResolved: () => void;
+  /** Extra top spacing that levels this card with its matrix row (SCRUM-259). */
+  padTop?: number;
 }) {
   const review = group.status === 'PARTIAL' || group.status === 'UNIQUE';
   const approved = decision === 'APPROVED';
@@ -338,11 +341,13 @@ function GroupCard({
             : 'REVIEW';
   return (
     <div
+      data-anchor={`nz:${group.component}:${group.key}`}
       style={{
         border: `1px solid ${border}`,
         borderRadius: 6,
         overflow: 'hidden',
         background: '#fff',
+        marginTop: padTop || undefined,
       }}
     >
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 140px' }}>
@@ -426,6 +431,7 @@ function ComponentSection({
   decisions,
   onResolved,
   padTop,
+  rowPads,
   open,
   onToggle,
 }: {
@@ -437,6 +443,8 @@ function ComponentSection({
   decisions: Decisions;
   onResolved: () => void;
   padTop: number;
+  /** Full pad map — inner rows read their `${component}:${groupKey}` pads (SCRUM-259). */
+  rowPads?: Record<string, number>;
   open: boolean;
   onToggle: () => void;
 }) {
@@ -506,6 +514,7 @@ function ComponentSection({
                 lobId={lobId}
                 decision={decisions[g.key]}
                 onResolved={onResolved}
+                padTop={rowPads?.[`${row.component}:${g.key}`]}
               />
             ))}
             {groups.length === 0 && (
@@ -652,6 +661,7 @@ export default function ProductNormalizeColumn({
             decisions={decisions}
             onResolved={onResolved}
             padTop={rowPads?.[row.component] ?? 0}
+            rowPads={rowPads}
             open={!!expandedComponents[row.component]}
             onToggle={() => onToggleComponent(row.component)}
           />
