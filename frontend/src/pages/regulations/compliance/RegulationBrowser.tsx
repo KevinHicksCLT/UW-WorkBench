@@ -22,7 +22,6 @@ import { catLabel, flagLabel } from '../Regulations';
 import {
   ConfidenceBadge,
   SignOffBadge,
-  LENS_LABEL,
   type ItemRow,
   type RegulationRow,
   type VariantRow,
@@ -233,9 +232,7 @@ export function RegulationBrowser({
             <tr className="text-left text-[11px] uppercase tracking-wide text-[#a3a3a3] border-b border-[#eaeaea]">
               <th className="px-3 py-2 font-medium">ID</th>
               <th className="px-3 py-2 font-medium">Regulation / program</th>
-              <th className="px-3 py-2 font-medium">Lens</th>
               <th className="px-3 py-2 font-medium">Category</th>
-              <th className="px-3 py-2 font-medium">Jurisdictions</th>
               <th className="px-3 py-2 font-medium">Owner</th>
               <th className="px-3 py-2 font-medium text-right">Items</th>
               <th className="px-3 py-2 font-medium text-right">Source rows</th>
@@ -280,9 +277,7 @@ export function RegulationBrowser({
                         .join('  ·  ')}
                     </div>
                   </td>
-                  <td className="px-3 py-2 whitespace-nowrap">{LENS_LABEL[r.lens] ?? r.lens}</td>
                   <td className="px-3 py-2 max-w-[220px]">{categoryLabels(r.category)}</td>
-                  <td className="px-3 py-2 whitespace-nowrap">{r.jurisdictionScope}</td>
                   <td className="px-3 py-2">{r.ownerTeam}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{r.itemCount}</td>
                   <td className="px-3 py-2 text-right tabular-nums">
@@ -295,7 +290,7 @@ export function RegulationBrowser({
                 </tr>
                 {expanded === r.id && (
                   <tr>
-                    <td colSpan={10} className="bg-[#fafafa]">
+                    <td colSpan={8} className="bg-[#fafafa]">
                       <RegulationDetailPanel
                         regulationId={r.id}
                         companyId={companyId}
