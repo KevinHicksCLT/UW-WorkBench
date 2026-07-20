@@ -346,7 +346,9 @@ export default function ProductBoard({
       if (expandedComponents[row.component]) {
         // Expanded component: one connector PER CONCEPT ROW — the matrix row on
         // the left to its normalize card. Green = common/single (folds in),
-        // red = varies/unique (needs a decision).
+        // red = varies/unique (needs a decision). Rows that made it into the
+        // model continue with a second green connector into their greenfield
+        // row (held/open reviews stop at Normalize — they aren't in the model).
         groups.forEach((g, gi) => {
           const folds = g.status === 'COMMON' || g.status === 'SINGLE';
           out.push({
@@ -358,6 +360,16 @@ export default function ProductBoard({
             dim,
             lane: (gi % 3) - 1,
           });
+          if (folds || decisions[g.key] === 'APPROVED')
+            out.push({
+              id: `grow-${row.component}-${g.key}`,
+              from: `nz:${row.component}:${g.key}`,
+              to: `gf:model:${row.component}:${g.key}`,
+              color: GREEN,
+              width: 2,
+              dim,
+              lane: (gi % 3) - 1,
+            });
         });
       } else {
         // A settled/review pair splits SYMMETRICALLY (same offset both ends)
@@ -389,18 +401,21 @@ export default function ProductBoard({
             lane: both ? base + 1 : base,
           });
       }
-      out.push({
-        id: `g-${row.component}`,
-        from: `nz:${row.component}`,
-        to: `gf:model:${row.component}`,
-        color: GREEN,
-        width: 2.5,
-        dim,
-        lane: base,
-      });
+      // Collapsed bands wire header→header; an expanded band's rows carry
+      // their own connectors instead.
+      if (!expandedComponents[row.component])
+        out.push({
+          id: `g-${row.component}`,
+          from: `nz:${row.component}`,
+          to: `gf:model:${row.component}`,
+          color: GREEN,
+          width: 2.5,
+          dim,
+          lane: base,
+        });
     });
     return out;
-  }, [comparison, matchFilter, activeComponent, expandedComponents]);
+  }, [comparison, matchFilter, activeComponent, expandedComponents, decisions]);
 
   // Align each component band across the three columns (straight connectors).
   // SCRUM-259: inside an EXPANDED band, every concept row also aligns with its
@@ -421,12 +436,16 @@ export default function ProductBoard({
                 key: `${r.component}:${g.key}`,
                 bf: `bf:${r.component}:${g.key}`,
                 nz: `nz:${r.component}:${g.key}`,
-                gf: null,
+                // In-model rows also level with their greenfield row.
+                gf:
+                  g.status === 'COMMON' || g.status === 'SINGLE' || decisions[g.key] === 'APPROVED'
+                    ? `gf:model:${r.component}:${g.key}`
+                    : null,
               }),
             )
           : []),
       ]),
-    [comparison, expandedComponents, matchFilter],
+    [comparison, expandedComponents, matchFilter, decisions],
   );
   const pads = useRowAlignment(canvasRef, fitKey, alignRows, zoom);
   const edges = useEdges(canvasRef, specs, zoom, JSON.stringify(pads));

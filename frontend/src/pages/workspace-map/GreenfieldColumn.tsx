@@ -30,6 +30,12 @@ interface Props {
   normalizationEntries: NormalizationEntry[];
   /** Per-layer top spacing that lines each service card up with its layer row (SCRUM-222). */
   layerPads?: LayerPads;
+  /** Per-row top spacing (keyed by the row's connector anchor) that levels
+   *  each expanded floor row with its normalize card (SCRUM-259). */
+  rowPads?: Record<string, number>;
+  /** Render order (keyed `e:<entryId>` / `f:<findingId>`) matching the
+   *  Normalize column's card order — keeps the connectors parallel. */
+  rowOrder?: Record<string, number>;
   /** Shared per-layer expansion — one toggle opens the layer in every column. */
   expandedLayers: LayerExpansion;
   onToggleLayer: (layer: Layer) => void;
@@ -71,6 +77,8 @@ function LayerSlot({
   landed,
   anchor,
   padTop,
+  rowPads,
+  rowOrder,
   open,
   onToggle,
 }: {
@@ -84,6 +92,10 @@ function LayerSlot({
   /** Alignment spacing that levels THIS floor with its layer band — applied per
    *  floor (not per card) so several floors inside one card can spread apart. */
   padTop?: number;
+  /** Per-row spacing keyed by the row's connector anchor (SCRUM-259). */
+  rowPads?: Record<string, number>;
+  /** Render order matching the Normalize column's cards. */
+  rowOrder?: Record<string, number>;
   open: boolean;
   onToggle: () => void;
 }) {
@@ -95,6 +107,16 @@ function LayerSlot({
   const covered = new Set(lives.flatMap((e) => e.findingIds));
   const passThrough = landed.filter((f) => !covered.has(f.id));
   const inCount = lives.length + passThrough.length;
+  // One merged list, in the Normalize column's order, so the per-row
+  // connectors from Normalize land here without crossing (SCRUM-259).
+  const floorRows: { key: string; e?: NormalizationEntry; f?: Finding }[] = [
+    ...lives.map((e) => ({ key: `e:${e.id}`, e })),
+    ...passThrough.map((f) => ({ key: `f:${f.id}`, f })),
+  ].sort(
+    (a, b) =>
+      (rowOrder?.[a.key] ?? Number.MAX_SAFE_INTEGER) -
+      (rowOrder?.[b.key] ?? Number.MAX_SAFE_INTEGER),
+  );
   return (
     <div
       data-anchor={anchor}
@@ -220,41 +242,58 @@ function LayerSlot({
           {inCount === 0 && (
             <span style={{ fontSize: 10.5, color: '#a3a3a3' }}>Nothing lands on this floor.</span>
           )}
-          {lives.map((e) => (
-            <div key={e.id} style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-              {e.notation && (
-                <span
-                  style={{
-                    fontSize: 9,
-                    fontWeight: 800,
-                    color: '#4f46e5',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {e.notation}
+          {floorRows.map(({ key, e, f }) =>
+            e ? (
+              <div
+                key={key}
+                data-anchor={`${anchor}:${key}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  gap: 6,
+                  marginTop: rowPads?.[`${anchor}:${key}`] || undefined,
+                }}
+              >
+                {e.notation && (
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 800,
+                      color: '#4f46e5',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {e.notation}
+                  </span>
+                )}
+                <span style={{ fontSize: 11, color: '#1e1b4b', fontWeight: 600 }}>{e.name}</span>
+                <span style={{ fontSize: 10, color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                  {e.findingIds.length}→1
                 </span>
-              )}
-              <span style={{ fontSize: 11, color: '#1e1b4b', fontWeight: 600 }}>{e.name}</span>
-              <span style={{ fontSize: 10, color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                {e.findingIds.length}→1
-              </span>
-            </div>
-          ))}
-          {/* Findings no entry covers carry 1→1 — listed after the merged
-              entries so the floor stays comprehensive. */}
-          {passThrough.map((f) => (
-            <div key={f.id} style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                <span style={{ fontSize: 11, color: '#166534', fontWeight: 700 }}>{f.name}</span>
-                <span style={{ fontSize: 9.5, color: '#94a3b8', whiteSpace: 'nowrap' }}>1→1</span>
               </div>
-              {f.plainSummary && (
-                <span style={{ fontSize: 10, color: '#525252', lineHeight: 1.35 }}>
-                  {f.plainSummary}
-                </span>
-              )}
-            </div>
-          ))}
+            ) : (
+              <div
+                key={key}
+                data-anchor={`${anchor}:${key}`}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1,
+                  marginTop: rowPads?.[`${anchor}:${key}`] || undefined,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: '#166534', fontWeight: 700 }}>{f!.name}</span>
+                  <span style={{ fontSize: 9.5, color: '#94a3b8', whiteSpace: 'nowrap' }}>1→1</span>
+                </div>
+                {f!.plainSummary && (
+                  <span style={{ fontSize: 10, color: '#525252', lineHeight: 1.35 }}>
+                    {f!.plainSummary}
+                  </span>
+                )}
+              </div>
+            ),
+          )}
         </div>
       )}
     </div>
@@ -267,6 +306,8 @@ function MicrositeCard({
   findings,
   normalizationEntries,
   layerPads,
+  rowPads,
+  rowOrder,
   expandedLayers,
   onToggleLayer,
 }: {
@@ -275,6 +316,8 @@ function MicrositeCard({
   findings: Finding[];
   normalizationEntries: NormalizationEntry[];
   layerPads?: LayerPads;
+  rowPads?: Record<string, number>;
+  rowOrder?: Record<string, number>;
   expandedLayers: LayerExpansion;
   onToggleLayer: (layer: Layer) => void;
 }) {
@@ -447,6 +490,8 @@ function MicrositeCard({
               landed={landingFindings(layer)}
               anchor={`gf:${ms.id}:${layer}`}
               padTop={layerPads?.[layer]}
+              rowPads={rowPads}
+              rowOrder={rowOrder}
               open={!!expandedLayers[layer]}
               onToggle={() => onToggleLayer(layer)}
             />
@@ -464,6 +509,8 @@ export default function GreenfieldColumn({
   findingsByMs,
   normalizationEntries,
   layerPads,
+  rowPads,
+  rowOrder,
   expandedLayers,
   onToggleLayer,
 }: Props) {
@@ -492,6 +539,8 @@ export default function GreenfieldColumn({
             findings={findingsByMs?.get(ms.id) ?? findings}
             normalizationEntries={normalizationEntries}
             layerPads={layerPads}
+            rowPads={rowPads}
+            rowOrder={rowOrder}
             expandedLayers={expandedLayers}
             onToggleLayer={onToggleLayer}
           />

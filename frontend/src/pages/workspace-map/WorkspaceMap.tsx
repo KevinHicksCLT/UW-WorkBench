@@ -434,104 +434,40 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     return m;
   }, [merged, modelFindings]);
 
-  const specs: EdgeSpec[] = useMemo(() => {
-    if (!merged) return [];
-    const out: EdgeSpec[] = [];
-    for (const layer of LAYERS) {
-      const rows = scoped.filter((f) => f.layer === layer);
-      const stays = rows.filter((f) => !findingMoves(f)).length;
-      const moves = rows.length - stays;
-      const dim = activeLayer != null && activeLayer !== layer;
-      const both = stays > 0 && moves > 0;
-      // Every layer gets its own gutter lane so verticals never stack; a
-      // stay/move pair splits one lane further apart.
-      const base = (LAYERS.indexOf(layer) - 2) * 2;
-      if (expandedLayers[layer] && rows.length > 0) {
-        // Expanded layer: one connector PER ROW, from the brownfield step to
-        // the normalize card it lands on (its entry, else its pass-through
-        // card) — green = stays, red = moves. Anchors that aren't in the DOM
-        // (filtered cards) simply draw nothing.
-        rows.forEach((f, ri) => {
-          const entry = modelEntries.find((e) => e.findingIds.includes(f.id));
-          out.push({
-            id: `row-${f.id}`,
-            from: `bf:f:${f.id}`,
-            to: entry ? `nz:e:${entry.id}` : `nz:f:${f.id}`,
-            color: findingMoves(f) ? RED : GREEN,
-            width: 2,
-            dim,
-            lane: (ri % 3) - 1,
-          });
-        });
-      } else {
-        // A stay/move pair splits SYMMETRICALLY (same offset both ends) so the
-        // two connectors run parallel and horizontal, never at a slant.
-        if (stays > 0)
-          out.push({
-            id: `s-${layer}`,
-            from: `bf:${layer}`,
-            to: `nz:${layer}`,
-            color: GREEN,
-            width: 2.5,
-            count: stays,
-            dim,
-            y0Offset: both ? -12 : 0,
-            y1Offset: both ? -12 : 0,
-            lane: both ? base - 1 : base,
-          });
-        if (moves > 0)
-          out.push({
-            id: `m-${layer}`,
-            from: `bf:${layer}`,
-            to: `nz:${layer}`,
-            color: RED,
-            width: 2.5,
-            count: moves,
-            dim,
-            y0Offset: both ? 14 : 0,
-            y1Offset: both ? 14 : 0,
-            lane: both ? base + 1 : base,
-          });
-      }
-      // One green edge per component whose floor actually renders — a merged
-      // comparison can land the same layer on several boards' services.
-      for (const comp of merged.components) {
-        if (comp.layer !== layer || !comp.microserviceId) continue;
-        const lands =
-          modelEntries.some((e) => e.componentId === comp.id) ||
-          (findingsByMs.get(comp.microserviceId) ?? []).some(
-            (f) => f.layer === layer && !f.deadCode && f.capdan !== 'Eliminate',
-          );
-        if (lands)
-          out.push({
-            id: `g-${comp.id}`,
-            from: `nz:${layer}`,
-            to: `gf:${comp.microserviceId}:${layer}`,
-            color: GREEN,
-            width: 2.5,
-            dim,
-            lane: base,
-          });
-      }
-    }
-    return out;
-  }, [merged, scoped, activeLayer, findingsByMs, expandedLayers, modelEntries]);
-
   // SCRUM-259: inside an EXPANDED layer, every brownfield step aligns with its
-  // normalize card so the per-row connectors run dead horizontal. Pairs are
-  // listed in the Normalize column's EXACT render order — area sections on the
-  // "all screens" walk, then shared → unique → pass-through inside each — and
-  // the brownfield rows re-sort to the same order (bfRowOrder below), so the
-  // connectors stay parallel and never cross.
+  // normalize card (and, when it carries into the target, its greenfield floor
+  // row) so the per-row connectors run dead horizontal. Pairs are listed in
+  // the Normalize column's EXACT render order — area sections on the "all
+  // screens" walk, then shared → unique → pass-through inside each — and the
+  // brownfield + greenfield rows re-sort to the same order (bfRowOrder /
+  // gfRowOrder below), so the connectors stay parallel and never cross.
   const innerAlign = useMemo(() => {
     const byLayer: Partial<Record<Layer, AlignRow[]>> = {};
     const nzAnchorOf: Record<string, string> = {};
-    if (!merged) return { byLayer, nzAnchorOf };
+    const gfAnchorOf: Record<string, string> = {};
+    const gfRowOrder: Record<string, number> = {};
+    if (!merged) return { byLayer, nzAnchorOf, gfAnchorOf, gfRowOrder };
     const findingsById = new Map(merged.findings.map((f) => [f.id, f]));
     const areaOfF = (f: Finding) => areas?.areaOf.get(f.id) ?? CORE_AREA;
     const areaOfE = (e: NormalizationEntry) => {
       const f = e.findingIds.map((id) => findingsById.get(id)).find(Boolean);
       return f ? areaOfF(f) : CORE_AREA;
+    };
+    // Which greenfield floor row an item lands on (mirrors GreenfieldColumn's
+    // per-floor lists) — null when it doesn't reach the target.
+    const gfForEntry = (e: NormalizationEntry): string | null => {
+      const comp = merged.components.find((c) => c.id === e.componentId);
+      return comp?.microserviceId ? `gf:${comp.microserviceId}:${comp.layer}:e:${e.id}` : null;
+    };
+    const gfForFinding = (f: Finding): string | null => {
+      if (f.deadCode || f.capdan === 'Eliminate') return null;
+      const comp = merged.components.find(
+        (c) =>
+          c.layer === f.layer &&
+          c.microserviceId &&
+          (findingsByMs.get(c.microserviceId) ?? []).some((x) => x.id === f.id),
+      );
+      return comp?.microserviceId ? `gf:${comp.microserviceId}:${f.layer}:f:${f.id}` : null;
     };
     for (const layer of LAYERS) {
       if (!expandedLayers[layer]) continue;
@@ -566,18 +502,128 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
           const f = layerScoped.find((x) => it.e!.findingIds.includes(x.id));
           if (!f) continue;
           const key = `f:${f.id}`;
-          rows.push({ key, bf: `bf:f:${f.id}`, nz: `nz:e:${it.e.id}`, gf: null });
+          const gf = gfForEntry(it.e);
+          rows.push({ key, bf: `bf:f:${f.id}`, nz: `nz:e:${it.e.id}`, gf });
           nzAnchorOf[key] = `nz:e:${it.e.id}`;
+          if (gf) {
+            gfAnchorOf[key] = gf;
+            gfRowOrder[`e:${it.e.id}`] = rows.length - 1;
+          }
         } else if (it.f) {
           const key = `f:${it.f.id}`;
-          rows.push({ key, bf: `bf:f:${it.f.id}`, nz: `nz:f:${it.f.id}`, gf: null });
+          const gf = gfForFinding(it.f);
+          rows.push({ key, bf: `bf:f:${it.f.id}`, nz: `nz:f:${it.f.id}`, gf });
           nzAnchorOf[key] = `nz:f:${it.f.id}`;
+          if (gf) {
+            gfAnchorOf[key] = gf;
+            gfRowOrder[`f:${it.f.id}`] = rows.length - 1;
+          }
         }
       }
       byLayer[layer] = rows;
     }
-    return { byLayer, nzAnchorOf };
-  }, [merged, scoped, modelEntries, expandedLayers, areas]);
+    return { byLayer, nzAnchorOf, gfAnchorOf, gfRowOrder };
+  }, [merged, scoped, modelEntries, expandedLayers, areas, findingsByMs]);
+
+  const specs: EdgeSpec[] = useMemo(() => {
+    if (!merged) return [];
+    const out: EdgeSpec[] = [];
+    const findingsById = new Map(merged.findings.map((f) => [f.id, f]));
+    for (const layer of LAYERS) {
+      const rows = scoped.filter((f) => f.layer === layer);
+      const stays = rows.filter((f) => !findingMoves(f)).length;
+      const moves = rows.length - stays;
+      const dim = activeLayer != null && activeLayer !== layer;
+      const both = stays > 0 && moves > 0;
+      // Every layer gets its own gutter lane so verticals never stack; a
+      // stay/move pair splits one lane further apart.
+      const base = (LAYERS.indexOf(layer) - 2) * 2;
+      const perRow = expandedLayers[layer] && rows.length > 0;
+      if (perRow) {
+        // Expanded layer: one connector PER ROW, from the brownfield step to
+        // the normalize card it lands on — green = stays, red = moves — and,
+        // for rows that carry into the target, a second green connector from
+        // the normalize card to its greenfield floor row. Dead code and
+        // eliminations stop at Normalize.
+        (innerAlign.byLayer[layer] ?? []).forEach((r, ri) => {
+          const f = findingsById.get(r.key.slice(2));
+          if (!f || !r.bf || !r.nz) return;
+          out.push({
+            id: `row-${f.id}`,
+            from: r.bf,
+            to: r.nz,
+            color: findingMoves(f) ? RED : GREEN,
+            width: 2,
+            dim,
+            lane: (ri % 3) - 1,
+          });
+          if (r.gf)
+            out.push({
+              id: `grow-${f.id}`,
+              from: r.nz,
+              to: r.gf,
+              color: GREEN,
+              width: 2,
+              dim,
+              lane: (ri % 3) - 1,
+            });
+        });
+      } else {
+        // A stay/move pair splits SYMMETRICALLY (same offset both ends) so the
+        // two connectors run parallel and horizontal, never at a slant.
+        if (stays > 0)
+          out.push({
+            id: `s-${layer}`,
+            from: `bf:${layer}`,
+            to: `nz:${layer}`,
+            color: GREEN,
+            width: 2.5,
+            count: stays,
+            dim,
+            y0Offset: both ? -12 : 0,
+            y1Offset: both ? -12 : 0,
+            lane: both ? base - 1 : base,
+          });
+        if (moves > 0)
+          out.push({
+            id: `m-${layer}`,
+            from: `bf:${layer}`,
+            to: `nz:${layer}`,
+            color: RED,
+            width: 2.5,
+            count: moves,
+            dim,
+            y0Offset: both ? 14 : 0,
+            y1Offset: both ? 14 : 0,
+            lane: both ? base + 1 : base,
+          });
+      }
+      // One green edge per component whose floor actually renders — a merged
+      // comparison can land the same layer on several boards' services. An
+      // expanded layer's rows carry their own connectors instead.
+      if (!perRow)
+        for (const comp of merged.components) {
+          if (comp.layer !== layer || !comp.microserviceId) continue;
+          const lands =
+            modelEntries.some((e) => e.componentId === comp.id) ||
+            (findingsByMs.get(comp.microserviceId) ?? []).some(
+              (f) => f.layer === layer && !f.deadCode && f.capdan !== 'Eliminate',
+            );
+          if (lands)
+            out.push({
+              id: `g-${comp.id}`,
+              from: `nz:${layer}`,
+              to: `gf:${comp.microserviceId}:${layer}`,
+              color: GREEN,
+              width: 2.5,
+              dim,
+              lane: base,
+            });
+        }
+    }
+    return out;
+  }, [merged, scoped, activeLayer, findingsByMs, expandedLayers, modelEntries, innerAlign]);
+
   // SCRUM-222: line each layer's rows up across the three columns so the
   // connectors run horizontally instead of criss-crossing diagonals.
   const pads = useLayerAlignment(
@@ -588,17 +634,21 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
     innerAlign.byLayer,
   );
   // Split the inner-row pads out for the columns: brownfield rows keyed by
-  // finding id, normalize cards keyed by their anchor key.
-  const { bfRowPads, nzCardPads } = useMemo(() => {
+  // finding id, normalize cards and greenfield rows keyed by their anchor key.
+  const { bfRowPads, nzCardPads, gfRowPads } = useMemo(() => {
     const bf: Record<string, number> = {};
     const nz: Record<string, number> = {};
+    const gf: Record<string, number> = {};
     for (const [key, nzAnchor] of Object.entries(innerAlign.nzAnchorOf)) {
       const bfPad = pads.bf[key];
       if (bfPad) bf[key.slice(2)] = bfPad;
       const nzPad = pads.nz[key];
       if (nzPad) nz[nzAnchor] = nzPad;
+      const gfAnchor = innerAlign.gfAnchorOf[key];
+      const gfPad = pads.gf[key];
+      if (gfAnchor && gfPad) gf[gfAnchor] = gfPad;
     }
-    return { bfRowPads: bf, nzCardPads: nz };
+    return { bfRowPads: bf, nzCardPads: nz, gfRowPads: gf };
   }, [innerAlign, pads]);
   // Render the brownfield rows of an expanded layer in the SAME vertical order
   // as their normalize cards — the alignment engine (and the eye) needs both
@@ -755,6 +805,8 @@ function AppBoard({ lens, onLens }: { lens: Lens; onLens: (l: WorkspaceLens) => 
               findingsByMs={findingsByMs}
               normalizationEntries={modelEntries}
               layerPads={pads.gf}
+              rowPads={gfRowPads}
+              rowOrder={innerAlign.gfRowOrder}
               expandedLayers={expandedLayers}
               onToggleLayer={toggleLayer}
             />
