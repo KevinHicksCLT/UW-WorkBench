@@ -83,7 +83,7 @@ function MapCard({
   dimmed,
   tone,
   width,
-  minHeight = 46,
+  height = 64,
 }: {
   children: React.ReactNode;
   onClick?: () => void;
@@ -91,7 +91,8 @@ function MapCard({
   dimmed?: boolean;
   tone?: string;
   width?: number | string;
-  minHeight?: number;
+  /** Fixed height — every box in a row stays the same size. */
+  height?: number;
 }) {
   return (
     <button
@@ -100,7 +101,8 @@ function MapCard({
       disabled={!onClick}
       style={{
         width: width ?? '100%',
-        minHeight,
+        height,
+        overflow: 'hidden',
         boxSizing: 'border-box',
         padding: '7px 10px',
         borderRadius: 10,
@@ -290,7 +292,7 @@ function StageExpansion({
               <MapCard
                 onClick={() => setOpenSub(openSub === sub.id ? null : sub.id)}
                 selected={openSub === sub.id}
-                minHeight={52}
+                height={56}
               >
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%' }}>
                   <NumBadge n={i + 1} />
@@ -302,6 +304,10 @@ function StageExpansion({
                       lineHeight: 1.25,
                       textAlign: 'left',
                       flex: 1,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
                     }}
                   >
                     {sub.name}
@@ -440,7 +446,16 @@ export default function VsStreamBoard({
               return (
                 <MapCard key={slot.key} dimmed>
                   <span
-                    style={{ fontSize: 9.5, fontWeight: 600, color: '#b6c2d1', lineHeight: 1.25 }}
+                    style={{
+                      fontSize: 9.5,
+                      fontWeight: 600,
+                      color: '#b6c2d1',
+                      lineHeight: 1.25,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}
                   >
                     {slot.label}
                   </span>
@@ -468,6 +483,10 @@ export default function VsStreamBoard({
                     fontWeight: 600,
                     color: lane.blank ? '#b6c2d1' : '#171717',
                     lineHeight: 1.25,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
                   }}
                 >
                   {stage.name}
@@ -546,7 +565,16 @@ export default function VsStreamBoard({
                 }
               >
                 <span
-                  style={{ fontSize: 10.5, fontWeight: 600, color: '#14532d', lineHeight: 1.25 }}
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 600,
+                    color: '#14532d',
+                    lineHeight: 1.25,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}
                 >
                   {slot.label}
                 </span>
@@ -620,16 +648,12 @@ export default function VsStreamBoard({
 
   const laneBlocks: React.ReactNode[] = [];
   lanesWithProducts.forEach((lane) => laneBlocks.push(renderLane(lane)));
-  // NEW PROCESS lane between the first flow block and the rest.
-  const firstBlockSize = byProduct ? 1 + segments.length : 1;
+  // NEW PROCESS lane renders LAST — every compared flow above feeds into it.
   if (streamLanes.length > 1) {
-    laneBlocks.splice(
-      firstBlockSize,
-      0,
+    laneBlocks.push(
       <div key="__feed__">
         <FeedArrow direction="down" />
         {renderNewProcessLane()}
-        <FeedArrow direction="up" />
       </div>,
     );
   } else if (streamLanes.length === 1) {
