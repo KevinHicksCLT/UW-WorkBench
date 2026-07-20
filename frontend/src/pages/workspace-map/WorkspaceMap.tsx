@@ -8,6 +8,8 @@ import BrownfieldPanel from './BrownfieldPanel';
 import NormalizeColumn from './NormalizeColumn';
 import GreenfieldColumn from './GreenfieldColumn';
 import ProductBoard from './product/ProductBoard';
+import VsStreamBoard from './spine/VsStreamBoard';
+import RoleCompareBoard from './spine/RoleCompareBoard';
 import BoardErrorBoundary from './BoardErrorBoundary';
 import {
   computeCapabilityAreas,
@@ -123,6 +125,20 @@ export default function WorkspaceMap({ initialDomain }: { initialDomain?: string
   if (window.self !== window.top)
     return <EmptyState message="The Workspace board doesn't render inside screen previews." />;
   if (lens === 'products') return <ProductBoard lens={lens} onLens={setLens} />;
+  // Spine lenses compare the REAL operating-model graph: N value streams or
+  // N roles horizontally, with consolidation computed on the fly.
+  if (lens === 'value-streams')
+    return (
+      <BoardErrorBoundary onReset={() => setBoardKey((k) => k + 1)}>
+        <VsStreamBoard key={boardKey} lens={lens} onLens={setLens} />
+      </BoardErrorBoundary>
+    );
+  if (lens === 'roles')
+    return (
+      <BoardErrorBoundary onReset={() => setBoardKey((k) => k + 1)}>
+        <RoleCompareBoard key={boardKey} lens={lens} onLens={setLens} />
+      </BoardErrorBoundary>
+    );
   return (
     <BoardErrorBoundary onReset={() => setBoardKey((k) => k + 1)}>
       <AppBoard key={boardKey} lens={lens} onLens={setLens} />
